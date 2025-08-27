@@ -587,10 +587,13 @@ def _request_openrouter_chat(
             r.raise_for_status()
             data = r.json()
             
-            # FIX: Safely access the first choice to prevent IndexError if "choices" is an empty list.
+            # Safely access the first choice to prevent IndexError if "choices" is an empty list.
             choices = data.get("choices", [])
-            choice = choices if choices else {}
-            content = choice.get("message", {}).get("content", "")
+            if choices:
+                choice = choices[0]
+                content = choice.get("message", {}).get("content", "")
+            else:
+                content = ""
 
             usage = data.get("usage", {})
             p_tok = SAFE_INT(usage.get("prompt_tokens"), _approx_tokens(json.dumps(messages)))
@@ -685,10 +688,9 @@ def _merge_consensus_sop(base_sop: str, blue_patches: List[dict]) -> Tuple[str, 
     if not scored:
         return base_sop, {"reason": "all_patches_were_empty_or_invalid", "score": -1}
 
-    # FIX: Sort by score, then resolved count, then SOP length. Also, unpack the first element.
-    scored.sort(key=lambda x: (x, x, x), reverse=True)
-
-    best_score, best_resolved, _, best_sop, best_model = scored
+    # Sort by score, then resolved count, then SOP length
+    scored.sort(key=lambda x: (-x[0], -x[1], x[2]))
+    best_score, best_resolved, _, best_sop, best_model = scored[0]
     diagnostics = {"reason": "best_patch_selected", "score": best_score, "resolved": best_resolved, "model": best_model}
     return best_sop, diagnostics
 
@@ -924,7 +926,7 @@ with st.sidebar:
     if st.session_state.model in model_options:
         model_idx = model_options.index(st.session_state.model)
     elif model_options:
-        st.session_state.model = model_options # Default to first in list if previous selection is invalid
+        st.session_state.model = model_options[0]  # Default to first in list if previous selection is invalid
 
     st.selectbox("Model", model_options, index=model_idx, key="model")
     st.text_input("API Key", type="password", key="api_key", help=f"Leave empty to use env var: {PROVIDERS.get(provider, {}).get('env', 'Not specified')}")
@@ -1001,17 +1003,16 @@ def render_adversarial_testing_tab():
             label="Select models to find flaws.", text="Search models...", value=st.session_state.red_team_models,
             suggestions=model_options, key="red_team_select"
         )
-        # FIX: The original code created a list of lists, causing a TypeError.
-        # This now correctly extracts just the model ID string.
-        st.session_state.red_team_models = sorted(list(set([m.split(" (Ctx:") for m in red_team_selected_full])))
+        # Extract just the model ID from the descriptive string
+        st.session_state.red_team_models = sorted(list(set([m.split(" (Ctx:")[0] for m in red_team_selected_full])))
     with col2:
         st.markdown("#### 🔵 Blue Team (Fixers)")
         blue_team_selected_full = st_tags(
             label="Select models to patch flaws.", text="Search models...", value=st.session_state.blue_team_models,
             suggestions=model_options, key="blue_team_select"
         )
-        # FIX: Applied the same correction here for the blue team model selection.
-        st.session_state.blue_team_models = sorted(list(set([m.split(" (Ctx:") for m in blue_team_selected_full])))
+        # Extract just the model ID from the descriptive string
+        st.session_state.blue_team_models = sorted(list(set([m.split(" (Ctx:")[0] for m in blue_team_selected_full])))
 
     st.subheader("Testing Parameters")
     c1, c2, c3, c4 = st.columns(4)
@@ -1133,10 +1134,13 @@ def _request_openai_compatible_chat(
                 continue
             r.raise_for_status()
             data = r.json()
-            # FIX: Safely access the first choice to prevent IndexError or AttributeError.
+            # Safely access the first choice to prevent IndexError or AttributeError.
             choices = data.get("choices", [])
-            choice = choices if choices else {}
-            return choice.get("message", {}).get("content", "")
+            if choices:
+                choice = choices[0]
+                return choice.get("message", {}).get("content", "")
+            else:
+                return ""
         except Exception as e:
             last_err = e
             time.sleep((2 ** attempt) + _rand_jitter_ms())
@@ -1203,6 +1207,7 @@ def run_evolution_internal():
                 time.sleep(2)
 
         log_msg("Evolution finished.")
+        st.session_state.protocol_text = current_protocol  # Update the main protocol text
     except Exception as e:
         import traceback
         tb_str = traceback.format_exc()
@@ -1244,5 +1249,4 @@ with st.session_state.thread_lock:
     protocol_text = st.session_state.evolution_current_best or st.session_state.protocol_text
 
 log_out.code(log_text, language="text")
-# FIX: Added the missing closing parenthesis.
 proto_out.code(protocol_text, language="markdown")
