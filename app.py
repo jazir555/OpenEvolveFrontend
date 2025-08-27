@@ -975,6 +975,19 @@ with tab1:
         st.subheader("🔍 Logs")
         log_out = st.empty()
 
+    # Display the current state from the session state
+    with st.session_state.thread_lock:
+        current_log = "\n".join(st.session_state.evolution_log)
+        current_protocol = st.session_state.evolution_current_best or st.session_state.protocol_text
+
+    log_out.code(current_log, language="text")
+    proto_out.code(current_protocol, language="markdown")
+
+    # If evolution is running, sleep for 1 second and then rerun to update the UI
+    if st.session_state.evolution_running:
+        time.sleep(1)
+        st.rerun()
+
 def render_adversarial_testing_tab():
     st.header("🔴🔵 Adversarial Testing with Multi-LLM Consensus")
     st.subheader("OpenRouter Configuration")
@@ -1227,26 +1240,3 @@ if run_button:
         st.rerun()
     else:
         st.warning("Please paste a protocol before starting evolution.")
-
-# ------------------------------------------------------------------
-# 9. Live output rendering for both tabs
-# ------------------------------------------------------------------
-
-# This logic handles live updates for the Evolution tab
-if st.session_state.evolution_running:
-    # Use a loop with a short sleep to periodically refresh the UI
-    while st.session_state.evolution_running:
-        with st.session_state.thread_lock:
-            log_out.code("\n".join(st.session_state.evolution_log), language="text")
-            proto_out.code(st.session_state.evolution_current_best, language="markdown")
-        time.sleep(1)
-    # Final render after the loop exits to ensure the last state is shown
-    st.rerun()
-
-# Default render when not running
-with st.session_state.thread_lock:
-    log_text = "\n".join(st.session_state.evolution_log)
-    protocol_text = st.session_state.evolution_current_best or st.session_state.protocol_text
-
-log_out.code(log_text, language="text")
-proto_out.code(protocol_text, language="markdown")
