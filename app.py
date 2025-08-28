@@ -1,4 +1,3 @@
-import functools
 import itertools
 import json
 import math
@@ -141,7 +140,6 @@ def _cost_estimate(prompt_toks: int, completion_toks: int, ppm_prompt: Optional[
 # 1. Generic helper – fetch model lists with tiny caching layer
 # ------------------------------------------------------------------
 
-@functools.lru_cache(maxsize=128)
 def _cached_get(url: str, bearer: str | None = None, timeout: int = 10) -> dict | list:
     headers = {}
     if bearer:
@@ -1079,7 +1077,7 @@ def render_adversarial_testing_tab():
     # Live metrics and results display
     st.markdown("---")
     if st.session_state.adversarial_running:
-        st.status(st.session_state.adversarial_status_message, expanded=True)
+        st.info(st.session_state.adversarial_status_message)
 
     lc1, lc2, lc3 = st.columns(3)
     lc1.metric("Estimated Cost (USD)", f"${st.session_state.adversarial_cost_estimate_usd:,.4f}")
@@ -1110,6 +1108,11 @@ def render_adversarial_testing_tab():
                 ac = iteration.get("approval_check", {})
                 st.write(f"Approval: **{ac.get('approval_rate', 0):.1f}%** | Avg Score: **{ac.get('avg_score', 0):.1f}**")
                 st.json({"critiques": iteration.get("critiques",[]), "patches": iteration.get("patches",[])})
+
+    # Rerun to update UI if testing is running
+    if st.session_state.adversarial_running:
+        time.sleep(1)
+        st.rerun()
 
 with tab2:
     render_adversarial_testing_tab()
