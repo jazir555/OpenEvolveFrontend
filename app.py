@@ -1,23 +1,59 @@
-import itertools
+"""
+OpenEvolve Protocol Improver - A Streamlit application for protocol improvement using LLMs.
+
+This module provides a comprehensive interface for improving protocols and standard operating
+procedures (SOPs) through two main approaches:
+
+1. Evolution-based Improvement: Uses a single LLM provider to iteratively refine protocols
+2. Adversarial Testing: Employs multiple LLM providers in a red team/blue team approach
+   to identify vulnerabilities and generate hardened protocols
+
+Key Features:
+- Support for 34+ LLM providers including OpenAI, Anthropic, Google Gemini, and more
+- Real-time protocol evaluation and improvement
+- Cost estimation and token tracking
+- Thread-safe operations for concurrent model evaluation
+- Comprehensive logging and result visualization
+
+The application uses Streamlit for the web interface and provides both single-provider
+evolution and multi-provider adversarial testing capabilities.
+"""
+
+import functools
 import json
 import math
 import os
 import random
 import re
-import shutil
-import subprocess
-import tempfile
 import threading
 import time
-import uuid
+import traceback
 import hashlib
-from pathlib import Path
-from typing import Callable, List, Dict, Any, Optional, Tuple
+from typing import List, Dict, Any, Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import requests
-import streamlit as st
-from streamlit_tags import st_tags
+try:
+    import streamlit as st
+except ImportError:
+    print("streamlit package not found. Please install it with 'pip install streamlit'")
+    st = None
+
+try:
+    import requests
+except ImportError:
+    if st is not None:
+        st.error("requests package not found. Please install it with 'pip install requests'")
+    else:
+        print("requests package not found. Please install it with 'pip install requests'")
+    requests = None
+
+# Graceful fallback for streamlit_tags
+try:
+    from streamlit_tags import st_tags
+    HAS_STREAMLIT_TAGS = True
+except ImportError:
+    HAS_STREAMLIT_TAGS = False
+    st.error("streamlit_tags package not found. Please install it with 'pip install streamlit-tags' for full functionality.")
 
 # ------------------------------------------------------------------
 # 0. Streamlit page config
@@ -35,8 +71,11 @@ st.set_page_config(
 
 JSON_RE = re.compile(r"\{[\s\S]*\}")
 FENCE_RE = re.compile(r"```(?:json)?\s*(\{[\s\S]*?\})\s*```", re.IGNORECASE)
-SAFE_INT = lambda x, d=0: d if x is None or not isinstance(x, (int, float, str)) or str(x) == '' else int(float(x))
-SAFE_FLOAT = lambda x, d=0.0: d if x is None or not isinstance(x, (int, float, str)) or str(x) == '' else float(x)
+def safe_int(x, d=0):
+    return d if x is None or not isinstance(x, (int, float, str)) or str(x) == '' else int(float(x))
+
+def safe_float(x, d=0.0):
+    return d if x is None or not isinstance(x, (int, float, str)) or str(x) == '' else float(x)
 
 # Define adversarial prompts as constants for clarity and maintainability.
 APPROVAL_PROMPT = (
@@ -75,19 +114,57 @@ BLUE_TEAM_PATCH_PROMPT = (
 # ------------------------------------------------------------------
 
 def _now_ms() -> int:
+    """Get current time in milliseconds since epoch.
+    
+    Returns:
+        int: Current timestamp in milliseconds
+    """
     return int(time.time() * 1000)
 
 def _rand_jitter_ms(base: int = 250, spread: int = 500) -> float:
+    """Generate random jitter time in seconds for retry backoff.
+    
+    Args:
+        base: Base milliseconds value
+        spread: Random spread in milliseconds
+        
+    Returns:
+        float: Random jitter time in seconds
+    """
     return (base + random.randint(0, spread)) / 1000.0
 
 def _hash_text(s: str) -> str:
+    """Generate a short hash of text for comparison purposes.
+    
+    Args:
+        s: Text to hash
+        
+    Returns:
+        str: First 16 characters of SHA256 hash
+    """
     return hashlib.sha256(s.encode("utf-8")).hexdigest()[:16]
 
 def _approx_tokens(txt: str) -> int:
+    """Approximate token count using character length.
+    
+    Args:
+        txt: Text to estimate tokens for
+        
+    Returns:
+        int: Estimated token count (minimum 1)
+    """
     # A conservative approximation: 1 token ~ 4 chars in English. Clamp to a minimum of 1.
     return max(1, math.ceil(len(txt) / 4))
 
 def _safe_json_loads(s: str) -> Optional[dict]:
+    """Safely parse JSON string, returning None on failure.
+    
+    Args:
+        s: JSON string to parse
+        
+    Returns:
+        Optional[dict]: Parsed JSON object or None if invalid
+    """
     if not isinstance(s, str):
         return None
     try:
@@ -96,6 +173,14 @@ def _safe_json_loads(s: str) -> Optional[dict]:
         return None
 
 def _extract_json_block(txt: str) -> Optional[dict]:
+    """Extract JSON object from text, handling fenced code blocks.
+    
+    Args:
+        txt: Text containing potential JSON
+        
+    Returns:
+        Optional[dict]: Extracted JSON object or None if not found
+    """
     if not txt or not isinstance(txt, str):
         return None
     # Try to find a JSON block fenced with ```json
@@ -140,6 +225,7 @@ def _cost_estimate(prompt_toks: int, completion_toks: int, ppm_prompt: Optional[
 # 1. Generic helper – fetch model lists with tiny caching layer
 # ------------------------------------------------------------------
 
+@functools.lru_cache(maxsize=128)
 def _cached_get(url: str, bearer: str | None = None, timeout: int = 10) -> dict | list:
     headers = {}
     if bearer:
@@ -155,17 +241,23 @@ def _cached_get(url: str, bearer: str | None = None, timeout: int = 10) -> dict 
 def _openai_style_loader(url: str, api_key: str | None = None) -> List[str]:
     try:
         data = _cached_get(url, bearer=api_key)
-        # Handle cases where data is a list (e.g., Together) or a dict with a 'data' key (e.g., OpenAI)
+        # Handle cases where data is a list (e.g., Together) or a dict with a 'data' key
+        # (e.g., OpenAI)
         models_list = data if isinstance(data, list) else data.get("data", [])
-        return sorted([m["id"] for m in models_list if isinstance(m, dict) and "id" in m])
-    except Exception:
+        return sorted([m["id"] for m in models_list
+                      if isinstance(m, dict) and "id" in m])
+    except Exception as e:
+        st.error(f"Error fetching models from {url}: {e}")
         return []
 
 def _together_loader(api_key: str | None = None) -> List[str]:
     try:
         data = _cached_get("https://api.together.xyz/v1/models", bearer=api_key)
-        return sorted([m["id"] for m in data if isinstance(m, dict) and m.get("display_type") != "image" and "id" in m])
-    except Exception:
+        return sorted([m["id"] for m in data
+                      if isinstance(m, dict) and m.get("display_type") != "image"
+                      and "id" in m])
+    except Exception as e:
+        st.error(f"Error fetching Together AI models: {e}")
         return []
 
 def _fireworks_loader(api_key: str | None = None) -> List[str]:
@@ -186,9 +278,12 @@ def _baichuan_loader(api_key: str | None = None) -> List[str]:
 def _zhipu_loader(api_key: str | None = None) -> List[str]:
     # Zhipu's API might return models without an 'id', so we filter defensively
     try:
-        data = _cached_get("https://open.bigmodel.cn/api/paas/v4/models", bearer=api_key)
-        return sorted([m["id"] for m in data.get("data", []) if isinstance(m, dict) and "id" in m])
-    except Exception:
+        data = _cached_get("https://open.bigmodel.cn/api/paas/v4/models",
+                          bearer=api_key)
+        return sorted([m["id"] for m in data.get("data", [])
+                      if isinstance(m, dict) and "id" in m])
+    except Exception as e:
+        st.error(f"Error fetching Zhipu AI models: {e}")
         return []
 
 def _minimax_loader(api_key: str | None = None) -> List[str]:
@@ -434,8 +529,12 @@ PROVIDERS: dict[str, dict] = {
 # ------------------------------------------------------------------
 
 # Thread lock for safely updating shared session state from background threads.
+# Use a lock to ensure thread-safe initialization of the session state lock
 if "thread_lock" not in st.session_state:
-    st.session_state.thread_lock = threading.Lock()
+    with threading.Lock():
+        # Double-checked locking pattern to ensure thread safety
+        if "thread_lock" not in st.session_state:
+            st.session_state.thread_lock = threading.Lock()
 
 DEFAULTS = {
     "provider": "OpenAI",
@@ -502,10 +601,11 @@ def reset_defaults():
 # ------------------------------------------------------------------
 
 MODEL_META_BY_ID: Dict[str, Dict[str, Any]] = {}
+MODEL_META_LOCK = threading.Lock()
 
 @st.cache_data(ttl=600)
 def get_openrouter_models(api_key: str) -> List[Dict]:
-    """Fetch available models from OpenRouter (cached) and populate the global metadata map."""
+    """Fetch available models from OpenRouter (cached)."""
     if not api_key:
         return []
     try:
@@ -517,11 +617,6 @@ def get_openrouter_models(api_key: str) -> List[Dict]:
         response.raise_for_status()
         data = response.json()
         models = data.get("data", []) if isinstance(data, dict) else []
-        # Update the global metadata map. This is safe because Streamlit's @st.cache_data
-        # ensures this function's body runs only once for a given input within the TTL.
-        for m in models:
-            if isinstance(m, dict) and (mid := m.get("id")):
-                MODEL_META_BY_ID[mid] = m
         return models
     except Exception as e:
         st.warning(f"Could not fetch OpenRouter models: {e}")
@@ -577,6 +672,10 @@ def _request_openrouter_chat(
     for attempt in range(max_retries):
         try:
             r = requests.post(url, headers=headers, json=payload, timeout=req_timeout)
+            if r.status_code == 400:
+                # HTTP 400 Bad Request - client error, don't retry
+                last_err = Exception(f"HTTP 400 Bad Request: {r.text[:200]}...")
+                break  # Break out of retry loop for client errors
             if r.status_code in {429, 500, 502, 503, 504}:
                 sleep_s = (2 ** attempt) + _rand_jitter_ms()
                 time.sleep(sleep_s)
@@ -594,10 +693,11 @@ def _request_openrouter_chat(
                 content = ""
 
             usage = data.get("usage", {})
-            p_tok = SAFE_INT(usage.get("prompt_tokens"), _approx_tokens(json.dumps(messages)))
-            c_tok = SAFE_INT(usage.get("completion_tokens"), _approx_tokens(content or ""))
+            p_tok = safe_int(usage.get("prompt_tokens"), _approx_tokens(json.dumps(messages)))
+            c_tok = safe_int(usage.get("completion_tokens"), _approx_tokens(content or ""))
 
-            meta = MODEL_META_BY_ID.get(model_id, {})
+            with MODEL_META_LOCK:
+                meta = MODEL_META_BY_ID.get(model_id, {})
             pricing = meta.get("pricing", {})
             ppm_prompt = _parse_price_per_million(pricing.get("prompt"))
             ppm_comp = _parse_price_per_million(pricing.get("completion"))
@@ -623,12 +723,13 @@ def analyze_with_model(
     Analyzes an SOP with a specific model, handling context limits and returning structured results.
     """
     try:
-        max_tokens = SAFE_INT(config.get("max_tokens"), 8000)
+        max_tokens = safe_int(config.get("max_tokens"), 8000)
         user_prompt = f"Here is the Standard Operating Procedure (SOP):\n\n---\n\n{sop}\n\n---\n\n{user_suffix}"
         full_prompt_text = system_prompt + user_prompt
 
-        meta = MODEL_META_BY_ID.get(model_id, {})
-        context_len = SAFE_INT(meta.get("context_length"), 8192)
+        with MODEL_META_LOCK:
+            meta = MODEL_META_BY_ID.get(model_id, {})
+        context_len = safe_int(meta.get("context_length"), 8192)
         prompt_toks_est = _approx_tokens(full_prompt_text)
 
         if prompt_toks_est + max_tokens >= context_len:
@@ -639,10 +740,10 @@ def analyze_with_model(
         content, p_tok, c_tok, cost = _request_openrouter_chat(
             api_key=api_key, model_id=model_id,
             messages=_compose_messages(system_prompt, user_prompt),
-            temperature=SAFE_FLOAT(config.get("temperature"), 0.7),
-            top_p=SAFE_FLOAT(config.get("top_p"), 1.0),
-            frequency_penalty=SAFE_FLOAT(config.get("frequency_penalty"), 0.0),
-            presence_penalty=SAFE_FLOAT(config.get("presence_penalty"), 0.0),
+            temperature=safe_float(config.get("temperature"), 0.7),
+            top_p=safe_float(config.get("top_p"), 1.0),
+            frequency_penalty=safe_float(config.get("frequency_penalty"), 0.0),
+            presence_penalty=safe_float(config.get("presence_penalty"), 0.0),
             max_tokens=max_tokens, force_json=force_json, seed=seed,
         )
         json_content = _extract_json_block(content)
@@ -758,7 +859,7 @@ def check_approval_rate(
             if res.get("ok") and res.get("json"):
                 j = res["json"]
                 verdict = str(j.get("verdict", "REJECTED")).upper()
-                score = _clamp(SAFE_INT(j.get("score"), 0), 0, 100)
+                score = _clamp(safe_int(j.get("score"), 0), 0, 100)
                 if verdict == "APPROVED":
                     approved += 1
                 scores.append(score)
@@ -783,7 +884,12 @@ def run_adversarial_testing():
         json_mode = st.session_state.adversarial_force_json
         max_workers = st.session_state.adversarial_max_workers
         seed_str = str(st.session_state.adversarial_seed or "").strip()
-        seed = int(seed_str) if seed_str.isdigit() else None
+        seed = None
+        if seed_str:
+            try:
+                seed = int(float(seed_str))  # Handle floats by truncating to int
+            except (ValueError, TypeError):
+                pass  # Invalid input, keep seed as None
 
         with st.session_state.thread_lock:
             st.session_state.adversarial_log = []
@@ -808,7 +914,9 @@ def run_adversarial_testing():
             # --- RED TEAM: CRITIQUES ---
             critiques_raw = []
             with ThreadPoolExecutor(max_workers=max_workers) as ex:
-                futures = {ex.submit(analyze_with_model, api_key, m, current_sop, model_configs.get(m,{}), RED_TEAM_CRITIQUE_PROMPT, force_json=json_mode, seed=seed): m for m in red_team}
+                futures = {ex.submit(analyze_with_model, api_key, m, current_sop,
+                                    model_configs.get(m,{}), RED_TEAM_CRITIQUE_PROMPT,
+                                    force_json=json_mode, seed=seed): m for m in red_team}
                 for fut in as_completed(futures):
                     res = fut.result()
                     _update_adv_counters(res['ptoks'], res['ctoks'], res['cost'])
@@ -828,7 +936,10 @@ def run_adversarial_testing():
             critique_block = json.dumps({"critiques": valid_critiques_json}, ensure_ascii=False, indent=2)
 
             with ThreadPoolExecutor(max_workers=max_workers) as ex:
-                futures = {ex.submit(analyze_with_model, api_key, m, current_sop, model_configs.get(m,{}), BLUE_TEAM_PATCH_PROMPT, user_suffix="\n\nCRITIQUES TO ADDRESS:\n" + critique_block, force_json=True, seed=seed): m for m in blue_team}
+                futures = {ex.submit(analyze_with_model, api_key, m, current_sop,
+                                    model_configs.get(m,{}), BLUE_TEAM_PATCH_PROMPT,
+                                    user_suffix="\n\nCRITIQUES TO ADDRESS:\n" + critique_block,
+                                    force_json=True, seed=seed): m for m in blue_team}
                 for fut in as_completed(futures):
                     res = fut.result()
                     _update_adv_counters(res['ptoks'], res['ctoks'], res['cost'])
@@ -879,7 +990,6 @@ def run_adversarial_testing():
 
     except Exception as e:
         # --- Global Error Handler ---
-        import traceback
         tb_str = traceback.format_exc()
         error_message = f"💥 A critical error occurred: {e}\n{tb_str}"
         _update_adv_log_and_status(error_message)
@@ -888,6 +998,8 @@ def run_adversarial_testing():
             if 'adversarial_results' not in st.session_state or not st.session_state.adversarial_results:
                 st.session_state.adversarial_results = {}
             st.session_state.adversarial_results["critical_error"] = error_message
+            # Ensure error is visible in UI by storing a simplified message
+            st.session_state.adversarial_status_message = f"Error: {str(e)[:100]}..."
 
 
 # ------------------------------------------------------------------
@@ -927,7 +1039,8 @@ with st.sidebar:
         st.session_state.model = model_options[0]  # Default to first in list if previous selection is invalid
 
     st.selectbox("Model", model_options, index=model_idx, key="model")
-    st.text_input("API Key", type="password", key="api_key", help=f"Leave empty to use env var: {PROVIDERS.get(provider, {}).get('env', 'Not specified')}")
+    st.text_input("API Key", type="password", key="api_key",
+                 help=f"Leave empty to use env var: {PROVIDERS.get(provider, {}).get('env', 'Not specified')}")
     st.text_input("Base URL", key="base_url", help="Endpoint for chat/completions.")
     st.number_input("Max tokens", min_value=1, max_value=128_000, step=1, key="max_tokens")
     st.slider("Temperature", 0.0, 2.0, key="temperature")
@@ -995,6 +1108,11 @@ def render_adversarial_testing_tab():
         return
 
     models = get_openrouter_models(openrouter_key)
+    # Update global model metadata with thread safety
+    for m in models:
+        if isinstance(m, dict) and (mid := m.get("id")):
+            with MODEL_META_LOCK:
+                MODEL_META_BY_ID[mid] = m
     if not models:
         st.error("No models fetched. Check your OpenRouter key and connection.")
         return
@@ -1010,20 +1128,50 @@ def render_adversarial_testing_tab():
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("#### 🔴 Red Team (Critics)")
-        red_team_selected_full = st_tags(
-            label="Select models to find flaws.", text="Search models...", value=st.session_state.red_team_models,
-            suggestions=model_options, key="red_team_select"
-        )
-        # Extract just the model ID from the descriptive string
-        st.session_state.red_team_models = sorted(list(set([m.split(" (Ctx:")[0] for m in red_team_selected_full])))
+        if HAS_STREAMLIT_TAGS:
+            red_team_selected_full = st_tags(
+                label="Select models to find flaws.", text="Search models...", value=st.session_state.red_team_models,
+                suggestions=model_options, key="red_team_select"
+            )
+            # Robust model ID extraction from descriptive string
+            red_team_models = []
+            for m in red_team_selected_full:
+                # Extract model ID by splitting on first occurrence of " (" or using entire string
+                # if not found
+                if " (" in m:
+                    model_id = m.split(" (")[0].strip()
+                else:
+                    model_id = m.strip()
+                if model_id:
+                    red_team_models.append(model_id)
+            st.session_state.red_team_models = sorted(list(set(red_team_models)))
+        else:
+            st.warning("streamlit_tags not available. Using text input for model selection.")
+            red_team_input = st.text_input("Enter Red Team models (comma-separated):", value=",".join(st.session_state.red_team_models))
+            st.session_state.red_team_models = sorted(list(set([model.strip() for model in red_team_input.split(",") if model.strip()])))
     with col2:
         st.markdown("#### 🔵 Blue Team (Fixers)")
-        blue_team_selected_full = st_tags(
-            label="Select models to patch flaws.", text="Search models...", value=st.session_state.blue_team_models,
-            suggestions=model_options, key="blue_team_select"
-        )
-        # Extract just the model ID from the descriptive string
-        st.session_state.blue_team_models = sorted(list(set([m.split(" (Ctx:")[0] for m in blue_team_selected_full])))
+        if HAS_STREAMLIT_TAGS:
+            blue_team_selected_full = st_tags(
+                label="Select models to patch flaws.", text="Search models...", value=st.session_state.blue_team_models,
+                suggestions=model_options, key="blue_team_select"
+            )
+            # Robust model ID extraction from descriptive string
+            blue_team_models = []
+            for m in blue_team_selected_full:
+                # Extract model ID by splitting on first occurrence of " (" or using entire string
+                # if not found
+                if " (" in m:
+                    model_id = m.split(" (")[0].strip()
+                else:
+                    model_id = m.strip()
+                if model_id:
+                    blue_team_models.append(model_id)
+            st.session_state.blue_team_models = sorted(list(set(blue_team_models)))
+        else:
+            st.warning("streamlit_tags not available. Using text input for model selection.")
+            blue_team_input = st.text_input("Enter Blue Team models (comma-separated):", value=",".join(st.session_state.blue_team_models))
+            st.session_state.blue_team_models = sorted(list(set([model.strip() for model in blue_team_input.split(",") if model.strip()])))
 
     st.subheader("Testing Parameters")
     c1, c2, c3, c4 = st.columns(4)
@@ -1060,7 +1208,7 @@ def render_adversarial_testing_tab():
         else:
             st.session_state.adversarial_running = True
             threading.Thread(target=run_adversarial_testing, daemon=True).start()
-            st.rerun()
+            # Removed unnecessary rerun - the UI will update automatically through session state changes
 
     if b2.button("⏹️ Stop Testing", use_container_width=True, disabled=not st.session_state.adversarial_running):
         st.session_state.adversarial_stop_flag = True
@@ -1072,12 +1220,12 @@ def render_adversarial_testing_tab():
         st.session_state.adversarial_cost_estimate_usd = 0.0
         st.session_state.adversarial_total_tokens_prompt = 0
         st.session_state.adversarial_total_tokens_completion = 0
-        st.rerun()
+        # Removed unnecessary rerun - the UI will update automatically through session state changes
 
     # Live metrics and results display
     st.markdown("---")
     if st.session_state.adversarial_running:
-        st.info(st.session_state.adversarial_status_message)
+        st.status(st.session_state.adversarial_status_message, expanded=True)
 
     lc1, lc2, lc3 = st.columns(3)
     lc1.metric("Estimated Cost (USD)", f"${st.session_state.adversarial_cost_estimate_usd:,.4f}")
@@ -1109,11 +1257,6 @@ def render_adversarial_testing_tab():
                 st.write(f"Approval: **{ac.get('approval_rate', 0):.1f}%** | Avg Score: **{ac.get('avg_score', 0):.1f}**")
                 st.json({"critiques": iteration.get("critiques",[]), "patches": iteration.get("patches",[])})
 
-    # Rerun to update UI if testing is running
-    if st.session_state.adversarial_running:
-        time.sleep(1)
-        st.rerun()
-
 with tab2:
     render_adversarial_testing_tab()
 
@@ -1124,8 +1267,18 @@ with tab2:
 def _request_openai_compatible_chat(
     api_key: str, base_url: str, model: str, messages: List, extra_headers: Dict,
     temperature: float, top_p: float, frequency_penalty: float, presence_penalty: float,
-    max_tokens: int, seed: Optional[int], req_timeout: int = 60, max_retries: int = 5
+    max_tokens: int, seed: Optional[int], req_timeout: int = 60, max_retries: int = 5,
+    provider: str = "OpenAI"
 ) -> str:
+    # Define providers with non-OpenAI compatible APIs that are not supported
+    UNSUPPORTED_PROVIDERS = {
+        "Anthropic", "Google (Gemini)", "Cohere", "Replicate", "AI21", "AlephAlpha",
+        "Bedrock-Claude", "Bedrock-Titan", "Bedrock-Cohere", "Bedrock-Jurassic", "Bedrock-Llama",
+        "HuggingFace", "Cloudflare", "VertexAI", "Databricks", "SageMaker"
+    }
+    
+    if provider in UNSUPPORTED_PROVIDERS:
+        raise RuntimeError(f"Provider '{provider}' uses a non-OpenAI compatible API and is not supported in the Evolution tab. Please use an OpenAI-compatible provider like OpenAI, Azure-OpenAI, Mistral, etc.")
     url = base_url.rstrip('/') + "/chat/completions"
     headers = {"Content-Type": "application/json", **extra_headers}
     if api_key: headers["Authorization"] = f"Bearer {api_key}"
@@ -1134,7 +1287,7 @@ def _request_openai_compatible_chat(
         "model": model, "messages": messages, "temperature": temperature, "max_tokens": max_tokens,
         "top_p": top_p, "frequency_penalty": frequency_penalty, "presence_penalty": presence_penalty,
     }
-    if PROVIDERS.get(st.session_state.provider, {}).get("omit_model_in_payload"):
+    if PROVIDERS.get(provider, {}).get("omit_model_in_payload"):
         payload.pop("model", None)
     if seed is not None:
         payload["seed"] = int(seed)
@@ -1143,23 +1296,66 @@ def _request_openai_compatible_chat(
     for attempt in range(max_retries):
         try:
             r = requests.post(url, headers=headers, json=payload, timeout=req_timeout)
+            
+            # Handle rate limiting and server errors with retry
             if r.status_code in {429, 500, 502, 503, 504}:
                 sleep_s = (2 ** attempt) + _rand_jitter_ms()
                 time.sleep(sleep_s)
-                last_err = Exception(f"Transient {r.status_code}")
+                last_err = Exception(f"HTTP {r.status_code}: {r.text}")
                 continue
+                
             r.raise_for_status()
-            data = r.json()
-            # Safely access the first choice to prevent IndexError or AttributeError.
+            
+            # Handle non-JSON responses
+            try:
+                data = r.json()
+            except json.JSONDecodeError as e:
+                last_err = Exception(f"Invalid JSON response: {e} - Response: {r.text[:200]}...")
+                time.sleep((2 ** attempt) + _rand_jitter_ms())
+                continue
+                
+            # Safely access the response structure
+            if not isinstance(data, dict):
+                last_err = Exception(f"Unexpected response format: {type(data)} - Response: {data}")
+                time.sleep((2 ** attempt) + _rand_jitter_ms())
+                continue
+                
+            # Handle API-specific error formats
+            if "error" in data:
+                error_msg = data["error"]
+                if isinstance(error_msg, dict):
+                    error_msg = error_msg.get("message", str(error_msg))
+                last_err = Exception(f"API error: {error_msg}")
+                time.sleep((2 ** attempt) + _rand_jitter_ms())
+                continue
+                
             choices = data.get("choices", [])
             if choices:
                 choice = choices[0]
-                return choice.get("message", {}).get("content", "")
+                content = choice.get("message", {}).get("content", "")
+                if content is not None:
+                    return content
+                else:
+                    last_err = Exception("Empty content in response choice")
             else:
-                return ""
+                last_err = Exception("No choices in response")
+                
+            # If we get here, there was an issue with the response structure
+            time.sleep((2 ** attempt) + _rand_jitter_ms())
+                
+        except requests.exceptions.ConnectionError as e:
+            last_err = Exception(f"Connection error: {e}")
+            time.sleep((2 ** attempt) + _rand_jitter_ms())
+        except requests.exceptions.Timeout as e:
+            last_err = Exception(f"Request timeout: {e}")
+            time.sleep((2 ** attempt) + _rand_jitter_ms())
+        except requests.exceptions.RequestException as e:
+            last_err = Exception(f"Request failed: {e}")
+            time.sleep((2 ** attempt) + _rand_jitter_ms())
         except Exception as e:
             last_err = e
             time.sleep((2 ** attempt) + _rand_jitter_ms())
+            
     raise RuntimeError(f"Request failed after {max_retries} attempts for model {model}: {last_err}")
 
 def run_evolution_internal():
@@ -1178,12 +1374,17 @@ def run_evolution_internal():
         try:
             extra_hdrs = json.loads(st.session_state.extra_headers or "{}")
             if not isinstance(extra_hdrs, dict): raise json.JSONDecodeError("JSON is not a dictionary.", "", 0)
-        except json.JSONDecodeError:
+        except (ValueError, TypeError):
             log_msg("⚠️ Invalid Extra Headers JSON. Must be a dictionary. Using empty dict.")
             extra_hdrs = {}
 
         seed_str = str(st.session_state.seed or "").strip()
-        seed = int(seed_str) if seed_str.isdigit() else None
+        seed = None
+        if seed_str:
+            try:
+                seed = int(float(seed_str))  # Handle floats by truncating to int
+            except (ValueError, TypeError):
+                pass  # Invalid input, keep seed as None
 
         api_key_to_use = st.session_state.api_key
         provider_info = PROVIDERS.get(st.session_state.provider, {})
@@ -1194,6 +1395,8 @@ def run_evolution_internal():
         if not api_key_to_use and provider_info.get("env"):
              log_msg(f"⚠️ No API key provided in UI or in env var {provider_info.get('env')}. Requests may fail.")
 
+        consecutive_failures = 0
+        max_consecutive_failures = 3  # Stop after 3 consecutive failures
         for i in range(st.session_state.max_iterations):
             if st.session_state.evolution_stop_flag:
                 log_msg("Evolution stopped by user.")
@@ -1209,18 +1412,27 @@ def run_evolution_internal():
                     messages=messages, extra_headers=extra_hdrs, temperature=st.session_state.temperature,
                     top_p=st.session_state.top_p, frequency_penalty=st.session_state.frequency_penalty,
                     presence_penalty=st.session_state.presence_penalty, max_tokens=st.session_state.max_tokens, seed=seed,
+                    provider=st.session_state.provider
                 )
                 if improved_protocol and len(improved_protocol.strip()) > len(current_protocol) * 0.7:
                     log_msg(f"✅ Iteration {i+1} successful. Length: {len(improved_protocol.strip())}")
                     current_protocol = improved_protocol.strip()
                     st.session_state.evolution_current_best = current_protocol
+                    consecutive_failures = 0  # Reset failure counter on success
                 else:
                     log_msg(f"⚠️ Iteration {i+1} result rejected (too short or empty). Length: {len(improved_protocol.strip() if improved_protocol else '')}")
+                    consecutive_failures += 1
                 if (i + 1) % st.session_state.checkpoint_interval == 0:
                     log_msg(f"💾 Checkpoint at iteration {i+1}.")
             except Exception as e:
                 log_msg(f"❌ ERROR in iteration {i+1}: {e}")
+                consecutive_failures += 1
                 time.sleep(2)
+            
+            # Stop if too many consecutive failures
+            if consecutive_failures >= max_consecutive_failures:
+                log_msg(f"🛑 Stopping evolution due to {consecutive_failures} consecutive failures.")
+                break
 
         log_msg("Evolution finished.")
         st.session_state.protocol_text = current_protocol  # Update the main protocol text
@@ -1238,8 +1450,12 @@ if stop_button:
 
 if run_button:
     if st.session_state.protocol_text.strip():
-        st.session_state.evolution_running = True
-        threading.Thread(target=run_evolution_internal, daemon=True).start()
-        st.rerun()
+        # Thread safety check to prevent multiple concurrent evolution threads
+        if st.session_state.evolution_running:
+            st.warning("Evolution is already running. Please wait for it to complete or stop it first.")
+        else:
+            st.session_state.evolution_running = True
+            threading.Thread(target=run_evolution_internal, daemon=True).start()
+            st.rerun()
     else:
         st.warning("Please paste a protocol before starting evolution.")
