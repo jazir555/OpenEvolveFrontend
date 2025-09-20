@@ -1,5 +1,4 @@
-"""
-OpenEvolve Protocol Improver - A Streamlit application for protocol improvement using LLMs.
+"OpenEvolve Protocol Improver - A Streamlit application for protocol improvement using LLMs.
 
 This module provides a comprehensive interface for improving protocols and standard operating
 procedures (SOPs) through two main approaches:
@@ -17,7 +16,7 @@ Key Features:
 
 The application uses Streamlit for the web interface and provides both single-provider
 evolution and multi-provider adversarial testing capabilities.
-"""
+"
 
 import functools
 import json
@@ -54,6 +53,18 @@ try:
 except ImportError:
     HAS_STREAMLIT_TAGS = False
     st.error("streamlit_tags package not found. Please install it with 'pip install streamlit-tags' for full functionality.")
+
+try:
+    from fpdf import FPDF
+    HAS_FPDF = True
+except ImportError:
+    HAS_FPDF = False
+
+try:
+    import docx
+    HAS_DOCX = True
+except ImportError:
+    HAS_DOCX = False
 
 # ------------------------------------------------------------------
 # 0. Streamlit page config
@@ -93,10 +104,9 @@ RED_TEAM_CRITIQUE_PROMPT = (
     "You are an uncompromising red-team security auditor. Your goal is to find every possible flaw in the provided SOP. "
     "Analyze it for vulnerabilities, logical gaps, ambiguities, edge cases, undefined responsibilities, missing "
     "preconditions, unsafe defaults, and potential paths for abuse or malicious exploitation. "
+    "Also, check for compliance with the following requirements:\n{compliance_requirements}\n"
     "Return a single, STRICT JSON object and nothing else with the following structure:\n"
-    '{"issues": [{"title": "...", "severity": "low|medium|high|critical", "category": "...", "detail": "...", '
-    '"reproduction": "...", "exploit_paths": ["..."], "mitigations": ["..."]}], '
-    '"summary": "...", "overall_risk": "low|medium|high|critical"}'
+    '{"issues": [{"title": "...", "severity": "low|medium|high|critical", "category": "...", "detail": "...", '"reproduction": "...", "exploit_paths": ["..."], "mitigations": ["..."]}], '"summary": "...", "overall_risk": "low|medium|high|critical"}'
 )
 
 BLUE_TEAM_PATCH_PROMPT = (
@@ -105,8 +115,7 @@ BLUE_TEAM_PATCH_PROMPT = (
     "explicit, verifiable, and enforce the principle of least privilege. Add preconditions, acceptance tests, rollback "
     "steps, monitoring, auditability, and incident response procedures where applicable. "
     "Return a single, STRICT JSON object and nothing else with the following keys:\n"
-    '{"sop": "<the complete improved SOP in Markdown>", "changelog": ["..."], "residual_risks": ["..."], '
-    '"mitigation_matrix": [{"issue": "...", "fix": "...", "status": "resolved|mitigated|wontfix"}]}'
+    '{"sop": "<the complete improved SOP in Markdown>", "changelog": ["..."], "residual_risks": ["..."], '"mitigation_matrix": [{"issue": "...", "fix": "...", "status": "resolved|mitigated|wontfix"}]}'
 )
 
 # ------------------------------------------------------------------
@@ -587,6 +596,7 @@ DEFAULTS = {
     "adversarial_model_performance": {},
     "adversarial_confidence_history": [],
     "adversarial_staged_rotation_config": "",
+    "compliance_requirements": "",
 }
 
 for k, v in DEFAULTS.items():
@@ -868,7 +878,6 @@ def _request_cohere_chat(
 
 
 
-
 def analyze_with_model(
     api_key: str,
     model_id: str,
@@ -878,11 +887,14 @@ def analyze_with_model(
     user_suffix: str = "",
     force_json: bool = False,
     seed: Optional[int] = None,
+    compliance_requirements: str = "",
 ) -> Dict[str, Any]:
     """
     Analyzes an SOP with a specific model, handling context limits and returning structured results.
     """
     try:
+        if compliance_requirements:
+            system_prompt = system_prompt.format(compliance_requirements=compliance_requirements)
         max_tokens = safe_int(config.get("max_tokens"), 8000)
         user_prompt = f"Here is the Standard Operating Procedure (SOP):\n\n---\n\n{sop}\n\n---\n\n{user_suffix}"
         full_prompt_text = system_prompt + user_prompt
@@ -919,13 +931,23 @@ def _severity_rank(sev: str) -> int:
     order = {"low": 0, "medium": 1, "high": 2, "critical": 3}
     return order.get(str(sev).lower(), 0)
 
-def _merge_consensus_sop(base_sop: str, blue_patches: List[dict]) -> Tuple[str, dict]:
+def _merge_consensus_sop(base_sop: str, blue_patches: List[dict], critiques: List[dict]) -> Tuple[str, dict]:
     """
     Selects the best patch from the blue team based on coverage, resolution, and quality.
     """
     valid_patches = [p for p in blue_patches if p and (p.get("patch_json") or {}).get("sop", "").strip()]
     if not valid_patches:
-        return base_sop, {"reason": "no_valid_patches_received", "score": -1}
+        return base_sop, {"reason": "no_valid_patches_received", "score": -1, "resolution_by_severity": {}, "resolution_by_category": {}}
+
+    # Create a lookup for issue severity and category
+    issue_details = {}
+    for critique in critiques:
+        if critique and critique.get("critique_json"):
+            for issue in _safe_list(critique["critique_json"], "issues"):
+                issue_details[issue.get("title")] = {
+                    "severity": issue.get("severity", "low"),
+                    "category": issue.get("category", "uncategorized")
+                }
 
     scored = []
     for patch in valid_patches:
@@ -942,15 +964,30 @@ def _merge_consensus_sop(base_sop: str, blue_patches: List[dict]) -> Tuple[str, 
         coverage_score = (resolved * 2) + mitigated
         final_score = coverage_score - (len(residual) * 2)
 
-        scored.append((final_score, resolved, len(sop_text), sop_text, patch.get("model")))
+        # Track resolution by severity and category
+        resolution_by_severity = {}
+        resolution_by_category = {}
+        for r in mm:
+            issue_title = r.get("issue")
+            if issue_title in issue_details:
+                details = issue_details[issue_title]
+                severity = details["severity"]
+                category = details["category"]
+                status = str(r.get("status", "")).lower()
+
+                if status in ["resolved", "mitigated"]:
+                    resolution_by_severity[severity] = resolution_by_severity.get(severity, 0) + 1
+                    resolution_by_category[category] = resolution_by_category.get(category, 0) + 1
+
+        scored.append((final_score, resolved, len(sop_text), sop_text, patch.get("model"), resolution_by_severity, resolution_by_category))
 
     if not scored:
-        return base_sop, {"reason": "all_patches_were_empty_or_invalid", "score": -1}
+        return base_sop, {"reason": "all_patches_were_empty_or_invalid", "score": -1, "resolution_by_severity": {}, "resolution_by_category": {}}
 
     # Sort by score, then resolved count, then SOP length
     scored.sort(key=lambda x: (-x[0], -x[1], x[2]))
-    best_score, best_resolved, _, best_sop, best_model = scored[0]
-    diagnostics = {"reason": "best_patch_selected", "score": best_score, "resolved": best_resolved, "model": best_model}
+    best_score, best_resolved, _, best_sop, best_model, best_res_sev, best_res_cat = scored[0]
+    diagnostics = {"reason": "best_patch_selected", "score": best_score, "resolved": best_resolved, "model": best_model, "resolution_by_severity": best_res_sev, "resolution_by_category": best_res_cat}
     return best_sop, diagnostics
 
 def _aggregate_red_risk(critiques: List[dict]) -> Dict[str, Any]:
@@ -958,6 +995,7 @@ def _aggregate_red_risk(critiques: List[dict]) -> Dict[str, Any]:
     sev_weight = {"low": 1, "medium": 3, "high": 6, "critical": 12}
     total_weight, issue_count = 0, 0
     categories = {}
+    severities = {}
 
     valid_critiques = [c.get("critique_json") for c in critiques if c and c.get("critique_json")]
 
@@ -969,9 +1007,10 @@ def _aggregate_red_risk(critiques: List[dict]) -> Dict[str, Any]:
             issue_count += 1
             cat = str(issue.get("category", "uncategorized")).lower()
             categories[cat] = categories.get(cat, 0) + weight
+            severities[sev] = severities.get(sev, 0) + 1
 
     avg_weight = (total_weight / max(1, issue_count)) if issue_count > 0 else 0
-    return {"total_weight": total_weight, "avg_issue_weight": avg_weight, "categories": categories, "count": issue_count}
+    return {"total_weight": total_weight, "avg_issue_weight": avg_weight, "categories": categories, "severities": severities, "count": issue_count}
 
 def _update_model_performance(critiques: List[dict]):
     """Updates the performance scores of models based on the critiques they generated."""
@@ -1052,9 +1091,117 @@ def check_approval_rate(
 
     rate = (approved / max(1, len(red_team_models))) * 100.0
     avg_score = (sum(scores) / max(1, len(scores))) if scores else 0
-    return {"approval_rate": rate, "avg_score": avg_score, "votes": votes, "prompt_tokens": total_ptoks, "completion_tokens": total_ctoks, "cost": total_cost}
 
-"""def run_adversarial_testing():
+    # Calculate agreement
+    if not votes:
+        agreement = 0.0
+    else:
+        verdicts = [v["verdict"] for v in votes]
+        approved_count = verdicts.count("APPROVED")
+        rejected_count = verdicts.count("REJECTED")
+        agreement = max(approved_count, rejected_count) / len(verdicts) * 100.0
+
+    return {"approval_rate": rate, "avg_score": avg_score, "votes": votes, "prompt_tokens": total_ptoks, "completion_tokens": total_ctoks, "cost": total_cost, "agreement": agreement}
+
+def generate_docx_report(results: dict) -> bytes:
+    """Generates a DOCX report from the adversarial testing results."""
+    document = docx.Document()
+    document.add_heading('Adversarial Testing Report', 0)
+
+    document.add_heading('Summary', level=1)
+    document.add_paragraph(
+        f"Final Approval Rate: {results.get('final_approval_rate', 0.0):.1f}%\n"
+        f"Total Iterations: {len(results.get('iterations', []))}\n"
+        f"Total Cost (USD): ${results.get('cost_estimate_usd', 0.0):,.4f}\n"
+        f"Total Prompt Tokens: {results.get('tokens', {}).get('prompt', 0):,}\n"
+        f"Total Completion Tokens: {results.get('tokens', {}).get('completion', 0):,}"
+    )
+
+    document.add_heading('Final Hardened SOP', level=1)
+    document.add_paragraph(results.get("final_sop", ""))
+
+    document.add_heading('Issues Found', level=1)
+    for i, iteration in enumerate(results.get("iterations", [])):
+        document.add_heading(f"Iteration {i+1}", level=2)
+        for critique in iteration.get("critiques", []):
+            if critique.get("critique_json"):
+                for issue in _safe_list(critique["critique_json"], "issues"):
+                    document.add_paragraph(f"- {issue.get('title')} ({issue.get('severity')})", style='List Bullet')
+
+    document.add_heading('Final Votes', level=1)
+    if results.get("iterations"):
+        for vote in results["iterations"][-1].get("approval_check", {}).get("votes", []):
+            document.add_paragraph(f"- {vote.get('model')}: {vote.get('verdict')} ({vote.get('score')})", style='List Bullet')
+
+    document.add_heading('Audit Trail', level=1)
+    for log_entry in results.get("log", []):
+        document.add_paragraph(log_entry)
+
+    from io import BytesIO
+    bio = BytesIO()
+    document.save(bio)
+    return bio.getvalue()
+
+def generate_pdf_report(results: dict) -> bytes:
+    """Generates a PDF report from the adversarial testing results."""
+    pdf = FPDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(200, 10, txt="Adversarial Testing Report", ln=True, align='C')
+
+    pdf.ln(10)
+
+    pdf.set_font("Arial", 'B', size=12)
+    pdf.cell(200, 10, txt="Summary", ln=True)
+    pdf.set_font("Arial", size=12)
+    pdf.multi_cell(0, 10, f"Final Approval Rate: {results.get('final_approval_rate', 0.0):.1f}%\n"
+                         f"Total Iterations: {len(results.get('iterations', []))}\n"
+                         f"Total Cost (USD): ${results.get('cost_estimate_usd', 0.0):,.4f}\n"
+                         f"Total Prompt Tokens: {results.get('tokens', {}).get('prompt', 0):,}\n"
+                         f"Total Completion Tokens: {results.get('tokens', {}).get('completion', 0):,}")
+
+    pdf.ln(10)
+
+    pdf.set_font("Arial", 'B', size=12)
+    pdf.cell(200, 10, txt="Final Hardened SOP", ln=True)
+    pdf.set_font("Arial", size=12)
+    pdf.multi_cell(0, 10, results.get("final_sop", ""))
+
+    pdf.ln(10)
+
+    pdf.set_font("Arial", 'B', size=12)
+    pdf.cell(200, 10, txt="Issues Found", ln=True)
+    pdf.set_font("Arial", size=12)
+    for i, iteration in enumerate(results.get("iterations", [])):
+        pdf.set_font("Arial", 'B', size=10)
+        pdf.cell(200, 10, txt=f"Iteration {i+1}", ln=True)
+        pdf.set_font("Arial", size=10)
+        for critique in iteration.get("critiques", []):
+            if critique.get("critique_json"):
+                for issue in _safe_list(critique["critique_json"], "issues"):
+                    pdf.multi_cell(0, 10, f"- {issue.get('title')} ({issue.get('severity')})")
+
+    pdf.ln(10)
+
+    pdf.set_font("Arial", 'B', size=12)
+    pdf.cell(200, 10, txt="Final Votes", ln=True)
+    pdf.set_font("Arial", size=10)
+    if results.get("iterations"):
+        for vote in results["iterations"][-1].get("approval_check", {}).get("votes", []):
+            pdf.multi_cell(0, 10, f"- {vote.get('model')}: {vote.get('verdict')} ({vote.get('score')})")
+
+    pdf.ln(10)
+
+    pdf.set_font("Arial", 'B', size=12)
+    pdf.cell(200, 10, txt="Audit Trail", ln=True)
+    pdf.set_font("Arial", size=8)
+    for log_entry in results.get("log", []):
+        pdf.multi_cell(0, 5, log_entry)
+
+    return pdf.output(dest='S').encode('latin-1')
+
+def run_adversarial_testing():
     """Main logic for the adversarial testing loop, designed to be run in a background thread."""
     try:
         # --- Initialization ---
@@ -1139,7 +1286,7 @@ def check_approval_rate(
             with ThreadPoolExecutor(max_workers=max_workers) as ex:
                 futures = {ex.submit(analyze_with_model, api_key, m, current_sop,
                                     model_configs.get(m,{}), RED_TEAM_CRITIQUE_PROMPT,
-                                    force_json=json_mode, seed=seed): m for m in red_team}\
+                                    force_json=json_mode, seed=seed, compliance_requirements=st.session_state.compliance_requirements): m for m in red_team}
                 for fut in as_completed(futures):
                     res = fut.result()
                     _update_adv_counters(res['ptoks'], res['ctoks'], res['cost'])
@@ -1162,7 +1309,7 @@ def check_approval_rate(
             with ThreadPoolExecutor(max_workers=max_workers) as ex:
                 futures = {ex.submit(analyze_with_model, api_key, m, current_sop,
                                     model_configs.get(m,{}), BLUE_TEAM_PATCH_PROMPT,
-                                    user_suffix="\\n\\nCRITIQUES TO ADDRESS:\\n" + critique_block,
+                                    user_suffix="\n\nCRITIQUES TO ADDRESS:\n" + critique_block,
                                     force_json=True, seed=seed): m for m in blue_team}
                 for fut in as_completed(futures):
                     res = fut.result()
@@ -1171,7 +1318,7 @@ def check_approval_rate(
                          _update_adv_log_and_status(f"🔵 {res['model_id']}: Invalid or empty patch received. Details: {res.get('text', 'N/A')}")
                     blue_patches_raw.append({"model": res['model_id'], "patch_json": res.get("json"), "raw_text": res.get("text")})
 
-            next_sop, consensus_diag = _merge_consensus_sop(current_sop, blue_patches_raw)
+            next_sop, consensus_diag = _merge_consensus_sop(current_sop, blue_patches_raw, critiques_raw)
             _update_adv_log_and_status(f"Iteration {iteration}: Consensus SOP generated (Best patch from '{consensus_diag.get('model', 'N/A')}'). Starting approval check.")
 
             # --- APPROVAL CHECK ---
@@ -1182,7 +1329,8 @@ def check_approval_rate(
 
             results.append({
                 "iteration": iteration, "critiques": critiques_raw, "patches": blue_patches_raw,
-                "current_sop": next_sop, "approval_check": eval_res, "agg_risk": agg_risk, "consensus": consensus_diag
+                "current_sop": next_sop, "approval_check": eval_res, "agg_risk": agg_risk, "consensus": consensus_diag,
+                "cost_effectiveness": (agg_risk['count'] / st.session_state.adversarial_cost_estimate_usd) if st.session_state.adversarial_cost_estimate_usd > 0 else 0
             })
             current_sop = next_sop
 
@@ -1205,7 +1353,7 @@ def check_approval_rate(
             if iteration >= min_iter and approval_rate >= confidence:
                 _update_adv_log_and_status(f"✅ Success! Confidence threshold of {confidence}% reached after {iteration} iterations.")
                 break
-        # --- End of Loop ---""
+        # --- End of Loop ---
         if st.session_state.adversarial_stop_flag:
             _update_adv_log_and_status("⏹️ Process stopped by user.")
         elif iteration >= max_iter:
@@ -1352,8 +1500,8 @@ def render_adversarial_testing_tab():
 
     model_options = sorted([
         f"{m['id']} (Ctx: {m.get('context_length', 'N/A')}, "
-        f"In: ${_parse_price_per_million(m.get('pricing', {}).get('prompt')) or 'N/A'}/M, "
-        f"Out: ${_parse_price_per_million(m.get('pricing', {}).get('completion')) or 'N/A'}/M)"
+        f"In: {$_parse_price_per_million(m.get('pricing', {}).get('prompt')) or 'N/A'}/M, "
+        f"Out: {$_parse_price_per_million(m.get('pricing', {}).get('completion')) or 'N/A'}/M)"
         for m in models if isinstance(m, dict) and "id" in m
     ])
 
@@ -1423,9 +1571,12 @@ def render_adversarial_testing_tab():
         if st.session_state.adversarial_rotation_strategy == "Staged":
             st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help='''
 [{"red": ["model1", "model2"], "blue": ["model3"]},
- {"red": ["model4"], "blue": ["model5", "model6"]}]''')
+ {"red": ["model4"], "blue": ["model5", "model6"]}]
+''')
         st.number_input("Red Team Sample Size", 1, 100, key="adversarial_red_team_sample_size")
         st.number_input("Blue Team Sample Size", 1, 100, key="adversarial_blue_team_sample_size")
+
+    st.text_area("Compliance Requirements", key="compliance_requirements", height=150, help="Enter any compliance requirements that the red team should check for.")
 
     all_models = sorted(list(set(st.session_state.red_team_models + st.session_state.blue_team_models)))
     if all_models:
@@ -1462,15 +1613,50 @@ def render_adversarial_testing_tab():
         st.session_state.adversarial_total_tokens_completion = 0
         # Removed unnecessary rerun - the UI will update automatically through session state changes
 
+    if st.session_state.adversarial_results:
+        st.download_button(
+            label="📥 Download JSON Results",
+            data=json.dumps(st.session_state.adversarial_results, indent=2),
+            file_name="adversarial_testing_results.json",
+            mime="application/json",
+            use_container_width=True,
+        )
+
+    if HAS_FPDF and st.session_state.adversarial_results:
+        st.download_button(
+            label="📥 Download PDF Results",
+            data=generate_pdf_report(st.session_state.adversarial_results),
+            file_name="adversarial_testing_report.pdf",
+            mime="application/pdf",
+            use_container_width=True,
+        )
+
+    if HAS_DOCX and st.session_state.adversarial_results:
+        st.download_button(
+            label="📥 Download Word Results",
+            data=generate_docx_report(st.session_state.adversarial_results),
+            file_name="adversarial_testing_report.docx",
+            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            use_container_width=True,
+        )
+
     # Live metrics and results display
     st.markdown("---")
     if st.session_state.adversarial_running:
         st.status(st.session_state.adversarial_status_message, expanded=True)
 
-    lc1, lc2, lc3 = st.columns(3)
+    lc1, lc2, lc3, lc4, lc5 = st.columns(5)
     lc1.metric("Estimated Cost (USD)", f"${st.session_state.adversarial_cost_estimate_usd:,.4f}")
     lc2.metric("Prompt Tokens", f"{st.session_state.adversarial_total_tokens_prompt:,}")
     lc3.metric("Completion Tokens", f"{st.session_state.adversarial_total_tokens_completion:,}")
+    if st.session_state.adversarial_results:
+        r = st.session_state.adversarial_results
+        if "iterations" in r and r["iterations"]:
+            last_iteration = r["iterations"][-1]
+            if "approval_check" in last_iteration and "agreement" in last_iteration["approval_check"]:
+                lc4.metric("Model Agreement", f"{last_iteration['approval_check'].get('agreement', 0.0):.1f}%")
+            if "cost_effectiveness" in last_iteration:
+                lc5.metric("Cost-Effectiveness", f"{last_iteration.get('cost_effectiveness', 0.0):.2f} issues/$")
 
     if st.session_state.adversarial_log:
         with st.expander("Live Log", expanded=not st.session_state.adversarial_results):
@@ -1500,6 +1686,23 @@ def render_adversarial_testing_tab():
 
         with st.expander("View Model Performance"):
             st.table(st.session_state.adversarial_model_performance)
+
+        with st.expander("Issue Analysis"):
+            if "iterations" in r and r["iterations"]:
+                last_iteration = r["iterations"][-1]
+                if "agg_risk" in last_iteration and "severities" in last_iteration["agg_risk"]:
+                    st.write("#### Issues by Severity (Last Iteration)")
+                    st.bar_chart(last_iteration["agg_risk"]["severities"])
+                if "agg_risk" in last_iteration and "categories" in last_iteration["agg_risk"]:
+                    st.write("#### Issues by Category (Last Iteration)")
+                    st.bar_chart(last_iteration["agg_risk"]["categories"])
+
+                if "consensus" in last_iteration and "resolution_by_severity" in last_iteration["consensus"]:
+                    st.write("#### Resolved Issues by Severity (Last Iteration)")
+                    st.bar_chart(last_iteration["consensus"]["resolution_by_severity"])
+                if "consensus" in last_iteration and "resolution_by_category" in last_iteration["consensus"]:
+                    st.write("#### Resolved Issues by Category (Last Iteration)")
+                    st.bar_chart(last_iteration["consensus"]["resolution_by_category"])
 
         with st.expander("View iteration-by-iteration details"):
             for iteration in r.get("iterations", []):
