@@ -167,42 +167,180 @@ Quality metric: average_score across all evaluations
 Iteration continues until: confidence >= threshold (e.g., 90%)
 ```
 
-#### Real-World Application Examples
-
-**Financial Services SOP**
-- Red team identifies PCI-DSS compliance gaps
-- Blue team adds encryption requirements and audit controls
-- Final approval: 94% confidence after 6 iterations
-- Result: Bank-grade security protocol with regulatory compliance
-
-**Healthcare Data Protocol**
-- Red team finds HIPAA violation risks in data handling
-- Blue team implements comprehensive privacy controls
-- Achieves 97% confidence with zero critical vulnerabilities
-- Result: HIPAA-compliant data governance framework
-
-**Software Deployment Example Pipeline**
-- Red team discovers supply chain attack vectors
-- Blue team adds integrity verification and staged rollouts  
-- Converge at 92% confidence with robust security controls
-- Result: Zero-trust deployment pipeline resistant to compromise
-
 #### Advanced Features and Controls
 
-**Model Specialization**
-- Assign security-focused models to red team (Claude, GPT-4)
-- Use instruction-following models for blue team (Command-R, Llama)
-- Mix model architectures for comprehensive coverage
+#### Advanced Team Rotation and Configuration
 
-**Dynamic Parameter Adjustment**
-- Temperature scaling based on iteration progress
-- Increased exploration when solutions stagnate
-- Conservative sampling for final validation rounds
+OpenEvolve supports sophisticated multi-LLM rotation strategies that maximize analytical diversity and prevent convergence bias:
 
-**Cost Optimization**
-- Intelligent model selection based on cost/performance ratios
-- Parallel execution with optimal worker allocation
-- Early termination for converged solutions
+**Rotation Strategies**
+
+1. **Round Robin Rotation**
+   ```python
+   # Example: 5 red team models cycle through each iteration
+   Iteration 1: [GPT-4, Claude-3, Gemini-Pro, Command-R, Llama-3]
+   Iteration 2: [Claude-3, Gemini-Pro, Command-R, Llama-3, GPT-4]
+   Iteration 3: [Gemini-Pro, Command-R, Llama-3, GPT-4, Claude-3]
+   # Ensures each model gets equal participation
+   ```
+
+2. **Performance-Based Rotation**
+   ```python
+   # Models rotate based on vulnerability detection rates
+   High performers: More frequent participation
+   Lower performers: Reduced but maintained presence
+   Adaptive weighting: Real-time adjustment based on contribution quality
+   ```
+
+3. **Random Sampling**
+   ```python
+   # Randomly select subset from larger pool each iteration
+   Pool: 10 available red team models
+   Active per iteration: 3-5 models (configurable)
+   Prevents predictable patterns, maintains unpredictability
+   ```
+
+4. **Threshold-Triggered Rotation**
+   ```python
+   # Change team composition based on confidence metrics
+   if confidence_plateau > 2_iterations:
+       rotate_underperforming_models()
+   if critical_issues_found:
+       activate_specialist_security_models()
+   ```
+
+5. **Staged Rotation Patterns**
+   ```python
+   # Pre-defined rotation sequences
+   Pattern A: [Security-focused → General → Compliance → Domain-expert]
+   Pattern B: [Diverse-architectures → Similar-models → Hybrid-mix]
+   Pattern C: [Conservative → Aggressive → Balanced → Validation]
+   ```
+
+**Multi-Tier Configuration System**
+
+**Tier 1: Core Team Configuration**
+```yaml
+red_team:
+  primary_models: [gpt-4, claude-3-opus, gemini-pro]
+  rotation_strategy: "round_robin"
+  rotation_interval: 2  # iterations
+  min_active: 3
+  max_active: 5
+
+blue_team:
+  primary_models: [command-r-plus, llama-3-70b, mixtral-8x7b]
+  rotation_strategy: "performance_based"
+  specialist_triggers: ["critical_security", "compliance_gap"]
+```
+
+**Tier 2: Advanced Rotation Logic**
+```yaml
+rotation_rules:
+  stagnation_threshold: 3  # iterations without improvement
+  confidence_plateau_trigger: 2  # iterations at same confidence
+  underperformer_timeout: 5  # iterations before rotation
+  specialist_activation:
+    security_focused: [claude-3-opus, gpt-4-turbo]
+    compliance_expert: [command-r-plus, gemini-pro]
+    domain_specific: [custom_model_pool]
+```
+
+**Tier 3: Dynamic Adaptation**
+```yaml
+adaptive_features:
+  performance_tracking: true
+  real_time_adjustment: true
+  cost_optimization: true
+  quality_weighting: true
+  
+performance_metrics:
+  vulnerability_detection_rate: weight=0.4
+  solution_quality_score: weight=0.3
+  cost_efficiency: weight=0.2
+  response_reliability: weight=0.1
+```
+
+**Configuration Examples**
+
+**Enterprise Security Audit Setup**
+```python
+config = {
+    "red_team": {
+        "models": ["gpt-4-turbo", "claude-3-opus", "gemini-pro", "command-r-plus", "llama-3-70b"],
+        "strategy": "security_focused_rotation",
+        "rotation_pattern": [
+            # Round 1-2: Broad security analysis
+            ["gpt-4-turbo", "claude-3-opus", "gemini-pro"],
+            # Round 3-4: Compliance and regulatory focus  
+            ["command-r-plus", "gemini-pro", "gpt-4-turbo"],
+            # Round 5+: Specialized penetration testing mindset
+            ["claude-3-opus", "llama-3-70b", "gpt-4-turbo"]
+        ],
+        "confidence_threshold_per_round": [70, 80, 90],
+        "specialist_activation": {
+            "critical_found": "activate_all_security_models",
+            "compliance_gap": "add_regulatory_specialists"
+        }
+    }
+}
+```
+
+**Cost-Optimized Configuration**
+```python
+config = {
+    "budget_constraints": {
+        "max_cost_per_iteration": 5.00,  # USD
+        "total_budget_limit": 50.00,     # USD
+        "cost_optimization": true
+    },
+    "rotation_strategy": {
+        "primary": "cost_performance_ratio",
+        "high_value_models": ["gpt-4-turbo", "claude-3-opus"],  # Use sparingly
+        "workhouse_models": ["gpt-3.5-turbo", "llama-3-8b"],   # Use frequently
+        "rotation_logic": "cost_weighted_round_robin"
+    }
+}
+```
+
+**Research and Development Setup**
+```python
+config = {
+    "experimental_features": {
+        "model_ensemble_voting": true,
+        "cross_architecture_validation": true,
+        "novel_model_integration": true
+    },
+    "rotation_strategies": [
+        "random_forest_sampling",      # ML-inspired selection
+        "genetic_algorithm_evolution", # Evolutionary model selection
+        "reinforcement_learning_adaptation", # Self-improving team composition
+        "diversity_maximization"       # Maximize analytical perspectives
+    ]
+}
+```
+
+**Real-Time Adaptation Features**
+
+**Performance Monitoring Dashboard**
+- Live tracking of model contribution quality
+- Real-time cost vs. value analysis  
+- Vulnerability detection effectiveness metrics
+- Solution implementation success rates
+
+**Intelligent Rotation Triggers**
+- Automatic underperformer replacement
+- Specialist model activation for complex issues
+- Budget-aware model substitution
+- Quality-driven team composition adjustments
+
+**Predictive Team Optimization**
+- ML-based prediction of optimal team compositions
+- Historical performance analysis for model selection
+- Workload-appropriate model matching
+- Domain-specific expertise routing
+
+This multi-layered configuration system ensures that teams can be precisely tuned for specific use cases while maintaining the flexibility to adapt in real-time based on performance metrics and emerging requirements.
 
 **Enterprise Integration**
 - Export results in multiple formats (JSON, PDF, Word)
@@ -354,6 +492,7 @@ The application provides real-time cost estimates based on:
 - No logging of sensitive information
 - Optional deterministic seeds for reproducibility
 - Configurable rate limiting and timeouts
+
 
 - Built with Streamlit for the web interface
 - Uses the requests library for HTTP communication
