@@ -762,6 +762,21 @@ def _safe_json_loads(s: str) -> Optional[dict]:
     except (json.JSONDecodeError, TypeError):
         return None
 
+def _safe_list(d: dict, key: str) -> list:
+    """Safely retrieve a list from a dictionary, returning an empty list if not found or not a list.
+    
+    Args:
+        d: Dictionary to retrieve from
+        key: Key to look up
+        
+    Returns:
+        list: The value at the key if it's a list, otherwise an empty list
+    """
+    if not isinstance(d, dict):
+        return []
+    value = d.get(key, [])
+    return value if isinstance(value, list) else []
+
 def _extract_json_block(txt: str) -> Optional[dict]:
     """Extract JSON object from text, handling fenced code blocks.
     
@@ -1259,7 +1274,237 @@ PROTOCOL_TEMPLATES = {
 [Who to notify and when]
 
 ## Contact Information
-[Key contacts and their availability]"""
+[Key contacts and their availability]""",
+    
+    "Software Development Process": """# Software Development Process Template
+
+## Overview
+[Brief description of the development process]
+
+## Scope
+[What types of projects this process applies to]
+
+## Roles and Responsibilities
+- Project Manager: [Responsibilities]
+- Developers: [Responsibilities]
+- QA Engineers: [Responsibilities]
+- DevOps Engineers: [Responsibilities]
+
+## Development Lifecycle
+### 1. Requirements Gathering
+- [Process for collecting requirements]
+- [Stakeholder involvement]
+
+### 2. Design
+- [System architecture design]
+- [UI/UX design]
+- [Database design]
+
+### 3. Implementation
+- [Coding standards]
+- [Version control practices]
+- [Code review process]
+
+### 4. Testing
+- [Unit testing]
+- [Integration testing]
+- [System testing]
+- [User acceptance testing]
+
+### 5. Deployment
+- [Deployment process]
+- [Rollback procedures]
+- [Monitoring]
+
+## Quality Assurance
+[QA processes and standards]
+
+## Documentation
+[Required documentation at each stage]
+
+## Tools and Technologies
+[List of tools used in the process]
+
+## Metrics and KPIs
+[Key performance indicators to track]
+
+## Review and Improvement
+[Process for continuous improvement]""",
+    
+    "Data Privacy Policy": """# Data Privacy Policy Template
+
+## Overview
+[Statement of commitment to data privacy]
+
+## Scope
+[What data and processes this policy covers]
+
+## Legal Compliance
+[List of applicable regulations (GDPR, CCPA, etc.)]
+
+## Data Collection
+[What data is collected and why]
+
+## Data Usage
+[How collected data is used]
+
+## Data Storage
+[Where and how data is stored]
+
+## Data Sharing
+[When and with whom data may be shared]
+
+## Data Retention
+[How long data is retained]
+
+## Individual Rights
+- Right to Access
+- Right to Rectification
+- Right to Erasure
+- Right to Restrict Processing
+- Right to Data Portability
+- Right to Object
+
+## Security Measures
+[Technical and organizational measures to protect data]
+
+## Breach Notification
+[Process for reporting data breaches]
+
+## Training and Awareness
+[Employee training requirements]
+
+## Policy Enforcement
+[Consequences for policy violations]
+
+## Review and Updates
+[How often the policy is reviewed]""",
+    
+    "Business Continuity Plan": """# Business Continuity Plan Template
+
+## Overview
+[Purpose and scope of the business continuity plan]
+
+## Risk Assessment
+[Identified risks and their potential impact]
+
+## Business Impact Analysis
+[Critical business functions and maximum tolerable downtime]
+
+## Recovery Strategies
+[Strategies for recovering critical functions]
+
+## Emergency Response
+### 1. Incident Declaration
+[Criteria for declaring an emergency]
+
+### 2. Emergency Response Team
+- Team Members: [List]
+- Contact Information: [Details]
+- Roles and Responsibilities: [Details]
+
+### 3. Communication Plan
+[Internal and external communication procedures]
+
+## Recovery Procedures
+### Critical Function 1
+- Recovery Steps: [Detailed steps]
+- Resources Required: [List]
+- Recovery Time Objective: [Timeframe]
+
+### Critical Function 2
+- Recovery Steps: [Detailed steps]
+- Resources Required: [List]
+- Recovery Time Objective: [Timeframe]
+
+## Plan Testing and Maintenance
+[Testing schedule and procedures]
+
+## Training and Awareness
+[Training requirements for personnel]
+
+## Plan Distribution
+[List of plan recipients]
+
+## Plan Activation and Deactivation
+[Criteria and procedures for plan activation and deactivation]""",
+    
+    "API Security Review Checklist": """# API Security Review Checklist Template
+
+## Overview
+[Description of the API and its purpose]
+
+## Authentication
+- [ ] Authentication mechanism implemented
+- [ ] Strong password policies enforced
+- [ ] Multi-factor authentication supported
+- [ ] Session management secure
+
+## Authorization
+- [ ] Role-based access control implemented
+- [ ] Permissions properly configured
+- [ ] Least privilege principle applied
+- [ ] Access controls tested
+
+## Input Validation
+- [ ] All inputs validated
+- [ ] SQL injection protection implemented
+- [ ] Cross-site scripting (XSS) prevention
+- [ ] File upload restrictions in place
+
+## Data Protection
+- [ ] Data encryption in transit (TLS)
+- [ ] Data encryption at rest
+- [ ] Sensitive data masked in logs
+- [ ] Personal data handling compliant
+
+## Error Handling
+- [ ] Descriptive error messages suppressed
+- [ ] Error logging implemented
+- [ ] Exception handling in place
+- [ ] Stack traces not exposed
+
+## Rate Limiting
+- [ ] Rate limiting implemented
+- [ ] Throttling configured
+- [ ] Brute force protection
+- [ ] DDoS protection measures
+
+## Security Headers
+- [ ] Content Security Policy (CSP) implemented
+- [ ] X-Frame-Options set
+- [ ] X-Content-Type-Options set
+- [ ] Strict-Transport-Security configured
+
+## API Gateway Security
+- [ ] API gateway configured
+- [ ] Traffic monitoring enabled
+- [ ] Threat detection implemented
+- [ ] Request/response filtering
+
+## Third-Party Dependencies
+- [ ] Dependencies regularly updated
+- [ ] Vulnerability scanning performed
+- [ ] Security patches applied
+- [ ] Dependency security monitoring
+
+## Logging and Monitoring
+- [ ] Security events logged
+- [ ] Audit trail maintained
+- [ ] Anomaly detection configured
+- [ ] Alerting mechanisms in place
+
+## Compliance
+- [ ] GDPR compliance (if applicable)
+- [ ] HIPAA compliance (if applicable)
+- [ ] PCI DSS compliance (if applicable)
+- [ ] Industry-specific regulations met
+
+## Review and Approval
+- Security Reviewer: [Name]
+- Review Date: [Date]
+- Approval Status: [Approved/Rejected/Pending]
+- Notes: [Additional comments]"""
 }
 
 DEFAULTS = {
@@ -1700,7 +1945,8 @@ def _request_openrouter_chat(
 
 def _request_anthropic_chat(
     api_key: str, base_url: str, model: str, messages: List, extra_headers: Dict,
-    temperature: float, top_p: float, max_tokens: int, seed: Optional[int], 
+    temperature: float, top_p: float, max_tokens: int, seed: Optional[int],
+    frequency_penalty: float = 0.0, presence_penalty: float = 0.0,
     req_timeout: int = 60, max_retries: int = 5
 ) -> str:
     url = base_url.rstrip('/') + "/messages"
@@ -1753,7 +1999,8 @@ def _request_anthropic_chat(
 
 def _request_google_gemini_chat(
     api_key: str, base_url: str, model: str, messages: List, extra_headers: Dict,
-    temperature: float, top_p: float, max_tokens: int, seed: Optional[int], 
+    temperature: float, top_p: float, max_tokens: int, seed: Optional[int],
+    frequency_penalty: float = 0.0, presence_penalty: float = 0.0,
     req_timeout: int = 60, max_retries: int = 5
 ) -> str:
     url = f"{base_url.rstrip('/')}/models/{model}:generateContent?key={api_key}"
@@ -1796,7 +2043,8 @@ def _request_google_gemini_chat(
 
 def _request_cohere_chat(
     api_key: str, base_url: str, model: str, messages: List, extra_headers: Dict,
-    temperature: float, top_p: float, max_tokens: int, seed: Optional[int], 
+    temperature: float, top_p: float, max_tokens: int, seed: Optional[int],
+    frequency_penalty: float = 0.0, presence_penalty: float = 0.0,
     req_timeout: int = 60, max_retries: int = 5
 ) -> str:
     url = base_url.rstrip('/') + "/chat"
@@ -2088,7 +2336,7 @@ def _update_adv_counters(ptoks: int, ctoks: int, cost: float):
 
 def check_approval_rate(
     api_key: str, red_team_models: List[str], sop_markdown: str, model_configs: Dict,
-    seed: Optional[int], max_workers: int
+    seed: Optional[int], max_workers: int, approval_prompt: str = APPROVAL_PROMPT
 ) -> Dict[str, Any]:
     """Asks all red-team models for a final verdict on the SOP."""
     votes, scores, approved = [], [], 0
@@ -2098,7 +2346,7 @@ def check_approval_rate(
         future_to_model = {
             ex.submit(
                 analyze_with_model, api_key, model_id, sop_markdown,
-                model_configs.get(model_id, {}), APPROVAL_PROMPT, force_json=True, seed=seed
+                model_configs.get(model_id, {}), approval_prompt, force_json=True, seed=seed
             ): model_id for model_id in red_team_models
         }
         for future in as_completed(future_to_model):
@@ -2553,16 +2801,23 @@ def run_adversarial_testing():
         iteration, approval_rate = 0, 0.0
 
         # Determine review type and get appropriate prompts
-        if st.session_state.adversarial_review_type == "Auto-Detect":
-            review_type = determine_review_type(current_sop)
-        elif st.session_state.adversarial_review_type == "Code Review":
-            review_type = "code"
-        elif st.session_state.adversarial_review_type == "Plan Review":
-            review_type = "plan"
+        if st.session_state.get("adversarial_custom_mode", False):
+            # Use custom prompts when custom mode is enabled
+            red_team_prompt = st.session_state.get("adversarial_custom_red_prompt", RED_TEAM_CRITIQUE_PROMPT)
+            blue_team_prompt = st.session_state.get("adversarial_custom_blue_prompt", BLUE_TEAM_PATCH_PROMPT)
+            review_type = "custom"
         else:
-            review_type = "general"
-            
-        red_team_prompt, blue_team_prompt = get_appropriate_prompts(review_type)
+            # Use standard prompts based on review type
+            if st.session_state.adversarial_review_type == "Auto-Detect":
+                review_type = determine_review_type(current_sop)
+            elif st.session_state.adversarial_review_type == "Code Review":
+                review_type = "code"
+            elif st.session_state.adversarial_review_type == "Plan Review":
+                review_type = "plan"
+            else:
+                review_type = "general"
+                
+            red_team_prompt, blue_team_prompt = get_appropriate_prompts(review_type)
         
         _update_adv_log_and_status(f"Start: {len(red_team_base)} red / {len(blue_team_base)} blue | seed={seed} | base_hash={base_hash} | rotation={rotation_strategy} | review_type={review_type}")
 
@@ -2708,7 +2963,13 @@ def run_adversarial_testing():
             _update_adv_log_and_status(f"Iteration {iteration}: Consensus SOP generated (Best patch from '{consensus_diag.get('model', 'N/A')}'). Starting approval check.")
 
             # --- APPROVAL CHECK ---
-            eval_res = check_approval_rate(api_key, red_team, next_sop, model_configs, seed, max_workers)
+            # Use custom approval prompt when in custom mode
+            if st.session_state.get("adversarial_custom_mode", False):
+                approval_prompt = st.session_state.get("adversarial_custom_approval_prompt", APPROVAL_PROMPT)
+            else:
+                approval_prompt = APPROVAL_PROMPT
+                
+            eval_res = check_approval_rate(api_key, red_team, next_sop, model_configs, seed, max_workers, approval_prompt)
             approval_rate = eval_res["approval_rate"]
             _update_adv_counters(eval_res['prompt_tokens'], eval_res['completion_tokens'], eval_res['cost'])
             _update_adv_log_and_status(f"Iteration {iteration}: Approval rate: {approval_rate:.1f}%, Avg Score: {eval_res['avg_score']:.1f}")
@@ -3086,8 +3347,92 @@ with tab1:
 def render_adversarial_testing_tab():
     st.header("🔴🔵 Adversarial Testing with Multi-LLM Consensus")
     
+    # Add a brief introduction
+    st.markdown("""
+    > **How it works:** Adversarial Testing uses two teams of AI models to improve your protocols:
+    > - **🔴 Red Team** finds flaws and vulnerabilities
+    > - **🔵 Blue Team** fixes the identified issues
+    > The process repeats until your protocol reaches the desired confidence level.
+    """)
+    
+    # Quick Start Wizard
+    with st.expander("⚡ Quick Start Wizard", expanded=True):
+        st.markdown("### 🚀 Get Started in 3 Easy Steps")
+        
+        # Step 1: Configure API Key
+        st.markdown("#### 1️⃣ Configure OpenRouter API Key")
+        openrouter_key = st.text_input("🔑 Enter your OpenRouter API Key", type="password", key="wizard_openrouter_key")
+        if openrouter_key:
+            st.session_state.openrouter_key = openrouter_key
+            st.success("✅ API key saved!")
+        else:
+            st.info("ℹ️ Need an API key? Get one at [OpenRouter.ai](https://openrouter.ai/keys)")
+        
+        # Step 2: Select Models
+        st.markdown("#### 2️⃣ Select AI Models")
+        if openrouter_key:
+            models = get_openrouter_models(openrouter_key)
+            if models:
+                model_names = [m['id'] for m in models if isinstance(m, dict) and 'id' in m][:10]  # Top 10 models
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("**🔴 Red Team (Critics)**")
+                    red_models = st.multiselect(
+                        "Select 2-3 models for finding flaws",
+                        options=model_names,
+                        default=model_names[:2] if len(model_names) >= 2 else model_names,
+                        key="wizard_red_models"
+                    )
+                    st.session_state.red_team_models = red_models
+                    
+                with col2:
+                    st.markdown("**🔵 Blue Team (Fixers)**")
+                    blue_models = st.multiselect(
+                        "Select 2-3 models for fixing issues",
+                        options=model_names,
+                        default=model_names[2:4] if len(model_names) >= 4 else model_names[-2:],
+                        key="wizard_blue_models"
+                    )
+                    st.session_state.blue_team_models = blue_models
+                
+                if red_models and blue_models:
+                    st.success(f"✅ {len(red_models)} red team and {len(blue_models)} blue team models selected!")
+                else:
+                    st.info("ℹ️ Please select at least one model for each team")
+            else:
+                st.warning("⚠️ Unable to fetch models. Please check your API key.")
+        else:
+            st.info("ℹ️ Please enter your OpenRouter API key to select models")
+        
+        # Step 3: Load or Create Protocol
+        st.markdown("#### 3️⃣ Load or Create Your Protocol")
+        templates = list_protocol_templates()
+        if templates:
+            selected_template = st.selectbox("📝 Choose a template or start from scratch", [""] + templates, key="wizard_template")
+            if selected_template:
+                template_content = load_protocol_template(selected_template)
+                st.session_state.protocol_text = template_content
+                st.success(f"✅ Loaded {selected_template} template!")
+        
+        # Quick protocol editor
+        protocol_content = st.text_area("✏️ Or paste/write your protocol here", 
+                                       value=st.session_state.protocol_text,
+                                       height=200,
+                                       key="wizard_protocol_text")
+        if protocol_content != st.session_state.protocol_text:
+            st.session_state.protocol_text = protocol_content
+        
+        # Quick start button
+        if st.button("🚀 Quick Start Adversarial Testing", 
+                    disabled=not (openrouter_key and st.session_state.red_team_models and st.session_state.blue_team_models and protocol_content.strip()),
+                    type="primary",
+                    use_container_width=True):
+            st.success("🎉 Ready to go! Scroll down to configure advanced settings or click 'Start Adversarial Testing' below.")
+            st.rerun()
+    
     # Project controls
-    col1, col2, col3 = st.columns([2, 2, 1])
+    col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
     with col1:
         if st.button("💾 Save Project"):
             project_data = export_project()
@@ -3111,8 +3456,135 @@ def render_adversarial_testing_tab():
     with col3:
         if st.button("📋 Export Report"):
             if st.session_state.adversarial_results:
-                # Reuse existing export functionality
-                pass
+                # Create tabs for different export formats
+                export_format = st.radio("Export Format", ["HTML", "PDF", "DOCX"], horizontal=True)
+                
+                if export_format == "HTML":
+                    html_content = generate_html_report(st.session_state.adversarial_results)
+                    st.download_button(
+                        label="📥 Download HTML Report",
+                        data=html_content,
+                        file_name="adversarial_testing_report.html",
+                        mime="text/html"
+                    )
+                elif export_format == "PDF" and HAS_FPDF:
+                    pdf_content = generate_pdf_report(st.session_state.adversarial_results)
+                    st.download_button(
+                        label="📥 Download PDF Report",
+                        data=pdf_content,
+                        file_name="adversarial_testing_report.pdf",
+                        mime="application/pdf"
+                    )
+                elif export_format == "DOCX" and HAS_DOCX:
+                    docx_content = generate_docx_report(st.session_state.adversarial_results)
+                    st.download_button(
+                        label="📥 Download DOCX Report",
+                        data=docx_content,
+                        file_name="adversarial_testing_report.docx",
+                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                    )
+                elif export_format == "PDF" and not HAS_FPDF:
+                    st.error("FPDF library not installed. Please install it with 'pip install fpdf' to export PDF reports.")
+                elif export_format == "DOCX" and not HAS_DOCX:
+                    st.error("python-docx library not installed. Please install it with 'pip install python-docx' to export DOCX reports.")
+    with col4:
+        if st.button("❓ Tutorial"):
+            st.session_state.show_adversarial_tutorial = True
+    
+    # Show tutorial modal if requested
+    if st.session_state.get("show_adversarial_tutorial", False):
+        with st.expander("📘 Adversarial Testing Tutorial", expanded=True):
+            st.markdown("""
+            ### 🎓 Adversarial Testing Guide
+            
+            Adversarial Testing uses two teams of AI models to improve your protocols:
+            
+            #### 🔴 Red Team (Critics)
+            - Finds flaws, vulnerabilities, and weaknesses in your protocol
+            - Analyzes for logical gaps, ambiguities, and potential misuse
+            
+            #### 🔵 Blue Team (Fixers)
+            - Addresses the issues identified by the Red Team
+            - Produces improved versions of the protocol
+            
+            #### 🔄 Process
+            1. Red Team critiques the protocol
+            2. Blue Team patches the identified issues
+            3. Consensus mechanism selects the best patch
+            4. Approval check validates the improvements
+            5. Process repeats until confidence threshold is reached
+            
+            #### ⚙️ Key Parameters
+            - **Confidence Threshold**: Percentage of Red Team that must approve the protocol
+            - **Iterations**: Number of improvement cycles to run
+            - **Rotation Strategy**: How to select models for each iteration
+            - **Custom Mode**: Use your own prompts for testing
+            
+            #### 🎯 Tips for Best Results
+            - Use diverse models for both teams
+            - Set appropriate confidence thresholds (80-95%)
+            - Provide clear compliance requirements
+            - Use custom prompts for domain-specific testing
+            """)
+            
+            if st.button("Close Tutorial"):
+                st.session_state.show_adversarial_tutorial = False
+                st.rerun()
+    
+    # Quick Start Guide
+    with st.expander("⚡ Quick Start Guide", expanded=False):
+        st.markdown("""
+        ### 🚀 Getting Started in 3 Steps:
+        
+        1. **🔑 Configure OpenRouter**
+           - Enter your OpenRouter API key
+           - Select models for Red and Blue teams
+        
+        2. **📝 Input Your Protocol**
+           - Paste your protocol or load a template
+           - Add compliance requirements if needed
+        
+        3. **▶️ Run Adversarial Testing**
+           - Adjust parameters as needed
+           - Click "Start Adversarial Testing"
+           - Monitor progress in real-time
+        """)
+        
+        if st.button("📋 Load Sample Protocol"):
+            sample_protocol = """# Sample Security Policy
+
+## Overview
+This policy defines security requirements for accessing company systems.
+
+## Scope
+Applies to all employees, contractors, and vendors with system access.
+
+## Policy Statements
+1. All users must use strong passwords
+2. Multi-factor authentication is required for sensitive systems
+3. Regular security training is mandatory
+4. Incident reporting must occur within 24 hours
+
+## Roles and Responsibilities
+- IT Security Team: Enforces policy and monitors compliance
+- Employees: Follow security practices and report incidents
+- Managers: Ensure team compliance and provide resources
+
+## Compliance
+- Audits conducted quarterly
+- Violations result in disciplinary action
+- Continuous monitoring through SIEM tools
+
+## Exceptions
+- Emergency access requests require manager approval
+- Temporary exceptions require security team approval
+
+## Review and Updates
+- Policy reviewed annually
+- Updates approved by CISO"""
+            st.session_state.protocol_text = sample_protocol
+            st.success("Sample protocol loaded! You can now start adversarial testing.")
+            st.rerun()
     
     # OpenRouter Configuration
     st.subheader("🔑 OpenRouter Configuration")
@@ -3141,17 +3613,101 @@ def render_adversarial_testing_tab():
     # Protocol Templates
     st.markdown("---")
     st.subheader("📝 Protocol Input")
-    templates = list_protocol_templates()
-    if templates and not st.session_state.protocol_text.strip():
-        col1, col2 = st.columns([3, 1])
-        with col1:
+    
+    # Add protocol input guidance
+    st.info("💡 **Tip:** Start with a clear, well-structured protocol. The better your starting point, the better the results.")
+    
+    # Protocol editor with enhanced features
+    protocol_col1, protocol_col2 = st.columns([3, 1])
+    with protocol_col1:
+        protocol_text = st.text_area("✏️ Enter or paste your protocol/procedure:", 
+                                    value=st.session_state.protocol_text,
+                                    height=300,
+                                    key="protocol_text",
+                                    placeholder="Paste your draft protocol/procedure here...\n\nExample:\n# Security Policy\n\n## Overview\nThis policy defines requirements for secure system access.\n\n## Scope\nApplies to all employees and contractors.\n\n## Policy Statements\n1. All users must use strong passwords\n2. Multi-factor authentication is required for sensitive systems\n3. Regular security training is mandatory\n\n## Compliance\nViolations result in disciplinary action.")
+    
+    with protocol_col2:
+        st.markdown("**📋 Quick Actions**")
+        
+        # Template loading
+        templates = list_protocol_templates()
+        if templates:
             selected_template = st.selectbox("Load Template", [""] + templates, key="adv_load_template_select")
-        with col2:
-            if selected_template and st.button("Load Selected Template", key="adv_load_template_btn", use_container_width=True):
+            if selected_template and st.button("📥 Load Template", use_container_width=True):
                 template_content = load_protocol_template(selected_template)
                 st.session_state.protocol_text = template_content
-                st.success(f"Loaded template: {selected_template}")
+                st.success(f"Loaded: {selected_template}")
                 st.rerun()
+        
+        # Sample protocol
+        if st.button("🧪 Load Sample", use_container_width=True):
+            sample_protocol = """# Sample Security Policy
+
+## Overview
+This policy defines security requirements for accessing company systems.
+
+## Scope
+Applies to all employees, contractors, and vendors with system access.
+
+## Policy Statements
+1. All users must use strong passwords
+2. Multi-factor authentication is required for sensitive systems
+3. Regular security training is mandatory
+4. Incident reporting must occur within 24 hours
+
+## Roles and Responsibilities
+- IT Security Team: Enforces policy and monitors compliance
+- Employees: Follow security practices and report incidents
+- Managers: Ensure team compliance and provide resources
+
+## Compliance
+- Audits conducted quarterly
+- Violations result in disciplinary action
+- Continuous monitoring through SIEM tools
+
+## Exceptions
+- Emergency access requests require manager approval
+- Temporary exceptions require security team approval
+
+## Review and Updates
+- Policy reviewed annually
+- Updates approved by CISO"""
+            st.session_state.protocol_text = sample_protocol
+            st.success("Sample protocol loaded!")
+            st.rerun()
+        
+        # Clear button
+        if st.session_state.protocol_text.strip() and st.button("🗑️ Clear", use_container_width=True):
+            st.session_state.protocol_text = ""
+            st.rerun()
+        
+        # Protocol analysis
+        if st.session_state.protocol_text.strip():
+            complexity = calculate_protocol_complexity(st.session_state.protocol_text)
+            structure = extract_protocol_structure(st.session_state.protocol_text)
+            
+            st.markdown("**📊 Quick Stats**")
+            st.metric("_WORDS", complexity["word_count"])
+            st.metric("_SENTENCES", complexity["sentence_count"])
+            st.metric("_COMPLEXITY", complexity["complexity_score"])
+            
+            # Structure indicators
+            structure_icons = []
+            if structure["has_numbered_steps"]:
+                structure_icons.append("🔢")
+            if structure["has_bullet_points"]:
+                structure_icons.append("•")
+            if structure["has_headers"]:
+                structure_icons.append("#")
+            if structure["has_preconditions"]:
+                structure_icons.append("🔒")
+            if structure["has_postconditions"]:
+                structure_icons.append("✅")
+            if structure["has_error_handling"]:
+                structure_icons.append("⚠️")
+            
+            if structure_icons:
+                st.markdown(" ".join(structure_icons))
 
     # AI Recommendations
     if st.session_state.protocol_text.strip():
@@ -3174,13 +3730,33 @@ def render_adversarial_testing_tab():
     # Model Selection
     st.markdown("---")
     st.subheader("🤖 Model Selection")
+    
+    # Add model selection guidance
+    st.info("💡 **Tip:** Select 3-5 diverse models for each team for best results. Mix small and large models for cost-effectiveness.")
+    
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("#### 🔴 Red Team (Critics)")
+        st.caption("Models that find flaws and vulnerabilities in your protocol")
+        
+        # Quick selection buttons
+        if model_options:
+            quick_red_models = st.multiselect(
+                "Quick Select Red Team Models", 
+                options=[opt.split(" (")[0] for opt in model_options[:10]],  # First 10 models
+                default=st.session_state.red_team_models[:3] if st.session_state.red_team_models else [],
+                key="quick_red_select"
+            )
+            if quick_red_models:
+                st.session_state.red_team_models = quick_red_models
+        
         if HAS_STREAMLIT_TAGS:
             red_team_selected_full = st_tags(
-                label="Select models to find flaws.", text="Search models...", value=st.session_state.red_team_models,
-                suggestions=model_options, key="red_team_select"
+                label="Search and select models:", 
+                text="Type to search models...", 
+                value=st.session_state.red_team_models,
+                suggestions=model_options, 
+                key="red_team_select"
             )
             # Robust model ID extraction from descriptive string
             red_team_models = []
@@ -3198,12 +3774,32 @@ def render_adversarial_testing_tab():
             st.warning("streamlit_tags not available. Using text input for model selection.")
             red_team_input = st.text_input("Enter Red Team models (comma-separated):", value=",".join(st.session_state.red_team_models))
             st.session_state.red_team_models = sorted(list(set([model.strip() for model in red_team_input.split(",") if model.strip()])))
+            
+        # Model count indicator
+        st.caption(f"Selected: {len(st.session_state.red_team_models)} models")
+        
     with col2:
         st.markdown("#### 🔵 Blue Team (Fixers)")
+        st.caption("Models that patch the identified flaws and improve the protocol")
+        
+        # Quick selection buttons
+        if model_options:
+            quick_blue_models = st.multiselect(
+                "Quick Select Blue Team Models", 
+                options=[opt.split(" (")[0] for opt in model_options[:10]],  # First 10 models
+                default=st.session_state.blue_team_models[:3] if st.session_state.blue_team_models else [],
+                key="quick_blue_select"
+            )
+            if quick_blue_models:
+                st.session_state.blue_team_models = quick_blue_models
+        
         if HAS_STREAMLIT_TAGS:
             blue_team_selected_full = st_tags(
-                label="Select models to patch flaws.", text="Search models...", value=st.session_state.blue_team_models,
-                suggestions=model_options, key="blue_team_select"
+                label="Search and select models:", 
+                text="Type to search models...", 
+                value=st.session_state.blue_team_models,
+                suggestions=model_options, 
+                key="blue_team_select"
             )
             # Robust model ID extraction from descriptive string
             blue_team_models = []
@@ -3221,10 +3817,47 @@ def render_adversarial_testing_tab():
             st.warning("streamlit_tags not available. Using text input for model selection.")
             blue_team_input = st.text_input("Enter Blue Team models (comma-separated):", value=",".join(st.session_state.blue_team_models))
             st.session_state.blue_team_models = sorted(list(set([model.strip() for model in blue_team_input.split(",") if model.strip()])))
+            
+        # Model count indicator
+        st.caption(f"Selected: {len(st.session_state.blue_team_models)} models")
+    
+    # Model selection validation
+    if st.session_state.red_team_models and st.session_state.blue_team_models:
+        total_models = len(st.session_state.red_team_models) + len(st.session_state.blue_team_models)
+        if total_models > 10:
+            st.warning(f"⚠️ You have selected {total_models} models. Consider reducing the number to control costs and processing time.")
+        else:
+            st.success(f"✅ Ready! {len(st.session_state.red_team_models)} red team and {len(st.session_state.blue_team_models)} blue team models selected.")
+    elif not st.session_state.red_team_models or not st.session_state.blue_team_models:
+        st.info("ℹ️ Please select at least one model for each team to proceed.")
     
     # Testing Parameters
     st.markdown("---")
     st.subheader("🧪 Testing Parameters")
+    
+    # Custom Mode Toggle
+    use_custom_mode = st.toggle("🔧 Use Custom Mode", key="adversarial_custom_mode", 
+                               help="Enable custom prompts and configurations for adversarial testing")
+    
+    if use_custom_mode:
+        with st.expander("🔧 Custom Prompts", expanded=True):
+            st.text_area("Red Team Prompt (Critique)", 
+                        value=RED_TEAM_CRITIQUE_PROMPT,
+                        key="adversarial_custom_red_prompt", 
+                        height=200,
+                        help="Custom prompt for the red team to find flaws in the protocol")
+            
+            st.text_area("Blue Team Prompt (Patch)", 
+                        value=BLUE_TEAM_PATCH_PROMPT,
+                        key="adversarial_custom_blue_prompt", 
+                        height=200,
+                        help="Custom prompt for the blue team to patch the identified flaws")
+            
+            st.text_area("Approval Prompt", 
+                        value=APPROVAL_PROMPT,
+                        key="adversarial_custom_approval_prompt", 
+                        height=150,
+                        help="Custom prompt for final approval checking")
     
     # Review Type Selection
     review_types = ["Auto-Detect", "General SOP", "Code Review", "Plan Review"]
@@ -3250,6 +3883,35 @@ def render_adversarial_testing_tab():
         st.number_input("Blue Team Sample Size", 1, 100, key="adversarial_blue_team_sample_size")
 
     st.text_area("Compliance Requirements", key="compliance_requirements", height=150, help="Enter any compliance requirements that the red team should check for.")
+    
+    # Advanced customization options
+    with st.expander("⚙️ Advanced Customization", expanded=False):
+        st.markdown("### 🎯 Target Metrics")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.number_input("Target Complexity Score", 0, 100, key="adversarial_target_complexity", 
+                           help="Target complexity score for the final protocol (0-100)")
+        with col2:
+            st.number_input("Target Length (words)", 0, 10000, key="adversarial_target_length", 
+                           help="Target length for the final protocol in words (0 = no limit)")
+        
+        st.markdown("### 🧠 Intelligence Settings")
+        st.slider("Critique Depth", 1, 10, key="adversarial_critique_depth", 
+                 help="How deeply the red team should analyze the protocol (1-10)")
+        st.slider("Patch Quality", 1, 10, key="adversarial_patch_quality", 
+                 help="Quality level for blue team patches (1-10)")
+        
+        st.markdown("### 📊 Evaluation Settings")
+        st.toggle("Detailed Issue Tracking", key="adversarial_detailed_tracking", 
+                 help="Track issues by category and severity in detail")
+        st.toggle("Performance Analytics", key="adversarial_performance_analytics", 
+                 help="Show detailed model performance analytics")
+        
+        st.markdown("### 🔄 Iteration Controls")
+        st.toggle("Early Stopping", key="adversarial_early_stopping", 
+                 help="Stop early if no improvement is detected")
+        st.number_input("Early Stopping Patience", 1, 10, key="adversarial_early_stopping_patience", 
+                       help="Number of iterations to wait before early stopping")
 
     all_models = sorted(list(set(st.session_state.red_team_models + st.session_state.blue_team_models)))
     if all_models:
@@ -3262,8 +3924,314 @@ def render_adversarial_testing_tab():
                 cc3.slider(f"Freq Pen##{model_id}", -2.0, 2.0, 0.0, 0.1, key=f"freqpen_{model_id}")
                 cc4.slider(f"Pres Pen##{model_id}", -2.0, 2.0, 0.0, 0.1, key=f"prespen_{model_id}")
 
+    # Metrics Dashboard Preview
+    with st.expander("📊 Metrics Dashboard Preview", expanded=False):
+        st.markdown("### 📊 Real-time Metrics (During Testing)")
+        st.info("These metrics will be updated in real-time during adversarial testing:")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("📈 Current Confidence", "0.0%")
+            st.metric("💰 Est. Cost (USD)", "$0.0000")
+            st.metric("🔤 Prompt Tokens", "0")
+        with col2:
+            st.metric("🔄 Iterations", "0/0")
+            st.metric("📝 Completion Tokens", "0")
+            st.metric("⚡ Avg Response Time", "0ms")
+        
+        st.markdown("### 📈 Confidence Trend")
+        st.line_chart([0, 0, 0, 0, 0])  # Placeholder chart
+        
+        st.markdown("### 🏆 Top Performing Models")
+        st.write("Model performance rankings will appear here during testing.")
+
+    # Start/Stop buttons for adversarial testing
+    st.markdown("---")
+    col1, col2, col3 = st.columns([2, 2, 1])
+    start_button = col1.button("🚀 Start Adversarial Testing", type="primary", 
+                              disabled=st.session_state.adversarial_running or not st.session_state.protocol_text.strip(),
+                              use_container_width=True)
+    stop_button = col2.button("⏹️ Stop Adversarial Testing", 
+                             disabled=not st.session_state.adversarial_running,
+                             use_container_width=True)
+    
+    # Progress and status section
+    if st.session_state.adversarial_running or st.session_state.adversarial_status_message:
+        status_container = st.container()
+        with status_container:
+            # Enhanced status display
+            if st.session_state.adversarial_status_message:
+                # Use different colors based on status message content
+                status_msg = st.session_state.adversarial_status_message
+                if "Success" in status_msg or "✅" in status_msg:
+                    st.success(status_msg)
+                elif "Error" in status_msg or "💥" in status_msg or "⚠️" in status_msg:
+                    st.error(status_msg)
+                elif "Stop" in status_msg or "⏹️" in status_msg:
+                    st.warning(status_msg)
+                else:
+                    st.info(status_msg)
+            
+            # Enhanced progress tracking
+            if st.session_state.adversarial_running:
+                # Progress bar with iteration info
+                current_iter = len(st.session_state.get("adversarial_confidence_history", []))
+                max_iter = st.session_state.adversarial_max_iter
+                progress = min(current_iter / max(1, max_iter), 1.0)
+                
+                # Progress bar with percentage
+                st.progress(progress, text=f"Iteration {current_iter}/{max_iter} ({int(progress*100)}%)")
+                
+                # Real-time metrics
+                if st.session_state.get("adversarial_confidence_history"):
+                    current_confidence = st.session_state.adversarial_confidence_history[-1]
+                    col1, col2, col3, col4 = st.columns(4)
+                    col1.metric("📊 Current Confidence", f"{current_confidence:.1f}%")
+                    col2.metric("💰 Est. Cost (USD)", f"${st.session_state.adversarial_cost_estimate_usd:.4f}")
+                    col3.metric("🔤 Prompt Tokens", f"{st.session_state.adversarial_total_tokens_prompt:,}")
+                    col4.metric("📝 Completion Tokens", f"{st.session_state.adversarial_total_tokens_completion:,}")
+                
+                # Enhanced logs with auto-scroll
+                with st.expander("🔍 Real-time Logs", expanded=True):
+                    if st.session_state.adversarial_log:
+                        # Show last 50 entries instead of 20 for better visibility
+                        log_content = "\n".join(st.session_state.adversarial_log[-50:])
+                        st.text_area("Activity Log", value=log_content, height=300, 
+                                    key="adversarial_log_display", 
+                                    help="Auto-updating log of adversarial testing activities")
+                    else:
+                        st.info("⏳ Waiting for adversarial testing to start...")
+
+    # If adversarial testing has results, show them with enhanced visualization
+    if st.session_state.adversarial_results and not st.session_state.adversarial_running:
+        with st.expander("🏆 Adversarial Testing Results", expanded=True):
+            results = st.session_state.adversarial_results
+            
+            # Enhanced metrics dashboard with better organization
+            st.markdown("### 📊 Performance Summary")
+            
+            # Main metrics in cards
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("✅ Final Approval Rate", f"{results.get('final_approval_rate', 0):.1f}%")
+            col2.metric("🔄 Iterations Completed", len(results.get('iterations', [])))
+            col3.metric("💰 Total Cost (USD)", f"${results.get('cost_estimate_usd', 0):.4f}")
+            col4.metric("🔤 Total Tokens", f"{results.get('tokens', {}).get('prompt', 0) + results.get('tokens', {}).get('completion', 0):,}")
+            
+            # Detailed metrics tabs
+            metrics_tab1, metrics_tab2, metrics_tab3 = st.tabs(["📈 Confidence Trend", "🏆 Model Performance", "🧮 Issue Analysis"])
+            
+            with metrics_tab1:
+                # Confidence trend chart
+                if results.get('iterations'):
+                    confidence_history = [iter.get("approval_check", {}).get("approval_rate", 0) 
+                                        for iter in results.get('iterations', [])]
+                    if confidence_history:
+                        # Enhanced visualization
+                        max_confidence = max(confidence_history)
+                        min_confidence = min(confidence_history)
+                        avg_confidence = sum(confidence_history) / len(confidence_history)
+                        
+                        st.line_chart(confidence_history)
+                        col1, col2, col3, col4 = st.columns(4)
+                        col1.metric("📈 Peak Confidence", f"{max_confidence:.1f}%")
+                        col2.metric("📉 Lowest Confidence", f"{min_confidence:.1f}%")
+                        col3.metric("📊 Average Confidence", f"{avg_confidence:.1f}%")
+                        col4.metric("📊 Final Confidence", f"{confidence_history[-1]:.1f}%")
+                        
+                        # Confidence improvement
+                        if len(confidence_history) > 1:
+                            improvement = confidence_history[-1] - confidence_history[0]
+                            if improvement > 0:
+                                st.success(f"🚀 Confidence improved by {improvement:.1f}%")
+                            elif improvement < 0:
+                                st.warning(f"⚠️ Confidence decreased by {abs(improvement):.1f}%")
+                            else:
+                                st.info("➡️ Confidence remained stable")
+            
+            with metrics_tab2:
+                # Model performance analysis
+                if st.session_state.get("adversarial_model_performance"):
+                    model_performance = st.session_state.adversarial_model_performance
+                    st.markdown("### 🏆 Top Performing Models")
+                    
+                    # Sort models by score
+                    sorted_models = sorted(model_performance.items(), key=lambda x: x[1].get("score", 0), reverse=True)
+                    
+                    # Display top 5 models
+                    for i, (model_id, perf) in enumerate(sorted_models[:5]):
+                        score = perf.get("score", 0)
+                        issues = perf.get("issues_found", 0)
+                        st.progress(min(score / 100, 1.0), 
+                                   text=f"#{i+1} {model_id} - Score: {score}, Issues Found: {issues}")
+                else:
+                    st.info("No model performance data available.")
+            
+            with metrics_tab3:
+                # Issue analysis
+                if results.get('iterations'):
+                    # Aggregate issue data
+                    total_issues = 0
+                    severity_counts = {"low": 0, "medium": 0, "high": 0, "critical": 0}
+                    category_counts = {}
+                    
+                    for iteration in results.get('iterations', []):
+                        critiques = iteration.get("critiques", [])
+                        for critique in critiques:
+                            critique_json = critique.get("critique_json", {})
+                            issues = critique_json.get("issues", [])
+                            total_issues += len(issues)
+                            
+                            for issue in issues:
+                                # Count by severity
+                                severity = issue.get("severity", "low").lower()
+                                if severity in severity_counts:
+                                    severity_counts[severity] += 1
+                                
+                                # Count by category
+                                category = issue.get("category", "uncategorized")
+                                category_counts[category] = category_counts.get(category, 0) + 1
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("### 🎯 Issue Severity Distribution")
+                        for severity, count in severity_counts.items():
+                            if count > 0:
+                                emoji = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}[severity]
+                                st.write(f"{emoji} {severity.capitalize()}: {count}")
+                    
+                    with col2:
+                        st.markdown("### 📚 Issue Categories")
+                        # Show top 5 categories
+                        sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
+                        for category, count in sorted_categories[:5]:
+                            st.write(f"🏷️ {category}: {count}")
+                    
+                    st.metric("🔍 Total Issues Found", total_issues)
+            
+            # Protocol comparison and analysis
+            st.markdown("### 📄 Protocol Analysis")
+            final_sop = results.get('final_sop', '')
+            original_sop = st.session_state.protocol_text
+            
+            if final_sop and original_sop:
+                # Tabs for different views
+                protocol_tab1, protocol_tab2, protocol_tab3 = st.tabs(["🔄 Comparison", "📄 Final Protocol", "🔍 Structure Analysis"])
+                
+                with protocol_tab1:
+                    st.markdown("### 🔄 Protocol Evolution")
+                    # Simple comparison metrics
+                    original_complexity = calculate_protocol_complexity(original_sop)
+                    final_complexity = calculate_protocol_complexity(final_sop)
+                    
+                    col1, col2, col3 = st.columns(3)
+                    col1.metric("📏 Original Length", f"{original_complexity['word_count']} words")
+                    col2.metric("📏 Final Length", f"{final_complexity['word_count']} words")
+                    col3.metric("📊 Length Change", 
+                               f"{final_complexity['word_count'] - original_complexity['word_count']} words", 
+                               f"{((final_complexity['word_count'] / max(1, original_complexity['word_count'])) - 1) * 100:.1f}%")
+                    
+                    # Show both protocols side by side
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("**Original Protocol**")
+                        st.text_area("Original", value=original_sop, height=300, key="original_protocol_display")
+                    with col2:
+                        st.markdown("**Hardened Protocol**")
+                        st.text_area("Final", value=final_sop, height=300, key="final_protocol_display")
+                
+                with protocol_tab2:
+                    st.markdown("### 📄 Final Hardened Protocol")
+                    st.code(final_sop, language="markdown")
+                    # Add download button
+                    st.download_button(
+                        label="📥 Download Final Protocol",
+                        data=final_sop,
+                        file_name="hardened_protocol.md",
+                        mime="text/markdown"
+                    )
+                
+                with protocol_tab3:
+                    st.markdown("### 🔍 Protocol Structure Analysis")
+                    # Add protocol analysis
+                    complexity = calculate_protocol_complexity(final_sop)
+                    structure = extract_protocol_structure(final_sop)
+                    
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.markdown("**📏 Complexity Metrics**")
+                        st.metric("Words", complexity["word_count"])
+                        st.metric("Sentences", complexity["sentence_count"])
+                        st.metric("Paragraphs", complexity["paragraph_count"])
+                        st.metric("Complexity Score", complexity["complexity_score"])
+                        st.metric("Unique Words", complexity["unique_words"])
+                    
+                    with col2:
+                        st.markdown("**🧩 Structure Analysis**")
+                        st.write("Numbered Steps:", "✅" if structure["has_numbered_steps"] else "❌")
+                        st.write("Bullet Points:", "✅" if structure["has_bullet_points"] else "❌")
+                        st.write("Headers:", "✅" if structure["has_headers"] else "❌")
+                        st.write("Preconditions:", "✅" if structure["has_preconditions"] else "❌")
+                        st.write("Postconditions:", "✅" if structure["has_postconditions"] else "❌")
+                        st.write("Error Handling:", "✅" if structure["has_error_handling"] else "❌")
+                        st.metric("SectionsIn Protocol", structure["section_count"])
+
 with tab2:
     render_adversarial_testing_tab()
+
+# Add start/stop functionality for adversarial testing
+if start_button:
+    # Validate inputs before starting
+    errors = []
+    
+    if not st.session_state.protocol_text.strip():
+        errors.append("📄 Please enter a protocol before starting adversarial testing.")
+    
+    if not st.session_state.openrouter_key:
+        errors.append("🔑 Please enter your OpenRouter API key.")
+    
+    if not st.session_state.red_team_models:
+        errors.append("🔴 Please select at least one red team model.")
+    
+    if not st.session_state.blue_team_models:
+        errors.append("🔵 Please select at least one blue team model.")
+    
+    if st.session_state.adversarial_min_iter > st.session_state.adversarial_max_iter:
+        errors.append("🔄 Min iterations cannot be greater than max iterations.")
+    
+    if st.session_state.adversarial_confidence < 50 or st.session_state.adversarial_confidence > 100:
+        errors.append("🎯 Confidence threshold should be between 50% and 100%.")
+    
+    # Show all errors at once
+    if errors:
+        for error in errors:
+            st.error(error)
+        st.info("💡 Tip: Check the Quick Start Wizard above for guided setup.")
+    else:
+        # Thread safety check to prevent multiple concurrent adversarial testing threads
+        if st.session_state.adversarial_running:
+            st.warning("Adversarial testing is already running. Please wait for it to complete or stop it first.")
+        else:
+            # Confirmation dialog for resource-intensive operations
+            estimated_cost = len(st.session_state.red_team_models) * len(st.session_state.blue_team_models) * st.session_state.adversarial_max_iter * 0.001
+            if estimated_cost > 0.1:  # If estimated cost is over $0.10
+                st.warning(f"💰 Estimated cost: ${estimated_cost:.4f}. This operation may consume significant tokens.")
+                if not st.checkbox("✅ I understand the cost and want to proceed", key="cost_confirmation"):
+                    st.info("ℹ️ Please confirm you understand the cost to proceed.")
+                    st.stop()
+            
+            # Start adversarial testing
+            st.session_state.adversarial_running = True
+            st.session_state.adversarial_status_message = "🚀 Initializing adversarial testing..."
+            threading.Thread(target=run_adversarial_testing, daemon=True).start()
+            st.rerun()
+
+if stop_button:
+    if st.session_state.adversarial_running:
+        st.session_state.adversarial_stop_flag = True
+        st.warning("⏹️ Stop signal sent. Adversarial testing will stop after the current iteration.")
+        st.session_state.adversarial_status_message = "⏹️ Stopping adversarial testing..."
+        # No rerun here, let the loop handle the UI update
+    else:
+        st.info("ℹ️ Adversarial testing is not currently running.")
 
 # ------------------------------------------------------------------
 # 8. Run logic for Evolution tab (Self-Contained Implementation)
