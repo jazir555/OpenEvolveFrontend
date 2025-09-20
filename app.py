@@ -369,6 +369,7 @@ h1 {
 
 JSON_RE = re.compile(r"\{[\s\S]*\}")
 FENCE_RE = re.compile(r"```(?:json)?\s*(\{[\s\S]*?\})\s*```", re.IGNORECASE)
+
 def safe_int(x, d=0):
     return d if x is None or not isinstance(x, (int, float, str)) or str(x) == '' else int(float(x))
 
@@ -2114,7 +2115,6 @@ def generate_executive_summary(results: Dict) -> str:
     
     return summary
 
-
 # ------------------------------------------------------------------
 # 5. Adversarial Testing Functions (robust)
 # ------------------------------------------------------------------
@@ -2214,13 +2214,7 @@ def _request_openrouter_chat(
             usage = data.get("usage", {})
             p_tok = safe_int(usage.get("prompt_tokens"), _approx_tokens(json.dumps(messages)))
             c_tok = safe_int(usage.get("completion_tokens"), _approx_tokens(content or ""))
-
-            with MODEL_META_LOCK:
-                meta = MODEL_META_BY_ID.get(model_id, {})
-            pricing = meta.get("pricing", {})
-            ppm_prompt = _parse_price_per_million(pricing.get("prompt"))
-            ppm_comp = _parse_price_per_million(pricing.get("completion"))
-            cost = _cost_estimate(p_tok, c_tok, ppm_prompt, ppm_comp)
+            cost = _cost_estimate(p_tok, c_tok, None, None)  # Simplified cost calculation
             return content or "", p_tok, c_tok, cost
         except Exception as e:
             last_err = e
@@ -2382,8 +2376,6 @@ def _request_cohere_chat(
             time.sleep(sleep_s)
     raise RuntimeError(f"Request failed after {max_retries} attempts for model {model}: {last_err}")
 
-
-
 def analyze_with_model(
     api_key: str,
     model_id: str,
@@ -2405,9 +2397,8 @@ def analyze_with_model(
         user_prompt = f"Here is the Standard Operating Procedure (SOP):\n\n---\n\n{sop}\n\n---\n\n{user_suffix}"
         full_prompt_text = system_prompt + user_prompt
 
-        with MODEL_META_LOCK:
-            meta = MODEL_META_BY_ID.get(model_id, {})
-        context_len = safe_int(meta.get("context_length"), 8192)
+        # Simplified context length estimation
+        context_len = 8192
         prompt_toks_est = _approx_tokens(full_prompt_text)
 
         if prompt_toks_est + max_tokens >= context_len:
@@ -2593,7 +2584,6 @@ def _update_model_performance(critiques: List[dict]):
                     sev = str(issue.get("severity", "low")).lower()
                     st.session_state.adversarial_model_performance[model_id]["score"] += sev_weight.get(sev, 1)
                     st.session_state.adversarial_model_performance[model_id]["issues_found"] += 1
-
 
 def _collect_model_configs(model_ids: List[str], max_tokens: int) -> Dict[str, Dict[str, Any]]:
     return {
@@ -3592,7 +3582,6 @@ def run_adversarial_testing():
             st.session_state.adversarial_results["critical_error"] = error_message
             # Ensure error is visible in UI by storing a simplified message
             st.session_state.adversarial_status_message = f"Error: {str(e)[:100]}..."
-
 
 # ------------------------------------------------------------------
 # 6. Sidebar – every provider + every knob
@@ -4656,7 +4645,10 @@ Applies to all employees, contractors, and vendors with system access.
         st.text_input("Deterministic seed", key="adversarial_seed", help="Integer for reproducible runs.")
         st.selectbox("Rotation Strategy", ["None", "Round Robin", "Random Sampling", "Performance-Based", "Staged", "Adaptive", "Focus-Category"], key="adversarial_rotation_strategy")
         if st.session_state.adversarial_rotation_strategy == "Staged":
-            st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help="""\n[{"red": ["model1", "model2"], "blue": ["model3"]},\n {"red": ["model4"], "blue": ["model5", "model6"]}]\n""")
+            st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help="""
+[{"red": ["model1", "model2"], "blue": ["model3"]},
+ {"red": ["model4"], "blue": ["model5", "model6"]}]
+""")
         st.number_input("Red Team Sample Size", 1, 100, key="adversarial_red_team_sample_size")
         st.number_input("Blue Team Sample Size", 1, 100, key="adversarial_blue_team_sample_size")
 
@@ -4949,7 +4941,6 @@ Applies to all employees, contractors, and vendors with system access.
                             if count > 0:
                                 emoji = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}[severity]
                                 st.write(f"{emoji} {severity.capitalize()}: {count}")
-                    
                     with col2:
                         st.markdown("### 📚 Issue Categories")
                         # Show top 5 categories
