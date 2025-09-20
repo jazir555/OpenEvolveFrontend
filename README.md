@@ -170,21 +170,21 @@ Iteration continues until: confidence >= threshold (e.g., 90%)
 #### Real-World Application Examples
 
 **Financial Services SOP**
-- Red team identified PCI-DSS compliance gaps
-- Blue team added encryption requirements and audit controls
+- Red team identifies PCI-DSS compliance gaps
+- Blue team adds encryption requirements and audit controls
 - Final approval: 94% confidence after 6 iterations
 - Result: Bank-grade security protocol with regulatory compliance
 
 **Healthcare Data Protocol**
-- Red team found HIPAA violation risks in data handling
-- Blue team implemented comprehensive privacy controls
-- Achieved 97% confidence with zero critical vulnerabilities
+- Red team finds HIPAA violation risks in data handling
+- Blue team implements comprehensive privacy controls
+- Achieves 97% confidence with zero critical vulnerabilities
 - Result: HIPAA-compliant data governance framework
 
-**Software Deployment Pipeline**
-- Red team discovered supply chain attack vectors
-- Blue team added integrity verification and staged rollouts  
-- Converged at 92% confidence with robust security controls
+**Software Deployment Example Pipeline**
+- Red team discovers supply chain attack vectors
+- Blue team adds integrity verification and staged rollouts  
+- Converge at 92% confidence with robust security controls
 - Result: Zero-trust deployment pipeline resistant to compromise
 
 #### Advanced Features and Controls
