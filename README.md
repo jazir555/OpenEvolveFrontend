@@ -1,6 +1,6 @@
 # OpenEvolve Protocol Improver
 
-A powerful Streamlit UI Frontend for OpenEvolve for improving protocols and standard operating procedures (SOPs), code and any other desired material through evolutionary refinement and adversarial testing using 34+ LLM providers.
+A powerful Streamlit UI Frontend for [OpenEvolve](https://github.com/codelion/openevolve) for improving protocols and standard operating procedures (SOPs), code and any other desired material through evolutionary refinement and adversarial testing using 34+ LLM providers.
 
 ## Features
 
