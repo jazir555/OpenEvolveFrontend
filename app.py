@@ -13,6 +13,8 @@ Key Features:
 - Cost estimation and token tracking
 - Thread-safe operations for concurrent model evaluation
 - Comprehensive logging and result visualization
+- Collaborative features and version control
+- Advanced analytics and reporting
 
 The application uses Streamlit for the web interface and provides both single-provider
 evolution and multi-provider adversarial testing capabilities.
@@ -28,8 +30,10 @@ import threading
 import time
 import traceback
 import hashlib
+import uuid
 from typing import List, Dict, Any, Optional, Tuple
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime
 
 try:
     import streamlit as st
@@ -525,6 +529,93 @@ def extract_protocol_structure(protocol_text: str) -> Dict[str, Any]:
         "has_postconditions": has_postconditions,
         "has_error_handling": has_error_handling
     }
+
+# ------------------------------------------------------------------
+# AI-Powered Recommendation Functions
+# ------------------------------------------------------------------
+
+def generate_protocol_recommendations(protocol_text: str) -> List[str]:
+    """Generate AI-powered recommendations for improving a protocol.
+    
+    Args:
+        protocol_text (str): The protocol text to analyze
+        
+    Returns:
+        List[str]: List of recommendations
+    """
+    if not protocol_text:
+        return ["Please enter a protocol to analyze."]
+    
+    recommendations = []
+    complexity = calculate_protocol_complexity(protocol_text)
+    structure = extract_protocol_structure(protocol_text)
+    
+    # Complexity-based recommendations
+    if complexity["complexity_score"] > 50:
+        recommendations.append("📝 Protocol is quite complex. Consider breaking it into smaller, more manageable sections.")
+    
+    if complexity["avg_sentence_length"] > 25:
+        recommendations.append("🔗 Average sentence length is high. Try to use shorter, clearer sentences.")
+    
+    if complexity["unique_words"] / max(1, complexity["word_count"]) < 0.4:
+        recommendations.append("🔄 High word repetition detected. Consider using more varied vocabulary for clarity.")
+    
+    # Structure-based recommendations
+    if not structure["has_headers"]:
+        recommendations.append("📌 Add headers to organize your protocol into clear sections.")
+    
+    if not structure["has_numbered_steps"] and not structure["has_bullet_points"]:
+        recommendations.append("🔢 Use numbered steps or bullet points to make instructions clearer.")
+    
+    if not structure["has_preconditions"]:
+        recommendations.append("🔒 Add preconditions to specify what must be true before executing the protocol.")
+    
+    if not structure["has_postconditions"]:
+        recommendations.append("✅ Add postconditions to specify what should be true after executing the protocol.")
+    
+    if not structure["has_error_handling"]:
+        recommendations.append("⚠️ Include error handling procedures for when things go wrong.")
+    
+    # Length-based recommendations
+    if complexity["word_count"] < 100:
+        recommendations.append("📄 Protocol is quite short. Ensure all necessary details are included.")
+    
+    if structure["section_count"] == 0 and complexity["word_count"] > 300:
+        recommendations.append("📂 Long protocol without sections. Consider organizing it with headers for better readability.")
+    
+    # Add some general recommendations if none were triggered
+    if not recommendations:
+        recommendations.append("👍 Your protocol looks well-structured! Consider running adversarial testing for additional hardening.")
+    
+    return recommendations
+
+def suggest_protocol_template(protocol_text: str) -> str:
+    """Suggest the most appropriate protocol template based on content.
+    
+    Args:
+        protocol_text (str): The protocol text to analyze
+        
+    Returns:
+        str: Suggested template name
+    """
+    if not protocol_text:
+        return "Standard Operating Procedure"
+    
+    lower_text = protocol_text.lower()
+    
+    # Check for keywords that indicate specific template types
+    if any(keyword in lower_text for keyword in ["security", "vulnerability", "attack", "threat", "penetration"]):
+        return "Security Policy"
+    elif any(keyword in lower_text for keyword in ["incident", "response", "emergency", "crisis"]):
+        return "Incident Response Plan"
+    elif any(keyword in lower_text for keyword in ["compliance", "regulation", "audit", "policy"]):
+        return "Compliance Policy"
+    elif any(keyword in lower_text for keyword in ["development", "code", "software", "programming"]):
+        return "Development Process"
+    elif any(keyword in lower_text for keyword in ["testing", "test", "qa", "quality"]):
+        return "Testing Procedure"
+    else:
+        return "Standard Operating Procedure"  # Default suggestion
 
 def compare_protocols(protocol_a: str, protocol_b: str) -> Dict[str, Any]:
     """Compare two protocols and highlight differences.
@@ -1182,6 +1273,17 @@ DEFAULTS = {
     "adversarial_confidence_history": [],
     "adversarial_staged_rotation_config": "",
     "compliance_requirements": "",
+    # Collaborative features
+    "project_name": "Untitled Project",
+    "collaborators": [],
+    "comments": [],
+    "protocol_versions": [],
+    "current_version_id": "",
+    "tags": [],
+    "project_description": "",
+    # Tutorial and onboarding
+    "tutorial_completed": False,
+    "current_tutorial_step": 0,
 }
 
 for k, v in DEFAULTS.items():
@@ -1294,6 +1396,152 @@ def load_protocol_template(template_name: str) -> str:
         str: Template content
     """
     return PROTOCOL_TEMPLATES.get(template_name, "")
+
+# ------------------------------------------------------------------
+# Version Control and Collaboration Functions
+# ------------------------------------------------------------------
+
+def create_new_version(protocol_text: str, version_name: str = "", comment: str = "") -> str:
+    """Create a new version of the protocol.
+    
+    Args:
+        protocol_text (str): The protocol text to save
+        version_name (str): Optional name for the version
+        comment (str): Optional comment about the changes
+        
+    Returns:
+        str: Version ID of the created version
+    """
+    version_id = str(uuid.uuid4())
+    timestamp = datetime.now().isoformat()
+    
+    version = {
+        "id": version_id,
+        "name": version_name or f"Version {len(st.session_state.protocol_versions) + 1}",
+        "timestamp": timestamp,
+        "protocol_text": protocol_text,
+        "comment": comment,
+        "author": "Current User",  # In a real implementation, this would be the actual user
+        "complexity_metrics": calculate_protocol_complexity(protocol_text),
+        "structure_analysis": extract_protocol_structure(protocol_text)
+    }
+    
+    with st.session_state.thread_lock:
+        st.session_state.protocol_versions.append(version)
+        st.session_state.current_version_id = version_id
+    
+    return version_id
+
+def load_version(version_id: str) -> bool:
+    """Load a specific version of the protocol.
+    
+    Args:
+        version_id (str): ID of the version to load
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    with st.session_state.thread_lock:
+        for version in st.session_state.protocol_versions:
+            if version["id"] == version_id:
+                st.session_state.protocol_text = version["protocol_text"]
+                st.session_state.current_version_id = version_id
+                return True
+    return False
+
+def get_version_history() -> List[Dict]:
+    """Get the version history.
+    
+    Returns:
+        List[Dict]: List of versions
+    """
+    with st.session_state.thread_lock:
+        return st.session_state.protocol_versions.copy()
+
+def add_comment(comment_text: str, version_id: str = None) -> str:
+    """Add a comment to a version or the current protocol.
+    
+    Args:
+        comment_text (str): The comment text
+        version_id (str): Optional version ID to comment on
+        
+    Returns:
+        str: Comment ID
+    """
+    comment_id = str(uuid.uuid4())
+    timestamp = datetime.now().isoformat()
+    
+    comment = {
+        "id": comment_id,
+        "text": comment_text,
+        "timestamp": timestamp,
+        "author": "Current User",  # In a real implementation, this would be the actual user
+        "version_id": version_id or st.session_state.current_version_id
+    }
+    
+    with st.session_state.thread_lock:
+        st.session_state.comments.append(comment)
+    
+    return comment_id
+
+def get_comments(version_id: str = None) -> List[Dict]:
+    """Get comments for a specific version or all comments.
+    
+    Args:
+        version_id (str): Optional version ID to get comments for
+        
+    Returns:
+        List[Dict]: List of comments
+    """
+    with st.session_state.thread_lock:
+        if version_id:
+            return [c for c in st.session_state.comments if c["version_id"] == version_id]
+        return st.session_state.comments.copy()
+
+def export_project() -> Dict:
+    """Export the entire project including versions and comments.
+    
+    Returns:
+        Dict: Project data
+    """
+    with st.session_state.thread_lock:
+        return {
+            "project_name": st.session_state.project_name,
+            "project_description": st.session_state.project_description,
+            "versions": st.session_state.protocol_versions,
+            "comments": st.session_state.comments,
+            "collaborators": st.session_state.collaborators,
+            "tags": st.session_state.tags,
+            "export_timestamp": datetime.now().isoformat()
+        }
+
+def import_project(project_data: Dict) -> bool:
+    """Import a project including versions and comments.
+    
+    Args:
+        project_data (Dict): Project data to import
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        with st.session_state.thread_lock:
+            st.session_state.project_name = project_data.get("project_name", "Imported Project")
+            st.session_state.project_description = project_data.get("project_description", "")
+            st.session_state.protocol_versions = project_data.get("versions", [])
+            st.session_state.comments = project_data.get("comments", [])
+            st.session_state.collaborators = project_data.get("collaborators", [])
+            st.session_state.tags = project_data.get("tags", [])
+            
+            # Set current version to the latest one
+            if st.session_state.protocol_versions:
+                latest_version = st.session_state.protocol_versions[-1]
+                st.session_state.protocol_text = latest_version["protocol_text"]
+                st.session_state.current_version_id = latest_version["id"]
+        return True
+    except Exception as e:
+        st.error(f"Error importing project: {e}")
+        return False
 
 
 # ------------------------------------------------------------------
@@ -2308,12 +2556,52 @@ with st.sidebar:
 st.title("🧬 OpenEvolve Protocol Improver")
 st.markdown("---")
 
-# Header with team badges
+# Project information
 col1, col2 = st.columns([3, 1])
 with col1:
     st.markdown("## 🔴🔵 Adversarial Testing & Evolution-based Protocol Improvement")
 with col2:
     st.markdown('<span class="team-badge red-team">Red Team</span><span class="team-badge blue-team">Blue Team</span>', unsafe_allow_html=True)
+
+# Project info in sidebar
+with st.sidebar:
+    st.markdown("---")
+    st.subheader("📁 Project Information")
+    st.text_input("Project Name", key="project_name")
+    st.text_area("Project Description", key="project_description", height=100)
+    
+    # Tags
+    if HAS_STREAMLIT_TAGS:
+        st.multiselect("Tags", st.session_state.tags, key="tags")
+    
+    # Collaborators
+    st.multiselect("Collaborators", st.session_state.collaborators, key="collaborators")
+    
+    # Version control
+    st.markdown("---")
+    st.subheader("🔄 Version Control")
+    if st.button("Save Current Version"):
+        if st.session_state.protocol_text.strip():
+            version_name = st.text_input("Version Name", f"Version {len(st.session_state.protocol_versions) + 1}")
+            comment = st.text_area("Comment", height=50)
+            if st.button("Confirm Save"):
+                version_id = create_new_version(st.session_state.protocol_text, version_name, comment)
+                st.success(f"Version saved! ID: {version_id[:8]}")
+                st.rerun()
+    
+    # Show version history
+    versions = get_version_history()
+    if versions:
+        st.write("### Version History")
+        for version in reversed(versions[-5:]):  # Show last 5 versions
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                if st.button(f"{version['name']} ({version['timestamp'][:10]})", key=f"load_version_{version['id']}"):
+                    load_version(version['id'])
+                    st.success(f"Loaded version: {version['name']}")
+                    st.rerun()
+            with col2:
+                st.caption(f"v{version['id'][:8]}")
 
 tab1, tab2 = st.tabs(["🔄 Evolution", "⚔️ Adversarial Testing"])
 
