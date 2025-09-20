@@ -377,7 +377,7 @@ def safe_float(x, d=0.0):
 
 # Define adversarial prompts as constants for clarity and maintainability.
 APPROVAL_PROMPT = (
-    "You are a security auditor. Your task is to evaluate the provided Standard Operating Procedure (SOP). "
+    "You are a senior technical reviewer. Your task is to evaluate the provided Standard Operating Procedure (SOP). "
     "Return a single, STRICT JSON object and nothing else. The JSON object must have the following keys:\n"
     '{"verdict": "APPROVED" | "REJECTED", "score": 0-100, "reasons": ["..."], "notes": "..."}\n'
     "- `verdict`: Your final judgment. 'APPROVED' if the SOP is robust, clear, and secure. 'REJECTED' otherwise.\n"
@@ -388,24 +388,65 @@ APPROVAL_PROMPT = (
 )
 
 RED_TEAM_CRITIQUE_PROMPT = (
-    "You are an uncompromising red-team security auditor. Your goal is to find every possible flaw in the provided SOP. "
-    "Analyze it for vulnerabilities, logical gaps, ambiguities, edge cases, undefined responsibilities, missing "
-    "preconditions, unsafe defaults, and potential paths for abuse or malicious exploitation. "
+    "You are a critical technical reviewer conducting a peer review. Your goal is to find every possible flaw in the provided SOP. "
+    "Analyze it for logical gaps, ambiguities, edge cases, undefined responsibilities, missing "
+    "preconditions, unsafe defaults, and potential paths for errors or misuse. "
     "Also, check for compliance with the following requirements:\\n{compliance_requirements}\\n"
     "Return a single, STRICT JSON object and nothing else with the following structure:\\n"
-    '{\\"issues\\": [{\\"title\\": \\"...\\", \\"severity\\": \\"low|medium|high|critical\\", \\"category\\": \\"...\\", \\"detail\\": \\"...\\", '
-    '\\"reproduction\\": \\"...\\", \\"exploit_paths\\": [\\"...\\"], \\"mitigations\\": [\\"...\\"]}], '
-    '\\"summary\\": \\"...\\", \\"overall_risk\\": \\"low|medium|high|critical\\"}'
+    '{\"issues\": [{\"title\": \"...\", \"severity\": \"low|medium|high|critical\", \"category\": \"...\", \"detail\": \"...\", '
+    '\"reproduction\": \"...\", \"exploit_paths\": [\"...\"], \"mitigations\": [\"...\"]}], '
+    '\"summary\": \"...\", \"overall_risk\": \"low|medium|high|critical\"}'
 )
 
 BLUE_TEAM_PATCH_PROMPT = (
-    "You are a meticulous blue-team security engineer. Your task is to fix the vulnerabilities identified in the "
-    "provided critiques and produce a hardened, fully rewritten SOP. Incorporate the critiques to make the protocol "
-    "explicit, verifiable, and enforce the principle of least privilege. Add preconditions, acceptance tests, rollback "
-    "steps, monitoring, auditability, and incident response procedures where applicable. "
+    "You are a technical improvement specialist. Your task is to address the issues identified in the "
+    "provided critiques and produce an improved version of the SOP. Incorporate the feedback to make the protocol "
+    "explicit, verifiable, and robust. Add preconditions, validation steps, error handling, "
+    "monitoring, auditability, and documentation where applicable. "
     "Return a single, STRICT JSON object and nothing else with the following keys:\\n"
-    '{\\"sop\\": \\"<the complete improved SOP in Markdown>\\", \\"changelog\\": [\\"...\\"], \\"residual_risks\\": [\\"...\\"], '
-    '\\"mitigation_matrix\\": [{\\"issue\\": \\"...\\", \\"fix\\": \\"...\\", \\"status\\": \\"resolved|mitigated|wontfix\\"}]}'
+    '{\"sop\": \"<the complete improved SOP in Markdown>\", \"changelog\": [\"...\"], \"residual_risks\": [\"...\"], '
+    '\"mitigation_matrix\": [{\"issue\": \"...\", \"fix\": \"...\", \"status\": \"resolved|mitigated|wontfix\"}]}'
+)
+
+# Specialized prompts for different review types
+CODE_REVIEW_RED_TEAM_PROMPT = (
+    "You are a senior software engineer conducting a code peer review. Your goal is to find every possible flaw in the provided code. "
+    "Analyze it for bugs, security vulnerabilities, performance issues, maintainability problems, "
+    "code smells, anti-patterns, and potential runtime errors. "
+    "Also, check for compliance with the following requirements:\\n{compliance_requirements}\\n"
+    "Return a single, STRICT JSON object and nothing else with the following structure:\\n"
+    '{\"issues\": [{\"title\": \"...\", \"severity\": \"low|medium|high|critical\", \"category\": \"bug|security|performance|maintainability|style\", \"detail\": \"...\", \"line_number\": \"...\", \"suggested_fix\": \"...\"}], '
+    '\"summary\": \"...\", \"overall_quality\": \"poor|fair|good|excellent\"}'
+)
+
+CODE_REVIEW_BLUE_TEAM_PROMPT = (
+    "You are a code improvement specialist. Your task is to address the issues identified in the "
+    "provided code review critiques and produce an improved version of the code. Incorporate the feedback to make the code "
+    "more secure, efficient, maintainable, and readable. Add proper error handling, "
+    "documentation, and follow best practices. "
+    "Return a single, STRICT JSON object and nothing else with the following keys:\\n"
+    '{\"code\": \"<the complete improved code>\", \"changelog\": [\"...\"], \"residual_issues\": [\"...\"], '
+    '\"fix_matrix\": [{\"issue\": \"...\", \"fix\": \"...\", \"status\": \"resolved|mitigated|wontfix\"}]}'
+)
+
+PLAN_REVIEW_RED_TEAM_PROMPT = (
+    "You are a strategic planning expert conducting a peer review of the provided plan. Your goal is to find every possible flaw in the plan. "
+    "Analyze it for unrealistic assumptions, missing steps, unclear objectives, resource constraints, "
+    "timeline issues, risk factors, and potential failure points. "
+    "Also, check for compliance with the following requirements:\\n{compliance_requirements}\\n"
+    "Return a single, STRICT JSON object and nothing else with the following structure:\\n"
+    '{\"issues\": [{\"title\": \"...\", \"severity\": \"low|medium|high|critical\", \"category\": \"assumptions|resources|timeline|risks|clarity\", \"detail\": \"...\", \"suggested_improvement\": \"...\"}], '
+    '\"summary\": \"...\", \"overall_feasibility\": \"low|medium|high\"}'
+)
+
+PLAN_REVIEW_BLUE_TEAM_PROMPT = (
+    "You are a planning improvement specialist. Your task is to address the issues identified in the "
+    "provided plan review critiques and produce an improved version of the plan. Incorporate the feedback to make the plan "
+    "more realistic, actionable, and robust. Add missing details, clarify objectives, "
+    "adjust timelines, and improve resource allocation. "
+    "Return a single, STRICT JSON object and nothing else with the following keys:\\n"
+    '{\"plan\": \"<the complete improved plan in Markdown>\", \"changelog\": [\"...\"], \"residual_concerns\": [\"...\"], '
+    '\"improvement_matrix\": [{\"issue\": \"...\", \"improvement\": \"...\", \"status\": \"resolved|mitigated|wontfix\"}]}'
 )
 
 # ------------------------------------------------------------------
@@ -1855,9 +1896,63 @@ def analyze_with_model(
     except Exception as e:
         return {"ok": False, "text": f"ERROR[{model_id}]: {e}", "json": None, "ptoks": 0, "ctoks": 0, "cost": 0.0, "model_id": model_id}
 
-def _safe_list(d: dict, key: str) -> List[Any]:
-    v = d.get(key)
-    return v if isinstance(v, list) else []
+def determine_review_type(content: str) -> str:
+    """Determine the appropriate review type based on content analysis.
+    
+    Args:
+        content (str): The content to analyze
+        
+    Returns:
+        str: Review type ('general', 'code', 'plan')
+    """
+    if not content:
+        return "general"
+    
+    # Convert to lowercase for analysis
+    lower_content = content.lower()
+    
+    # Check for code indicators
+    code_indicators = [
+        'function ', 'def ', 'class ', 'import ', 'require(', 'var ', 'let ', 'const ',
+        'public ', 'private ', 'protected ', 'static ', 'void ', 'int ', 'string ',
+        '<html', '<?php', '<script', 'console.', 'print(', 'printf(', 'scanf(',
+        'if(', 'for(', 'while(', 'switch(', 'try{', 'catch(', 'finally{'
+    ]
+    
+    # Check for plan indicators
+    plan_indicators = [
+        'objective', 'goal', 'milestone', 'deliverable', 'resource', 'budget',
+        'timeline', 'schedule', 'risk', 'dependency', 'assumption',
+        'stakeholder', 'communication', 'review', 'approval'
+    ]
+    
+    # Count matches
+    code_matches = sum(1 for indicator in code_indicators if indicator in lower_content)
+    plan_matches = sum(1 for indicator in plan_indicators if indicator in lower_content)
+    
+    # Determine review type
+    if code_matches > plan_matches and code_matches > 2:
+        return "code"
+    elif plan_matches > code_matches and plan_matches > 2:
+        return "plan"
+    else:
+        return "general"
+
+def get_appropriate_prompts(review_type: str) -> Tuple[str, str]:
+    """Get the appropriate prompts based on review type.
+    
+    Args:
+        review_type (str): Type of review ('general', 'code', 'plan')
+        
+    Returns:
+        Tuple[str, str]: Red team and blue team prompts
+    """
+    if review_type == "code":
+        return CODE_REVIEW_RED_TEAM_PROMPT, CODE_REVIEW_BLUE_TEAM_PROMPT
+    elif review_type == "plan":
+        return PLAN_REVIEW_RED_TEAM_PROMPT, PLAN_REVIEW_BLUE_TEAM_PROMPT
+    else:
+        return RED_TEAM_CRITIQUE_PROMPT, BLUE_TEAM_PATCH_PROMPT
 
 def _severity_rank(sev: str) -> int:
     order = {"low": 0, "medium": 1, "high": 2, "critical": 3}
@@ -2141,14 +2236,17 @@ def generate_html_report(results: dict) -> str:
     <head>
         <title>Adversarial Testing Report</title>
         <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; }}
-            h1, h2, h3 {{ color: #333; }}
-            .summary {{ background-color: #f5f5f5; padding: 15px; border-radius: 5px; }}
-            .section {{ margin: 20px 0; }}
-            .log {{ font-family: monospace; font-size: 0.9em; background-color: #f9f9f9; padding: 10px; }}
+            body {{ font-family: Arial, sans-serif; margin: 40px; background-color: #f8f9fa; }}
+            h1, h2, h3 {{ color: #4a6fa5; }}
+            .summary {{ background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 20px; }}
+            .section {{ margin: 20px 0; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }}
+            .log {{ font-family: monospace; font-size: 0.9em; background-color: #f9f9f9; padding: 10px; border-radius: 4px; }}
             table {{ border-collapse: collapse; width: 100%; }}
             th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-            th {{ background-color: #f2f2f2; }}
+            th {{ background-color: #4a6fa5; color: white; }}
+            .metric {{ text-align: center; padding: 10px; background-color: #e9ecef; border-radius: 4px; margin: 5px; }}
+            .improvement {{ color: #4caf50; font-weight: bold; }}
+            .regression {{ color: #f44336; font-weight: bold; }}
         </style>
     </head>
     <body>
@@ -2165,7 +2263,7 @@ def generate_html_report(results: dict) -> str:
         
         <div class="section">
             <h2>Final Hardened SOP</h2>
-            <pre>{results.get("final_sop", "")}</pre>
+            <pre style="white-space: pre-wrap; background-color: #f9f9f9; padding: 15px; border-radius: 4px;">{results.get("final_sop", "")}</pre>
         </div>
     """
     
@@ -2179,7 +2277,14 @@ def generate_html_report(results: dict) -> str:
             for critique in iteration.get("critiques", []):
                 if critique.get("critique_json"):
                     for issue in _safe_list(critique["critique_json"], "issues"):
-                        html += f"<li>{issue.get('title')} ({issue.get('severity')})</li>"
+                        severity = issue.get('severity', 'low')
+                        severity_color = {
+                            'low': '#4caf50',
+                            'medium': '#ff9800',
+                            'high': '#f44336',
+                            'critical': '#9c27b0'
+                        }.get(severity, '#000000')
+                        html += f"<li><span style='color: {severity_color}; font-weight: bold;'>{severity.upper()}</span>: {issue.get('title')}</li>"
             html += "</ul>"
         html += "</div>"
         
@@ -2190,8 +2295,41 @@ def generate_html_report(results: dict) -> str:
                 <tr><th>Model</th><th>Verdict</th><th>Score</th></tr>
         """
         for vote in results["iterations"][-1].get("approval_check", {}).get("votes", []):
-            html += f"<tr><td>{vote.get('model')}</td><td>{vote.get('verdict')}</td><td>{vote.get('score')}</td></tr>"
+            verdict = vote.get('verdict', '')
+            verdict_color = '#4caf50' if verdict.upper() == 'APPROVED' else '#f44336'
+            html += f"<tr><td>{vote.get('model')}</td><td style='color: {verdict_color}; font-weight: bold;'>{verdict}</td><td>{vote.get('score')}</td></tr>"
         html += "</table></div>"
+        
+        # Add performance chart data
+        html += """
+        <div class="section">
+            <h2>Performance Metrics</h2>
+            <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
+        """
+        
+        # Approval rate chart
+        approval_rates = [iter["approval_check"].get("approval_rate", 0) for iter in results.get("iterations", [])]
+        if approval_rates:
+            avg_approval = sum(approval_rates) / len(approval_rates)
+            html += f"""
+            <div class="metric">
+                <div>Avg Approval Rate</div>
+                <div style="font-size: 24px;">{avg_approval:.1f}%</div>
+            </div>
+            """
+        
+        # Issue count chart
+        issue_counts = [iter["agg_risk"].get("count", 0) for iter in results.get("iterations", [])]
+        if issue_counts:
+            total_issues = sum(issue_counts)
+            html += f"""
+            <div class="metric">
+                <div>Total Issues Found</div>
+                <div style="font-size: 24px;">{total_issues}</div>
+            </div>
+            """
+        
+        html += "</div></div>"
     
     html += """
         <div class="section">
@@ -2208,6 +2346,177 @@ def generate_html_report(results: dict) -> str:
     """
     
     return html
+
+# ------------------------------------------------------------------
+# Advanced Analytics Functions
+# ------------------------------------------------------------------
+
+def analyze_code_quality(code_text: str) -> Dict[str, Any]:
+    """Analyze code quality metrics.
+    
+    Args:
+        code_text (str): The code to analyze
+        
+    Returns:
+        Dict[str, Any]: Code quality metrics
+    """
+    if not code_text:
+        return {
+            "lines_of_code": 0,
+            "functions": 0,
+            "classes": 0,
+            "comments": 0,
+            "complexity": 0,
+            "duplicate_lines": 0,
+            "quality_score": 0
+        }
+    
+    lines = code_text.split('\n')
+    lines_of_code = len([line for line in lines if line.strip()])
+    
+    # Count functions (simplified)
+    function_patterns = [r'\bdef\s+\w+\s*\(', r'\bfunction\s+\w+\s*\(', r'\w+\s*\([^)]*\)\s*{']
+    functions = 0
+    for pattern in function_patterns:
+        functions += len(re.findall(pattern, code_text))
+    
+    # Count classes (simplified)
+    class_patterns = [r'\bclass\s+\w+', r'\bstruct\s+\w+']
+    classes = 0
+    for pattern in class_patterns:
+        classes += len(re.findall(pattern, code_text))
+    
+    # Count comments (simplified)
+    comment_patterns = [r'#.*', r'//.*', r'/\*.*?\*/', r'<!--.*?-->']
+    comments = 0
+    for pattern in comment_patterns:
+        comments += len(re.findall(pattern, code_text, re.DOTALL))
+    
+    # Simplified complexity calculation
+    complexity_keywords = ['if', 'for', 'while', 'switch', 'try', 'catch', '&&', '||']
+    complexity = 0
+    for keyword in complexity_keywords:
+        complexity += code_text.lower().count(keyword)
+    
+    # Estimate duplicate lines (very simplified)
+    unique_lines = len(set(lines))
+    duplicate_lines = lines_of_code - unique_lines if lines_of_code > 0 else 0
+    
+    # Calculate quality score (simplified)
+    quality_score = 100
+    if lines_of_code > 0:
+        # Deduct points for low comment ratio
+        comment_ratio = comments / lines_of_code if lines_of_code > 0 else 0
+        if comment_ratio < 0.1:
+            quality_score -= (0.1 - comment_ratio) * 100 * 2  # Up to 20 points deduction
+        
+        # Deduct points for high complexity
+        complexity_ratio = complexity / lines_of_code if lines_of_code > 0 else 0
+        if complexity_ratio > 0.3:
+            quality_score -= (complexity_ratio - 0.3) * 100 * 1.5  # Up to 15 points deduction
+        
+        # Deduct points for duplicate lines
+        duplicate_ratio = duplicate_lines / lines_of_code if lines_of_code > 0 else 0
+        if duplicate_ratio > 0.05:
+            quality_score -= (duplicate_ratio - 0.05) * 100 * 3  # Up to 30 points deduction
+    
+    quality_score = max(0, min(100, quality_score))  # Clamp to 0-100
+    
+    return {
+        "lines_of_code": lines_of_code,
+        "functions": functions,
+        "classes": classes,
+        "comments": comments,
+        "complexity": complexity,
+        "duplicate_lines": duplicate_lines,
+        "quality_score": round(quality_score, 2)
+    }
+
+def analyze_plan_quality(plan_text: str) -> Dict[str, Any]:
+    """Analyze plan quality metrics.
+    
+    Args:
+        plan_text (str): The plan to analyze
+        
+    Returns:
+        Dict[str, Any]: Plan quality metrics
+    """
+    if not plan_text:
+        return {
+            "sections": 0,
+            "objectives": 0,
+            "milestones": 0,
+            "resources": 0,
+            "risks": 0,
+            "dependencies": 0,
+            "timeline_elements": 0,
+            "quality_score": 0
+        }
+    
+    # Count sections (headers)
+    sections = len(re.findall(r'^#{1,6}\s+|.*\n[=]{3,}|.*\n[-]{3,}', plan_text, re.MULTILINE))
+    
+    # Count objectives (look for objective-related terms)
+    objective_patterns = [r'\bobjectives?\b', r'\bgoals?\b', r'\bpurpose\b', r'\baim\b']
+    objectives = 0
+    for pattern in objective_patterns:
+        objectives += len(re.findall(pattern, plan_text, re.IGNORECASE))
+    
+    # Count milestones (look for milestone-related terms)
+    milestone_patterns = [r'\bmilestones?\b', r'\bdeadlines?\b', r'\btimelines?\b', r'\bschedule\b']
+    milestones = 0
+    for pattern in milestone_patterns:
+        milestones += len(re.findall(pattern, plan_text, re.IGNORECASE))
+    
+    # Count resources (look for resource-related terms)
+    resource_patterns = [r'\bresources?\b', r'\bbudget\b', r'\bcosts?\b', r'\bmaterials?\b']
+    resources = 0
+    for pattern in resource_patterns:
+        resources += len(re.findall(pattern, plan_text, re.IGNORECASE))
+    
+    # Count risks (look for risk-related terms)
+    risk_patterns = [r'\brisks?\b', r'\bthreats?\b', r'\bvulnerabilit(?:y|ies)\b', r'\bhazards?\b']
+    risks = 0
+    for pattern in risk_patterns:
+        risks += len(re.findall(pattern, plan_text, re.IGNORECASE))
+    
+    # Count dependencies (look for dependency-related terms)
+    dependency_patterns = [r'\bdependenc(?:y|ies)\b', r'\bprerequisites?\b', r'\brequires?\b', r'\bneeds?\b']
+    dependencies = 0
+    for pattern in dependency_patterns:
+        dependencies += len(re.findall(pattern, plan_text, re.IGNORECASE))
+    
+    # Count timeline elements (dates, time-related terms)
+    timeline_patterns = [r'\d{1,2}[/-]\d{1,2}[/-]\d{2,4}', r'\d{4}[/-]\d{1,2}[/-]\d{1,2}', 
+                       r'\bweeks?\b', r'\bmonths?\b', r'\byears?\b', r'\bdays?\b']
+    timeline_elements = 0
+    for pattern in timeline_patterns:
+        timeline_elements += len(re.findall(pattern, plan_text, re.IGNORECASE))
+    
+    # Calculate quality score (simplified)
+    quality_score = 50  # Start with baseline
+    
+    # Add points for completeness
+    quality_score += min(20, sections * 2)  # Up to 20 points for sections
+    quality_score += min(15, objectives * 3)  # Up to 15 points for objectives
+    quality_score += min(10, milestones * 2)  # Up to 10 points for milestones
+    quality_score += min(10, resources * 2)  # Up to 10 points for resources
+    quality_score += min(10, risks * 2)  # Up to 10 points for risks
+    quality_score += min(10, dependencies * 2)  # Up to 10 points for dependencies
+    quality_score += min(10, timeline_elements * 2)  # Up to 10 points for timeline
+    
+    quality_score = max(0, min(100, quality_score))  # Clamp to 0-100
+    
+    return {
+        "sections": sections,
+        "objectives": objectives,
+        "milestones": milestones,
+        "resources": resources,
+        "risks": risks,
+        "dependencies": dependencies,
+        "timeline_elements": timeline_elements,
+        "quality_score": round(quality_score, 2)
+    }
 
 def run_adversarial_testing():
     """Main logic for the adversarial testing loop, designed to be run in a background thread."""
@@ -2243,7 +2552,19 @@ def run_adversarial_testing():
         results, sop_hashes = [], [base_hash]
         iteration, approval_rate = 0, 0.0
 
-        _update_adv_log_and_status(f"Start: {len(red_team_base)} red / {len(blue_team_base)} blue | seed={seed} | base_hash={base_hash} | rotation={rotation_strategy}")
+        # Determine review type and get appropriate prompts
+        if st.session_state.adversarial_review_type == "Auto-Detect":
+            review_type = determine_review_type(current_sop)
+        elif st.session_state.adversarial_review_type == "Code Review":
+            review_type = "code"
+        elif st.session_state.adversarial_review_type == "Plan Review":
+            review_type = "plan"
+        else:
+            review_type = "general"
+            
+        red_team_prompt, blue_team_prompt = get_appropriate_prompts(review_type)
+        
+        _update_adv_log_and_status(f"Start: {len(red_team_base)} red / {len(blue_team_base)} blue | seed={seed} | base_hash={base_hash} | rotation={rotation_strategy} | review_type={review_type}")
 
         # --- Main Loop ---
         while iteration < max_iter and not st.session_state.adversarial_stop_flag:
@@ -2350,7 +2671,7 @@ def run_adversarial_testing():
             critiques_raw = []
             with ThreadPoolExecutor(max_workers=max_workers) as ex:
                 futures = {ex.submit(analyze_with_model, api_key, m, current_sop,
-                                    model_configs.get(m,{}), RED_TEAM_CRITIQUE_PROMPT,
+                                    model_configs.get(m,{}), red_team_prompt,
                                     force_json=json_mode, seed=seed, compliance_requirements=st.session_state.compliance_requirements): m for m in red_team}
                 for fut in as_completed(futures):
                     res = fut.result()
@@ -2373,7 +2694,7 @@ def run_adversarial_testing():
 
             with ThreadPoolExecutor(max_workers=max_workers) as ex:
                 futures = {ex.submit(analyze_with_model, api_key, m, current_sop,
-                                    model_configs.get(m,{}), BLUE_TEAM_PATCH_PROMPT,
+                                    model_configs.get(m,{}), blue_team_prompt,
                                     user_suffix="\n\nCRITIQUES TO ADDRESS:\n" + critique_block,
                                     force_json=True, seed=seed): m for m in blue_team}
                 for fut in as_completed(futures):
@@ -2429,7 +2750,8 @@ def run_adversarial_testing():
                 "final_sop": current_sop, "iterations": results, "final_approval_rate": approval_rate,
                 "cost_estimate_usd": st.session_state.adversarial_cost_estimate_usd,
                 "tokens": {"prompt": st.session_state.adversarial_total_tokens_prompt, "completion": st.session_state.adversarial_total_tokens_completion},
-                "log": list(st.session_state.adversarial_log), "seed": seed, "base_hash": base_hash
+                "log": list(st.session_state.adversarial_log), "seed": seed, "base_hash": base_hash,
+                "review_type": review_type
             }
             st.session_state.protocol_text = current_sop
             st.session_state.adversarial_running = False
@@ -2543,6 +2865,47 @@ with st.sidebar:
     if profile_name and st.button("Save Profile", key="save_profile_btn"):
         if save_config_profile(profile_name):
             st.success(f"Saved profile: {profile_name}")
+            st.rerun()
+    
+    # Tutorial section
+    st.markdown("---")
+    st.subheader("🎓 Tutorial")
+    if not st.session_state.tutorial_completed:
+        if st.button("Start Tutorial"):
+            st.session_state.current_tutorial_step = 1
+            st.rerun()
+        
+        if st.session_state.current_tutorial_step > 0:
+            tutorial_steps = [
+                "Welcome to OpenEvolve! This tutorial will guide you through the main features.",
+                "Step 1: Enter your protocol in the text area in the Evolution tab.",
+                "Step 2: Configure your LLM provider and parameters in the sidebar.",
+                "Step 3: Click 'Start Evolution' to begin improving your protocol.",
+                "Step 4: Try the Adversarial Testing tab for advanced security hardening.",
+                "Step 5: Use version control to track changes and collaborate with others.",
+                "Tutorial completed! You're ready to use OpenEvolve."
+            ]
+            
+            if st.session_state.current_tutorial_step <= len(tutorial_steps):
+                st.info(tutorial_steps[st.session_state.current_tutorial_step - 1])
+                col1, col2 = st.columns(2)
+                if st.session_state.current_tutorial_step > 1:
+                    if col1.button("Previous"):
+                        st.session_state.current_tutorial_step -= 1
+                        st.rerun()
+                if st.session_state.current_tutorial_step < len(tutorial_steps):
+                    if col2.button("Next"):
+                        st.session_state.current_tutorial_step += 1
+                        st.rerun()
+                else:
+                    if col2.button("Finish Tutorial"):
+                        st.session_state.tutorial_completed = True
+                        st.session_state.current_tutorial_step = 0
+                        st.rerun()
+    else:
+        if st.button("Restart Tutorial"):
+            st.session_state.tutorial_completed = False
+            st.session_state.current_tutorial_step = 1
             st.rerun()
     
     # Reset button
@@ -2690,6 +3053,22 @@ with tab1:
     with right:
         st.subheader("🔍 Logs")
         log_out = st.empty()
+        
+        # Comments section
+        with st.expander("💬 Comments", expanded=False):
+            comments = get_comments()
+            if comments:
+                for comment in comments:
+                    st.markdown(f"**{comment['author']}** ({comment['timestamp'][:16]})")
+                    st.markdown(f"> {comment['text']}")
+                    st.markdown("---")
+            
+            new_comment = st.text_area("Add a comment", key="new_comment")
+            if st.button("Post Comment"):
+                if new_comment.strip():
+                    add_comment(new_comment)
+                    st.success("Comment added!")
+                    st.rerun()
 
     # Display the current state from the session state
     with st.session_state.thread_lock:
@@ -2706,6 +3085,34 @@ with tab1:
 
 def render_adversarial_testing_tab():
     st.header("🔴🔵 Adversarial Testing with Multi-LLM Consensus")
+    
+    # Project controls
+    col1, col2, col3 = st.columns([2, 2, 1])
+    with col1:
+        if st.button("💾 Save Project"):
+            project_data = export_project()
+            st.download_button(
+                label="📥 Download Project",
+                data=json.dumps(project_data, indent=2),
+                file_name=f"{st.session_state.project_name.replace(' ', '_')}_project.json",
+                mime="application/json",
+                use_container_width=True,
+            )
+    with col2:
+        uploaded_file = st.file_uploader("📁 Import Project", type=["json"])
+        if uploaded_file:
+            try:
+                project_data = json.load(uploaded_file)
+                if import_project(project_data):
+                    st.success("Project imported successfully!")
+                    st.rerun()
+            except Exception as e:
+                st.error(f"Error importing project: {e}")
+    with col3:
+        if st.button("📋 Export Report"):
+            if st.session_state.adversarial_results:
+                # Reuse existing export functionality
+                pass
     
     # OpenRouter Configuration
     st.subheader("🔑 OpenRouter Configuration")
@@ -2745,6 +3152,24 @@ def render_adversarial_testing_tab():
                 st.session_state.protocol_text = template_content
                 st.success(f"Loaded template: {selected_template}")
                 st.rerun()
+
+    # AI Recommendations
+    if st.session_state.protocol_text.strip():
+        with st.expander("🤖 AI Recommendations", expanded=False):
+            recommendations = generate_protocol_recommendations(st.session_state.protocol_text)
+            suggested_template = suggest_protocol_template(st.session_state.protocol_text)
+            
+            st.markdown("### 💡 Improvement Suggestions")
+            for i, rec in enumerate(recommendations, 1):
+                st.markdown(f"{i}. {rec}")
+            
+            st.markdown(f"### 📋 Suggested Template: **{suggested_template}**")
+            if st.button("Load Suggested Template", key="adv_load_suggested_template"):
+                template_content = load_protocol_template(suggested_template)
+                if template_content:
+                    st.session_state.protocol_text = template_content
+                    st.success(f"Loaded template: {suggested_template}")
+                    st.rerun()
 
     # Model Selection
     st.markdown("---")
@@ -2796,6 +3221,46 @@ def render_adversarial_testing_tab():
             st.warning("streamlit_tags not available. Using text input for model selection.")
             blue_team_input = st.text_input("Enter Blue Team models (comma-separated):", value=",".join(st.session_state.blue_team_models))
             st.session_state.blue_team_models = sorted(list(set([model.strip() for model in blue_team_input.split(",") if model.strip()])))
+    
+    # Testing Parameters
+    st.markdown("---")
+    st.subheader("🧪 Testing Parameters")
+    
+    # Review Type Selection
+    review_types = ["Auto-Detect", "General SOP", "Code Review", "Plan Review"]
+    st.selectbox("Review Type", review_types, key="adversarial_review_type", 
+                 help="Select the type of review to perform. Auto-Detect will analyze the content and choose the appropriate review type.")
+    
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+        st.number_input("Min iterations", 1, 50, key="adversarial_min_iter")
+        st.number_input("Max iterations", 1, 200, key="adversarial_max_iter")
+    with c2:
+        st.slider("Confidence threshold (%)", 50, 100, key="adversarial_confidence", help="Stop if this % of Red Team approves the SOP.")
+    with c3:
+        st.number_input("Max tokens per model", 1000, 100000, key="adversarial_max_tokens")
+        st.number_input("Max parallel workers", 1, 24, key="adversarial_max_workers")
+    with c4:
+        st.toggle("Force JSON mode", key="adversarial_force_json", help="Use model's built-in JSON mode if available. Increases reliability.")
+        st.text_input("Deterministic seed", key="adversarial_seed", help="Integer for reproducible runs.")
+        st.selectbox("Rotation Strategy", ["None", "Round Robin", "Random Sampling", "Performance-Based", "Staged", "Adaptive", "Focus-Category"], key="adversarial_rotation_strategy")
+        if st.session_state.adversarial_rotation_strategy == "Staged":
+            st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help="""\n[{"red": ["model1", "model2"], "blue": ["model3"]},\n {"red": ["model4"], "blue": ["model5", "model6"]}]\n""")
+        st.number_input("Red Team Sample Size", 1, 100, key="adversarial_red_team_sample_size")
+        st.number_input("Blue Team Sample Size", 1, 100, key="adversarial_blue_team_sample_size")
+
+    st.text_area("Compliance Requirements", key="compliance_requirements", height=150, help="Enter any compliance requirements that the red team should check for.")
+
+    all_models = sorted(list(set(st.session_state.red_team_models + st.session_state.blue_team_models)))
+    if all_models:
+        with st.expander("🔧 Per-Model Configuration", expanded=False):
+            for model_id in all_models:
+                st.markdown(f"**{model_id}**")
+                cc1, cc2, cc3, cc4 = st.columns(4)
+                cc1.slider(f"Temp##{model_id}", 0.0, 2.0, 0.7, 0.1, key=f"temp_{model_id}")
+                cc2.slider(f"Top-P##{model_id}", 0.0, 1.0, 1.0, 0.1, key=f"topp_{model_id}")
+                cc3.slider(f"Freq Pen##{model_id}", -2.0, 2.0, 0.0, 0.1, key=f"freqpen_{model_id}")
+                cc4.slider(f"Pres Pen##{model_id}", -2.0, 2.0, 0.0, 0.1, key=f"prespen_{model_id}")
 
 with tab2:
     render_adversarial_testing_tab()
