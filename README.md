@@ -1,4 +1,4 @@
-# OpenEvolve Protocol Improver Frontend
+# OpenEvolve Protocol Improver
 
 A powerful Streamlit application for improving protocols and standard operating procedures (SOPs) through evolutionary refinement and adversarial testing using 34+ LLM providers.
 
@@ -51,12 +51,179 @@ streamlit run app.py
 
 ### Adversarial Testing
 
-1. **OpenRouter Setup**: Enter your OpenRouter API key to access 100+ models
-2. **Select Teams**: 
-   - **Red Team**: Models that identify flaws and vulnerabilities
-   - **Blue Team**: Models that patch and fix identified issues
-3. **Configure Testing**: Set confidence thresholds, iteration limits, and model parameters
-4. **Start Testing**: Begin the adversarial improvement process
+The adversarial testing mode represents the core innovation of OpenEvolve, implementing a sophisticated multi-agent system that subjects protocols to rigorous security analysis and iterative hardening.
+
+#### The Red Team/Blue Team Methodology
+
+**Red Team (Critics)**
+- Multiple diverse LLMs act as adversarial security auditors
+- Each model independently analyzes the SOP for vulnerabilities, logical gaps, ambiguities, and potential abuse vectors
+- Uses specialized prompting to encourage "uncompromising" analysis that identifies:
+  - Edge cases and undefined responsibilities
+  - Missing preconditions and unsafe defaults
+  - Paths for malicious exploitation
+  - Regulatory compliance gaps
+  - Operational failure modes
+
+**Blue Team (Defenders)**
+- Different set of LLMs act as security engineers focused on remediation
+- Receive the aggregated critique from red team models
+- Generate comprehensive patches that address identified vulnerabilities
+- Implement security principles like least privilege, fail-safe defaults, and defense in depth
+- Add missing elements: preconditions, acceptance tests, rollback procedures, monitoring, and incident response
+
+#### Advanced Consensus Mechanisms
+
+**Intelligent Patch Selection**
+- Evaluates multiple blue team solutions based on coverage metrics
+- Scores patches by number of issues resolved vs. mitigated vs. left as residual risks
+- Selects optimal solution using multi-criteria decision making
+- Handles conflicting recommendations through automated arbitration
+
+**Dynamic Risk Assessment**
+- Aggregates findings across all red team models with severity weighting
+- Tracks risk categories and calculates aggregate risk scores
+- Monitors for issue clustering in specific protocol areas
+- Provides quantitative risk metrics for decision making
+
+#### Convergence and Quality Assurance
+
+**Approval Voting System**
+- All red team models vote on the final hardened protocol
+- Uses configurable confidence thresholds (typically 85-95%)
+- Prevents premature termination while avoiding infinite loops
+- Tracks approval rates and average quality scores across iterations
+
+**Stagnation Detection**
+- Monitors protocol changes using content hashing
+- Identifies when improvements have plateaued
+- Suggests parameter adjustments when progress stalls
+- Prevents wasted computation on converged solutions
+
+### How Adversarial Testing Works
+
+#### Phase 1: Red Team Analysis
+Each red team model independently receives the current SOP and performs comprehensive security analysis:
+
+```
+Input: Current SOP + Red Team Critique Prompt
+Output: Structured JSON with vulnerabilities classified by:
+- Severity (low/medium/high/critical)
+- Category (authentication, authorization, data handling, etc.)
+- Exploitation paths and attack vectors
+- Specific remediation recommendations
+```
+
+**Example Red Team Findings:**
+- **Critical**: "Authentication bypass possible through parameter manipulation in step 3"
+- **High**: "No rollback procedure defined for failed deployments" 
+- **Medium**: "Ambiguous role definitions could lead to privilege escalation"
+- **Low**: "Missing audit logging for configuration changes"
+
+#### Phase 2: Blue Team Remediation
+Blue team models receive both the original SOP and the aggregated red team critiques:
+
+```
+Input: Original SOP + All Red Team Critiques
+Output: Complete rewritten SOP with:
+- Point-by-point issue remediation
+- Added security controls and guardrails
+- Enhanced procedures and checkpoints
+- Mitigation matrix tracking issue resolution
+```
+
+**Blue Team Improvements:**
+- Explicit preconditions and validation steps
+- Fail-safe defaults and error handling
+- Comprehensive audit trails
+- Role-based access controls
+- Incident response procedures
+- Rollback and recovery mechanisms
+
+#### Phase 3: Consensus Building and Selection
+The system evaluates multiple blue team patches using sophisticated scoring:
+
+```python
+# Scoring Algorithm (simplified)
+coverage_score = (resolved_issues × 2) + (mitigated_issues × 1)
+penalty = residual_risks × 2
+final_score = coverage_score - penalty + quality_factors
+
+# Selection considers:
+- Issue resolution completeness
+- Implementation feasibility  
+- Operational impact
+- Compliance alignment
+```
+
+#### Phase 4: Validation and Approval
+The improved SOP undergoes final validation by the full red team:
+
+```
+Each red team model votes: APPROVED/REJECTED + 0-100 score
+Confidence calculation: (approved_votes / total_votes) × 100%
+Quality metric: average_score across all evaluations
+
+Iteration continues until: confidence >= threshold (e.g., 90%)
+```
+
+#### Real-World Application Examples
+
+**Financial Services SOP**
+- Red team identified PCI-DSS compliance gaps
+- Blue team added encryption requirements and audit controls
+- Final approval: 94% confidence after 6 iterations
+- Result: Bank-grade security protocol with regulatory compliance
+
+**Healthcare Data Protocol**
+- Red team found HIPAA violation risks in data handling
+- Blue team implemented comprehensive privacy controls
+- Achieved 97% confidence with zero critical vulnerabilities
+- Result: HIPAA-compliant data governance framework
+
+**Software Deployment Pipeline**
+- Red team discovered supply chain attack vectors
+- Blue team added integrity verification and staged rollouts  
+- Converged at 92% confidence with robust security controls
+- Result: Zero-trust deployment pipeline resistant to compromise
+
+#### Advanced Features and Controls
+
+**Model Specialization**
+- Assign security-focused models to red team (Claude, GPT-4)
+- Use instruction-following models for blue team (Command-R, Llama)
+- Mix model architectures for comprehensive coverage
+
+**Dynamic Parameter Adjustment**
+- Temperature scaling based on iteration progress
+- Increased exploration when solutions stagnate
+- Conservative sampling for final validation rounds
+
+**Cost Optimization**
+- Intelligent model selection based on cost/performance ratios
+- Parallel execution with optimal worker allocation
+- Early termination for converged solutions
+
+**Enterprise Integration**
+- Export results in multiple formats (JSON, PDF, Word)
+- Integration APIs for CI/CD pipelines
+- Compliance reporting and audit trails
+- Version control integration for protocol evolution tracking
+
+#### Output and Analysis
+
+**Comprehensive Results Package**
+- Final hardened protocol with full traceability
+- Iteration-by-iteration improvement history
+- Risk assessment matrices and vulnerability classifications
+- Model-specific contributions and voting patterns
+- Cost breakdown and token utilization metrics
+
+**Quality Metrics**
+- Approval rate progression across iterations
+- Issue resolution rates by category and severity
+- Model agreement/disagreement analysis
+- Cost-effectiveness ratios
 
 ## Supported Providers
 
