@@ -2623,6 +2623,24 @@ with tab1:
                 st.success(f"Loaded template: {selected_template}")
                 st.rerun()
     
+    # AI Recommendations
+    if st.session_state.protocol_text.strip():
+        with st.expander("🤖 AI Recommendations", expanded=False):
+            recommendations = generate_protocol_recommendations(st.session_state.protocol_text)
+            suggested_template = suggest_protocol_template(st.session_state.protocol_text)
+            
+            st.markdown("### 💡 Improvement Suggestions")
+            for i, rec in enumerate(recommendations, 1):
+                st.markdown(f"{i}. {rec}")
+            
+            st.markdown(f"### 📋 Suggested Template: **{suggested_template}**")
+            if st.button("Load Suggested Template"):
+                template_content = load_protocol_template(suggested_template)
+                if template_content:
+                    st.session_state.protocol_text = template_content
+                    st.success(f"Loaded template: {suggested_template}")
+                    st.rerun()
+    
     # Action buttons
     st.markdown("---")
     c1, c2 = st.columns(2)
