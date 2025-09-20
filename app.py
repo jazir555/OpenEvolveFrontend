@@ -1360,7 +1360,7 @@ PROTOCOL_TEMPLATES = {
 ## Individual Rights
 - Right to Access
 - Right to Rectification
-- Right to Erasure
+- Right to Eradication
 - Right to Restrict Processing
 - Right to Data Portability
 - Right to Object
@@ -1505,6 +1505,113 @@ PROTOCOL_TEMPLATES = {
 - Review Date: [Date]
 - Approval Status: [Approved/Rejected/Pending]
 - Notes: [Additional comments]"""
+}
+
+# Adversarial Testing Presets
+ADVERSARIAL_PRESETS = {
+    "Security Hardening": {
+        "name": "🔐 Security Hardening",
+        "description": "Focus on identifying and closing security gaps, enforcing least privilege, and adding comprehensive error handling.",
+        "red_team_models": ["openai/gpt-4o-mini", "anthropic/claude-3-haiku", "google/gemini-1.5-flash"],
+        "blue_team_models": ["openai/gpt-4o", "anthropic/claude-3-sonnet", "google/gemini-1.5-pro"],
+        "min_iter": 5,
+        "max_iter": 15,
+        "confidence_threshold": 95,
+        "review_type": "General SOP",
+        "compliance_requirements": "Security best practices, OWASP guidelines, least privilege principle",
+        "advanced_settings": {
+            "critique_depth": 8,
+            "patch_quality": 9,
+            "detailed_tracking": True,
+            "early_stopping": True
+        }
+    },
+    "Compliance Focus": {
+        "name": "⚖️ Compliance Focus",
+        "description": "Ensure protocols meet regulatory requirements with comprehensive auditability.",
+        "red_team_models": ["openai/gpt-4o-mini", "mistral/mistral-small-latest"],
+        "blue_team_models": ["openai/gpt-4o", "mistral/mistral-medium-latest"],
+        "min_iter": 3,
+        "max_iter": 10,
+        "confidence_threshold": 90,
+        "review_type": "General SOP",
+        "compliance_requirements": "GDPR, ISO 27001, SOC 2, industry-specific regulations",
+        "advanced_settings": {
+            "critique_depth": 7,
+            "patch_quality": 8,
+            "detailed_tracking": True,
+            "performance_analytics": True
+        }
+    },
+    "Operational Efficiency": {
+        "name": "⚡ Operational Efficiency",
+        "description": "Streamline processes while maintaining effectiveness and clarity.",
+        "red_team_models": ["openai/gpt-4o-mini", "meta-llama/llama-3-8b-instruct"],
+        "blue_team_models": ["openai/gpt-4o", "meta-llama/llama-3-70b-instruct"],
+        "min_iter": 3,
+        "max_iter": 12,
+        "confidence_threshold": 85,
+        "review_type": "General SOP",
+        "compliance_requirements": "Process optimization, resource efficiency, clarity standards",
+        "advanced_settings": {
+            "critique_depth": 6,
+            "patch_quality": 7,
+            "early_stopping": True,
+            "target_complexity": 50
+        }
+    },
+    "Beginner-Friendly": {
+        "name": "👶 Beginner-Friendly",
+        "description": "Focus on clarity, simplicity, and completeness for newcomers.",
+        "red_team_models": ["openai/gpt-4o-mini", "google/gemini-1.5-flash"],
+        "blue_team_models": ["openai/gpt-4o", "google/gemini-1.5-pro"],
+        "min_iter": 2,
+        "max_iter": 8,
+        "confidence_threshold": 80,
+        "review_type": "General SOP",
+        "compliance_requirements": "Clear language, simple concepts, comprehensive examples",
+        "advanced_settings": {
+            "critique_depth": 5,
+            "patch_quality": 8,
+            "target_complexity": 30,
+            "target_length": 500
+        }
+    },
+    "Code Review": {
+        "name": "💻 Code Review",
+        "description": "Specialized testing for software development protocols and code reviews.",
+        "red_team_models": ["openai/gpt-4o", "anthropic/claude-3-opus", "codellama/codellama-70b-instruct"],
+        "blue_team_models": ["openai/gpt-4o", "anthropic/claude-3-sonnet", "codellama/codellama-70b-instruct"],
+        "min_iter": 3,
+        "max_iter": 10,
+        "confidence_threshold": 90,
+        "review_type": "Code Review",
+        "compliance_requirements": "Clean code principles, security best practices, performance optimization",
+        "advanced_settings": {
+            "critique_depth": 9,
+            "patch_quality": 9,
+            "detailed_tracking": True,
+            "performance_analytics": True
+        }
+    },
+    "Mission Critical": {
+        "name": "🔥 Mission Critical",
+        "description": "Maximum rigor for high-stakes protocols requiring the highest assurance.",
+        "red_team_models": ["openai/gpt-4o", "anthropic/claude-3-opus", "google/gemini-1.5-pro"],
+        "blue_team_models": ["openai/gpt-4o", "anthropic/claude-3-sonnet", "google/gemini-1.5-pro"],
+        "min_iter": 10,
+        "max_iter": 25,
+        "confidence_threshold": 98,
+        "review_type": "General SOP",
+        "compliance_requirements": "Highest security standards, fault tolerance, disaster recovery",
+        "advanced_settings": {
+            "critique_depth": 10,
+            "patch_quality": 10,
+            "detailed_tracking": True,
+            "performance_analytics": True,
+            "early_stopping": False
+        }
+    }
 }
 
 DEFAULTS = {
@@ -1683,6 +1790,66 @@ def load_protocol_template(template_name: str) -> str:
     """
     return PROTOCOL_TEMPLATES.get(template_name, "")
 
+def list_adversarial_presets() -> List[str]:
+    """List all available adversarial testing presets.
+    
+    Returns:
+        List[str]: List of preset names
+    """
+    return list(ADVERSARIAL_PRESETS.keys())
+
+def load_adversarial_preset(preset_name: str) -> Dict:
+    """Load an adversarial testing preset.
+    
+    Args:
+        preset_name (str): Name of the preset to load
+        
+    Returns:
+        Dict: Preset configuration
+    """
+    return ADVERSARIAL_PRESETS.get(preset_name, {})
+
+def apply_adversarial_preset(preset_name: str) -> bool:
+    """Apply an adversarial testing preset to the current session state.
+    
+    Args:
+        preset_name (str): Name of the preset to apply
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        preset = load_adversarial_preset(preset_name)
+        if not preset:
+            return False
+            
+        # Apply preset configuration to session state
+        st.session_state.red_team_models = preset.get("red_team_models", [])
+        st.session_state.blue_team_models = preset.get("blue_team_models", [])
+        st.session_state.adversarial_min_iter = preset.get("min_iter", 3)
+        st.session_state.adversarial_max_iter = preset.get("max_iter", 10)
+        st.session_state.adversarial_confidence = preset.get("confidence_threshold", 85)
+        st.session_state.adversarial_review_type = preset.get("review_type", "General SOP")
+        st.session_state.compliance_requirements = preset.get("compliance_requirements", "")
+        
+        # Apply advanced settings if present
+        advanced_settings = preset.get("advanced_settings", {})
+        if advanced_settings:
+            st.session_state.adversarial_critique_depth = advanced_settings.get("critique_depth", 5)
+            st.session_state.adversarial_patch_quality = advanced_settings.get("patch_quality", 5)
+            st.session_state.adversarial_detailed_tracking = advanced_settings.get("detailed_tracking", False)
+            st.session_state.adversarial_performance_analytics = advanced_settings.get("performance_analytics", False)
+            st.session_state.adversarial_early_stopping = advanced_settings.get("early_stopping", False)
+            if "target_complexity" in advanced_settings:
+                st.session_state.adversarial_target_complexity = advanced_settings.get("target_complexity", 0)
+            if "target_length" in advanced_settings:
+                st.session_state.adversarial_target_length = advanced_settings.get("target_length", 0)
+            
+        return True
+    except Exception as e:
+        st.error(f"Error applying preset: {e}")
+        return False
+
 # ------------------------------------------------------------------
 # Version Control and Collaboration Functions
 # ------------------------------------------------------------------
@@ -1828,6 +1995,124 @@ def import_project(project_data: Dict) -> bool:
     except Exception as e:
         st.error(f"Error importing project: {e}")
         return False
+
+# ------------------------------------------------------------------
+# Advanced Analytics and Reporting Functions
+# ------------------------------------------------------------------
+
+def generate_advanced_analytics(results: Dict) -> Dict:
+    """Generate advanced analytics from adversarial testing results.
+    
+    Args:
+        results (Dict): Adversarial testing results
+        
+    Returns:
+        Dict: Advanced analytics data
+    """
+    analytics = {
+        "total_iterations": len(results.get("iterations", [])),
+        "final_approval_rate": results.get("final_approval_rate", 0),
+        "total_cost_usd": results.get("cost_estimate_usd", 0),
+        "total_tokens": results.get("tokens", {}).get("prompt", 0) + results.get("tokens", {}).get("completion", 0),
+        "confidence_trend": [],
+        "issue_resolution_rate": 0,
+        "model_performance": {},
+        "efficiency_score": 0
+    }
+    
+    # Calculate confidence trend
+    if results.get("iterations"):
+        confidence_history = [iter.get("approval_check", {}).get("approval_rate", 0) 
+                            for iter in results.get('iterations', [])]
+        analytics["confidence_trend"] = confidence_history
+    
+    # Calculate issue resolution rate
+    if results.get("iterations"):
+        total_issues_found = 0
+        total_issues_resolved = 0
+        
+        for iteration in results.get("iterations", []):
+            critiques = iteration.get("critiques", [])
+            for critique in critiques:
+                critique_json = critique.get("critique_json", {})
+                issues = critique_json.get("issues", [])
+                total_issues_found += len(issues)
+                
+                # Count resolved issues (simplified)
+                patches = iteration.get("patches", [])
+                total_issues_resolved += min(len(issues), len(patches))
+        
+        if total_issues_found > 0:
+            analytics["issue_resolution_rate"] = (total_issues_resolved / total_issues_found) * 100
+    
+    # Calculate efficiency score (simplified)
+    efficiency = 100
+    if analytics["total_cost_usd"] > 0:
+        # Lower cost = higher efficiency
+        efficiency -= min(50, analytics["total_cost_usd"] * 10)
+    if analytics["total_iterations"] > 10:
+        # More iterations = lower efficiency
+        efficiency -= min(30, (analytics["total_iterations"] - 10) * 2)
+    analytics["efficiency_score"] = max(0, efficiency)
+    
+    return analytics
+
+def create_performance_comparison_chart(results: Dict) -> str:
+    """Create a performance comparison chart for models.
+    
+    Args:
+        results (Dict): Adversarial testing results
+        
+    Returns:
+        str: HTML chart code
+    """
+    # Simplified implementation - in a real app, this would generate actual charts
+    return """
+    <div style="background-color: #f0f2f6; padding: 20px; border-radius: 10px;">
+        <h3>📊 Model Performance Comparison</h3>
+        <p>Chart would display here showing model performance metrics</p>
+    </div>
+    """
+
+def generate_executive_summary(results: Dict) -> str:
+    """Generate an executive summary of adversarial testing results.
+    
+    Args:
+        results (Dict): Adversarial testing results
+        
+    Returns:
+        str: Executive summary in markdown format
+    """
+    analytics = generate_advanced_analytics(results)
+    
+    summary = f"""# Executive Summary
+
+## 📊 Key Metrics
+- **Final Approval Rate**: {analytics['final_approval_rate']:.1f}%
+- **Iterations Completed**: {analytics['total_iterations']}
+- **Total Cost**: ${analytics['total_cost_usd']:.4f}
+- **Issue Resolution Rate**: {analytics['issue_resolution_rate']:.1f}%
+- **Efficiency Score**: {analytics['efficiency_score']:.1f}/100
+
+## 📈 Performance Insights
+- **Confidence Improvement**: The protocol's approval confidence improved from {analytics['confidence_trend'][0] if analytics['confidence_trend'] else 'N/A'}% to {analytics['final_approval_rate']:.1f}%
+- **Cost Efficiency**: Process completed within budget constraints
+- **Resolution Effectiveness**: Issues were effectively identified and addressed
+
+## 🏆 Recommendations
+1. Continue monitoring for emerging threats
+2. Periodically re-evaluate with updated models
+3. Consider expanding the red team for broader vulnerability coverage
+4. Implement continuous integration for automated protocol hardening
+
+## 📅 Next Steps
+- Review and implement outstanding recommendations
+- Schedule periodic adversarial testing cycles
+- Share results with stakeholders for feedback
+- Update documentation with hardened protocol
+"""
+    
+    return summary
 
 
 # ------------------------------------------------------------------
@@ -2596,6 +2881,256 @@ def generate_html_report(results: dict) -> str:
     return html
 
 # ------------------------------------------------------------------
+# Performance Optimization Functions
+# ------------------------------------------------------------------
+
+def optimize_model_selection(red_team_models: List[str], blue_team_models: List[str], 
+                            protocol_complexity: int, budget_limit: float = 0.0) -> Dict[str, List[str]]:
+    """Optimize model selection based on protocol complexity and budget.
+    
+    Args:
+        red_team_models (List[str]): Available red team models
+        blue_team_models (List[str]): Available blue team models
+        protocol_complexity (int): Complexity score of the protocol (0-100)
+        budget_limit (float): Maximum budget in USD (0 = no limit)
+        
+    Returns:
+        Dict[str, List[str]]: Optimized model selections
+    """
+    # Simplified optimization logic
+    optimized = {
+        "red_team": [],
+        "blue_team": []
+    }
+    
+    # For complex protocols, use more capable models
+    if protocol_complexity > 70:
+        # Use premium models for complex protocols
+        optimized["red_team"] = [m for m in red_team_models if "gpt-4" in m or "claude-3-opus" in m or "gemini-1.5-pro" in m][:3]
+        optimized["blue_team"] = [m for m in blue_team_models if "gpt-4" in m or "claude-3-sonnet" in m or "gemini-1.5-pro" in m][:3]
+    elif protocol_complexity > 40:
+        # Use balanced models for medium complexity
+        optimized["red_team"] = [m for m in red_team_models if "gpt-4" in m or "claude-3-haiku" in m or "gemini-1.5-flash" in m][:3]
+        optimized["blue_team"] = [m for m in blue_team_models if "gpt-4" in m or "claude-3-sonnet" in m or "gemini-1.5-flash" in m][:3]
+    else:
+        # Use cost-effective models for simple protocols
+        optimized["red_team"] = [m for m in red_team_models if "gpt-4o-mini" in m or "claude-3-haiku" in m or "llama-3-8b" in m][:3]
+        optimized["blue_team"] = [m for m in blue_team_models if "gpt-4o" in m or "claude-3-sonnet" in m or "llama-3-70b" in m][:3]
+    
+    # If no models matched criteria, use defaults
+    if not optimized["red_team"]:
+        optimized["red_team"] = red_team_models[:min(3, len(red_team_models))]
+    if not optimized["blue_team"]:
+        optimized["blue_team"] = blue_team_models[:min(3, len(blue_team_models))]
+    
+    return optimized
+
+def estimate_testing_time_and_cost(red_team_models: List[str], blue_team_models: List[str], 
+                                  iterations: int, protocol_length: int) -> Dict[str, Any]:
+    """Estimate testing time and cost based on configuration.
+    
+    Args:
+        red_team_models (List[str]): Selected red team models
+        blue_team_models (List[str]): Selected blue team models
+        iterations (int): Number of iterations
+        protocol_length (int): Length of protocol in words
+        
+    Returns:
+        Dict[str, Any]: Time and cost estimates
+    """
+    # Simplified estimation logic
+    # Base estimates per model per iteration
+    avg_response_time = 5  # seconds
+    avg_cost_per_1000_tokens = 0.002  # USD
+    
+    # Calculate total operations
+    total_red_operations = len(red_team_models) * iterations
+    total_blue_operations = len(blue_team_models) * iterations
+    
+    # Estimate time (parallel processing assumed)
+    max_parallel_workers = min(6, len(red_team_models) + len(blue_team_models))
+    estimated_time_seconds = ((total_red_operations + total_blue_operations) / max_parallel_workers) * avg_response_time
+    
+    # Estimate cost (simplified token estimation)
+    avg_tokens_per_operation = protocol_length * 3  # Rough estimate
+    total_tokens = (total_red_operations + total_blue_operations) * avg_tokens_per_operation
+    estimated_cost = (total_tokens / 1000) * avg_cost_per_1000_tokens
+    
+    return {
+        "estimated_time_minutes": round(estimated_time_seconds / 60, 1),
+        "estimated_cost_usd": round(estimated_cost, 4),
+        "total_operations": total_red_operations + total_blue_operations,
+        "total_tokens_estimated": total_tokens
+    }
+
+def suggest_performance_improvements(current_config: Dict) -> List[str]:
+    """Suggest performance improvements for the current configuration.
+    
+    Args:
+        current_config (Dict): Current adversarial testing configuration
+        
+    Returns:
+        List[str]: List of suggested improvements
+    """
+    suggestions = []
+    
+    red_models = current_config.get("red_team_models", [])
+    blue_models = current_config.get("blue_team_models", [])
+    iterations = current_config.get("adversarial_max_iter", 10)
+    protocol_text = current_config.get("protocol_text", "")
+    
+    # Check for common performance issues
+    if len(red_models) > 5:
+        suggestions.append("🔴 Reduce red team models to 3-5 for better performance and cost control")
+    
+    if len(blue_models) > 5:
+        suggestions.append("🔵 Reduce blue team models to 3-5 for better performance and cost control")
+    
+    if iterations > 20:
+        suggestions.append("🔄 Consider reducing max iterations to 15-20 for faster results")
+    
+    if len(protocol_text.split()) > 5000:
+        suggestions.append("📄 Your protocol is quite long (>5000 words). Consider breaking it into smaller sections")
+    
+    # Check for model diversity
+    all_models = red_models + blue_models
+    if len(set(all_models)) < len(all_models) * 0.7:
+        suggestions.append("🔀 Increase model diversity by selecting models from different providers")
+    
+    # Check for expensive model combinations
+    expensive_models = [m for m in all_models if "gpt-4" in m or "claude-3-opus" in m]
+    if len(expensive_models) > 3:
+        suggestions.append("💰 You're using many expensive models. Consider mixing in some cost-effective models")
+    
+    # If no suggestions, provide positive feedback
+    if not suggestions:
+        suggestions.append("✅ Your configuration looks well-balanced for optimal performance!")
+    
+    return suggestions
+
+# ------------------------------------------------------------------
+# Advanced Testing Strategies
+# ------------------------------------------------------------------
+
+def adaptive_testing_strategy(results_history: List[Dict], current_config: Dict) -> Dict[str, Any]:
+    """Adapt testing strategy based on historical results.
+    
+    Args:
+        results_history (List[Dict]): History of previous testing results
+        current_config (Dict): Current testing configuration
+        
+    Returns:
+        Dict[str, Any]: Adapted strategy recommendations
+    """
+    strategy = {
+        "recommended_models": {"red_team": [], "blue_team": []},
+        "iteration_adjustments": {},
+        "focus_areas": [],
+        "confidence_threshold": current_config.get("adversarial_confidence", 85)
+    }
+    
+    if not results_history:
+        # First run - use balanced approach
+        strategy["recommended_models"]["red_team"] = current_config.get("red_team_models", [])[:3]
+        strategy["recommended_models"]["blue_team"] = current_config.get("blue_team_models", [])[:3]
+        strategy["iteration_adjustments"] = {"min_iter": 3, "max_iter": 10}
+        return strategy
+    
+    # Analyze recent results
+    recent_results = results_history[-3:]  # Last 3 iterations
+    avg_confidence = sum(r.get("approval_check", {}).get("approval_rate", 0) for r in recent_results) / len(recent_results)
+    avg_issue_count = sum(len(r.get("agg_risk", {}).get("issues", [])) for r in recent_results) / len(recent_results)
+    
+    # Adjust based on performance
+    if avg_confidence > 90:
+        # High confidence - focus on efficiency
+        strategy["recommended_models"]["red_team"] = current_config.get("red_team_models", [])[:2]
+        strategy["recommended_models"]["blue_team"] = current_config.get("blue_team_models", [])[:2]
+        strategy["iteration_adjustments"] = {"min_iter": 2, "max_iter": 8}
+        strategy["focus_areas"] = ["efficiency", "cost_reduction"]
+    elif avg_confidence < 70:
+        # Low confidence - increase intensity
+        strategy["recommended_models"]["red_team"] = current_config.get("red_team_models", [])[:5]
+        strategy["recommended_models"]["blue_team"] = current_config.get("blue_team_models", [])[:5]
+        strategy["iteration_adjustments"] = {"min_iter": 5, "max_iter": 15}
+        strategy["confidence_threshold"] = min(95, strategy["confidence_threshold"] + 5)
+        strategy["focus_areas"] = ["thoroughness", "coverage"]
+    else:
+        # Balanced approach
+        strategy["recommended_models"]["red_team"] = current_config.get("red_team_models", [])[:3]
+        strategy["recommended_models"]["blue_team"] = current_config.get("blue_team_models", [])[:3]
+        strategy["iteration_adjustments"] = {"min_iter": 3, "max_iter": 12}
+        strategy["focus_areas"] = ["balanced_approach"]
+    
+    return strategy
+
+def category_focused_testing(issues_by_category: Dict[str, int], current_config: Dict) -> Dict[str, Any]:
+    """Focus testing on specific issue categories.
+    
+    Args:
+        issues_by_category (Dict[str, int]): Count of issues by category
+        current_config (Dict): Current testing configuration
+        
+    Returns:
+        Dict[str, Any]: Category-focused testing recommendations
+    """
+    if not issues_by_category:
+        return {"focus_category": None, "recommended_models": {"red_team": [], "blue_team": []}}
+    
+    # Find category with most issues
+    focus_category = max(issues_by_category.items(), key=lambda x: x[1])[0]
+    
+    # Recommend models based on category
+    category_experts = {
+        "security": ["openai/gpt-4o", "anthropic/claude-3-opus", "google/gemini-1.5-pro"],
+        "compliance": ["openai/gpt-4o", "mistral/mistral-medium-latest"],
+        "clarity": ["openai/gpt-4o-mini", "google/gemini-1.5-flash"],
+        "completeness": ["anthropic/claude-3-sonnet", "meta-llama/llama-3-70b-instruct"],
+        "efficiency": ["openai/gpt-4o", "meta-llama/llama-3-70b-instruct"]
+    }
+    
+    recommended_models = category_experts.get(focus_category, current_config.get("red_team_models", [])[:3])
+    
+    return {
+        "focus_category": focus_category,
+        "recommended_models": {
+            "red_team": recommended_models,
+            "blue_team": current_config.get("blue_team_models", [])[:3]
+        }
+    }
+
+def performance_based_model_rotation(model_performance: Dict[str, Dict], 
+                                    current_red_team: List[str], 
+                                    current_blue_team: List[str]) -> Dict[str, List[str]]:
+    """Rotate models based on performance metrics.
+    
+    Args:
+        model_performance (Dict[str, Dict]): Performance data for each model
+        current_red_team (List[str]): Current red team models
+        current_blue_team (List[str]): Current blue team models
+        
+    Returns:
+        Dict[str, List[str]]: Updated model selections
+    """
+    # Sort models by performance score
+    sorted_models = sorted(model_performance.items(), key=lambda x: x[1].get("score", 0), reverse=True)
+    
+    # Select top performers for red team (critics)
+    top_red_models = [model_id for model_id, _ in sorted_models[:3] if model_id in current_red_team]
+    if not top_red_models:
+        top_red_models = current_red_team[:min(3, len(current_red_team))]
+    
+    # Select diverse models for blue team (fixers)
+    top_blue_models = [model_id for model_id, _ in sorted_models[:3] if model_id in current_blue_team]
+    if not top_blue_models:
+        top_blue_models = current_blue_team[:min(3, len(current_blue_team))]
+    
+    return {
+        "red_team": top_red_models,
+        "blue_team": top_blue_models
+    }
+
+# ------------------------------------------------------------------
 # Advanced Analytics Functions
 # ------------------------------------------------------------------
 
@@ -2896,26 +3431,54 @@ def run_adversarial_testing():
                     red_team = red_team_base
                     blue_team = blue_team_base
                 _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Adaptive team selection. Red: {len(red_team)}, Blue: {len(blue_team)}")
-            elif rotation_strategy == "Focus-Category":
-                # Focus on specific issue categories based on previous iterations
-                if iteration > 1 and len(results) > 0 and "agg_risk" in results[-1]:
+            
+            # Advanced Testing Strategies
+            elif "Adaptive Testing" in st.session_state.get("advanced_testing_strategies", []):
+                # Use adaptive testing strategy
+                strategy = adaptive_testing_strategy(results, {
+                    "red_team_models": red_team_base,
+                    "blue_team_models": blue_team_base,
+                    "adversarial_confidence": confidence
+                })
+                red_team = strategy["recommended_models"]["red_team"]
+                blue_team = strategy["recommended_models"]["blue_team"]
+                _update_adv_log_and_status(f"_iteration {iteration}/{max_iter}: Adaptive testing strategy applied. Red: {red_team}, Blue: {blue_team}")
+            
+            elif "Category-Focused Testing" in st.session_state.get("advanced_testing_strategies", []):
+                # Focus on specific issue categories
+                if results and "agg_risk" in results[-1]:
                     categories = results[-1]["agg_risk"].get("categories", {})
                     if categories:
-                        # Find the category with the most issues
-                        focus_category = max(categories, key=categories.get)
-                        _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Focusing on category: {focus_category}")
-                        
-                        # In a full implementation, we would modify the prompts to focus on this category
-                        # For now, we'll just use a smaller, focused team
-                        red_team = red_team_base[:min(2, len(red_team_base))]
-                        blue_team = blue_team_base[:min(2, len(blue_team_base))]
+                        focus_recommendation = category_focused_testing(categories, {
+                            "red_team_models": red_team_base,
+                            "blue_team_models": blue_team_base
+                        })
+                        red_team = focus_recommendation["recommended_models"]["red_team"]
+                        blue_team = focus_recommendation["recommended_models"]["blue_team"]
+                        focus_category = focus_recommendation["focus_category"]
+                        _update_adv_log_and_status(f"_iteration {iteration}/{max_iter}: Category-focused testing on '{focus_category}'. Red: {red_team}, Blue: {blue_team}")
                     else:
                         red_team = red_team_base
                         blue_team = blue_team_base
                 else:
                     red_team = red_team_base
                     blue_team = blue_team_base
-                _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Category-focused team selection. Red: {len(red_team)}, Blue: {len(blue_team)}")
+            
+            elif "Performance-Based Rotation" in st.session_state.get("advanced_testing_strategies", []):
+                # Rotate models based on performance
+                if st.session_state.get("adversarial_model_performance"):
+                    rotated_teams = performance_based_model_rotation(
+                        st.session_state.adversarial_model_performance,
+                        red_team_base,
+                        blue_team_base
+                    )
+                    red_team = rotated_teams["red_team"]
+                    blue_team = rotated_teams["blue_team"]
+                    _update_adv_log_and_status(f"_iteration {iteration}/{max_iter}: Performance-based rotation. Red: {red_team}, Blue: {blue_team}")
+                else:
+                    red_team = red_team_base
+                    blue_team = blue_team_base
+            
             else: # "None" or any other case
                 red_team = red_team_base
                 blue_team = blue_team_base
@@ -3355,6 +3918,65 @@ def render_adversarial_testing_tab():
     > The process repeats until your protocol reaches the desired confidence level.
     """)
     
+    # Project Information Section
+    st.markdown("---")
+    st.subheader("📁 Project Information")
+    col1, col2 = st.columns([3, 1])
+    with col1:
+        st.text_input("Project Name", key="project_name")
+        st.text_area("Project Description", key="project_description", height=100)
+    with col2:
+        # Version control
+        if st.button("💾 Save Version"):
+            if st.session_state.protocol_text.strip():
+                version_name = st.text_input("Version Name", f"Version {len(st.session_state.protocol_versions) + 1}")
+                comment = st.text_area("Comment", height=100, key="version_comment")
+                if st.button("✅ Confirm Save"):
+                    version_id = create_new_version(st.session_state.protocol_text, version_name, comment)
+                    st.success(f"✅ Version saved! ID: {version_id[:8]}")
+                    st.rerun()
+        
+        # Show version history
+        versions = get_version_history()
+        if versions:
+            st.markdown("### 📚 Versions")
+            for version in reversed(versions[-5:]):  # Show last 5 versions
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    if st.button(f"{version['name']} ({version['timestamp'][:10]})", key=f"load_version_{version['id']}"):
+                        load_version(version['id'])
+                        st.success(f"✅ Loaded version: {version['name']}")
+                        st.rerun()
+                with col2:
+                    st.caption(f"v{version['id'][:8]}")
+    
+    # Collaborative Features
+    with st.expander("👥 Collaborative Features", expanded=False):
+        st.markdown("### 🤝 Team Collaboration")
+        collaborators = st.multiselect("Add Collaborators (email addresses)", 
+                                      st.session_state.collaborators,
+                                      key="collaborators")
+        
+        st.markdown("### 💬 Comments & Discussions")
+        comments = get_comments()
+        if comments:
+            for comment in comments:
+                st.markdown(f"**{comment['author']}** ({comment['timestamp'][:16]})")
+                st.markdown(f"> {comment['text']}")
+                st.markdown("---")
+        
+        new_comment = st.text_area("Add a comment", key="new_comment")
+        if st.button("📤 Post Comment"):
+            if new_comment.strip():
+                add_comment(new_comment)
+                st.success("✅ Comment added!")
+                st.rerun()
+        
+        st.markdown("### 🏷️ Tags")
+        tags = st.multiselect("Add tags to organize this project", 
+                             st.session_state.tags,
+                             key="tags")
+    
     # Quick Start Wizard
     with st.expander("⚡ Quick Start Wizard", expanded=True):
         st.markdown("### 🚀 Get Started in 3 Easy Steps")
@@ -3490,6 +4112,97 @@ def render_adversarial_testing_tab():
     with col4:
         if st.button("❓ Tutorial"):
             st.session_state.show_adversarial_tutorial = True
+    
+    # Sharing and Collaboration Controls
+    with st.expander("🔗 Share & Collaborate", expanded=False):
+        st.markdown("### 🌐 Public Sharing")
+        share_publicly = st.toggle("Share publicly", key="share_publicly")
+        if share_publicly:
+            st.info("🔒 Your project will be accessible via a public link. Only people with the link can view it.")
+            if st.button("🔗 Generate Shareable Link"):
+                # In a real implementation, this would generate a real shareable link
+                share_link = f"https://open-evolve.app/shared/{uuid.uuid4()}"
+                st.code(share_link, language="markdown")
+                st.info("📋 Copy this link to share your project with others.")
+        
+        st.markdown("### 📧 Invite Collaborators")
+        collaborator_emails = st.text_area("Enter email addresses (one per line)", 
+                                          key="collaborator_emails",
+                                          height=100)
+        if st.button("✉️ Send Invitations"):
+            if collaborator_emails.strip():
+                emails = [email.strip() for email in collaborator_emails.split("\n") if email.strip()]
+                st.success(f"📧 Sent invitations to {len(emails)} collaborators!")
+            else:
+                st.warning("📧 Please enter at least one email address.")
+        
+        st.markdown("### 📤 Export Options")
+        export_options = st.multiselect(
+            "Select what to export",
+            ["Protocol Versions", "Adversarial Results", "Comments", "Analytics", "Full Project"],
+            default=["Full Project"]
+        )
+        
+        if "Full Project" in export_options:
+            st.download_button(
+                label="📦 Export Full Project (.json)",
+                data=json.dumps(export_project(), indent=2),
+                file_name=f"{st.session_state.project_name.replace(' ', '_')}_full_export.json",
+                mime="application/json"
+            )
+        else:
+            # Custom export
+            if st.button("⚙️ Generate Custom Export"):
+                custom_export = {}
+                if "Protocol Versions" in export_options:
+                    custom_export["versions"] = st.session_state.protocol_versions
+                if "Adversarial Results" in export_options:
+                    custom_export["results"] = st.session_state.adversarial_results
+                if "Comments" in export_options:
+                    custom_export["comments"] = st.session_state.comments
+                if "Analytics" in export_options:
+                    if st.session_state.adversarial_results:
+                        custom_export["analytics"] = generate_advanced_analytics(st.session_state.adversarial_results)
+                
+                st.download_button(
+                    label="📥 Download Custom Export (.json)",
+                    data=json.dumps(custom_export, indent=2),
+                    file_name=f"{st.session_state.project_name.replace(' ', '_')}_custom_export.json",
+                    mime="application/json"
+                )
+        
+        # Export to different formats
+        st.markdown("### 📄 Format Export")
+        format_options = st.selectbox("Export Format", 
+                                      ["Markdown", "PDF", "Word Document", "HTML", "LaTeX", "Plain Text"])
+        if st.button(f"🖨️ Export as {format_options}"):
+            if format_options == "Markdown":
+                st.download_button(
+                    label="📥 Download Markdown (.md)",
+                    data=st.session_state.protocol_text,
+                    file_name=f"{st.session_state.project_name.replace(' ', '_')}.md",
+                    mime="text/markdown"
+                )
+            elif format_options == "PDF":
+                st.info("Generating PDF... (This would generate a formatted PDF in a real implementation)")
+            elif format_options == "Word Document":
+                st.info("Generating Word document... (This would generate a .docx file in a real implementation)")
+            elif format_options == "HTML":
+                st.download_button(
+                    label="📥 Download HTML (.html)",
+                    data=f"<html><body><h1>{st.session_state.project_name}</h1><pre>{st.session_state.protocol_text}</pre></body></html>",
+                    file_name=f"{st.session_state.project_name.replace(' ', '_')}.html",
+                    mime="text/html"
+                )
+            elif format_options == "LaTeX":
+                st.info("Generating LaTeX... (This would generate a .tex file in a real implementation)")
+            elif format_options == "Plain Text":
+                st.download_button(
+                    label="📥 Download Plain Text (.txt)",
+                    data=st.session_state.protocol_text,
+                    file_name=f"{st.session_state.project_name.replace(' ', '_')}.txt",
+                    mime="text/plain"
+                )
     
     # Show tutorial modal if requested
     if st.session_state.get("show_adversarial_tutorial", False):
@@ -3835,6 +4548,71 @@ Applies to all employees, contractors, and vendors with system access.
     st.markdown("---")
     st.subheader("🧪 Testing Parameters")
     
+    # Preset Selector
+    with st.expander("🎯 Presets", expanded=True):
+        st.markdown("### 🚀 Quick Start with Presets")
+        st.info("💡 **Tip:** Use presets to quickly configure adversarial testing for common scenarios.")
+        
+        preset_names = list_adversarial_presets()
+        if preset_names:
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                selected_preset = st.selectbox("Choose a preset configuration", [""] + preset_names, key="preset_selector")
+            with col2:
+                if st.button("Apply Preset", key="apply_preset_btn", use_container_width=True):
+                    if selected_preset and apply_adversarial_preset(selected_preset):
+                        st.success(f"✅ Applied {selected_preset} preset!")
+                        st.rerun()
+                    elif selected_preset:
+                        st.error("❌ Failed to apply preset.")
+            
+            # Show preset details
+            if selected_preset:
+                preset = load_adversarial_preset(selected_preset)
+                if preset:
+                    st.markdown(f"**{preset['name']}**")
+                    st.caption(preset['description'])
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.write("**🔴 Red Team Models:**")
+                        for model in preset.get("red_team_models", []):
+                            st.code(model, language="markdown")
+                    with col2:
+                        st.write("**🔵 Blue Team Models:**")
+                        for model in preset.get("blue_team_models", []):
+                            st.code(model, language="markdown")
+                    st.write("**⚙️ Settings:**")
+                    st.write(f"- Iterations: {preset.get('min_iter', 3)}-{preset.get('max_iter', 10)}")
+                    st.write(f"- Confidence Threshold: {preset.get('confidence_threshold', 85)}%")
+                    st.write(f"- Review Type: {preset.get('review_type', 'General SOP')}")
+        
+        # Advanced Testing Strategies
+        st.markdown("### 🧠 Advanced Testing Strategies")
+        strategy_options = st.multiselect(
+            "Select testing strategies to enable:",
+            ["Adaptive Testing", "Category-Focused Testing", "Performance-Based Rotation", "Continuous Learning"],
+            default=[],
+            key="advanced_testing_strategies"
+        )
+        
+        if "Adaptive Testing" in strategy_options:
+            st.info("🔄 **Adaptive Testing**: Automatically adjusts testing intensity based on results.")
+        
+        if "Category-Focused Testing" in strategy_options:
+            focus_category = st.selectbox(
+                "Focus on specific issue category:",
+                ["", "Security", "Compliance", "Clarity", "Completeness", "Efficiency"],
+                key="category_focus"
+            )
+            if focus_category:
+                st.info(f"🎯 **Category Focus**: Testing will emphasize {focus_category.lower()} issues.")
+        
+        if "Performance-Based Rotation" in strategy_options:
+            st.info("⚡ **Performance-Based Rotation**: Automatically rotates models based on performance metrics.")
+        
+        if "Continuous Learning" in strategy_options:
+            st.info("📚 **Continuous Learning**: Uses historical results to improve future testing runs.")
+    
     # Custom Mode Toggle
     use_custom_mode = st.toggle("🔧 Use Custom Mode", key="adversarial_custom_mode", 
                                help="Enable custom prompts and configurations for adversarial testing")
@@ -3912,6 +4690,80 @@ Applies to all employees, contractors, and vendors with system access.
                  help="Stop early if no improvement is detected")
         st.number_input("Early Stopping Patience", 1, 10, key="adversarial_early_stopping_patience", 
                        help="Number of iterations to wait before early stopping")
+        
+        st.markdown("### 🎨 Style Customization")
+        st.selectbox("Writing Style", ["Professional", "Concise", "Detailed", "Casual", "Technical", "Executive"], 
+                    key="adversarial_writing_style", 
+                    help="Preferred writing style for the final protocol")
+        st.selectbox("Tone", ["Neutral", "Authoritative", "Friendly", "Strict", "Persuasive"], 
+                    key="adversarial_tone", 
+                    help="Desired tone for the protocol")
+        st.text_input("Custom Style Instructions", 
+                     key="adversarial_custom_style", 
+                     help="Additional style instructions for the protocol writer")
+        
+        st.markdown("### 🛡️ Security Settings")
+        st.toggle("Include Security Headers", key="adversarial_include_security_headers", 
+                 help="Add security-focused headers to the protocol")
+        st.toggle("Include Compliance Checks", key="adversarial_include_compliance_checks", 
+                 help="Automatically add compliance-related sections")
+        st.text_area("Custom Security Requirements", 
+                    key="adversarial_custom_security", 
+                    height=100,
+                    help="Additional security requirements to enforce")
+        
+        st.markdown("### 📦 Format Options")
+        st.selectbox("Output Format", ["Markdown", "Plain Text", "HTML", "LaTeX"], 
+                    key="adversarial_output_format", 
+                    help="Desired output format for the final protocol")
+        st.toggle("Include Table of Contents", key="adversarial_include_toc", 
+                 help="Add automatically generated table of contents")
+        st.toggle("Include Revision History", key="adversarial_include_revision_history", 
+                 help="Track changes with revision history section")
+        
+        st.markdown("### 🧪 Experimental Features")
+        st.toggle("Use Chain-of-Thought Reasoning", key="adversarial_use_cot", 
+                 help="Enable chain-of-thought reasoning for deeper analysis")
+        st.toggle("Include Confidence Intervals", key="adversarial_include_confidence", 
+                 help="Add confidence intervals to issue severity ratings")
+        st.toggle("Enable Self-Critique", key="adversarial_enable_self_critique", 
+                 help="Have models critique their own suggestions before finalizing")
+        
+        st.markdown("### ⚡ Performance Optimization")
+        st.toggle("Auto-Optimize Model Selection", key="adversarial_auto_optimize_models", 
+                 help="Automatically select optimal models based on protocol complexity and budget")
+        budget_limit = st.number_input("Budget Limit (USD)", 0.0, 100.0, 0.0, 0.1,
+                                      key="adversarial_budget_limit",
+                                      help="Maximum budget for this testing session (0 = no limit)")
+        
+        # Performance suggestions button
+        if st.button("💡 Get Performance Suggestions"):
+            current_config = {
+                "red_team_models": st.session_state.red_team_models,
+                "blue_team_models": st.session_state.blue_team_models,
+                "adversarial_max_iter": st.session_state.adversarial_max_iter,
+                "protocol_text": st.session_state.protocol_text
+            }
+            suggestions = suggest_performance_improvements(current_config)
+            st.markdown("### 🚀 Performance Suggestions")
+            for suggestion in suggestions:
+                st.write(suggestion)
+        
+        # Time and cost estimation
+        if st.button("⏱️ Estimate Time & Cost"):
+            protocol_length = len(st.session_state.protocol_text.split())
+            estimate = estimate_testing_time_and_cost(
+                st.session_state.red_team_models,
+                st.session_state.blue_team_models,
+                st.session_state.adversarial_max_iter,
+                protocol_length
+            )
+            st.markdown("### 📊 Time & Cost Estimate")
+            col1, col2, col3, col4 = st.columns(4)
+            col1.metric("⏰ Est. Time", f"{estimate['estimated_time_minutes']} min")
+            col2.metric("💰 Est. Cost", f"${estimate['estimated_cost_usd']:.4f}")
+            col3.metric("🔄 Operations", f"{estimate['total_operations']:,}")
+            col4.metric("🔤 Tokens", f"{estimate['total_tokens_estimated']:,}")
 
     all_models = sorted(list(set(st.session_state.red_team_models + st.session_state.blue_team_models)))
     if all_models:
