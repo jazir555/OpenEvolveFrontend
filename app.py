@@ -581,6 +581,12 @@ DEFAULTS = {
     "adversarial_max_workers": 6,
     "adversarial_force_json": True,
     "adversarial_seed": "",
+    "adversarial_rotation_strategy": "None",
+    "adversarial_red_team_sample_size": 3,
+    "adversarial_blue_team_sample_size": 3,
+    "adversarial_model_performance": {},
+    "adversarial_confidence_history": [],
+    "adversarial_staged_rotation_config": "",
 }
 
 for k, v in DEFAULTS.items():
@@ -709,6 +715,160 @@ def _request_openrouter_chat(
             time.sleep(sleep_s)
     raise RuntimeError(f"Request failed for {model_id} after {max_retries} attempts: {last_err}")
 
+def _request_anthropic_chat(
+    api_key: str, base_url: str, model: str, messages: List, extra_headers: Dict,
+    temperature: float, top_p: float, max_tokens: int, seed: Optional[int], 
+    req_timeout: int = 60, max_retries: int = 5
+) -> str:
+    url = base_url.rstrip('/') + "/messages"
+    headers = {
+        "x-api-key": api_key,
+        "anthropic-version": "2023-06-01",
+        "Content-Type": "application/json",
+        **extra_headers
+    }
+    
+    # Separate system prompt from messages
+    system_prompt = ""
+    user_messages = []
+    for msg in messages:
+        if msg['role'] == 'system':
+            system_prompt = msg['content']
+        else:
+            user_messages.append(msg)
+
+    payload = {
+        "model": model,
+        "messages": user_messages,
+        "max_tokens": max_tokens,
+        "temperature": _clamp(temperature, 0.0, 1.0),
+        "top_p": _clamp(top_p, 0.0, 1.0),
+    }
+    if system_prompt:
+        payload['system'] = system_prompt
+
+    last_err = None
+    for attempt in range(max_retries):
+        try:
+            r = requests.post(url, headers=headers, json=payload, timeout=req_timeout)
+            if r.status_code in {429, 500, 502, 503, 504}:
+                sleep_s = (2 ** attempt) + _rand_jitter_ms()
+                time.sleep(sleep_s)
+                last_err = Exception(f"HTTP {r.status_code}: {r.text}")
+                continue
+            r.raise_for_status()
+            data = r.json()
+            if data.get('content') and isinstance(data['content'], list):
+                return data['content'][0].get('text', '')
+            else:
+                last_err = Exception("No content in response")
+        except Exception as e:
+            last_err = e
+            sleep_s = (2 ** attempt) + _rand_jitter_ms()
+            time.sleep(sleep_s)
+    raise RuntimeError(f"Request failed after {max_retries} attempts for model {model}: {last_err}")
+
+def _request_google_gemini_chat(
+    api_key: str, base_url: str, model: str, messages: List, extra_headers: Dict,
+    temperature: float, top_p: float, max_tokens: int, seed: Optional[int], 
+    req_timeout: int = 60, max_retries: int = 5
+) -> str:
+    url = f"{base_url.rstrip('/')}/models/{model}:generateContent?key={api_key}"
+    headers = {"Content-Type": "application/json", **extra_headers}
+    
+    # Gemini uses a different message format
+    contents = []
+    for msg in messages:
+        contents.append({"role": msg['role'], "parts": [{"text": msg['content']}]})
+
+    payload = {
+        "contents": contents,
+        "generationConfig": {
+            "temperature": _clamp(temperature, 0.0, 1.0),
+            "topP": _clamp(top_p, 0.0, 1.0),
+            "maxOutputTokens": max_tokens,
+        }
+    }
+
+    last_err = None
+    for attempt in range(max_retries):
+        try:
+            r = requests.post(url, headers=headers, json=payload, timeout=req_timeout)
+            if r.status_code in {429, 500, 502, 503, 504}:
+                sleep_s = (2 ** attempt) + _rand_jitter_ms()
+                time.sleep(sleep_s)
+                last_err = Exception(f"HTTP {r.status_code}: {r.text}")
+                continue
+            r.raise_for_status()
+            data = r.json()
+            if data.get('candidates') and isinstance(data['candidates'], list):
+                return data['candidates'][0]['content']['parts'][0]['text']
+            else:
+                last_err = Exception("No content in response")
+        except Exception as e:
+            last_err = e
+            sleep_s = (2 ** attempt) + _rand_jitter_ms()
+            time.sleep(sleep_s)
+    raise RuntimeError(f"Request failed after {max_retries} attempts for model {model}: {last_err}")
+
+def _request_cohere_chat(
+    api_key: str, base_url: str, model: str, messages: List, extra_headers: Dict,
+    temperature: float, top_p: float, max_tokens: int, seed: Optional[int], 
+    req_timeout: int = 60, max_retries: int = 5
+) -> str:
+    url = base_url.rstrip('/') + "/chat"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        **extra_headers
+    }
+    
+    # Separate system prompt and history from the last user message
+    system_prompt = ""
+    chat_history = []
+    for msg in messages[:-1]:
+        if msg['role'] == 'system':
+            system_prompt = msg['content']
+        else:
+            chat_history.append({"role": msg['role'].upper(), "message": msg['content']})
+    
+    user_message = messages[-1]['content']
+
+    payload = {
+        "model": model,
+        "message": user_message,
+        "chat_history": chat_history,
+        "max_tokens": max_tokens,
+        "temperature": _clamp(temperature, 0.0, 5.0),
+        "p": _clamp(top_p, 0.0, 1.0),
+    }
+    if system_prompt:
+        payload['preamble'] = system_prompt
+
+    last_err = None
+    for attempt in range(max_retries):
+        try:
+            r = requests.post(url, headers=headers, json=payload, timeout=req_timeout)
+            if r.status_code in {429, 500, 502, 503, 504}:
+                sleep_s = (2 ** attempt) + _rand_jitter_ms()
+                time.sleep(sleep_s)
+                last_err = Exception(f"HTTP {r.status_code}: {r.text}")
+                continue
+            r.raise_for_status()
+            data = r.json()
+            if data.get('text'):
+                return data['text']
+            else:
+                last_err = Exception("No text in response")
+        except Exception as e:
+            last_err = e
+            sleep_s = (2 ** attempt) + _rand_jitter_ms()
+            time.sleep(sleep_s)
+    raise RuntimeError(f"Request failed after {max_retries} attempts for model {model}: {last_err}")
+
+
+
+
 def analyze_with_model(
     api_key: str,
     model_id: str,
@@ -813,6 +973,29 @@ def _aggregate_red_risk(critiques: List[dict]) -> Dict[str, Any]:
     avg_weight = (total_weight / max(1, issue_count)) if issue_count > 0 else 0
     return {"total_weight": total_weight, "avg_issue_weight": avg_weight, "categories": categories, "count": issue_count}
 
+def _update_model_performance(critiques: List[dict]):
+    """Updates the performance scores of models based on the critiques they generated."""
+    with st.session_state.thread_lock:
+        if "adversarial_model_performance" not in st.session_state:
+            st.session_state.adversarial_model_performance = {}
+
+        sev_weight = {"low": 1, "medium": 3, "high": 6, "critical": 12}
+        for critique in critiques:
+            model_id = critique.get("model")
+            if not model_id:
+                continue
+
+            if model_id not in st.session_state.adversarial_model_performance:
+                st.session_state.adversarial_model_performance[model_id] = {"score": 0, "issues_found": 0}
+
+            critique_json = critique.get("critique_json")
+            if critique_json and isinstance(critique_json.get("issues"), list):
+                for issue in critique_json["issues"]:
+                    sev = str(issue.get("severity", "low")).lower()
+                    st.session_state.adversarial_model_performance[model_id]["score"] += sev_weight.get(sev, 1)
+                    st.session_state.adversarial_model_performance[model_id]["issues_found"] += 1
+
+
 def _collect_model_configs(model_ids: List[str], max_tokens: int) -> Dict[str, Dict[str, Any]]:
     return {
         model_id: {
@@ -871,18 +1054,19 @@ def check_approval_rate(
     avg_score = (sum(scores) / max(1, len(scores))) if scores else 0
     return {"approval_rate": rate, "avg_score": avg_score, "votes": votes, "prompt_tokens": total_ptoks, "completion_tokens": total_ctoks, "cost": total_cost}
 
-def run_adversarial_testing():
+"""def run_adversarial_testing():
     """Main logic for the adversarial testing loop, designed to be run in a background thread."""
     try:
         # --- Initialization ---
         api_key = st.session_state.openrouter_key
-        red_team = list(st.session_state.red_team_models or [])
-        blue_team = list(st.session_state.blue_team_models or [])
+        red_team_base = list(st.session_state.red_team_models or [])
+        blue_team_base = list(st.session_state.blue_team_models or [])
         min_iter, max_iter = st.session_state.adversarial_min_iter, st.session_state.adversarial_max_iter
         confidence = st.session_state.adversarial_confidence
         max_tokens = st.session_state.adversarial_max_tokens
         json_mode = st.session_state.adversarial_force_json
         max_workers = st.session_state.adversarial_max_workers
+        rotation_strategy = st.session_state.adversarial_rotation_strategy
         seed_str = str(st.session_state.adversarial_seed or "").strip()
         seed = None
         if seed_str:
@@ -898,17 +1082,56 @@ def run_adversarial_testing():
             st.session_state.adversarial_total_tokens_completion = 0
             st.session_state.adversarial_cost_estimate_usd = 0.0
 
-        model_configs = _collect_model_configs(red_team + blue_team, max_tokens)
+        model_configs = _collect_model_configs(red_team_base + blue_team_base, max_tokens)
         current_sop = st.session_state.protocol_text
         base_hash = _hash_text(current_sop)
         results, sop_hashes = [], [base_hash]
         iteration, approval_rate = 0, 0.0
 
-        _update_adv_log_and_status(f"Start: {len(red_team)} red / {len(blue_team)} blue | seed={seed} | base_hash={base_hash}")
+        _update_adv_log_and_status(f"Start: {len(red_team_base)} red / {len(blue_team_base)} blue | seed={seed} | base_hash={base_hash} | rotation={rotation_strategy}")
 
         # --- Main Loop ---
         while iteration < max_iter and not st.session_state.adversarial_stop_flag:
             iteration += 1
+            
+            # --- Team Rotation Logic ---
+            if rotation_strategy == "Round Robin":
+                red_team = [red_team_base[(iteration - 1 + i) % len(red_team_base)] for i in range(len(red_team_base))]
+                blue_team = [blue_team_base[(iteration - 1 + i) % len(blue_team_base)] for i in range(len(blue_team_base))]
+                _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Rotated teams (Round Robin). Red: {red_team}, Blue: {blue_team}")
+            elif rotation_strategy == "Staged":
+                try:
+                    stages = json.loads(st.session_state.adversarial_staged_rotation_config)
+                    if isinstance(stages, list) and len(stages) > 0:
+                        stage_index = (iteration - 1) % len(stages)
+                        stage = stages[stage_index]
+                        red_team = stage.get("red", red_team_base)
+                        blue_team = stage.get("blue", blue_team_base)
+                        _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Rotated teams (Staged - Stage {stage_index + 1}). Red: {red_team}, Blue: {blue_team}")
+                    else:
+                        red_team = red_team_base
+                        blue_team = blue_team_base
+                        _update_adv_log_and_status(f"⚠️ Invalid Staged Rotation Config. Using base teams.")
+                except json.JSONDecodeError:
+                    red_team = red_team_base
+                    blue_team = blue_team_base
+                    _update_adv_log_and_status(f"⚠️ Invalid JSON in Staged Rotation Config. Using base teams.")
+            elif rotation_strategy == "Performance-Based":
+                model_performance = st.session_state.adversarial_model_performance
+                red_team_weights = [model_performance.get(m, {"score": 1})["score"] for m in red_team_base]
+                red_team_sample_size = min(st.session_state.adversarial_red_team_sample_size, len(red_team_base))
+                if sum(red_team_weights) == 0:
+                    red_team = random.sample(red_team_base, k=red_team_sample_size)
+                else:
+                    red_team = random.choices(red_team_base, weights=red_team_weights, k=red_team_sample_size)
+                
+                blue_team_sample_size = min(st.session_state.adversarial_blue_team_sample_size, len(blue_team_base))
+                blue_team = random.sample(blue_team_base, k=blue_team_sample_size)
+                _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Rotated teams (Performance-Based). Red: {red_team}, Blue: {blue_team}")
+            else: # "None" or any other case
+                red_team = red_team_base
+                blue_team = blue_team_base
+
             _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Starting red team analysis.")
 
             # --- RED TEAM: CRITIQUES ---
@@ -916,7 +1139,7 @@ def run_adversarial_testing():
             with ThreadPoolExecutor(max_workers=max_workers) as ex:
                 futures = {ex.submit(analyze_with_model, api_key, m, current_sop,
                                     model_configs.get(m,{}), RED_TEAM_CRITIQUE_PROMPT,
-                                    force_json=json_mode, seed=seed): m for m in red_team}
+                                    force_json=json_mode, seed=seed): m for m in red_team}\
                 for fut in as_completed(futures):
                     res = fut.result()
                     _update_adv_counters(res['ptoks'], res['ctoks'], res['cost'])
@@ -924,6 +1147,7 @@ def run_adversarial_testing():
                         _update_adv_log_and_status(f"🔴 {res['model_id']}: Invalid response. Details: {res.get('text', 'N/A')}")
                     critiques_raw.append({"model": res['model_id'], "critique_json": res.get("json"), "raw_text": res.get("text")})
 
+            _update_model_performance(critiques_raw)
             agg_risk = _aggregate_red_risk(critiques_raw)
             if agg_risk['count'] == 0:
                 _update_adv_log_and_status(f"Iteration {iteration}: Red team found no exploitable issues. Checking for approval.")
@@ -938,7 +1162,7 @@ def run_adversarial_testing():
             with ThreadPoolExecutor(max_workers=max_workers) as ex:
                 futures = {ex.submit(analyze_with_model, api_key, m, current_sop,
                                     model_configs.get(m,{}), BLUE_TEAM_PATCH_PROMPT,
-                                    user_suffix="\n\nCRITIQUES TO ADDRESS:\n" + critique_block,
+                                    user_suffix="\\n\\nCRITIQUES TO ADDRESS:\\n" + critique_block,
                                     force_json=True, seed=seed): m for m in blue_team}
                 for fut in as_completed(futures):
                     res = fut.result()
@@ -962,6 +1186,16 @@ def run_adversarial_testing():
             })
             current_sop = next_sop
 
+            # --- Confidence Plateau and Critical Issue Triggers ---
+            with st.session_state.thread_lock:
+                st.session_state.adversarial_confidence_history.append(approval_rate)
+                history = st.session_state.adversarial_confidence_history
+                if len(history) > 3 and history[-1] == history[-2] and history[-2] == history[-3]:
+                    _update_adv_log_and_status("⚠️ Confidence plateau detected: Confidence has not changed for 3 iterations.")
+            
+            if agg_risk["total_weight"] > 0 and any(issue.get("severity") == "critical" for critique in critiques_raw if critique.get("critique_json") for issue in critique["critique_json"].get("issues", [])):
+                _update_adv_log_and_status("🚨 Critical issue found! Activating specialist security models (simulation).")
+
             # --- Stagnation Check ---
             current_hash = _hash_text(current_sop)
             if len(sop_hashes) > 1 and current_hash == sop_hashes[-1] and current_hash == sop_hashes[-2]:
@@ -971,8 +1205,7 @@ def run_adversarial_testing():
             if iteration >= min_iter and approval_rate >= confidence:
                 _update_adv_log_and_status(f"✅ Success! Confidence threshold of {confidence}% reached after {iteration} iterations.")
                 break
-        # --- End of Loop ---
-
+        # --- End of Loop ---""
         if st.session_state.adversarial_stop_flag:
             _update_adv_log_and_status("⏹️ Process stopped by user.")
         elif iteration >= max_iter:
@@ -1186,6 +1419,13 @@ def render_adversarial_testing_tab():
     with c4:
         st.toggle("Force JSON mode", key="adversarial_force_json", help="Use model's built-in JSON mode if available. Increases reliability.")
         st.text_input("Deterministic seed", key="adversarial_seed", help="Integer for reproducible runs.")
+        st.selectbox("Rotation Strategy", ["None", "Round Robin", "Random Sampling", "Performance-Based", "Staged"], key="adversarial_rotation_strategy")
+        if st.session_state.adversarial_rotation_strategy == "Staged":
+            st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help='''
+[{"red": ["model1", "model2"], "blue": ["model3"]},
+ {"red": ["model4"], "blue": ["model5", "model6"]}]''')
+        st.number_input("Red Team Sample Size", 1, 100, key="adversarial_red_team_sample_size")
+        st.number_input("Blue Team Sample Size", 1, 100, key="adversarial_blue_team_sample_size")
 
     all_models = sorted(list(set(st.session_state.red_team_models + st.session_state.blue_team_models)))
     if all_models:
@@ -1248,8 +1488,19 @@ def render_adversarial_testing_tab():
         else:
             st.warning(f"Final approval rate: {final_rate:.1f}% (Threshold: {st.session_state.adversarial_confidence}%)")
 
+        st.metric("Total Estimated Cost (USD)", f"${r.get('cost_estimate_usd', 0):,.4f}")
+        st.metric("Total Prompt Tokens", f"{r.get('tokens', {}).get('prompt', 0):,}")
+        st.metric("Total Completion Tokens", f"{r.get('tokens', {}).get('completion', 0):,}")
+
         with st.expander("View final hardened SOP"):
             st.code(r.get("final_sop", ""), language="markdown")
+        
+        with st.expander("View Final Votes"):
+            st.table(r.get("iterations", [])[-1].get("approval_check", {}).get("votes", []))
+
+        with st.expander("View Model Performance"):
+            st.table(st.session_state.adversarial_model_performance)
+
         with st.expander("View iteration-by-iteration details"):
             for iteration in r.get("iterations", []):
                 st.markdown(f"### Iteration {iteration['iteration']}")
@@ -1270,15 +1521,6 @@ def _request_openai_compatible_chat(
     max_tokens: int, seed: Optional[int], req_timeout: int = 60, max_retries: int = 5,
     provider: str = "OpenAI"
 ) -> str:
-    # Define providers with non-OpenAI compatible APIs that are not supported
-    UNSUPPORTED_PROVIDERS = {
-        "Anthropic", "Google (Gemini)", "Cohere", "Replicate", "AI21", "AlephAlpha",
-        "Bedrock-Claude", "Bedrock-Titan", "Bedrock-Cohere", "Bedrock-Jurassic", "Bedrock-Llama",
-        "HuggingFace", "Cloudflare", "VertexAI", "Databricks", "SageMaker"
-    }
-    
-    if provider in UNSUPPORTED_PROVIDERS:
-        raise RuntimeError(f"Provider '{provider}' uses a non-OpenAI compatible API and is not supported in the Evolution tab. Please use an OpenAI-compatible provider like OpenAI, Azure-OpenAI, Mistral, etc.")
     url = base_url.rstrip('/') + "/chat/completions"
     headers = {"Content-Type": "application/json", **extra_headers}
     if api_key: headers["Authorization"] = f"Bearer {api_key}"
@@ -1395,6 +1637,13 @@ def run_evolution_internal():
         if not api_key_to_use and provider_info.get("env"):
              log_msg(f"⚠️ No API key provided in UI or in env var {provider_info.get('env')}. Requests may fail.")
 
+        request_functions = {
+            "Anthropic": _request_anthropic_chat,
+            "Google (Gemini)": _request_google_gemini_chat,
+            "Cohere": _request_cohere_chat,
+        }
+        request_function = request_functions.get(st.session_state.provider, _request_openai_compatible_chat)
+
         consecutive_failures = 0
         max_consecutive_failures = 3  # Stop after 3 consecutive failures
         for i in range(st.session_state.max_iterations):
@@ -1407,13 +1656,25 @@ def run_evolution_internal():
                     st.session_state.system_prompt,
                     f"Current draft:\n\n---\n{current_protocol}\n---\n\nImprove it based on your instructions."
                 )
-                improved_protocol = _request_openai_compatible_chat(
-                    api_key=api_key_to_use, base_url=st.session_state.base_url, model=st.session_state.model,
-                    messages=messages, extra_headers=extra_hdrs, temperature=st.session_state.temperature,
-                    top_p=st.session_state.top_p, frequency_penalty=st.session_state.frequency_penalty,
-                    presence_penalty=st.session_state.presence_penalty, max_tokens=st.session_state.max_tokens, seed=seed,
-                    provider=st.session_state.provider
-                )
+                
+                kwargs = {
+                    "api_key": api_key_to_use, 
+                    "base_url": st.session_state.base_url, 
+                    "model": st.session_state.model,
+                    "messages": messages, 
+                    "extra_headers": extra_hdrs, 
+                    "temperature": st.session_state.temperature,
+                    "top_p": st.session_state.top_p, 
+                    "max_tokens": st.session_state.max_tokens, 
+                    "seed": seed,
+                }
+                if st.session_state.provider not in request_functions:
+                    kwargs["frequency_penalty"] = st.session_state.frequency_penalty
+                    kwargs["presence_penalty"] = st.session_state.presence_penalty
+                    kwargs["provider"] = st.session_state.provider
+
+                improved_protocol = request_function(**kwargs)
+
                 if improved_protocol and len(improved_protocol.strip()) > len(current_protocol) * 0.7:
                     log_msg(f"✅ Iteration {i+1} successful. Length: {len(improved_protocol.strip())}")
                     current_protocol = improved_protocol.strip()
