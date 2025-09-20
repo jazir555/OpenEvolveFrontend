@@ -96,6 +96,7 @@ st.markdown("""
     --text-color: #333333;
     --border-radius: 8px;
     --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --box-shadow-hover: 0 6px 12px rgba(0, 0, 0, 0.15);
 }
 
 /* Dark mode variables */
@@ -118,6 +119,8 @@ h1 {
     padding: 1rem 0;
     border-bottom: 2px solid var(--primary-color);
     margin-bottom: 2rem;
+    font-weight: 700;
+    letter-spacing: -0.5px;
 }
 
 /* Tab styling */
@@ -127,6 +130,7 @@ h1 {
     background-color: var(--card-background);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
 }
 
 .stTabs [data-baseweb="tab"] {
@@ -136,37 +140,46 @@ h1 {
     border-radius: var(--border-radius);
     color: var(--text-color);
     font-weight: 600;
+    transition: all 0.3s ease;
 }
 
 .stTabs [aria-selected="true"] {
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
+    box-shadow: var(--box-shadow);
 }
 
 /* Card styling for sections */
 .stMarkdown, .stDataFrame, .stTable {
     background-color: var(--card-background);
     border-radius: var(--border-radius);
-    padding: 1rem;
+    padding: 1.5rem;
     box-shadow: var(--box-shadow);
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.stMarkdown:hover, .stDataFrame:hover, .stTable:hover {
+    box-shadow: var(--box-shadow-hover);
+    transform: translateY(-2px);
 }
 
 /* Button styling */
 .stButton > button {
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
     border: none;
     border-radius: var(--border-radius);
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.5rem;
     font-weight: 600;
     transition: all 0.3s ease;
+    box-shadow: var(--box-shadow);
 }
 
 .stButton > button:hover {
-    background-color: var(--secondary-color);
     transform: translateY(-2px);
-    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+    box-shadow: var(--box-shadow-hover);
 }
 
 .stButton > button:active {
@@ -184,6 +197,13 @@ h1 {
     background-color: var(--card-background);
     border-radius: var(--border-radius);
     border: 1px solid #e0e0e0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.stSelectbox:focus, .stTextInput:focus, .stTextArea:focus, .stNumberInput:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
 }
 
 [data-theme="dark"] .stSelectbox, 
@@ -198,29 +218,39 @@ h1 {
 .stMetric {
     background-color: var(--card-background);
     border-radius: var(--border-radius);
-    padding: 1rem;
+    padding: 1.5rem;
     box-shadow: var(--box-shadow);
     text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.stMetric:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-hover);
 }
 
 .stMetric label {
     font-size: 1rem;
     color: var(--text-color);
+    font-weight: 500;
 }
 
 .stMetric div[data-testid="stMetricValue"] {
     font-size: 2rem;
     font-weight: 700;
     color: var(--primary-color);
+    margin-top: 0.5rem;
 }
 
 /* Status message styling */
 .stStatus {
     background-color: var(--card-background);
     border-radius: var(--border-radius);
-    padding: 1rem;
+    padding: 1.5rem;
     box-shadow: var(--box-shadow);
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--primary-color);
 }
 
 /* Expander styling */
@@ -228,11 +258,17 @@ h1 {
     background-color: var(--card-background);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.stExpander:hover {
+    box-shadow: var(--box-shadow-hover);
 }
 
 .stExpander div[data-testid="stExpanderDetails"] {
-    padding: 1rem;
+    padding: 1.5rem;
     border-top: 1px solid #e0e0e0;
 }
 
@@ -245,12 +281,14 @@ h1 {
     background-color: var(--card-background);
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
 }
 
 /* Sidebar styling */
 [data-testid="stSidebar"] {
     background-color: var(--card-background);
     border-right: 1px solid #e0e0e0;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
 }
 
 [data-theme="dark"] [data-testid="stSidebar"] {
@@ -261,14 +299,16 @@ h1 {
 .stProgress {
     background-color: var(--card-background);
     border-radius: var(--border-radius);
-    padding: 1rem;
+    padding: 1.5rem;
     box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
 }
 
 /* Alert styling */
 .stAlert {
     border-radius: var(--border-radius);
     box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
 }
 
 /* Custom classes for specific elements */
@@ -276,23 +316,37 @@ h1 {
     background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
     border-radius: var(--border-radius);
-    padding: 1.5rem;
-    margin-bottom: 1rem;
+    padding: 2rem;
+    margin-bottom: 1.5rem;
     box-shadow: var(--box-shadow);
+    transition: all 0.3s ease;
+}
+
+.protocol-analysis-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-hover);
 }
 
 .protocol-analysis-card h3 {
     color: white;
     margin-top: 0;
+    font-weight: 600;
 }
 
 .team-badge {
     display: inline-block;
-    padding: 0.25rem 0.75rem;
+    padding: 0.5rem 1rem;
     border-radius: 20px;
     font-weight: 600;
     font-size: 0.9rem;
     margin: 0.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.team-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .red-team {
@@ -322,11 +376,12 @@ h1 {
 .model-performance-table {
     width: 100%;
     border-collapse: collapse;
+    margin: 1rem 0;
 }
 
 .model-performance-table th,
 .model-performance-table td {
-    padding: 0.75rem;
+    padding: 1rem;
     text-align: left;
     border-bottom: 1px solid #e0e0e0;
 }
@@ -337,7 +392,7 @@ h1 {
 }
 
 .model-performance-table th {
-    background-color: var(--primary-color);
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
     color: white;
     font-weight: 600;
 }
@@ -350,6 +405,63 @@ h1 {
     background-color: rgba(74, 111, 165, 0.2);
 }
 
+/* New enhanced styles */
+.header-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+    vertical-align: middle;
+}
+
+.success-badge {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+}
+
+.warning-badge {
+    background-color: #fff8e1;
+    color: #f57f17;
+}
+
+.error-badge {
+    background-color: #ffebee;
+    color: #c62828;
+}
+
+[data-theme="dark"] .success-badge {
+    background-color: #1b5e20;
+    color: #a5d6a7;
+}
+
+[data-theme="dark"] .warning-badge {
+    background-color: #33691e;
+    color: #f4ff81;
+}
+
+[data-theme="dark"] .error-badge {
+    background-color: #b71c1c;
+    color: #ffcdd2;
+}
+
+/* Loading spinner */
+.loading-spinner {
+    border: 4px solid rgba(74, 111, 165, 0.2);
+    border-top: 4px solid var(--primary-color);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .stTabs [data-baseweb="tab-list"] {
@@ -359,6 +471,25 @@ h1 {
     .stMetric div[data-testid="stMetricValue"] {
         font-size: 1.5rem;
     }
+    
+    .protocol-analysis-card {
+        padding: 1.5rem;
+    }
+    
+    .team-badge {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.8rem;
+    }
+}
+
+/* Animation for new elements */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -1505,7 +1636,127 @@ PROTOCOL_TEMPLATES = {
 - Security Reviewer: [Name]
 - Review Date: [Date]
 - Approval Status: [Approved/Rejected/Pending]
-- Notes: [Additional comments]"""
+- Notes: [Additional comments]""",
+    
+    "DevOps Workflow": """# DevOps Workflow Template
+
+## Overview
+[Brief description of the DevOps workflow and its objectives]
+
+## Scope
+[What systems, applications, and environments this workflow covers]
+
+## Roles and Responsibilities
+- DevOps Engineer: [Responsibilities]
+- Developers: [Responsibilities]
+- QA Engineers: [Responsibilities]
+- Security Team: [Responsibilities]
+
+## CI/CD Pipeline
+### 1. Code Commit
+- Branching strategy: [e.g., GitFlow, GitHub Flow]
+- Code review process: [Description]
+- Static code analysis: [Tools and criteria]
+
+### 2. Continuous Integration
+- Automated build process: [Description]
+- Unit test execution: [Process]
+- Integration test execution: [Process]
+- Security scanning: [Tools and criteria]
+
+### 3. Continuous Deployment
+- Deployment environments: [List]
+- Deployment approval process: [Description]
+- Rollback procedures: [Process]
+- Monitoring setup: [Tools and metrics]
+
+## Infrastructure as Code
+- Tools used: [e.g., Terraform, CloudFormation]
+- Version control: [Repository structure]
+- Review process: [Approval workflow]
+- Testing strategy: [How infrastructure changes are tested]
+
+## Monitoring and Observability
+- Metrics collection: [Tools and what is measured]
+- Log aggregation: [Tools and retention policy]
+- Alerting thresholds: [What triggers alerts]
+- Incident response: [Process for handling alerts]
+
+## Security Practices
+- Vulnerability scanning: [Schedule and tools]
+- Compliance checks: [Process and tools]
+- Secret management: [How secrets are handled]
+- Access control: [How access is managed]
+
+## Backup and Recovery
+- Backup strategy: [What is backed up and how often]
+- Recovery time objectives: [RTO targets]
+- Recovery point objectives: [RPO targets]
+- Testing schedule: [How often recovery is tested]
+
+## Documentation
+- Runbooks: [Location and update process]
+- Architecture diagrams: [Location and update process]
+- Onboarding guides: [For new team members]
+
+## Review and Improvement
+- Retrospectives: [Schedule and process]
+- KPI tracking: [Metrics monitored]
+- Continuous improvement: [Process for implementing changes]""",
+    
+    "Risk Assessment Framework": """# Risk Assessment Framework Template
+
+## Overview
+[Purpose and scope of the risk assessment framework]
+
+## Risk Categories
+- Operational Risks: [Description]
+- Security Risks: [Description]
+- Compliance Risks: [Description]
+- Financial Risks: [Description]
+- Reputational Risks: [Description]
+
+## Risk Assessment Process
+### 1. Risk Identification
+- Methods: [Brainstorming, historical data, expert interviews, etc.]
+- Participants: [Who is involved]
+- Frequency: [How often assessments are conducted]
+
+### 2. Risk Analysis
+- Qualitative analysis: [Method and criteria]
+- Quantitative analysis: [Method and criteria]
+- Risk owners: [Who is responsible for each risk]
+
+### 3. Risk Evaluation
+- Risk appetite: [Organization's tolerance for risk]
+- Risk criteria: [How risks are prioritized]
+- Risk matrix: [Likelihood vs Impact matrix]
+
+### 4. Risk Treatment
+- Avoidance: [When and how risks are avoided]
+- Mitigation: [How risks are reduced]
+- Transfer: [How risks are transferred]
+- Acceptance: [How risks are accepted]
+
+## Risk Monitoring
+- Key risk indicators: [Metrics tracked]
+- Reporting frequency: [How often reports are generated]
+- Escalation procedures: [When and how risks are escalated]
+
+## Roles and Responsibilities
+- Risk Manager: [Responsibilities]
+- Risk Owners: [Responsibilities]
+- Senior Management: [Responsibilities]
+
+## Documentation
+- Risk register: [Format and maintenance]
+- Assessment reports: [Template and distribution]
+- Action plans: [Format and tracking]
+
+## Review and Updates
+- Framework review: [Frequency and process]
+- Lessons learned: [How insights are captured]
+- Continuous improvement: [Process for enhancing the framework]"""
 }
 
 # Adversarial Testing Presets
@@ -3312,6 +3563,25 @@ def run_adversarial_testing():
             except (ValueError, TypeError):
                 pass  # Invalid input, keep seed as None
 
+        # Validation
+        if not api_key:
+            _update_adv_log_and_status("❌ Error: OpenRouter API key is required for adversarial testing.")
+            with st.session_state.thread_lock:
+                st.session_state.adversarial_running = False
+            return
+            
+        if not red_team_base or not blue_team_base:
+            _update_adv_log_and_status("❌ Error: Please select at least one model for both red and blue teams.")
+            with st.session_state.thread_lock:
+                st.session_state.adversarial_running = False
+            return
+            
+        if not st.session_state.protocol_text.strip():
+            _update_adv_log_and_status("❌ Error: Please enter a protocol to test.")
+            with st.session_state.thread_lock:
+                st.session_state.adversarial_running = False
+            return
+
         with st.session_state.thread_lock:
             st.session_state.adversarial_log = []
             st.session_state.adversarial_stop_flag = False
@@ -3344,7 +3614,7 @@ def run_adversarial_testing():
                 
             red_team_prompt, blue_team_prompt = get_appropriate_prompts(review_type)
         
-        _update_adv_log_and_status(f"Start: {len(red_team_base)} red / {len(blue_team_base)} blue | seed={seed} | base_hash={base_hash} | rotation={rotation_strategy} | review_type={review_type}")
+        _update_adv_log_and_status(f"🚀 Start: {len(red_team_base)} red / {len(blue_team_base)} blue | seed={seed} | base_hash={base_hash} | rotation={rotation_strategy} | review_type={review_type}")
 
         # --- Main Loop ---
         while iteration < max_iter and not st.session_state.adversarial_stop_flag:
@@ -3354,7 +3624,7 @@ def run_adversarial_testing():
             if rotation_strategy == "Round Robin":
                 red_team = [red_team_base[(iteration - 1 + i) % len(red_team_base)] for i in range(len(red_team_base))]
                 blue_team = [blue_team_base[(iteration - 1 + i) % len(blue_team_base)] for i in range(len(blue_team_base))]
-                _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Rotated teams (Round Robin). Red: {red_team}, Blue: {blue_team}")
+                _update_adv_log_and_status(f"🔄 Iteration {iteration}/{max_iter}: Rotated teams (Round Robin). Red: {len(red_team)}, Blue: {len(blue_team)}")
             elif rotation_strategy == "Staged":
                 try:
                     stages = json.loads(st.session_state.adversarial_staged_rotation_config)
@@ -3363,7 +3633,7 @@ def run_adversarial_testing():
                         stage = stages[stage_index]
                         red_team = stage.get("red", red_team_base)
                         blue_team = stage.get("blue", blue_team_base)
-                        _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Rotated teams (Staged - Stage {stage_index + 1}). Red: {red_team}, Blue: {blue_team}")
+                        _update_adv_log_and_status(f"🔄 Iteration {iteration}/{max_iter}: Rotated teams (Staged - Stage {stage_index + 1}). Red: {len(red_team)}, Blue: {len(blue_team)}")
                     else:
                         red_team = red_team_base
                         blue_team = blue_team_base
@@ -3383,7 +3653,7 @@ def run_adversarial_testing():
                 
                 blue_team_sample_size = min(st.session_state.adversarial_blue_team_sample_size, len(blue_team_base))
                 blue_team = random.sample(blue_team_base, k=blue_team_sample_size)
-                _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Rotated teams (Performance-Based). Red: {red_team}, Blue: {blue_team}")
+                _update_adv_log_and_status(f"🔄 Iteration {iteration}/{max_iter}: Rotated teams (Performance-Based). Red: {len(red_team)}, Blue: {len(blue_team)}")
             elif rotation_strategy == "Adaptive":
                 # Adaptive strategy based on previous iteration performance
                 if iteration > 1 and len(results) > 0:
@@ -3392,7 +3662,7 @@ def run_adversarial_testing():
                     if last_iteration.get("approval_check", {}).get("approval_rate", 100) < 70:
                         red_team = random.sample(red_team_base, min(len(red_team_base), st.session_state.adversarial_red_team_sample_size + 1))
                         blue_team = random.sample(blue_team_base, min(len(blue_team_base), st.session_state.adversarial_blue_team_sample_size + 1))
-                        _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Adaptive rotation - increasing diversity. Red: {len(red_team)}, Blue: {len(blue_team)}")
+                        _update_adv_log_and_status(f"🔄 Iteration {iteration}/{max_iter}: Adaptive rotation - increasing diversity. Red: {len(red_team)}, Blue: {len(blue_team)}")
                     # If approval rate is high, focus on specialized models
                     elif last_iteration.get("approval_check", {}).get("approval_rate", 0) > 90:
                         # Use top performing models
@@ -3413,14 +3683,14 @@ def run_adversarial_testing():
                             blue_team = top_blue_model_ids
                         else:
                             blue_team = blue_team_base[:min(3, len(blue_team_base))]
-                        _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Adaptive rotation - focusing on top models. Red: {red_team}, Blue: {blue_team}")
+                        _update_adv_log_and_status(f"🔄 Iteration {iteration}/{max_iter}: Adaptive rotation - focusing on top models. Red: {len(red_team)}, Blue: {len(blue_team)}")
                     else:
                         red_team = red_team_base
                         blue_team = blue_team_base
                 else:
                     red_team = red_team_base
                     blue_team = blue_team_base
-                _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Adaptive team selection. Red: {len(red_team)}, Blue: {len(blue_team)}")
+                _update_adv_log_and_status(f"🔄 Iteration {iteration}/{max_iter}: Adaptive team selection. Red: {len(red_team)}, Blue: {len(blue_team)}")
             
             # Advanced Testing Strategies
             elif "Adaptive Testing" in st.session_state.get("advanced_testing_strategies", []):
@@ -3432,7 +3702,7 @@ def run_adversarial_testing():
                 })
                 red_team = strategy["recommended_models"]["red_team"]
                 blue_team = strategy["recommended_models"]["blue_team"]
-                _update_adv_log_and_status(f"_iteration {iteration}/{max_iter}: Adaptive testing strategy applied. Red: {red_team}, Blue: {blue_team}")
+                _update_adv_log_and_status(f"🔄 Iteration {iteration}/{max_iter}: Adaptive testing strategy applied. Red: {len(red_team)}, Blue: {len(blue_team)}")
             
             elif "Category-Focused Testing" in st.session_state.get("advanced_testing_strategies", []):
                 # Focus on specific issue categories
@@ -3446,7 +3716,7 @@ def run_adversarial_testing():
                         red_team = focus_recommendation["recommended_models"]["red_team"]
                         blue_team = focus_recommendation["recommended_models"]["blue_team"]
                         focus_category = focus_recommendation["focus_category"]
-                        _update_adv_log_and_status(f"_iteration {iteration}/{max_iter}: Category-focused testing on '{focus_category}'. Red: {red_team}, Blue: {blue_team}")
+                        _update_adv_log_and_status(f"🔄 Iteration {iteration}/{max_iter}: Category-focused testing on '{focus_category}'. Red: {len(red_team)}, Blue: {len(blue_team)}")
                     else:
                         red_team = red_team_base
                         blue_team = blue_team_base
@@ -3464,7 +3734,7 @@ def run_adversarial_testing():
                     )
                     red_team = rotated_teams["red_team"]
                     blue_team = rotated_teams["blue_team"]
-                    _update_adv_log_and_status(f"_iteration {iteration}/{max_iter}: Performance-based rotation. Red: {red_team}, Blue: {blue_team}")
+                    _update_adv_log_and_status(f"🔄 Iteration {iteration}/{max_iter}: Performance-based rotation. Red: {len(red_team)}, Blue: {len(blue_team)}")
                 else:
                     red_team = red_team_base
                     blue_team = blue_team_base
@@ -3473,7 +3743,7 @@ def run_adversarial_testing():
                 red_team = red_team_base
                 blue_team = blue_team_base
 
-            _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Starting red team analysis.")
+            _update_adv_log_and_status(f"🔄 Iteration {iteration}/{max_iter}: Starting red team analysis.")
 
             # --- RED TEAM: CRITIQUES ---
             critiques_raw = []
@@ -3491,9 +3761,9 @@ def run_adversarial_testing():
             _update_model_performance(critiques_raw)
             agg_risk = _aggregate_red_risk(critiques_raw)
             if agg_risk['count'] == 0:
-                _update_adv_log_and_status(f"Iteration {iteration}: Red team found no exploitable issues. Checking for approval.")
+                _update_adv_log_and_status(f"🔄 Iteration {iteration}: Red team found no exploitable issues. Checking for approval.")
             else:
-                _update_adv_log_and_status(f"Iteration {iteration}: Red team found {agg_risk['count']} issues. Starting blue team patching.")
+                _update_adv_log_and_status(f"🔄 Iteration {iteration}: Red team found {agg_risk['count']} issues. Starting blue team patching.")
 
             # --- BLUE TEAM: PATCHING ---
             blue_patches_raw = []
@@ -3513,7 +3783,7 @@ def run_adversarial_testing():
                     blue_patches_raw.append({"model": res['model_id'], "patch_json": res.get("json"), "raw_text": res.get("text")})
 
             next_sop, consensus_diag = _merge_consensus_sop(current_sop, blue_patches_raw, critiques_raw)
-            _update_adv_log_and_status(f"Iteration {iteration}: Consensus SOP generated (Best patch from '{consensus_diag.get('model', 'N/A')}'). Starting approval check.")
+            _update_adv_log_and_status(f"🔄 Iteration {iteration}: Consensus SOP generated (Best patch from '{consensus_diag.get('model', 'N/A')}'). Starting approval check.")
 
             # --- APPROVAL CHECK ---
             # Use custom approval prompt when in custom mode
@@ -3525,7 +3795,7 @@ def run_adversarial_testing():
             eval_res = check_approval_rate(api_key, red_team, next_sop, model_configs, seed, max_workers, approval_prompt)
             approval_rate = eval_res["approval_rate"]
             _update_adv_counters(eval_res['prompt_tokens'], eval_res['completion_tokens'], eval_res['cost'])
-            _update_adv_log_and_status(f"Iteration {iteration}: Approval rate: {approval_rate:.1f}%, Avg Score: {eval_res['avg_score']:.1f}")
+            _update_adv_log_and_status(f"🔄 Iteration {iteration}: Approval rate: {approval_rate:.1f}%, Avg Score: {eval_res['avg_score']:.1f}")
 
             results.append({
                 "iteration": iteration, "critiques": critiques_raw, "patches": blue_patches_raw,
@@ -3733,11 +4003,48 @@ st.title("🧬 OpenEvolve Protocol Improver")
 st.markdown("---")
 
 # Project information
-col1, col2 = st.columns([3, 1])
+col1, col2, col3 = st.columns([3, 1, 1])
 with col1:
     st.markdown("## 🔴🔵 Adversarial Testing & Evolution-based Protocol Improvement")
 with col2:
     st.markdown('<span class="team-badge red-team">Red Team</span><span class="team-badge blue-team">Blue Team</span>', unsafe_allow_html=True)
+with col3:
+    # Add a quick action button
+    if st.button("📋 Quick Guide", key="quick_guide_btn"):
+        st.session_state.show_quick_guide = not st.session_state.get("show_quick_guide", False)
+
+# Show quick guide if requested
+if st.session_state.get("show_quick_guide", False):
+    with st.expander("📘 Quick Guide", expanded=True):
+        st.markdown("""
+        ### 🚀 Getting Started
+        
+        1. **Choose Your Approach**:
+           - **Evolution Tab**: Iteratively improve a single protocol using one AI model
+           - **Adversarial Testing Tab**: Harden protocols using multiple AI models in red team/blue team approach
+        
+        2. **Configure Your Models**:
+           - Select a provider and model in the sidebar (Evolution tab)
+           - Enter your OpenRouter API key for Adversarial Testing
+           - Choose models for red team (critics) and blue team (fixers)
+        
+        3. **Input Your Protocol**:
+           - Paste your existing protocol or load a template
+           - Add compliance requirements if needed
+        
+        4. **Run the Process**:
+           - Adjust parameters as needed
+           - Click "Start" and monitor progress
+           - Review results and save improved versions
+        
+        5. **Collaborate & Share**:
+           - Add collaborators to your project
+           - Save versions and track changes
+           - Export results in multiple formats
+        """)
+        if st.button("Close Guide"):
+            st.session_state.show_quick_guide = False
+            st.rerun()
 
 # Project info in sidebar
 with st.sidebar:
@@ -4846,176 +5153,176 @@ Applies to all employees, contractors, and vendors with system access.
                         st.info("⏳ Waiting for adversarial testing to start...")
 
     # If adversarial testing has results, show them with enhanced visualization
-    if st.session_state.adversarial_results and not st.session_state.adversarial_running:
-        with st.expander("🏆 Adversarial Testing Results", expanded=True):
-            results = st.session_state.adversarial_results
-            
-            # Enhanced metrics dashboard with better organization
-            st.markdown("### 📊 Performance Summary")
-            
-            # Main metrics in cards
-            col1, col2, col3, col4 = st.columns(4)
-            col1.metric("✅ Final Approval Rate", f"{results.get('final_approval_rate', 0):.1f}%")
-            col2.metric("🔄 Iterations Completed", len(results.get('iterations', [])))
-            col3.metric("💰 Total Cost (USD)", f"${results.get('cost_estimate_usd', 0):.4f}")
-            col4.metric("🔤 Total Tokens", f"{results.get('tokens', {}).get('prompt', 0) + results.get('tokens', {}).get('completion', 0):,}")
-            
-            # Detailed metrics tabs
-            metrics_tab1, metrics_tab2, metrics_tab3 = st.tabs(["📈 Confidence Trend", "🏆 Model Performance", "🧮 Issue Analysis"])
-            
-            with metrics_tab1:
-                # Confidence trend chart
-                if results.get('iterations'):
-                    confidence_history = [iter.get("approval_check", {}).get("approval_rate", 0) 
-                                        for iter in results.get('iterations', [])]
-                    if confidence_history:
-                        # Enhanced visualization
-                        max_confidence = max(confidence_history)
-                        min_confidence = min(confidence_history)
-                        avg_confidence = sum(confidence_history) / len(confidence_history)
-                        
-                        st.line_chart(confidence_history)
-                        col1, col2, col3, col4 = st.columns(4)
-                        col1.metric("📈 Peak Confidence", f"{max_confidence:.1f}%")
-                        col2.metric("📉 Lowest Confidence", f"{min_confidence:.1f}%")
-                        col3.metric("📊 Average Confidence", f"{avg_confidence:.1f}%")
-                        col4.metric("📊 Final Confidence", f"{confidence_history[-1]:.1f}%")
-                        
-                        # Confidence improvement
-                        if len(confidence_history) > 1:
-                            improvement = confidence_history[-1] - confidence_history[0]
-                            if improvement > 0:
-                                st.success(f"🚀 Confidence improved by {improvement:.1f}%")
-                            elif improvement < 0:
-                                st.warning(f"⚠️ Confidence decreased by {abs(improvement):.1f}%")
-                            else:
-                                st.info("➡️ Confidence remained stable")
-            
-            with metrics_tab2:
-                # Model performance analysis
-                if st.session_state.get("adversarial_model_performance"):
-                    model_performance = st.session_state.adversarial_model_performance
-                    st.markdown("### 🏆 Top Performing Models")
+            if st.session_state.adversarial_results and not st.session_state.adversarial_running:
+                with st.expander("🏆 Adversarial Testing Results", expanded=True):
+                    results = st.session_state.adversarial_results
                     
-                    # Sort models by score
-                    sorted_models = sorted(model_performance.items(), key=lambda x: x[1].get("score", 0), reverse=True)
+                    # Enhanced metrics dashboard with better organization
+                    st.markdown("### 📊 Performance Summary")
                     
-                    # Display top 5 models
-                    for i, (model_id, perf) in enumerate(sorted_models[:5]):
-                        score = perf.get("score", 0)
-                        issues = perf.get("issues_found", 0)
-                        st.progress(min(score / 100, 1.0), 
-                                   text=f"#{i+1} {model_id} - Score: {score}, Issues Found: {issues}")
-                else:
-                    st.info("No model performance data available.")
-            
-            with metrics_tab3:
-                # Issue analysis
-                if results.get('iterations'):
-                    # Aggregate issue data
-                    total_issues = 0
-                    severity_counts = {"low": 0, "medium": 0, "high": 0, "critical": 0}
-                    category_counts = {}
+                    # Main metrics in cards
+                    col1, col2, col3, col4 = st.columns(4)
+                    col1.metric("✅ Final Approval Rate", f"{results.get('final_approval_rate', 0):.1f}%")
+                    col2.metric("🔄 Iterations Completed", len(results.get('iterations', [])))
+                    col3.metric("💰 Total Cost (USD)", f"${results.get('cost_estimate_usd', 0):.4f}")
+                    col4.metric("🔤 Total Tokens", f"{results.get('tokens', {}).get('prompt', 0) + results.get('tokens', {}).get('completion', 0):,}")
                     
-                    for iteration in results.get('iterations', []):
-                        critiques = iteration.get("critiques", [])
-                        for critique in critiques:
-                            critique_json = critique.get("critique_json", {})
-                            issues = critique_json.get("issues", [])
-                            total_issues += len(issues)
-                            
-                            for issue in issues:
-                                # Count by severity
-                                severity = issue.get("severity", "low").lower()
-                                if severity in severity_counts:
-                                    severity_counts[severity] += 1
+                    # Detailed metrics tabs
+                    metrics_tab1, metrics_tab2, metrics_tab3 = st.tabs(["📈 Confidence Trend", "🏆 Model Performance", "🧮 Issue Analysis"])
+                    
+                    with metrics_tab1:
+                        # Confidence trend chart
+                        if results.get('iterations'):
+                            confidence_history = [iter.get("approval_check", {}).get("approval_rate", 0) 
+                                                for iter in results.get('iterations', [])]
+                            if confidence_history:
+                                # Enhanced visualization
+                                max_confidence = max(confidence_history)
+                                min_confidence = min(confidence_history)
+                                avg_confidence = sum(confidence_history) / len(confidence_history)
                                 
-                                # Count by category
-                                category = issue.get("category", "uncategorized")
-                                category_counts[category] = category_counts.get(category, 0) + 1
+                                st.line_chart(confidence_history)
+                                col1, col2, col3, col4 = st.columns(4)
+                                col1.metric("📈 Peak Confidence", f"{max_confidence:.1f}%")
+                                col2.metric("📉 Lowest Confidence", f"{min_confidence:.1f}%")
+                                col3.metric("📊 Average Confidence", f"{avg_confidence:.1f}%")
+                                col4.metric("📊 Final Confidence", f"{confidence_history[-1]:.1f}%")
+                                
+                                # Confidence improvement
+                                if len(confidence_history) > 1:
+                                    improvement = confidence_history[-1] - confidence_history[0]
+                                    if improvement > 0:
+                                        st.success(f"🚀 Confidence improved by {improvement:.1f}%")
+                                    elif improvement < 0:
+                                        st.warning(f"⚠️ Confidence decreased by {abs(improvement):.1f}%")
+                                    else:
+                                        st.info("➡️ Confidence remained stable")
                     
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.markdown("### 🎯 Issue Severity Distribution")
-                        for severity, count in severity_counts.items():
-                            if count > 0:
-                                emoji = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}[severity]
-                                st.write(f"{emoji} {severity.capitalize()}: {count}")
-                    with col2:
-                        st.markdown("### 📚 Issue Categories")
-                        # Show top 5 categories
-                        sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
-                        for category, count in sorted_categories[:5]:
-                            st.write(f"🏷️ {category}: {count}")
+                    with metrics_tab2:
+                        # Model performance analysis
+                        if st.session_state.get("adversarial_model_performance"):
+                            model_performance = st.session_state.adversarial_model_performance
+                            st.markdown("### 🏆 Top Performing Models")
+                            
+                            # Sort models by score
+                            sorted_models = sorted(model_performance.items(), key=lambda x: x[1].get("score", 0), reverse=True)
+                            
+                            # Display top 5 models
+                            for i, (model_id, perf) in enumerate(sorted_models[:5]):
+                                score = perf.get("score", 0)
+                                issues = perf.get("issues_found", 0)
+                                st.progress(min(score / 100, 1.0), 
+                                           text=f"#{i+1} {model_id} - Score: {score}, Issues Found: {issues}")
+                        else:
+                            st.info("No model performance data available.")
                     
-                    st.metric("🔍 Total Issues Found", total_issues)
-            
-            # Protocol comparison and analysis
-            st.markdown("### 📄 Protocol Analysis")
-            final_sop = results.get('final_sop', '')
-            original_sop = st.session_state.protocol_text
-            
-            if final_sop and original_sop:
-                # Tabs for different views
-                protocol_tab1, protocol_tab2, protocol_tab3 = st.tabs(["🔄 Comparison", "📄 Final Protocol", "🔍 Structure Analysis"])
-                
-                with protocol_tab1:
-                    st.markdown("### 🔄 Protocol Evolution")
-                    # Simple comparison metrics
-                    original_complexity = calculate_protocol_complexity(original_sop)
-                    final_complexity = calculate_protocol_complexity(final_sop)
+                    with metrics_tab3:
+                        # Issue analysis
+                        if results.get('iterations'):
+                            # Aggregate issue data
+                            total_issues = 0
+                            severity_counts = {"low": 0, "medium": 0, "high": 0, "critical": 0}
+                            category_counts = {}
+                            
+                            for iteration in results.get('iterations', []):
+                                critiques = iteration.get("critiques", [])
+                                for critique in critiques:
+                                    critique_json = critique.get("critique_json", {})
+                                    issues = critique_json.get("issues", [])
+                                    total_issues += len(issues)
+                                    
+                                    for issue in issues:
+                                        # Count by severity
+                                        severity = issue.get("severity", "low").lower()
+                                        if severity in severity_counts:
+                                            severity_counts[severity] += 1
+                                        
+                                        # Count by category
+                                        category = issue.get("category", "uncategorized")
+                                        category_counts[category] = category_counts.get(category, 0) + 1
+                            
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.markdown("### 🎯 Issue Severity Distribution")
+                                for severity, count in severity_counts.items():
+                                    if count > 0:
+                                        emoji = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}[severity]
+                                        st.write(f"{emoji} {severity.capitalize()}: {count}")
+                            with col2:
+                                st.markdown("### 📚 Issue Categories")
+                                # Show top 5 categories
+                                sorted_categories = sorted(category_counts.items(), key=lambda x: x[1], reverse=True)
+                                for category, count in sorted_categories[:5]:
+                                    st.write(f"🏷️ {category}: {count}")
+                            
+                            st.metric("🔍 Total Issues Found", total_issues)
                     
-                    col1, col2, col3 = st.columns(3)
-                    col1.metric("📏 Original Length", f"{original_complexity['word_count']} words")
-                    col2.metric("📏 Final Length", f"{final_complexity['word_count']} words")
-                    col3.metric("📊 Length Change", 
-                               f"{final_complexity['word_count'] - original_complexity['word_count']} words", 
-                               f"{((final_complexity['word_count'] / max(1, original_complexity['word_count'])) - 1) * 100:.1f}%")
+                    # Protocol comparison and analysis
+                    st.markdown("### 📄 Protocol Analysis")
+                    final_sop = results.get('final_sop', '')
+                    original_sop = st.session_state.protocol_text
                     
-                    # Show both protocols side by side
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.markdown("**Original Protocol**")
-                        st.text_area("Original", value=original_sop, height=300, key="original_protocol_display")
-                    with col2:
-                        st.markdown("**Hardened Protocol**")
-                        st.text_area("Final", value=final_sop, height=300, key="final_protocol_display")
-                
-                with protocol_tab2:
-                    st.markdown("### 📄 Final Hardened Protocol")
-                    st.code(final_sop, language="markdown")
-                    # Add download button
-                    st.download_button(
-                        label="📥 Download Final Protocol",
-                        data=final_sop,
-                        file_name="hardened_protocol.md",
-                        mime="text/markdown"
-                    )
-                
-                with protocol_tab3:
-                    st.markdown("### 🔍 Protocol Structure Analysis")
-                    # Add protocol analysis
-                    complexity = calculate_protocol_complexity(final_sop)
-                    structure = extract_protocol_structure(final_sop)
-                    
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.markdown("**📏 Complexity Metrics**")
-                        st.metric("Words", complexity["word_count"])
-                        st.metric("Sentences", complexity["sentence_count"])
-                        st.metric("Paragraphs", complexity["paragraph_count"])
-                        st.metric("Complexity Score", complexity["complexity_score"])
-                        st.metric("Unique Words", complexity["unique_words"])
-                    
-                    with col2:
-                        st.markdown("**🧩 Structure Analysis**")
-                        st.write("Numbered Steps:", "✅" if structure["has_numbered_steps"] else "❌")
-                        st.write("Bullet Points:", "✅" if structure["has_bullet_points"] else "❌")
-                        st.write("Headers:", "✅" if structure["has_headers"] else "❌")
-                        st.write("Preconditions:", "✅" if structure["has_preconditions"] else "❌")
-                        st.write("Postconditions:", "✅" if structure["has_postconditions"] else "❌")
-                        st.write("Error Handling:", "✅" if structure["has_error_handling"] else "❌")
-                        st.metric("SectionsIn Protocol", structure["section_count"])
+                    if final_sop and original_sop:
+                        # Tabs for different views
+                        protocol_tab1, protocol_tab2, protocol_tab3 = st.tabs(["🔄 Comparison", "📄 Final Protocol", "🔍 Structure Analysis"])
+                        
+                        with protocol_tab1:
+                            st.markdown("### 🔄 Protocol Evolution")
+                            # Simple comparison metrics
+                            original_complexity = calculate_protocol_complexity(original_sop)
+                            final_complexity = calculate_protocol_complexity(final_sop)
+                            
+                            col1, col2, col3 = st.columns(3)
+                            col1.metric("📏 Original Length", f"{original_complexity['word_count']} words")
+                            col2.metric("📏 Final Length", f"{final_complexity['word_count']} words")
+                            col3.metric("📊 Length Change", 
+                                       f"{final_complexity['word_count'] - original_complexity['word_count']} words", 
+                                       f"{((final_complexity['word_count'] / max(1, original_complexity['word_count'])) - 1) * 100:.1f}%")
+                            
+                            # Show both protocols side by side
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.markdown("**Original Protocol**")
+                                st.text_area("Original", value=original_sop, height=300, key="original_protocol_display")
+                            with col2:
+                                st.markdown("**Hardened Protocol**")
+                                st.text_area("Final", value=final_sop, height=300, key="final_protocol_display")
+                        
+                        with protocol_tab2:
+                            st.markdown("### 📄 Final Hardened Protocol")
+                            st.code(final_sop, language="markdown")
+                            # Add download button
+                            st.download_button(
+                                label="📥 Download Final Protocol",
+                                data=final_sop,
+                                file_name="hardened_protocol.md",
+                                mime="text/markdown"
+                            )
+                        
+                        with protocol_tab3:
+                            st.markdown("### 🔍 Protocol Structure Analysis")
+                            # Add protocol analysis
+                            complexity = calculate_protocol_complexity(final_sop)
+                            structure = extract_protocol_structure(final_sop)
+                            
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.markdown("**📏 Complexity Metrics**")
+                                st.metric("Words", complexity["word_count"])
+                                st.metric("Sentences", complexity["sentence_count"])
+                                st.metric("Paragraphs", complexity["paragraph_count"])
+                                st.metric("Complexity Score", complexity["complexity_score"])
+                                st.metric("Unique Words", complexity["unique_words"])
+                            
+                            with col2:
+                                st.markdown("**🧩 Structure Analysis**")
+                                st.write("Numbered Steps:", "✅" if structure["has_numbered_steps"] else "❌")
+                                st.write("Bullet Points:", "✅" if structure["has_bullet_points"] else "❌")
+                                st.write("Headers:", "✅" if structure["has_headers"] else "❌")
+                                st.write("Preconditions:", "✅" if structure["has_preconditions"] else "❌")
+                                st.write("Postconditions:", "✅" if structure["has_postconditions"] else "❌")
+                                st.write("Error Handling:", "✅" if structure["has_error_handling"] else "❌")
+                                st.metric("SectionsIn Protocol", structure["section_count"])
 
 with tab2:
     render_adversarial_testing_tab()
@@ -5064,7 +5371,8 @@ if start_button:
             # Start adversarial testing
             st.session_state.adversarial_running = True
             st.session_state.adversarial_status_message = "🚀 Initializing adversarial testing..."
-            threading.Thread(target=run_adversarial_testing, daemon=True).start()
+            with st.spinner("Starting adversarial testing process..."):
+                threading.Thread(target=run_adversarial_testing, daemon=True).start()
             st.rerun()
 
 if stop_button:
@@ -5177,7 +5485,7 @@ def run_evolution_internal():
             with st.session_state.thread_lock:
                 st.session_state.evolution_log.append(f"[{time.strftime('%H:%M:%S')}] {msg}")
 
-        log_msg(f"Starting evolution process with {st.session_state.provider}/{st.session_state.model}...")
+        log_msg(f"🚀 Starting evolution process with {st.session_state.provider}/{st.session_state.model}...")
         try:
             extra_hdrs = json.loads(st.session_state.extra_headers or "{}")
             if not isinstance(extra_hdrs, dict): raise json.JSONDecodeError("JSON is not a dictionary.", "", 0)
@@ -5213,9 +5521,9 @@ def run_evolution_internal():
         max_consecutive_failures = 3  # Stop after 3 consecutive failures
         for i in range(st.session_state.max_iterations):
             if st.session_state.evolution_stop_flag:
-                log_msg("Evolution stopped by user.")
+                log_msg("⏹️ Evolution stopped by user.")
                 break
-            log_msg(f"--- Iteration {i+1}/{st.session_state.max_iterations} ---")
+            log_msg(f"🔄 --- Iteration {i+1}/{st.session_state.max_iterations} ---")
             try:
                 messages = _compose_messages(
                     st.session_state.system_prompt,
@@ -5260,7 +5568,7 @@ def run_evolution_internal():
                 log_msg(f"🛑 Stopping evolution due to {consecutive_failures} consecutive failures.")
                 break
 
-        log_msg("Evolution finished.")
+        log_msg("🏁 Evolution finished.")
         st.session_state.protocol_text = current_protocol  # Update the main protocol text
     except Exception as e:
         import traceback
@@ -5280,8 +5588,18 @@ if run_button:
         if st.session_state.evolution_running:
             st.warning("Evolution is already running. Please wait for it to complete or stop it first.")
         else:
-            st.session_state.evolution_running = True
-            threading.Thread(target=run_evolution_internal, daemon=True).start()
-            st.rerun()
+            # Validation
+            errors = []
+            if not st.session_state.api_key and not os.environ.get(PROVIDERS.get(st.session_state.provider, {}).get("env", ""), ""):
+                errors.append("🔑 Please enter an API key or set the appropriate environment variable.")
+            
+            if errors:
+                for error in errors:
+                    st.error(error)
+            else:
+                st.session_state.evolution_running = True
+                with st.spinner("Starting evolution process..."):
+                    threading.Thread(target=run_evolution_internal, daemon=True).start()
+                st.rerun()
     else:
         st.warning("Please paste a protocol before starting evolution.")
