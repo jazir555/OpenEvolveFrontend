@@ -1,4 +1,4 @@
-"OpenEvolve Protocol Improver - A Streamlit application for protocol improvement using LLMs.
+"""OpenEvolve Protocol Improver - A Streamlit application for protocol improvement using LLMs.
 
 This module provides a comprehensive interface for improving protocols and standard operating
 procedures (SOPs) through two main approaches:
@@ -16,7 +16,7 @@ Key Features:
 
 The application uses Streamlit for the web interface and provides both single-provider
 evolution and multi-provider adversarial testing capabilities.
-"
+"""
 
 import functools
 import json
@@ -76,6 +76,289 @@ st.set_page_config(
     initial_sidebar_state="expanded",
 )
 
+# Custom CSS for enhanced styling
+st.markdown("""
+<style>
+/* Custom color scheme */
+:root {
+    --primary-color: #4a6fa5;
+    --secondary-color: #6b8cbc;
+    --accent-color: #ff6b6b;
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+    --error-color: #f44336;
+    --background-color: #f8f9fa;
+    --card-background: #ffffff;
+    --text-color: #333333;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode variables */
+[data-theme="dark"] {
+    --primary-color: #6b8cbc;
+    --secondary-color: #4a6fa5;
+    --accent-color: #ff6b6b;
+    --success-color: #4caf50;
+    --warning-color: #ff9800;
+    --error-color: #f44336;
+    --background-color: #0e1117;
+    --card-background: #1e2130;
+    --text-color: #fafafa;
+}
+
+/* Main title styling */
+h1 {
+    color: var(--primary-color);
+    text-align: center;
+    padding: 1rem 0;
+    border-bottom: 2px solid var(--primary-color);
+    margin-bottom: 2rem;
+}
+
+/* Tab styling */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 24px;
+    padding: 0.5rem;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.stTabs [data-baseweb="tab"] {
+    height: 50px;
+    white-space: pre-wrap;
+    background-color: transparent;
+    border-radius: var(--border-radius);
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.stTabs [aria-selected="true"] {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Card styling for sections */
+.stMarkdown, .stDataFrame, .stTable {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1rem;
+}
+
+/* Button styling */
+.stButton > button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    background-color: var(--secondary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.stButton > button:active {
+    transform: translateY(0);
+}
+
+.stButton > button[kind="secondary"] {
+    background-color: var(--card-background);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+
+/* Input styling */
+.stSelectbox, .stTextInput, .stTextArea, .stNumberInput, .stSlider {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    border: 1px solid #e0e0e0;
+}
+
+[data-theme="dark"] .stSelectbox, 
+[data-theme="dark"] .stTextInput, 
+[data-theme="dark"] .stTextArea, 
+[data-theme="dark"] .stNumberInput, 
+[data-theme="dark"] .stSlider {
+    border: 1px solid #4a4a4a;
+}
+
+/* Metric styling */
+.stMetric {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    box-shadow: var(--box-shadow);
+    text-align: center;
+}
+
+.stMetric label {
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.stMetric div[data-testid="stMetricValue"] {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+/* Status message styling */
+.stStatus {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1rem;
+}
+
+/* Expander styling */
+.stExpander {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1rem;
+}
+
+.stExpander div[data-testid="stExpanderDetails"] {
+    padding: 1rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+[data-theme="dark"] .stExpander div[data-testid="stExpanderDetails"] {
+    border-top: 1px solid #4a4a4a;
+}
+
+/* Code block styling */
+.stCodeBlock {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+/* Sidebar styling */
+[data-testid="stSidebar"] {
+    background-color: var(--card-background);
+    border-right: 1px solid #e0e0e0;
+}
+
+[data-theme="dark"] [data-testid="stSidebar"] {
+    border-right: 1px solid #4a4a4a;
+}
+
+/* Progress bar styling */
+.stProgress {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 1rem;
+    box-shadow: var(--box-shadow);
+}
+
+/* Alert styling */
+.stAlert {
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+/* Custom classes for specific elements */
+.protocol-analysis-card {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--box-shadow);
+}
+
+.protocol-analysis-card h3 {
+    color: white;
+    margin-top: 0;
+}
+
+.team-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin: 0.25rem;
+}
+
+.red-team {
+    background-color: #ffebee;
+    color: #c62828;
+    border: 1px solid #ffcdd2;
+}
+
+[data-theme="dark"] .red-team {
+    background-color: #3a1414;
+    color: #ef9a9a;
+    border: 1px solid #5c2323;
+}
+
+.blue-team {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #bbdefb;
+}
+
+[data-theme="dark"] .blue-team {
+    background-color: #14233a;
+    color: #90caf9;
+    border: 1px solid #233d5c;
+}
+
+.model-performance-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.model-performance-table th,
+.model-performance-table td {
+    padding: 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+[data-theme="dark"] .model-performance-table th,
+[data-theme="dark"] .model-performance-table td {
+    border-bottom: 1px solid #4a4a4a;
+}
+
+.model-performance-table th {
+    background-color: var(--primary-color);
+    color: white;
+    font-weight: 600;
+}
+
+.model-performance-table tr:hover {
+    background-color: rgba(74, 111, 165, 0.1);
+}
+
+[data-theme="dark"] .model-performance-table tr:hover {
+    background-color: rgba(74, 111, 165, 0.2);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .stTabs [data-baseweb="tab-list"] {
+        gap: 12px;
+    }
+    
+    .stMetric div[data-testid="stMetricValue"] {
+        font-size: 1.5rem;
+    }
+}
+</style>
+""", unsafe_allow_html=True)
+
 # ------------------------------------------------------------------
 # Constants and Prompts
 # ------------------------------------------------------------------
@@ -104,9 +387,11 @@ RED_TEAM_CRITIQUE_PROMPT = (
     "You are an uncompromising red-team security auditor. Your goal is to find every possible flaw in the provided SOP. "
     "Analyze it for vulnerabilities, logical gaps, ambiguities, edge cases, undefined responsibilities, missing "
     "preconditions, unsafe defaults, and potential paths for abuse or malicious exploitation. "
-    "Also, check for compliance with the following requirements:\n{compliance_requirements}\n"
-    "Return a single, STRICT JSON object and nothing else with the following structure:\n"
-    '{"issues": [{"title": "...", "severity": "low|medium|high|critical", "category": "...", "detail": "...", '"reproduction": "...", "exploit_paths": ["..."], "mitigations": ["..."]}], '"summary": "...", "overall_risk": "low|medium|high|critical"}'
+    "Also, check for compliance with the following requirements:\\n{compliance_requirements}\\n"
+    "Return a single, STRICT JSON object and nothing else with the following structure:\\n"
+    '{\\"issues\\": [{\\"title\\": \\"...\\", \\"severity\\": \\"low|medium|high|critical\\", \\"category\\": \\"...\\", \\"detail\\": \\"...\\", '
+    '\\"reproduction\\": \\"...\\", \\"exploit_paths\\": [\\"...\\"], \\"mitigations\\": [\\"...\\"]}], '
+    '\\"summary\\": \\"...\\", \\"overall_risk\\": \\"low|medium|high|critical\\"}'
 )
 
 BLUE_TEAM_PATCH_PROMPT = (
@@ -114,8 +399,9 @@ BLUE_TEAM_PATCH_PROMPT = (
     "provided critiques and produce a hardened, fully rewritten SOP. Incorporate the critiques to make the protocol "
     "explicit, verifiable, and enforce the principle of least privilege. Add preconditions, acceptance tests, rollback "
     "steps, monitoring, auditability, and incident response procedures where applicable. "
-    "Return a single, STRICT JSON object and nothing else with the following keys:\n"
-    '{"sop": "<the complete improved SOP in Markdown>", "changelog": ["..."], "residual_risks": ["..."], '"mitigation_matrix": [{"issue": "...", "fix": "...", "status": "resolved|mitigated|wontfix"}]}'
+    "Return a single, STRICT JSON object and nothing else with the following keys:\\n"
+    '{\\"sop\\": \\"<the complete improved SOP in Markdown>\\", \\"changelog\\": [\\"...\\"], \\"residual_risks\\": [\\"...\\"], '
+    '\\"mitigation_matrix\\": [{\\"issue\\": \\"...\\", \\"fix\\": \\"...\\", \\"status\\": \\"resolved|mitigated|wontfix\\"}]}'
 )
 
 # ------------------------------------------------------------------
@@ -129,6 +415,169 @@ def _now_ms() -> int:
         int: Current timestamp in milliseconds
     """
     return int(time.time() * 1000)
+
+def calculate_protocol_complexity(protocol_text: str) -> Dict[str, Any]:
+    """Calculate various complexity metrics for a protocol.
+    
+    Args:
+        protocol_text (str): The protocol text to analyze
+        
+    Returns:
+        Dict[str, Any]: Dictionary containing complexity metrics
+    """
+    if not protocol_text:
+        return {
+            "word_count": 0,
+            "sentence_count": 0,
+            "paragraph_count": 0,
+            "avg_sentence_length": 0,
+            "avg_paragraph_length": 0,
+            "unique_words": 0,
+            "complexity_score": 0
+        }
+    
+    # Basic text statistics
+    words = protocol_text.split()
+    word_count = len(words)
+    
+    sentences = re.split(r'[.!?]+', protocol_text)
+    sentences = [s.strip() for s in sentences if s.strip()]
+    sentence_count = len(sentences)
+    
+    paragraphs = [p.strip() for p in protocol_text.split('\n') if p.strip()]
+    paragraph_count = len(paragraphs)
+    
+    # Average lengths
+    avg_sentence_length = word_count / max(1, sentence_count)
+    avg_paragraph_length = sentence_count / max(1, paragraph_count)
+    
+    # Unique words
+    unique_words = len(set(words))
+    
+    # Complexity score (weighted combination of metrics)
+    # Higher scores indicate more complex protocols
+    complexity_score = (
+        (word_count / 100) * 0.3 +  # Normalize word count
+        (avg_sentence_length / 20) * 0.3 +  # Longer sentences = more complex
+        (avg_paragraph_length / 10) * 0.2 +  # Longer paragraphs = more complex
+        (1 - (unique_words / max(1, word_count))) * 0.2 * 100  # Repetition = more complex
+    )
+    
+    return {
+        "word_count": word_count,
+        "sentence_count": sentence_count,
+        "paragraph_count": paragraph_count,
+        "avg_sentence_length": round(avg_sentence_length, 2),
+        "avg_paragraph_length": round(avg_paragraph_length, 2),
+        "unique_words": unique_words,
+        "complexity_score": round(complexity_score, 2)
+    }
+
+def extract_protocol_structure(protocol_text: str) -> Dict[str, Any]:
+    """Extract structural elements from a protocol.
+    
+    Args:
+        protocol_text (str): The protocol text to analyze
+        
+    Returns:
+        Dict[str, Any]: Dictionary containing structural elements
+    """
+    if not protocol_text:
+        return {
+            "has_numbered_steps": False,
+            "has_bullet_points": False,
+            "has_headers": False,
+            "section_count": 0,
+            "has_preconditions": False,
+            "has_postconditions": False,
+            "has_error_handling": False
+        }
+    
+    lines = protocol_text.split('\n')
+    
+    # Check for numbered steps (e.g., "1.", "2.", "1.1", etc.)
+    numbered_pattern = re.compile(r'^\s*\d+\.')
+    has_numbered_steps = any(numbered_pattern.match(line) for line in lines)
+    
+    # Check for bullet points
+    bullet_pattern = re.compile(r'^\s*[*\-+]')
+    has_bullet_points = any(bullet_pattern.match(line) for line in lines)
+    
+    # Check for headers (markdown style ## or === underlines)
+    header_pattern = re.compile(r'^#{1,6}\s+|.*\n[=]{3,}|.*\n[-]{3,}')
+    has_headers = bool(header_pattern.search(protocol_text))
+    
+    # Count sections (headers)
+    section_count = len(header_pattern.findall(protocol_text))
+    
+    # Check for common protocol elements
+    lower_text = protocol_text.lower()
+    has_preconditions = 'precondition' in lower_text or 'prerequisite' in lower_text
+    has_postconditions = 'postcondition' in lower_text
+    has_error_handling = 'error' in lower_text or 'exception' in lower_text or 'failure' in lower_text
+    
+    return {
+        "has_numbered_steps": has_numbered_steps,
+        "has_bullet_points": has_bullet_points,
+        "has_headers": has_headers,
+        "section_count": section_count,
+        "has_preconditions": has_preconditions,
+        "has_postconditions": has_postconditions,
+        "has_error_handling": has_error_handling
+    }
+
+def compare_protocols(protocol_a: str, protocol_b: str) -> Dict[str, Any]:
+    """Compare two protocols and highlight differences.
+    
+    Args:
+        protocol_a (str): First protocol text
+        protocol_b (str): Second protocol text
+        
+    Returns:
+        Dict[str, Any]: Comparison results including similarity metrics and differences
+    """
+    if not protocol_a or not protocol_b:
+        return {
+            "similarity": 0.0,
+            "length_difference": 0,
+            "added_sections": [],
+            "removed_sections": [],
+            "complexity_change": 0.0
+        }
+    
+    # Calculate similarity using a simple approach
+    # In a real implementation, we might use more sophisticated algorithms
+    set_a = set(protocol_a.split())
+    set_b = set(protocol_b.split())
+    
+    # Jaccard similarity
+    intersection = len(set_a.intersection(set_b))
+    union = len(set_a.union(set_b))
+    similarity = intersection / max(1, union)
+    
+    # Length difference
+    length_difference = len(protocol_b) - len(protocol_a)
+    
+    # Complexity difference
+    complexity_a = calculate_protocol_complexity(protocol_a)["complexity_score"]
+    complexity_b = calculate_protocol_complexity(protocol_b)["complexity_score"]
+    complexity_change = complexity_b - complexity_a
+    
+    # Simple section difference detection
+    sections_a = re.findall(r'^#{1,6}\s+.*$|.*\n[=]{3,}|.*\n[-]{3,}', protocol_a, re.MULTILINE)
+    sections_b = re.findall(r'^#{1,6}\s+.*$|.*\n[=]{3,}|.*\n[-]{3,}', protocol_b, re.MULTILINE)
+    
+    added_sections = [s for s in sections_b if s not in sections_a]
+    removed_sections = [s for s in sections_a if s not in sections_b]
+    
+    return {
+        "similarity": round(similarity * 100, 2),
+        "length_difference": length_difference,
+        "added_sections": added_sections,
+        "removed_sections": removed_sections,
+        "complexity_change": round(complexity_change, 2),
+        "improvement": "increased" if complexity_change < 0 else "decreased" if complexity_change > 0 else "unchanged"
+    }
 
 def _rand_jitter_ms(base: int = 250, spread: int = 500) -> float:
     """Generate random jitter time in seconds for retry backoff.
@@ -545,6 +994,142 @@ if "thread_lock" not in st.session_state:
         if "thread_lock" not in st.session_state:
             st.session_state.thread_lock = threading.Lock()
 
+# Configuration profiles
+CONFIG_PROFILES = {
+    "Security Hardening": {
+        "system_prompt": "You are a security expert focused on making protocols robust against attacks. Focus on identifying and closing security gaps, enforcing least privilege, and adding comprehensive error handling.",
+        "evaluator_system_prompt": "You are a security auditor evaluating the protocol for vulnerabilities and weaknesses.",
+        "temperature": 0.8,
+        "top_p": 0.9,
+        "max_iterations": 15,
+        "adversarial_confidence": 95,
+        "adversarial_min_iter": 5,
+        "adversarial_max_iter": 20
+    },
+    "Compliance Focus": {
+        "system_prompt": "You are a compliance expert ensuring protocols meet regulatory requirements. Focus on completeness, auditability, and regulatory alignment.",
+        "evaluator_system_prompt": "You are a compliance auditor checking if the protocol meets all necessary regulatory requirements.",
+        "temperature": 0.5,
+        "top_p": 0.8,
+        "max_iterations": 10,
+        "adversarial_confidence": 90,
+        "adversarial_min_iter": 3,
+        "adversarial_max_iter": 15
+    },
+    "Operational Efficiency": {
+        "system_prompt": "You are an operations expert focused on making protocols efficient and practical. Focus on streamlining processes while maintaining effectiveness.",
+        "evaluator_system_prompt": "You are an operations expert evaluating the protocol for practicality and efficiency.",
+        "temperature": 0.6,
+        "top_p": 0.85,
+        "max_iterations": 12,
+        "adversarial_confidence": 85,
+        "adversarial_min_iter": 3,
+        "adversarial_max_iter": 12
+    },
+    "Beginner-Friendly": {
+        "system_prompt": "You are helping a beginner write clear, understandable protocols. Focus on clarity, simplicity, and completeness.",
+        "evaluator_system_prompt": "You are evaluating if the protocol is clear and understandable for beginners.",
+        "temperature": 0.7,
+        "top_p": 1.0,
+        "max_iterations": 8,
+        "adversarial_confidence": 80,
+        "adversarial_min_iter": 2,
+        "adversarial_max_iter": 10
+    }
+}
+
+# Protocol templates
+PROTOCOL_TEMPLATES = {
+    "Security Policy": """# Security Policy Template
+
+## Overview
+[Brief description of the policy's purpose and scope]
+
+## Scope
+[Define what systems, processes, and personnel are covered by this policy]
+
+## Policy Statements
+[Specific security requirements and guidelines]
+
+## Roles and Responsibilities
+[Define who is responsible for what aspects of the policy]
+
+## Compliance
+[How compliance will be measured and enforced]
+
+## Exceptions
+[Process for requesting policy exceptions]
+
+## Review and Updates
+[How often the policy will be reviewed and updated]""",
+    
+    "Standard Operating Procedure": """# Standard Operating Procedure (SOP) Template
+
+## Title
+[Name of the procedure]
+
+## Purpose
+[Why this procedure exists]
+
+## Scope
+[What this procedure covers and who it applies to]
+
+## Responsibilities
+[Who is responsible for each step]
+
+## Procedure
+1. [First step]
+   - [Detailed instructions]
+   - [Expected outcomes]
+2. [Second step]
+   - [Detailed instructions]
+   - [Expected outcomes]
+
+## Safety Considerations
+[Any safety risks and how to mitigate them]
+
+## Quality Control
+[How to ensure quality and consistency]
+
+## Documentation
+[What records need to be maintained]
+
+## Revision History
+[Track changes to the procedure]""",
+    
+    "Incident Response Plan": """# Incident Response Plan Template
+
+## Overview
+[Brief description of the plan's purpose]
+
+## Incident Classification
+[Types of incidents and severity levels]
+
+## Response Team
+[Key personnel and their roles]
+
+## Detection and Reporting
+[How incidents are detected and reported]
+
+## Containment
+[Immediate actions to limit impact]
+
+## Eradication
+[Steps to remove the threat]
+
+## Recovery
+[How to restore normal operations]
+
+## Post-Incident Activities
+[Lessons learned and plan updates]
+
+## Communication Plan
+[Who to notify and when]
+
+## Contact Information
+[Key contacts and their availability]"""
+}
+
 DEFAULTS = {
     "provider": "OpenAI",
     "api_key": "",
@@ -610,6 +1195,105 @@ def reset_defaults():
         st.session_state.model = PROVIDERS[p].get("model") or ""
     st.session_state.api_key = ""
     st.session_state.extra_headers = "{}"
+
+def save_config_profile(profile_name: str) -> bool:
+    """Save current configuration as a profile.
+    
+    Args:
+        profile_name (str): Name for the profile
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        profile_data = {
+            "provider": st.session_state.provider,
+            "base_url": st.session_state.base_url,
+            "model": st.session_state.model,
+            "temperature": st.session_state.temperature,
+            "top_p": st.session_state.top_p,
+            "frequency_penalty": st.session_state.frequency_penalty,
+            "presence_penalty": st.session_state.presence_penalty,
+            "max_tokens": st.session_state.max_tokens,
+            "max_iterations": st.session_state.max_iterations,
+            "system_prompt": st.session_state.system_prompt,
+            "adversarial_confidence": st.session_state.adversarial_confidence,
+            "adversarial_min_iter": st.session_state.adversarial_min_iter,
+            "adversarial_max_iter": st.session_state.adversarial_max_iter,
+            "adversarial_max_tokens": st.session_state.adversarial_max_tokens,
+        }
+        
+        # Save to session state
+        if "config_profiles" not in st.session_state:
+            st.session_state.config_profiles = {}
+        st.session_state.config_profiles[profile_name] = profile_data
+        return True
+    except Exception as e:
+        st.error(f"Error saving profile: {e}")
+        return False
+
+def load_config_profile(profile_name: str) -> bool:
+    """Load a configuration profile.
+    
+    Args:
+        profile_name (str): Name of the profile to load
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        if "config_profiles" not in st.session_state:
+            st.session_state.config_profiles = {}
+            
+        if profile_name not in st.session_state.config_profiles:
+            # Check if it's a built-in profile
+            if profile_name in CONFIG_PROFILES:
+                profile_data = CONFIG_PROFILES[profile_name]
+            else:
+                st.error(f"Profile '{profile_name}' not found.")
+                return False
+        else:
+            profile_data = st.session_state.config_profiles[profile_name]
+            
+        # Apply profile data to session state
+        for key, value in profile_data.items():
+            if key in st.session_state:
+                st.session_state[key] = value
+                
+        return True
+    except Exception as e:
+        st.error(f"Error loading profile: {e}")
+        return False
+
+def list_config_profiles() -> List[str]:
+    """List all available configuration profiles.
+    
+    Returns:
+        List[str]: List of profile names
+    """
+    profiles = list(CONFIG_PROFILES.keys())
+    if "config_profiles" in st.session_state:
+        profiles.extend(list(st.session_state.config_profiles.keys()))
+    return sorted(list(set(profiles)))
+
+def list_protocol_templates() -> List[str]:
+    """List all available protocol templates.
+    
+    Returns:
+        List[str]: List of template names
+    """
+    return list(PROTOCOL_TEMPLATES.keys())
+
+def load_protocol_template(template_name: str) -> str:
+    """Load a protocol template.
+    
+    Args:
+        template_name (str): Name of the template to load
+        
+    Returns:
+        str: Template content
+    """
+    return PROTOCOL_TEMPLATES.get(template_name, "")
 
 
 # ------------------------------------------------------------------
@@ -1201,6 +1885,82 @@ def generate_pdf_report(results: dict) -> bytes:
 
     return pdf.output(dest='S').encode('latin-1')
 
+def generate_html_report(results: dict) -> str:
+    """Generates an HTML report from the adversarial testing results."""
+    html = f"""
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Adversarial Testing Report</title>
+        <style>
+            body {{ font-family: Arial, sans-serif; margin: 40px; }}
+            h1, h2, h3 {{ color: #333; }}
+            .summary {{ background-color: #f5f5f5; padding: 15px; border-radius: 5px; }}
+            .section {{ margin: 20px 0; }}
+            .log {{ font-family: monospace; font-size: 0.9em; background-color: #f9f9f9; padding: 10px; }}
+            table {{ border-collapse: collapse; width: 100%; }}
+            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
+            th {{ background-color: #f2f2f2; }}
+        </style>
+    </head>
+    <body>
+        <h1>Adversarial Testing Report</h1>
+        
+        <div class="summary">
+            <h2>Summary</h2>
+            <p><strong>Final Approval Rate:</strong> {results.get('final_approval_rate', 0.0):.1f}%</p>
+            <p><strong>Total Iterations:</strong> {len(results.get('iterations', []))}</p>
+            <p><strong>Total Cost (USD):</strong> ${results.get('cost_estimate_usd', 0.0):,.4f}</p>
+            <p><strong>Total Prompt Tokens:</strong> {results.get('tokens', {}).get('prompt', 0):,}</p>
+            <p><strong>Total Completion Tokens:</strong> {results.get('tokens', {}).get('completion', 0):,}</p>
+        </div>
+        
+        <div class="section">
+            <h2>Final Hardened SOP</h2>
+            <pre>{results.get("final_sop", "")}</pre>
+        </div>
+    """
+    
+    if results.get("iterations"):
+        html += """
+        <div class="section">
+            <h2>Issues Found</h2>
+        """
+        for i, iteration in enumerate(results.get("iterations", [])):
+            html += f"<h3>Iteration {i+1}</h3><ul>"
+            for critique in iteration.get("critiques", []):
+                if critique.get("critique_json"):
+                    for issue in _safe_list(critique["critique_json"], "issues"):
+                        html += f"<li>{issue.get('title')} ({issue.get('severity')})</li>"
+            html += "</ul>"
+        html += "</div>"
+        
+        html += """
+        <div class="section">
+            <h2>Final Votes</h2>
+            <table>
+                <tr><th>Model</th><th>Verdict</th><th>Score</th></tr>
+        """
+        for vote in results["iterations"][-1].get("approval_check", {}).get("votes", []):
+            html += f"<tr><td>{vote.get('model')}</td><td>{vote.get('verdict')}</td><td>{vote.get('score')}</td></tr>"
+        html += "</table></div>"
+    
+    html += """
+        <div class="section">
+            <h2>Audit Trail</h2>
+            <div class="log">
+    """
+    for log_entry in results.get("log", []):
+        html += f"<div>{log_entry}</div>"
+    html += """
+            </div>
+        </div>
+    </body>
+    </html>
+    """
+    
+    return html
+
 def run_adversarial_testing():
     """Main logic for the adversarial testing loop, designed to be run in a background thread."""
     try:
@@ -1275,6 +2035,63 @@ def run_adversarial_testing():
                 blue_team_sample_size = min(st.session_state.adversarial_blue_team_sample_size, len(blue_team_base))
                 blue_team = random.sample(blue_team_base, k=blue_team_sample_size)
                 _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Rotated teams (Performance-Based). Red: {red_team}, Blue: {blue_team}")
+            elif rotation_strategy == "Adaptive":
+                # Adaptive strategy based on previous iteration performance
+                if iteration > 1 and len(results) > 0:
+                    last_iteration = results[-1]
+                    # If approval rate is low, use more diverse models
+                    if last_iteration.get("approval_check", {}).get("approval_rate", 100) < 70:
+                        red_team = random.sample(red_team_base, min(len(red_team_base), st.session_state.adversarial_red_team_sample_size + 1))
+                        blue_team = random.sample(blue_team_base, min(len(blue_team_base), st.session_state.adversarial_blue_team_sample_size + 1))
+                        _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Adaptive rotation - increasing diversity. Red: {len(red_team)}, Blue: {len(blue_team)}")
+                    # If approval rate is high, focus on specialized models
+                    elif last_iteration.get("approval_check", {}).get("approval_rate", 0) > 90:
+                        # Use top performing models
+                        top_red_models = sorted(st.session_state.adversarial_model_performance.items(), 
+                                              key=lambda x: x[1].get("score", 0), reverse=True)[:3]
+                        top_red_model_ids = [m[0] for m in top_red_models if m[0] in red_team_base]
+                        
+                        top_blue_models = sorted(st.session_state.adversarial_model_performance.items(), 
+                                               key=lambda x: x[1].get("score", 0), reverse=True)[:3]
+                        top_blue_model_ids = [m[0] for m in top_blue_models if m[0] in blue_team_base]
+                        
+                        if top_red_model_ids:
+                            red_team = top_red_model_ids
+                        else:
+                            red_team = red_team_base[:min(3, len(red_team_base))]
+                            
+                        if top_blue_model_ids:
+                            blue_team = top_blue_model_ids
+                        else:
+                            blue_team = blue_team_base[:min(3, len(blue_team_base))]
+                        _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Adaptive rotation - focusing on top models. Red: {red_team}, Blue: {blue_team}")
+                    else:
+                        red_team = red_team_base
+                        blue_team = blue_team_base
+                else:
+                    red_team = red_team_base
+                    blue_team = blue_team_base
+                _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Adaptive team selection. Red: {len(red_team)}, Blue: {len(blue_team)}")
+            elif rotation_strategy == "Focus-Category":
+                # Focus on specific issue categories based on previous iterations
+                if iteration > 1 and len(results) > 0 and "agg_risk" in results[-1]:
+                    categories = results[-1]["agg_risk"].get("categories", {})
+                    if categories:
+                        # Find the category with the most issues
+                        focus_category = max(categories, key=categories.get)
+                        _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Focusing on category: {focus_category}")
+                        
+                        # In a full implementation, we would modify the prompts to focus on this category
+                        # For now, we'll just use a smaller, focused team
+                        red_team = red_team_base[:min(2, len(red_team_base))]
+                        blue_team = blue_team_base[:min(2, len(blue_team_base))]
+                    else:
+                        red_team = red_team_base
+                        blue_team = blue_team_base
+                else:
+                    red_team = red_team_base
+                    blue_team = blue_team_base
+                _update_adv_log_and_status(f"Iteration {iteration}/{max_iter}: Category-focused team selection. Red: {len(red_team)}, Blue: {len(blue_team)}")
             else: # "None" or any other case
                 red_team = red_team_base
                 blue_team = blue_team_base
@@ -1390,7 +2207,13 @@ def run_adversarial_testing():
 with st.sidebar:
     st.title("⚙️ Provider Configuration")
     st.caption("Controls the 'Evolution' tab. Adversarial Testing always uses OpenRouter.")
-
+    
+    # Add a visual separator
+    st.markdown("---")
+    
+    # Provider selection section
+    st.subheader("🌐 Provider Selection")
+    
     @st.cache_data(ttl=300)
     def _query_models(provider_key: str, api_key: str = ""):
         if provider_key not in PROVIDERS:
@@ -1423,6 +2246,10 @@ with st.sidebar:
     st.text_input("API Key", type="password", key="api_key",
                  help=f"Leave empty to use env var: {PROVIDERS.get(provider, {}).get('env', 'Not specified')}")
     st.text_input("Base URL", key="base_url", help="Endpoint for chat/completions.")
+    
+    # Model parameters section
+    st.markdown("---")
+    st.subheader("⚙️ Model Parameters")
     st.number_input("Max tokens", min_value=1, max_value=128_000, step=1, key="max_tokens")
     st.slider("Temperature", 0.0, 2.0, key="temperature")
     st.slider("Top-p", 0.0, 1.0, key="top_p")
@@ -1430,8 +2257,10 @@ with st.sidebar:
     st.slider("Presence penalty", -2.0, 2.0, key="presence_penalty")
     st.text_input("Seed (optional)", key="seed", help="Integer for deterministic sampling.")
     st.text_area("Extra headers (JSON dict)", height=80, key="extra_headers")
+    
+    # Evolution parameters section
     st.markdown("---")
-    st.subheader("Evolution Parameters")
+    st.subheader("🔄 Evolution Parameters")
     st.number_input("Max iterations", 1, 1000, key="max_iterations")
     st.number_input("Checkpoint interval", 1, 100, key="checkpoint_interval")
     # Disabled params from original code, kept for UI consistency
@@ -1441,28 +2270,117 @@ with st.sidebar:
     st.number_input("Exploration ratio", 0.0, 1.0, key="exploration_ratio", disabled=True)
     st.number_input("Exploitation ratio", 0.0, 1.0, key="exploitation_ratio", disabled=True)
     st.number_input("Archive size", 0, 1000, key="archive_size", disabled=True)
+    
+    # Prompts section
     st.markdown("---")
+    st.subheader("💬 Prompts")
     st.text_area("System prompt", height=120, key="system_prompt")
     st.text_area("Evaluator system prompt", height=120, key="evaluator_system_prompt", disabled=True)
-    st.button("Reset to provider defaults", on_click=reset_defaults, use_container_width=True)
+    
+    # Configuration profiles section
+    st.markdown("---")
+    st.subheader("📋 Configuration Profiles")
+    
+    # Load profile
+    profiles = list_config_profiles()
+    if profiles:
+        selected_profile = st.selectbox("Load Profile", [""] + profiles, key="load_profile_select")
+        if selected_profile and st.button("Load Selected Profile", key="load_profile_btn"):
+            if load_config_profile(selected_profile):
+                st.success(f"Loaded profile: {selected_profile}")
+                st.rerun()
+    
+    # Save profile
+    profile_name = st.text_input("Save Current Config As", key="save_profile_name")
+    if profile_name and st.button("Save Profile", key="save_profile_btn"):
+        if save_config_profile(profile_name):
+            st.success(f"Saved profile: {profile_name}")
+            st.rerun()
+    
+    # Reset button
+    st.markdown("---")
+    st.button("🔄 Reset to provider defaults", on_click=reset_defaults, use_container_width=True)
 
 # ------------------------------------------------------------------
 # 7. Main layout with tabs
 # ------------------------------------------------------------------
 
 st.title("🧬 OpenEvolve Protocol Improver")
-tab1, tab2 = st.tabs(["Evolution", "Adversarial Testing"])
+st.markdown("---")
+
+# Header with team badges
+col1, col2 = st.columns([3, 1])
+with col1:
+    st.markdown("## 🔴🔵 Adversarial Testing & Evolution-based Protocol Improvement")
+with col2:
+    st.markdown('<span class="team-badge red-team">Red Team</span><span class="team-badge blue-team">Blue Team</span>', unsafe_allow_html=True)
+
+tab1, tab2 = st.tabs(["🔄 Evolution", "⚔️ Adversarial Testing"])
 
 with tab1:
+    # Protocol input section
+    st.subheader("📝 Protocol Input")
     st.text_area("Paste your draft protocol / procedure here:", height=300, key="protocol_text", disabled=st.session_state.adversarial_running)
+    
+    # Protocol Templates
+    templates = list_protocol_templates()
+    if templates:
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            selected_template = st.selectbox("Load Template", [""] + templates, key="load_template_select")
+        with col2:
+            if selected_template and st.button("Load Selected Template", key="load_template_btn", use_container_width=True):
+                template_content = load_protocol_template(selected_template)
+                st.session_state.protocol_text = template_content
+                st.success(f"Loaded template: {selected_template}")
+                st.rerun()
+    
+    # Action buttons
+    st.markdown("---")
     c1, c2 = st.columns(2)
     run_button = c1.button("🚀 Start Evolution", type="primary", disabled=st.session_state.evolution_running, use_container_width=True)
     stop_button = c2.button("⏹️ Stop Evolution", disabled=not st.session_state.evolution_running, use_container_width=True)
 
+    # Results section
+    st.markdown("---")
     left, right = st.columns(2)
     with left:
         st.subheader("📄 Current Best Protocol")
         proto_out = st.empty()
+        
+        # Protocol Analysis
+        if st.session_state.evolution_current_best or st.session_state.protocol_text:
+            current_protocol = st.session_state.evolution_current_best or st.session_state.protocol_text
+            with st.expander("🔍 Protocol Analysis", expanded=False):
+                complexity = calculate_protocol_complexity(current_protocol)
+                structure = extract_protocol_structure(current_protocol)
+                
+                # Use the new CSS class for the analysis card
+                st.markdown('<div class="protocol-analysis-card">', unsafe_allow_html=True)
+                st.markdown("### 📊 Protocol Metrics")
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("_WORDS", complexity["word_count"])
+                    st.metric("_SENTENCES", complexity["sentence_count"])
+                    st.metric("_COMPLEXITY", complexity["complexity_score"])
+                    
+                with col2:
+                    st.metric("PARAGRAPHS", complexity["paragraph_count"])
+                    st.metric("UNIQUE WORDS", complexity["unique_words"])
+                    st.metric("SECTIONS", structure["section_count"])
+                st.markdown('</div>', unsafe_allow_html=True)
+                
+                st.markdown("### 🧩 Structure Analysis")
+                col3, col4 = st.columns(2)
+                with col3:
+                    st.write("Numbered Steps:", "✅" if structure["has_numbered_steps"] else "❌")
+                    st.write("Bullet Points:", "✅" if structure["has_bullet_points"] else "❌")
+                    st.write("Headers:", "✅" if structure["has_headers"] else "❌")
+                with col4:
+                    st.write("Preconditions:", "✅" if structure["has_preconditions"] else "❌")
+                    st.write("Postconditions:", "✅" if structure["has_postconditions"] else "❌")
+                    st.write("Error Handling:", "✅" if structure["has_error_handling"] else "❌")
     with right:
         st.subheader("🔍 Logs")
         log_out = st.empty()
@@ -1482,7 +2400,9 @@ with tab1:
 
 def render_adversarial_testing_tab():
     st.header("🔴🔵 Adversarial Testing with Multi-LLM Consensus")
-    st.subheader("OpenRouter Configuration")
+    
+    # OpenRouter Configuration
+    st.subheader("🔑 OpenRouter Configuration")
     openrouter_key = st.text_input("OpenRouter API Key", type="password", key="openrouter_key")
     if not openrouter_key:
         st.info("Enter your OpenRouter API key to enable model selection and testing.")
@@ -1500,12 +2420,29 @@ def render_adversarial_testing_tab():
 
     model_options = sorted([
         f"{m['id']} (Ctx: {m.get('context_length', 'N/A')}, "
-        f"In: {$_parse_price_per_million(m.get('pricing', {}).get('prompt')) or 'N/A'}/M, "
-        f"Out: {$_parse_price_per_million(m.get('pricing', {}).get('completion')) or 'N/A'}/M)"
+        f"In: {_parse_price_per_million(m.get('pricing', {}).get('prompt')) or 'N/A'}/M, "
+        f"Out: {_parse_price_per_million(m.get('pricing', {}).get('completion')) or 'N/A'}/M)"
         for m in models if isinstance(m, dict) and "id" in m
     ])
 
-    st.subheader("Model Selection")
+    # Protocol Templates
+    st.markdown("---")
+    st.subheader("📝 Protocol Input")
+    templates = list_protocol_templates()
+    if templates and not st.session_state.protocol_text.strip():
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            selected_template = st.selectbox("Load Template", [""] + templates, key="adv_load_template_select")
+        with col2:
+            if selected_template and st.button("Load Selected Template", key="adv_load_template_btn", use_container_width=True):
+                template_content = load_protocol_template(selected_template)
+                st.session_state.protocol_text = template_content
+                st.success(f"Loaded template: {selected_template}")
+                st.rerun()
+
+    # Model Selection
+    st.markdown("---")
+    st.subheader("🤖 Model Selection")
     col1, col2 = st.columns(2)
     with col1:
         st.markdown("#### 🔴 Red Team (Critics)")
@@ -1553,163 +2490,6 @@ def render_adversarial_testing_tab():
             st.warning("streamlit_tags not available. Using text input for model selection.")
             blue_team_input = st.text_input("Enter Blue Team models (comma-separated):", value=",".join(st.session_state.blue_team_models))
             st.session_state.blue_team_models = sorted(list(set([model.strip() for model in blue_team_input.split(",") if model.strip()])))
-
-    st.subheader("Testing Parameters")
-    c1, c2, c3, c4 = st.columns(4)
-    with c1:
-        st.number_input("Min iterations", 1, 50, key="adversarial_min_iter")
-        st.number_input("Max iterations", 1, 200, key="adversarial_max_iter")
-    with c2:
-        st.slider("Confidence threshold (%)", 50, 100, key="adversarial_confidence", help="Stop if this % of Red Team approves the SOP.")
-    with c3:
-        st.number_input("Max tokens per model", 1000, 100000, key="adversarial_max_tokens")
-        st.number_input("Max parallel workers", 1, 24, key="adversarial_max_workers")
-    with c4:
-        st.toggle("Force JSON mode", key="adversarial_force_json", help="Use model's built-in JSON mode if available. Increases reliability.")
-        st.text_input("Deterministic seed", key="adversarial_seed", help="Integer for reproducible runs.")
-        st.selectbox("Rotation Strategy", ["None", "Round Robin", "Random Sampling", "Performance-Based", "Staged"], key="adversarial_rotation_strategy")
-        if st.session_state.adversarial_rotation_strategy == "Staged":
-            st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help='''
-[{"red": ["model1", "model2"], "blue": ["model3"]},
- {"red": ["model4"], "blue": ["model5", "model6"]}]
-''')
-        st.number_input("Red Team Sample Size", 1, 100, key="adversarial_red_team_sample_size")
-        st.number_input("Blue Team Sample Size", 1, 100, key="adversarial_blue_team_sample_size")
-
-    st.text_area("Compliance Requirements", key="compliance_requirements", height=150, help="Enter any compliance requirements that the red team should check for.")
-
-    all_models = sorted(list(set(st.session_state.red_team_models + st.session_state.blue_team_models)))
-    if all_models:
-        with st.expander("Per-Model Configuration"):
-            for model_id in all_models:
-                st.markdown(f"**{model_id}**")
-                cc1, cc2, cc3, cc4 = st.columns(4)
-                cc1.slider(f"Temp##{model_id}", 0.0, 2.0, 0.7, 0.1, key=f"temp_{model_id}")
-                cc2.slider(f"Top-P##{model_id}", 0.0, 1.0, 1.0, 0.1, key=f"topp_{model_id}")
-                cc3.slider(f"Freq Pen##{model_id}", -2.0, 2.0, 0.0, 0.1, key=f"freqpen_{model_id}")
-                cc4.slider(f"Pres Pen##{model_id}", -2.0, 2.0, 0.0, 0.1, key=f"prespen_{model_id}")
-
-    st.markdown("---")
-    b1, b2, b3 = st.columns(3)
-    if b1.button("🚀 Start Adversarial Testing", type="primary", use_container_width=True, disabled=st.session_state.adversarial_running):
-        if not st.session_state.red_team_models or not st.session_state.blue_team_models:
-            st.error("Select at least one Red Team and one Blue Team model.")
-        elif not st.session_state.protocol_text.strip():
-            st.error("Enter a protocol to test in the Evolution tab.")
-        else:
-            st.session_state.adversarial_running = True
-            threading.Thread(target=run_adversarial_testing, daemon=True).start()
-            # Removed unnecessary rerun - the UI will update automatically through session state changes
-
-    if b2.button("⏹️ Stop Testing", use_container_width=True, disabled=not st.session_state.adversarial_running):
-        st.session_state.adversarial_stop_flag = True
-        st.warning("Stop signal sent. The current iteration will finish.")
-
-    if b3.button("🧹 Clear Results", use_container_width=True):
-        st.session_state.adversarial_results = {}
-        st.session_state.adversarial_log = []
-        st.session_state.adversarial_cost_estimate_usd = 0.0
-        st.session_state.adversarial_total_tokens_prompt = 0
-        st.session_state.adversarial_total_tokens_completion = 0
-        # Removed unnecessary rerun - the UI will update automatically through session state changes
-
-    if st.session_state.adversarial_results:
-        st.download_button(
-            label="📥 Download JSON Results",
-            data=json.dumps(st.session_state.adversarial_results, indent=2),
-            file_name="adversarial_testing_results.json",
-            mime="application/json",
-            use_container_width=True,
-        )
-
-    if HAS_FPDF and st.session_state.adversarial_results:
-        st.download_button(
-            label="📥 Download PDF Results",
-            data=generate_pdf_report(st.session_state.adversarial_results),
-            file_name="adversarial_testing_report.pdf",
-            mime="application/pdf",
-            use_container_width=True,
-        )
-
-    if HAS_DOCX and st.session_state.adversarial_results:
-        st.download_button(
-            label="📥 Download Word Results",
-            data=generate_docx_report(st.session_state.adversarial_results),
-            file_name="adversarial_testing_report.docx",
-            mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            use_container_width=True,
-        )
-
-    # Live metrics and results display
-    st.markdown("---")
-    if st.session_state.adversarial_running:
-        st.status(st.session_state.adversarial_status_message, expanded=True)
-
-    lc1, lc2, lc3, lc4, lc5 = st.columns(5)
-    lc1.metric("Estimated Cost (USD)", f"${st.session_state.adversarial_cost_estimate_usd:,.4f}")
-    lc2.metric("Prompt Tokens", f"{st.session_state.adversarial_total_tokens_prompt:,}")
-    lc3.metric("Completion Tokens", f"{st.session_state.adversarial_total_tokens_completion:,}")
-    if st.session_state.adversarial_results:
-        r = st.session_state.adversarial_results
-        if "iterations" in r and r["iterations"]:
-            last_iteration = r["iterations"][-1]
-            if "approval_check" in last_iteration and "agreement" in last_iteration["approval_check"]:
-                lc4.metric("Model Agreement", f"{last_iteration['approval_check'].get('agreement', 0.0):.1f}%")
-            if "cost_effectiveness" in last_iteration:
-                lc5.metric("Cost-Effectiveness", f"{last_iteration.get('cost_effectiveness', 0.0):.2f} issues/$")
-
-    if st.session_state.adversarial_log:
-        with st.expander("Live Log", expanded=not st.session_state.adversarial_results):
-            st.code("\n".join(st.session_state.adversarial_log), language='text')
-
-    if r := st.session_state.get("adversarial_results"):
-        st.subheader("Results")
-        if "critical_error" in r:
-            st.error(f"The run failed with a critical error:")
-            st.code(r['critical_error'])
-
-        final_rate = r.get('final_approval_rate', 0)
-        if final_rate >= st.session_state.adversarial_confidence:
-            st.success(f"Final approval rate: {final_rate:.1f}% (Threshold: {st.session_state.adversarial_confidence}%)")
-        else:
-            st.warning(f"Final approval rate: {final_rate:.1f}% (Threshold: {st.session_state.adversarial_confidence}%)")
-
-        st.metric("Total Estimated Cost (USD)", f"${r.get('cost_estimate_usd', 0):,.4f}")
-        st.metric("Total Prompt Tokens", f"{r.get('tokens', {}).get('prompt', 0):,}")
-        st.metric("Total Completion Tokens", f"{r.get('tokens', {}).get('completion', 0):,}")
-
-        with st.expander("View final hardened SOP"):
-            st.code(r.get("final_sop", ""), language="markdown")
-        
-        with st.expander("View Final Votes"):
-            st.table(r.get("iterations", [])[-1].get("approval_check", {}).get("votes", []))
-
-        with st.expander("View Model Performance"):
-            st.table(st.session_state.adversarial_model_performance)
-
-        with st.expander("Issue Analysis"):
-            if "iterations" in r and r["iterations"]:
-                last_iteration = r["iterations"][-1]
-                if "agg_risk" in last_iteration and "severities" in last_iteration["agg_risk"]:
-                    st.write("#### Issues by Severity (Last Iteration)")
-                    st.bar_chart(last_iteration["agg_risk"]["severities"])
-                if "agg_risk" in last_iteration and "categories" in last_iteration["agg_risk"]:
-                    st.write("#### Issues by Category (Last Iteration)")
-                    st.bar_chart(last_iteration["agg_risk"]["categories"])
-
-                if "consensus" in last_iteration and "resolution_by_severity" in last_iteration["consensus"]:
-                    st.write("#### Resolved Issues by Severity (Last Iteration)")
-                    st.bar_chart(last_iteration["consensus"]["resolution_by_severity"])
-                if "consensus" in last_iteration and "resolution_by_category" in last_iteration["consensus"]:
-                    st.write("#### Resolved Issues by Category (Last Iteration)")
-                    st.bar_chart(last_iteration["consensus"]["resolution_by_category"])
-
-        with st.expander("View iteration-by-iteration details"):
-            for iteration in r.get("iterations", []):
-                st.markdown(f"### Iteration {iteration['iteration']}")
-                ac = iteration.get("approval_check", {})
-                st.write(f"Approval: **{ac.get('approval_rate', 0):.1f}%** | Avg Score: **{ac.get('avg_score', 0):.1f}**")
-                st.json({"critiques": iteration.get("critiques",[]), "patches": iteration.get("patches",[])})
 
 with tab2:
     render_adversarial_testing_tab()
