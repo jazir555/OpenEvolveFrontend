@@ -462,6 +462,205 @@ h1 {
     100% { transform: rotate(360deg); }
 }
 
+/* Enhanced dashboard styling */
+.dashboard-card {
+    background: linear-gradient(135deg, var(--card-background), #f0f2f6);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.dashboard-card:hover {
+    box-shadow: var(--box-shadow-hover);
+    transform: translateY(-2px);
+}
+
+.dashboard-card h3 {
+    color: var(--primary-color);
+    margin-top: 0;
+    font-weight: 600;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.5rem;
+}
+
+/* Enhanced button styling */
+.stButton > button.primary {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: var(--box-shadow);
+}
+
+.stButton > button.secondary {
+    background-color: var(--card-background);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: var(--box-shadow);
+}
+
+.stButton > button.success {
+    background: linear-gradient(135deg, var(--success-color), #81c784);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: var(--box-shadow);
+}
+
+.stButton > button.warning {
+    background: linear-gradient(135deg, var(--warning-color), #ffb74d);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: var(--box-shadow);
+}
+
+.stButton > button.error {
+    background: linear-gradient(135deg, var(--error-color), #e57373);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius);
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: var(--box-shadow);
+}
+
+/* Enhanced input styling */
+.stSelectbox, .stTextInput, .stTextArea, .stNumberInput, .stSlider {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.stSelectbox:focus, .stTextInput:focus, .stTextArea:focus, .stNumberInput:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.2);
+}
+
+[data-theme="dark"] .stSelectbox, 
+[data-theme="dark"] .stTextInput, 
+[data-theme="dark"] .stTextArea, 
+[data-theme="dark"] .stNumberInput, 
+[data-theme="dark"] .stSlider {
+    border: 1px solid #4a4a4a;
+}
+
+/* Enhanced metric styling */
+.stMetric {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    text-align: center;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.stMetric:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--box-shadow-hover);
+}
+
+.stMetric label {
+    font-size: 1rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.stMetric div[data-testid="stMetricValue"] {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    margin-top: 0.5rem;
+}
+
+/* Enhanced status message styling */
+.stStatus {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--primary-color);
+}
+
+/* Enhanced expander styling */
+.stExpander {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.stExpander:hover {
+    box-shadow: var(--box-shadow-hover);
+}
+
+.stExpander div[data-testid="stExpanderDetails"] {
+    padding: 1.5rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+[data-theme="dark"] .stExpander div[data-testid="stExpanderDetails"] {
+    border-top: 1px solid #4a4a4a;
+}
+
+/* Enhanced code block styling */
+.stCodeBlock {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
+}
+
+/* Enhanced sidebar styling */
+[data-testid="stSidebar"] {
+    background-color: var(--card-background);
+    border-right: 1px solid #e0e0e0;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"] [data-testid="stSidebar"] {
+    border-right: 1px solid #4a4a4a;
+}
+
+/* Enhanced progress bar styling */
+.stProgress {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
+}
+
+/* Enhanced alert styling */
+.stAlert {
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .stTabs [data-baseweb="tab-list"] {
@@ -480,6 +679,10 @@ h1 {
         padding: 0.25rem 0.5rem;
         font-size: 0.8rem;
     }
+    
+    .dashboard-card {
+        padding: 1rem;
+    }
 }
 
 /* Animation for new elements */
@@ -490,6 +693,99 @@ h1 {
 
 .fade-in {
     animation: fadeIn 0.5s ease-out;
+}
+
+/* Enhanced team badge styling */
+.team-badge-lg {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    border-radius: 30px;
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin: 0.5rem;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.3s ease;
+}
+
+.team-badge-lg:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Enhanced model performance table */
+.model-performance-table-enhanced {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    border-radius: var(--border-radius);
+    overflow: hidden;
+    box-shadow: var(--box-shadow);
+}
+
+.model-performance-table-enhanced th,
+.model-performance-table-enhanced td {
+    padding: 1.2rem;
+    text-align: left;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+[data-theme="dark"] .model-performance-table-enhanced th,
+[data-theme="dark"] .model-performance-table-enhanced td {
+    border-bottom: 1px solid #4a4a4a;
+}
+
+.model-performance-table-enhanced th {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    font-weight: 600;
+}
+
+.model-performance-table-enhanced tr:hover {
+    background-color: rgba(74, 111, 165, 0.1);
+}
+
+[data-theme="dark"] .model-performance-table-enhanced tr:hover {
+    background-color: rgba(74, 111, 165, 0.2);
+}
+
+/* Enhanced protocol comparison styling */
+.protocol-comparison {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.protocol-comparison-column {
+    flex: 1;
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.protocol-comparison-header {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+/* Enhanced visualization styling */
+.chart-container {
+    background-color: var(--card-background);
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    box-shadow: var(--box-shadow);
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.chart-title {
+    font-weight: 600;
+    color: var(--primary-color);
+    margin-bottom: 1rem;
 }
 </style>
 """, unsafe_allow_html=True)
@@ -1756,7 +2052,176 @@ PROTOCOL_TEMPLATES = {
 ## Review and Updates
 - Framework review: [Frequency and process]
 - Lessons learned: [How insights are captured]
-- Continuous improvement: [Process for enhancing the framework]"""
+- Continuous improvement: [Process for enhancing the framework]""",
+    
+    "Disaster Recovery Plan": """# Disaster Recovery Plan Template
+
+## Overview
+[Brief description of the disaster recovery plan's purpose]
+
+## Scope
+[What systems, applications, and data are covered by this plan]
+
+## Recovery Objectives
+- Recovery Time Objective (RTO): [Maximum acceptable downtime]
+- Recovery Point Objective (RPO): [Maximum acceptable data loss]
+
+## Critical Systems and Applications
+[Identify and prioritize critical systems and applications]
+
+## Disaster Recovery Team
+- Team Members: [List]
+- Contact Information: [Details]
+- Roles and Responsibilities: [Details]
+
+## Disaster Recovery Sites
+- Primary Site: [Location and details]
+- Backup Site: [Location and details]
+- Hot/Warm/Cold Site: [Specify type and capabilities]
+
+## Data Backup and Recovery
+- Backup Schedule: [Frequency and methods]
+- Backup Storage: [Locations and security]
+- Recovery Procedures: [Step-by-step instructions]
+
+## Communication Plan
+- Internal Communication: [How to notify employees]
+- External Communication: [How to notify customers, vendors, etc.]
+- Media Relations: [How to handle media inquiries]
+
+## Recovery Procedures
+### System Restoration
+- [Step-by-step instructions for restoring systems]
+- [Required resources and personnel]
+
+### Data Recovery
+- [Step-by-step instructions for recovering data]
+- [Validation procedures to ensure data integrity]
+
+### Application Recovery
+- [Step-by-step instructions for recovering applications]
+- [Testing procedures to ensure functionality]
+
+## Plan Testing and Maintenance
+- Testing Schedule: [How often the plan will be tested]
+- Testing Procedures: [Methods for testing the plan]
+- Update Procedures: [How and when the plan will be updated]
+
+## Training and Awareness
+- Training Schedule: [How often personnel will be trained]
+- Training Materials: [Resources for training personnel]
+- Awareness Program: [How to keep personnel informed]
+
+## Plan Distribution
+[List of plan recipients and distribution methods]
+
+## Plan Activation and Deactivation
+- Activation Criteria: [When to activate the plan]
+- Deactivation Criteria: [When to deactivate the plan]
+- Activation Procedures: [How to activate the plan]
+- Deactivation Procedures: [How to deactivate the plan]""",
+    
+    "Change Management Process": """# Change Management Process Template
+
+## Overview
+[Brief description of the change management process]
+
+## Scope
+[What types of changes are covered by this process]
+
+## Change Categories
+- Emergency Changes: [Description and criteria]
+- Standard Changes: [Description and criteria]
+- Normal Changes: [Description and criteria]
+- Major Changes: [Description and criteria]
+
+## Change Management Team
+- Change Manager: [Name and contact information]
+- Change Advisory Board (CAB): [Members and roles]
+- Change Requester: [Role and responsibilities]
+- Change Implementer: [Role and responsibilities]
+
+## Change Request Process
+### 1. Change Request Submission
+- Request Form: [Template and submission process]
+- Required Information: [What information must be provided]
+
+### 2. Change Request Review
+- Initial Review: [Who conducts the review and criteria]
+- Detailed Assessment: [How the change is assessed]
+- Risk Assessment: [How risks are identified and evaluated]
+
+### 3. Change Approval
+- Approval Authority: [Who has approval authority]
+- Approval Criteria: [What criteria are used for approval]
+- Approval Process: [How approvals are obtained]
+
+### 4. Change Implementation
+- Implementation Plan: [How the change is implemented]
+- Implementation Schedule: [When the change is implemented]
+- Implementation Team: [Who implements the change]
+
+### 5. Change Closure
+- Validation: [How the change is validated]
+- Documentation: [How the change is documented]
+- Communication: [How stakeholders are informed]
+
+## Change Management Database
+- Database Structure: [How change information is organized]
+- Data Retention: [How long change information is retained]
+- Reporting: [What reports are generated]
+
+## Training and Awareness
+- Training Program: [How personnel are trained]
+- Awareness Program: [How personnel are kept informed]
+
+## Plan Review and Improvement
+- Review Schedule: [How often the process is reviewed]
+- Improvement Process: [How improvements are made]""",
+    
+    "Business Impact Analysis": """# Business Impact Analysis Template
+
+## Overview
+[Brief description of the business impact analysis]
+
+## Scope
+[What business functions and processes are covered]
+
+## Business Functions
+[List of critical business functions]
+
+## Dependencies
+[Dependencies between business functions]
+
+## Impact Criteria
+- Financial Impact: [How financial impact is measured]
+- Operational Impact: [How operational impact is measured]
+- Legal/Regulatory Impact: [How legal/regulatory impact is measured]
+- Reputational Impact: [How reputational impact is measured]
+
+## Recovery Time Objectives
+[Recovery time objectives for each business function]
+
+## Recovery Point Objectives
+[Recovery point objectives for each business function]
+
+## Minimum Business Continuity Objective
+[Minimum business continuity objective for each business function]
+
+## Resource Requirements
+[Resources required to recover each business function]
+
+## Interim Recovery Strategies
+[Interim recovery strategies for each business function]
+
+## Long-Term Recovery Strategies
+[Long-term recovery strategies for each business function]
+
+## Plan Testing and Maintenance
+[How the business impact analysis is tested and maintained]
+
+## Review and Approval
+[How the business impact analysis is reviewed and approved]"""
 }
 
 # Adversarial Testing Presets
@@ -1862,6 +2327,43 @@ ADVERSARIAL_PRESETS = {
             "detailed_tracking": True,
             "performance_analytics": True,
             "early_stopping": False
+        }
+    },
+    "AI Safety Review": {
+        "name": "🛡️ AI Safety Review",
+        "description": "Specialized testing for AI safety considerations, bias detection, and ethical alignment.",
+        "red_team_models": ["openai/gpt-4o", "anthropic/claude-3-opus", "google/gemini-1.5-pro"],
+        "blue_team_models": ["openai/gpt-4o", "anthropic/claude-3-sonnet", "meta-llama/llama-3-70b-instruct"],
+        "min_iter": 5,
+        "max_iter": 15,
+        "confidence_threshold": 92,
+        "review_type": "General SOP",
+        "compliance_requirements": "AI safety guidelines, fairness principles, explainability requirements",
+        "advanced_settings": {
+            "critique_depth": 9,
+            "patch_quality": 9,
+            "detailed_tracking": True,
+            "performance_analytics": True,
+            "bias_detection": True,
+            "explainability_focus": True
+        }
+    },
+    "Privacy Protection": {
+        "name": "🔒 Privacy Protection",
+        "description": "Focus on data privacy protection, consent mechanisms, and regulatory compliance.",
+        "red_team_models": ["openai/gpt-4o-mini", "anthropic/claude-3-haiku", "google/gemini-1.5-flash"],
+        "blue_team_models": ["openai/gpt-4o", "anthropic/claude-3-sonnet", "google/gemini-1.5-pro"],
+        "min_iter": 4,
+        "max_iter": 12,
+        "confidence_threshold": 93,
+        "review_type": "General SOP",
+        "compliance_requirements": "GDPR, CCPA, PIPEDA, data minimization principles",
+        "advanced_settings": {
+            "critique_depth": 8,
+            "patch_quality": 8,
+            "detailed_tracking": True,
+            "privacy_by_design": True,
+            "consent_mechanisms": True
         }
     }
 }
@@ -2269,7 +2771,11 @@ def generate_advanced_analytics(results: Dict) -> Dict:
         "confidence_trend": [],
         "issue_resolution_rate": 0,
         "model_performance": {},
-        "efficiency_score": 0
+        "efficiency_score": 0,
+        "security_strength": 0,
+        "compliance_coverage": 0,
+        "clarity_score": 0,
+        "completeness_score": 0
     }
     
     # Calculate confidence trend
@@ -2282,6 +2788,7 @@ def generate_advanced_analytics(results: Dict) -> Dict:
     if results.get("iterations"):
         total_issues_found = 0
         total_issues_resolved = 0
+        severity_weights = {"low": 1, "medium": 3, "high": 6, "critical": 12}
         
         for iteration in results.get("iterations", []):
             critiques = iteration.get("critiques", [])
@@ -2290,14 +2797,30 @@ def generate_advanced_analytics(results: Dict) -> Dict:
                 issues = critique_json.get("issues", [])
                 total_issues_found += len(issues)
                 
-                # Count resolved issues (simplified)
+                # Count resolved issues with severity weighting
                 patches = iteration.get("patches", [])
+                resolved_weighted = 0
+                total_weighted = 0
+                
+                for issue in issues:
+                    severity = issue.get("severity", "low").lower()
+                    weight = severity_weights.get(severity, 1)
+                    total_weighted += weight
+                    
+                for patch in patches:
+                    patch_json = patch.get("patch_json", {})
+                    mitigation_matrix = patch_json.get("mitigation_matrix", [])
+                    for mitigation in mitigation_matrix:
+                        if str(mitigation.get("status", "")).lower() in ["resolved", "mitigated"]:
+                            # Approximate the severity of resolved issues
+                            resolved_weighted += 3  # Average weight
+                
                 total_issues_resolved += min(len(issues), len(patches))
         
         if total_issues_found > 0:
             analytics["issue_resolution_rate"] = (total_issues_resolved / total_issues_found) * 100
     
-    # Calculate efficiency score (simplified)
+    # Calculate efficiency score
     efficiency = 100
     if analytics["total_cost_usd"] > 0:
         # Lower cost = higher efficiency
@@ -2306,6 +2829,82 @@ def generate_advanced_analytics(results: Dict) -> Dict:
         # More iterations = lower efficiency
         efficiency -= min(30, (analytics["total_iterations"] - 10) * 2)
     analytics["efficiency_score"] = max(0, efficiency)
+    
+    # Calculate security strength based on resolved critical/high issues
+    if results.get("iterations"):
+        critical_high_resolved = 0
+        total_critical_high = 0
+        
+        for iteration in results.get("iterations", []):
+            critiques = iteration.get("critiques", [])
+            for critique in critiques:
+                critique_json = critique.get("critique_json", {})
+                issues = critique_json.get("issues", [])
+                for issue in issues:
+                    severity = issue.get("severity", "low").lower()
+                    if severity in ["critical", "high"]:
+                        total_critical_high += 1
+                        # Check if this issue was resolved in any patch
+                        for patch in iteration.get("patches", []):
+                            patch_json = patch.get("patch_json", {})
+                            mitigation_matrix = patch_json.get("mitigation_matrix", [])
+                            for mitigation in mitigation_matrix:
+                                if (mitigation.get("issue") == issue.get("title") and 
+                                    str(mitigation.get("status", "")).lower() in ["resolved", "mitigated"]):
+                                    critical_high_resolved += 1
+                                    break
+        
+        if total_critical_high > 0:
+            analytics["security_strength"] = (critical_high_resolved / total_critical_high) * 100
+    
+    # Calculate compliance coverage
+    if results.get("compliance_requirements"):
+        # Simple check for compliance mentions in final protocol
+        final_sop = results.get("final_sop", "")
+        compliance_reqs = results.get("compliance_requirements", "")
+        
+        # Count how many compliance requirements are addressed
+        reqs_addressed = 0
+        total_reqs = 0
+        
+        for req in compliance_reqs.split(","):
+            req = req.strip().lower()
+            if req:
+                total_reqs += 1
+                if req in final_sop.lower():
+                    reqs_addressed += 1
+        
+        if total_reqs > 0:
+            analytics["compliance_coverage"] = (reqs_addressed / total_reqs) * 100
+    
+    # Calculate clarity score based on protocol structure
+    final_sop = results.get("final_sop", "")
+    if final_sop:
+        structure = extract_protocol_structure(final_sop)
+        complexity = calculate_protocol_complexity(final_sop)
+        
+        # Clarity score based on structure elements
+        clarity_score = 0
+        if structure["has_headers"]:
+            clarity_score += 25
+        if structure["has_numbered_steps"] or structure["has_bullet_points"]:
+            clarity_score += 25
+        if structure["has_preconditions"]:
+            clarity_score += 15
+        if structure["has_postconditions"]:
+            clarity_score += 15
+        if structure["has_error_handling"]:
+            clarity_score += 20
+            
+        analytics["clarity_score"] = clarity_score
+        
+        # Completeness score based on structure and complexity
+        completeness_score = min(100, (
+            structure["section_count"] * 5 +  # Sections contribute to completeness
+            complexity["unique_words"] / max(1, complexity["word_count"]) * 100 * 0.3 +  # Vocabulary diversity
+            (1 - complexity["avg_sentence_length"] / 50) * 100 * 0.7  # Sentence complexity balance
+        ))
+        analytics["completeness_score"] = completeness_score
     
     return analytics
 
@@ -3138,7 +3737,7 @@ def optimize_model_selection(red_team_models: List[str], blue_team_models: List[
     Returns:
         Dict[str, List[str]]: Optimized model selections
     """
-    # Simplified optimization logic
+    # Enhanced optimization logic
     optimized = {
         "red_team": [],
         "blue_team": []
@@ -3158,11 +3757,51 @@ def optimize_model_selection(red_team_models: List[str], blue_team_models: List[
         optimized["red_team"] = [m for m in red_team_models if "gpt-4o-mini" in m or "claude-3-haiku" in m or "llama-3-8b" in m][:3]
         optimized["blue_team"] = [m for m in blue_team_models if "gpt-4o" in m or "claude-3-sonnet" in m or "llama-3-70b" in m][:3]
     
+    # Budget-based optimization
+    if budget_limit > 0:
+        # Filter out expensive models if budget is constrained
+        expensive_models = ["gpt-4", "claude-3-opus", "gemini-1.5-pro"]
+        if budget_limit < 0.1:  # Very low budget
+            optimized["red_team"] = [m for m in optimized["red_team"] if not any(exp in m for exp in expensive_models)]
+            optimized["blue_team"] = [m for m in optimized["blue_team"] if not any(exp in m for exp in expensive_models)]
+        elif budget_limit < 0.5:  # Moderate budget
+            # Reduce count of expensive models
+            expensive_red = [m for m in optimized["red_team"] if any(exp in m for exp in expensive_models)]
+            if len(expensive_red) > 1:
+                optimized["red_team"] = [m for m in optimized["red_team"] if m not in expensive_red[1:]]
+                
+            expensive_blue = [m for m in optimized["blue_team"] if any(exp in m for exp in expensive_models)]
+            if len(expensive_blue) > 1:
+                optimized["blue_team"] = [m for m in optimized["blue_team"] if m not in expensive_blue[1:]]
+    
     # If no models matched criteria, use defaults
     if not optimized["red_team"]:
         optimized["red_team"] = red_team_models[:min(3, len(red_team_models))]
     if not optimized["blue_team"]:
         optimized["blue_team"] = blue_team_models[:min(3, len(blue_team_models))]
+    
+    # Ensure diversity in model selection
+    if len(optimized["red_team"]) < 3 and len(red_team_models) >= 3:
+        # Add models from different providers
+        providers = set()
+        selected_models = []
+        for model in red_team_models:
+            provider = model.split("/")[0] if "/" in model else model.split("-")[0]
+            if provider not in providers or len(selected_models) < 3:
+                selected_models.append(model)
+                providers.add(provider)
+        optimized["red_team"] = selected_models[:3]
+        
+    if len(optimized["blue_team"]) < 3 and len(blue_team_models) >= 3:
+        # Add models from different providers
+        providers = set()
+        selected_models = []
+        for model in blue_team_models:
+            provider = model.split("/")[0] if "/" in model else model.split("-")[0]
+            if provider not in providers or len(selected_models) < 3:
+                selected_models.append(model)
+                providers.add(provider)
+        optimized["blue_team"] = selected_models[:3]
     
     return optimized
 
@@ -3999,21 +4638,22 @@ with st.sidebar:
 # 7. Main layout with tabs
 # ------------------------------------------------------------------
 
-st.title("🧬 OpenEvolve Protocol Improver")
+st.markdown('<h1 style="text-align: center; color: #4a6fa5;">🧬 OpenEvolve Protocol Improver</h1>', unsafe_allow_html=True)
+st.markdown('<p style="text-align: center; font-size: 1.2rem;">AI-Powered Protocol Hardening with Multi-LLM Consensus</p>', unsafe_allow_html=True)
 st.markdown("---")
 
-# Project information
+# Project information with enhanced UI
 col1, col2, col3 = st.columns([3, 1, 1])
 with col1:
     st.markdown("## 🔴🔵 Adversarial Testing & Evolution-based Protocol Improvement")
 with col2:
-    st.markdown('<span class="team-badge red-team">Red Team</span><span class="team-badge blue-team">Blue Team</span>', unsafe_allow_html=True)
+    st.markdown('<span class="team-badge-lg red-team">Red Team</span><span class="team-badge-lg blue-team">Blue Team</span>', unsafe_allow_html=True)
 with col3:
-    # Add a quick action button
-    if st.button("📋 Quick Guide", key="quick_guide_btn"):
+    # Add a quick action button with enhanced styling
+    if st.button("📋 Quick Guide", key="quick_guide_btn", use_container_width=True):
         st.session_state.show_quick_guide = not st.session_state.get("show_quick_guide", False)
 
-# Show quick guide if requested
+# Show quick guide if requested with enhanced UI
 if st.session_state.get("show_quick_guide", False):
     with st.expander("📘 Quick Guide", expanded=True):
         st.markdown("""
@@ -4197,6 +4837,23 @@ with tab1:
 
     log_out.code(current_log, language="text")
     proto_out.code(current_protocol, language="markdown")
+
+    # Enhanced visualization for evolution process
+    if st.session_state.evolution_running or st.session_state.evolution_current_best:
+        st.markdown("---")
+        st.subheader("📊 Evolution Progress")
+        
+        # Progress metrics
+        if st.session_state.evolution_current_best:
+            original_complexity = calculate_protocol_complexity(st.session_state.protocol_text)
+            current_complexity = calculate_protocol_complexity(st.session_state.evolution_current_best)
+            
+            progress_col1, progress_col2, progress_col3 = st.columns(3)
+            progress_col1.metric("📝 Original Length", f"{original_complexity['word_count']} words")
+            progress_col2.metric("📝 Current Length", f"{current_complexity['word_count']} words")
+            progress_col3.metric("📈 Improvement", 
+                                f"{current_complexity['word_count'] - original_complexity['word_count']} words", 
+                                f"{((current_complexity['word_count'] / max(1, original_complexity['word_count'])) - 1) * 100:.1f}%")
 
     # If evolution is running, sleep for 1 second and then rerun to update the UI
     if st.session_state.evolution_running:
@@ -5160,12 +5817,90 @@ Applies to all employees, contractors, and vendors with system access.
                     # Enhanced metrics dashboard with better organization
                     st.markdown("### 📊 Performance Summary")
                     
-                    # Main metrics in cards
+                    # Main metrics in cards with enhanced styling
                     col1, col2, col3, col4 = st.columns(4)
                     col1.metric("✅ Final Approval Rate", f"{results.get('final_approval_rate', 0):.1f}%")
                     col2.metric("🔄 Iterations Completed", len(results.get('iterations', [])))
                     col3.metric("💰 Total Cost (USD)", f"${results.get('cost_estimate_usd', 0):.4f}")
                     col4.metric("🔤 Total Tokens", f"{results.get('tokens', {}).get('prompt', 0) + results.get('tokens', {}).get('completion', 0):,}")
+                    
+                    # Add a visual summary dashboard
+                    st.markdown("### 📊 Visual Summary")
+                    # Create a summary visualization
+                    summary_col1, summary_col2 = st.columns(2)
+                    with summary_col1:
+                        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                        st.markdown('<div class="chart-title">Approval Rate Progress</div>', unsafe_allow_html=True)
+                        if results.get('iterations'):
+                            confidence_history = [iter.get("approval_check", {}).get("approval_rate", 0) 
+                                                for iter in results.get('iterations', [])]
+                            st.line_chart(confidence_history)
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    with summary_col2:
+                        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                        st.markdown('<div class="chart-title">Issue Severity Distribution</div>', unsafe_allow_html=True)
+                        if results.get('iterations'):
+                            # Aggregate severity data
+                            severity_counts = {"low": 0, "medium": 0, "high": 0, "critical": 0}
+                            for iteration in results.get('iterations', []):
+                                critiques = iteration.get("critiques", [])
+                                for critique in critiques:
+                                    critique_json = critique.get("critique_json", {})
+                                    issues = critique_json.get("issues", [])
+                                    for issue in issues:
+                                        severity = issue.get("severity", "low").lower()
+                                        if severity in severity_counts:
+                                            severity_counts[severity] += 1
+                            
+                            # Create a simple bar chart representation
+                            max_count = max(severity_counts.values()) if severity_counts.values() else 1
+                            for severity, count in severity_counts.items():
+                                if count > 0:
+                                    bar_length = int((count / max_count) * 20)
+                                    emoji = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}[severity]
+                                    st.write(f"{emoji} {severity.capitalize()}: {'█' * bar_length} ({count})")
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    # Advanced analytics dashboard
+                    analytics = generate_advanced_analytics(results)
+                    st.markdown("### 📊 Advanced Analytics")
+                    
+                    # Create a dashboard card layout
+                    dashboard_col1, dashboard_col2, dashboard_col3, dashboard_col4 = st.columns(4)
+                    with dashboard_col1:
+                        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+                        st.markdown("### 🔒 Security")
+                        st.metric("Strength", f"{analytics.get('security_strength', 0):.1f}%")
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    with dashboard_col2:
+                        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+                        st.markdown("### 📋 Compliance")
+                        st.metric("Coverage", f"{analytics.get('compliance_coverage', 0):.1f}%")
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    with dashboard_col3:
+                        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+                        st.markdown("### 🧾 Clarity")
+                        st.metric("Score", f"{analytics.get('clarity_score', 0):.1f}%")
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    with dashboard_col4:
+                        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+                        st.markdown("### ✅ Completeness")
+                        st.metric("Score", f"{analytics.get('completeness_score', 0):.1f}%")
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    # Efficiency and resolution metrics
+                    efficiency_col1, efficiency_col2 = st.columns(2)
+                    with efficiency_col1:
+                        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+                        st.markdown("### ⚡ Efficiency")
+                        st.metric("Score", f"{analytics.get('efficiency_score', 0):.1f}%")
+                        st.markdown('</div>', unsafe_allow_html=True)
+                    with efficiency_col2:
+                        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
+                        st.markdown("### 🎯 Resolution")
+                        st.metric("Rate", f"{analytics.get('issue_resolution_rate', 0):.1f}%")
+                        st.markdown('</div>', unsafe_allow_html=True)
                     
                     # Detailed metrics tabs
                     metrics_tab1, metrics_tab2, metrics_tab3 = st.tabs(["📈 Confidence Trend", "🏆 Model Performance", "🧮 Issue Analysis"])
@@ -5207,7 +5942,7 @@ Applies to all employees, contractors, and vendors with system access.
                             # Sort models by score
                             sorted_models = sorted(model_performance.items(), key=lambda x: x[1].get("score", 0), reverse=True)
                             
-                            # Display top 5 models
+                            # Display top 5 models with enhanced visualization
                             for i, (model_id, perf) in enumerate(sorted_models[:5]):
                                 score = perf.get("score", 0)
                                 issues = perf.get("issues_found", 0)
@@ -5350,6 +6085,13 @@ if start_button:
     if st.session_state.adversarial_confidence < 50 or st.session_state.adversarial_confidence > 100:
         errors.append("🎯 Confidence threshold should be between 50% and 100%.")
     
+    # Enhanced validation for model selection
+    if len(st.session_state.red_team_models) > 10:
+        errors.append("🔴 Please select 10 or fewer red team models to avoid excessive costs.")
+    
+    if len(st.session_state.blue_team_models) > 10:
+        errors.append("🔵 Please select 10 or fewer blue team models to avoid excessive costs.")
+    
     # Show all errors at once
     if errors:
         for error in errors:
@@ -5360,18 +6102,38 @@ if start_button:
         if st.session_state.adversarial_running:
             st.warning("Adversarial testing is already running. Please wait for it to complete or stop it first.")
         else:
-            # Confirmation dialog for resource-intensive operations
-            estimated_cost = len(st.session_state.red_team_models) * len(st.session_state.blue_team_models) * st.session_state.adversarial_max_iter * 0.001
+            # Enhanced confirmation dialog with detailed cost estimation
+            protocol_length = len(st.session_state.protocol_text.split())
+            estimate = estimate_testing_time_and_cost(
+                st.session_state.red_team_models,
+                st.session_state.blue_team_models,
+                st.session_state.adversarial_max_iter,
+                protocol_length
+            )
+            
+            estimated_cost = estimate["estimated_cost_usd"]
+            estimated_time = estimate["estimated_time_minutes"]
+            
             if estimated_cost > 0.1:  # If estimated cost is over $0.10
-                st.warning(f"💰 Estimated cost: ${estimated_cost:.4f}. This operation may consume significant tokens.")
-                if not st.checkbox("✅ I understand the cost and want to proceed", key="cost_confirmation"):
-                    st.info("ℹ️ Please confirm you understand the cost to proceed.")
+                st.warning(f"💰 Estimated cost: ${estimated_cost:.4f} | ⏰ Estimated time: {estimated_time} minutes | 🔄 Operations: {estimate['total_operations']:,}")
+                st.info("💡 Tip: Consider reducing the number of models or iterations to control costs.")
+                if not st.checkbox("✅ I understand the cost and time estimate and want to proceed", key="cost_confirmation"):
+                    st.info("ℹ️ Please confirm you understand the cost and time estimate to proceed.")
                     st.stop()
             
-            # Start adversarial testing
+            # Start adversarial testing with enhanced initialization
             st.session_state.adversarial_running = True
             st.session_state.adversarial_status_message = "🚀 Initializing adversarial testing..."
+            
+            # Show initialization message
             with st.spinner("Starting adversarial testing process..."):
+                # Initialize progress tracking
+                st.session_state.adversarial_confidence_history = []
+                st.session_state.adversarial_total_tokens_prompt = 0
+                st.session_state.adversarial_total_tokens_completion = 0
+                st.session_state.adversarial_cost_estimate_usd = 0.0
+                
+                # Start the testing process in a separate thread
                 threading.Thread(target=run_adversarial_testing, daemon=True).start()
             st.rerun()
 
@@ -5519,6 +6281,10 @@ def run_evolution_internal():
 
         consecutive_failures = 0
         max_consecutive_failures = 3  # Stop after 3 consecutive failures
+        
+        # Initialize metrics tracking
+        iteration_metrics = []
+        
         for i in range(st.session_state.max_iterations):
             if st.session_state.evolution_stop_flag:
                 log_msg("⏹️ Evolution stopped by user.")
@@ -5548,11 +6314,35 @@ def run_evolution_internal():
 
                 improved_protocol = request_function(**kwargs)
 
+                # Enhanced validation with quality metrics
                 if improved_protocol and len(improved_protocol.strip()) > len(current_protocol) * 0.7:
-                    log_msg(f"✅ Iteration {i+1} successful. Length: {len(improved_protocol.strip())}")
-                    current_protocol = improved_protocol.strip()
-                    st.session_state.evolution_current_best = current_protocol
-                    consecutive_failures = 0  # Reset failure counter on success
+                    # Calculate quality metrics
+                    original_complexity = calculate_protocol_complexity(current_protocol)
+                    improved_complexity = calculate_protocol_complexity(improved_protocol)
+                    
+                    # Quality improvement check
+                    quality_improvement = (
+                        improved_complexity["complexity_score"] >= original_complexity["complexity_score"] and
+                        improved_complexity["unique_words"] >= original_complexity["unique_words"] * 0.9
+                    )
+                    
+                    if quality_improvement or len(improved_protocol.strip()) > len(current_protocol) * 1.1:
+                        log_msg(f"✅ Iteration {i+1} successful. Length: {len(improved_protocol.strip())}")
+                        current_protocol = improved_protocol.strip()
+                        st.session_state.evolution_current_best = current_protocol
+                        consecutive_failures = 0  # Reset failure counter on success
+                        
+                        # Track metrics
+                        iteration_metrics.append({
+                            "iteration": i+1,
+                            "length": len(current_protocol),
+                            "complexity": improved_complexity["complexity_score"],
+                            "unique_words": improved_complexity["unique_words"],
+                            "improvement": len(current_protocol) - len(st.session_state.protocol_text)
+                        })
+                    else:
+                        log_msg(f"⚠️ Iteration {i+1} result rejected (no significant quality improvement). Length: {len(improved_protocol.strip() if improved_protocol else '')}")
+                        consecutive_failures += 1
                 else:
                     log_msg(f"⚠️ Iteration {i+1} result rejected (too short or empty). Length: {len(improved_protocol.strip() if improved_protocol else '')}")
                     consecutive_failures += 1
@@ -5569,6 +6359,14 @@ def run_evolution_internal():
                 break
 
         log_msg("🏁 Evolution finished.")
+        
+        # Log final metrics
+        if iteration_metrics:
+            final_length = iteration_metrics[-1]["length"]
+            initial_length = len(st.session_state.protocol_text)
+            total_improvement = final_length - initial_length
+            log_msg(f"📊 Total improvement: {total_improvement} characters ({(total_improvement/initial_length)*100:.1f}%)")
+        
         st.session_state.protocol_text = current_protocol  # Update the main protocol text
     except Exception as e:
         import traceback
