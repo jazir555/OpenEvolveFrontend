@@ -1102,7 +1102,11 @@ def compare_protocols(protocol_a: str, protocol_b: str) -> Dict[str, Any]:
             "length_difference": 0,
             "added_sections": [],
             "removed_sections": [],
-            "complexity_change": 0.0
+            "complexity_change": 0.0,
+            "word_count_change": 0,
+            "sentence_count_change": 0,
+            "unique_words_change": 0,
+            "structure_changes": {}
         }
     
     # Calculate similarity using a simple approach
@@ -1118,10 +1122,15 @@ def compare_protocols(protocol_a: str, protocol_b: str) -> Dict[str, Any]:
     # Length difference
     length_difference = len(protocol_b) - len(protocol_a)
     
-    # Complexity difference
-    complexity_a = calculate_protocol_complexity(protocol_a)["complexity_score"]
-    complexity_b = calculate_protocol_complexity(protocol_b)["complexity_score"]
-    complexity_change = complexity_b - complexity_a
+    # Complexity metrics
+    complexity_a = calculate_protocol_complexity(protocol_a)
+    complexity_b = calculate_protocol_complexity(protocol_b)
+    complexity_change = complexity_b["complexity_score"] - complexity_a["complexity_score"]
+    
+    # Detailed metrics changes
+    word_count_change = complexity_b["word_count"] - complexity_a["word_count"]
+    sentence_count_change = complexity_b["sentence_count"] - complexity_a["sentence_count"]
+    unique_words_change = complexity_b["unique_words"] - complexity_a["unique_words"]
     
     # Simple section difference detection
     sections_a = re.findall(r'^#{1,6}\s+.*$|.*\n[=]{3,}|.*\n[-]{3,}', protocol_a, re.MULTILINE)
@@ -1130,14 +1139,123 @@ def compare_protocols(protocol_a: str, protocol_b: str) -> Dict[str, Any]:
     added_sections = [s for s in sections_b if s not in sections_a]
     removed_sections = [s for s in sections_a if s not in sections_b]
     
+    # Structure analysis
+    structure_a = extract_protocol_structure(protocol_a)
+    structure_b = extract_protocol_structure(protocol_b)
+    
+    structure_changes = {}
+    for key in structure_a.keys():
+        if structure_a[key] != structure_b[key]:
+            structure_changes[key] = {
+                "before": structure_a[key],
+                "after": structure_b[key]
+            }
+    
     return {
         "similarity": round(similarity * 100, 2),
         "length_difference": length_difference,
         "added_sections": added_sections,
         "removed_sections": removed_sections,
         "complexity_change": round(complexity_change, 2),
+        "word_count_change": word_count_change,
+        "sentence_count_change": sentence_count_change,
+        "unique_words_change": unique_words_change,
+        "structure_changes": structure_changes,
         "improvement": "increased" if complexity_change < 0 else "decreased" if complexity_change > 0 else "unchanged"
     }
+
+
+def render_protocol_comparison(protocol_a: str, protocol_b: str, name_a: str = "Original", name_b: str = "Modified") -> str:
+    """Render a visual comparison of two protocols.
+    
+    Args:
+        protocol_a (str): First protocol text
+        protocol_b (str): Second protocol text
+        name_a (str): Name for first protocol
+        name_b (str): Name for second protocol
+        
+    Returns:
+        str: HTML formatted comparison
+    """
+    if not protocol_a or not protocol_b:
+        return "<p>Cannot compare empty protocols</p>"
+    
+    comparison = compare_protocols(protocol_a, protocol_b)
+    
+    # Split protocols into lines for line-by-line comparison
+    lines_a = protocol_a.split('\n')
+    lines_b = protocol_b.split('\n')
+    
+    # Simple diff implementation
+    html = f"""
+    <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+        <div style="flex: 1;">
+            <h3 style="color: #4a6fa5; border-bottom: 2px solid #4a6fa5; padding-bottom: 5px;">{name_a}</h3>
+        </div>
+        <div style="flex: 1;">
+            <h3 style="color: #4a6fa5; border-bottom: 2px solid #4a6fa5; padding-bottom: 5px;">{name_b}</h3>
+        </div>
+    </div>
+    """
+    
+    # Add summary metrics
+    html += f"""
+    <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <h4>📊 Comparison Summary</h4>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+            <div style="background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <strong>Similarity</strong><br>
+                <span style="font-size: 1.2em; color: {'#4caf50' if comparison['similarity'] > 80 else '#ff9800' if comparison['similarity'] > 50 else '#f44336'}">
+                    {comparison['similarity']}%
+                </span>
+            </div>
+            <div style="background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <strong>Length Change</strong><br>
+                <span style="font-size: 1.2em; color: {'#4caf50' if comparison['length_difference'] > 0 else '#f44336' if comparison['length_difference'] < 0 else '#666'}">
+                    {comparison['length_difference']:+d} chars
+                </span>
+            </div>
+            <div style="background-color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <strong>Complexity Change</strong><br>
+                <span style="font-size: 1.2em; color: {'#4caf50' if comparison['complexity_change'] < 0 else '#f44336' if comparison['complexity_change'] > 0 else '#666'}">
+                    {comparison['complexity_change']:+.2f}
+                </span>
+            </div>
+        </div>
+    </div>
+    """
+    
+    # Add structural changes
+    if comparison["structure_changes"]:
+        html += "<div style='background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>"
+        html += "<h4>🧩 Structural Changes</h4><ul>"
+        for key, change in comparison["structure_changes"].items():
+            html += f"<li><strong>{key.replace('_', ' ').title()}:</strong> "
+            html += f"{'✅' if not change['before'] and change['after'] else '❌' if change['before'] and not change['after'] else '🔄'} "
+            html += f"Changed from {change['before']} to {change['after']}</li>"
+        html += "</ul></div>"
+    
+    # Add section changes
+    if comparison["added_sections"] or comparison["removed_sections"]:
+        html += "<div style='background-color: #fff3e0; padding: 15px; border-radius: 8px; margin-bottom: 20px;'>"
+        html += "<h4>📋 Section Changes</h4>"
+        if comparison["added_sections"]:
+            html += "<p><strong>Added Sections:</strong></p><ul>"
+            for section in comparison["added_sections"][:5]:  # Limit to first 5
+                html += f"<li>➕ {section[:50]}{'...' if len(section) > 50 else ''}</li>"
+            if len(comparison["added_sections"]) > 5:
+                html += f"<li>... and {len(comparison['added_sections']) - 5} more</li>"
+            html += "</ul>"
+        if comparison["removed_sections"]:
+            html += "<p><strong>Removed Sections:</strong></p><ul>"
+            for section in comparison["removed_sections"][:5]:  # Limit to first 5
+                html += f"<li>➖ {section[:50]}{'...' if len(section) > 50 else ''}</li>"
+            if len(comparison["removed_sections"]) > 5:
+                html += f"<li>... and {len(comparison['removed_sections']) - 5} more</li>"
+            html += "</ul>"
+        html += "</div>"
+    
+    return html
 
 def _rand_jitter_ms(base: int = 250, spread: int = 500) -> float:
     """Generate random jitter time in seconds for retry backoff.
@@ -1568,6 +1686,17 @@ if "thread_lock" not in st.session_state:
         # Double-checked locking pattern to ensure thread safety
         if "thread_lock" not in st.session_state:
             st.session_state.thread_lock = threading.Lock()
+
+# Real-time collaboration state management
+if "collaboration_session" not in st.session_state:
+    st.session_state.collaboration_session = {
+        "active_users": [],
+        "last_activity": _now_ms(),
+        "chat_messages": [],
+        "notifications": [],
+        "shared_cursor_position": 0,
+        "edit_locks": {}
+    }
 
 # Configuration profiles
 CONFIG_PROFILES = {
@@ -2721,6 +2850,488 @@ def export_project() -> Dict:
             "tags": st.session_state.tags,
             "export_timestamp": datetime.now().isoformat()
         }
+
+def export_project_detailed() -> Dict:
+    """Export the entire project with detailed analytics and history.
+    
+    Returns:
+        Dict: Detailed project data
+    """
+    with st.session_state.thread_lock:
+        # Get analytics if adversarial testing was run
+        analytics = {}
+        if st.session_state.adversarial_results:
+            analytics = generate_advanced_analytics(st.session_state.adversarial_results)
+        
+        return {
+            "project_name": st.session_state.project_name,
+            "project_description": st.session_state.project_description,
+            "versions": st.session_state.protocol_versions,
+            "comments": st.session_state.comments,
+            "collaborators": st.session_state.collaborators,
+            "tags": st.session_state.tags,
+            "export_timestamp": datetime.now().isoformat(),
+            "analytics": analytics,
+            "adversarial_results": st.session_state.adversarial_results,
+            "evolution_history": st.session_state.evolution_log,
+            "model_performance": st.session_state.adversarial_model_performance
+        }
+
+
+def generate_shareable_link(project_data: Dict) -> str:
+    """Generate a shareable link for the project.
+    
+    Args:
+        project_data (Dict): Project data to share
+        
+    Returns:
+        str: Shareable link
+    """
+    # In a real implementation, this would generate a real shareable link
+    # For now, we'll simulate it
+    project_id = hashlib.md5(json.dumps(project_data, sort_keys=True).encode()).hexdigest()[:16]
+    return f"https://open-evolve.app/shared/{project_id}"
+
+
+def get_version_by_name(version_name: str) -> Optional[Dict]:
+    """Get a specific version by name.
+    
+    Args:
+        version_name (str): Name of the version to retrieve
+        
+    Returns:
+        Optional[Dict]: Version data or None if not found
+    """
+    with st.session_state.thread_lock:
+        for version in st.session_state.protocol_versions:
+            if version["name"] == version_name:
+                return version
+    return None
+
+
+def get_version_by_timestamp(timestamp: str) -> Optional[Dict]:
+    """Get a specific version by timestamp.
+    
+    Args:
+        timestamp (str): Timestamp of the version to retrieve
+        
+    Returns:
+        Optional[Dict]: Version data or None if not found
+    """
+    with st.session_state.thread_lock:
+        for version in st.session_state.protocol_versions:
+            if version["timestamp"].startswith(timestamp):
+                return version
+    return None
+
+
+def delete_version(version_id: str) -> bool:
+    """Delete a specific version.
+    
+    Args:
+        version_id (str): ID of the version to delete
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        with st.session_state.thread_lock:
+            st.session_state.protocol_versions = [
+                v for v in st.session_state.protocol_versions if v["id"] != version_id
+            ]
+            # If we deleted the current version, set to the latest remaining version
+            if st.session_state.current_version_id == version_id and st.session_state.protocol_versions:
+                latest_version = st.session_state.protocol_versions[-1]
+                st.session_state.protocol_text = latest_version["protocol_text"]
+                st.session_state.current_version_id = latest_version["id"]
+        return True
+    except Exception as e:
+        st.error(f"Error deleting version: {e}")
+        return False
+
+
+def branch_version(version_id: str, new_version_name: str) -> Optional[str]:
+    """Create a new branch from an existing version.
+    
+    Args:
+        version_id (str): ID of the version to branch from
+        new_version_name (str): Name for the new branched version
+        
+    Returns:
+        Optional[str]: ID of the new version or None if failed
+    """
+    version = None
+    with st.session_state.thread_lock:
+        for v in st.session_state.protocol_versions:
+            if v["id"] == version_id:
+                version = v
+                break
+    
+    if not version:
+        st.error("Version not found")
+        return None
+    
+    # Create new version with branched content
+    new_version_id = create_new_version(
+        version["protocol_text"], 
+        new_version_name, 
+        f"Branched from {version['name']}"
+    )
+    
+    # Add branch metadata
+    with st.session_state.thread_lock:
+        for v in st.session_state.protocol_versions:
+            if v["id"] == new_version_id:
+                v["branch_from"] = version_id
+                v["branch_name"] = new_version_name
+                break
+    
+    return new_version_id
+
+
+def get_version_timeline() -> List[Dict]:
+    """Get a chronological timeline of all versions.
+    
+    Returns:
+        List[Dict]: Sorted list of versions by timestamp
+    """
+    with st.session_state.thread_lock:
+        versions = st.session_state.protocol_versions.copy()
+    
+    # Sort by timestamp
+    versions.sort(key=lambda x: x["timestamp"])
+    return versions
+
+
+def render_version_timeline() -> str:
+    """Render a visual timeline of versions.
+    
+    Returns:
+        str: HTML formatted timeline
+    """
+    versions = get_version_timeline()
+    
+    if not versions:
+        return "<p>No version history available</p>"
+    
+    html = """
+    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px;">
+        <h3 style="color: #4a6fa5; margin-top: 0;">🕒 Version Timeline</h3>
+        <div style="position: relative; padding-left: 30px;">
+            <div style="position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background-color: #4a6fa5;"></div>
+    """
+    
+    for i, version in enumerate(versions):
+        is_current = version["id"] == st.session_state.get("current_version_id", "")
+        timestamp = version["timestamp"][:16].replace("T", " ")
+        
+        html += f"""
+        <div style="position: relative; margin-bottom: 20px;">
+            <div style="position: absolute; left: -20px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background-color: {'#4a6fa5' if is_current else '#6b8cbc'}; border: 2px solid white;"></div>
+            <div style="background-color: {'#e3f2fd' if is_current else 'white'}; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 4px solid {'#4a6fa5' if is_current else '#6b8cbc'};">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <h4 style="margin: 0; color: #4a6fa5;">{version['name']}</h4>
+                    <span style="font-size: 0.9em; color: #666;">{timestamp}</span>
+                </div>
+                <p style="margin: 5px 0 0 0; color: #666;">{version.get('comment', 'No comment')}</p>
+                <div style="margin-top: 10px; display: flex; gap: 10px;">
+        """
+        
+        # Add action buttons
+        html += f"""
+                    <button onclick="loadVersion('{version['id']}')" style="background-color: #4a6fa5; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">Load</button>
+        """
+        
+        if not is_current:
+            html += f"""
+                    <button onclick="branchVersion('{version['id']}', 'Branch of {version['name']}')" style="background-color: #6b8cbc; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">Branch</button>
+            """
+        
+        html += """
+                </div>
+            </div>
+        </div>
+        """
+    
+    html += """
+        </div>
+    </div>
+    <script>
+    function loadVersion(versionId) {
+        // In a real implementation, this would trigger a reload with the version
+        alert('Loading version: ' + versionId);
+    }
+    
+    function branchVersion(versionId, branchName) {
+        // In a real implementation, this would create a new branch
+        alert('Branching from version: ' + versionId + ' as ' + branchName);
+    }
+    </script>
+    """
+    
+    return html
+    """Export protocol as a reusable template.
+    
+    Args:
+        protocol_text (str): Protocol text to export as template
+        template_name (str): Name for the template
+        
+    Returns:
+        Dict: Template data
+    """
+    return {
+        "name": template_name,
+        "content": protocol_text,
+        "created_at": datetime.now().isoformat(),
+        "complexity_metrics": calculate_protocol_complexity(protocol_text),
+        "structure_analysis": extract_protocol_structure(protocol_text),
+        "tags": []
+    }
+
+
+def generate_ai_insights(protocol_text: str) -> Dict[str, Any]:
+    """Generate AI-powered insights about the protocol.
+    
+    Args:
+        protocol_text (str): Protocol text to analyze
+        
+    Returns:
+        Dict[str, Any]: AI insights and recommendations
+    """
+    if not protocol_text:
+        return {
+            "overall_score": 0,
+            "strengths": [],
+            "weaknesses": [],
+            "opportunities": [],
+            "threats": [],
+            "recommendations": [],
+            "complexity_analysis": {},
+            "readability_score": 0,
+            "compliance_risk": "low"
+        }
+    
+    # Calculate metrics
+    complexity = calculate_protocol_complexity(protocol_text)
+    structure = extract_protocol_structure(protocol_text)
+    
+    # Overall score calculation (weighted)
+    structure_score = (
+        (1 if structure["has_headers"] else 0) * 0.2 +
+        (1 if structure["has_numbered_steps"] or structure["has_bullet_points"] else 0) * 0.2 +
+        (1 if structure["has_preconditions"] else 0) * 0.15 +
+        (1 if structure["has_postconditions"] else 0) * 0.15 +
+        (1 if structure["has_error_handling"] else 0) * 0.15 +
+        min(structure["section_count"] / 10, 1) * 0.15
+    ) * 100
+    
+    complexity_score = max(0, 100 - complexity["complexity_score"])  # Invert complexity
+    
+    overall_score = (structure_score * 0.6 + complexity_score * 0.4)
+    
+    # Strengths
+    strengths = []
+    if structure["has_headers"]:
+        strengths.append("✅ Well-structured with clear headers")
+    if structure["has_numbered_steps"] or structure["has_bullet_points"]:
+        strengths.append("✅ Uses lists or numbered steps for clarity")
+    if structure["has_preconditions"]:
+        strengths.append("✅ Defines clear preconditions")
+    if structure["has_postconditions"]:
+        strengths.append("✅ Specifies expected outcomes")
+    if structure["has_error_handling"]:
+        strengths.append("✅ Includes error handling procedures")
+    if complexity["unique_words"] / max(1, complexity["word_count"]) > 0.6:
+        strengths.append("✅ Good vocabulary diversity")
+    
+    # Weaknesses
+    weaknesses = []
+    if not structure["has_headers"]:
+        weaknesses.append("❌ Lacks clear section headers")
+    if not structure["has_numbered_steps"] and not structure["has_bullet_points"]:
+        weaknesses.append("❌ Could use lists or numbered steps for better readability")
+    if not structure["has_preconditions"]:
+        weaknesses.append("❌ Missing preconditions specification")
+    if not structure["has_postconditions"]:
+        weaknesses.append("❌ No defined postconditions or expected outcomes")
+    if not structure["has_error_handling"]:
+        weaknesses.append("❌ Lacks error handling procedures")
+    if complexity["avg_sentence_length"] > 25:
+        weaknesses.append("❌ Sentences are quite long (hard to read)")
+    if complexity["complexity_score"] > 60:
+        weaknesses.append("❌ Protocol is quite complex")
+    
+    # Opportunities
+    opportunities = []
+    if complexity["word_count"] < 500:
+        opportunities.append("✨ Protocol is brief - opportunity to add more detail")
+    if structure["section_count"] == 0 and complexity["word_count"] > 300:
+        opportunities.append("✨ Can improve organization with section headers")
+    if not structure["has_preconditions"]:
+        opportunities.append("✨ Add preconditions to clarify requirements")
+    if not structure["has_postconditions"]:
+        opportunities.append("✨ Define postconditions to specify expected outcomes")
+    if not structure["has_error_handling"]:
+        opportunities.append("✨ Include error handling for robustness")
+    
+    # Threats (potential issues)
+    threats = []
+    if complexity["complexity_score"] > 70:
+        threats.append("⚠️ High complexity may lead to misinterpretation")
+    if complexity["avg_sentence_length"] > 30:
+        threats.append("⚠️ Long sentences may reduce clarity")
+    if structure["section_count"] == 0 and complexity["word_count"] > 500:
+        threats.append("⚠️ Lack of sections makes long protocols hard to navigate")
+    
+    # Recommendations
+    recommendations = generate_protocol_recommendations(protocol_text)
+    
+    # Readability score
+    readability_score = 100 - (complexity["avg_sentence_length"] / 50 * 100)
+    readability_score = max(0, min(100, readability_score))
+    
+    # Compliance risk assessment
+    compliance_risk = "low"
+    if complexity["complexity_score"] > 70:
+        compliance_risk = "high"
+    elif complexity["complexity_score"] > 50:
+        compliance_risk = "medium"
+    
+    return {
+        "overall_score": round(overall_score, 1),
+        "strengths": strengths,
+        "weaknesses": weaknesses,
+        "opportunities": opportunities,
+        "threats": threats,
+        "recommendations": recommendations,
+        "complexity_analysis": complexity,
+        "structure_analysis": structure,
+        "readability_score": round(readability_score, 1),
+        "compliance_risk": compliance_risk
+    }
+
+
+def render_ai_insights_dashboard(protocol_text: str) -> str:
+    """Render an AI insights dashboard for the protocol.
+    
+    Args:
+        protocol_text (str): Protocol text to analyze
+        
+    Returns:
+        str: HTML formatted dashboard
+    """
+    insights = generate_ai_insights(protocol_text)
+    
+    # Create a visual dashboard
+    html = """
+    <div style="background: linear-gradient(135deg, #4a6fa5, #6b8cbc); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+        <h2 style="margin-top: 0; text-align: center;">🤖 AI Insights Dashboard</h2>
+        <div style="display: flex; justify-content: center; align-items: center;">
+            <div style="background: white; color: #4a6fa5; border-radius: 50%; width: 100px; height: 100px; display: flex; justify-content: center; align-items: center; font-size: 2em; font-weight: bold;">
+                """ + str(insights["overall_score"]) + """%
+            </div>
+        </div>
+        <p style="text-align: center; margin-top: 10px;">Overall Protocol Quality Score</p>
+    </div>
+    """
+    
+    # Add metrics cards
+    html += """
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
+        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; border-left: 4px solid #4caf50;">
+            <h4 style="margin-top: 0; color: #2e7d32;">📊 Readability</h4>
+            <p style="font-size: 1.5em; font-weight: bold; margin: 0;">""" + str(insights["readability_score"]) + """%</p>
+        </div>
+        <div style="background-color: #fff8e1; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800;">
+            <h4 style="margin-top: 0; color: #f57f17;">📋 Structure</h4>
+            <p style="font-size: 1.5em; font-weight: bold; margin: 0;">""" + str(len([s for s in insights["structure_analysis"].values() if s])) + """/7</p>
+        </div>
+        <div style="background-color: #ffebee; padding: 15px; border-radius: 8px; border-left: 4px solid #f44336;">
+            <h4 style="margin-top: 0; color: #c62828;">⚠️ Compliance Risk</h4>
+            <p style="font-size: 1.5em; font-weight: bold; margin: 0; text-transform: capitalize;">""" + insights["compliance_risk"] + """</p>
+        </div>
+    </div>
+    """
+    
+    # Add insights sections
+    html += """
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+    """
+    
+    # Strengths
+    if insights["strengths"]:
+        html += """
+        <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px;">
+            <h3 style="color: #2e7d32; margin-top: 0;">✅ Strengths</h3>
+            <ul style="padding-left: 20px;">
+        """
+        for strength in insights["strengths"][:5]:  # Limit to first 5
+            html += f"<li>{strength}</li>"
+        html += """
+            </ul>
+        </div>
+        """
+    
+    # Weaknesses
+    if insights["weaknesses"]:
+        html += """
+        <div style="background-color: #ffebee; padding: 15px; border-radius: 8px;">
+            <h3 style="color: #c62828; margin-top: 0;">❌ Areas for Improvement</h3>
+            <ul style="padding-left: 20px;">
+        """
+        for weakness in insights["weaknesses"][:5]:  # Limit to first 5
+            html += f"<li>{weakness}</li>"
+        html += """
+            </ul>
+        </div>
+        """
+    
+    # Opportunities
+    if insights["opportunities"]:
+        html += """
+        <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px;">
+            <h3 style="color: #1565c0; margin-top: 0;">✨ Opportunities</h3>
+            <ul style="padding-left: 20px;">
+        """
+        for opportunity in insights["opportunities"][:5]:  # Limit to first 5
+            html += f"<li>{opportunity}</li>"
+        html += """
+            </ul>
+        </div>
+        """
+    
+    # Threats
+    if insights["threats"]:
+        html += """
+        <div style="background-color: #fff3e0; padding: 15px; border-radius: 8px;">
+            <h3 style="color: #ef6c00; margin-top: 0;">⚠️ Potential Threats</h3>
+            <ul style="padding-left: 20px;">
+        """
+        for threat in insights["threats"][:5]:  # Limit to first 5
+            html += f"<li>{threat}</li>"
+        html += """
+            </ul>
+        </div>
+        """
+    
+    html += "</div>"
+    
+    # Add recommendations
+    if insights["recommendations"]:
+        html += """
+        <div style="background-color: #f3e5f5; padding: 15px; border-radius: 8px; margin-top: 20px;">
+            <h3 style="color: #6a1b9a; margin-top: 0;">💡 AI Recommendations</h3>
+            <ul style="padding-left: 20px;">
+        """
+        for recommendation in insights["recommendations"]:
+            html += f"<li>{recommendation}</li>"
+        html += """
+            </ul>
+        </div>
+        """
+    
+    return html
+
 
 def import_project(project_data: Dict) -> bool:
     """Import a project including versions and comments.
@@ -4703,28 +5314,88 @@ with st.sidebar:
     # Version control
     st.markdown("---")
     st.subheader("🔄 Version Control")
-    if st.button("Save Current Version"):
+    if st.button("💾 Save Current Version"):
         if st.session_state.protocol_text.strip():
             version_name = st.text_input("Version Name", f"Version {len(st.session_state.protocol_versions) + 1}")
             comment = st.text_area("Comment", height=50)
-            if st.button("Confirm Save"):
+            if st.button("✅ Confirm Save", key="confirm_save_version"):
                 version_id = create_new_version(st.session_state.protocol_text, version_name, comment)
-                st.success(f"Version saved! ID: {version_id[:8]}")
+                st.success(f"✅ Version saved! ID: {version_id[:8]}")
                 st.rerun()
     
-    # Show version history
+    # Show version history with enhanced UI
     versions = get_version_history()
     if versions:
-        st.write("### Version History")
-        for version in reversed(versions[-5:]):  # Show last 5 versions
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                if st.button(f"{version['name']} ({version['timestamp'][:10]})", key=f"load_version_{version['id']}"):
-                    load_version(version['id'])
-                    st.success(f"Loaded version: {version['name']}")
-                    st.rerun()
-            with col2:
-                st.caption(f"v{version['id'][:8]}")
+        st.write("### 📚 Version History")
+        # Add version comparison feature
+        version_options = [f"{v['name']} ({v['timestamp'][:10]})" for v in reversed(versions[-10:])]
+        selected_versions = st.multiselect("Select versions to compare", version_options, key="version_comparison")
+        
+        # Show timeline view toggle
+        show_timeline = st.toggle("Show Timeline View", key="show_timeline")
+        
+        if show_timeline:
+            # Show visual timeline
+            st.markdown(render_version_timeline(), unsafe_allow_html=True)
+        else:
+            # Show traditional list view with enhanced features
+            for version in reversed(versions[-5:]):  # Show last 5 versions
+                col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
+                with col1:
+                    if st.button(f"{version['name']}", key=f"load_version_{version['id']}", help=f"Load this version"):
+                        load_version(version['id'])
+                        st.success(f"✅ Loaded version: {version['name']}")
+                        st.rerun()
+                with col2:
+                    st.caption(f"{version['timestamp'][:10]}")
+                with col3:
+                    st.caption(f"v{version['id'][:8]}")
+                with col4:
+                    # Add branch button for non-current versions
+                    if version['id'] != st.session_state.get('current_version_id', ''):
+                        if st.button("🌿", key=f"branch_icon_{version['id']}", help="Create a branch from this version"):
+                            branch_name = st.text_input("Branch Name", f"Branch of {version['name']}", key=f"branch_name_{version['id']}")
+                            if st.button("✅ Create Branch", key=f"create_branch_{version['id']}"):
+                                new_branch_id = branch_version(version['id'], branch_name)
+                                if new_branch_id:
+                                    st.success(f"✅ Branched to: {branch_name}")
+                                    st.rerun()
+    
+    # Add collaborative workspace features
+    st.markdown("---")
+    st.subheader("👥 Collaborative Workspace")
+    
+    # Real-time collaboration status
+    st.markdown("### 🟢 Collaboration Status")
+    if st.session_state.collaborators:
+        st.success(f"👥 {len(st.session_state.collaborators)} collaborators")
+        for collaborator in st.session_state.collaborators[:3]:  # Show first 3
+            st.caption(f"• {collaborator}")
+        if len(st.session_state.collaborators) > 3:
+            st.caption(f"... and {len(st.session_state.collaborators) - 3} more")
+    else:
+        st.info("ℹ️ Add collaborators to enable real-time collaboration")
+    
+    # Activity feed
+    st.markdown("### 📝 Recent Activity")
+    comments = get_comments()
+    if comments:
+        for comment in comments[-3:]:  # Show last 3 comments
+            st.caption(f"💬 {comment['author']}: {comment['text'][:50]}{'...' if len(comment['text']) > 50 else ''}")
+            st.caption(f"🕒 {comment['timestamp'][:16]}")
+    else:
+        st.caption("No recent activity")
+    
+    # Notifications
+    st.markdown("### 🔔 Notifications")
+    if st.session_state.get("adversarial_running"):
+        st.info("🔄 Adversarial testing in progress")
+    if st.session_state.get("evolution_running"):
+        st.info("🔄 Evolution process in progress")
+    if st.session_state.protocol_versions and len(st.session_state.protocol_versions) > len(st.session_state.get("notified_versions", [])):
+        st.success("✅ New version saved")
+        # Update notified versions
+        st.session_state.notified_versions = st.session_state.protocol_versions.copy()
 
 tab1, tab2 = st.tabs(["🔄 Evolution", "⚔️ Adversarial Testing"])
 
@@ -5999,7 +6670,7 @@ Applies to all employees, contractors, and vendors with system access.
                     
                     if final_sop and original_sop:
                         # Tabs for different views
-                        protocol_tab1, protocol_tab2, protocol_tab3 = st.tabs(["🔄 Comparison", "📄 Final Protocol", "🔍 Structure Analysis"])
+                        protocol_tab1, protocol_tab2, protocol_tab3, protocol_tab4 = st.tabs(["🔄 Comparison", "📄 Final Protocol", "🔍 Structure Analysis", "🤖 AI Insights"])
                         
                         with protocol_tab1:
                             st.markdown("### 🔄 Protocol Evolution")
@@ -6022,6 +6693,10 @@ Applies to all employees, contractors, and vendors with system access.
                             with col2:
                                 st.markdown("**Hardened Protocol**")
                                 st.text_area("Final", value=final_sop, height=300, key="final_protocol_display")
+                            
+                            # Add detailed comparison
+                            st.markdown("### 📊 Detailed Comparison")
+                            st.markdown(render_protocol_comparison(original_sop, final_sop, "Original Protocol", "Hardened Protocol"), unsafe_allow_html=True)
                         
                         with protocol_tab2:
                             st.markdown("### 📄 Final Hardened Protocol")
@@ -6058,6 +6733,10 @@ Applies to all employees, contractors, and vendors with system access.
                                 st.write("Postconditions:", "✅" if structure["has_postconditions"] else "❌")
                                 st.write("Error Handling:", "✅" if structure["has_error_handling"] else "❌")
                                 st.metric("SectionsIn Protocol", structure["section_count"])
+                        
+                        with protocol_tab4:
+                            st.markdown("### 🤖 AI Insights Dashboard")
+                            st.markdown(render_ai_insights_dashboard(final_sop), unsafe_allow_html=True)
 
 with tab2:
     render_adversarial_testing_tab()
