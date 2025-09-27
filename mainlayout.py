@@ -1,446 +1,1052 @@
-# ------------------------------------------------------------------
-# 7. Main layout with tabs
-# ------------------------------------------------------------------
+import streamlit as st
+import json
+import uuid
+from datetime import datetime
+import threading
+import time
+import base64
 
-st.markdown('<h2 style="text-align: center; color: #4a6fa5;">🧬 OpenEvolve Content Improver</h2>',
-            unsafe_allow_html=True)
-st.markdown(
-    '<p style="text-align: center; font-size: 1.2rem;">AI-Powered Content Hardening with Multi-LLM Consensus</p>',
-    unsafe_allow_html=True)
-st.markdown("---")
+import difflib
 
-# Project information with enhanced UI
-col1, col2, col3 = st.columns([3, 1, 1])
-with col1:
-    st.markdown("## 🔴🔵 Adversarial Testing & Evolution-based Content Improvement")
-with col2:
+from pyvis.network import Network
+
+def render_island_model_chart(history: List[Dict]):
+    """Render an interactive graph of the island model evolution."""
+    if not history:
+        return
+
+    net = Network(height="500px", width="100%", notebook=True)
+
+    for i, island in enumerate(history[-1]['islands']):
+        net.add_node(i, label=f"Island {i}")
+
+    for i, island in enumerate(history[-1]['islands']):
+        for j, other_island in enumerate(history[-1]['islands']):
+            if i != j:
+                # This is a placeholder for actual migration data
+                # In a real implementation, you would get this data from the backend
+                if abs(i - j) == 1:
+                    net.add_edge(i, j, value=1)
+
+    net.show("island_model.html")
+    st.components.v1.html(open("island_model.html", 'r', encoding='utf-8').read(), height=500)
+
+def render_code_diff(text1: str, text2: str):
+    """Render the difference between two strings."""
+    diff = difflib.unified_diff(
+        text1.splitlines(keepends=True),
+        text2.splitlines(keepends=True),
+        fromfile='previous',
+        tofile='current',
+    )
+    st.code("".join(diff), language="diff")
+
+
+def render_evolution_history_chart(history: List[Dict]):
+    """Render an interactive scatter plot of the evolution history."""
+    if not history:
+        return
+
+    data = []
+    for generation in history:
+        for individual in generation['population']:
+            data.append({
+                'generation': generation['generation'],
+                'fitness': individual['fitness'],
+                'code': individual['code']
+            })
+
+    chart = alt.Chart(alt.Data(values=data)).mark_circle(size=60).encode(
+        x='generation',
+        y='fitness',
+        tooltip=['generation', 'fitness', 'code']
+    ).interactive()
+
+    st.altair_chart(chart, use_container_width=True)
+
+from sessionstate import (
+    create_new_version, get_version_history, load_version, branch_version, get_comments, add_comment,
+    list_protocol_templates, load_protocol_template, list_adversarial_presets, apply_adversarial_preset,
+    load_adversarial_preset, export_project, import_project, get_openrouter_models,
+    _parse_price_per_million, MODEL_META_BY_ID, MODEL_META_LOCK, FENCE_RE, JSON_RE, APPROVAL_PROMPT,
+    RED_TEAM_CRITIQUE_PROMPT, BLUE_TEAM_PATCH_PROMPT, CODE_REVIEW_RED_TEAM_PROMPT,
+    CODE_REVIEW_BLUE_TEAM_PROMPT, PLAN_REVIEW_RED_TEAM_PROMPT, PLAN_REVIEW_BLUE_TEAM_PROMPT
+)
+from openevolve_integration import (
+    OpenEvolveAPI, run_advanced_code_evolution, create_advanced_openevolve_config,
+    create_multi_model_config, DEEP_INTEGRATION_AVAILABLE as DEEP_INTEGRATION_IMPORTED
+)
+
+from adversarial import (
+    run_adversarial_testing, suggest_performance_improvements, estimate_testing_time_and_cost,
+    generate_advanced_analytics, generate_html_report, generate_pdf_report, generate_docx_report,
+    generate_latex_report, generate_compliance_report, determine_review_type, get_appropriate_prompts, optimize_model_selection
+)
+from integrations import (
+    authenticate_github, list_github_repositories, create_github_branch, commit_to_github,
+    get_github_commit_history, link_github_repository, unlink_github_repository,
+    list_linked_github_repositories, save_protocol_generation_to_github,
+    get_protocol_generations_from_github, send_discord_notification, send_msteams_notification, send_generic_webhook
+)
+from tasks import create_task, get_tasks, update_task
+from suggestions import get_content_suggestions, get_content_classification_and_tags, predict_improvement_potential, check_security_vulnerabilities
+from rbac import has_permission, ROLES, assign_role
+from providercatalogue import PROVIDERS
+
+HAS_STREAMLIT_TAGS = True
+try:
+    from streamlit_tags import st_tags
+except ImportError:
+    HAS_STREAMLIT_TAGS = False
+
+def render_notification_ui():
+    unread_notifications = [n for n in st.session_state.collaboration_session.get("notifications", []) if not n.get("read")]
+    unread_count = len(unread_notifications)
+
+    st.markdown(f"""
+    <style>
+        .notification-icon {
+            position: relative;
+            cursor: pointer;
+        }
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: red;
+            color: white;
+            border-radius: 50%;
+            padding: 2px 6px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    if st.button(f"🔔 ({unread_count})"):
+        st.session_state.show_notifications = not st.session_state.get("show_notifications", False)
+
+    if st.session_state.get("show_notifications", False):
+        with st.expander("Notifications", expanded=True):
+            for notification in st.session_state.collaboration_session.get("notifications", [])[-5:]:
+                st.info(f"**{notification['sender']}** mentioned you in a comment: *{notification['comment_text']}*")
+            if not st.session_state.collaboration_session.get("notifications", []):
+                st.write("No notifications.")
+
+def check_password():
+    """Check for password if project is public and password is set."""
+    if st.session_state.get("project_public") and st.session_state.get("project_password"):
+        if "password_correct" not in st.session_state or not st.session_state.password_correct:
+            password = st.text_input("Enter password to view this project", type="password")
+            if st.button("Submit"):
+                if password == st.session_state.project_password:
+                    st.session_state.password_correct = True
+                    st.rerun()
+                else:
+                    st.error("Incorrect password")
+            st.stop()
+
+def render_collaboration_ui():
+    """Render the collaboration UI, including presence indicators and notifications."""
+    st.markdown("""
+    <style>
+        .presence-container {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        .presence-indicator {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            border: 2px solid white;
+            background-color: #ccc;
+        }
+        .notification-center {
+            position: fixed;
+            top: 50px;
+            right: 10px;
+            width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            display: none;
+        }
+        .notification {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+    </style>
+    <div id="presence-container" class="presence-container"></div>
+    <div id="notification-center" class="notification-center"></div>
+    <script>
+        const presenceContainer = document.getElementById("presence-container");
+        const notificationCenter = document.getElementById("notification-center");
+        const websocket = new WebSocket("ws://localhost:8765");
+
+        websocket.onmessage = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "presence_update") {
+                presenceContainer.innerHTML = "";
+                data.payload.forEach(user => {
+                    const indicator = document.createElement("div");
+                    indicator.className = "presence-indicator";
+                    indicator.title = user.id;
+                    presenceContainer.appendChild(indicator);
+                });
+            } else if (data.type === "notification") {
+                const notification = document.createElement("div");
+                notification.className = "notification";
+                notification.innerText = data.payload.message;
+                notificationCenter.appendChild(notification);
+                notificationCenter.style.display = "block";
+            } else if (data.type === "cursor_update") {
+                const editor = document.querySelector('.stTextArea textarea');
+                let cursor = document.getElementById(`cursor-${data.sender}`);
+                if (!cursor) {
+                    cursor = document.createElement('div');
+                    cursor.id = `cursor-${data.sender}`;
+                    cursor.className = 'other-cursor';
+                    document.body.appendChild(cursor);
+                }
+                cursor.style.left = `${data.payload.x}px`;
+                cursor.style.top = `${data.payload.y}px`;
+            } else if (data.type === "text_update") {
+                const editor = document.querySelector('.stTextArea textarea');
+                if (editor.value !== data.payload.text) {
+                    editor.value = data.payload.text;
+                }
+            }
+        };
+
+        const textArea = document.querySelector('[data-testid="stTextAreawithLabel"] textarea');
+        if (textArea) {
+            textArea.addEventListener('input', (event) => {
+                const text_update = {
+                    type: "text_update",
+                    payload: {
+                        text: event.target.value
+                    }
+                };
+                websocket.send(JSON.stringify(text_update));
+            });
+
+            textArea.addEventListener('mousemove', (event) => {
+                const cursor_update = {
+                    type: "cursor_update",
+                    payload: {
+                        x: event.clientX,
+                        y: event.clientY
+                    }
+                };
+                websocket.send(JSON.stringify(cursor_update));
+            });
+        }
+
+        websocket.onopen = () => {
+            const presenceData = {
+                type: "update_presence",
+                payload: {
+                    id: Math.random().toString(36).substring(7)
+                }
+            };
+            websocket.send(JSON.stringify(presenceData));
+        };
+
+        document.addEventListener("click", (event) => {
+            if (!notificationCenter.contains(event.target)) {
+                notificationCenter.style.display = "none";
+            }
+        });
+    </script>
+    """, unsafe_allow_html=True)
+
+def render_main_layout():
+    render_collaboration_ui()
+    check_password()
+    # Apply theme-specific CSS with animations
+    current_theme = st.session_state.get("theme", "light")
+    
+    # Define theme-specific CSS with animations and transitions
+    if current_theme == "dark":
+        theme_css = """
+        <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b8cbc;
+            --background-color: #0e1117;
+            --text-color: #ffffff;
+            --card-background: #1a1d23;
+            --border-color: #3a3f47;
+            --transition-speed: 0.3s;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .stApp {
+            background-color: var(--background-color) !important;
+            color: var(--text-color) !important;
+            font-family: var(--font-family);
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--primary-color);
+        }
+        
+        .stButton>button {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            border: 1px solid var(--primary-color) !important;
+            transition: background-color var(--transition-speed) ease, transform 0.1s ease;
+            border-radius: 8px !important;
+        }
+        
+        .stButton>button:hover {
+            background-color: var(--secondary-color) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stButton>button:active {
+            transform: translateY(0);
+        }
+        
+        .stTextInput>div>div>input, .stTextArea textarea {
+            background-color: var(--card-background) !important;
+            color: var(--text-color) !important;
+            border: 1px solid var(--border-color) !important;
+            transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            border-radius: 8px !important;
+        }
+        
+        .stTextInput>div>div>input:focus, .stTextArea textarea:focus {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.3);
+        }
+        
+        .stSelectbox>div>div>select {
+            background-color: var(--card-background) !important;
+            color: var(--text-color) !important;
+            border: 1px solid var(--border-color) !important;
+            transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            border-radius: 8px !important;
+        }
+        
+        .stSelectbox>div>div>select:focus {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.3);
+        }
+        
+        .stSlider>div>div>div {
+            background-color: var(--primary-color) !important;
+            transition: background-color var(--transition-speed) ease;
+        }
+        
+        .st-expander {
+            background-color: var(--card-background) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
+            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+        }
+        </style>
+        """
+    else:
+        theme_css = """
+        <style>
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #6b8cbc;
+            --background-color: #f0f2f6;
+            --text-color: #333333;
+            --card-background: #ffffff;
+            --border-color: #dee2e6;
+            --transition-speed: 0.3s;
+            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .stApp {
+            background-color: var(--background-color) !important;
+            color: var(--text-color) !important;
+            font-family: var(--font-family);
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            color: var(--primary-color);
+        }
+        
+        .stButton>button {
+            background-color: var(--primary-color) !important;
+            color: white !important;
+            border: 1px solid var(--primary-color) !important;
+            transition: background-color var(--transition-speed) ease, transform 0.1s ease;
+            border-radius: 8px !important;
+        }
+        
+        .stButton>button:hover {
+            background-color: var(--secondary-color) !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .stButton>button:active {
+            transform: translateY(0);
+        }
+        
+        .stTextInput>div>div>input, .stTextArea textarea {
+            background-color: var(--card-background) !important;
+            color: var(--text-color) !important;
+            border: 1px solid var(--border-color) !important;
+            transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            border-radius: 8px !important;
+        }
+        
+        .stTextInput>div>div>input:focus, .stTextArea textarea:focus {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.3);
+        }
+        
+        .stSelectbox>div>div>select {
+            background-color: var(--card-background) !important;
+            color: var(--text-color) !important;
+            border: 1px solid var(--border-color) !important;
+            transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+            border-radius: 8px !important;
+        }
+        
+        .stSelectbox>div>div>select:focus {
+            border-color: var(--primary-color) !important;
+            box-shadow: 0 0 0 2px rgba(74, 111, 165,.3);
+        }
+        
+        .stSlider>div>div>div {
+            background-color: var(--primary-color) !important;
+            transition: background-color var(--transition-speed) ease;
+        }
+        
+        .st-expander {
+            background-color: var(--card-background) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 8px !important;
+            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
+        }
+        </style>
+        """
+    
+    st.markdown(theme_css, unsafe_allow_html=True)
+    
+    st.markdown('<h2 style="text-align: center; color: var(--primary-color);">🧬 OpenEvolve Content Improver</h2>', 
+                unsafe_allow_html=True)
     st.markdown(
-        '<span class="team-badge-lg red-team">Red Team</span><span class="team-badge-lg blue-team">Blue Team</span>',
+        '<p style="text-align: center; font-size: 1.2rem; color: var(--text-color);">AI-Powered Content Hardening with Multi-LLM Consensus</p>',
         unsafe_allow_html=True)
-with col3:
-    # Add a quick action button with enhanced styling
-    if st.button("📋 Quick Guide", key="quick_guide_btn", use_container_width=True):
-        st.session_state.show_quick_guide = not st.session_state.get("show_quick_guide", False)
-
-# Show quick guide if requested with enhanced UI
-if st.session_state.get("show_quick_guide", False):
-    with st.expander("📘 Quick Guide", expanded=True):
-        st.markdown("""
-        ### 🚀 Getting Started
-
-        1. **Choose Your Approach**:
-           - **Evolution Tab**: Iteratively improve any content using one AI model
-           - **Adversarial Testing Tab**: Harden content using multiple AI models in red team/blue team approach
-
-        2. **Configure Your Models**:
-           - Select a provider and model in the sidebar (Evolution tab)
-           - Enter your OpenRouter API key for Adversarial Testing
-           - Choose models for red team (critics) and blue team (fixers)
-
-        3. **Input Your Content**:
-           - Paste your existing content or load a template
-           - Add compliance requirements if needed
-
-        4. **Run the Process**:
-           - Adjust parameters as needed
-           - Click "Start" and monitor progress
-           - Review results and save improved versions
-
-        5. **Collaborate & Share**:
-           - Add collaborators to your project
-           - Save versions and track changes
-           - Export results in multiple formats
-        """)
-        if st.button("Close Guide"):
-            st.session_state.show_quick_guide = False
-            st.rerun()
-
-# Project info in sidebar
-with st.sidebar:
     st.markdown("---")
-    st.subheader("📁 Project Information")
-    st.text_input("Project Name", key="project_name")
-    st.text_area("Project Description", key="project_description", height=100)
 
-    # Tags
-    if HAS_STREAMLIT_TAGS:
-        st.multiselect("Tags", st.session_state.tags, key="tags")
+    # Notification UI
+    render_notification_ui()
 
-    # Collaborators
-    st.multiselect("Collaborators", st.session_state.collaborators, key="collaborators")
+    # Project information with enhanced UI
+    col1, col2, col3 = st.columns([3, 1, 1])
+    with col1:
+        st.markdown("## 🔴🔵 Adversarial Testing & Evolution-based Content Improvement")
+    with col2:
+        st.markdown(
+            '<span class="team-badge-lg red-team">Red Team</span><span class="team-badge-lg blue-team">Blue Team</span>',
+            unsafe_allow_html=True)
+    with col3:
+        # Add quick action buttons with enhanced styling
+    quick_action_col1, quick_action_col2 = st.columns(2)
+    with quick_action_col1:
+        if st.button("📋 Quick Guide", key="quick_guide_btn", use_container_width=True):
+            st.session_state.show_quick_guide = not st.session_state.get("show_quick_guide", False)
+    with quick_action_col2:
+        if st.button("⌨️ Keyboard Shortcuts", key="keyboard_shortcuts_btn", use_container_width=True):
+            st.session_state.show_keyboard_shortcuts = not st.session_state.get("show_keyboard_shortcuts", False)
 
-    # Version control
-    st.markdown("---")
-    st.subheader("🔄 Version Control")
-    if st.button("💾 Save Current Version"):
-        if st.session_state.protocol_text.strip():
-            version_name = st.text_input("Version Name", f"Version {len(st.session_state.protocol_versions) + 1}")
-            comment = st.text_area("Comment", height=50)
-            if st.button("✅ Confirm Save", key="confirm_save_version"):
-                version_id = create_new_version(st.session_state.protocol_text, version_name, comment)
-                st.success(f"✅ Version saved! ID: {version_id[:8]}")
+    # Show quick guide if requested with enhanced UI
+    if st.session_state.get("show_quick_guide", False):
+        with st.expander("📘 Quick Guide", expanded=True):
+            st.markdown("""
+            ### 🚀 Getting Started
+
+            1. **Choose Your Approach**:
+               - **Evolution Tab**: Iteratively improve any content using one AI model
+               - **Adversarial Testing Tab**: Harden content using multiple AI models in red team/blue team approach
+
+            2. **Configure Your Models**:
+               - Select a provider and model in the sidebar (Evolution tab)
+               - Enter your OpenRouter API key for Adversarial Testing
+               - Choose models for red team (critics) and blue team (fixers)
+
+            3. **Input Your Content**:
+               - Paste your existing content or load a template
+               - Add compliance requirements if needed
+
+            4. **Run the Process**:
+               - Adjust parameters as needed
+               - Click "Start" and monitor progress
+               - Review results and save improved versions
+
+            5. **Collaborate & Share**:
+               - Add collaborators to your project
+               - Save versions and track changes
+               - Export results in multiple formats
+            """)
+            if st.button("Close Guide"):
+                st.session_state.show_quick_guide = False
+                st.rerun()
+    
+    # Keyboard shortcuts documentation
+    if st.session_state.get("show_keyboard_shortcuts", False):
+        with st.expander("⌨️ Keyboard Shortcuts", expanded=True):
+            st.markdown("""
+            ### 🎯 Available Keyboard Shortcuts
+            
+            **Navigation & General**
+            - `Ctrl+S` - Save current protocol
+            - `Ctrl+O` - Open file
+            - `Ctrl+N` - Create new file
+            - `Ctrl+Shift+N` - New window
+            - `F5` or `Ctrl+R` - Refresh the application
+            - `F1` - Open help documentation
+            - `Ctrl+Shift+P` - Open command palette
+            - `Esc` - Close current modal or expandable section
+            - `Tab` - Indent selected text or insert 4 spaces
+            - `Shift+Tab` - Unindent selected text
+            
+            **Editing**
+            - `Ctrl+Z` - Undo last action
+            - `Ctrl+Y` or `Ctrl+Shift+Z` - Redo last action
+            - `Ctrl+X` - Cut selected text
+            - `Ctrl+C` - Copy selected text
+            - `Ctrl+V` - Paste text
+            - `Ctrl+A` - Select all text
+            - `Ctrl+F` - Find in protocol text
+            - `Ctrl+H` - Replace in protocol text
+            - `Ctrl+/` - Comment/uncomment selected lines
+            - `Ctrl+D` - Select current word/pattern
+            - `Ctrl+L` - Select current line
+            
+            **Formatting**
+            - `Ctrl+B` - Bold selected text
+            - `Ctrl+I` - Italicize selected text
+            - `Ctrl+U` - Underline selected text
+            - `Ctrl+Shift+K` - Insert link
+            - `Ctrl+Shift+I` - Insert image
+            - `Ctrl+Shift+L` - Create list
+            
+            **Application Specific**
+            - `Ctrl+Enter` - Start evolution/adversarial testing
+            - `Ctrl+Shift+Enter` - Start adversarial testing
+            - `Ctrl+M` - Toggle between light/dark mode
+            - `Ctrl+P` - Toggle panel visibility
+            - `Ctrl+E` - Export current document
+            - `Ctrl+Shift+F` - Toggle full screen
+            
+            **Text Editor Controls**
+            - `Ctrl+]` - Indent current line
+            - `Ctrl+[` - Outdent current line
+            - `Alt+Up/Down` - Move selected lines up/down
+            - `Ctrl+Shift+D` - Duplicate current line
+            - `Ctrl+Shift+K` - Delete current line
+            - `Ctrl+/` - Toggle line comment
+            - `Ctrl+Shift+/` - Toggle block comment
+            ")
+            if st.button("Close Keyboard Shortcuts"):
+                st.session_state.show_keyboard_shortcuts = False
                 st.rerun()
 
-    # Show version history with enhanced UI
-    versions = get_version_history()
-    if versions:
-        st.write("### 📚 Version History")
-        # Add version comparison feature
-        version_options = [f"{v['name']} ({v['timestamp'][:10]})" for v in reversed(versions[-10:])]
-        selected_versions = st.multiselect("Select versions to compare", version_options, key="version_comparison")
+    tab_names = ["🔄 Evolution", "⚔️ Adversarial Testing", "🐙 GitHub", "📜 Activity Feed", "📊 Report Templates", "🤖 Model Dashboard", "✅ Tasks", "📂 Projects"]
+    if has_permission(st.session_state.get("username", "admin"), "manage_users"):
+        tab_names.append("👑 Admin")
+    tab_names.append("📈 Analytics")
 
-        # Show timeline view toggle
-        show_timeline = st.toggle("Show Timeline View", key="show_timeline")
+    tabs = st.tabs(tab_names)
 
-        if show_timeline:
-            # Show visual timeline
-            st.markdown(render_version_timeline(), unsafe_allow_html=True)
-        else:
-            # Show traditional list view with enhanced features
-            for version in reversed(versions[-5:]):  # Show last 5 versions
-                col1, col2, col3, col4 = st.columns([2, 1, 1, 1])
-                with col1:
-                    if st.button(f"{version['name']}", key=f"load_version_{version['id']}", help=f"Load this version"):
-                        load_version(version['id'])
-                        st.success(f"✅ Loaded version: {version['name']}")
-                        st.rerun()
-                with col2:
-                    st.caption(f"{version['timestamp'][:10]}")
-                with col3:
-                    st.caption(f"v{version['id'][:8]}")
-                with col4:
-                    # Add branch button for non-current versions
-                    if version['id'] != st.session_state.get('current_version_id', ''):
-                        if st.button("🌿", key=f"branch_icon_{version['id']}", help="Create a branch from this version"):
-                            branch_name = st.text_input("Branch Name", f"Branch of {version['name']}",
-                                                        key=f"branch_name_{version['id']}")
-                            if st.button("✅ Create Branch", key=f"create_branch_{version['id']}"):
-                                new_branch_id = branch_version(version['id'], branch_name)
-                                if new_branch_id:
-                                    st.success(f"✅ Branched to: {branch_name}")
+    active_tab = st.session_state.get("active_tab", tab_names[0])
+
+    for i, tab in enumerate(tabs):
+        with tab:
+            if tab_names[i] == active_tab:
+        st.markdown("""
+        <style>
+        .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
+            font-size:1.5rem;
+        }
+        </style>
+        """,unsafe_allow_html=True)
+
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Evolution", "Adversarial Testing", "Integrations", "Collaboration", "Logs"])
+
+        with tab5:
+            st.header("Real-time Evolution Logs")
+            log_placeholder = st.empty()
+            # JavaScript to fetch and display logs
+            st.markdown("""
+            <script>
+            const eventSource = new EventSource('http://localhost:5001/logs');
+            eventSource.onmessage = function(event) {
+                const logContainer = window.parent.document.querySelector('[data-testid="stVerticalBlock"] div:nth-child(5) [data-testid="stMarkdownContainer"]');
+                if (logContainer) {
+                    logContainer.innerHTML += `<p>${event.data}</p>`;
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                }
+            };
+            </script>
+            """, unsafe_allow_html=True)
+
+        with tab1:
+                    st.subheader("📝 Content Input")
+                    with st.expander("📝 Content Input", expanded=True):
+                        st.text_area("Paste your draft content here:", height=300, key="protocol_text",
+                                     value="# Sample Protocol\n\nThis is a sample protocol for testing purposes.",
+                                     disabled=st.session_state.adversarial_running)
+
+                        templates = list_protocol_templates()
+                        if templates:
+                            col1, col2 = st.columns([3, 1])
+                            with col1:
+                                selected_template = st.selectbox("Load Template", [""] + templates, key="load_template_select")
+                            with col2:
+                                if selected_template and st.button("Load Selected Template", key="load_template_btn",
+                                                                   use_container_width=True):
+                                    template_content = load_protocol_template(selected_template)
+                                    st.session_state.protocol_text = template_content
+                                    st.success(f"Loaded template: {selected_template}")
                                     st.rerun()
 
-    # Add collaborative workspace features
-    st.markdown("---")
-    st.subheader("👥 Collaborative Workspace")
+                        with st.expander("🎮 Action Controls", expanded=True):
+                            c1, c2, c3 = st.columns(3)
+                            run_button = c1.button("🚀 Start Evolution", type="primary", disabled=st.session_state.evolution_running,
+                                                   use_container_width=True)
+                            stop_button = c2.button("⏹️ Stop Evolution", disabled=not st.session_state.evolution_running,
+                                                    use_container_width=True)
+                            resume_button = c3.button("🔄 Resume Evolution", use_container_width=True)
 
-    # Real-time collaboration status
-    st.markdown("### 🟢 Collaboration Status")
-    if st.session_state.collaborators:
-        st.success(f"👥 {len(st.session_state.collaborators)} collaborators")
-        for collaborator in st.session_state.collaborators[:3]:  # Show first 3
-            st.caption(f"• {collaborator}")
-        if len(st.session_state.collaborators) > 3:
-            st.caption(f"... and {len(st.session_state.collaborators) - 3} more")
-    else:
-        st.info("ℹ️ Add collaborators to enable real-time collaboration")
+                        classify_button = st.button("🏷️ Classify and Tag", use_container_width=True)
 
-    # Activity feed
-    st.markdown("### 📝 Recent Activity")
-    comments = get_comments()
-    if comments:
-        for comment in comments[-3:]:  # Show last 3 comments
-            st.caption(f"💬 {comment['author']}: {comment['text'][:50]}{'...' if len(comment['text']) > 50 else ''}")
-            st.caption(f"🕒 {comment['timestamp'][:16]}")
-    else:
-        st.caption("No recent activity")
+                        predict_button = st.button("🔮 Predict Improvement Potential", use_container_width=True)
 
-    # Notifications
-    st.markdown("### 🔔 Notifications")
-    if st.session_state.get("adversarial_running"):
-        st.info("🔄 Adversarial testing in progress")
-    if st.session_state.get("evolution_running"):
-        st.info("🔄 Evolution process in progress")
-    if st.session_state.protocol_versions and len(st.session_state.protocol_versions) > len(
-            st.session_state.get("notified_versions", [])):
-        st.success("✅ New version saved")
-        # Update notified versions
-        st.session_state.notified_versions = st.session_state.protocol_versions.copy()
+                        security_button = st.button("🛡️ Check Security", use_container_width=True)
 
-    # Template Marketplace
-    st.markdown("---")
-    st.subheader("🛍️ Template Marketplace")
+                        with st.expander("Compare Generations"):
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                generation1 = st.selectbox("Select Generation 1", range(len(st.session_state.evolution_history)))
+                            with col2:
+                                generation2 = st.selectbox("Select Generation 2", range(len(st.session_state.evolution_history)))
+                            if st.button("Compare"):
+                                text1 = st.session_state.evolution_history[generation1]['population'][0]['code']
+                                text2 = st.session_state.evolution_history[generation2]['population'][0]['code']
+                                render_code_diff(text1, text2)
 
-    # Search and browse templates
-    search_query = st.text_input("Search Templates", key="template_search")
+                        if "suggestions" in st.session_state and st.session_state.suggestions:
+                            with st.expander("💡 Suggestions", expanded=True):
+                                for suggestion in st.session_state.suggestions:
+                                    st.markdown(f"- {suggestion}")
 
-    # Category filter
-    categories = list_template_categories()
-    selected_category = st.selectbox("Category", ["All"] + categories, key="template_category")
+                        if classify_button:
+                            with st.spinner("Classifying and tagging..."):
+                                classification_and_tags = get_content_classification_and_tags(st.session_state.protocol_text)
+                                st.session_state.classification_and_tags = classification_and_tags
 
-    # Display templates
-    if search_query:
-        templates = search_templates(search_query)
-        st.write(f"### Search Results ({len(templates)} found)")
-    elif selected_category != "All":
-        template_names = list_templates_in_category(selected_category)
-        templates = [(selected_category, name, get_template_details(selected_category, name)) for name in
-                     template_names]
-        st.write(f"### {selected_category} Templates ({len(templates)} found)")
-    else:
-        # Show popular templates
-        templates = get_popular_templates(5)
-        st.write("### Popular Templates")
+                        if "classification_and_tags" in st.session_state and st.session_state.classification_and_tags:
+                            with st.expander("🏷️ Classification and Tags", expanded=True):
+                                st.write(f"**Classification:** {st.session_state.classification_and_tags.get('classification')}")
+                                st.write(f"**Tags:** {', '.join(st.session_state.classification_and_tags.get('tags', []))}")
 
-    # Display template cards
-    for category, template_name, details in templates[:10]:  # Limit to first 10
-        col1, col2, col3 = st.columns([3, 1, 1])
-        with col1:
-            st.markdown(f"**{template_name}**")
-            st.caption(details.get("description", "")[:100] + "..." if len(
-                details.get("description", "")) > 100 else details.get("description", ""))
-        with col2:
-            st.caption(f"⭐ {details.get('rating', 0)}")
-            st.caption(f"📥 {details.get('downloads', 0):,}")
-        with col3:
-            if st.button("📥 Load", key=f"load_template_{category}_{template_name}"):
-                # In a real implementation, this would load the template
-                st.success(f"Loaded template: {template_name}")
-                st.rerun()
+                        if predict_button:
+                            with st.spinner("Predicting improvement potential..."):
+                                potential = predict_improvement_potential(st.session_state.protocol_text)
+                                st.session_state.improvement_potential = potential
 
-    # External Integrations
-    st.markdown("---")
-    st.subheader("🔌 External Integrations")
+                        if "improvement_potential" in st.session_state and st.session_state.improvement_potential is not None:
+                            st.metric("Improvement Potential", f"{st.session_state.improvement_potential:.2%}")
 
-    # Show integration status
-    integrations = list_external_integrations()
-    for integration_name in integrations:
-        is_authenticated = st.session_state.get(f"{integration_name}_authenticated", False)
-        integration = get_integration_details(integration_name)
+                        if security_button:
+                            with st.spinner("Checking for security vulnerabilities..."):
+                                vulnerabilities = check_security_vulnerabilities(st.session_state.protocol_text)
+                                st.session_state.vulnerabilities = vulnerabilities
 
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.markdown(f"**{integration['name']}**")
-            if is_authenticated:
-                st.caption("✅ Connected")
-            else:
-                st.caption("❌ Not connected")
-        with col2:
-            if st.button("⚙️" if is_authenticated else "🔗", key=f"config_integration_{integration_name}"):
-                # In a real implementation, this would show configuration dialog
-                st.info(f"Configure {integration['name']} integration")
+                        if "vulnerabilities" in st.session_state and st.session_state.vulnerabilities:
+                            with st.expander("🛡️ Security Vulnerabilities", expanded=True):
+                                for vulnerability in st.session_state.vulnerabilities:
+                                    st.warning(vulnerability)
 
-    # GitHub Integration
-    st.markdown("---")
-    st.subheader("🔗 GitHub Integration")
+                            st.markdown("### 📝 Prompts")
+                            api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                            custom_prompts = api.get_custom_prompts()
+                            if custom_prompts:
+                                selected_custom_prompt = st.selectbox("Select a custom prompt", ["None"].extend(list(custom_prompts.keys())))
+                                if selected_custom_prompt != "None":
+                                    st.session_state.system_prompt = custom_prompts[selected_custom_prompt]['system_prompt']
+                                    st.session_state.evaluator_system_prompt = custom_prompts[selected_custom_prompt]['evaluator_system_prompt']
+                            
+                            st.text_area("System Prompt", key="system_prompt", height=150)
+                            st.text_area("Evaluator System Prompt", key="evaluator_system_prompt", height=150)
+                            st.checkbox("Use Specialized Evaluator", key="use_specialized_evaluator", help="Use a linter-based evaluator for more accurate code evaluation.")
 
-    # GitHub authentication
-    if st.session_state.get("github_user"):
-        # User is authenticated
-        user = st.session_state.github_user
-        col1, col2 = st.columns([3, 1])
-        with col1:
-            st.markdown(f"**{user.get('login', 'Unknown')}**")
-            st.caption("✅ Connected to GitHub")
-        with col2:
-            if st.button("Disconnect", key="disconnect_github", use_container_width=True):
-                # Disconnect from GitHub
-                if "github_user" in st.session_state:
-                    del st.session_state.github_user
-                if "github_token" in st.session_state:
-                    del st.session_state.github_token
-                st.success("Disconnected from GitHub")
-                st.rerun()
+                            new_prompt_name = st.text_input("New Custom Prompt Name")
+                            if st.button("Save Custom Prompt"):
+                                if new_prompt_name:
+                                    api.save_custom_prompt(new_prompt_name, {"system_prompt": st.session_state.system_prompt, "evaluator_system_prompt": st.session_state.evaluator_system_prompt})
+                                    st.success(f"Custom prompt '{new_prompt_name}' saved.")
+                                else:
+                                    st.error("Prompt name cannot be empty.")
 
-        # Repository linking
-        st.markdown("### 📂 Repositories")
-        linked_repos = list_linked_github_repositories()
-        if linked_repos:
-            for repo_name in linked_repos:
-                col1, col2, col3 = st.columns([2, 1, 1])
-                with col1:
-                    st.caption(repo_name)
-                with col2:
-                    if st.button("SetBranch", key=f"set_branch_{repo_name}"):
-                        # In a real implementation, this would set the branch
-                        st.info(f"Set branch for {repo_name}")
-                with col3:
-                    if st.button("❌", key=f"unlink_repo_{repo_name}"):
-                        if unlink_github_repository(repo_name):
-                            st.success(f"Unlinked {repo_name}")
+                            st.markdown("### ⬆️ Upload Custom Evaluator")
+                            uploaded_evaluator_file = st.file_uploader("Upload Python file with 'evaluate' function", type=["py"])
+                            if uploaded_evaluator_file is not None:
+                                evaluator_code = uploaded_evaluator_file.read().decode("utf-8")
+                                api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                                evaluator_id = api.upload_evaluator(evaluator_code)
+                                if evaluator_id:
+                                    st.session_state.custom_evaluator_id = evaluator_id
+                                    st.success(f"Evaluator uploaded with ID: {evaluator_id}")
+                                else:
+                                    st.error("Failed to upload evaluator.")
+
+                            st.markdown("### Manage Custom Evaluators")
+                            api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                            custom_evaluators = api.get_custom_evaluators()
+                            if custom_evaluators:
+                                for evaluator_id, evaluator_data in custom_evaluators.items():
+                                    with st.expander(f"Evaluator ID: {evaluator_id}"):
+                                        st.code(evaluator_data['code'], language="python")
+                                        if st.button("Delete Evaluator", key=f"delete_evaluator_{evaluator_id}"):
+                                            api.delete_evaluator(evaluator_id)
+                                            st.success(f"Evaluator {evaluator_id} deleted.")
+                                            st.rerun()
+                        with st.expander("⚙️ Advanced Settings", expanded=False):
+                            st.markdown("### 🎛️ Evolution Parameters")
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                st.number_input("Max Iterations", 1, 200, 20, key="max_iterations")
+                                st.number_input("Population Size", 1, 100, 1, key="population_size")
+                                st.number_input("Number of Islands", 1, 10, 1, key="num_islands")
+                                st.slider("Elite Ratio", 0.0, 1.0, 1.0, 0.1, key="elite_ratio")
+                            with col2:
+                                st.number_input("Checkpoint Interval", 1, 100, 5, key="checkpoint_interval")
+                                st.slider("Exploration Ratio", 0.0, 1.0, 0.0, 0.1, key="exploration_ratio")
+                                st.slider("Exploitation Ratio", 0.0, 1.0, 0.0, 0.1, key="exploitation_ratio")
+                                st.number_input("Archive Size", 0, 100, 0, key="archive_size")
+                            
+                            st.markdown("### 🤖 Model Parameters")
+                            col3, col4 = st.columns(2)
+                            with col3:
+                                st.slider("Temperature", 0.0, 2.0, 0.7, 0.1, key="temperature")
+                                st.slider("Top-P", 0.0, 1.0, 1.0, 0.1, key="top_p")
+                            with col4:
+                                st.slider("Frequency Penalty", -2.0, 2.0, 0.0, 0.1, key="frequency_penalty")
+                                st.slider("Presence Penalty", -2.0, 2.0, 0.0, 0.1, key="presence_penalty")
+                            
+                            st.markdown("### 🎯 Multi-Objective Evolution")
+                            st.info("Define multiple objectives for the evolution. The fitness of each individual will be a vector of scores, one for each objective.")
+                            st.session_state.feature_dimensions = st_tags(
+                                label='Feature Dimensions:',
+                                text='Press enter to add more',
+                                value=['complexity', 'diversity'],
+                                key='feature_dimensions')
+                            st.number_input("Feature Bins", 1, 100, 10, key="feature_bins")
+
+                            st.markdown("### 🏝️ Island Model Evolution")
+                            st.info("Divide the population into multiple islands to encourage diversity. Individuals will migrate between islands periodically.")
+                            st.number_input("Number of Islands", 1, 10, 1, key="num_islands")
+                            st.slider("Migration Interval", 0, 100, 50, key="migration_interval")
+                            st.slider("Migration Rate", 0.0, 1.0, 0.1, 0.05, key="migration_rate")
+
+                        with st.expander("📊 Results", expanded=True):
+                            left, right = st.columns(2)
+                            with left:
+                                st.subheader("📄 Current Best Content")
+                                proto_out = st.empty()
+
+                            with right:
+                                st.subheader("🔍 Logs")
+                                log_out = st.empty()
+
+                        if st.session_state.evolution_running:
+                            api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                            status = api.get_evolution_status(st.session_state.evolution_id)
+                            if status:
+                                proto_out.markdown(f"**Status:** {status['status']}\n\n**Best Score:** {status['best_score']}")
+                                log_out.code(status['log'], language="text")
+                                for log_chunk in api.stream_evolution_logs(st.session_state.evolution_id):
+                                    log_out.code(log_chunk, language="text")
+                                if status['status'] == 'completed':
+                                    st.session_state.evolution_running = False
+                                    previous_best = st.session_state.evolution_current_best
+                                    best_solution = api.get_best_solution(st.session_state.evolution_id)
+                                    st.session_state.evolution_current_best = best_solution['code']
+                                    render_code_diff(previous_best, st.session_state.evolution_current_best)
+                                    history = api.get_evolution_history(st.session_state.evolution_id)
+                                    if history:
+                                        render_evolution_history_chart(history)
+                                        if len(history[-1].get('islands', [])) > 1:
+                                            render_island_model_chart(history)
+                                    artifacts = api.get_artifacts(st.session_state.evolution_id)
+                                    if artifacts:
+                                        st.subheader("Artifacts")
+                                        for artifact in artifacts:
+                                            st.download_button(artifact['name'], api.download_artifact(st.session_state.evolution_id, artifact['name']), artifact['name'])
+                                    st.balloons()
+                            time.sleep(1)
                             st.rerun()
-        else:
-            st.info("No repositories linked yet")
+                        else:
+                            with st.session_state.thread_lock:
+                                current_log = "\n".join(st.session_state.evolution_log)
+                                current_content = st.session_state.evolution_current_best or st.session_state.protocol_text
 
-        # Link new repository
-        st.markdown("### 🔗 Link New Repository")
-        repo_name = st.text_input("Repository Name", placeholder="owner/repository")
-        if repo_name and st.button("Link Repository"):
-            token = st.session_state.get("github_token")
-            if token:
-                if link_github_repository(token, repo_name):
-                    st.success(f"Linked repository: {repo_name}")
-                    st.rerun()
+                            log_out.code(current_log, language="text")
+                            proto_out.code(current_content, language="markdown")
+
+                        if run_button:
+                            st.session_state.evolution_running = True
+                            api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                            config = create_advanced_openevolve_config(
+                                model_name=st.session_state.model,
+                                api_key=st.session_state.api_key,
+                                api_base=st.session_state.base_url,
+                                temperature=st.session_state.temperature,
+                                top_p=st.session_state.top_p,
+                                max_tokens=st.session_state.max_tokens,
+                                max_iterations=st.session_state.max_iterations,
+                                population_size=st.session_state.population_size,
+                                num_islands=st.session_state.num_islands,
+                                archive_size=st.session_state.archive_size,
+                                elite_ratio=st.session_state.elite_ratio,
+                                exploration_ratio=st.session_state.exploration_ratio,
+                                exploitation_ratio=st.session_state.exploitation_ratio,
+                                checkpoint_interval=st.session_state.checkpoint_interval,
+                            )
+                            evolution_id = api.start_evolution(config=asdict(config))
+                            if evolution_id:
+                                st.session_state.evolution_id = evolution_id
+                            st.rerun()
+
+                        if stop_button:
+                            st.session_state.evolution_stop_flag = True
+
+                        if st.session_state.evolution_running:
+                            time.sleep(1)
+                            st.rerun()
+
+                elif tab_names[i] == "⚔️ Adversarial Testing":
+                    render_adversarial_testing_tab()
+
+                elif tab_names[i] == "🐙 GitHub":
+                    st.title("🐙 GitHub Integration")
+                    if not st.session_state.get("github_token"):
+                        st.warning("Please authenticate with GitHub in the sidebar first.")
+                        st.info("Go to the sidebar and enter your GitHub Personal Access Token to get started.")
+                        st.stop()
+                    linked_repos = list_linked_github_repositories()
+                    if not linked_repos:
+                        st.warning("Please link at least one GitHub repository in the sidebar first.")
+                        st.info("Go to the sidebar, find the GitHub Integration section, and link a repository.")
+                        st.stop()
+                    selected_repo = st.selectbox("Select Repository", linked_repos)
+                    if selected_repo:
+                        st.markdown("### 🌿 Branch Management")
+                        with st.expander("Create New Branch"):
+                            new_branch_name = st.text_input("New Branch Name", placeholder="e.g., protocol-v1")
+                            base_branch = st.text_input("Base Branch", "main")
+                            if st.button("Create Branch") and new_branch_name:
+                                token = st.session_state.github_token
+                                if create_github_branch(token, selected_repo, new_branch_name, base_branch):
+                                    st.success(f"Created branch '{new_branch_name}' from '{base_branch}'")
+                        branch_name = st.text_input("Target Branch", "main")
+                        st.markdown("### 💾 Commit and Push")
+                        file_path = st.text_input("File Path", "protocols/evolved_protocol.md")
+                        commit_message = st.text_input("Commit Message", "Update evolved protocol")
+                        if st.button("Commit to GitHub") and st.session_state.protocol_text.strip():
+                            token = st.session_state.github_token
+                            if commit_to_github(token, selected_repo, file_path, st.session_state.protocol_text, commit_message, branch_name):
+                                st.success("✅ Committed to GitHub successfully!")
+                                if "github_generations" not in st.session_state:
+                                    st.session_state.github_generations = []
+                                st.session_state.github_generations.append({
+                                    "repo": selected_repo,
+                                    "file_path": file_path,
+                                    "branch": branch_name,
+                                    "timestamp": datetime.now().isoformat(),
+                                    "commit_message": commit_message
+                                })
+                            else:
+                                st.error("❌ Failed to commit to GitHub")
+
+                elif tab_names[i] == "📜 Activity Feed":
+                    st.title("📜 Activity Feed")
+                    for activity in reversed(st.session_state.activity_log):
+                        st.markdown(f"- **{activity['timestamp']}**: **{activity['user']}** {activity['activity']}")
+
+                elif tab_names[i] == "📊 Report Templates":
+                    st.title("📊 Report Templates")
+                    render_report_templates_ui()
+
+                elif tab_names[i] == "🤖 Model Dashboard":
+                    st.title("🤖 Model Dashboard")
+                    render_model_dashboard_ui()
+
+                elif tab_names[i] == "✅ Tasks":
+                    st.title("✅ Tasks")
+                    render_tasks_ui()
+
+                elif tab_names[i] == "👑 Admin":
+                    st.title("👑 Admin")
+                    render_admin_ui()
+                elif tab_names[i] == "📂 Projects":
+                    render_projects_tab()
+
+def render_model_dashboard_ui():
+    """Render the model comparison dashboard UI."""
+    st.subheader("Model Performance")
+
+    if "adversarial_model_performance" not in st.session_state or not st.session_state.adversarial_model_performance:
+        st.warning("No model performance data available. Run adversarial testing to generate data.")
+        return
+
+    model_performance = st.session_state.adversarial_model_performance
+    sorted_models = sorted(model_performance.items(), key=lambda x: x[1].get("score", 0), reverse=True)
+
+    st.markdown("| Model | Score | Issues Found |")
+    st.markdown("|---|---|---|")
+    for model_id, perf in sorted_models:
+        st.markdown(f"| {model_id} | {perf.get('score', 0)} | {perf.get('issues_found', 0)} |")
+
+def render_tasks_ui():
+    """Render the tasks UI."""
+    st.subheader("Create New Task")
+    with st.form("new_task_form"):
+        title = st.text_input("Title")
+        description = st.text_area("Description")
+        assignee = st.text_input("Assignee")
+        due_date = st.date_input("Due Date")
+        submitted = st.form_submit_button("Create Task")
+        if submitted:
+            create_task(title, description, assignee, due_date)
+            st.success("Task created successfully!")
+
+    st.subheader("Tasks")
+    tasks = get_tasks()
+    for task in tasks:
+        with st.expander(f"{task['title']} ({task['status']})"):
+            st.write(f"**Description:** {task['description']}")
+            st.write(f"**Assignee:** {task['assignee']}")
+            st.write(f"**Due Date:** {task['due_date']}")
+            new_status = st.selectbox("Status", ["To Do", "In Progress", "Done"], key=f"status_{task['id']}", index=["To Do", "In Progress", "Done"].index(task['status']))
+            if new_status != task['status']:
+                update_task(task['id'], status=new_status)
+                st.rerun()
+
+def render_admin_ui():
+    """Render the admin UI for managing users and roles."""
+    st.subheader("User Management")
+
+    # Add new user form
+    with st.form("new_user_form"):
+        st.write("Add New User")
+        new_username = st.text_input("Username")
+        new_role = st.selectbox("Role", list(ROLES.keys()))
+        submitted = st.form_submit_button("Add User")
+        if submitted:
+            if new_username:
+                assign_role(new_username, new_role)
+                st.success(f"User '{new_username}' added with role '{new_role}'.")
             else:
-                st.error("GitHub token not found")
-    else:
-        # User is not authenticated
-        github_token = st.text_input("GitHub Personal Access Token", type="password", key="github_token_input")
-        if github_token and st.button("Authenticate with GitHub", key="auth_github"):
-            if authenticate_github(github_token):
-                # Store the token
-                st.session_state.github_token = github_token
-                st.success("Successfully authenticated with GitHub!")
-                st.rerun()
+                st.error("Username cannot be empty.")
 
-        st.caption("Generate a token with 'repo' permissions at [GitHub Settings](https://github.com/settings/tokens)")
-
-    # AI-Powered Features
-    st.markdown("---")
-    st.subheader("🤖 AI-Powered Features")
-
-    # ML Model Suggestions
-    st.markdown("### 🧠 Protocol Enhancement")
-    if st.button("Get AI Suggestions"):
-        # In a real implementation, this would analyze the current protocol
-        st.info("Analyzing protocol with AI models...")
-
-    # Report Generation
-    st.markdown("### 📋 Report Generation")
-    report_types = list_report_templates()
-    selected_report = st.selectbox("Report Type", report_types, key="report_type")
-    if selected_report and st.button("Generate Report"):
-        # In a real implementation, this would generate a report
-        st.success(f"Generated {selected_report} report")
-
-tab1, tab2, tab3 = st.tabs(["🔄 Evolution", "⚔️ Adversarial Testing", "🐙 GitHub"])
-
-with tab1:
-    # Content input section
-    st.subheader("📝 Content Input")
-    st.text_area("Paste your draft content here:", height=300, key="protocol_text",
-                 disabled=st.session_state.adversarial_running)
-
-    # Content Templates
-    templates = list_protocol_templates()
-    if templates:
-        col1, col2 = st.columns([3, 1])
+    st.subheader("Existing Users")
+    users = list(st.session_state.user_roles.keys())
+    for user in users:
+        col1, col2, col3 = st.columns([2, 2, 1])
         with col1:
-            selected_template = st.selectbox("Load Template", [""] + templates, key="load_template_select")
+            st.write(user)
         with col2:
-            if selected_template and st.button("Load Selected Template", key="load_template_btn",
-                                               use_container_width=True):
-                template_content = load_protocol_template(selected_template)
-                st.session_state.protocol_text = template_content
-                st.success(f"Loaded template: {selected_template}")
+            st.write(st.session_state.user_roles[user])
+        with col3:
+            if st.button("Delete", key=f"delete_{user}"):
+                if user != "admin":  # Prevent deleting the admin user
+                    del st.session_state.user_roles[user]
+                    st.rerun()
+                else:
+                    st.warning("Cannot delete the admin user.")
+
+def render_projects_tab():
+    st.title("📂 Projects")
+
+    st.subheader("Create New Project")
+    project_templates = list_protocol_templates()
+    selected_template = st.selectbox("Select a project template", [""].extend(project_templates))
+    new_project_name = st.text_input("New Project Name")
+    if st.button("Create Project") and new_project_name:
+        if selected_template:
+            template_content = load_protocol_template(selected_template)
+            st.session_state.protocol_text = template_content
+        st.session_state.project_name = new_project_name
+        st.success(f"Project '{new_project_name}' created.")
+
+    st.subheader("Manage Existing Projects")
+    if "projects" not in st.session_state:
+        st.session_state.projects = {}
+
+    for project_name, project_data in st.session_state.projects.items():
+        with st.expander(project_name):
+            st.write(f"**Description:** {project_data.get('description', '')}")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                if st.button("Load", key=f"load_{project_name}"):
+                    st.session_state.project_name = project_name
+                    st.session_state.protocol_text = project_data.get('protocol_text', '')
+                    st.rerun()
+            with col2:
+                if st.button("Delete", key=f"delete_{project_name}"):
+                    del st.session_state.projects[project_name]
+                    st.rerun()
+            with col3:
+                if st.button("Share", key=f"share_{project_name}"):
+                    st.success(f"Shareable link: /shared/{project_name}")
+
+def render_report_templates_ui():
+    """Render the report templates UI."""
+    if "report_templates" not in st.session_state:
+        try:
+            with open("report_templates.json", "r") as f:
+                st.session_state.report_templates = json.load(f)
+        except (FileNotFoundError, json.JSONDecodeError):
+            st.session_state.report_templates = {}
+
+    st.subheader("Create New Template")
+    new_template_name = st.text_input("Template Name")
+    new_template_content = st.text_area("Template Content (JSON)", height=200)
+    if st.button("Save Template"):
+        if new_template_name and new_template_content:
+            try:
+                template_data = json.loads(new_template_content)
+                st.session_state.report_templates[new_template_name] = template_data
+                with open("report_templates.json", "w") as f:
+                    json.dump(st.session_state.report_templates, f, indent=4)
+                st.success(f"Template '{new_template_name}' saved.")
+            except json.JSONDecodeError:
+                st.error("Invalid JSON format.")
+        else:
+            st.warning("Please provide a name and content for the template.")
+
+    st.subheader("Existing Templates")
+    for template_name, template_content in st.session_state.report_templates.items():
+        with st.expander(template_name):
+            st.json(template_content)
+            if st.button("Delete Template", key=f"delete_{template_name}"):
+                del st.session_state.report_templates[template_name]
+                with open("report_templates.json", "w") as f:
+                    json.dump(st.session_state.report_templates, f, indent=4)
+                st.success(f"Template '{template_name}' deleted.")
                 st.rerun()
-
-    # AI Recommendations
-    if st.session_state.protocol_text.strip():
-        with st.expander("🤖 AI Recommendations", expanded=False):
-            recommendations = generate_protocol_recommendations(st.session_state.protocol_text)
-            suggested_template = suggest_protocol_template(st.session_state.protocol_text)
-
-            st.markdown("### 💡 Improvement Suggestions")
-            for i, rec in enumerate(recommendations, 1):
-                st.markdown(f"{i}. {rec}")
-
-            st.markdown(f"### 📋 Suggested Template: **{suggested_template}**")
-            if st.button("Load Suggested Template"):
-                template_content = load_protocol_template(suggested_template)
-                if template_content:
-                    st.session_state.protocol_text = template_content
-                    st.success(f"Loaded template: {suggested_template}")
-                    st.rerun()
-
-    # Action buttons
-    st.markdown("---")
-    c1, c2 = st.columns(2)
-    run_button = c1.button("🚀 Start Evolution", type="primary", disabled=st.session_state.evolution_running,
-                           use_container_width=True)
-    stop_button = c2.button("⏹️ Stop Evolution", disabled=not st.session_state.evolution_running,
-                            use_container_width=True)
-
-    # Results section
-    st.markdown("---")
-    left, right = st.columns(2)
-    with left:
-        st.subheader("📄 Current Best Content")
-        proto_out = st.empty()
-
-        # Content Analysis
-        if st.session_state.evolution_current_best or st.session_state.protocol_text:
-            current_content = st.session_state.evolution_current_best or st.session_state.protocol_text
-            with st.expander("🔍 Content Analysis", expanded=False):
-                complexity = calculate_protocol_complexity(current_content)
-                structure = extract_protocol_structure(current_content)
-
-                # Use the new CSS class for the analysis card
-                st.markdown('<div class="protocol-analysis-card">', unsafe_allow_html=True)
-                st.markdown("### 📊 Content Metrics")
-
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.metric("_WORDS", complexity["word_count"])
-                    st.metric("_SENTENCES", complexity["sentence_count"])
-                    st.metric("_COMPLEXITY", complexity["complexity_score"])
-
-                with col2:
-                    st.metric("PARAGRAPHS", complexity["paragraph_count"])
-                    st.metric("UNIQUE WORDS", complexity["unique_words"])
-                    st.metric("SECTIONS", structure["section_count"])
-                st.markdown('</div>', unsafe_allow_html=True)
-
-                st.markdown("### 🧩 Structure Analysis")
-                col3, col4 = st.columns(2)
-                with col3:
-                    st.write("Numbered Steps:", "✅" if structure["has_numbered_steps"] else "❌")
-                    st.write("Bullet Points:", "✅" if structure["has_bullet_points"] else "❌")
-                    st.write("Headers:", "✅" if structure["has_headers"] else "❌")
-                with col4:
-                    st.write("Preconditions:", "✅" if structure["has_preconditions"] else "❌")
-                    st.write("Postconditions:", "✅" if structure["has_postconditions"] else "❌")
-                    st.write("Error Handling:", "✅" if structure["has_error_handling"] else "❌")
-    with right:
-        st.subheader("🔍 Logs")
-        log_out = st.empty()
-
-        # Comments section
-        with st.expander("💬 Comments", expanded=False):
-            comments = get_comments()
-            if comments:
-                for comment in comments:
-                    st.markdown(f"**{comment['author']}** ({comment['timestamp'][:16]})")
-                    st.markdown(f"> {comment['text']}")
-                    st.markdown("---")
-
-            new_comment = st.text_area("Add a comment", key="new_comment")
-            if st.button("Post Comment"):
-                if new_comment.strip():
-                    add_comment(new_comment)
-                    st.success("Comment added!")
-                    st.rerun()
-
-    # Display the current state from the session state
-    with st.session_state.thread_lock:
-        current_log = "\n".join(st.session_state.evolution_log)
-        current_content = st.session_state.evolution_current_best or st.session_state.protocol_text
-
-    log_out.code(current_log, language="text")
-    proto_out.code(current_content, language="markdown")
-
-    # Enhanced visualization for evolution process
-    if st.session_state.evolution_running or st.session_state.evolution_current_best:
-        st.markdown("---")
-        st.subheader("📊 Evolution Progress")
-
-        # Progress metrics
-        if st.session_state.evolution_current_best:
-            original_complexity = calculate_protocol_complexity(st.session_state.protocol_text)
-            current_complexity = calculate_protocol_complexity(st.session_state.evolution_current_best)
-
-            progress_col1, progress_col2, progress_col3 = st.columns(3)
-            progress_col1.metric("📝 Original Length", f"{original_complexity['word_count']} words")
-            progress_col2.metric("📝 Current Length", f"{current_complexity['word_count']} words")
-            progress_col3.metric("📈 Improvement",
-                                 f"{current_complexity['word_count'] - original_complexity['word_count']} words",
-                                 f"{((current_complexity['word_count'] / max(1, original_complexity['word_count'])) - 1) * 100:.1f}%")
-
-    # If evolution is running, sleep for 1 second and then rerun to update the UI
-    if st.session_state.evolution_running:
-        time.sleep(1)
-        st.rerun()
-
 
 def render_adversarial_testing_tab():
     st.header("🔴🔵 Adversarial Testing with Multi-LLM Consensus")
@@ -452,393 +1058,6 @@ def render_adversarial_testing_tab():
     > - **🔵 Blue Team** fixes the identified issues
     > The process repeats until your content reaches the desired confidence level.
     """)
-
-    # Project Information Section
-    st.markdown("---")
-    st.subheader("📁 Project Information")
-    col1, col2 = st.columns([3, 1])
-    with col1:
-        st.text_input("Project Name", key="project_name")
-        st.text_area("Project Description", key="project_description", height=100)
-    with col2:
-        # Version control
-        if st.button("💾 Save Version"):
-            if st.session_state.protocol_text.strip():
-                version_name = st.text_input("Version Name", f"Version {len(st.session_state.protocol_versions) + 1}")
-                comment = st.text_area("Comment", height=100, key="version_comment")
-                if st.button("✅ Confirm Save"):
-                    version_id = create_new_version(st.session_state.protocol_text, version_name, comment)
-                    st.success(f"✅ Version saved! ID: {version_id[:8]}")
-                    st.rerun()
-
-        # Show version history
-        versions = get_version_history()
-        if versions:
-            st.markdown("### 📚 Versions")
-            for version in reversed(versions[-5:]):  # Show last 5 versions
-                col1, col2 = st.columns([3, 1])
-                with col1:
-                    if st.button(f"{version['name']} ({version['timestamp'][:10]})",
-                                 key=f"load_version_{version['id']}"):
-                        load_version(version['id'])
-                        st.success(f"✅ Loaded version: {version['name']}")
-                        st.rerun()
-                with col2:
-                    st.caption(f"v{version['id'][:8]}")
-
-    # Collaborative Features
-    with st.expander("👥 Collaborative Features", expanded=False):
-        st.markdown("### 🤝 Team Collaboration")
-        collaborators = st.multiselect("Add Collaborators (email addresses)",
-                                       st.session_state.collaborators,
-                                       key="collaborators")
-
-        st.markdown("### 💬 Comments & Discussions")
-        comments = get_comments()
-        if comments:
-            for comment in comments:
-                st.markdown(f"**{comment['author']}** ({comment['timestamp'][:16]})")
-                st.markdown(f"> {comment['text']}")
-                st.markdown("---")
-
-        new_comment = st.text_area("Add a comment", key="new_comment")
-        if st.button("📤 Post Comment"):
-            if new_comment.strip():
-                add_comment(new_comment)
-                st.success("✅ Comment added!")
-                st.rerun()
-
-        st.markdown("### 🏷️ Tags")
-        tags = st.multiselect("Add tags to organize this project",
-                              st.session_state.tags,
-                              key="tags")
-
-    # Quick Start Wizard
-    with st.expander("⚡ Quick Start Wizard", expanded=True):
-        st.markdown("### 🚀 Get Started in 3 Easy Steps")
-
-        # Step 1: Configure API Key
-        st.markdown("#### 1️⃣ Configure OpenRouter API Key")
-        openrouter_key = st.text_input("🔑 Enter your OpenRouter API Key", type="password", key="wizard_openrouter_key")
-        if openrouter_key:
-            st.session_state.openrouter_key = openrouter_key
-            st.success("✅ API key saved!")
-        else:
-            st.info("ℹ️ Need an API key? Get one at [OpenRouter.ai](https://openrouter.ai/keys)")
-
-        # Step 2: Select Models
-        st.markdown("#### 2️⃣ Select AI Models")
-        if openrouter_key:
-            models = get_openrouter_models(openrouter_key)
-            if models:
-                model_names = [m['id'] for m in models if isinstance(m, dict) and 'id' in m][:10]  # Top 10 models
-
-                col1, col2 = st.columns(2)
-                with col1:
-                    st.markdown("**🔴 Red Team (Critics)**")
-                    red_models = st.multiselect(
-                        "Select 2-3 models for finding flaws",
-                        options=model_names,
-                        default=model_names[:2] if len(model_names) >= 2 else model_names,
-                        key="wizard_red_models"
-                    )
-                    st.session_state.red_team_models = red_models
-
-                with col2:
-                    st.markdown("**🔵 Blue Team (Fixers)**")
-                    blue_models = st.multiselect(
-                        "Select 2-3 models for fixing issues",
-                        options=model_names,
-                        default=model_names[2:4] if len(model_names) >= 4 else model_names[-2:],
-                        key="wizard_blue_models"
-                    )
-                    st.session_state.blue_team_models = blue_models
-
-                if red_models and blue_models:
-                    st.success(f"✅ {len(red_models)} red team and {len(blue_models)} blue team models selected!")
-                else:
-                    st.info("ℹ️ Please select at least one model for each team")
-            else:
-                st.warning("⚠️ Unable to fetch models. Please check your API key.")
-        else:
-            st.info("ℹ️ Please enter your OpenRouter API key to select models")
-
-        # Step 3: Load or Create Content
-        st.markdown("#### 3️⃣ Load or Create Your Content")
-        templates = list_protocol_templates()
-        if templates:
-            selected_template = st.selectbox("📝 Choose a template or start from scratch", [""] + templates,
-                                             key="wizard_template")
-            if selected_template:
-                template_content = load_protocol_template(selected_template)
-                st.session_state.protocol_text = template_content
-                st.success(f"✅ Loaded {selected_template} template!")
-
-        # Quick content editor
-        content = st.text_area("✏️ Or paste/write your content here",
-                               value=st.session_state.protocol_text,
-                               height=200,
-                               key="wizard_content_text")
-        if content != st.session_state.protocol_text:
-            st.session_state.protocol_text = content
-
-        # Quick start button
-        if st.button("🚀 Quick Start Adversarial Testing",
-                     disabled=not (
-                             openrouter_key and st.session_state.red_team_models and st.session_state.blue_team_models and content.strip()),
-                     type="primary",
-                     use_container_width=True):
-            st.success(
-                "🎉 Ready to go! Scroll down to configure advanced settings or click 'Start Adversarial Testing' below.")
-            st.rerun()
-
-    # Project controls
-    col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
-    with col1:
-        if st.button("💾 Save Project"):
-            project_data = export_project()
-            st.download_button(
-                label="📥 Download Project",
-                data=json.dumps(project_data, indent=2),
-                file_name=f"{st.session_state.project_name.replace(' ', '_')}_project.json",
-                mime="application/json",
-                use_container_width=True,
-            )
-    with col2:
-        uploaded_file = st.file_uploader("📁 Import Project", type=["json"])
-        if uploaded_file:
-            try:
-                project_data = json.load(uploaded_file)
-                if import_project(project_data):
-                    st.success("Project imported successfully!")
-                    st.rerun()
-            except Exception as e:
-                st.error(f"Error importing project: {e}")
-    with col3:
-        if st.button("📋 Export Report"):
-            if st.session_state.adversarial_results:
-                # Create tabs for different export formats
-                export_format = st.radio("Export Format", ["HTML", "PDF", "DOCX"], horizontal=True)
-
-                if export_format == "HTML":
-                    html_content = generate_html_report(st.session_state.adversarial_results)
-                    st.download_button(
-                        label="📥 Download HTML Report",
-                        data=html_content,
-                        file_name="adversarial_testing_report.html",
-                        mime="text/html"
-                    )
-                elif export_format == "PDF" and HAS_FPDF:
-                    pdf_content = generate_pdf_report(st.session_state.adversarial_results)
-                    st.download_button(
-                        label="📥 Download PDF Report",
-                        data=pdf_content,
-                        file_name="adversarial_testing_report.pdf",
-                        mime="application/pdf"
-                    )
-                elif export_format == "DOCX" and HAS_DOCX:
-                    docx_content = generate_docx_report(st.session_state.adversarial_results)
-                    st.download_button(
-                        label="📥 Download DOCX Report",
-                        data=docx_content,
-                        file_name="adversarial_testing_report.docx",
-                        mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                    )
-                elif export_format == "PDF" and not HAS_FPDF:
-                    st.error(
-                        "FPDF library not installed. Please install it with 'pip install fpdf' to export PDF reports.")
-                elif export_format == "DOCX" and not HAS_DOCX:
-                    st.error(
-                        "python-docx library not installed. Please install it with 'pip install python-docx' to export DOCX reports.")
-    with col4:
-        if st.button("❓ Tutorial"):
-            st.session_state.show_adversarial_tutorial = True
-
-    # Sharing and Collaboration Controls
-    with st.expander("🔗 Share & Collaborate", expanded=False):
-        st.markdown("### 🌐 Public Sharing")
-        share_publicly = st.toggle("Share publicly", key="share_publicly")
-        if share_publicly:
-            st.info("🔒 Your project will be accessible via a public link. Only people with the link can view it.")
-            if st.button("🔗 Generate Shareable Link"):
-                # In a real implementation, this would generate a real shareable link
-                share_link = f"https://open-evolve.app/shared/{uuid.uuid4()}"
-                st.code(share_link, language="markdown")
-                st.info("📋 Copy this link to share your project with others.")
-
-        st.markdown("### 📧 Invite Collaborators")
-        collaborator_emails = st.text_area("Enter email addresses (one per line)",
-                                           key="collaborator_emails",
-                                           height=100)
-        if st.button("✉️ Send Invitations"):
-            if collaborator_emails.strip():
-                emails = [email.strip() for email in collaborator_emails.split("\n") if email.strip()]
-                st.success(f"📧 Sent invitations to {len(emails)} collaborators!")
-            else:
-                st.warning("📧 Please enter at least one email address.")
-
-        st.markdown("### 📤 Export Options")
-        export_options = st.multiselect(
-            "Select what to export",
-            ["Protocol Versions", "Adversarial Results", "Comments", "Analytics", "Full Project"],
-            default=["Full Project"]
-        )
-
-        if "Full Project" in export_options:
-            st.download_button(
-                label="📦 Export Full Project (.json)",
-                data=json.dumps(export_project(), indent=2),
-                file_name=f"{st.session_state.project_name.replace(' ', '_')}_full_export.json",
-                mime="application/json"
-            )
-        else:
-            # Custom export
-            if st.button("⚙️ Generate Custom Export"):
-                custom_export = {}
-                if "Protocol Versions" in export_options:
-                    custom_export["versions"] = st.session_state.protocol_versions
-                if "Adversarial Results" in export_options:
-                    custom_export["results"] = st.session_state.adversarial_results
-                if "Comments" in export_options:
-                    custom_export["comments"] = st.session_state.comments
-                if "Analytics" in export_options:
-                    if st.session_state.adversarial_results:
-                        custom_export["analytics"] = generate_advanced_analytics(st.session_state.adversarial_results)
-
-                st.download_button(
-                    label="📥 Download Custom Export (.json)",
-                    data=json.dumps(custom_export, indent=2),
-                    file_name=f"{st.session_state.project_name.replace(' ', '_')}_custom_export.json",
-                    mime="application/json"
-                )
-
-        # Export to different formats
-        st.markdown("### 📄 Format Export")
-        format_options = st.selectbox("Export Format",
-                                      ["Markdown", "PDF", "Word Document", "HTML", "LaTeX", "Plain Text"])
-        if st.button(f"🖨️ Export as {format_options}"):
-            if format_options == "Markdown":
-                st.download_button(
-                    label="📥 Download Markdown (.md)",
-                    data=st.session_state.protocol_text,
-                    file_name=f"{st.session_state.project_name.replace(' ', '_')}.md",
-                    mime="text/markdown"
-                )
-            elif format_options == "PDF":
-                st.info("Generating PDF... (This would generate a formatted PDF in a real implementation)")
-            elif format_options == "Word Document":
-                st.info("Generating Word document... (This would generate a .docx file in a real implementation)")
-            elif format_options == "HTML":
-                st.download_button(
-                    label="📥 Download HTML (.html)",
-                    data=f"<html><body><h1>{st.session_state.project_name}</h1><pre>{st.session_state.protocol_text}</pre></body></html>",
-                    file_name=f"{st.session_state.project_name.replace(' ', '_')}.html",
-                    mime="text/html"
-                )
-            elif format_options == "LaTeX":
-                st.info("Generating LaTeX... (This would generate a .tex file in a real implementation)")
-            elif format_options == "Plain Text":
-                st.download_button(
-                    label="📥 Download Plain Text (.txt)",
-                    data=st.session_state.protocol_text,
-                    file_name=f"{st.session_state.project_name.replace(' ', '_')}.txt",
-                    mime="text/plain"
-                )
-
-    # Show tutorial modal if requested
-    if st.session_state.get("show_adversarial_tutorial", False):
-        with st.expander("📘 Adversarial Testing Tutorial", expanded=True):
-            st.markdown("""
-            ### 🎓 Adversarial Testing Guide
-
-            Adversarial Testing uses two teams of AI models to improve your content:
-
-            #### 🔴 Red Team (Critics)
-            - Finds flaws, vulnerabilities, and weaknesses in your content
-            - Analyzes for logical gaps, ambiguities, and potential misuse
-
-            #### 🔵 Blue Team (Fixers)
-            - Addresses the issues identified by the Red Team
-            - Produces improved versions of the content
-
-            #### 🔄 Process
-            1. Red Team critiques the content
-            2. Blue Team patches the identified issues
-            3. Consensus mechanism selects the best patch
-            4. Approval check validates the improvements
-            5. Process repeats until confidence threshold is reached
-
-            #### ⚙️ Key Parameters
-            - **Confidence Threshold**: Percentage of Red Team that must approve the content
-            - **Iterations**: Number of improvement cycles to run
-            - **Rotation Strategy**: How to select models for each iteration
-            - **Custom Mode**: Use your own prompts for testing
-
-            #### 🎯 Tips for Best Results
-            - Use diverse models for both teams
-            - Set appropriate confidence thresholds (80-95%)
-            - Provide clear compliance requirements
-            - Use custom prompts for domain-specific testing
-            """)
-
-            if st.button("Close Tutorial"):
-                st.session_state.show_adversarial_tutorial = False
-                st.rerun()
-
-    # Quick Start Guide
-    with st.expander("⚡ Quick Start Guide", expanded=False):
-        st.markdown("""
-        ### 🚀 Getting Started in 3 Steps:
-
-        1. **🔑 Configure OpenRouter**
-           - Enter your OpenRouter API key
-           - Select models for Red and Blue teams
-
-        2. **📝 Input Your Content**
-           - Paste your content or load a template
-           - Add compliance requirements if needed
-
-        3. **▶️ Run Adversarial Testing**
-           - Adjust parameters as needed
-           - Click "Start Adversarial Testing"
-           - Monitor progress in real-time
-        """)
-
-        if st.button("📋 Load Sample Content"):
-            sample_content = """# Sample Security Policy
-
-## Overview
-This policy defines security requirements for accessing company systems.
-
-## Scope
-Applies to all employees, contractors, and vendors with system access.
-
-## Policy Statements
-1. All users must use strong passwords
-2. Multi-factor authentication is required for sensitive systems
-3. Regular security training is mandatory
-4. Incident reporting must occur within 24 hours
-
-## Roles and Responsibilities
-- IT Security Team: Enforces policy and monitors compliance
-- Employees: Follow security practices and report incidents
-- Managers: Ensure team compliance and provide resources
-
-## Compliance
-- Audits conducted quarterly
-- Violations result in disciplinary action
-- Continuous monitoring through SIEM tools
-
-## Exceptions
-- Emergency access requests require manager approval
-- Temporary exceptions require security team approval
-
-## Review and Updates
-- Policy reviewed annually
-- Updates approved by CISO"""
-            st.session_state.protocol_text = sample_content
-            st.success("Sample content loaded! You can now start adversarial testing.")
-            st.rerun()
 
     # OpenRouter Configuration
     st.subheader("🔑 OpenRouter Configuration")
@@ -872,22 +1091,34 @@ Applies to all employees, contractors, and vendors with system access.
     st.info(
         "💡 **Tip:** Start with a clear, well-structured content. The better your starting point, the better the results.")
 
-    # Protocol editor with enhanced features
+    # Protocol editor with enhanced features and live markdown preview
     protocol_col1, protocol_col2 = st.columns([3, 1])
     with protocol_col1:
-        protocol_text = st.text_area("✏️ Enter or paste your content:",
-                                     value=st.session_state.protocol_text,
-                                     height=300,
-                                     key="protocol_text",
-                                     placeholder="Paste your draft content here...\n\nExample:\n# Security Policy\n\n## Overview\nThis policy defines requirements for secure system access.\n\n## Scope\nApplies to all employees and contractors.\n\n## Policy Statements\n1. All users must use strong passwords\n2. Multi-factor authentication is required for sensitive systems\n3. Regular security training is mandatory\n\n## Compliance\nViolations result in disciplinary action.")
-
+        # Create tabs for input and preview
+        input_tab, preview_tab = st.tabs(["📝 Edit", "👁️ Preview"])
+        
+        with input_tab:
+            protocol_text = st.text_area("✏️ Enter or paste your content:",
+                                         value=st.session_state.protocol_text,
+                                         height=300,
+                                         key="protocol_text_adversarial",
+                                         placeholder="Paste your draft content here...\n\nExample:\n# Security Policy\n\n## Overview\nThis policy defines requirements for secure system access.\n\n## Scope\nApplies to all employees and contractors.\n\n## Policy Statements\n1. All users must use strong passwords\n2. Multi-factor authentication is required for sensitive systems\n3. Regular security training is mandatory\n\n## Compliance\nViolations result in disciplinary action.")
+            st.session_state.protocol_text = protocol_text
+        
+        with preview_tab:
+            # Live markdown preview
+            st.markdown("### Live Preview")
+            if st.session_state.protocol_text:
+                st.markdown(st.session_state.protocol_text)
+            else:
+                st.info("Enter content in the 'Edit' tab to see the preview here.")
     with protocol_col2:
         st.markdown("**📋 Quick Actions**")
 
         # Template loading
         templates = list_protocol_templates()
         if templates:
-            selected_template = st.selectbox("Load Template", [""] + templates, key="adv_load_template_select")
+            selected_template = st.selectbox("Load Template", [""].extend(templates), key="adv_load_template_select")
             if selected_template and st.button("📥 Load Template", use_container_width=True):
                 template_content = load_protocol_template(selected_template)
                 st.session_state.protocol_text = template_content
@@ -921,6 +1152,47 @@ Applies to all employees, contractors, and vendors with system access.
 - Continuous monitoring through SIEM tools
 
 ## Exceptions
+"""
+            st.session_state.protocol_text = sample_protocol
+            st.rerun()
+
+    st.markdown("---")
+    st.subheader("⚔️ Adversarial Setup")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.multiselect("🔴 Red Team (Critique)", model_options, key="red_team_models")
+    with col2:
+        st.multiselect("🔵 Blue Team (Improve)", model_options, key="blue_team_models")
+
+    with st.expander("⚙️ Advanced Settings"):
+        st.slider("Confidence Threshold (%)", 0, 100, 95, key="adversarial_confidence")
+        st.number_input("Min Iterations", 1, 50, 3, key="adversarial_min_iter")
+        st.number_input("Max Iterations", 1, 100, 10, key="adversarial_max_iter")
+        st.number_input("Max Tokens", 100, 16000, 8000, key="adversarial_max_tokens")
+        st.number_input("Max Workers", 1, 20, 6, key="adversarial_max_workers")
+        st.checkbox("Force JSON Output", True, key="adversarial_force_json")
+        st.text_input("Seed", key="adversarial_seed")
+        st.selectbox("Rotation Strategy", ["None", "Sequential", "Random"], key="adversarial_rotation_strategy")
+        st.number_input("Red Team Sample Size", 1, 10, 3, key="red_team_sample_size")
+        st.number_input("Blue Team Sample Size", 1, 10, 3, key="blue_team_sample_size")
+        st.text_area("Compliance Requirements", key="compliance_requirements")
+
+    if st.button("🚀 Start Adversarial Testing", type="primary", disabled=st.session_state.adversarial_running):
+        st.session_state.adversarial_running = True
+        threading.Thread(target=run_adversarial_testing).start()
+        st.rerun()
+
+    if st.session_state.adversarial_running:
+        st.warning("Adversarial testing is in progress...")
+        log_out = st.empty()
+        with st.session_state.thread_lock:
+            log_out.code("\n".join(st.session_state.adversarial_log), language="text")
+        time.sleep(1)
+        st.rerun()
+
+    if st.session_state.adversarial_results:
+        st.subheader("📊 Adversarial Results")
+        st.json(st.session_state.adversarial_results)
 - Emergency access requests require manager approval
 - Temporary exceptions require security team approval
 
@@ -936,52 +1208,6 @@ Applies to all employees, contractors, and vendors with system access.
             st.session_state.protocol_text = ""
             st.rerun()
 
-        # Protocol analysis
-        if st.session_state.protocol_text.strip():
-            complexity = calculate_protocol_complexity(st.session_state.protocol_text)
-            structure = extract_protocol_structure(st.session_state.protocol_text)
-
-            st.markdown("**📊 Quick Stats**")
-            st.metric("_WORDS", complexity["word_count"])
-            st.metric("_SENTENCES", complexity["sentence_count"])
-            st.metric("_COMPLEXITY", complexity["complexity_score"])
-
-            # Structure indicators
-            structure_icons = []
-            if structure["has_numbered_steps"]:
-                structure_icons.append("🔢")
-            if structure["has_bullet_points"]:
-                structure_icons.append("•")
-            if structure["has_headers"]:
-                structure_icons.append("#")
-            if structure["has_preconditions"]:
-                structure_icons.append("🔒")
-            if structure["has_postconditions"]:
-                structure_icons.append("✅")
-            if structure["has_error_handling"]:
-                structure_icons.append("⚠️")
-
-            if structure_icons:
-                st.markdown(" ".join(structure_icons))
-
-    # AI Recommendations
-    if st.session_state.protocol_text.strip():
-        with st.expander("🤖 AI Recommendations", expanded=False):
-            recommendations = generate_protocol_recommendations(st.session_state.protocol_text)
-            suggested_template = suggest_protocol_template(st.session_state.protocol_text)
-
-            st.markdown("### 💡 Improvement Suggestions")
-            for i, rec in enumerate(recommendations, 1):
-                st.markdown(f"{i}. {rec}")
-
-            st.markdown(f"### 📋 Suggested Template: **{suggested_template}**")
-            if st.button("Load Suggested Template", key="adv_load_suggested_template"):
-                template_content = load_protocol_template(suggested_template)
-                if template_content:
-                    st.session_state.protocol_text = template_content
-                    st.success(f"Loaded template: {suggested_template}")
-                    st.rerun()
-
     # Model Selection
     st.markdown("---")
     st.subheader("🤖 Model Selection")
@@ -995,17 +1221,6 @@ Applies to all employees, contractors, and vendors with system access.
         st.markdown("#### 🔴 Red Team (Critics)")
         st.caption("Models that find flaws and vulnerabilities in your protocol")
 
-        # Quick selection buttons
-        if model_options:
-            quick_red_models = st.multiselect(
-                "Quick Select Red Team Models",
-                options=[opt.split(" (")[0] for opt in model_options[:10]],  # First 10 models
-                default=st.session_state.red_team_models[:3] if st.session_state.red_team_models else [],
-                key="quick_red_select"
-            )
-            if quick_red_models:
-                st.session_state.red_team_models = quick_red_models
-
         if HAS_STREAMLIT_TAGS:
             red_team_selected_full = st_tags(
                 label="Search and select models:",
@@ -1017,8 +1232,6 @@ Applies to all employees, contractors, and vendors with system access.
             # Robust model ID extraction from descriptive string
             red_team_models = []
             for m in red_team_selected_full:
-                # Extract model ID by splitting on first occurrence of " (" or using entire string
-                # if not found
                 if " (" in m:
                     model_id = m.split(" (")[0].strip()
                 else:
@@ -1035,21 +1248,11 @@ Applies to all employees, contractors, and vendors with system access.
 
         # Model count indicator
         st.caption(f"Selected: {len(st.session_state.red_team_models)} models")
+        print(f"Red Team Models: {st.session_state.red_team_models}")
 
     with col2:
         st.markdown("#### 🔵 Blue Team (Fixers)")
         st.caption("Models that patch the identified flaws and improve the protocol")
-
-        # Quick selection buttons
-        if model_options:
-            quick_blue_models = st.multiselect(
-                "Quick Select Blue Team Models",
-                options=[opt.split(" (")[0] for opt in model_options[:10]],  # First 10 models
-                default=st.session_state.blue_team_models[:3] if st.session_state.blue_team_models else [],
-                key="quick_blue_select"
-            )
-            if quick_blue_models:
-                st.session_state.blue_team_models = quick_blue_models
 
         if HAS_STREAMLIT_TAGS:
             blue_team_selected_full = st_tags(
@@ -1062,8 +1265,6 @@ Applies to all employees, contractors, and vendors with system access.
             # Robust model ID extraction from descriptive string
             blue_team_models = []
             for m in blue_team_selected_full:
-                # Extract model ID by splitting on first occurrence of " (" or using entire string
-                # if not found
                 if " (" in m:
                     model_id = m.split(" (")[0].strip()
                 else:
@@ -1080,88 +1281,11 @@ Applies to all employees, contractors, and vendors with system access.
 
         # Model count indicator
         st.caption(f"Selected: {len(st.session_state.blue_team_models)} models")
-
-    # Model selection validation
-    if st.session_state.red_team_models and st.session_state.blue_team_models:
-        total_models = len(st.session_state.red_team_models) + len(st.session_state.blue_team_models)
-        if total_models > 10:
-            st.warning(
-                f"⚠️ You have selected {total_models} models. Consider reducing the number to control costs and processing time.")
-        else:
-            st.success(
-                f"✅ Ready! {len(st.session_state.red_team_models)} red team and {len(st.session_state.blue_team_models)} blue team models selected.")
-    elif not st.session_state.red_team_models or not st.session_state.blue_team_models:
-        st.info("ℹ️ Please select at least one model for each team to proceed.")
+        print(f"Blue Team Models: {st.session_state.blue_team_models}")
 
     # Testing Parameters
     st.markdown("---")
     st.subheader("🧪 Testing Parameters")
-
-    # Preset Selector
-    with st.expander("🎯 Presets", expanded=True):
-        st.markdown("### 🚀 Quick Start with Presets")
-        st.info("💡 **Tip:** Use presets to quickly configure adversarial testing for common scenarios.")
-
-        preset_names = list_adversarial_presets()
-        if preset_names:
-            col1, col2 = st.columns([3, 1])
-            with col1:
-                selected_preset = st.selectbox("Choose a preset configuration", [""] + preset_names,
-                                               key="preset_selector")
-            with col2:
-                if st.button("Apply Preset", key="apply_preset_btn", use_container_width=True):
-                    if selected_preset and apply_adversarial_preset(selected_preset):
-                        st.success(f"✅ Applied {selected_preset} preset!")
-                        st.rerun()
-                    elif selected_preset:
-                        st.error("❌ Failed to apply preset.")
-
-            # Show preset details
-            if selected_preset:
-                preset = load_adversarial_preset(selected_preset)
-                if preset:
-                    st.markdown(f"**{preset['name']}**")
-                    st.caption(preset['description'])
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        st.write("**🔴 Red Team Models:**")
-                        for model in preset.get("red_team_models", []):
-                            st.code(model, language="markdown")
-                    with col2:
-                        st.write("**🔵 Blue Team Models:**")
-                        for model in preset.get("blue_team_models", []):
-                            st.code(model, language="markdown")
-                    st.write("**⚙️ Settings:**")
-                    st.write(f"- Iterations: {preset.get('min_iter', 3)}-{preset.get('max_iter', 10)}")
-                    st.write(f"- Confidence Threshold: {preset.get('confidence_threshold', 85)}%")
-                    st.write(f"- Review Type: {preset.get('review_type', 'General SOP')}")
-
-        # Advanced Testing Strategies
-        st.markdown("### 🧠 Advanced Testing Strategies")
-        strategy_options = st.multiselect(
-            "Select testing strategies to enable:",
-            ["Adaptive Testing", "Category-Focused Testing", "Performance-Based Rotation", "Continuous Learning"],
-            default=[],
-            key="advanced_testing_strategies"
-        )
-
-        if "Adaptive Testing" in strategy_options:
-            st.info("🔄 **Adaptive Testing**: Automatically adjusts testing intensity based on results.")
-
-        if "Category-Focused Testing" in strategy_options:
-            focus_category = st.selectbox(
-                "Focus on specific issue category:",
-                ["", "Security", "Compliance", "Clarity", "Completeness", "Efficiency"],
-                key="category_focus"
-            )
-            if focus_category:
-                st.info(f"🎯 **Category Focus**: Testing will emphasize {focus_category.lower()} issues.")
-
-        if "Performance-Based Rotation" in strategy_options:
-            st.info("⚡ **Performance-Based Rotation**: Automatically rotates models based on performance metrics.")
-
-        if "Continuous Learning" in strategy_options:
-            st.info("📚 **Continuous Learning**: Uses historical results to improve future testing runs.")
 
     # Custom Mode Toggle
     use_custom_mode = st.toggle("🔧 Use Custom Mode", key="adversarial_custom_mode",
@@ -1216,20 +1340,28 @@ Applies to all employees, contractors, and vendors with system access.
 """)
         st.number_input("Red Team Sample Size", 1, 100, key="adversarial_red_team_sample_size")
         st.number_input("Blue Team Sample Size", 1, 100, key="adversarial_blue_team_sample_size")
-
-    st.text_area("Compliance Requirements", key="compliance_requirements", height=150,
-                 help="Enter any compliance requirements that the red team should check for.")
-
-    # Advanced customization options
-    with st.expander("⚙️ Advanced Customization", expanded=False):
-        st.markdown("### 🎯 Target Metrics")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.number_input("Target Complexity Score", 0, 100, key="adversarial_target_complexity",
-                            help="Target complexity score for the final protocol (0-100)")
-        with col2:
-            st.number_input("Target Length (words)", 0, 10000, key="adversarial_target_length",
-                            help="Target length for the final protocol in words (0 = no limit)")
+        print(f"Min Iterations: {st.session_state.adversarial_min_iter}")
+        print(f"Max Iterations: {st.session_state.adversarial_max_iter}")
+        print(f"Confidence Threshold: {st.session_state.adversarial_confidence}")
+        print(f"Max Tokens: {st.session_state.adversarial_max_tokens}")
+        print(f"Max Parallel Workers: {st.session_state.adversarial_max_workers}")
+        print(f"Force JSON Mode: {st.session_state.adversarial_force_json}")
+        print(f"Deterministic Seed: {st.session_state.adversarial_seed}")
+        print(f"Rotation Strategy: {st.session_state.adversarial_rotation_strategy}")
+        print(f"Red Team Sample Size: {st.session_state.adversarial_red_team_sample_size}")
+        print(f"Blue Team Sample Size: {st.session_state.adversarial_blue_team_sample_size}")
+        st.toggle("Auto-Optimize Model Selection", key="adversarial_auto_optimize_models",
+                  help="Automatically select optimal models based on protocol complexity and budget")
+        if st.session_state.adversarial_auto_optimize_models:
+            protocol_complexity = len(st.session_state.protocol_text.split())
+            optimized_models = optimize_model_selection(
+                st.session_state.red_team_models,
+                st.session_state.blue_team_models,
+                protocol_complexity,
+                st.session_state.adversarial_budget_limit
+            )
+            st.session_state.red_team_models = optimized_models["red_team"]
+            st.session_state.blue_team_models = optimized_models["blue_team"]
 
         st.markdown("### 🧠 Intelligence Settings")
         st.slider("Critique Depth", 1, 10, key="adversarial_critique_depth",
@@ -1237,91 +1369,8 @@ Applies to all employees, contractors, and vendors with system access.
         st.slider("Patch Quality", 1, 10, key="adversarial_patch_quality",
                   help="Quality level for blue team patches (1-10)")
 
-        st.markdown("### 📊 Evaluation Settings")
-        st.toggle("Detailed Issue Tracking", key="adversarial_detailed_tracking",
-                  help="Track issues by category and severity in detail")
-        st.toggle("Performance Analytics", key="adversarial_performance_analytics",
-                  help="Show detailed model performance analytics")
-
-        st.markdown("### 🔄 Iteration Controls")
-        st.toggle("Early Stopping", key="adversarial_early_stopping",
-                  help="Stop early if no improvement is detected")
-        st.number_input("Early Stopping Patience", 1, 10, key="adversarial_early_stopping_patience",
-                        help="Number of iterations to wait before early stopping")
-
-        st.markdown("### 🎨 Style Customization")
-        st.selectbox("Writing Style", ["Professional", "Concise", "Detailed", "Casual", "Technical", "Executive"],
-                     key="adversarial_writing_style",
-                     help="Preferred writing style for the final protocol")
-        st.selectbox("Tone", ["Neutral", "Authoritative", "Friendly", "Strict", "Persuasive"],
-                     key="adversarial_tone",
-                     help="Desired tone for the protocol")
-        st.text_input("Custom Style Instructions",
-                      key="adversarial_custom_style",
-                      help="Additional style instructions for the protocol writer")
-
-        st.markdown("### 🛡️ Security Settings")
-        st.toggle("Include Security Headers", key="adversarial_include_security_headers",
-                  help="Add security-focused headers to the protocol")
-        st.toggle("Include Compliance Checks", key="adversarial_include_compliance_checks",
-                  help="Automatically add compliance-related sections")
-        st.text_area("Custom Security Requirements",
-                     key="adversarial_custom_security",
-                     height=100,
-                     help="Additional security requirements to enforce")
-
-        st.markdown("### 📦 Format Options")
-        st.selectbox("Output Format", ["Markdown", "Plain Text", "HTML", "LaTeX"],
-                     key="adversarial_output_format",
-                     help="Desired output format for the final protocol")
-        st.toggle("Include Table of Contents", key="adversarial_include_toc",
-                  help="Add automatically generated table of contents")
-        st.toggle("Include Revision History", key="adversarial_include_revision_history",
-                  help="Track changes with revision history section")
-
-        st.markdown("### 🧪 Experimental Features")
-        st.toggle("Use Chain-of-Thought Reasoning", key="adversarial_use_cot",
-                  help="Enable chain-of-thought reasoning for deeper analysis")
-        st.toggle("Include Confidence Intervals", key="adversarial_include_confidence",
-                  help="Add confidence intervals to issue severity ratings")
-        st.toggle("Enable Self-Critique", key="adversarial_enable_self_critique",
-                  help="Have models critique their own suggestions before finalizing")
-
-        st.markdown("### ⚡ Performance Optimization")
-        st.toggle("Auto-Optimize Model Selection", key="adversarial_auto_optimize_models",
-                  help="Automatically select optimal models based on protocol complexity and budget")
-        budget_limit = st.number_input("Budget Limit (USD)", 0.0, 100.0, 0.0, 0.1,
-                                       key="adversarial_budget_limit",
-                                       help="Maximum budget for this testing session (0 = no limit)")
-
-        # Performance suggestions button
-        if st.button("💡 Get Performance Suggestions"):
-            current_config = {
-                "red_team_models": st.session_state.red_team_models,
-                "blue_team_models": st.session_state.blue_team_models,
-                "adversarial_max_iter": st.session_state.adversarial_max_iter,
-                "protocol_text": st.session_state.protocol_text
-            }
-            suggestions = suggest_performance_improvements(current_config)
-            st.markdown("### 🚀 Performance Suggestions")
-            for suggestion in suggestions:
-                st.write(suggestion)
-
-        # Time and cost estimation
-        if st.button("⏱️ Estimate Time & Cost"):
-            protocol_length = len(st.session_state.protocol_text.split())
-            estimate = estimate_testing_time_and_cost(
-                st.session_state.red_team_models,
-                st.session_state.blue_team_models,
-                st.session_state.adversarial_max_iter,
-                protocol_length
-            )
-            st.markdown("### 📊 Time & Cost Estimate")
-            col1, col2, col3, col4 = st.columns(4)
-            col1.metric("⏰ Est. Time", f"{estimate['estimated_time_minutes']} min")
-            col2.metric("💰 Est. Cost", f"${estimate['estimated_cost_usd']:.4f}")
-            col3.metric("🔄 Operations", f"{estimate['total_operations']:,}")
-            col4.metric("🔤 Tokens", f"{estimate['total_tokens_estimated']:,}")
+    st.text_area("Compliance Requirements", key="compliance_requirements", height=150,
+                 help="Enter any compliance requirements that the red team should check for.")
 
     all_models = sorted(list(set(st.session_state.red_team_models + st.session_state.blue_team_models)))
     if all_models:
@@ -1334,26 +1383,6 @@ Applies to all employees, contractors, and vendors with system access.
                 cc3.slider(f"Freq Pen##{model_id}", -2.0, 2.0, 0.0, 0.1, key=f"freqpen_{model_id}")
                 cc4.slider(f"Pres Pen##{model_id}", -2.0, 2.0, 0.0, 0.1, key=f"prespen_{model_id}")
 
-    # Metrics Dashboard Preview
-    with st.expander("📊 Metrics Dashboard Preview", expanded=False):
-        st.markdown("### 📊 Real-time Metrics (During Testing)")
-        st.info("These metrics will be updated in real-time during adversarial testing:")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.metric("📈 Current Confidence", "0.0%")
-            st.metric("💰 Est. Cost (USD)", "$0.0000")
-            st.metric("🔤 Prompt Tokens", "0")
-        with col2:
-            st.metric("🔄 Iterations", "0/0")
-            st.metric("📝 Completion Tokens", "0")
-            st.metric("⚡ Avg Response Time", "0ms")
-
-        st.markdown("### 📈 Confidence Trend")
-        st.line_chart([0, 0, 0, 0, 0])  # Placeholder chart
-
-        st.markdown("### 🏆 Top Performing Models")
-        st.write("Model performance rankings will appear here during testing.")
-
     # Start/Stop buttons for adversarial testing
     st.markdown("---")
     col1, col2, col3 = st.columns([2, 2, 1])
@@ -1364,13 +1393,19 @@ Applies to all employees, contractors, and vendors with system access.
                               disabled=not st.session_state.adversarial_running,
                               use_container_width=True)
 
+    if start_button:
+        st.session_state.adversarial_running = True
+        threading.Thread(target=run_adversarial_testing).start()
+        st.rerun()
+
+    if stop_button:
+        st.session_state.adversarial_stop_flag = True
+
     # Progress and status section
     if st.session_state.adversarial_running or st.session_state.adversarial_status_message:
         status_container = st.container()
         with status_container:
-            # Enhanced status display
             if st.session_state.adversarial_status_message:
-                # Use different colors based on status message content
                 status_msg = st.session_state.adversarial_status_message
                 if "Success" in status_msg or "✅" in status_msg:
                     st.success(status_msg)
@@ -1381,17 +1416,13 @@ Applies to all employees, contractors, and vendors with system access.
                 else:
                     st.info(status_msg)
 
-            # Enhanced progress tracking
             if st.session_state.adversarial_running:
-                # Progress bar with iteration info
                 current_iter = len(st.session_state.get("adversarial_confidence_history", []))
                 max_iter = st.session_state.adversarial_max_iter
                 progress = min(current_iter / max(1, max_iter), 1.0)
 
-                # Progress bar with percentage
                 st.progress(progress, text=f"Iteration {current_iter}/{max_iter} ({int(progress * 100)}%)")
 
-                # Real-time metrics
                 if st.session_state.get("adversarial_confidence_history"):
                     current_confidence = st.session_state.adversarial_confidence_history[-1]
                     col1, col2, col3, col4 = st.columns(4)
@@ -1400,10 +1431,8 @@ Applies to all employees, contractors, and vendors with system access.
                     col3.metric("🔤 Prompt Tokens", f"{st.session_state.adversarial_total_tokens_prompt:,}")
                     col4.metric("📝 Completion Tokens", f"{st.session_state.adversarial_total_tokens_completion:,}")
 
-                # Enhanced logs with auto-scroll
                 with st.expander("🔍 Real-time Logs", expanded=True):
                     if st.session_state.adversarial_log:
-                        # Show last 50 entries instead of 20 for better visibility
                         log_content = "\n".join(st.session_state.adversarial_log[-50:])
                         st.text_area("Activity Log", value=log_content, height=300,
                                      key="adversarial_log_display",
@@ -1411,104 +1440,22 @@ Applies to all employees, contractors, and vendors with system access.
                     else:
                         st.info("⏳ Waiting for adversarial testing to start...")
 
-            # If adversarial testing has results, show them with enhanced visualization
             if st.session_state.adversarial_results and not st.session_state.adversarial_running:
                 with st.expander("🏆 Adversarial Testing Results", expanded=True):
                     results = st.session_state.adversarial_results
 
-                    # Enhanced metrics dashboard with better organization
                     st.markdown("### 📊 Performance Summary")
 
-                    # Main metrics in cards with enhanced styling
                     col1, col2, col3, col4 = st.columns(4)
                     col1.metric("✅ Final Approval Rate", f"{results.get('final_approval_rate', 0):.1f}%")
                     col2.metric("🔄 Iterations Completed", len(results.get('iterations', [])))
                     col3.metric("💰 Total Cost (USD)", f"${results.get('cost_estimate_usd', 0):.4f}")
-                    col4.metric("🔤 Total Tokens",
+                    col4.metric("🤿 Total Tokens",
                                 f"{results.get('tokens', {}).get('prompt', 0) + results.get('tokens', {}).get('completion', 0):,}")
 
-                    # Add a visual summary dashboard
-                    st.markdown("### 📊 Visual Summary")
-                    # Create a summary visualization
-                    summary_col1, summary_col2 = st.columns(2)
-                    with summary_col1:
-                        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-                        st.markdown('<div class="chart-title">Approval Rate Progress</div>', unsafe_allow_html=True)
-                        if results.get('iterations'):
-                            confidence_history = [iter.get("approval_check", {}).get("approval_rate", 0)
-                                                  for iter in results.get('iterations', [])]
-                            st.line_chart(confidence_history)
-                        st.markdown('</div>', unsafe_allow_html=True)
-
-                    with summary_col2:
-                        st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-                        st.markdown('<div class="chart-title">Issue Severity Distribution</div>',
-                                    unsafe_allow_html=True)
-                        if results.get('iterations'):
-                            # Aggregate severity data
-                            severity_counts = {"low": 0, "medium": 0, "high": 0, "critical": 0}
-                            for iteration in results.get('iterations', []):
-                                critiques = iteration.get("critiques", [])
-                                for critique in critiques:
-                                    critique_json = critique.get("critique_json", {})
-                                    issues = critique_json.get("issues", [])
-                                    for issue in issues:
-                                        severity = issue.get("severity", "low").lower()
-                                        if severity in severity_counts:
-                                            severity_counts[severity] += 1
-
-                            # Create a simple bar chart representation
-                            max_count = max(severity_counts.values()) if severity_counts.values() else 1
-                            for severity, count in severity_counts.items():
-                                if count > 0:
-                                    bar_length = int((count / max_count) * 20)
-                                    emoji = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}[severity]
-                                    st.write(f"{emoji} {severity.capitalize()}: {'█' * bar_length} ({count})")
-                        st.markdown('</div>', unsafe_allow_html=True)
-
-                    # Advanced analytics dashboard
-                    analytics = generate_advanced_analytics(results)
-                    st.markdown("### 📊 Advanced Analytics")
-
-                    # Create a dashboard card layout
-                    dashboard_col1, dashboard_col2, dashboard_col3, dashboard_col4 = st.columns(4)
-                    with dashboard_col1:
-                        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
-                        st.markdown("### 🔒 Security")
-                        st.metric("Strength", f"{analytics.get('security_strength', 0):.1f}%")
-                        st.markdown('</div>', unsafe_allow_html=True)
-                    with dashboard_col2:
-                        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
-                        st.markdown("### 📋 Compliance")
-                        st.metric("Coverage", f"{analytics.get('compliance_coverage', 0):.1f}%")
-                        st.markdown('</div>', unsafe_allow_html=True)
-                    with dashboard_col3:
-                        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
-                        st.markdown("### 🧾 Clarity")
-                        st.metric("Score", f"{analytics.get('clarity_score', 0):.1f}%")
-                        st.markdown('</div>', unsafe_allow_html=True)
-                    with dashboard_col4:
-                        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
-                        st.markdown("### ✅ Completeness")
-                        st.metric("Score", f"{analytics.get('completeness_score', 0):.1f}%")
-                        st.markdown('</div>', unsafe_allow_html=True)
-
-                    # Efficiency and resolution metrics
-                    efficiency_col1, efficiency_col2 = st.columns(2)
-                    with efficiency_col1:
-                        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
-                        st.markdown("### ⚡ Efficiency")
-                        st.metric("Score", f"{analytics.get('efficiency_score', 0):.1f}%")
-                        st.markdown('</div>', unsafe_allow_html=True)
-                    with efficiency_col2:
-                        st.markdown('<div class="dashboard-card">', unsafe_allow_html=True)
-                        st.markdown("### 🎯 Resolution")
-                        st.metric("Rate", f"{analytics.get('issue_resolution_rate', 0):.1f}%")
-                        st.markdown('</div>', unsafe_allow_html=True)
-
                     # Detailed metrics tabs
-                    metrics_tab1, metrics_tab2, metrics_tab3 = st.tabs(
-                        ["📈 Confidence Trend", "🏆 Model Performance", "🧮 Issue Analysis"])
+                    metrics_tab1, metrics_tab2, metrics_tab3, metrics_tab4 = st.tabs(
+                        ["📈 Confidence Trend", "🏆 Model Performance", "🧮 Issue Analysis", "📊 Advanced Analytics"])
 
                     with metrics_tab1:
                         # Confidence trend chart
@@ -1517,6 +1464,17 @@ Applies to all employees, contractors, and vendors with system access.
                                                   for iter in results.get('iterations', [])]
                             if confidence_history:
                                 # Enhanced visualization
+                                import pandas as pd
+                                df = pd.DataFrame({'confidence': confidence_history})
+                                st.line_chart(df)
+
+                                # Trend line
+                                x = np.arange(len(confidence_history))
+                                y = np.array(confidence_history)
+                                z = np.polyfit(x, y, 1)
+                                p = np.poly1d(z)
+                                st.line_chart(pd.DataFrame({'trend': p(x)}))
+
                                 max_confidence = max(confidence_history)
                                 min_confidence = min(confidence_history)
                                 avg_confidence = sum(confidence_history) / len(confidence_history)
@@ -1552,7 +1510,7 @@ Applies to all employees, contractors, and vendors with system access.
                             for i, (model_id, perf) in enumerate(sorted_models[:5]):
                                 score = perf.get("score", 0)
                                 issues = perf.get("issues_found", 0)
-                                st.progress(min(score / 100, 1.0),
+                                st.progress(min(score / 100, 1.0), 
                                             text=f"#{i + 1} {model_id} - Score: {score}, Issues Found: {issues}")
                         else:
                             st.info("No model performance data available.")
@@ -1585,10 +1543,15 @@ Applies to all employees, contractors, and vendors with system access.
                             col1, col2 = st.columns(2)
                             with col1:
                                 st.markdown("### 🎯 Issue Severity Distribution")
-                                for severity, count in severity_counts.items():
-                                    if count > 0:
-                                        emoji = {"low": "🟢", "medium": "🟡", "high": "🟠", "critical": "🔴"}[severity]
-                                        st.write(f"{emoji} {severity.capitalize()}: {count}")
+                                severity_counts = {}
+                                for iteration in results.get('iterations', []):
+                                    for critique in iteration.get("critiques", []):
+                                        if critique.get("critique_json"):
+                                            for issue in _safe_list(critique["critique_json"], "issues"):
+                                                severity = issue.get("severity", "low").lower()
+                                                severity_counts[severity] = severity_counts.get(severity, 0) + 1
+                                if severity_counts:
+                                    st.bar_chart(severity_counts)
                             with col2:
                                 st.markdown("### 📚 Issue Categories")
                                 # Show top 5 categories
@@ -1597,216 +1560,124 @@ Applies to all employees, contractors, and vendors with system access.
                                     st.write(f"🏷️ {category}: {count}")
 
                             st.metric("🔍 Total Issues Found", total_issues)
+                    with metrics_tab4:
+                        st.markdown("### 📊 Advanced Analytics")
+                        analytics = generate_advanced_analytics(results)
+                        st.json(analytics)
 
-                    # Protocol comparison and analysis
-                    st.markdown("### 📄 Protocol Analysis")
-                    final_sop = results.get('final_sop', '')
-                    original_sop = st.session_state.protocol_text
+                    st.markdown("### 📄 Final Hardened Protocol")
+                    st.code(results.get('final_sop', ''), language="markdown")
 
-                    if final_sop and original_sop:
-                        # Tabs for different views
-                        protocol_tab1, protocol_tab2, protocol_tab3, protocol_tab4 = st.tabs(
-                            ["🔄 Comparison", "📄 Final Protocol", "🔍 Structure Analysis", "🤖 AI Insights"])
-
-                        with protocol_tab1:
-                            st.markdown("### 🔄 Protocol Evolution")
-                            # Simple comparison metrics
-                            original_complexity = calculate_protocol_complexity(original_sop)
-                            final_complexity = calculate_protocol_complexity(final_sop)
-
-                            col1, col2, col3 = st.columns(3)
-                            col1.metric("📏 Original Length", f"{original_complexity['word_count']} words")
-                            col2.metric("📏 Final Length", f"{final_complexity['word_count']} words")
-                            col3.metric("📊 Length Change",
-                                        f"{final_complexity['word_count'] - original_complexity['word_count']} words",
-                                        f"{((final_complexity['word_count'] / max(1, original_complexity['word_count'])) - 1) * 100:.1f}%")
-
-                            # Show both protocols side by side
-                            col1, col2 = st.columns(2)
-                            with col1:
-                                st.markdown("**Original Protocol**")
-                                st.text_area("Original", value=original_sop, height=300,
-                                             key="original_protocol_display")
-                            with col2:
-                                st.markdown("**Hardened Protocol**")
-                                st.text_area("Final", value=final_sop, height=300, key="final_protocol_display")
-
-                            # Add detailed comparison
-                            st.markdown("### 📊 Detailed Comparison")
-                            st.markdown(render_protocol_comparison(original_sop, final_sop, "Original Protocol",
-                                                                   "Hardened Protocol"), unsafe_allow_html=True)
-
-                        with protocol_tab2:
-                            st.markdown("### 📄 Final Hardened Protocol")
-                            st.code(final_sop, language="markdown")
-                            # Add download button
-                            st.download_button(
-                                label="📥 Download Final Protocol",
-                                data=final_sop,
-                                file_name="hardened_protocol.md",
-                                mime="text/markdown"
-                            )
-
-                        with protocol_tab3:
-                            st.markdown("### 🔍 Protocol Structure Analysis")
-                            # Add protocol analysis
-                            complexity = calculate_protocol_complexity(final_sop)
-                            structure = extract_protocol_structure(final_sop)
-
-                            col1, col2 = st.columns(2)
-                            with col1:
-                                st.markdown("**📏 Complexity Metrics**")
-                                st.metric("Words", complexity["word_count"])
-                                st.metric("Sentences", complexity["sentence_count"])
-                                st.metric("Paragraphs", complexity["paragraph_count"])
-                                st.metric("Complexity Score", complexity["complexity_score"])
-                                st.metric("Unique Words", complexity["unique_words"])
-
-                            with col2:
-                                st.markdown("**🧩 Structure Analysis**")
-                                st.write("Numbered Steps:", "✅" if structure["has_numbered_steps"] else "❌")
-                                st.write("Bullet Points:", "✅" if structure["has_bullet_points"] else "❌")
-                                st.write("Headers:", "✅" if structure["has_headers"] else "❌")
-                                st.write("Preconditions:", "✅" if structure["has_preconditions"] else "❌")
-                                st.write("Postconditions:", "✅" if structure["has_postconditions"] else "❌")
-                                st.write("Error Handling:", "✅" if structure["has_error_handling"] else "❌")
-                                st.metric("SectionsIn Protocol", structure["section_count"])
-
-                        with protocol_tab4:
-                            st.markdown("### 🤖 AI Insights Dashboard")
-                            st.markdown(render_ai_insights_dashboard(final_sop), unsafe_allow_html=True)
-
-
-with tab2:
-    render_adversarial_testing_tab()
-
-with tab3:
-    st.title("🐙 GitHub Integration")
-    
-    # Authentication check
-    if not st.session_state.get("github_token"):
-        st.warning("Please authenticate with GitHub in the sidebar first.")
-        st.info("Go to the sidebar and enter your GitHub Personal Access Token to get started.")
-        st.stop()
-    
-    # Repository selection
-    linked_repos = list_linked_github_repositories()
-    if not linked_repos:
-        st.warning("Please link at least one GitHub repository in the sidebar first.")
-        st.info("Go to the sidebar, find the GitHub Integration section, and link a repository.")
-        st.stop()
-    
-    selected_repo = st.selectbox("Select Repository", linked_repos)
-    
-    # Branch management
-    if selected_repo:
-        st.markdown("### 🌿 Branch Management")
-        
-        # Create new branch
-        with st.expander("Create New Branch"):
-            new_branch_name = st.text_input("New Branch Name", placeholder="e.g., protocol-v1")
-            base_branch = st.text_input("Base Branch", "main")
-            if st.button("Create Branch") and new_branch_name:
-                token = st.session_state.github_token
-                if create_github_branch(token, selected_repo, new_branch_name, base_branch):
-                    st.success(f"Created branch '{new_branch_name}' from '{base_branch}'")
-        
-        # Branch selection
-        branch_name = st.text_input("Target Branch", "main")
-        
-        # Commit and push
-        st.markdown("### 💾 Commit and Push")
-        file_path = st.text_input("File Path", "protocols/evolved_protocol.md")
-        commit_message = st.text_input("Commit Message", "Update evolved protocol")
-        
-        if st.button("Commit to GitHub") and st.session_state.protocol_text.strip():
-            token = st.session_state.github_token
-            if commit_to_github(token, selected_repo, file_path, st.session_state.protocol_text, commit_message, branch_name):
-                st.success("✅ Committed to GitHub successfully!")
-            else:
-                st.error("❌ Failed to commit to GitHub")
-
-# Add start/stop functionality for adversarial testingxt, commit_message, branch_name):\n                st.success(\"Successfully committed to GitHub!\")\n                \n                # Store generation info\n                if \"github_generations\" not in st.session_state:\n                    st.session_state.github_generations = []\n                st.session_state.github_generations.append({\n                    \"repo\": selected_repo,\n                    \"file_path\": file_path,\n                    \"branch\": branch_name,\n                    \"timestamp\": datetime.now().isoformat(),\n                    \"commit_message\": commit_message\n                })\n        \n        # View commit history\n        st.markdown(\"### 📜 Commit History\")\n        if st.button(\"Fetch Commit History\"):\n            token = st.session_state.github_token\n            commits = get_github_commit_history(token, selected_repo, file_path, branch_name)\n            if commits:\n                for commit in commits:\n                    col1, col2, col3 = st.columns([2, 1, 1])\n                    with col1:\n                        st.caption(f\"**{commit['message'][:50]}{'...' if len(commit['message']) > 50 else ''}**\")\n                    with col2:\n                        st.caption(f\"{commit['author']}\")\n                    with col3:\n                        st.caption(f\"{commit['date'][:10]}\")\n            else:\n                st.info(\"No commits found for this file.\")\n        \n        # Protocol generations\n        st.markdown(\"### 📚 Protocol Generations\")\n        generations = get_protocol_generations_from_github(selected_repo)\n        if generations:\n            for gen in generations:\n                col1, col2, col3 = st.columns([2, 1, 1])\n                with col1:\n                    st.caption(f\"**{gen['generation_name']}**\")\n                with col2:\n                    st.caption(f\"{gen['timestamp'][:10]}\")\n                with col3:\n                    if st.button(\"View\", key=f\"view_gen_{gen['file_path']}\"):\n                        st.code(f\"# {gen['generation_name']}\\n\\n{st.session_state.protocol_text}\", language=\"markdown\")\n        else:\n            st.info(\"No protocol generations found in this repository.\")\n\n# Add start/stop functionality for adversarial testing
-if start_button:
-    # Validate inputs before starting
-    errors = []
-
-    if not st.session_state.protocol_text.strip():
-        errors.append("📄 Please enter a protocol before starting adversarial testing.")
-
-    if not st.session_state.openrouter_key:
-        errors.append("🔑 Please enter your OpenRouter API key.")
-
-    if not st.session_state.red_team_models:
-        errors.append("🔴 Please select at least one red team model.")
-
-    if not st.session_state.blue_team_models:
-        errors.append("🔵 Please select at least one blue team model.")
-
-    if st.session_state.adversarial_min_iter > st.session_state.adversarial_max_iter:
-        errors.append("🔄 Min iterations cannot be greater than max iterations.")
-
-    if st.session_state.adversarial_confidence < 50 or st.session_state.adversarial_confidence > 100:
-        errors.append("🎯 Confidence threshold should be between 50% and 100%.")
-
-    # Enhanced validation for model selection
-    if len(st.session_state.red_team_models) > 10:
-        errors.append("🔴 Please select 10 or fewer red team models to avoid excessive costs.")
-
-    if len(st.session_state.blue_team_models) > 10:
-        errors.append("🔵 Please select 10 or fewer blue team models to avoid excessive costs.")
-
-    # Show all errors at once
-    if errors:
-        for error in errors:
-            st.error(error)
-        st.info("💡 Tip: Check the Quick Start Wizard above for guided setup.")
-    else:
-        # Thread safety check to prevent multiple concurrent adversarial testing threads
-        if st.session_state.adversarial_running:
-            st.warning("Adversarial testing is already running. Please wait for it to complete or stop it first.")
-        else:
-            # Enhanced confirmation dialog with detailed cost estimation
-            protocol_length = len(st.session_state.protocol_text.split())
-            estimate = estimate_testing_time_and_cost(
-                st.session_state.red_team_models,
-                st.session_state.blue_team_models,
-                st.session_state.adversarial_max_iter,
-                protocol_length
-            )
-
-            estimated_cost = estimate["estimated_cost_usd"]
-            estimated_time = estimate["estimated_time_minutes"]
-
-            if estimated_cost > 0.1:  # If estimated cost is over $0.10
-                st.warning(
-                    f"💰 Estimated cost: ${estimated_cost:.4f} | ⏰ Estimated time: {estimated_time} minutes | 🔄 Operations: {estimate['total_operations']:,}")
-            st.info("💡 Tip: Consider reducing the number of models or iterations to control costs.")
-            if not st.checkbox("✅ I understand the cost and time estimate and want to proceed", key="cost_confirmation"):
-                st.info("ℹ️ Please confirm you understand the cost and time estimate to proceed.")
-                st.stop()
-
-            # Start adversarial testing with enhanced initialization
-            st.session_state.adversarial_running = True
-            st.session_state.adversarial_status_message = "🚀 Initializing adversarial testing..."
-
-            # Show initialization message
-            with st.spinner("Starting adversarial testing process..."):
-                # Initialize progress tracking
-                st.session_state.adversarial_confidence_history = []
-                st.session_state.adversarial_total_tokens_prompt = 0
-                st.session_state.adversarial_total_tokens_completion = 0
-                st.session_state.adversarial_cost_estimate_usd = 0.0
-
-                # Start the testing process in a separate thread
-                threading.Thread(target=run_adversarial_testing, daemon=True).start()
-            st.rerun()
-
-if stop_button:
-    if st.session_state.adversarial_running:
-        st.session_state.adversarial_stop_flag = True
-        st.warning("⏹️ Stop signal sent. Adversarial testing will stop after the current iteration.")
-        st.session_state.adversarial_status_message = "⏹️ Stopping adversarial testing..."
-        # No rerun here, let the loop handle the UI update
-    else:
-        st.info("ℹ️ Adversarial testing is not currently running.")
+                    # Export options
+                    st.markdown("### 📁 Export Results")
+                    st.text_input("Watermark for PDF Export", key="pdf_watermark")
+                    st.text_area("Custom CSS for HTML Export", key="custom_css")
+                    export_col1, export_col2, export_col3, export_col4 = st.columns(4)
+                    
+                    with export_col1:
+                        if st.button("📄 Export PDF", key="export_pdf", use_container_width=True):
+                            if results:
+                                pdf_bytes = generate_pdf_report(results, st.session_state.pdf_watermark)
+                                st.download_button(
+                                    label="📥 Download PDF",
+                                    data=pdf_bytes,
+                                    file_name=f"adversarial_testing_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                                    mime="application/pdf",
+                                    use_container_width=True
+                                )
+                            else:
+                                st.warning("No results to export.")
+                    
+                    with export_col2:
+                        if st.button("📝 DOCX", key="export_docx", use_container_width=True):
+                            if results:
+                                docx_bytes = generate_docx_report(results)
+                                st.download_button(
+                                    label="📥 Download DOCX",
+                                    data=docx_bytes,
+                                    file_name=f"adversarial_testing_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.docx",
+                                    mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                                    use_container_width=True
+                                )
+                            else:
+                                st.warning("No results to export.")
+                    
+                    with export_col3:
+                        if st.button("📊 Export HTML", key="export_html", use_container_width=True):
+                            if results:
+                                html_content = generate_html_report(results, st.session_state.custom_css)
+                                st.download_button(
+                                    label="📥 Download HTML",
+                                    data=html_content,
+                                    file_name=f"adversarial_testing_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
+                                    mime="text/html",
+                                    use_container_width=True
+                                )
+                            else:
+                                st.warning("No results to export.")
+                    
+                    with export_col4:
+                        if st.button("📋 Export JSON", key="export_json", use_container_width=True):
+                            if results:
+                                json_str = json.dumps(results, indent=2, default=str)
+                                st.download_button(
+                                    label="📥 Download JSON",
+                                    data=json_str,
+                                    file_name=f"adversarial_testing_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                                    mime="application/json",
+                                    use_container_width=True
+                                )
+                            else:
+                                st.warning("No results to export.")
+                    export_col5, = st.columns(1)
+                    with export_col5:
+                        if st.button("📄 Export LaTeX", key="export_latex", use_container_width=True):
+                            if results:
+                                latex_str = generate_latex_report(results)
+                                st.download_button(
+                                    label="📥 Download LaTeX",
+                                    data=latex_str,
+                                    file_name=f"adversarial_testing_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.tex",
+                                    mime="application/x-latex",
+                                    use_container_width=True
+                                )
+                            else:
+                                st.warning("No results to export.")
+                    export_col6, = st.columns(1)
+                    with export_col6:
+                        if st.button("💬 Send to Discord", key="send_to_discord", use_container_width=True):
+                            if st.session_state.discord_webhook_url:
+                                message = f"Adversarial testing complete! Final approval rate: {results.get('final_approval_rate', 0.0):.1f}%"
+                                send_discord_notification(st.session_state.discord_webhook_url, message)
+                            else:
+                                st.warning("Please configure the Discord webhook URL in the sidebar.")
+                    export_col7, = st.columns(1)
+                    with export_col7:
+                        if st.button("💬 Send to Teams", key="send_to_teams", use_container_width=True):
+                            if st.session_state.msteams_webhook_url:
+                                message = f"Adversarial testing complete! Final approval rate: {results.get('final_approval_rate', 0.0):.1f}%"
+                                send_msteams_notification(st.session_state.msteams_webhook_url, message)
+                            else:
+                                st.warning("Please configure the Microsoft Teams webhook URL in the sidebar.")
+                    export_col8, = st.columns(1)
+                    with export_col8:
+                        if st.button("🚀 Send Webhook", key="send_webhook", use_container_width=True):
+                            if st.session_state.generic_webhook_url:
+                                payload = {"text": f"Adversarial testing complete! Final approval rate: {results.get('final_approval_rate', 0.0):.1f}%"}
+                                send_generic_webhook(st.session_state.generic_webhook_url, payload)
+                            else:
+                                st.warning("Please configure the generic webhook URL in the sidebar.")
+                    export_col9, = st.columns(1)
+                    with export_col9:
+                        if st.button("📋 Generate Compliance Report", key="generate_compliance_report", use_container_width=True):
+                            if results and st.session_state.compliance_requirements:
+                                compliance_report = generate_compliance_report(results, st.session_state.compliance_requirements)
+                                st.download_button(
+                                    label="📥 Download Compliance Report",
+                                    data=compliance_report,
+                                    file_name=f"compliance_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md",
+                                    mime="text/markdown",
+                                    use_container_width=True
+                                )
+                            else:
+                                st.warning("No results or compliance requirements to generate a report.")

@@ -1,6 +1,56 @@
-# ------------------------------------------------------------------
-# 5. Adversarial Testing Functions (robust)
-# ------------------------------------------------------------------
+# This file implements the adversarial generation functionality of the OpenEvolve frontend.
+# The purpose of this module is to facilitate AI-driven testing and refinement of ideas,
+# code, and other content. It operates on the principle of "AI peer review," where
+# different AI agents are assigned to "red team" (critique) and "blue team" (improve)
+# roles. An "evaluator" AI then assesses the quality of the improvements.
+#
+# This process is designed for constructive, iterative improvement and is NOT intended
+# for generating malicious prompts, code, or other harmful content. The goal is to
+# identify weaknesses and enhance the quality of the content in a controlled and
+# ethical manner.
+
+import streamlit as st
+import requests
+import json
+import time
+import threading
+import functools
+import traceback
+import hashlib
+import uuid
+import random
+import re
+import tempfile
+import os
+from typing import List, Dict, Any, Optional, Tuple
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+import docx
+from fpdf import FPDF
+
+# Import OpenEvolve modules for backend integration
+import sys
+
+# Add the openevolve package to the path so we can import it
+sys.path.append(os.path.join(os.path.dirname(__file__), 'openevolve'))
+try:
+    from openevolve.api import run_evolution as openevolve_run_evolution
+    from openevolve.config import Config, LLMModelConfig
+    from openevolve.evaluation_result import EvaluationResult
+    from openevolve.database import Program
+    OPENEVOLVE_AVAILABLE = True
+except ImportError:
+    OPENEVOLVE_AVAILABLE = False
+    print("OpenEvolve backend not available - using API-based adversarial testing only")
+
+from openevolve_integration import create_language_specific_evaluator, create_specialized_evaluator
+
+from sessionstate import (
+    _clamp, _rand_jitter_ms, _approx_tokens, _cost_estimate, safe_int, safe_float, _safe_list, 
+    _extract_json_block, _compose_messages, APPROVAL_PROMPT, RED_TEAM_CRITIQUE_PROMPT, 
+    BLUE_TEAM_PATCH_PROMPT, CODE_REVIEW_RED_TEAM_PROMPT, CODE_REVIEW_BLUE_TEAM_PROMPT, 
+    PLAN_REVIEW_RED_TEAM_PROMPT, PLAN_REVIEW_BLUE_TEAM_PROMPT, _hash_text
+)
 
 MODEL_META_BY_ID: Dict[str, Dict[str, Any]] = {}
 MODEL_META_LOCK = threading.Lock()
@@ -9,6 +59,7 @@ MODEL_META_LOCK = threading.Lock()
 @st.cache_data(ttl=600)
 def get_openrouter_models(api_key: str) -> List[Dict]:
     """Fetch available models from OpenRouter (cached)."""
+    print(f"Using API Key: {api_key}")
     if not api_key:
         return []
     try:
@@ -24,14 +75,6 @@ def get_openrouter_models(api_key: str) -> List[Dict]:
     except Exception as e:
         st.warning(f"Could not fetch OpenRouter models: {e}")
         return []
-
-
-def _compose_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
-    messages = []
-    if system_prompt and system_prompt.strip():
-        messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": user_prompt})
-    return messages
 
 
 def _request_openrouter_chat(
@@ -109,162 +152,217 @@ def _request_openrouter_chat(
     raise RuntimeError(f"Request failed for {model_id} after {max_retries} attempts: {last_err}")
 
 
-def _request_anthropic_chat(
-        api_key: str, base_url: str, model: str, messages: List, extra_headers: Dict,
-        temperature: float, top_p: float, max_tokens: int, seed: Optional[int],
-        frequency_penalty: float = 0.0, presence_penalty: float = 0.0,
-        req_timeout: int = 60, max_retries: int = 5
-) -> str:
-    url = base_url.rstrip('/') + "/messages"
-    headers = {
-        "x-api-key": api_key,
-        "anthropic-version": "2023-06-01",
-        "Content-Type": "application/json",
-        **extra_headers
-    }
+def _run_adversarial_testing_with_openevolve_backend(
+    current_content: str,
+    content_type: str,
+    red_team_models: List[str],
+    blue_team_models: List[str],
+    api_key: str,
+    base_url: str,
+    max_iterations: int,
+    confidence_threshold: float,
+    max_tokens: int,
+    temperature: float,
+    top_p: float,
+    frequency_penalty: float,
+    presence_penalty: float,
+    seed: Optional[int],
+    max_workers: int,
+    rotation_strategy: str,
+    red_team_sample_size: int,
+    blue_team_sample_size: int,
+    custom_requirements: str = "",
+    evaluator_system_prompt: str = APPROVAL_PROMPT,
+    red_team_prompt: str = RED_TEAM_CRITIQUE_PROMPT,
+    blue_team_prompt: str = BLUE_TEAM_PATCH_PROMPT,
+    compliance_rules: Optional[List[str]] = None,
+    red_team_prompt_enhancement: str = "",
+    blue_team_prompt_enhancement: str = "",
+    feature_dimensions: Optional[List[str]] = None,
+    feature_bins: Optional[int] = None,
+    enable_data_augmentation: bool = False,
+    augmentation_model_id: str = None,
+    augmentation_temperature: float = 0.7,
+    enable_human_feedback: bool = False,
+    current_iteration: int = 0
+) -> Dict[str, Any]:
+    """
+    Run adversarial testing using OpenEvolve backend for code content.
+    
+    Args:
+        current_content: The content to test adversarially
+        content_type: Type of content being tested
+        red_team_models: List of red team models
+        blue_team_models: List of blue team models
+        api_key: API key for the LLM provider
+        base_url: Base URL for the API
+        max_iterations: Maximum number of iterations
+        confidence_threshold: Confidence threshold for stopping
+        max_tokens: Maximum tokens to generate
+        temperature: Temperature for generation
+        top_p: Top-p sampling parameter
+        frequency_penalty: Frequency penalty
+        presence_penalty: Presence penalty
+        seed: Random seed
+        max_workers: Maximum number of parallel workers
+        rotation_strategy: Model rotation strategy
+        red_team_sample_size: Number of red team models to sample
+        blue_team_sample_size: Number of blue team models to sample
+        custom_requirements: Custom requirements for testing
+        evaluator_system_prompt: System prompt for evaluation
+        red_team_prompt: Prompt for red team
+        blue_team_prompt: Prompt for blue team
+        
+    Returns:
+        Dict[str, Any]: Adversarial testing results
+    """
+    if not OPENEVOLVE_AVAILABLE:
+        st.error("OpenEvolve backend not available for adversarial testing")
+        return {"success": False, "error": "OpenEvolve backend not available"}
+    
+    try:
+        # Create OpenEvolve configuration
+        config = Config()
+        
+        # Configure LLM models
+        llm_models = []
+        
+        # Add red team models
+        for model_id in red_team_models[:red_team_sample_size]:
+            llm_config = LLMModelConfig(
+                name=model_id,
+                api_key=api_key,
+                api_base=base_url if base_url else "https://api.openai.com/v1",
+                temperature=temperature,
+                top_p=top_p,
+                frequency_penalty=frequency_penalty,
+                presence_penalty=presence_penalty,
+                max_tokens=max_tokens,
+                seed=seed
+            )
+            llm_models.append(llm_config)
+        
+        # Add blue team models
+        for model_id in blue_team_models[:blue_team_sample_size]:
+            llm_config = LLMModelConfig(
+                name=model_id,
+                api_key=api_key,
+                api_base=base_url if base_url else "https://api.openai.com/v1",
+                temperature=temperature,
+                top_p=top_p,
+                frequency_penalty=frequency_penalty,
+                presence_penalty=presence_penalty,
+                max_tokens=max_tokens,
+                seed=seed
+            )
+            llm_models.append(llm_config)
+        
+        config.llm.models = llm_models
+        config.evolution.max_iterations = max_iterations
+        config.evolution.population_size = max_workers
+        config.evolution.num_islands = st.session_state.num_islands
+        config.evolution.elite_ratio = st.session_state.elite_ratio
+        config.evolution.exploration_ratio = st.session_state.exploration_ratio
+        config.evolution.exploitation_ratio = st.session_state.exploitation_ratio
+        config.evolution.archive_size = st.session_state.archive_size
+        config.evolution.checkpoint_interval = st.session_state.checkpoint_interval
 
-    # Separate system prompt from messages
-    system_prompt = ""
-    user_messages = []
-    for msg in messages:
-        if msg['role'] == 'system':
-            system_prompt = msg['content']
+        # Configure database settings for multi-objective evolution
+        if feature_dimensions is not None:
+            config.database.feature_dimensions = feature_dimensions
+        if feature_bins is not None:
+            config.database.feature_bins = feature_bins
+
+        # Perform data augmentation if enabled
+        if enable_data_augmentation and augmentation_model_id:
+            _update_adv_log_and_status(f"🧪 Augmenting content using {augmentation_model_id}...")
+            current_content = generate_adversarial_data_augmentation(
+                content=current_content,
+                content_type=content_type,
+                api_key=api_key,
+                model_id=augmentation_model_id,
+                temperature=augmentation_temperature,
+                max_tokens=max_tokens, # Use same max_tokens as main evolution
+                seed=seed
+            )
+            _update_adv_log_and_status("✅ Content augmentation complete.")
+
+        # Create evaluator function based on content_type
+        if content_type.startswith("code_"):
+            evaluator = create_specialized_evaluator(content_type, custom_requirements, compliance_rules)
         else:
-            user_messages.append(msg)
+            evaluator = create_language_specific_evaluator(content_type, custom_requirements, compliance_rules)
+        # Create temporary file for the content with proper evolution markers
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
+            # Add evolution markers to the content
+            content_with_markers = f"""# EVOLVE-BLOCK-START
+{current_content}
+# EVOLVE-BLOCK-END"""
+            temp_file.write(content_with_markers)
+            temp_file_path = temp_file.name
 
-    payload = {
-        "model": model,
-        "messages": user_messages,
-        "max_tokens": max_tokens,
-        "temperature": _clamp(temperature, 0.0, 1.0),
-        "top_p": _clamp(top_p, 0.0, 1.0),
-    }
-    if system_prompt:
-        payload['system'] = system_prompt
-
-    last_err = None
-    for attempt in range(max_retries):
         try:
-            r = requests.post(url, headers=headers, json=payload, timeout=req_timeout)
-            if r.status_code in {429, 500, 502, 503, 504}:
-                sleep_s = (2 ** attempt) + _rand_jitter_ms()
-                time.sleep(sleep_s)
-                last_err = Exception(f"HTTP {r.status_code}: {r.text}")
-                continue
-            r.raise_for_status()
-            data = r.json()
-            if data.get('content') and isinstance(data['content'], list):
-                return data['content'][0].get('text', '')
+            # Run adversarial testing using OpenEvolve API
+            result = openevolve_run_evolution(
+                initial_program=temp_file_path,
+                evaluator=adversarial_evaluator,
+                config=config,
+                iterations=max_iterations,
+                output_dir=None,  # Use temporary directory
+                cleanup=True
+            )
+            
+            # Process results
+            if result.best_program and result.best_code:
+                # Remove evolution markers from the final result
+                best_code = result.best_code
+                if "# EVOLVE-BLOCK-START" in best_code:
+                    start_idx = best_code.find("# EVOLVE-BLOCK-START") + len("# EVOLVE-BLOCK-START")
+                    end_idx = best_code.find("# EVOLVE-BLOCK-END")
+                    if end_idx != -1:
+                        best_code = best_code[start_idx:end_idx].strip()
+                
+                # Simulate human feedback capture
+                if enable_human_feedback:
+                    # For now, a dummy score and comments
+                    dummy_score = random.uniform(0.5, 1.0) # Simulate a score
+                    dummy_comments = "Human reviewed and provided general feedback on clarity and relevance."
+                    capture_human_feedback(
+                        adversarial_example={
+                            "id": str(uuid.uuid4()),
+                            "content": best_code,
+                            "content_type": content_type,
+                            "iteration": current_iteration # Now using the passed iteration
+                        },
+                        human_score=dummy_score,
+                        human_comments=dummy_comments
+                    )
+
+                return {
+                    "success": True,
+                    "best_program": result.best_program,
+                    "best_score": result.best_score,
+                    "best_code": best_code,
+                    "metrics": result.metrics,
+                    "output_dir": result.output_dir
+                }
             else:
-                last_err = Exception("No content in response")
-        except Exception as e:
-            last_err = e
-            sleep_s = (2 ** attempt) + _rand_jitter_ms()
-            time.sleep(sleep_s)
-    raise RuntimeError(f"Request failed after {max_retries} attempts for model {model}: {last_err}")
+                return {
+                    "success": False,
+                    "message": "Adversarial testing completed with no improvement."
+                }
 
+        finally:
+            # Clean up the temporary file
+            if os.path.exists(temp_file_path):
+                os.unlink(temp_file_path)
 
-def _request_google_gemini_chat(
-        api_key: str, base_url: str, model: str, messages: List, extra_headers: Dict,
-        temperature: float, top_p: float, max_tokens: int, seed: Optional[int],
-        frequency_penalty: float = 0.0, presence_penalty: float = 0.0,
-        req_timeout: int = 60, max_retries: int = 5
-) -> str:
-    url = f"{base_url.rstrip('/')}/models/{model}:generateContent?key={api_key}"
-    headers = {"Content-Type": "application/json", **extra_headers}
-
-    # Gemini uses a different message format
-    contents = []
-    for msg in messages:
-        contents.append({"role": msg['role'], "parts": [{"text": msg['content']}]})
-
-    payload = {
-        "contents": contents,
-        "generationConfig": {
-            "temperature": _clamp(temperature, 0.0, 1.0),
-            "topP": _clamp(top_p, 0.0, 1.0),
-            "maxOutputTokens": max_tokens,
-        }
-    }
-
-    last_err = None
-    for attempt in range(max_retries):
-        try:
-            r = requests.post(url, headers=headers, json=payload, timeout=req_timeout)
-            if r.status_code in {429, 500, 502, 503, 504}:
-                sleep_s = (2 ** attempt) + _rand_jitter_ms()
-                time.sleep(sleep_s)
-                last_err = Exception(f"HTTP {r.status_code}: {r.text}")
-                continue
-            r.raise_for_status()
-            data = r.json()
-            if data.get('candidates') and isinstance(data['candidates'], list):
-                return data['candidates'][0]['content']['parts'][0]['text']
-            else:
-                last_err = Exception("No content in response")
-        except Exception as e:
-            last_err = e
-            sleep_s = (2 ** attempt) + _rand_jitter_ms()
-            time.sleep(sleep_s)
-    raise RuntimeError(f"Request failed after {max_retries} attempts for model {model}: {last_err}")
-
-
-def _request_cohere_chat(
-        api_key: str, base_url: str, model: str, messages: List, extra_headers: Dict,
-        temperature: float, top_p: float, max_tokens: int, seed: Optional[int],
-        frequency_penalty: float = 0.0, presence_penalty: float = 0.0,
-        req_timeout: int = 60, max_retries: int = 5
-) -> str:
-    url = base_url.rstrip('/') + "/chat"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        **extra_headers
-    }
-
-    # Separate system prompt and history from the last user message
-    system_prompt = ""
-    chat_history = []
-    for msg in messages[:-1]:
-        if msg['role'] == 'system':
-            system_prompt = msg['content']
-        else:
-            chat_history.append({"role": msg['role'].upper(), "message": msg['content']})
-
-    user_message = messages[-1]['content']
-
-    payload = {
-        "model": model,
-        "message": user_message,
-        "chat_history": chat_history,
-        "max_tokens": max_tokens,
-        "temperature": _clamp(temperature, 0.0, 5.0),
-        "p": _clamp(top_p, 0.0, 1.0),
-    }
-    if system_prompt:
-        payload['preamble'] = system_prompt
-
-    last_err = None
-    for attempt in range(max_retries):
-        try:
-            r = requests.post(url, headers=headers, json=payload, timeout=req_timeout)
-            if r.status_code in {429, 500, 502, 503, 504}:
-                sleep_s = (2 ** attempt) + _rand_jitter_ms()
-                time.sleep(sleep_s)
-                last_err = Exception(f"HTTP {r.status_code}: {r.text}")
-                continue
-            r.raise_for_status()
-            data = r.json()
-            if data.get('text'):
-                return data['text']
-            else:
-                last_err = Exception("No text in response")
-        except Exception as e:
-            last_err = e
-            sleep_s = (2 ** attempt) + _rand_jitter_ms()
-            time.sleep(sleep_s)
-    raise RuntimeError(f"Request failed after {max_retries} attempts for model {model}: {last_err}")
-
+    except Exception as e:
+        st.error(f"Error running adversarial testing with OpenEvolve backend: {e}")
+        print(f"Adversarial testing error: {e}")
+        import traceback
+        traceback.print_exc()
+        return {"success": False, "error": str(e)}
 
 def analyze_with_model(
         api_key: str,
@@ -276,6 +374,7 @@ def analyze_with_model(
         force_json: bool = False,
         seed: Optional[int] = None,
         compliance_requirements: str = "",
+        prompt_enhancement: str = ""
 ) -> Dict[str, Any]:
     """
     Analyzes an SOP with a specific model, handling context limits and returning structured results.
@@ -283,6 +382,14 @@ def analyze_with_model(
     try:
         if compliance_requirements:
             system_prompt = system_prompt.format(compliance_requirements=compliance_requirements)
+            print(f"Using compliance requirements: {compliance_requirements}")
+        if prompt_enhancement:
+            system_prompt += f"\n{prompt_enhancement}"
+            print(f"Using prompt enhancement: {prompt_enhancement}")
+        if st.session_state.get("adversarial_critique_depth"):
+            system_prompt += f"\nCritique Depth: {st.session_state.adversarial_critique_depth}"
+        if st.session_state.get("adversarial_patch_quality"):
+            system_prompt += f"\nPatch Quality: {st.session_state.adversarial_patch_quality}"
         max_tokens = safe_int(config.get("max_tokens"), 8000)
         user_prompt = f"Here is the Standard Operating Procedure (SOP):\n\n---\n\n{sop}\n\n---\n\n{user_suffix}"
         full_prompt_text = system_prompt + user_prompt
@@ -292,8 +399,10 @@ def analyze_with_model(
         prompt_toks_est = _approx_tokens(full_prompt_text)
 
         if prompt_toks_est + max_tokens >= context_len:
-            err_msg = (f"ERROR[{model_id}]: Estimated prompt tokens ({prompt_toks_est}) + max_tokens ({max_tokens}) "
-                       f"exceeds context window ({context_len}). Skipping.")
+            err_msg = (
+                f"ERROR[{model_id}]: Estimated prompt tokens ({prompt_toks_est}) + max_tokens ({max_tokens}) "
+                f"exceeds context window ({context_len}). Skipping."
+            )
             return {"ok": False, "text": err_msg, "json": None, "ptoks": 0, "ctoks": 0, "cost": 0.0,
                     "model_id": model_id}
 
@@ -313,7 +422,6 @@ def analyze_with_model(
         return {"ok": False, "text": f"ERROR[{model_id}]: {e}", "json": None, "ptoks": 0, "ctoks": 0, "cost": 0.0,
                 "model_id": model_id}
 
-
 def determine_review_type(content: str) -> str:
     """Determine the appropriate review type based on content analysis.
 
@@ -329,13 +437,34 @@ def determine_review_type(content: str) -> str:
     # Convert to lowercase for analysis
     lower_content = content.lower()
 
-    # Check for code indicators
-    code_indicators = [
-        'function ', 'def ', 'class ', 'import ', 'require(', 'var ', 'let ', 'const ',
-        'public ', 'private ', 'protected ', 'static ', 'void ', 'int ', 'string ',
-        '<html', '<?php', '<script', 'console.', 'print(', 'printf(', 'scanf(',
-        'if(', 'for(', 'while(', 'switch(', 'try{', 'catch(', 'finally{'
-    ]
+    # Enhanced language detection for code review
+    # Programming language indicators
+    python_indicators = ['def ', 'import ', 'class ', 'if __name__ ==', 'print(', 'for ', 'while ']
+    js_indicators = ['function ', 'const ', 'let ', 'var ', 'import ', 'require(', 'console.', '=>']
+    java_indicators = ['public class ', 'private ', 'protected ', 'static ', 'void ', 'int ', 'String ', 'new ']
+    cpp_indicators = ['#include', 'using namespace', 'std::', 'cout <<', 'cin >>', 'int main']
+    csharp_indicators = ['using System', 'namespace ', 'public class', 'static void Main', 'Console.WriteLine']
+    go_indicators = ['package ', 'import ', 'func ', 'fmt.', 'var ']
+    rust_indicators = ['fn ', 'let ', 'mut ', 'use ', 'println!', 'struct ']
+    
+    # Count matches for each language
+    lang_counts = {
+        'python': sum(1 for indicator in python_indicators if indicator in lower_content),
+        'javascript': sum(1 for indicator in js_indicators if indicator in lower_content),
+        'java': sum(1 for indicator in java_indicators if indicator in lower_content),
+        'cpp': sum(1 for indicator in cpp_indicators if indicator in lower_content),
+        'csharp': sum(1 for indicator in csharp_indicators if indicator in lower_content),
+        'go': sum(1 for indicator in go_indicators if indicator in lower_content),
+        'rust': sum(1 for indicator in rust_indicators if indicator in lower_content)
+    }
+    
+    # Find the dominant programming language
+    dominant_lang = max(lang_counts, key=lang_counts.get)
+    dominant_count = lang_counts[dominant_lang]
+    
+    # If we have significant code indicators, use code review
+    if dominant_count > 2:
+        return "code"
 
     # Check for plan indicators
     plan_indicators = [
@@ -345,7 +474,7 @@ def determine_review_type(content: str) -> str:
     ]
 
     # Count matches
-    code_matches = sum(1 for indicator in code_indicators if indicator in lower_content)
+    code_matches = sum(lang_counts.values())
     plan_matches = sum(1 for indicator in plan_indicators if indicator in lower_content)
 
     # Determine review type
@@ -355,7 +484,6 @@ def determine_review_type(content: str) -> str:
         return "plan"
     else:
         return "general"
-
 
 def get_appropriate_prompts(review_type: str) -> Tuple[str, str]:
     """Get the appropriate prompts based on review type.
@@ -373,11 +501,9 @@ def get_appropriate_prompts(review_type: str) -> Tuple[str, str]:
     else:
         return RED_TEAM_CRITIQUE_PROMPT, BLUE_TEAM_PATCH_PROMPT
 
-
 def _severity_rank(sev: str) -> int:
     order = {"low": 0, "medium": 1, "high": 2, "critical": 3}
     return order.get(str(sev).lower(), 0)
-
 
 def _merge_consensus_sop(base_sop: str, blue_patches: List[dict], critiques: List[dict]) -> Tuple[str, dict]:
     """
@@ -442,7 +568,6 @@ def _merge_consensus_sop(base_sop: str, blue_patches: List[dict], critiques: Lis
                    "resolution_by_severity": best_res_sev, "resolution_by_category": best_res_cat}
     return best_sop, diagnostics
 
-
 def _aggregate_red_risk(critiques: List[dict]) -> Dict[str, Any]:
     """Computes an aggregate risk score from all red-team critiques."""
     sev_weight = {"low": 1, "medium": 3, "high": 6, "critical": 12}
@@ -466,7 +591,6 @@ def _aggregate_red_risk(critiques: List[dict]) -> Dict[str, Any]:
     return {"total_weight": total_weight, "avg_issue_weight": avg_weight, "categories": categories,
             "severities": severities, "count": issue_count}
 
-
 def _update_model_performance(critiques: List[dict]):
     """Updates the performance scores of models based on the critiques they generated."""
     with st.session_state.thread_lock:
@@ -489,7 +613,6 @@ def _update_model_performance(critiques: List[dict]):
                     st.session_state.adversarial_model_performance[model_id]["score"] += sev_weight.get(sev, 1)
                     st.session_state.adversarial_model_performance[model_id]["issues_found"] += 1
 
-
 def _collect_model_configs(model_ids: List[str], max_tokens: int) -> Dict[str, Dict[str, Any]]:
     return {
         model_id: {
@@ -498,9 +621,9 @@ def _collect_model_configs(model_ids: List[str], max_tokens: int) -> Dict[str, D
             "frequency_penalty": st.session_state.get(f"freqpen_{model_id}", 0.0),
             "presence_penalty": st.session_state.get(f"prespen_{model_id}", 0.0),
             "max_tokens": max_tokens,
-        } for model_id in model_ids
+        }
+        for model_id in model_ids
     }
-
 
 def _update_adv_log_and_status(msg: str):
     """Thread-safe way to update logs and status message."""
@@ -508,14 +631,13 @@ def _update_adv_log_and_status(msg: str):
         st.session_state.adversarial_log.append(f"[{time.strftime('%H:%M:%S')}] {msg}")
         st.session_state.adversarial_status_message = msg
 
-
 def _update_adv_counters(ptoks: int, ctoks: int, cost: float):
     """Thread-safe way to update token and cost counters."""
     with st.session_state.thread_lock:
         st.session_state.adversarial_total_tokens_prompt += ptoks
         st.session_state.adversarial_total_tokens_completion += ctoks
         st.session_state.adversarial_cost_estimate_usd += cost
-
+        print(f"Updated cost: {st.session_state.adversarial_cost_estimate_usd}")
 
 def check_approval_rate(
         api_key: str, red_team_models: List[str], sop_markdown: str, model_configs: Dict,
@@ -528,7 +650,8 @@ def check_approval_rate(
     with ThreadPoolExecutor(max_workers=max_workers) as ex:
         future_to_model = {
             ex.submit(
-                analyze_with_model, api_key, model_id, sop_markdown,
+                analyze_with_model, api_key, model_id,
+                sop_markdown,
                 model_configs.get(model_id, {}), approval_prompt, force_json=True, seed=seed
             ): model_id for model_id in red_team_models
         }
@@ -564,7 +687,6 @@ def check_approval_rate(
 
     return {"approval_rate": rate, "avg_score": avg_score, "votes": votes, "prompt_tokens": total_ptoks,
             "completion_tokens": total_ctoks, "cost": total_cost, "agreement": agreement}
-
 
 def generate_docx_report(results: dict) -> bytes:
     """Generates a DOCX report from the adversarial testing results."""
@@ -606,20 +728,54 @@ def generate_docx_report(results: dict) -> bytes:
     document.save(bio)
     return bio.getvalue()
 
-
-def generate_pdf_report(results: dict) -> bytes:
+def generate_pdf_report(results: dict, watermark: str = None, custom_style: dict = None) -> bytes:
     """Generates a PDF report from the adversarial testing results."""
+    
+    # Set default styling if not provided
+    if custom_style is None:
+        custom_style = {
+            "font_face": "Arial",
+            "font_size": 12,
+            "header_font_size": 14,
+            "title_font_size": 16,
+            "primary_color": (42, 82, 152),  # RGB for #2a5298
+            "secondary_color": (0, 0, 0),    # RGB for black
+            "background_color": (255, 255, 255)  # RGB for white
+        }
+    
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
+    pdf.set_font(custom_style["font_face"], size=custom_style["font_size"])
+    
+    # Set background color
+    pdf.set_fill_color(*custom_style["background_color"])
+    pdf.rect(0, 0, 210, 297, 'F')  # A4 size in mm
 
+    # Add watermark if provided
+    if watermark:
+        pdf.set_font(custom_style["font_face"], 'B', 50)
+        pdf.set_text_color(220, 220, 220)
+        pdf.rotate(45)
+        pdf.text(60, 150, watermark)
+        pdf.rotate(0)
+        pdf.set_text_color(0, 0, 0)
+
+    # Set primary color for header text
+    pdf.set_text_color(*custom_style["primary_color"])
+    pdf.set_font(custom_style["font_face"], 'B', custom_style["title_font_size"])
     pdf.cell(200, 10, txt="Adversarial Testing Report", ln=True, align='C')
-
+    
+    # Add a line separator
+    pdf.set_draw_color(*custom_style["primary_color"])
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
     pdf.ln(10)
 
-    pdf.set_font("Arial", 'B', size=12)
+    # Reset to secondary color for content
+    pdf.set_text_color(*custom_style["secondary_color"])
+    
+    pdf.set_font(custom_style["font_face"], 'B', custom_style["header_font_size"])
     pdf.cell(200, 10, txt="Summary", ln=True)
-    pdf.set_font("Arial", size=12)
+    pdf.set_font(custom_style["font_face"], size=custom_style["font_size"])
     pdf.multi_cell(0, 10, f"Final Approval Rate: {results.get('final_approval_rate', 0.0):.1f}%\n"
                           f"Total Iterations: {len(results.get('iterations', []))}\n"
                           f"Total Cost (USD): ${results.get('cost_estimate_usd', 0.0):,.4f}\n"
@@ -628,20 +784,20 @@ def generate_pdf_report(results: dict) -> bytes:
 
     pdf.ln(10)
 
-    pdf.set_font("Arial", 'B', size=12)
+    pdf.set_font(custom_style["font_face"], 'B', custom_style["header_font_size"])
     pdf.cell(200, 10, txt="Final Hardened SOP", ln=True)
-    pdf.set_font("Arial", size=12)
+    pdf.set_font(custom_style["font_face"], size=custom_style["font_size"])
     pdf.multi_cell(0, 10, results.get("final_sop", ""))
 
     pdf.ln(10)
 
-    pdf.set_font("Arial", 'B', size=12)
+    pdf.set_font(custom_style["font_face"], 'B', custom_style["header_font_size"])
     pdf.cell(200, 10, txt="Issues Found", ln=True)
-    pdf.set_font("Arial", size=12)
+    pdf.set_font(custom_style["font_face"], size=custom_style["font_size"]-2)
     for i, iteration in enumerate(results.get("iterations", [])):
-        pdf.set_font("Arial", 'B', size=10)
+        pdf.set_font(custom_style["font_face"], 'B', custom_style["font_size"]-1)
         pdf.cell(200, 10, txt=f"Iteration {i + 1}", ln=True)
-        pdf.set_font("Arial", size=10)
+        pdf.set_font(custom_style["font_face"], size=custom_style["font_size"]-2)
         for critique in iteration.get("critiques", []):
             if critique.get("critique_json"):
                 for issue in _safe_list(critique["critique_json"], "issues"):
@@ -649,43 +805,113 @@ def generate_pdf_report(results: dict) -> bytes:
 
     pdf.ln(10)
 
-    pdf.set_font("Arial", 'B', size=12)
+    pdf.set_font(custom_style["font_face"], 'B', custom_style["header_font_size"])
     pdf.cell(200, 10, txt="Final Votes", ln=True)
-    pdf.set_font("Arial", size=10)
+    pdf.set_font(custom_style["font_face"], size=custom_style["font_size"]-2)
     if results.get("iterations"):
         for vote in results["iterations"][-1].get("approval_check", {}).get("votes", []):
             pdf.multi_cell(0, 10, f"- {vote.get('model')}: {vote.get('verdict')} ({vote.get('score')})")
 
     pdf.ln(10)
 
-    pdf.set_font("Arial", 'B', size=12)
+    pdf.set_font(custom_style["font_face"], 'B', custom_style["header_font_size"])
     pdf.cell(200, 10, txt="Audit Trail", ln=True)
-    pdf.set_font("Arial", size=8)
+    pdf.set_font(custom_style["font_face"], size=custom_style["font_size"]-4)
     for log_entry in results.get("log", []):
         pdf.multi_cell(0, 5, log_entry)
 
     return pdf.output(dest='S').encode('latin-1')
 
-
-def generate_html_report(results: dict) -> str:
+def generate_html_report(results: dict, custom_css: str = "", custom_style: dict = None) -> str:
     """Generates an HTML report from the adversarial testing results."""
+    
+    # Set default styling if not provided
+    if custom_style is None:
+        custom_style = {
+            "font_family": "Arial, sans-serif",
+            "primary_color": "#4a6fa5",
+            "secondary_color": "#2a5298",
+            "background_color": "#f8f9fa",
+            "card_background": "#ffffff",
+            "header_size": "2em",
+            "subheader_size": "1.5em",
+            "text_size": "1em",
+            "border_radius": "8px",
+            "box_shadow": "0 4px 6px rgba(0, 0, 0, 0.1)"
+        }
+    
     html = f"""
     <!DOCTYPE html>
     <html>
     <head>
         <title>Adversarial Testing Report</title>
         <style>
-            body {{ font-family: Arial, sans-serif; margin: 40px; background-color: #f8f9fa; }}
-            h1, h2, h3 {{ color: #4a6fa5; }}
-            .summary {{ background-color: #ffffff; padding: 15px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); margin-bottom: 20px; }}
-            .section {{ margin: 20px 0; background-color: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }}
-            .log {{ font-family: monospace; font-size: 0.9em; background-color: #f9f9f9; padding: 10px; border-radius: 4px; }}
-            table {{ border-collapse: collapse; width: 100%; }}
-            th, td {{ border: 1px solid #ddd; padding: 8px; text-align: left; }}
-            th {{ background-color: #4a6fa5; color: white; }}
-            .metric {{ text-align: center; padding: 10px; background-color: #e9ecef; border-radius: 4px; margin: 5px; }}
-            .improvement {{ color: #4caf50; font-weight: bold; }}
-            .regression {{ color: #f44336; font-weight: bold; }}
+            body {{ 
+                font-family: {custom_style["font_family"]}; 
+                margin: 40px; 
+                background-color: {custom_style["background_color"]}; 
+                color: {custom_style["secondary_color"]};
+            }}
+            h1, h2, h3 {{ 
+                color: {custom_style["primary_color"]}; 
+                font-size: {custom_style["header_size"]};
+            }}
+            h2 {{ 
+                font-size: {custom_style["subheader_size"]};
+            }}
+            p {{ 
+                font-size: {custom_style["text_size"]};
+            }}
+            .summary {{ 
+                background-color: {custom_style["card_background"]}; 
+                padding: 15px; 
+                border-radius: {custom_style["border_radius"]}; 
+                box-shadow: {custom_style["box_shadow"]}; 
+                margin-bottom: 20px; 
+            }}
+            .section {{ 
+                margin: 20px 0; 
+                background-color: {custom_style["card_background"]}; 
+                padding: 20px; 
+                border-radius: {custom_style["border_radius"]}; 
+                box-shadow: {custom_style["box_shadow"]}; 
+            }}
+            .log {{ 
+                font-family: monospace; 
+                font-size: 0.9em; 
+                background-color: #f9f9f9; 
+                padding: 10px; 
+                border-radius: 4px; 
+            }}
+            table {{ 
+                border-collapse: collapse; 
+                width: 100%; 
+            }}
+            th, td {{ 
+                border: 1px solid #ddd; 
+                padding: 8px; 
+                text-align: left; 
+            }}
+            th {{ 
+                background-color: {custom_style["primary_color"]}; 
+                color: white; 
+            }}
+            .metric {{ 
+                text-align: center; 
+                padding: 10px; 
+                background-color: #e9ecef; 
+                border-radius: 4px; 
+                margin: 5px; 
+            }}
+            .improvement {{ 
+                color: #4caf50; 
+                font-weight: bold; 
+            }}
+            .regression {{ 
+                color: #f44336; 
+                font-weight: bold; 
+            }}
+            {custom_css}
         </style>
     </head>
     <body>
@@ -786,10 +1012,114 @@ def generate_html_report(results: dict) -> str:
 
     return html
 
+def generate_latex_report(results: dict) -> str:
+    """Generates a LaTeX report from the adversarial testing results."""
+    latex = "\\documentclass{article}\n"
+    latex += "\\usepackage[utf8]{inputenc}\n"
+    latex += "\\usepackage{geometry}\n"
+    latex += "\\geometry{a4paper, margin=1in}\n"
+    latex += "\\title{Adversarial Testing Report}\n"
+    latex += "\\author{OpenEvolve}\n"
+    latex += "\\date{\\today}\n"
+    latex += "\\begin{document}\n"
+    latex += "\\maketitle\n"
 
-# ------------------------------------------------------------------
-# Performance Optimization Functions
-# ------------------------------------------------------------------
+    latex += "\\section{Summary}\n"
+    latex += f"Final Approval Rate: {results.get('final_approval_rate', 0.0):.1f}\%\\n"
+    latex += f"Total Iterations: {len(results.get('iterations', []))}\\n"
+    latex += f"Total Cost (USD): ${results.get('cost_estimate_usd', 0.0):,.4f}\\n"
+    latex += f"Total Prompt Tokens: {results.get('tokens', {}).get('prompt', 0):,}\\n"
+    latex += f"Total Completion Tokens: {results.get('tokens', {}).get('completion', 0):,}\\n"
+
+    latex += "\\section{Final Hardened SOP}\n"
+    latex += f"\\begin{{verbatim}}\n{results.get('final_sop', '')}\\end{{verbatim}}\n"
+
+    latex += "\\section{Issues Found}\n"
+    for i, iteration in enumerate(results.get("iterations", [])):
+        latex += f"\\subsection*{{Iteration {i + 1}}}\n"
+        latex += "\\begin{itemize}\n"
+        for critique in iteration.get("critiques", []):
+            if critique.get("critique_json"):
+                for issue in _safe_list(critique["critique_json"], "issues"):
+                    latex += f"\\item {issue.get('title')} ({issue.get('severity')})\n"
+        latex += "\\end{itemize}\n"
+
+    latex += "\\section{Final Votes}\n"
+    latex += "\\begin{itemize}\n"
+    if results.get("iterations"):
+        for vote in results["iterations"][-1].get("approval_check", {}).get("votes", []):
+            latex += f"\\item {vote.get('model')}: {vote.get('verdict')} ({vote.get('score')})\n"
+    latex += "\\end{itemize}\n"
+
+    latex += "\\section{Audit Trail}\n"
+    latex += "\\begin{verbatim}\n"
+    for log_entry in results.get("log", []):
+        latex += f"{log_entry}\\n"
+    latex += "\\end{verbatim}\n"
+
+    latex += "\\end{document}\n"
+
+    return latex
+
+def generate_compliance_report(results: dict, compliance_requirements: str) -> str:
+    """Generates a compliance report from the adversarial testing results."""
+    # This is a simplified compliance report. A real implementation would require a more sophisticated analysis.
+    report = f"# Compliance Report\n\n"
+    report += f"## Compliance Requirements\n\n{compliance_requirements}\n\n"
+
+    report += f"## Compliance Status\n\n"
+    if results.get("final_approval_rate", 0) >= 90:
+        report += "✅ The protocol is compliant with the specified requirements.\n"
+    else:
+        report += "❌ The protocol is not compliant with the specified requirements.\n"
+
+    return report
+
+
+def suggest_performance_improvements(current_config: Dict) -> List[str]:
+    """Suggest performance improvements for the current configuration.
+
+    Args:
+        current_config (Dict): Current adversarial testing configuration
+
+    Returns:
+        List[str]: List of suggested improvements
+    """
+    suggestions = []
+
+    red_models = current_config.get("red_team_models", [])
+    blue_models = current_config.get("blue_team_models", [])
+    iterations = current_config.get("adversarial_max_iter", 10)
+    protocol_text = current_config.get("protocol_text", "")
+
+    # Check for common performance issues
+    if len(red_models) > 5:
+        suggestions.append("🔴 Reduce red team models to 3-5 for better performance and cost control")
+
+    if len(blue_models) > 5:
+        suggestions.append("🔵 Reduce blue team models to 3-5 for better performance and cost control")
+
+    if iterations > 20:
+        suggestions.append("🔄 Consider reducing max iterations to 15-20 for faster results")
+
+    if len(protocol_text.split()) > 5000:
+        suggestions.append("📄 Your protocol is quite long (>5000 words). Consider breaking it into smaller sections")
+
+    # Check for model diversity
+    all_models = red_models + blue_models
+    if len(set(all_models)) < len(all_models) * 0.7:
+        suggestions.append("🔀 Increase model diversity by selecting models from different providers")
+
+    # Check for expensive model combinations
+    expensive_models = [m for m in all_models if "gpt-4" in m or "claude-3-opus" in m]
+    if len(expensive_models) > 3:
+        suggestions.append("💰 You're using many expensive models. Consider mixing in some cost-effective models")
+
+    # If no suggestions, provide positive feedback
+    if not suggestions:
+        suggestions.append("✅ Your configuration looks well-balanced for optimal performance!")
+
+    return suggestions
 
 def optimize_model_selection(red_team_models: List[str], blue_team_models: List[str],
                              protocol_complexity: int, budget_limit: float = 0.0) -> Dict[str, List[str]]:
@@ -879,7 +1209,6 @@ def optimize_model_selection(red_team_models: List[str], blue_team_models: List[
 
     return optimized
 
-
 def estimate_testing_time_and_cost(red_team_models: List[str], blue_team_models: List[str],
                                    iterations: int, protocol_length: int) -> Dict[str, Any]:
     """Estimate testing time and cost based on configuration.
@@ -918,360 +1247,23 @@ def estimate_testing_time_and_cost(red_team_models: List[str], blue_team_models:
         "total_tokens_estimated": total_tokens
     }
 
-
-def suggest_performance_improvements(current_config: Dict) -> List[str]:
-    """Suggest performance improvements for the current configuration.
-
-    Args:
-        current_config (Dict): Current adversarial testing configuration
-
-    Returns:
-        List[str]: List of suggested improvements
-    """
-    suggestions = []
-
-    red_models = current_config.get("red_team_models", [])
-    blue_models = current_config.get("blue_team_models", [])
-    iterations = current_config.get("adversarial_max_iter", 10)
-    protocol_text = current_config.get("protocol_text", "")
-
-    # Check for common performance issues
-    if len(red_models) > 5:
-        suggestions.append("🔴 Reduce red team models to 3-5 for better performance and cost control")
-
-    if len(blue_models) > 5:
-        suggestions.append("🔵 Reduce blue team models to 3-5 for better performance and cost control")
-
-    if iterations > 20:
-        suggestions.append("🔄 Consider reducing max iterations to 15-20 for faster results")
-
-    if len(protocol_text.split()) > 5000:
-        suggestions.append("📄 Your protocol is quite long (>5000 words). Consider breaking it into smaller sections")
-
-    # Check for model diversity
-    all_models = red_models + blue_models
-    if len(set(all_models)) < len(all_models) * 0.7:
-        suggestions.append("🔀 Increase model diversity by selecting models from different providers")
-
-    # Check for expensive model combinations
-    expensive_models = [m for m in all_models if "gpt-4" in m or "claude-3-opus" in m]
-    if len(expensive_models) > 3:
-        suggestions.append("💰 You're using many expensive models. Consider mixing in some cost-effective models")
-
-    # If no suggestions, provide positive feedback
-    if not suggestions:
-        suggestions.append("✅ Your configuration looks well-balanced for optimal performance!")
-
-    return suggestions
-
-
-# ------------------------------------------------------------------
-# Advanced Testing Strategies
-# ------------------------------------------------------------------
-
-def adaptive_testing_strategy(results_history: List[Dict], current_config: Dict) -> Dict[str, Any]:
-    """Adapt testing strategy based on historical results.
-
-    Args:
-        results_history (List[Dict]): History of previous testing results
-        current_config (Dict): Current testing configuration
-
-    Returns:
-        Dict[str, Any]: Adapted strategy recommendations
-    """
-    strategy = {
-        "recommended_models": {"red_team": [], "blue_team": []},
-        "iteration_adjustments": {},
-        "focus_areas": [],
-        "confidence_threshold": current_config.get("adversarial_confidence", 85)
-    }
-
-    if not results_history:
-        # First run - use balanced approach
-        strategy["recommended_models"]["red_team"] = current_config.get("red_team_models", [])[:3]
-        strategy["recommended_models"]["blue_team"] = current_config.get("blue_team_models", [])[:3]
-        strategy["iteration_adjustments"] = {"min_iter": 3, "max_iter": 10}
-        return strategy
-
-    # Analyze recent results
-    recent_results = results_history[-3:]  # Last 3 iterations
-    avg_confidence = sum(r.get("approval_check", {}).get("approval_rate", 0) for r in recent_results) / len(
-        recent_results)
-    avg_issue_count = sum(len(r.get("agg_risk", {}).get("issues", [])) for r in recent_results) / len(recent_results)
-
-    # Adjust based on performance
-    if avg_confidence > 90:
-        # High confidence - focus on efficiency
-        strategy["recommended_models"]["red_team"] = current_config.get("red_team_models", [])[:2]
-        strategy["recommended_models"]["blue_team"] = current_config.get("blue_team_models", [])[:2]
-        strategy["iteration_adjustments"] = {"min_iter": 2, "max_iter": 8}
-        strategy["focus_areas"] = ["efficiency", "cost_reduction"]
-    elif avg_confidence < 70:
-        # Low confidence - increase intensity
-        strategy["recommended_models"]["red_team"] = current_config.get("red_team_models", [])[:5]
-        strategy["recommended_models"]["blue_team"] = current_config.get("blue_team_models", [])[:5]
-        strategy["iteration_adjustments"] = {"min_iter": 5, "max_iter": 15}
-        strategy["confidence_threshold"] = min(95, strategy["confidence_threshold"] + 5)
-        strategy["focus_areas"] = ["thoroughness", "coverage"]
-    else:
-        # Balanced approach
-        strategy["recommended_models"]["red_team"] = current_config.get("red_team_models", [])[:3]
-        strategy["recommended_models"]["blue_team"] = current_config.get("blue_team_models", [])[:3]
-        strategy["iteration_adjustments"] = {"min_iter": 3, "max_iter": 12}
-        strategy["focus_areas"] = ["balanced_approach"]
-
-    return strategy
-
-
-def category_focused_testing(issues_by_category: Dict[str, int], current_config: Dict) -> Dict[str, Any]:
-    """Focus testing on specific issue categories.
-
-    Args:
-        issues_by_category (Dict[str, int]): Count of issues by category
-        current_config (Dict): Current testing configuration
-
-    Returns:
-        Dict[str, Any]: Category-focused testing recommendations
-    """
-    if not issues_by_category:
-        return {"focus_category": None, "recommended_models": {"red_team": [], "blue_team": []}}
-
-    # Find category with most issues
-    focus_category = max(issues_by_category.items(), key=lambda x: x[1])[0]
-
-    # Recommend models based on category
-    category_experts = {
-        "security": ["openai/gpt-4o", "anthropic/claude-3-opus", "google/gemini-1.5-pro"],
-        "compliance": ["openai/gpt-4o", "mistral/mistral-medium-latest"],
-        "clarity": ["openai/gpt-4o-mini", "google/gemini-1.5-flash"],
-        "completeness": ["anthropic/claude-3-sonnet", "meta-llama/llama-3-70b-instruct"],
-        "efficiency": ["openai/gpt-4o", "meta-llama/llama-3-70b-instruct"]
-    }
-
-    recommended_models = category_experts.get(focus_category, current_config.get("red_team_models", [])[:3])
-
-    return {
-        "focus_category": focus_category,
-        "recommended_models": {
-            "red_team": recommended_models,
-            "blue_team": current_config.get("blue_team_models", [])[:3]
-        }
-    }
-
-
-def performance_based_model_rotation(model_performance: Dict[str, Dict],
-                                     current_red_team: List[str],
-                                     current_blue_team: List[str]) -> Dict[str, List[str]]:
-    """Rotate models based on performance metrics.
-
-    Args:
-        model_performance (Dict[str, Dict]): Performance data for each model
-        current_red_team (List[str]): Current red team models
-        current_blue_team (List[str]): Current blue team models
-
-    Returns:
-        Dict[str, List[str]]: Updated model selections
-    """
-    # Sort models by performance score
-    sorted_models = sorted(model_performance.items(), key=lambda x: x[1].get("score", 0), reverse=True)
-
-    # Select top performers for red team (critics)
-    top_red_models = [model_id for model_id, _ in sorted_models[:3] if model_id in current_red_team]
-    if not top_red_models:
-        top_red_models = current_red_team[:min(3, len(current_red_team))]
-
-    # Select diverse models for blue team (fixers)
-    top_blue_models = [model_id for model_id, _ in sorted_models[:3] if model_id in current_blue_team]
-    if not top_blue_models:
-        top_blue_models = current_blue_team[:min(3, len(current_blue_team))]
-
-    return {
-        "red_team": top_red_models,
-        "blue_team": top_blue_models
-    }
-
-
-# ------------------------------------------------------------------
-# Advanced Analytics Functions
-# ------------------------------------------------------------------
-
-def analyze_code_quality(code_text: str) -> Dict[str, Any]:
-    """Analyze code quality metrics.
-
-    Args:
-        code_text (str): The code to analyze
-
-    Returns:
-        Dict[str, Any]: Code quality metrics
-    """
-    if not code_text:
-        return {
-            "lines_of_code": 0,
-            "functions": 0,
-            "classes": 0,
-            "comments": 0,
-            "complexity": 0,
-            "duplicate_lines": 0,
-            "quality_score": 0
-        }
-
-    lines = code_text.split('\n')
-    lines_of_code = len([line for line in lines if line.strip()])
-
-    # Count functions (simplified)
-    function_patterns = [r'\bdef\s+\w+\s*\(', r'\bfunction\s+\w+\s*\(', r'\w+\s*\([^)]*\)\s*{']
-    functions = 0
-    for pattern in function_patterns:
-        functions += len(re.findall(pattern, code_text))
-
-    # Count classes (simplified)
-    class_patterns = [r'\bclass\s+\w+', r'\bstruct\s+\w+']
-    classes = 0
-    for pattern in class_patterns:
-        classes += len(re.findall(pattern, code_text))
-
-    # Count comments (simplified)
-    comment_patterns = [r'#.*', r'//.*', r'/\*.*?\*/', r'<!--.*?-->']
-    comments = 0
-    for pattern in comment_patterns:
-        comments += len(re.findall(pattern, code_text, re.DOTALL))
-
-    # Simplified complexity calculation
-    complexity_keywords = ['if', 'for', 'while', 'switch', 'try', 'catch', '&&', '||']
-    complexity = 0
-    for keyword in complexity_keywords:
-        complexity += code_text.lower().count(keyword)
-
-    # Estimate duplicate lines (very simplified)
-    unique_lines = len(set(lines))
-    duplicate_lines = lines_of_code - unique_lines if lines_of_code > 0 else 0
-
-    # Calculate quality score (simplified)
-    quality_score = 100
-    if lines_of_code > 0:
-        # Deduct points for low comment ratio
-        comment_ratio = comments / lines_of_code if lines_of_code > 0 else 0
-        if comment_ratio < 0.1:
-            quality_score -= (0.1 - comment_ratio) * 100 * 2  # Up to 20 points deduction
-
-        # Deduct points for high complexity
-        complexity_ratio = complexity / lines_of_code if lines_of_code > 0 else 0
-        if complexity_ratio > 0.3:
-            quality_score -= (complexity_ratio - 0.3) * 100 * 1.5  # Up to 15 points deduction
-
-        # Deduct points for duplicate lines
-        duplicate_ratio = duplicate_lines / lines_of_code if lines_of_code > 0 else 0
-        if duplicate_ratio > 0.05:
-            quality_score -= (duplicate_ratio - 0.05) * 100 * 3  # Up to 30 points deduction
-
-    quality_score = max(0, min(100, quality_score))  # Clamp to 0-100
-
-    return {
-        "lines_of_code": lines_of_code,
-        "functions": functions,
-        "classes": classes,
-        "comments": comments,
-        "complexity": complexity,
-        "duplicate_lines": duplicate_lines,
-        "quality_score": round(quality_score, 2)
-    }
-
-
-def analyze_plan_quality(plan_text: str) -> Dict[str, Any]:
-    """Analyze plan quality metrics.
-
-    Args:
-        plan_text (str): The plan to analyze
-
-    Returns:
-        Dict[str, Any]: Plan quality metrics
-    """
-    if not plan_text:
-        return {
-            "sections": 0,
-            "objectives": 0,
-            "milestones": 0,
-            "resources": 0,
-            "risks": 0,
-            "dependencies": 0,
-            "timeline_elements": 0,
-            "quality_score": 0
-        }
-
-    # Count sections (headers)
-    sections = len(re.findall(r'^#{1,6}\s+|.*\n[=]{3,}|.*\n[-]{3,}', plan_text, re.MULTILINE))
-
-    # Count objectives (look for objective-related terms)
-    objective_patterns = [r'\bobjectives?\b', r'\bgoals?\b', r'\bpurpose\b', r'\baim\b']
-    objectives = 0
-    for pattern in objective_patterns:
-        objectives += len(re.findall(pattern, plan_text, re.IGNORECASE))
-
-    # Count milestones (look for milestone-related terms)
-    milestone_patterns = [r'\bmilestones?\b', r'\bdeadlines?\b', r'\btimelines?\b', r'\bschedule\b']
-    milestones = 0
-    for pattern in milestone_patterns:
-        milestones += len(re.findall(pattern, plan_text, re.IGNORECASE))
-
-    # Count resources (look for resource-related terms)
-    resource_patterns = [r'\bresources?\b', r'\bbudget\b', r'\bcosts?\b', r'\bmaterials?\b']
-    resources = 0
-    for pattern in resource_patterns:
-        resources += len(re.findall(pattern, plan_text, re.IGNORECASE))
-
-    # Count risks (look for risk-related terms)
-    risk_patterns = [r'\brisks?\b', r'\bthreats?\b', r'\bvulnerabilit(?:y|ies)\b', r'\bhazards?\b']
-    risks = 0
-    for pattern in risk_patterns:
-        risks += len(re.findall(pattern, plan_text, re.IGNORECASE))
-
-    # Count dependencies (look for dependency-related terms)
-    dependency_patterns = [r'\bdependenc(?:y|ies)\b', r'\bprerequisites?\b', r'\brequires?\b', r'\bneeds?\b']
-    dependencies = 0
-    for pattern in dependency_patterns:
-        dependencies += len(re.findall(pattern, plan_text, re.IGNORECASE))
-
-    # Count timeline elements (dates, time-related terms)
-    timeline_patterns = [r'\d{1,2}[/-]\d{1,2}[/-]\d{2,4}', r'\d{4}[/-]\d{1,2}[/-]\d{1,2}',
-                         r'\bweeks?\b', r'\bmonths?\b', r'\byears?\b', r'\bdays?\b']
-    timeline_elements = 0
-    for pattern in timeline_patterns:
-        timeline_elements += len(re.findall(pattern, plan_text, re.IGNORECASE))
-
-    # Calculate quality score (simplified)
-    quality_score = 50  # Start with baseline
-
-    # Add points for completeness
-    quality_score += min(20, sections * 2)  # Up to 20 points for sections
-    quality_score += min(15, objectives * 3)  # Up to 15 points for objectives
-    quality_score += min(10, milestones * 2)  # Up to 10 points for milestones
-    quality_score += min(10, resources * 2)  # Up to 10 points for resources
-    quality_score += min(10, risks * 2)  # Up to 10 points for risks
-    quality_score += min(10, dependencies * 2)  # Up to 10 points for dependencies
-    quality_score += min(10, timeline_elements * 2)  # Up to 10 points for timeline
-
-    quality_score = max(0, min(100, quality_score))  # Clamp to 0-100
-
-    return {
-        "sections": sections,
-        "objectives": objectives,
-        "milestones": milestones,
-        "resources": resources,
-        "risks": risks,
-        "dependencies": dependencies,
-        "timeline_elements": timeline_elements,
-        "quality_score": round(quality_score, 2)
-    }
-
-
 def run_adversarial_testing():
-    """Main logic for the adversarial testing loop, designed to be run in a background thread."""
+    """Run adversarial testing with content-type-aware routing to OpenEvolve backend."""
+    print("run_adversarial_testing function called")
+    # Load model performance data for continuous learning
+    try:
+        with open("model_performance.json", "r") as f:
+            st.session_state.adversarial_model_performance = json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        st.session_state.adversarial_model_performance = {}
+
     try:
         # --- Initialization ---
         api_key = st.session_state.openrouter_key
         red_team_base = list(st.session_state.red_team_models or [])
         blue_team_base = list(st.session_state.blue_team_models or [])
         min_iter, max_iter = st.session_state.adversarial_min_iter, st.session_state.adversarial_max_iter
+        print(f"Min iterations: {min_iter}, Max iterations: {max_iter}")
         confidence = st.session_state.adversarial_confidence
         max_tokens = st.session_state.adversarial_max_tokens
         json_mode = st.session_state.adversarial_force_json
@@ -1318,285 +1310,118 @@ def run_adversarial_testing():
         iteration, approval_rate = 0, 0.0
 
         # Determine review type and get appropriate prompts
+        content_type = "general"
         if st.session_state.get("adversarial_custom_mode", False):
             # Use custom prompts when custom mode is enabled
             red_team_prompt = st.session_state.get("adversarial_custom_red_prompt", RED_TEAM_CRITIQUE_PROMPT)
             blue_team_prompt = st.session_state.get("adversarial_custom_blue_prompt", BLUE_TEAM_PATCH_PROMPT)
+            approval_prompt = st.session_state.get("adversarial_custom_approval_prompt", APPROVAL_PROMPT)
             review_type = "custom"
+            print(f"Using custom red team prompt: {red_team_prompt}")
+            print(f"Using custom blue team prompt: {blue_team_prompt}")
+            print(f"Using custom approval prompt: {approval_prompt}")
         else:
             # Use standard prompts based on review type
             if st.session_state.adversarial_review_type == "Auto-Detect":
                 review_type = determine_review_type(current_sop)
             elif st.session_state.adversarial_review_type == "Code Review":
                 review_type = "code"
+                content_type = st.session_state.get("code_language_type", "code_python") # Assuming a UI selection for code language
             elif st.session_state.adversarial_review_type == "Plan Review":
                 review_type = "plan"
+                content_type = "document_general" # Or a more specific plan document type
+            elif st.session_state.adversarial_review_type == "Legal Document":
+                review_type = "document"
+                content_type = "document_legal"
+            elif st.session_state.adversarial_review_type == "Medical Document":
+                review_type = "document"
+                content_type = "document_medical"
+            elif st.session_state.adversarial_review_type == "Technical Document":
+                review_type = "document"
+                content_type = "document_technical"
             else:
                 review_type = "general"
+                content_type = "document_general"
 
             red_team_prompt, blue_team_prompt = get_appropriate_prompts(review_type)
+            print(f"Using review type: {review_type}, content_type: {content_type}")
+
+        # Generate dynamic prompt enhancements
+        red_team_prompt_enhancement = ""
+        blue_team_prompt_enhancement = ""
+
+        if content_type.startswith("code_"):
+            red_team_prompt_enhancement += "\nAs a red teamer, focus on security vulnerabilities, code quality, and performance issues in the code. Look for potential bugs, inefficient algorithms, and non-idiomatic code."
+            blue_team_prompt_enhancement += "\nAs a blue teamer, focus on fixing all identified issues, improving code robustness, and optimizing performance. Ensure the code is clean, secure, and follows best practices."
+        elif content_type == "document_legal":
+            red_team_prompt_enhancement += "\nAs a red teamer, scrutinize the legal document for ambiguities, loopholes, non-compliance with legal standards (e.g., GDPR, CCPA), and potential liabilities."
+            blue_team_prompt_enhancement += "\nAs a blue teamer, refine the legal document for clarity, enforce compliance with relevant regulations, and mitigate all identified legal risks."
+        elif content_type == "document_medical":
+            red_team_prompt_enhancement += "\nAs a red teamer, analyze the medical document for factual inaccuracies, patient privacy violations (e.g., HIPAA), ethical concerns, and clarity for medical professionals."
+            blue_team_prompt_enhancement += "\nAs a blue teamer, ensure the medical document is factually accurate, compliant with patient privacy laws, ethically sound, and clearly understandable by medical staff."
+        elif content_type == "document_technical":
+            red_team_prompt_enhancement += "\nAs a red teamer, review the technical document for technical inaccuracies, outdated information, unclear instructions, and potential security implications of described systems."
+            blue_team_prompt_enhancement += "\nAs a blue teamer, update the technical document for accuracy, clarity, and completeness. Ensure all technical details are correct and instructions are easy to follow."
+        elif review_type == "plan":
+            red_team_prompt_enhancement += "\nAs a red teamer, critique the plan for feasibility, resource allocation, risk assessment, and alignment with strategic objectives. Identify any hidden dependencies or unrealistic timelines."
+            blue_team_prompt_enhancement += "\nAs a blue teamer, refine the plan to address all identified risks, optimize resource allocation, and ensure feasibility and strategic alignment."
+        else: # General SOP
+            red_team_prompt_enhancement += "\nAs a red teamer, identify any weaknesses, inefficiencies, or potential misinterpretations in the general SOP. Focus on clarity, completeness, and robustness."
+            blue_team_prompt_enhancement += "\nAs a blue teamer, improve the general SOP by enhancing clarity, ensuring completeness, and making it more robust against misinterpretation."
+
+        if st.session_state.get("compliance_requirements"):
+            red_team_prompt_enhancement += f"\nAlso, specifically check for compliance with the following requirements: {st.session_state.compliance_requirements}"
+            blue_team_prompt_enhancement += f"\nEnsure the final output strictly adheres to the following compliance requirements: {st.session_state.compliance_requirements}"
 
         _update_adv_log_and_status(
             f"🚀 Start: {len(red_team_base)} red / {len(blue_team_base)} blue | seed={seed} | base_hash={base_hash} | rotation={rotation_strategy} | review_type={review_type}")
 
-        # --- Main Loop ---
-        while iteration < max_iter and not st.session_state.adversarial_stop_flag:
-            iteration += 1
-
-            # --- Team Rotation Logic ---
-            if rotation_strategy == "Round Robin":
-                red_team = [red_team_base[(iteration - 1 + i) % len(red_team_base)] for i in range(len(red_team_base))]
-                blue_team = [blue_team_base[(iteration - 1 + i) % len(blue_team_base)] for i in
-                             range(len(blue_team_base))]
-                _update_adv_log_and_status(
-                    f"🔄 Iteration {iteration}/{max_iter}: Rotated teams (Round Robin). Red: {len(red_team)}, Blue: {len(blue_team)}")
-            elif rotation_strategy == "Staged":
-                try:
-                    stages = json.loads(st.session_state.adversarial_staged_rotation_config)
-                    if isinstance(stages, list) and len(stages) > 0:
-                        stage_index = (iteration - 1) % len(stages)
-                        stage = stages[stage_index]
-                        red_team = stage.get("red", red_team_base)
-                        blue_team = stage.get("blue", blue_team_base)
-                        _update_adv_log_and_status(
-                            f"🔄 Iteration {iteration}/{max_iter}: Rotated teams (Staged - Stage {stage_index + 1}). Red: {len(red_team)}, Blue: {len(blue_team)}")
-                    else:
-                        red_team = red_team_base
-                        blue_team = blue_team_base
-                        _update_adv_log_and_status(f"⚠️ Invalid Staged Rotation Config. Using base teams.")
-                except json.JSONDecodeError:
-                    red_team = red_team_base
-                    blue_team = blue_team_base
-                    _update_adv_log_and_status(f"⚠️ Invalid JSON in Staged Rotation Config. Using base teams.")
-            elif rotation_strategy == "Performance-Based":
-                model_performance = st.session_state.adversarial_model_performance
-                red_team_weights = [model_performance.get(m, {"score": 1})["score"] for m in red_team_base]
-                red_team_sample_size = min(st.session_state.adversarial_red_team_sample_size, len(red_team_base))
-                if sum(red_team_weights) == 0:
-                    red_team = random.sample(red_team_base, k=red_team_sample_size)
-                else:
-                    red_team = random.choices(red_team_base, weights=red_team_weights, k=red_team_sample_size)
-
-                blue_team_sample_size = min(st.session_state.adversarial_blue_team_sample_size, len(blue_team_base))
-                blue_team = random.sample(blue_team_base, k=blue_team_sample_size)
-                _update_adv_log_and_status(
-                    f"🔄 Iteration {iteration}/{max_iter}: Rotated teams (Performance-Based). Red: {len(red_team)}, Blue: {len(blue_team)}")
-            elif rotation_strategy == "Adaptive":
-                # Adaptive strategy based on previous iteration performance
-                if iteration > 1 and len(results) > 0:
-                    last_iteration = results[-1]
-                    # If approval rate is low, use more diverse models
-                    if last_iteration.get("approval_check", {}).get("approval_rate", 100) < 70:
-                        red_team = random.sample(red_team_base, min(len(red_team_base),
-                                                                    st.session_state.adversarial_red_team_sample_size + 1))
-                        blue_team = random.sample(blue_team_base, min(len(blue_team_base),
-                                                                      st.session_state.adversarial_blue_team_sample_size + 1))
-                        _update_adv_log_and_status(
-                            f"🔄 Iteration {iteration}/{max_iter}: Adaptive rotation - increasing diversity. Red: {len(red_team)}, Blue: {len(blue_team)}")
-                    # If approval rate is high, focus on specialized models
-                    elif last_iteration.get("approval_check", {}).get("approval_rate", 0) > 90:
-                        # Use top performing models
-                        top_red_models = sorted(st.session_state.adversarial_model_performance.items(),
-                                                key=lambda x: x[1].get("score", 0), reverse=True)[:3]
-                        top_red_model_ids = [m[0] for m in top_red_models if m[0] in red_team_base]
-
-                        top_blue_models = sorted(st.session_state.adversarial_model_performance.items(),
-                                                 key=lambda x: x[1].get("score", 0), reverse=True)[:3]
-                        top_blue_model_ids = [m[0] for m in top_blue_models if m[0] in blue_team_base]
-
-                        if top_red_model_ids:
-                            red_team = top_red_model_ids
-                        else:
-                            red_team = red_team_base[:min(3, len(red_team_base))]
-
-                        if top_blue_model_ids:
-                            blue_team = top_blue_model_ids
-                        else:
-                            blue_team = blue_team_base[:min(3, len(blue_team_base))]
-                        _update_adv_log_and_status(
-                            f"🔄 Iteration {iteration}/{max_iter}: Adaptive rotation - focusing on top models. Red: {len(red_team)}, Blue: {len(blue_team)}")
-                    else:
-                        red_team = red_team_base
-                        blue_team = blue_team_base
-                else:
-                    red_team = red_team_base
-                    blue_team = blue_team_base
-                _update_adv_log_and_status(
-                    f"🔄 Iteration {iteration}/{max_iter}: Adaptive team selection. Red: {len(red_team)}, Blue: {len(blue_team)}")
-
-            # Advanced Testing Strategies
-            elif "Adaptive Testing" in st.session_state.get("advanced_testing_strategies", []):
-                # Use adaptive testing strategy
-                strategy = adaptive_testing_strategy(results, {
-                    "red_team_models": red_team_base,
-                    "blue_team_models": blue_team_base,
-                    "adversarial_confidence": confidence
-                })
-                red_team = strategy["recommended_models"]["red_team"]
-                blue_team = strategy["recommended_models"]["blue_team"]
-                _update_adv_log_and_status(
-                    f"🔄 Iteration {iteration}/{max_iter}: Adaptive testing strategy applied. Red: {len(red_team)}, Blue: {len(blue_team)}")
-
-            elif "Category-Focused Testing" in st.session_state.get("advanced_testing_strategies", []):
-                # Focus on specific issue categories
-                if results and "agg_risk" in results[-1]:
-                    categories = results[-1]["agg_risk"].get("categories", {})
-                    if categories:
-                        focus_recommendation = category_focused_testing(categories, {
-                            "red_team_models": red_team_base,
-                            "blue_team_models": blue_team_base
-                        })
-                        red_team = focus_recommendation["recommended_models"]["red_team"]
-                        blue_team = focus_recommendation["recommended_models"]["blue_team"]
-                        focus_category = focus_recommendation["focus_category"]
-                        _update_adv_log_and_status(
-                            f"🔄 Iteration {iteration}/{max_iter}: Category-focused testing on '{focus_category}'. Red: {len(red_team)}, Blue: {len(blue_team)}")
-                    else:
-                        red_team = red_team_base
-                        blue_team = blue_team_base
-                else:
-                    red_team = red_team_base
-                    blue_team = blue_team_base
-
-            elif "Performance-Based Rotation" in st.session_state.get("advanced_testing_strategies", []):
-                # Rotate models based on performance
-                if st.session_state.get("adversarial_model_performance"):
-                    rotated_teams = performance_based_model_rotation(
-                        st.session_state.adversarial_model_performance,
-                        red_team_base,
-                        blue_team_base
-                    )
-                    red_team = rotated_teams["red_team"]
-                    blue_team = rotated_teams["blue_team"]
-                    _update_adv_log_and_status(
-                        f"🔄 Iteration {iteration}/{max_iter}: Performance-based rotation. Red: {len(red_team)}, Blue: {len(blue_team)}")
-                else:
-                    red_team = red_team_base
-                    blue_team = blue_team_base
-
-            else:  # "None" or any other case
-                red_team = red_team_base
-                blue_team = blue_team_base
-
-            _update_adv_log_and_status(f"🔄 Iteration {iteration}/{max_iter}: Starting red team analysis.")
-
-            # --- RED TEAM: CRITIQUES ---
-            critiques_raw = []
-            with ThreadPoolExecutor(max_workers=max_workers) as ex:
-                futures = {ex.submit(analyze_with_model, api_key, m, current_sop,
-                                     model_configs.get(m, {}), red_team_prompt,
-                                     force_json=json_mode, seed=seed,
-                                     compliance_requirements=st.session_state.compliance_requirements): m for m in
-                           red_team}
-                for fut in as_completed(futures):
-                    res = fut.result()
-                    _update_adv_counters(res['ptoks'], res['ctoks'], res['cost'])
-                    if not res.get("ok") or not res.get("json"):
-                        _update_adv_log_and_status(
-                            f"🔴 {res['model_id']}: Invalid response. Details: {res.get('text', 'N/A')}")
-                    critiques_raw.append(
-                        {"model": res['model_id'], "critique_json": res.get("json"), "raw_text": res.get("text")})
-
-            _update_model_performance(critiques_raw)
-            agg_risk = _aggregate_red_risk(critiques_raw)
-            if agg_risk['count'] == 0:
-                _update_adv_log_and_status(
-                    f"🔄 Iteration {iteration}: Red team found no exploitable issues. Checking for approval.")
-            else:
-                _update_adv_log_and_status(
-                    f"🔄 Iteration {iteration}: Red team found {agg_risk['count']} issues. Starting blue team patching.")
-
-            # --- BLUE TEAM: PATCHING ---
-            blue_patches_raw = []
-            valid_critiques_json = [c['critique_json'] for c in critiques_raw if c.get('critique_json')]
-            critique_block = json.dumps({"critiques": valid_critiques_json}, ensure_ascii=False, indent=2)
-
-            with ThreadPoolExecutor(max_workers=max_workers) as ex:
-                futures = {ex.submit(analyze_with_model, api_key, m, current_sop,
-                                     model_configs.get(m, {}), blue_team_prompt,
-                                     user_suffix="\n\nCRITIQUES TO ADDRESS:\n" + critique_block,
-                                     force_json=True, seed=seed): m for m in blue_team}
-                for fut in as_completed(futures):
-                    res = fut.result()
-                    _update_adv_counters(res['ptoks'], res['ctoks'], res['cost'])
-                    if not res.get("ok") or not res.get("json") or not res.get("json", {}).get("sop", "").strip():
-                        _update_adv_log_and_status(
-                            f"🔵 {res['model_id']}: Invalid or empty patch received. Details: {res.get('text', 'N/A')}")
-                    blue_patches_raw.append(
-                        {"model": res['model_id'], "patch_json": res.get("json"), "raw_text": res.get("text")})
-
-            next_sop, consensus_diag = _merge_consensus_sop(current_sop, blue_patches_raw, critiques_raw)
-            _update_adv_log_and_status(
-                f"🔄 Iteration {iteration}: Consensus SOP generated (Best patch from '{consensus_diag.get('model', 'N/A')}'). Starting approval check.")
-
-            # --- APPROVAL CHECK ---
-            # Use custom approval prompt when in custom mode
-            if st.session_state.get("adversarial_custom_mode", False):
-                approval_prompt = st.session_state.get("adversarial_custom_approval_prompt", APPROVAL_PROMPT)
-            else:
-                approval_prompt = APPROVAL_PROMPT
-
-            eval_res = check_approval_rate(api_key, red_team, next_sop, model_configs, seed, max_workers,
-                                           approval_prompt)
-            approval_rate = eval_res["approval_rate"]
-            _update_adv_counters(eval_res['prompt_tokens'], eval_res['completion_tokens'], eval_res['cost'])
-            _update_adv_log_and_status(
-                f"🔄 Iteration {iteration}: Approval rate: {approval_rate:.1f}%, Avg Score: {eval_res['avg_score']:.1f}")
-
-            results.append({
-                "iteration": iteration, "critiques": critiques_raw, "patches": blue_patches_raw,
-                "current_sop": next_sop, "approval_check": eval_res, "agg_risk": agg_risk, "consensus": consensus_diag,
-                "cost_effectiveness": (agg_risk[
-                                           'count'] / st.session_state.adversarial_cost_estimate_usd) if st.session_state.adversarial_cost_estimate_usd > 0 else 0
-            })
-            current_sop = next_sop
-
-            # --- Confidence Plateau and Critical Issue Triggers ---
-            with st.session_state.thread_lock:
-                st.session_state.adversarial_confidence_history.append(approval_rate)
-                history = st.session_state.adversarial_confidence_history
-                if len(history) > 3 and history[-1] == history[-2] and history[-2] == history[-3]:
-                    _update_adv_log_and_status(
-                        "⚠️ Confidence plateau detected: Confidence has not changed for 3 iterations.")
-
-            if agg_risk["total_weight"] > 0 and any(
-                    issue.get("severity") == "critical" for critique in critiques_raw if critique.get("critique_json")
-                    for issue in critique["critique_json"].get("issues", [])):
-                _update_adv_log_and_status(
-                    "🚨 Critical issue found! Activating specialist security models (simulation).")
-
-            # --- Stagnation Check ---
-            current_hash = _hash_text(current_sop)
-            if len(sop_hashes) > 1 and current_hash == sop_hashes[-1] and current_hash == sop_hashes[-2]:
-                _update_adv_log_and_status(
-                    "⚠️ Stagnation detected: SOP has not changed for 2 iterations. Consider adjusting models or temperature.")
-            sop_hashes.append(current_hash)
-
-            if iteration >= min_iter and approval_rate >= confidence:
-                _update_adv_log_and_status(
-                    f"✅ Success! Confidence threshold of {confidence}% reached after {iteration} iterations.")
-                break
-        # --- End of Loop ---
-        if st.session_state.adversarial_stop_flag:
-            _update_adv_log_and_status("⏹️ Process stopped by user.")
-        elif iteration >= max_iter:
-            _update_adv_log_and_status(
-                f"🏁 Reached max iterations ({max_iter}). Final approval rate: {approval_rate:.1f}%")
-
-        with st.session_state.thread_lock:
-            st.session_state.adversarial_results = {
-                "final_sop": current_sop, "iterations": results, "final_approval_rate": approval_rate,
-                "cost_estimate_usd": st.session_state.adversarial_cost_estimate_usd,
-                "tokens": {"prompt": st.session_state.adversarial_total_tokens_prompt,
-                           "completion": st.session_state.adversarial_total_tokens_completion},
-                "log": list(st.session_state.adversarial_log), "seed": seed, "base_hash": base_hash,
-                "review_type": review_type
-            }
-            st.session_state.protocol_text = current_sop
-            st.session_state.adversarial_running = False
+        # Check if we should use OpenEvolve backend for code-specific features
+        if OPENEVOLVE_AVAILABLE and (review_type == "code" or review_type == "document"):
+            _update_adv_log_and_status("🚀 Using OpenEvolve backend for adversarial testing...")
+            _run_adversarial_testing_with_openevolve_backend(
+                current_sop,
+                content_type, # Pass the determined content_type
+                red_team_base,
+                blue_team_base,
+                api_key,
+                st.session_state.openrouter_base_url,
+                max_iter,
+                confidence,
+                max_tokens,
+                st.session_state.get("adversarial_temperature", 0.7),
+                st.session_state.get("adversarial_top_p", 0.95),
+                st.session_state.get("adversarial_frequency_penalty", 0.0),
+                st.session_state.get("adversarial_presence_penalty", 0.0),
+                seed,
+                max_workers,
+                rotation_strategy,
+                st.session_state.get("red_team_sample_size", len(red_team_base)),
+                st.session_state.get("blue_team_sample_size", len(blue_team_base)),
+                st.session_state.get("custom_requirements", ""),
+                evaluator_system_prompt=approval_prompt,
+                red_team_prompt=red_team_prompt,
+                blue_team_prompt=blue_team_prompt,
+                compliance_rules=st.session_state.get("compliance_rules", None),
+                red_team_prompt_enhancement=red_team_prompt_enhancement,
+                blue_team_prompt_enhancement=blue_team_prompt_enhancement,
+                feature_dimensions=st.session_state.get("adversarial_feature_dimensions", None),
+                feature_bins=st.session_state.get("adversarial_feature_bins", None),
+                enable_data_augmentation=st.session_state.get("adversarial_enable_data_augmentation", False),
+                augmentation_model_id=st.session_state.get("adversarial_augmentation_model_id", None),
+                augmentation_temperature=st.session_state.get("adversarial_augmentation_temperature", 0.7),
+                enable_human_feedback=st.session_state.get("adversarial_enable_human_feedback", False),
+                current_iteration=iteration
+            )
+        else:
+            _update_adv_log_and_status("🚀 Using API-based adversarial testing...")
+            _run_adversarial_testing_with_api_backend(
+                current_sop, api_key, red_team_base, blue_team_base, min_iter, max_iter,
+                confidence, max_tokens, json_mode, max_workers, rotation_strategy,
+                seed, model_configs, red_team_prompt, blue_team_prompt, approval_prompt
+            )
 
     except Exception as e:
-        # --- Global Error Handler ---
         tb_str = traceback.format_exc()
         error_message = f"💥 A critical error occurred: {e}\n{tb_str}"
         _update_adv_log_and_status(error_message)
@@ -1605,5 +1430,73 @@ def run_adversarial_testing():
             if 'adversarial_results' not in st.session_state or not st.session_state.adversarial_results:
                 st.session_state.adversarial_results = {}
             st.session_state.adversarial_results["critical_error"] = error_message
-            # Ensure error is visible in UI by storing a simplified message
             st.session_state.adversarial_status_message = f"Error: {str(e)[:100]}..."
+
+def capture_human_feedback(
+    adversarial_example: Dict[str, Any],
+    human_score: float,
+    human_comments: str
+):
+    """
+    Simulates capturing human feedback on an adversarial example.
+    In a real system, this would store feedback in a database or persistent storage.
+    """
+    feedback_entry = {
+        "timestamp": time.time(),
+        "adversarial_example_id": adversarial_example.get("id"),
+        "human_score": human_score,
+        "human_comments": human_comments
+    }
+    if "human_feedback_log" not in st.session_state:
+        st.session_state.human_feedback_log = []
+    st.session_state.human_feedback_log.append(feedback_entry)
+    _update_adv_log_and_status(f"📝 Captured human feedback for adversarial example {adversarial_example.get('id')}")
+
+def generate_adversarial_data_augmentation(
+    content: str,
+    content_type: str,
+    api_key: str,
+    model_id: str,
+    temperature: float,
+    max_tokens: int,
+    seed: Optional[int] = None,
+    augmentation_strategy: str = "rephrase"
+) -> str:
+    """
+    Generates an augmented version of the content using an LLM.
+
+    Args:
+        content: The original content to augment.
+        content_type: The type of content (e.g., "code_python", "document_legal").
+        api_key: API key for the LLM provider.
+        model_id: Name of the LLM model to use for augmentation.
+        temperature: Temperature for generation.
+        max_tokens: Maximum tokens to generate.
+        seed: Random seed for reproducibility.
+        augmentation_strategy: The strategy to use for augmentation (e.g., "rephrase", "add_noise").
+
+    Returns:
+        The augmented content string.
+    """
+    try:
+        system_prompt = f"You are an expert content rephraser. Your task is to rephrase the provided {content_type} content to make it more complex, ambiguous, or subtly flawed, without changing its core functionality or intent. Focus on introducing nuances that might challenge an AI reviewer."
+        user_prompt = f"Rephrase the following {content_type} content:\n\n---\n\n{content}\n\n---\n\nRephrased content:"
+
+        # Use _request_openrouter_chat for augmentation
+        augmented_content, _, _, _ = _request_openrouter_chat(
+            api_key=api_key,
+            model_id=model_id,
+            messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+            temperature=temperature,
+            top_p=1.0, # Keep top_p high for more diverse rephrasing
+            frequency_penalty=0.0,
+            presence_penalty=0.0,
+            max_tokens=max_tokens,
+            seed=seed
+        )
+        return augmented_content
+    except Exception as e:
+        _update_adv_log_and_status(f"Error during adversarial data augmentation: {e}")
+        return content # Return original content on error
+
+from analytics import generate_advanced_analytics, analyze_plan_quality

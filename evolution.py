@@ -1,6 +1,450 @@
-# ------------------------------------------------------------------
-# 8. Run logic for Evolution tab (Self-Contained Implementation)
-# ------------------------------------------------------------------
+
+import streamlit as st
+import requests
+import json
+import time
+import tempfile
+import os
+import re
+from typing import List, Dict, Any, Optional
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+from sessionstate import (
+    _clamp, _rand_jitter_ms, _compose_messages,
+    display_success_message, display_error_message, display_warning_message, display_info_message
+)
+
+# Import OpenEvolve modules for code-specific features
+import sys
+sys.path.append(os.path.join(os.path.dirname(__file__), 'openevolve'))
+try:
+    from openevolve.api import run_evolution as openevolve_run_evolution
+    from openevolve.config import Config, LLMModelConfig
+    OPENEVOLVE_AVAILABLE = True
+except ImportError:
+    OPENEVOLVE_AVAILABLE = False
+    print("OpenEvolve backend not available - using API-based evolution only")
+
+# Import our deep integration module
+try:
+    from openevolve_integration import (
+        run_advanced_code_evolution, 
+        create_advanced_openevolve_config,
+        create_multi_model_config,
+        DEEP_INTEGRATION_AVAILABLE as DEEP_INTEGRATION_IMPORTED
+    )
+    DEEP_INTEGRATION_AVAILABLE = True and OPENEVOLVE_AVAILABLE
+except ImportError:
+    DEEP_INTEGRATION_AVAILABLE = False
+    print("Deep OpenEvolve integration not available")
+
+class ContentEvaluator:
+    """
+    A class to encapsulate content evaluation logic.
+    """
+    def __init__(self, content_type: str, evaluator_system_prompt: str):
+        self.content_type = content_type
+        self.evaluator_system_prompt = evaluator_system_prompt
+
+    def evaluate(self, program_path: str) -> Dict[str, Any]:
+        """
+        Evaluate the content of a file.
+        """
+        try:
+            with open(program_path, 'r') as f:
+                content = f.read()
+            
+            if self.content_type.startswith('code_'):
+                return self._evaluate_code(content)
+            elif self.content_type == 'legal':
+                return self._evaluate_legal_content(content)
+            elif self.content_type == 'medical':
+                return self._evaluate_medical_content(content)
+            elif self.content_type == 'technical':
+                return self._evaluate_technical_content(content)
+            else:
+                return self._evaluate_general_content(content)
+        except Exception as e:
+            return {
+                "score": 0.0,
+                "error": str(e),
+                "timestamp": time.time()
+            }
+
+    def _evaluate_code(self, content: str) -> Dict[str, Any]:
+        """
+        Evaluator for code content.
+        """
+        # For now, return a basic score based on content structure
+        score = min(1.0, len(content) / 500.0)  # Basic length-based scoring
+        
+        # More sophisticated evaluation would happen here
+        return {
+            "score": score,
+            "length": len(content),
+            "timestamp": time.time()
+        }
+
+    def _evaluate_general_content(self, content: str) -> Dict[str, Any]:
+        """
+        Evaluator for general content.
+        """
+        _update_evolution_log_and_status(f"📊 Evaluating content of {len(content)} characters")
+        
+        # For general content, return a basic score
+        score = min(1.0, len(content) / 1000.0)  # Basic length-based scoring
+        
+        return {
+            "score": score,
+            "length": len(content),
+            "timestamp": time.time()
+        }
+
+    def _evaluate_legal_content(self, content: str) -> Dict[str, Any]:
+        """
+        Evaluator for legal content.
+        """
+        _update_evolution_log_and_status(f"⚖️ Evaluating legal content of {len(content)} characters")
+        score = min(1.0, len(content) / 1500.0) # Example scoring
+        return {"score": score, "length": len(content), "timestamp": time.time()}
+
+    def _evaluate_medical_content(self, content: str) -> Dict[str, Any]:
+        """
+        Evaluator for medical content.
+        """
+        _update_evolution_log_and_status(f"⚕️ Evaluating medical content of {len(content)} characters")
+        score = min(1.0, len(content) / 1200.0) # Example scoring
+        return {"score": score, "length": len(content), "timestamp": time.time()}
+
+    def _evaluate_technical_content(self, content: str) -> Dict[str, Any]:
+        """
+        Evaluator for technical content.
+        """
+        _update_evolution_log_and_status(f"⚙️ Evaluating technical content of {len(content)} characters")
+        score = min(1.0, len(content) / 1000.0) # Example scoring
+        return {"score": score, "length": len(content), "timestamp": time.time()}
+
+def run_evolution_loop(
+    current_content: str,
+    api_key: str,
+    base_url: str,
+    model: str,
+    max_iterations: int,
+    population_size: int,
+    system_prompt: str,
+    evaluator: ContentEvaluator,
+    extra_headers: Dict,
+    temperature: float,
+    top_p: float,
+    frequency_penalty: float,
+    presence_penalty: float,
+    max_tokens: int,
+    seed: Optional[int]
+):
+    """
+    The main evolution loop.
+    """
+    for i in range(max_iterations):
+        if st.session_state.evolution_stop_flag:
+            _update_evolution_log_and_status("⏹️ Evolution stopped by user.")
+            break
+
+        _update_evolution_log_and_status(f"🔄 Iteration {i+1}/{max_iterations}")
+        _update_evolution_log_and_status("🧬 Generating new population...")
+
+        if i % st.session_state.checkpoint_interval == 0:
+            _update_evolution_log_and_status(f"💾 Saving checkpoint at iteration {i}")
+            print(f"Saving checkpoint at iteration {i}")
+
+        # Generate new population
+        with ThreadPoolExecutor(max_workers=population_size) as executor:
+            futures = [executor.submit(
+                _request_openai_compatible_chat,
+                api_key, base_url, model, _compose_messages(system_prompt, current_content),
+                extra_headers, temperature, top_p, frequency_penalty, presence_penalty,
+                max_tokens, seed + i if seed is not None else None
+            ) for i in range(population_size)]
+
+            new_population = [future.result() for future in as_completed(futures)]
+
+        _update_evolution_log_and_status("🔍 Evaluating new population...")
+
+        best_candidate = ""
+        best_score = -1
+
+        # Evaluate new population
+        with ThreadPoolExecutor(max_workers=population_size) as executor:
+            futures = {executor.submit(
+                _evaluate_candidate,
+                candidate,
+                api_key,
+                base_url,
+                model,
+                evaluator,
+                extra_headers,
+                temperature,
+                top_p,
+                frequency_penalty,
+                presence_penalty,
+                max_tokens,
+                seed
+            ): candidate for candidate in new_population}
+
+            for future in as_completed(futures):
+                candidate = futures[future]
+                score = future.result()
+
+                if score > best_score:
+                    best_score = score
+                    best_candidate = candidate
+
+        if best_candidate and best_score > 0:
+            current_content = best_candidate
+            with st.session_state.thread_lock:
+                st.session_state.evolution_current_best = current_content
+            _update_evolution_log_and_status(f"🏆 New best candidate found with score: {best_score:.2f}")
+        else:
+            _update_evolution_log_and_status("🤔 No improvement in this iteration.")
+
+    _update_evolution_log_and_status("🏁 Evolution finished.")
+    return current_content
+
+def _evaluate_candidate(
+    candidate: str,
+    api_key: str,
+    base_url: str,
+    model: str,
+    evaluator: ContentEvaluator,
+    extra_headers: Dict,
+    temperature: float,
+    top_p: float,
+    frequency_penalty: float,
+    presence_penalty: float,
+    max_tokens: int,
+    seed: Optional[int]
+) -> float:
+    """
+    Evaluate a single candidate.
+    """
+    evaluation = _request_openai_compatible_chat(
+        api_key, base_url, model, _compose_messages(evaluator.evaluator_system_prompt, candidate),
+        extra_headers, temperature, top_p, frequency_penalty, presence_penalty,
+        max_tokens, seed
+    )
+    try:
+        # Try to parse the evaluation result - might be a score or improvement assessment
+        score_str = evaluation.strip()
+        # Look for numeric score in the response
+        score_match = re.search(r"(\d+\.?\d*)", score_str)
+        if score_match:
+            score = float(score_match.group(1))
+        else:
+            # If no numeric score found, evaluate based on keyword presence
+            score = 0.5  # Default neutral score
+            if "good" in score_str.lower() or "improved" in score_str.lower() or "better" in score_str.lower():
+                score = 0.8
+            elif "poor" in score_str.lower() or "bad" in score_str.lower() or "worse" in score_str.lower():
+                score = 0.2
+    except (ValueError, TypeError):
+        score = 0.0
+    return score
+
+def _run_evolution_with_openevolve_backend_refactored(
+    current_content, content_type, api_key, base_url, model, max_iterations,
+    system_prompt, evaluator_system_prompt, temperature, top_p, 
+    frequency_penalty, presence_penalty, max_tokens, seed
+):
+    """Run evolution using OpenEvolve backend for code content."""
+    try:
+        # Check if we have deep integration available
+        if DEEP_INTEGRATION_AVAILABLE:
+            _update_evolution_log_and_status("🚀 Using advanced OpenEvolve integration...")
+            
+            checkpoint_path = None
+            if st.session_state.get("load_checkpoint_triggered") and st.session_state.get("selected_checkpoint"):
+                checkpoint_path = st.session_state.selected_checkpoint
+                _update_evolution_log_and_status(f"Loading evolution from checkpoint: {checkpoint_path}")
+                st.session_state.load_checkpoint_triggered = False
+
+            # Run advanced code evolution with enhanced settings
+            result = run_advanced_code_evolution(
+                content=current_content,
+                content_type=content_type,
+                model_name=model,
+                api_key=api_key,
+                api_base=base_url if base_url else "https://api.openai.com/v1",
+                temperature=temperature,
+                top_p=top_p,
+                max_tokens=max_tokens,
+                max_iterations=max_iterations,
+                population_size=st.session_state.population_size,
+                num_islands=st.session_state.num_islands,
+                archive_size=st.session_state.archive_size,
+                elite_ratio=st.session_state.elite_ratio,
+                exploration_ratio=st.session_state.exploration_ratio,
+                exploitation_ratio=st.session_state.exploitation_ratio,
+                checkpoint_interval=st.session_state.checkpoint_interval,
+                language=st.session_state.language,
+                file_suffix=st.session_state.file_suffix,
+                reasoning_effort=st.session_state.reasoning_effort,
+                feature_dimensions=st.session_state.feature_dimensions,
+                feature_bins=st.session_state.feature_bins,
+                custom_requirements=evaluator_system_prompt,
+                frequency_penalty=st.session_state.frequency_penalty,
+                presence_penalty=st.session_state.presence_penalty,
+                seed=st.session_state.seed,
+                diversity_metric=st.session_state.diversity_metric,
+                checkpoint_path=checkpoint_path
+            )
+            
+            if result and result.get("success"):
+                evolution_id = result.get("evolution_id")
+                if st.session_state.get("save_checkpoint_triggered") and evolution_id:
+                    api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                    if api.save_checkpoint(evolution_id):
+                        _update_evolution_log_and_status(f"Checkpoint saved for evolution ID: {evolution_id}")
+                    else:
+                        _update_evolution_log_and_status(f"Failed to save checkpoint for evolution ID: {evolution_id}")
+                    st.session_state.save_checkpoint_triggered = False
+
+                best_code = result.get("best_code", "")
+                best_score = result.get("best_score", 0.0)
+                
+                with st.session_state.thread_lock:
+                    st.session_state.evolution_current_best = best_code
+                    
+                _update_evolution_log_and_status(f"🏆 Advanced OpenEvolve evolution completed. Best score: {best_score:.4f}")
+                _update_evolution_log_and_status(f"📄 Best content length: {len(best_code)} characters")
+                return
+            elif result:
+                _update_evolution_log_and_status(result.get("message", "🤔 OpenEvolve evolution completed with no improvement."))
+                return
+        else:
+            # Fall back to basic OpenEvolve integration
+            _update_evolution_log_and_status("🚀 Using basic OpenEvolve integration...")
+            
+            # Create OpenEvolve configuration
+            config = Config()
+            
+            # Configure LLM model
+            llm_config = LLMModelConfig(
+                name=model,
+                api_key=api_key,
+                api_base=base_url if base_url else "https://api.openai.com/v1",
+                temperature=temperature,
+                top_p=top_p,
+                frequency_penalty=frequency_penalty,
+                presence_penalty=presence_penalty,
+                max_tokens=max_tokens,
+                seed=seed
+            )
+            
+            config.llm.models = [llm_config]
+            config.evolution.max_iterations = max_iterations
+            config.evolution.population_size = st.session_state.population_size
+            config.evolution.num_islands = st.session_state.num_islands
+            config.evolution.elite_ratio = st.session_state.elite_ratio
+            config.evolution.exploration_ratio = st.session_state.exploration_ratio
+            config.evolution.exploitation_ratio = st.session_state.exploitation_ratio
+            config.evolution.archive_size = st.session_state.archive_size
+            config.evolution.checkpoint_interval = st.session_state.checkpoint_interval
+
+            # Create evaluator
+            evaluator = ContentEvaluator(content_type, evaluator_system_prompt)
+
+            # Create temporary file for the content
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as temp_file:
+                # Add evolution markers for code content
+                content_with_markers = f"""# EVOLVE-BLOCK-START
+{current_content}
+# EVOLVE-BLOCK-END"""
+                temp_file.write(content_with_markers)
+                temp_file_path = temp_file.name
+
+            try:
+                # Run evolution using OpenEvolve API
+                result = openevolve_run_evolution(
+                    initial_program=temp_file_path,
+                    evaluator=evaluator.evaluate,
+                    config=config,
+                    iterations=max_iterations,
+                    output_dir=None,  # Use temporary directory
+                    cleanup=True
+                )
+                
+                # Update session state with results
+                if result.best_program and result.best_code:
+                    with st.session_state.thread_lock:
+                        # Remove evolution markers from the final result
+                        best_code = result.best_code
+                        if "# EVOLVE-BLOCK-START" in best_code:
+                            start_idx = best_code.find("# EVOLVE-BLOCK-START") + len("# EVOLVE-BLOCK-START")
+                            end_idx = best_code.find("# EVOLVE-BLOCK-END")
+                            if end_idx != -1:
+                                best_code = best_code[start_idx:end_idx].strip()
+                        st.session_state.evolution_current_best = best_code
+                    _update_evolution_log_and_status(f"🏆 OpenEvolve evolution completed. Best score: {result.best_score:.4f}")
+                    _update_evolution_log_and_status(f"📄 Best content length: {len(best_code)} characters")
+                else:
+                    _update_evolution_log_and_status("🤔 OpenEvolve evolution completed with no improvement.")
+
+            finally:
+                # Clean up the temporary file
+                if os.path.exists(temp_file_path):
+                    os.unlink(temp_file_path)
+
+    except Exception as e:
+        _update_evolution_log_and_status(f"💥 OpenEvolve error: {str(e)}")
+        print(f"OpenEvolve error: {e}")
+        import traceback
+        traceback.print_exc()
+        # Fallback to API-based approach
+        _update_evolution_log_and_status("⚠️ Falling back to API-based evolution...")
+        api_key = st.session_state.api_key
+        base_url = st.session_state.base_url
+        model = st.session_state.model
+        extra_headers = json.loads(st.session_state.extra_headers)
+        max_iterations = st.session_state.max_iterations
+        population_size = st.session_state.population_size
+        
+        _run_evolution_with_api_backend_refactored(
+            current_content, api_key, base_url, model, max_iterations,
+            population_size, system_prompt, evaluator_system_prompt,
+            extra_headers, temperature, top_p, frequency_penalty, 
+            presence_penalty, max_tokens, seed
+        )
+
+def _run_evolution_with_api_backend_refactored(
+    current_content, api_key, base_url, model, max_iterations,
+    population_size, system_prompt, evaluator_system_prompt,
+    extra_headers, temperature, top_p, frequency_penalty, 
+    presence_penalty, max_tokens, seed
+):
+    """Run evolution using API-based approach for general content."""
+    evaluator = ContentEvaluator("general", evaluator_system_prompt)
+    run_evolution_loop(
+        current_content,
+        api_key,
+        base_url,
+        model,
+        max_iterations,
+        population_size,
+        system_prompt,
+        evaluator,
+        extra_headers,
+        temperature,
+        top_p,
+        frequency_penalty,
+        presence_penalty,
+        max_tokens,
+        seed
+    )
+
+def _update_evolution_log_and_status(msg: str):
+    with st.session_state.thread_lock:
+        st.session_state.evolution_log.append(f"[{time.strftime('%H:%M:%S')}] {msg}")
+    if 'log_queue' in st.session_state and st.session_state.log_queue:
+        st.session_state.log_queue.put(f"[{time.strftime('%H:%M:%S')}] {msg}")
 
 def _request_openai_compatible_chat(
         api_key: str, base_url: str, model: str, messages: List, extra_headers: Dict,
@@ -9,15 +453,21 @@ def _request_openai_compatible_chat(
         provider: str = "OpenAI"
 ) -> str:
     url = base_url.rstrip('/') + "/chat/completions"
-    headers = {"Content-Type": "application/json", **extra_headers}
-    if api_key: headers["Authorization"] = f"Bearer {api_key}"
+    headers = {
+        "Authorization": f"Bearer {api_key}",
+        "Content-Type": "application/json",
+        **extra_headers
+    }
 
     payload: Dict[str, Any] = {
-        "model": model, "messages": messages, "temperature": temperature, "max_tokens": max_tokens,
-        "top_p": top_p, "frequency_penalty": frequency_penalty, "presence_penalty": presence_penalty,
+        "model": model,
+        "messages": messages,
+        "temperature": _clamp(temperature, 0.0, 2.0),
+        "max_tokens": max_tokens,
+        "top_p": _clamp(top_p, 0.0, 1.0),
+        "frequency_penalty": _clamp(frequency_penalty, -2.0, 2.0),
+        "presence_penalty": _clamp(presence_penalty, -2.0, 2.0),
     }
-    if PROVIDERS.get(provider, {}).get("omit_model_in_payload"):
-        payload.pop("model", None)
     if seed is not None:
         payload["seed"] = int(seed)
 
@@ -25,211 +475,22 @@ def _request_openai_compatible_chat(
     for attempt in range(max_retries):
         try:
             r = requests.post(url, headers=headers, json=payload, timeout=req_timeout)
-
-            # Handle rate limiting and server errors with retry
             if r.status_code in {429, 500, 502, 503, 504}:
                 sleep_s = (2 ** attempt) + _rand_jitter_ms()
                 time.sleep(sleep_s)
-                last_err = Exception(f"HTTP {r.status_code}: {r.text}")
+                last_err = Exception(f"Transient error {r.status_code}: Retrying...")
                 continue
-
             r.raise_for_status()
-
-            # Handle non-JSON responses
-            try:
-                data = r.json()
-            except json.JSONDecodeError as e:
-                last_err = Exception(f"Invalid JSON response: {e} - Response: {r.text[:200]}...")
-                time.sleep((2 ** attempt) + _rand_jitter_ms())
-                continue
-
-            # Safely access the response structure
-            if not isinstance(data, dict):
-                last_err = Exception(f"Unexpected response format: {type(data)} - Response: {data}")
-                time.sleep((2 ** attempt) + _rand_jitter_ms())
-                continue
-
-            # Handle API-specific error formats
-            if "error" in data:
-                error_msg = data["error"]
-                if isinstance(error_msg, dict):
-                    error_msg = error_msg.get("message", str(error_msg))
-                last_err = Exception(f"API error: {error_msg}")
-                time.sleep((2 ** attempt) + _rand_jitter_ms())
-                continue
-
+            data = r.json()
             choices = data.get("choices", [])
             if choices:
                 choice = choices[0]
                 content = choice.get("message", {}).get("content", "")
-                if content is not None:
-                    return content
-                else:
-                    last_err = Exception("Empty content in response choice")
             else:
-                last_err = Exception("No choices in response")
-
-            # If we get here, there was an issue with the response structure
-            time.sleep((2 ** attempt) + _rand_jitter_ms())
-
-        except requests.exceptions.ConnectionError as e:
-            last_err = Exception(f"Connection error: {e}")
-            time.sleep((2 ** attempt) + _rand_jitter_ms())
-        except requests.exceptions.Timeout as e:
-            last_err = Exception(f"Request timeout: {e}")
-            time.sleep((2 ** attempt) + _rand_jitter_ms())
-        except requests.exceptions.RequestException as e:
-            last_err = Exception(f"Request failed: {e}")
-            time.sleep((2 ** attempt) + _rand_jitter_ms())
+                content = ""
+            return content or ""
         except Exception as e:
             last_err = e
-            time.sleep((2 ** attempt) + _rand_jitter_ms())
-
-    raise RuntimeError(f"Request failed after {max_retries} attempts for model {model}: {last_err}")
-
-
-def run_evolution_internal():
-    try:
-        with st.session_state.thread_lock:
-            st.session_state.evolution_log = []
-            st.session_state.evolution_stop_flag = False
-        current_protocol = st.session_state.protocol_text
-        st.session_state.evolution_current_best = current_protocol
-
-        def log_msg(msg):
-            with st.session_state.thread_lock:
-                st.session_state.evolution_log.append(f"[{time.strftime('%H:%M:%S')}] {msg}")
-
-        log_msg(f"🚀 Starting evolution process with {st.session_state.provider}/{st.session_state.model}...")
-        try:
-            extra_hdrs = json.loads(st.session_state.extra_headers or "{}")
-            if not isinstance(extra_hdrs, dict): raise json.JSONDecodeError("JSON is not a dictionary.", "", 0)
-        except (ValueError, TypeError):
-            log_msg("⚠️ Invalid Extra Headers JSON. Must be a dictionary. Using empty dict.")
-            extra_hdrs = {}
-
-        seed_str = str(st.session_state.seed or "").strip()
-        seed = None
-        if seed_str:
-            try:
-                seed = int(float(seed_str))  # Handle floats by truncating to int
-            except (ValueError, TypeError):
-                pass  # Invalid input, keep seed as None
-
-        api_key_to_use = st.session_state.api_key
-        provider_info = PROVIDERS.get(st.session_state.provider, {})
-        if not api_key_to_use and (env_var := provider_info.get("env")):
-            api_key_to_use = os.environ.get(env_var, "")
-            if api_key_to_use: log_msg(f"Using API key from env var {env_var}.")
-
-        if not api_key_to_use and provider_info.get("env"):
-            log_msg(f"⚠️ No API key provided in UI or in env var {provider_info.get('env')}. Requests may fail.")
-
-        request_functions = {
-            "Anthropic": _request_anthropic_chat,
-            "Google (Gemini)": _request_google_gemini_chat,
-            "Cohere": _request_cohere_chat,
-        }
-        request_function = request_functions.get(st.session_state.provider, _request_openai_compatible_chat)
-
-        consecutive_failures = 0
-        max_consecutive_failures = 3  # Stop after 3 consecutive failures
-
-        # Initialize metrics tracking
-        iteration_metrics = []
-
-        for i in range(st.session_state.max_iterations):
-            if st.session_state.evolution_stop_flag:
-                log_msg("⏹️ Evolution stopped by user.")
-                break
-            log_msg(f"🔄 --- Iteration {i + 1}/{st.session_state.max_iterations} ---")
-            try:
-                messages = _compose_messages(
-                    st.session_state.system_prompt,
-                    f"Current draft:\n\n---\n{current_protocol}\n---\n\nImprove it based on your instructions."
-                )
-
-                kwargs = {
-                    "api_key": api_key_to_use,
-                    "base_url": st.session_state.base_url,
-                    "model": st.session_state.model,
-                    "messages": messages,
-                    "extra_headers": extra_hdrs,
-                    "temperature": st.session_state.temperature,
-                    "top_p": st.session_state.top_p,
-                    "max_tokens": st.session_state.max_tokens,
-                    "seed": seed,
-                }
-                if st.session_state.provider not in request_functions:
-                    kwargs["frequency_penalty"] = st.session_state.frequency_penalty
-                    kwargs["presence_penalty"] = st.session_state.presence_penalty
-                    kwargs["provider"] = st.session_state.provider
-
-                improved_protocol = request_function(**kwargs)
-
-                # Enhanced validation with quality metrics
-                if improved_protocol and len(improved_protocol.strip()) > len(current_protocol) * 0.7:
-                    # Calculate quality metrics
-                    original_complexity = calculate_protocol_complexity(current_protocol)
-                    improved_complexity = calculate_protocol_complexity(improved_protocol)
-
-                    # Quality improvement check
-                    quality_improvement = (
-                            improved_complexity["complexity_score"] >= original_complexity["complexity_score"] and
-                            improved_complexity["unique_words"] >= original_complexity["unique_words"] * 0.9
-                    )
-
-                    if quality_improvement or len(improved_protocol.strip()) > len(current_protocol) * 1.1:
-                        log_msg(f"✅ Iteration {i + 1} successful. Length: {len(improved_protocol.strip())}")
-                        current_protocol = improved_protocol.strip()
-                        st.session_state.evolution_current_best = current_protocol
-                        consecutive_failures = 0  # Reset failure counter on success
-
-                        # Track metrics
-                        iteration_metrics.append({
-                            "iteration": i + 1,
-                            "length": len(current_protocol),
-                            "complexity": improved_complexity["complexity_score"],
-                            "unique_words": improved_complexity["unique_words"],
-                            "improvement": len(current_protocol) - len(st.session_state.protocol_text)
-                        })
-                    else:
-                        log_msg(
-                            f"⚠️ Iteration {i + 1} result rejected (no significant quality improvement). Length: {len(improved_protocol.strip() if improved_protocol else '')}")
-                        consecutive_failures += 1
-                else:
-                    log_msg(
-                        f"⚠️ Iteration {i + 1} result rejected (too short or empty). Length: {len(improved_protocol.strip() if improved_protocol else '')}")
-                    consecutive_failures += 1
-                if (i + 1) % st.session_state.checkpoint_interval == 0:
-                    log_msg(f"💾 Checkpoint at iteration {i + 1}.")
-            except Exception as e:
-                log_msg(f"❌ ERROR in iteration {i + 1}: {e}")
-                consecutive_failures += 1
-                time.sleep(2)
-
-            # Stop if too many consecutive failures
-            if consecutive_failures >= max_consecutive_failures:
-                log_msg(f"🛑 Stopping evolution due to {consecutive_failures} consecutive failures.")
-                break
-
-        log_msg("🏁 Evolution finished.")
-
-        # Log final metrics
-        if iteration_metrics:
-            final_length = iteration_metrics[-1]["length"]
-            initial_length = len(st.session_state.protocol_text)
-            total_improvement = final_length - initial_length
-            log_msg(
-                f"📊 Total improvement: {total_improvement} characters ({(total_improvement / initial_length) * 100:.1f}%)")
-
-        st.session_state.protocol_text = current_protocol  # Update the main protocol text
-    except Exception as e:
-        import traceback
-        tb_str = traceback.format_exc()
-        log_msg(f"💥 A critical error occurred in the evolution thread: {e}\n{tb_str}")
-    finally:
-        st.session_state.evolution_running = False
-
-
-
+            sleep_s = (2 ** attempt) + _rand_jitter_ms()
+            time.sleep(sleep_s)
+    raise RuntimeError(f"Request failed for {model} after {max_retries} attempts: {last_err}")

@@ -1,833 +1,254 @@
-# ------------------------------------------------------------------
-# 4. Session-state helpers
-# ------------------------------------------------------------------
+import streamlit as st
+import threading
+from typing import Any, Callable, Dict, List, Optional, Tuple
+import uuid
+from datetime import datetime
+import json
+import hashlib
+import re
+from analytics import generate_advanced_analytics, analyze_plan_quality
+from providers import PROVIDERS
+from config_data import CONFIG_PROFILES
+from config_data import CONFIG_PROFILES
 
-# Thread lock for safely updating shared session state from background threads.
-# Use a lock to ensure thread-safe initialization of the session state lock
-if "thread_lock" not in st.session_state:
-    with threading.Lock():
-        # Double-checked locking pattern to ensure thread safety
-        if "thread_lock" not in st.session_state:
-            st.session_state.thread_lock = threading.Lock()
+# Placeholder for missing functions/variables. These will be searched for or created.
+# If you have the original definitions for these, please provide them.
+def calculate_protocol_complexity(protocol_text: str) -> Dict:
+    words = protocol_text.split()
+    word_count = len(words)
+    sentences = re.split(r'[.!?]', protocol_text)
+    sentence_count = len([s for s in sentences if s.strip()])
+    paragraphs = protocol_text.split('\n\n')
+    paragraph_count = len([p for p in paragraphs if p.strip()])
+    unique_words = len(set(w.lower() for w in words))
+    avg_sentence_length = word_count / max(1, sentence_count)
+    
+    # Simple complexity score: more words, longer sentences, fewer unique words = higher complexity
+    complexity_score = (word_count / 100) + (avg_sentence_length * 2) - (unique_words / 50)
+    complexity_score = max(0, min(100, complexity_score)) # Clamp between 0 and 100
 
-# Real-time collaboration state management
-if "collaboration_session" not in st.session_state:
-    st.session_state.collaboration_session = {
-        "active_users": [],
-        "last_activity": _now_ms(),
-        "chat_messages": [],
-        "notifications": [],
-        "shared_cursor_position": 0,
-        "edit_locks": {}
+    return {
+        "word_count": word_count,
+        "sentence_count": sentence_count,
+        "paragraph_count": paragraph_count,
+        "complexity_score": round(complexity_score, 2),
+        "unique_words": unique_words,
+        "avg_sentence_length": round(avg_sentence_length, 2)
     }
 
-# Configuration profiles
-CONFIG_PROFILES = {
-    "Security Hardening": {
-        "system_prompt": "You are a security expert focused on making protocols robust against attacks. Focus on identifying and closing security gaps, enforcing least privilege, and adding comprehensive error handling.",
-        "evaluator_system_prompt": "You are a security auditor evaluating the protocol for vulnerabilities and weaknesses.",
-        "temperature": 0.8,
-        "top_p": 0.9,
-        "max_iterations": 15,
-        "adversarial_confidence": 95,
-        "adversarial_min_iter": 5,
-        "adversarial_max_iter": 20
-    },
-    "Compliance Focus": {
-        "system_prompt": "You are a compliance expert ensuring protocols meet regulatory requirements. Focus on completeness, auditability, and regulatory alignment.",
-        "evaluator_system_prompt": "You are a compliance auditor checking if the protocol meets all necessary regulatory requirements.",
-        "temperature": 0.5,
-        "top_p": 0.8,
-        "max_iterations": 10,
-        "adversarial_confidence": 90,
-        "adversarial_min_iter": 3,
-        "adversarial_max_iter": 15
-    },
-    "Operational Efficiency": {
-        "system_prompt": "You are an operations expert focused on making protocols efficient and practical. Focus on streamlining processes while maintaining effectiveness.",
-        "evaluator_system_prompt": "You are an operations expert evaluating the protocol for practicality and efficiency.",
-        "temperature": 0.6,
-        "top_p": 0.85,
-        "max_iterations": 12,
-        "adversarial_confidence": 85,
-        "adversarial_min_iter": 3,
-        "adversarial_max_iter": 12
-    },
-    "Beginner-Friendly": {
-        "system_prompt": "You are helping a beginner write clear, understandable protocols. Focus on clarity, simplicity, and completeness.",
-        "evaluator_system_prompt": "You are evaluating if the protocol is clear and understandable for beginners.",
-        "temperature": 0.7,
-        "top_p": 1.0,
-        "max_iterations": 8,
-        "adversarial_confidence": 80,
-        "adversarial_min_iter": 2,
-        "adversarial_max_iter": 10
-    }
-}
+def extract_protocol_structure(protocol_text: str) -> Dict:
+    has_headers = bool(re.search(r'^#+\s', protocol_text, re.MULTILINE))
+    has_numbered_steps = bool(re.search(r'^\d+\.\s', protocol_text, re.MULTILINE))
+    has_bullet_points = bool(re.search(r'^-+\s', protocol_text, re.MULTILINE))
+    has_preconditions = "preconditions" in protocol_text.lower()
+    has_postconditions = "postconditions" in protocol_text.lower()
+    has_error_handling = "error handling" in protocol_text.lower() or "exception handling" in protocol_text.lower()
+    section_count = len(re.findall(r'^#+\s', protocol_text, re.MULTILINE)) + len(re.findall(r'^.*\\n[=]{3,}', protocol_text, re.MULTILINE))
 
+    return {
+        "has_headers": has_headers,
+        "has_numbered_steps": has_numbered_steps,
+        "has_bullet_points": has_bullet_points,
+        "has_preconditions": has_preconditions,
+        "has_postconditions": has_postconditions,
+        "has_error_handling": has_error_handling,
+        "section_count": section_count
+    }
+
+def generate_protocol_recommendations(protocol_text: str) -> List[str]:
+    recommendations = []
+    if len(protocol_text.split()) < 50:
+        recommendations.append("Consider expanding the protocol with more details.")
+    if "todo" in protocol_text.lower():
+        recommendations.append("Address any 'TODO' items in the protocol.")
+    if not re.search(r'^\s*#+\s', protocol_text, re.MULTILINE):
+        recommendations.append("Add clear section headers to improve readability.")
+    if not recommendations:
+        """
+Modular Session State for OpenEvolve
+This file has been refactored into a modular architecture. 
+Please use session_manager.py to access all functionality.
+"""
+# This file is maintained for backward compatibility
+# All functionality has been moved to modular files
+from .session_manager import *
+
+# Additional compatibility imports if needed
+from .session_utils import (
+    _clamp,
+    _rand_jitter_ms,
+    _approx_tokens,
+    _cost_estimate,
+    safe_int,
+    safe_float,
+    _safe_list,
+    _extract_json_block,
+    _compose_messages,
+    APPROVAL_PROMPT,
+    RED_TEAM_CRITIQUE_PROMPT,
+    BLUE_TEAM_PATCH_PROMPT,
+    CODE_REVIEW_RED_TEAM_PROMPT,
+    CODE_REVIEW_BLUE_TEAM_PROMPT,
+    PLAN_REVIEW_RED_TEAM_PROMPT,
+    PLAN_REVIEW_BLUE_TEAM_PROMPT,
+    VALIDATION_RULES
+)
+
+# Import all functions from modular manager files for backward compatibility
+from .version_control import (
+    get_version_by_id,
+    compare_versions,
+    get_version_count,
+    get_current_version,
+    create_new_version,
+    load_version,
+    get_version_history,
+    get_version_by_name,
+    get_version_by_timestamp,
+    delete_version,
+    branch_version,
+    get_version_timeline,
+    render_version_timeline
+)
+
+from .collaboration_manager import (
+    add_notification,
+    get_unread_notifications,
+    mark_notification_as_read,
+    add_collaborator,
+    remove_collaborator,
+    get_collaborators,
+    update_collaborator_role,
+    initialize_collaborative_session,
+    join_collaborative_session,
+    leave_collaborative_session,
+    apply_edit_operation,
+    detect_conflicts,
+    resolve_conflict,
+    get_session_state,
+    synchronize_document,
+    render_collaborative_editor_ui
+)
+
+from .export_import_manager import (
+    export_to_json,
+    import_from_json,
+    export_to_markdown,
+    export_to_text,
+    export_protocol_with_history,
+    validate_import_data,
+    export_project,
+    export_project_detailed,
+    import_project,
+    generate_shareable_link,
+    export_protocol_as_template
+)
+
+from .template_manager import (
+    list_template_categories,
+    list_templates_in_category,
+    get_template_details,
+    search_templates,
+    get_popular_templates,
+    get_top_rated_templates,
+    render_template_marketplace_ui,
+    add_custom_template,
+    get_all_templates,
+    get_template_usage_stats
+)
+
+from .analytics_manager import (
+    generate_ai_insights,
+    render_ai_insights_dashboard,
+    generate_advanced_analytics,
+    calculate_model_performance_metrics
+)
+
+from .validation_manager import (
+    add_validation_rule,
+    update_validation_rule,
+    remove_validation_rule,
+    list_validation_rules,
+    get_validation_rule,
+    validate_content_against_custom_rules,
+    run_compliance_check
+)
+
+from .content_manager import (
+    list_protocol_templates,
+    load_protocol_template,
+    export_protocol_as_template,
+    validate_protocol,
+    render_validation_results,
+    list_report_templates,
+    get_report_template_details,
+    generate_custom_report,
+    generate_content_summary
+)
+from .analytics_manager import (
+    calculate_model_performance_metrics
+)
+from .integrations import (
+    send_discord_notification,
+    send_msteams_notification,
+    send_generic_webhook,
+    authenticate_github,
+    list_github_repositories,
+    create_github_branch,
+    commit_to_github,
+    get_github_commit_history,
+    render_github_integration_ui,
+    link_github_repository,
+    unlink_github_repository,
+    list_linked_github_repositories,
+    save_protocol_generation_to_github,
+    get_protocol_generations_from_github,
+    render_github_branching_ui,
+    render_remote_storage_ui
+)
+from .rbac import (
+    get_user_role,
+    has_permission,
+    assign_role
+)
 # Protocol templates
 PROTOCOL_TEMPLATES = {
-    "Security Policy": """# Security Policy Template
-
-## Overview
-[Brief description of the policy's purpose and scope]
-
-## Scope
-[Define what systems, processes, and personnel are covered by this policy]
-
-## Policy Statements
-[Specific security requirements and guidelines]
-
-## Roles and Responsibilities
-[Define who is responsible for what aspects of the policy]
-
-## Compliance
-[How compliance will be measured and enforced]
-
-## Exceptions
-[Process for requesting policy exceptions]
-
-## Review and Updates
-[How often the policy will be reviewed and updated]""",
+    "Security Policy": """# Security Policy Template\n\n## Overview\n[Brief description of the policy's purpose and scope]\n\n## Scope\n[Define what systems, processes, and personnel are covered by this policy]\n\n## Policy Statements\n[Specific security requirements and guidelines]\n\n## Roles and Responsibilities\n[Define who is responsible for what aspects of the policy]\n\n## Compliance\n[How compliance will be measured and enforced]\n\n## Exceptions\n[Process for requesting policy exceptions]\n\n## Review and Updates\n[How often the policy will be reviewed and updated]""",
     
-    "Standard Operating Procedure": """# Standard Operating Procedure (SOP) Template
-
-## Title
-[Name of the procedure]
-
-## Purpose
-[Why this procedure exists]
-
-## Scope
-[What this procedure covers and who it applies to]
-
-## Responsibilities
-[Who is responsible for each step]
-
-## Procedure
-1. [First step]
-   - [Detailed instructions]
-   - [Expected outcomes]
-2. [Second step]
-   - [Detailed instructions]
-   - [Expected outcomes]
-
-## Safety Considerations
-[Any safety risks and how to mitigate them]
-
-## Quality Control
-[How to ensure quality and consistency]
-
-## Documentation
-[What records need to be maintained]
-
-## Revision History
-[Track changes to the procedure]""",
+    "Standard Operating Procedure": """# Standard Operating Procedure (SOP) Template\n\n## Title\n[Name of the procedure]\n\n## Purpose\n[Why this procedure exists]\n\n## Scope\n[What this procedure covers and who it applies to]\n\n## Responsibilities\n[Who is responsible for each step]\n\n## Procedure\n1. [First step]\n   - [Detailed instructions]\n   - [Expected outcomes]\n2. [Second step]\n   - [Detailed instructions]\n   - [Expected outcomes]\n\n## Safety Considerations\n[Any safety risks and how to mitigate them]\n\n## Quality Control\n[How to ensure quality and consistency]\n\n## Documentation\n[What records need to be maintained]\n\n## Revision History\n[Track changes to the procedure]""",
     
-    "Incident Response Plan": """# Incident Response Plan Template
-
-## Overview
-[Brief description of the plan's purpose]
-
-## Incident Classification
-[Types of incidents and severity levels]
-
-## Response Team
-[Key personnel and their roles]
-
-## Detection and Reporting
-[How incidents are detected and reported]
-
-## Containment
-[Immediate actions to limit impact]
-
-## Eradication
-[Steps to remove the threat]
-
-## Recovery
-[How to restore normal operations]
-
-## Post-Incident Activities
-[Lessons learned and plan updates]
-
-## Communication Plan
-[Who to notify and when]
-
-## Contact Information
-[Key contacts and their availability]""",
+    "Incident Response Plan": """# Incident Response Plan Template\n\n## Overview\n[Brief description of the plan's purpose]\n\n## Incident Classification\n[Types of incidents and severity levels]\n\n## Response Team\n[Key personnel and their roles]\n\n## Detection and Reporting\n[How incidents are detected and reported]\n\n## Containment\n[Immediate actions to limit impact]\n\n## Eradication\n[Steps to remove the threat]\n\n## Recovery\n[How to restore normal operations]\n\n## Post-Incident Activities\n[Lessons learned and plan updates]\n\n## Communication Plan\n[Who to notify and when]\n\n## Contact Information\n[Key contacts and their availability]""",
     
-    "Software Development Process": """# Software Development Process Template
-
-## Overview
-[Brief description of the development process]
-
-## Scope
-[What types of projects this process applies to]
-
-## Roles and Responsibilities
-- Project Manager: [Responsibilities]
-- Developers: [Responsibilities]
-- QA Engineers: [Responsibilities]
-- DevOps Engineers: [Responsibilities]
-
-## Development Lifecycle
-### 1. Requirements Gathering
-- [Process for collecting requirements]
-- [Stakeholder involvement]
-
-### 2. Design
-- [System architecture design]
-- [UI/UX design]
-- [Database design]
-
-### 3. Implementation
-- [Coding standards]
-- [Version control practices]
-- [Code review process]
-
-### 4. Testing
-- [Unit testing]
-- [Integration testing]
-- [System testing]
-- [User acceptance testing]
-
-### 5. Deployment
-- [Deployment process]
-- [Rollback procedures]
-- [Monitoring]
-
-## Quality Assurance
-[QA processes and standards]
-
-## Documentation
-[Required documentation at each stage]
-
-## Tools and Technologies
-[List of tools used in the process]
-
-## Metrics and KPIs
-[Key performance indicators to track]
-
-## Review and Improvement
-[Process for continuous improvement]""",
+    "Software Development Process": """# Software Development Process Template\n\n## Overview\n[Brief description of the development process]\n\n## Scope\n[What types of projects this process applies to]\n\n## Roles and Responsibilities\n- Project Manager: [Responsibilities]\n- Developers: [Responsibilities]\n- QA Engineers: [Responsibilities]\n- DevOps Engineers: [Responsibilities]\n\n## Development Lifecycle\n### 1. Requirements Gathering\n- [Process for collecting requirements]\n- [Stakeholder involvement]\n\n### 2. Design\n- [System architecture design]\n- [UI/UX design]\n- [Database design]\n\n### 3. Implementation\n- [Coding standards]\n- [Version control practices]\n- [Code review process]\n\n### 4. Testing\n- [Unit testing]\n- [Integration testing]\n- [System testing]\n- [User acceptance testing]\n\n### 5. Deployment\n- [Deployment process]\n- [Rollback procedures]\n- [Monitoring]\n\n## Quality Assurance\n[QA processes and standards]\n\n## Documentation\n[Required documentation at each stage]\n\n## Tools and Technologies\n[List of tools used in the process]\n\n## Metrics and KPIs\n[Key performance indicators to track]\n\n## Review and Improvement\n[Process for continuous improvement]""",
     
-    "Data Privacy Policy": """# Data Privacy Policy Template
-
-## Overview
-[Statement of commitment to data privacy]
-
-## Scope
-[What data and processes this policy covers]
-
-## Legal Compliance
-[List of applicable regulations (GDPR, CCPA, etc.)]
-
-## Data Collection
-[What data is collected and why]
-
-## Data Usage
-[How collected data is used]
-
-## Data Storage
-[Where and how data is stored]
-
-## Data Sharing
-[When and with whom data may be shared]
-
-## Data Retention
-[How long data is retained]
-
-## Individual Rights
-- Right to Access
-- Right to Rectification
-- Right to Eradication
-- Right to Restrict Processing
-- Right to Data Portability
-- Right to Object
-
-## Security Measures
-[Technical and organizational measures to protect data]
-
-## Breach Notification
-[Process for reporting data breaches]
-
-## Training and Awareness
-[Employee training requirements]
-
-## Policy Enforcement
-[Consequences for policy violations]
-
-## Review and Updates
-[How often the policy is reviewed]""",
+    "Data Privacy Policy": """# Data Privacy Policy Template\n\n## Overview\n[Statement of commitment to data privacy]\n\n## Scope\n[What data and processes this policy covers]\n\n## Legal Compliance\n[List of applicable regulations (GDPR, CCPA, etc.)]\n\n## Data Collection\n[What data is collected and why]\n\n## Data Usage\n[How collected data is used]\n\n## Data Storage\n[Where and how data is stored]\n\n## Data Sharing\n[When and with whom data may be shared]\n\n## Data Retention\n[How long data is retained]\n\n## Individual Rights\n- Right to Access\n- Right to Rectification\n- Right to Eradication\n- Right to Restrict Processing\n- Right to Data Portability\n- Right to Object\n\n## Security Measures\n[Technical and organizational measures to protect data]\n\n## Breach Notification\n[Process for reporting data breaches]\n\n## Training and Awareness\n[Employee training requirements]\n\n## Policy Enforcement\n[Consequences for policy violations]\n\n## Review and Updates\n[How often the policy is reviewed]""",
     
-    "Business Continuity Plan": """# Business Continuity Plan Template
-
-## Overview
-[Purpose and scope of the business continuity plan]
-
-## Risk Assessment
-[Identified risks and their potential impact]
-
-## Business Impact Analysis
-[Critical business functions and maximum tolerable downtime]
-
-## Recovery Strategies
-[Strategies for recovering critical functions]
-
-## Emergency Response
-### 1. Incident Declaration
-[Criteria for declaring an emergency]
-
-### 2. Emergency Response Team
-- Team Members: [List]
-- Contact Information: [Details]
-- Roles and Responsibilities: [Details]
-
-### 3. Communication Plan
-[Internal and external communication procedures]
-
-## Recovery Procedures
-### Critical Function 1
-- Recovery Steps: [Detailed steps]
-- Resources Required: [List]
-- Recovery Time Objective: [Timeframe]
-
-### Critical Function 2
-- Recovery Steps: [Detailed steps]
-- Resources Required: [List]
-- Recovery Time Objective: [Timeframe]
-
-## Plan Testing and Maintenance
-[Testing schedule and procedures]
-
-## Training and Awareness
-[Training requirements for personnel]
-
-## Plan Distribution
-[List of plan recipients]
-
-## Plan Activation and Deactivation
-[Criteria and procedures for plan activation and deactivation]""",
+    "Business Continuity Plan": """# Business Continuity Plan Template\n\n## Overview\n[Purpose and scope of the business continuity plan]\n\n## Risk Assessment\n[Identified risks and their potential impact]\n\n## Business Impact Analysis\n[Critical business functions and maximum tolerable downtime]\n\n## Recovery Strategies\n[Strategies for recovering critical functions]\n\n## Emergency Response\n### 1. Incident Declaration\n[Criteria for declaring an emergency]\n\n### 2. Emergency Response Team\n- Team Members: [List]\n- Contact Information: [Details]\n- Roles and Responsibilities: [Details]\n\n### 3. Communication Plan\n[Internal and external communication procedures]\n\n## Recovery Procedures\n### Critical Function 1\n- Recovery Steps: [Detailed steps]\n- Resources Required: [List]\n- Recovery Time Objective: [Timeframe]\n\n### Critical Function 2\n- Recovery Steps: [Detailed steps]\n- Resources Required: [List]\n- Recovery Time Objective: [Timeframe]\n\n## Plan Testing and Maintenance\n[Testing schedule and procedures]\n\n## Training and Awareness\n[Training requirements for personnel]\n\n## Plan Distribution\n[List of plan recipients]\n\n## Plan Activation and Deactivation\n[Criteria and procedures for plan activation and deactivation]""",
     
-    "API Security Review Checklist": """# API Security Review Checklist Template
-
-## Overview
-[Description of the API and its purpose]
-
-## Authentication
-- [ ] Authentication mechanism implemented
-- [ ] Strong password policies enforced
-- [ ] Multi-factor authentication supported
-- [ ] Session management secure
-
-## Authorization
-- [ ] Role-based access control implemented
-- [ ] Permissions properly configured
-- [ ] Least privilege principle applied
-- [ ] Access controls tested
-
-## Input Validation
-- [ ] All inputs validated
-- [ ] SQL injection protection implemented
-- [ ] Cross-site scripting (XSS) prevention
-- [ ] File upload restrictions in place
-
-## Data Protection
-- [ ] Data encryption in transit (TLS)
-- [ ] Data encryption at rest
-- [ ] Sensitive data masked in logs
-- [ ] Personal data handling compliant
-
-## Error Handling
-- [ ] Descriptive error messages suppressed
-- [ ] Error logging implemented
-- [ ] Exception handling in place
-- [ ] Stack traces not exposed
-
-## Rate Limiting
-- [ ] Rate limiting implemented
-- [ ] Throttling configured
-- [ ] Brute force protection
-- [ ] DDoS protection measures
-
-## Security Headers
-- [ ] Content Security Policy (CSP) implemented
-- [ ] X-Frame-Options set
-- [ ] X-Content-Type-Options set
-- [ ] Strict-Transport-Security configured
-
-## API Gateway Security
-- [ ] API gateway configured
-- [ ] Traffic monitoring enabled
-- [ ] Threat detection implemented
-- [ ] Request/response filtering
-
-## Third-Party Dependencies
-- [ ] Dependencies regularly updated
-- [ ] Vulnerability scanning performed
-- [ ] Security patches applied
-- [ ] Dependency security monitoring
-
-## Logging and Monitoring
-- [ ] Security events logged
-- [ ] Audit trail maintained
-- [ ] Anomaly detection configured
-- [ ] Alerting mechanisms in place
-
-## Compliance
-- [ ] GDPR compliance (if applicable)
-- [ ] HIPAA compliance (if applicable)
-- [ ] PCI DSS compliance (if applicable)
-- [ ] Industry-specific regulations met
-
-## Review and Approval
-- Security Reviewer: [Name]
-- Review Date: [Date]
-- Approval Status: [Approved/Rejected/Pending]
-- Notes: [Additional comments]""",
+    "API Security Review Checklist": """# API Security Review Checklist Template\n\n## Overview\n[Description of the API and its purpose]\n\n## Authentication\n- [ ] Authentication mechanism implemented\n- [ ] Strong password policies enforced\n- [ ] Multi-factor authentication supported\n- [ ] Session management secure\n\n## Authorization\n- [ ] Role-based access control implemented\n- [ ] Permissions properly configured\n- [ ] Least privilege principle applied\n- [ ] Access controls tested\n\n## Input Validation\n- [ ] All inputs validated\n- [ ] SQL injection protection implemented\n- [ ] Cross-site scripting (XSS) prevention\n- [ ] File upload restrictions in place\n\n## Data Protection\n- [ ] Data encryption in transit (TLS)\n- [ ] Data encryption at rest\n- [ ] Sensitive data masked in logs\n- [ ] Personal data handling compliant\n\n## Error Handling\n- [ ] Descriptive error messages suppressed\n- [ ] Error logging implemented\n- [ ] Exception handling in place\n- [ ] Stack traces not exposed\n\n## Rate Limiting\n- [ ] Rate limiting implemented\n- [ ] Throttling configured\n- [ ] Brute force protection\n- [ ] DDoS protection measures\n\n## Security Headers\n- [ ] Content Security Policy (CSP) implemented\n- [ ] X-Frame-Options set\n- [ ] X-Content-Type-Options set\n- [ ] Strict-Transport-Security configured\n\n## API Gateway Security\n- [ ] API gateway configured\n- [ ] Traffic monitoring enabled\n- [ ] Threat detection implemented\n- [ ] Request/response filtering\n\n## Third-Party Dependencies\n- [ ] Dependencies regularly updated\n- [ ] Vulnerability scanning performed\n- [ ] Security patches applied\n- [ ] Dependency security monitoring\n\n## Logging and Monitoring\n- [ ] Security events logged\n- [ ] Audit trail maintained\n- [ ] Anomaly detection configured\n- [ ] Alerting mechanisms in place\n\n## Compliance\n- [ ] GDPR compliance (if applicable)\n- [ ] HIPAA compliance (if applicable)\n- [ ] PCI DSS compliance (if applicable)\n- [ ] Industry-specific regulations met\n\n## Review and Approval\n- Security Reviewer: [Name]\n- Review Date: [Date]\n- Approval Status: [Approved/Rejected/Pending]\n- Notes: [Additional comments]""",
     
-    "DevOps Workflow": """# DevOps Workflow Template
-
-## Overview
-[Brief description of the DevOps workflow and its objectives]
-
-## Scope
-[What systems, applications, and environments this workflow covers]
-
-## Roles and Responsibilities
-- DevOps Engineer: [Responsibilities]
-- Developers: [Responsibilities]
-- QA Engineers: [Responsibilities]
-- Security Team: [Responsibilities]
-
-## CI/CD Pipeline
-### 1. Code Commit
-- Branching strategy: [e.g., GitFlow, GitHub Flow]
-- Code review process: [Description]
-- Static code analysis: [Tools and criteria]
-
-### 2. Continuous Integration
-- Automated build process: [Description]
-- Unit test execution: [Process]
-- Integration test execution: [Process]
-- Security scanning: [Tools and criteria]
-
-### 3. Continuous Deployment
-- Deployment environments: [List]
-- Deployment approval process: [Description]
-- Rollback procedures: [Process]
-- Monitoring setup: [Tools and metrics]
-
-## Infrastructure as Code
-- Tools used: [e.g., Terraform, CloudFormation]
-- Version control: [Repository structure]
-- Review process: [Approval workflow]
-- Testing strategy: [How infrastructure changes are tested]
-
-## Monitoring and Observability
-- Metrics collection: [Tools and what is measured]
-- Log aggregation: [Tools and retention policy]
-- Alerting thresholds: [What triggers alerts]
-- Incident response: [Process for handling alerts]
-
-## Security Practices
-- Vulnerability scanning: [Schedule and tools]
-- Compliance checks: [Process and tools]
-- Secret management: [How secrets are handled]
-- Access control: [How access is managed]
-
-## Backup and Recovery
-- Backup strategy: [What is backed up and how often]
-- Recovery time objectives: [RTO targets]
-- Recovery point objectives: [RPO targets]
-- Testing schedule: [How often recovery is tested]
-
-## Documentation
-- Runbooks: [Location and update process]
-- Architecture diagrams: [Location and update process]
-- Onboarding guides: [For new team members]
-
-## Review and Improvement
-- Retrospectives: [Schedule and process]
-- KPI tracking: [Metrics monitored]
-- Continuous improvement: [Process for implementing changes]""",
+    "DevOps Workflow": """# DevOps Workflow Template\n\n## Overview\n[Brief description of the DevOps workflow and its objectives]\n\n## Scope\n[What systems, applications, and environments this workflow covers]\n\n## Roles and Responsibilities\n- DevOps Engineer: [Responsibilities]\n- Developers: [Responsibilities]\n- QA Engineers: [Responsibilities]\n- Security Team: [Responsibilities]\n\n## CI/CD Pipeline\n### 1. Code Commit\n- Branching strategy: [e.g., GitFlow, GitHub Flow]\n- Code review process: [Description]\n- Static code analysis: [Tools and criteria]\n\n### 2. Continuous Integration\n- Automated build process: [Description]\n- Unit test execution: [Process]\n- Integration test execution: [Process]\n- Security scanning: [Tools and criteria]\n\n### 3. Continuous Deployment\n- Deployment environments: [List]\n- Deployment approval process: [Description]\n- Rollback procedures: [Process]\n- Monitoring setup: [Tools and metrics]\n\n## Infrastructure as Code\n- Tools used: [e.g., Terraform, CloudFormation]\n- Version control: [Repository structure]\n- Review process: [Approval workflow]\n- Testing strategy: [How infrastructure changes are tested]\n\n## Monitoring and Observability\n- Metrics collection: [Tools and what is measured]\n- Log aggregation: [Tools and retention policy]\n- Alerting thresholds: [What triggers alerts]\n- Incident response: [Process for handling alerts]\n\n## Security Practices\n- Vulnerability scanning: [Schedule and tools]\n- Compliance checks: [Process and tools]\n- Secret management: [How secrets are handled]\n- Access control: [How access is managed]\n\n## Backup and Recovery\n- Backup strategy: [What is backed up and how often]\n- Recovery time objectives: [RTO targets]\n- Recovery point objectives: [RPO targets]\n- Testing schedule: [How often recovery is tested]\n\n## Documentation\n- Runbooks: [Location and update process]\n- Architecture diagrams: [Location and update process]\n- Onboarding guides: [For new team members]\n\n## Review and Improvement\n- Retrospectives: [Schedule and process]\n- KPI tracking: [Metrics monitored]\n- Continuous improvement: [Process for implementing changes]""",
     
-    "Risk Assessment Framework": """# Risk Assessment Framework Template
-
-## Overview
-[Purpose and scope of the risk assessment framework]
-
-## Risk Categories
-- Operational Risks: [Description]
-- Security Risks: [Description]
-- Compliance Risks: [Description]
-- Financial Risks: [Description]
-- Reputational Risks: [Description]
-
-## Risk Assessment Process
-### 1. Risk Identification
-- Methods: [Brainstorming, historical data, expert interviews, etc.]
-- Participants: [Who is involved]
-- Frequency: [How often assessments are conducted]
-
-### 2. Risk Analysis
-- Qualitative analysis: [Method and criteria]
-- Quantitative analysis: [Method and criteria]
-- Risk owners: [Who is responsible for each risk]
-
-### 3. Risk Evaluation
-- Risk appetite: [Organization's tolerance for risk]
-- Risk criteria: [How risks are prioritized]
-- Risk matrix: [Likelihood vs Impact matrix]
-
-### 4. Risk Treatment
-- Avoidance: [When and how risks are avoided]
-- Mitigation: [How risks are reduced]
-- Transfer: [How risks are transferred]
-- Acceptance: [How risks are accepted]
-
-## Risk Monitoring
-- Key risk indicators: [Metrics tracked]
-- Reporting frequency: [How often reports are generated]
-- Escalation procedures: [When and how risks are escalated]
-
-## Roles and Responsibilities
-- Risk Manager: [Responsibilities]
-- Risk Owners: [Responsibilities]
-- Senior Management: [Responsibilities]
-
-## Documentation
-- Risk register: [Format and maintenance]
-- Assessment reports: [Template and distribution]
-- Action plans: [Format and tracking]
-
-## Review and Updates
-- Framework review: [Frequency and process]
-- Lessons learned: [How insights are captured]
-- Continuous improvement: [Process for enhancing the framework]""",
+    "Risk Assessment Framework": """# Risk Assessment Framework Template\n\n## Overview\n[Purpose and scope of the risk assessment framework]\n\n## Risk Categories\n- Operational Risks: [Description]\n- Security Risks: [Description]\n- Compliance Risks: [Description]\n- Financial Risks: [Description]\n- Reputational Risks: [Description]\n\n## Risk Assessment Process\n### 1. Risk Identification\n- Methods: [Brainstorming, historical data, expert interviews, etc.]\n- Participants: [Who is involved]\n- Frequency: [How often assessments are conducted]\n\n### 2. Risk Analysis\n- Qualitative analysis: [Method and criteria]\n- Quantitative analysis: [Method and criteria]\n- Risk owners: [Who is responsible for each risk]\n\n### 3. Risk Evaluation\n- Risk appetite: [Organization's tolerance for risk]\n- Risk criteria: [How risks are prioritized]\n- Risk matrix: [Likelihood vs Impact matrix]\n
+### 4. Risk Treatment\n- Avoidance: [When and how risks are avoided]\n- Mitigation: [How risks are reduced]\n- Transfer: [How risks are transferred]\n- Acceptance: [How risks are accepted]\n\n## Risk Monitoring\n- Key risk indicators: [Metrics tracked]\n- Reporting frequency: [How often reports are generated]\n- Escalation procedures: [When and how risks are escalated]\n\n## Roles and Responsibilities\n- Risk Manager: [Responsibilities]\n- Risk Owners: [Responsibilities]\n- Senior Management: [Responsibilities]\n\n## Documentation\n- Risk register: [Format and maintenance]\n- Assessment reports: [Template and distribution]\n- Action plans: [Format and tracking]\n\n## Review and Updates\n- Framework review: [Frequency and process]\n- Lessons learned: [How insights are captured]\n- Continuous improvement: [Process for implementing changes]""",
     
-    "Disaster Recovery Plan": """# Disaster Recovery Plan Template
-
-## Overview
-[Brief description of the disaster recovery plan's purpose]
-
-## Scope
-[What systems, applications, and data are covered by this plan]
-
-## Recovery Objectives
-- Recovery Time Objective (RTO): [Maximum acceptable downtime]
-- Recovery Point Objective (RPO): [Maximum acceptable data loss]
-
-## Critical Systems and Applications
-[Identify and prioritize critical systems and applications]
-
-## Disaster Recovery Team
-- Team Members: [List]
-- Contact Information: [Details]
-- Roles and Responsibilities: [Details]
-
-## Disaster Recovery Sites
-- Primary Site: [Location and details]
-- Backup Site: [Location and details]
-- Hot/Warm/Cold Site: [Specify type and capabilities]
-
-## Data Backup and Recovery
-- Backup Schedule: [Frequency and methods]
-- Backup Storage: [Locations and security]
-- Recovery Procedures: [Step-by-step instructions]
-
-## Communication Plan
-- Internal Communication: [How to notify employees]
-- External Communication: [How to notify customers, vendors, etc.]
-- Media Relations: [How to handle media inquiries]
-
-## Recovery Procedures
-### System Restoration
-- [Step-by-step instructions for restoring systems]
-- [Required resources and personnel]
-
-### Data Recovery
-- [Step-by-step instructions for recovering data]
-- [Validation procedures to ensure data integrity]
-
-### Application Recovery
-- [Step-by-step instructions for recovering applications]
-- [Testing procedures to ensure functionality]
-
-## Plan Testing and Maintenance
-- Testing Schedule: [How often the plan will be tested]
-- Testing Procedures: [Methods for testing the plan]
-- Update Procedures: [How and when the plan will be updated]
-
-## Training and Awareness
-- Training Schedule: [How often personnel will be trained]
-- Training Materials: [Resources for training personnel]
-- Awareness Program: [How to keep personnel informed]
-
-## Plan Distribution
-[List of plan recipients and distribution methods]
-
-## Plan Activation and Deactivation
-- Activation Criteria: [When to activate the plan]
-- Deactivation Criteria: [When to deactivate the plan]
-- Activation Procedures: [How to activate the plan]
-- Deactivation Procedures: [How to deactivate the plan]""",
+    "Disaster Recovery Plan": """# Disaster Recovery Plan Template\n\n## Overview\n[Brief description of the disaster recovery plan's purpose]\n\n## Scope\n[What systems, applications, and data are covered by this plan]\n\n## Recovery Objectives\n- Recovery Time Objective (RTO): [Maximum acceptable downtime]\n- Recovery Point Objective (RPO): [Maximum acceptable data loss]\n\n## Critical Systems and Applications\n[Identify and prioritize critical systems and applications]\n\n## Disaster Recovery Team\n- Team Members: [List]\n- Contact Information: [Details]\n- Roles and Responsibilities: [Details]\n\n## Disaster Recovery Sites\n- Primary Site: [Location and details]\n- Backup Site: [Location and details]\n- Hot/Warm/Cold Site: [Specify type and capabilities]\n\n## Data Backup and Recovery\n- Backup Schedule: [Frequency and methods]\n- Backup Storage: [Locations and security]\n- Recovery Procedures: [Step-by-step instructions]\n\n## Communication Plan\n- Internal Communication: [How to notify employees]\n- External Communication: [How to notify customers, vendors, etc.]\n- Media Relations: [How to handle media inquiries]\n- Law Enforcement: [How to communicate with law enforcement]\n\n## Recovery Procedures\n### System Restoration\n- [Step-by-step instructions for restoring systems]\n- [Required resources and personnel]\n\n### Data Recovery\n- [Step-by-step instructions for recovering data]\n- [Validation procedures to ensure data integrity]\n\n### Application Recovery\n- [Step-by-step instructions for recovering applications]\n- [Testing procedures to ensure functionality]\n\n## Plan Testing and Maintenance\n- Testing Schedule: [How often the plan will be tested]\n- Testing Procedures: [Methods for testing the plan]\n- Update Procedures: [How and when the plan will be updated]\n\n## Training and Awareness\n- Training Schedule: [How often personnel will be trained]\n- Training Materials: [Resources for training personnel]\n- Awareness Program: [How to keep personnel informed]\n\n## Plan Distribution\n[List of plan recipients and distribution methods]\n\n## Plan Activation and Deactivation\n- Activation Criteria: [When to activate the plan]\n- Deactivation Criteria: [When to deactivate the plan]\n- Activation Procedures: [How to activate the plan]\n- Deactivation Procedures: [How to deactivate the plan]""",
     
-    "Change Management Process": """# Change Management Process Template
-
-## Overview
-[Brief description of the change management process]
-
-## Scope
-[What types of changes are covered by this process]
-
-## Change Categories
-- Emergency Changes: [Description and criteria]
-- Standard Changes: [Description and criteria]
-- Normal Changes: [Description and criteria]
-- Major Changes: [Description and criteria]
-
-## Change Management Team
-- Change Manager: [Name and contact information]
-- Change Advisory Board (CAB): [Members and roles]
-- Change Requester: [Role and responsibilities]
-- Change Implementer: [Role and responsibilities]
-
-## Change Request Process
-### 1. Change Request Submission
-- Request Form: [Template and submission process]
-- Required Information: [What information must be provided]
-
-### 2. Change Request Review
-- Initial Review: [Who conducts the review and criteria]
-- Detailed Assessment: [How the change is assessed]
-- Risk Assessment: [How risks are identified and evaluated]
-
-### 3. Change Approval
-- Approval Authority: [Who has approval authority]
-- Approval Criteria: [What criteria are used for approval]
-- Approval Process: [How approvals are obtained]
-
-### 4. Change Implementation
-- Implementation Plan: [How the change is implemented]
-- Implementation Schedule: [When the change is implemented]
-- Implementation Team: [Who implements the change]
-
-### 5. Change Closure
-- Validation: [How the change is validated]
-- Documentation: [How the change is documented]
-- Communication: [How stakeholders are informed]
-
-## Change Management Database
-- Database Structure: [How change information is organized]
-- Data Retention: [How long change information is retained]
-- Reporting: [What reports are generated]
-
-## Training and Awareness
-- Training Program: [How personnel are trained]
-- Awareness Program: [How personnel are kept informed]
-
-## Plan Review and Improvement
-- Review Schedule: [How often the process is reviewed]
-- Improvement Process: [How improvements are made]""",
+    "Change Management Process": """# Change Management Process Template\n\n## Overview\n[Brief description of the change management process]\n\n## Scope\n[What types of changes are covered by this process]\n\n## Change Categories\n- Emergency Changes: [Description and criteria]\n- Standard Changes: [Description and criteria]\n- Normal Changes: [Description and criteria]\n- Major Changes: [Description and criteria]\n\n## Change Management Team\n- Change Manager: [Name and contact information]\n- Change Advisory Board (CAB): [Members and roles]\n- Change Requester: [Role and responsibilities]\n- Change Implementer: [Role and responsibilities]\n\n## Change Request Process\n### 1. Change Request Submission\n- Request Form: [Template and submission process]\n- Required Information: [What information must be provided]\n\n### 2. Change Request Review\n- Initial Review: [Who conducts the review and criteria]\n- Detailed Assessment: [How the change is assessed]\n- Risk Assessment: [How risks are identified and evaluated]\n\n### 3. Change Approval\n- Approval Authority: [Who has approval authority]\n- Approval Criteria: [What criteria are used for approval]\n- Approval Process: [How approvals are obtained]\n\n### 4. Change Implementation\n- Implementation Plan: [How the change is implemented]\n- Implementation Schedule: [When the change is implemented]\n- Implementation Team: [Who implements the change]\n\n### 5. Change Closure\n- Validation: [How the change is validated]\n- Documentation: [How the change is documented]\n- Communication: [How stakeholders are informed]\n\n## Change Management Database\n- Database Structure: [How change information is organized]\n- Data Retention: [How long change information is retained]\n- Reporting: [What reports are generated]\n\n## Training and Awareness\n- Training Program: [How personnel are trained]\n- Awareness Program: [How personnel are kept informed]\n\n## Plan Review and Improvement\n- Review Schedule: [How often the process is reviewed]\n- Improvement Process: [How improvements are made]""",
     
-    "Business Impact Analysis": """# Business Impact Analysis Template
-
-## Overview
-[Brief description of the business impact analysis]
-
-## Scope
-[What business functions and processes are covered]
-
-## Business Functions
-[List of critical business functions]
-
-## Dependencies
-[Dependencies between business functions]
-
-## Impact Criteria
-- Financial Impact: [How financial impact is measured]
-- Operational Impact: [How operational impact is measured]
-- Legal/Regulatory Impact: [How legal/regulatory impact is measured]
-- Reputational Impact: [How reputational impact is measured]
-
-## Recovery Time Objectives
-[Recovery time objectives for each business function]
-
-## Recovery Point Objectives
-[Recovery point objectives for each business function]
-
-## Minimum Business Continuity Objective
-[Minimum business continuity objective for each business function]
-
-## Resource Requirements
-[Resources required to recover each business function]
-
-## Interim Recovery Strategies
-[Interim recovery strategies for each business function]
-
-## Long-Term Recovery Strategies
-[Long-term recovery strategies for each business function]
-
-## Plan Testing and Maintenance
-[How the business impact analysis is tested and maintained]
-
-## Review and Approval
-[How the business impact analysis is reviewed and approved]""",
+    "Business Impact Analysis": """# Business Impact Analysis Template\n\n## Overview\n[Brief description of the business impact analysis]\n\n## Scope\n[What business functions and processes are covered]\n\n## Business Functions\n[List of critical business functions]\n\n## Dependencies\n[Dependencies between business functions]\n\n## Impact Criteria\n- Financial Impact: [How financial impact is measured]\n- Operational Impact: [How operational impact is measured]\n- Legal/Regulatory Impact: [How legal/regulatory impact is measured]\n- Reputational Impact: [How reputational impact is measured]\n\n## Recovery Time Objectives\n[Recovery time objectives for each business function]\n\n## Recovery Point Objectives\n[Recovery point objectives for each business function]\n\n## Minimum Business Continuity Objective\n[Minimum business continuity objective for each business function]\n\n## Resource Requirements\n[Resources required to recover each business function]\n\n## Interim Recovery Strategies\n[Interim recovery strategies for each business function]\n\n## Long-Term Recovery Strategies\n[Long-term recovery strategies for each business function]\n\n## Plan Testing and Maintenance\n[How the business impact analysis is tested and maintained]\n\n## Review and Approval\n[How the business impact analysis is reviewed and approved]""",
     
-    "Data Classification Policy": """# Data Classification Policy Template
-
-## Overview
-[Statement of commitment to data classification]
-
-## Scope
-[What data and systems this policy covers]
-
-## Data Classification Levels
-### 1. Public Data
-- Description: [Data that can be freely shared]
-- Handling Requirements: [How to handle this data]
-- Examples: [Examples of public data]
-
-### 2. Internal Data
-- Description: [Data for internal use only]
-- Handling Requirements: [How to handle this data]
-- Examples: [Examples of internal data]
-
-### 3. Confidential Data
-- Description: [Sensitive data requiring protection]
-- Handling Requirements: [How to handle this data]
-- Examples: [Examples of confidential data]
-
-### 4. Restricted Data
-- Description: [Highly sensitive data with strict controls]
-- Handling Requirements: [How to handle this data]
-- Examples: [Examples of restricted data]
-
-## Data Ownership
-- Data Owners: [Who owns different types of data]
-- Responsibilities: [What data owners are responsible for]
-
-## Data Handling Procedures
-- Storage: [How to store data at each classification level]
-- Transmission: [How to transmit data at each classification level]
-- Disposal: [How to dispose of data at each classification level]
-- Access Control: [Who can access data at each classification level]
-
-## Training and Awareness
-[Requirements for data classification training]
-
-## Compliance and Enforcement
-[How compliance is measured and enforced]
-
-## Review and Updates
-[How often the policy is reviewed]""",
+    "Data Classification Policy": """# Data Classification Policy Template\n\n## Overview\n[Statement of commitment to data classification]\n\n## Scope\n[What data and systems this policy covers]\n\n## Data Classification Levels\n### 1. Public Data\n- Description: [Data that can be freely shared]\n- Handling Requirements: [How to handle this data]\n- Examples: [Examples of public data]\n\n### 2. Internal Data\n- Description: [Data for internal use only]\n- Handling Requirements: [How to handle this data]\n- Examples: [Examples of internal data]\n\n### 3. Confidential Data\n- Description: [Sensitive data requiring protection]\n- Handling Requirements: [How to handle this data]\n- Examples: [Examples of confidential data]\n\n### 4. Restricted Data\n- Description: [Highly sensitive data with strict controls]\n- Handling Requirements: [How to handle this data]\n- Examples: [Examples of restricted data]\n\n## Data Ownership\n- Data Owners: [Who owns different types of data]\n- Responsibilities: [What data owners are responsible for]\n\n## Data Handling Procedures\n- Storage: [How to store data at each classification level]\n- Transmission: [How to transmit data at each classification level]\n- Disposal: [How to dispose of data at each classification level]\n- Access Control: [Who can access data at each classification level]\n\n## Training and Awareness\n[Requirements for data classification training]\n\n## Compliance and Enforcement\n[How compliance is measured and enforced]\n\n## Review and Updates\n[How often the policy is reviewed]""",
     
-    "Incident Response Communication Plan": """# Incident Response Communication Plan Template
-
-## Overview
-[Brief description of the communication plan's purpose]
-
-## Objectives
-[What the communication plan aims to achieve]
-
-## Communication Team
-- Team Lead: [Name and contact information]
-- Spokesperson: [Name and contact information]
-- Technical Lead: [Name and contact information]
-- Legal Advisor: [Name and contact information]
-- HR Representative: [Name and contact information]
-
-## Stakeholder Groups
-### 1. Internal Stakeholders
-- Employees: [How to communicate with employees]
-- Management: [How to communicate with management]
-- IT Staff: [How to communicate with IT staff]
-
-### 2. External Stakeholders
-- Customers: [How to communicate with customers]
-- Vendors: [How to communicate with vendors]
-- Regulators: [How to communicate with regulators]
-- Media: [How to communicate with media]
-- Law Enforcement: [How to communicate with law enforcement]
-
-## Communication Channels
-- Email: [When and how to use email]
-- Phone: [When and how to use phone]
-- Website: [When and how to update website]
-- Social Media: [When and how to use social media]
-- Press Releases: [When and how to issue press releases]
-
-## Communication Templates
-### Initial Notification
-[Template for initial incident notification]
-
-### Progress Updates
-[Template for progress updates]
-
-### Resolution Notification
-[Template for resolution notification]
-
-### Post-Incident Report
-[Template for post-incident report]
-
-## Escalation Procedures
-[When and how to escalate communications]
-
-## Approval Process
-[Who must approve external communications]
-
-## Training and Awareness
-[Requirements for communication team training]""",
+    "Incident Response Communication Plan": """# Incident Response Communication Plan Template\n\n## Overview\n[Brief description of the communication plan's purpose]\n\n## Objectives\n[What the communication plan aims to achieve]\n\n## Communication Team\n- Team Lead: [Name and contact information]\n- Spokesperson: [Name and contact information]\n- Technical Lead: [Name and contact information]\n- Legal Advisor: [Name and contact information]\n- HR Representative: [Name and contact information]\n\n## Stakeholder Groups\n### 1. Internal Stakeholders\n- Employees: [How to communicate with employees]\n- Management: [How to communicate with management]\n- IT Staff: [How to communicate with IT staff]\n\n### 2. External Stakeholders\n- Customers: [How to communicate with customers]\n- Vendors: [How to communicate with vendors]\n- Regulators: [How to communicate with regulators]\n- Media: [How to communicate with media]\n- Law Enforcement: [How to communicate with law enforcement]\n\n## Communication Channels\n- Email: [When and how to use email]\n- Phone: [When and how to use phone]\n- Website: [When and how to update website]\n- Social Media: [When and how to use social media]\n- Press Releases: [When and how to issue press releases]\n\n## Communication Templates\n### Initial Notification\n[Template for initial incident notification]\n\n### Progress Updates\n[Template for progress updates]\n\n### Resolution Notification\n[Template for resolution notification]\n\n### Post-Incident Report\n[Template for post-incident report]\n\n## Escalation Procedures\n[When and how to escalate communications]\n\n## Approval Process\n[Who must approve external communications]\n\n## Training and Awareness\n[Requirements for communication team training]""",
     
-    "Vulnerability Management Process": """# Vulnerability Management Process Template
-
-## Overview
-[Brief description of the vulnerability management process]
-
-## Scope
-[What systems, applications, and networks this process covers]
-
-## Roles and Responsibilities
-- Vulnerability Manager: [Responsibilities]
-- System Owners: [Responsibilities]
-- Security Team: [Responsibilities]
-- IT Operations: [Responsibilities]
-
-## Vulnerability Management Lifecycle
-### 1. Discovery
-- Scanning Tools: [Tools used for vulnerability scanning]
-- Scanning Schedule: [How often scans are performed]
-- Asset Inventory: [How assets are tracked]
-
-### 2. Assessment
-- Risk Rating: [How vulnerabilities are rated]
-- Impact Analysis: [How impact is assessed]
-- Prioritization: [How vulnerabilities are prioritized]
-
-### 3. Remediation
-- Patch Management: [How patches are applied]
-- Workarounds: [Temporary solutions for unpatched vulnerabilities]
-- Exception Process: [When and how to request exceptions]
-
-### 4. Verification
-- Re-scanning: [How to verify remediation]
-- Penetration Testing: [When and how penetration testing is performed]
-- Compliance Checking: [How compliance is verified]
-
-## Tools and Technologies
-[List of tools used in the vulnerability management process]
-
-## Reporting
-- Dashboard: [What metrics are tracked]
-- Executive Reports: [What information is provided to executives]
-- Compliance Reports: [What information is provided for compliance]
-
-## Training and Awareness
-[Requirements for vulnerability management training]
-
-## Plan Review and Improvement
-[How the process is reviewed and improved]"""
+    "Vulnerability Management Process": """# Vulnerability Management Process Template\n\n## Overview\n[Brief description of the vulnerability management process]\n\n## Scope\n[What systems, applications, and networks this process covers]\n\n## Roles and Responsibilities\n- Vulnerability Manager: [Responsibilities]\n- System Owners: [Responsibilities]\n- Security Team: [Responsibilities]\n- IT Operations: [Responsibilities]\n\n## Vulnerability Management Lifecycle\n### 1. Discovery\n- Scanning Tools: [Tools used for vulnerability scanning]\n- Scanning Schedule: [How often scans are performed]\n- Asset Inventory: [How assets are tracked]\n\n### 2. Assessment\n- Risk Rating: [How vulnerabilities are rated]\n- Impact Analysis: [How impact is assessed]\n- Prioritization: [How vulnerabilities are prioritized]\n
+### 3. Remediation\n- Patch Management: [How patches are applied]\n- Workarounds: [Temporary solutions for unpatched vulnerabilities]\n- Exception Process: [When and how to request exceptions]\n
+### 4. Verification\n- Re-scanning: [How to verify remediation]\n- Penetration Testing: [When and how penetration testing is performed]\n- Compliance Checking: [How compliance is verified]\n
+## Tools and Technologies\n[List of tools used in the vulnerability management process]\n
+## Reporting\n- Dashboard: [What metrics are tracked]\n- Executive Reports: [What information is provided to executives]\n- Compliance Reports: [What information is provided for compliance]\n
+## Training and Awareness\n[Requirements for vulnerability management training]\n
+## Plan Review and Improvement\n[How the process is reviewed and improved]"""
 }
 
 
@@ -1534,7 +955,6 @@ def get_version_by_timestamp(timestamp: str) -> Optional[Dict]:
                 return version
     return None
 
-
 def delete_version(version_id: str) -> bool:
     """Delete a specific version.
     
@@ -1558,7 +978,6 @@ def delete_version(version_id: str) -> bool:
     except Exception as e:
         st.error(f"Error deleting version: {e}")
         return False
-
 
 def branch_version(version_id: str, new_version_name: str) -> Optional[str]:
     """Create a new branch from an existing version.
@@ -1632,7 +1051,6 @@ def initialize_collaborative_session(user_id: str, document_id: str) -> Dict:
     
     return session_info
 
-
 def join_collaborative_session(session_id: str, user_id: str) -> bool:
     """Join an existing collaborative editing session.
     
@@ -1662,7 +1080,6 @@ def join_collaborative_session(session_id: str, user_id: str) -> bool:
     
     return True
 
-
 def leave_collaborative_session(session_id: str, user_id: str) -> bool:
     """Leave a collaborative editing session.
     
@@ -1691,7 +1108,6 @@ def leave_collaborative_session(session_id: str, user_id: str) -> bool:
         })
     
     return True
-
 
 def apply_edit_operation(session_id: str, user_id: str, operation: Dict) -> Dict:
     """Apply an edit operation in a collaborative session.
@@ -1729,7 +1145,8 @@ def apply_edit_operation(session_id: str, user_id: str, operation: Dict) -> Dict
             "resolution_status": "pending"
         }
         
-        session["conflict_resolutions"].append(conflict_record)
+        session["conflict_resolutions"] = session.get("conflict_resolutions", []) # Ensure it's a list
+        session["conflict_resolutions"] = session["conflict_resolutions"] + [conflict_record] # Append
         
         return {
             "success": True,
@@ -1739,14 +1156,14 @@ def apply_edit_operation(session_id: str, user_id: str, operation: Dict) -> Dict
         }
     else:
         # Apply operation
-        session["edit_operations"].append(operation)
+        session["edit_operations"] = session.get("edit_operations", []) # Ensure it's a list
+        session["edit_operations"] = session["edit_operations"] + [operation] # Append
         
         return {
             "success": True,
             "conflict_detected": False,
             "message": "Operation applied successfully."
         }
-
 
 def detect_conflicts(session: Dict, new_operation: Dict) -> Dict:
     """Detect conflicts between a new operation and existing operations.
@@ -1777,7 +1194,6 @@ def detect_conflicts(session: Dict, new_operation: Dict) -> Dict:
         "has_conflict": len(conflicting_operations) > 0,
         "conflicting_operations": conflicting_operations
     }
-
 
 def resolve_conflict(session_id: str, conflict_id: str, resolution: str) -> bool:
     """Resolve a conflict in a collaborative session.
@@ -1815,7 +1231,6 @@ def resolve_conflict(session_id: str, conflict_id: str, resolution: str) -> bool
     
     return True
 
-
 def get_session_state(session_id: str) -> Optional[Dict]:
     """Get the current state of a collaborative session.
     
@@ -1829,7 +1244,6 @@ def get_session_state(session_id: str) -> Optional[Dict]:
         return None
     
     return st.session_state.collaborative_sessions.get(session_id)
-
 
 def synchronize_document(session_id: str) -> Dict:
     """Synchronize document state across all participants.
@@ -1877,7 +1291,6 @@ def synchronize_document(session_id: str) -> Dict:
         "participant_count": len(session["participants"]),
         "operation_count": len(session["edit_operations"])
     }
-
 
 def render_collaborative_editor_ui(session_id: str) -> str:
     """Render the collaborative editor UI.
@@ -1976,47 +1389,46 @@ def render_collaborative_editor_ui(session_id: str) -> str:
     let editor = document.getElementById('collaborativeEditor');
     let conflictPanel = document.getElementById('conflictPanel');
     
-    function leaveSession(sessionId) {{
+    function leaveSession(sessionId) {
         // In a real implementation, this would leave the session
         alert('Leaving session: ' + sessionId);
-    }}
+    }
     
-    function saveChanges() {{
+    function saveChanges() {
         // In a real implementation, this would save changes
         let text = editor.value;
         alert('Saving changes...');
-    }}
+    }
     
-    function refreshView() {{
+    function refreshView() {
         // In a real implementation, this would refresh the view
         alert('Refreshing view...');
-    }}
+    }
     
-    function acceptNew() {{
+    function acceptNew() {
         conflictPanel.style.display = 'none';
         alert('Accepting your changes...');
-    }}
+    }
     
-    function acceptExisting() {{
+    function acceptExisting() {
         conflictPanel.style.display = 'none';
         alert('Accepting their changes...');
-    }}
+    }
     
-    function mergeChanges() {{
+    function mergeChanges() {
         conflictPanel.style.display = 'none';
         alert('Merging changes...');
-    }}
+    }
     
     // Simulate real-time updates
-    setInterval(function() {{
+    setInterval(function() {
         // In a real implementation, this would fetch updates
         console.log('Checking for updates...');
-    }}, 5000);
+    }, 5000);
     </script>
     """.format(document_text=document_text.replace('"', '&quot;'))
     
     return html
-
 
 def validate_protocol(protocol_text: str, validation_type: str = "generic") -> Dict:
     """Validate a protocol against predefined rules.
@@ -2111,7 +1523,6 @@ def validate_protocol(protocol_text: str, validation_type: str = "generic") -> D
         "complexity_metrics": complexity
     }
 
-
 def render_validation_results(protocol_text: str, validation_type: str = "generic") -> str:
     """Render validation results in a formatted display.
     
@@ -2130,7 +1541,11 @@ def render_validation_results(protocol_text: str, validation_type: str = "generi
         
         <!-- Overall Score -->
         <div style="display: flex; justify-content: center; align-items: center; margin-bottom: 20px;">
-            <div style="background: {'linear-gradient(135deg, #4caf50, #81c784)' if results['score'] >= 80 else 'linear-gradient(135deg, #ff9800, #ffb74d)' if results['score'] >= 60 else 'linear-gradient(135deg, #f44336, #e57373)'}; 
+            <div style="background: {
+                        'linear-gradient(135deg, #4caf50, #81c784)' if results['score'] >= 80 else 
+                        'linear-gradient(135deg, #ff9800, #ffb74d)' if results['score'] >= 60 else 
+                        'linear-gradient(135deg, #f44336, #e57373)'
+                    }; 
                         color: white; border-radius: 50%; width: 120px; height: 120px; 
                         display: flex; justify-content: center; align-items: center; 
                         font-size: 2em; font-weight: bold;">
@@ -2216,7 +1631,6 @@ def render_validation_results(protocol_text: str, validation_type: str = "generi
     
     return html
 
-
 def list_report_templates() -> List[str]:
     """List all available report templates.
     
@@ -2224,7 +1638,6 @@ def list_report_templates() -> List[str]:
         List[str]: List of report template names
     """
     return list(REPORT_TEMPLATES.keys())
-
 
 def get_report_template_details(template_name: str) -> Optional[Dict]:
     """Get details for a specific report template.
@@ -2236,7 +1649,6 @@ def get_report_template_details(template_name: str) -> Optional[Dict]:
         Optional[Dict]: Template details or None if not found
     """
     return REPORT_TEMPLATES.get(template_name)
-
 
 def generate_custom_report(template_name: str, data: Dict) -> str:
     """Generate a custom report based on a template.
@@ -2253,7 +1665,9 @@ def generate_custom_report(template_name: str, data: Dict) -> str:
         return f"# Error: Template '{template_name}' not found\n\nUnable to generate report."
     
     report_content = f"# {template['name']}\n\n"
-    report_content += f"*Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\n\n"
+    report_content += f"*Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*
+
+"
     
     # Add sections
     for section in template.get("sections", []):
@@ -2276,7 +1690,6 @@ def generate_custom_report(template_name: str, data: Dict) -> str:
             report_content += "*(Content to be added)*\n\n"
     
     return report_content
-
 
 def render_report_generator_ui() -> str:
     """Render the report generator UI.
@@ -2454,7 +1867,6 @@ EXTERNAL_INTEGRATIONS = {
     }
 }
 
-
 def get_version_timeline() -> List[Dict]:
     """Get a chronological timeline of all versions.
     
@@ -2467,7 +1879,6 @@ def get_version_timeline() -> List[Dict]:
     # Sort by timestamp
     versions.sort(key=lambda x: x["timestamp"])
     return versions
-
 
 def render_version_timeline() -> str:
     """Render a visual timeline of versions.
@@ -2493,8 +1904,8 @@ def render_version_timeline() -> str:
         
         html += f"""
         <div style="position: relative; margin-bottom: 20px;">
-            <div style="position: absolute; left: -20px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background-color: {'#4a6fa5' if is_current else '#6b8cbc'}; border: 2px solid white;"></div>
-            <div style="background-color: {'#e3f2fd' if is_current else 'white'}; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 4px solid {'#4a6fa5' if is_current else '#6b8cbc'};">
+            <div style="position: absolute; left: -20px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background-color: {"#4a6fa5" if is_current else "#6b8cbc"}; border: 2px solid white;"></div>
+            <div style="background-color: {"#e3f2fd" if is_current else "white"}; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border-left: 4px solid {"#4a6fa5" if is_current else "#6b8cbc"};">
                 <div style="display: flex; justify-content: space-between; align-items: center;">
                     <h4 style="margin: 0; color: #4a6fa5;">{version['name']}</h4>
                     <span style="font-size: 0.9em; color: #666;">{timestamp}</span>
@@ -2539,693 +1950,6 @@ def render_version_timeline() -> str:
 
 
 # External Integration Functions
-def list_external_integrations() -> List[str]:
-    """List all available external integrations.
-    
-    Returns:
-        List[str]: List of integration names
-    """
-    return list(EXTERNAL_INTEGRATIONS.keys())
-
-
-def get_integration_details(integration_name: str) -> Optional[Dict]:
-    """Get details for a specific external integration.
-    
-    Args:
-        integration_name (str): Name of the integration
-        
-    Returns:
-        Optional[Dict]: Integration details or None if not found
-    """
-    return EXTERNAL_INTEGRATIONS.get(integration_name)
-
-
-def authenticate_integration(integration_name: str, credentials: Dict) -> bool:
-    """Authenticate with an external integration.
-    
-    Args:
-        integration_name (str): Name of the integration
-        credentials (Dict): Authentication credentials
-        
-    Returns:
-        bool: True if authentication successful, False otherwise
-    """
-    integration = get_integration_details(integration_name)
-    if not integration:
-        st.error(f"Integration '{integration_name}' not found")
-        return False
-    
-    # In a real implementation, this would make API calls to authenticate
-    # For now, we'll just simulate success
-    st.session_state[f"{integration_name}_authenticated"] = True
-    st.session_state[f"{integration_name}_credentials"] = credentials
-    
-    st.success(f"Successfully authenticated with {integration['name']}")
-    return True
-
-
-def publish_to_github(repository: str, file_path: str, content: str, commit_message: str, token: str) -> Dict:
-    """Publish content to a GitHub repository.
-    
-    Args:
-        repository (str): Repository name (owner/repo)
-        file_path (str): Path to the file in the repository
-        content (str): Content to publish
-        commit_message (str): Commit message
-        token (str): GitHub personal access token
-        
-    Returns:
-        Dict: Publication result
-    """
-    try:
-        # In a real implementation, this would make API calls to GitHub
-        # For now, we'll simulate the process
-        result = {
-            "success": True,
-            "repository": repository,
-            "file_path": file_path,
-            "commit_sha": "abc123def456",  # Simulated commit SHA
-            "url": f"https://github.com/{repository}/blob/main/{file_path}",
-            "timestamp": datetime.now().isoformat()
-        }
-        
-        st.success(f"Successfully published to GitHub: {repository}/{file_path}")
-        return result
-    except Exception as e:
-        st.error(f"Error publishing to GitHub: {e}")
-        return {"success": False, "error": str(e)}
-
-
-def create_gitlab_issue(project_id: str, title: str, description: str, token: str) -> Dict:
-    """Create an issue in a GitLab project.
-    
-    Args:
-        project_id (str): GitLab project ID
-        title (str): Issue title
-        description (str): Issue description
-        token (str): GitLab personal access token
-        
-    Returns:
-        Dict: Issue creation result
-    """
-    try:
-        # In a real implementation, this would make API calls to GitLab
-        # For now, we'll simulate the process
-        result = {
-            "success": True,
-            "project_id": project_id,
-            "issue_id": "12345",  # Simulated issue ID
-            "title": title,
-            "url": f"https://gitlab.com/{project_id}/-/issues/12345",
-            "timestamp": datetime.now().isoformat()
-        }
-        
-        st.success(f"Successfully created GitLab issue: {title}")
-        return result
-    except Exception as e:
-        st.error(f"Error creating GitLab issue: {e}")
-        return {"success": False, "error": str(e)}
-
-
-def post_to_slack(channel: str, message: str, token: str) -> Dict:
-    """Post a message to a Slack channel.
-    
-    Args:
-        channel (str): Slack channel name or ID
-        message (str): Message to post
-        token (str): Slack bot token
-        
-    Returns:
-        Dict: Posting result
-    """
-    try:
-        # In a real implementation, this would make API calls to Slack
-        # For now, we'll simulate the process
-        result = {
-            "success": True,
-            "channel": channel,
-            "message": message,
-            "timestamp": datetime.now().isoformat(),
-            "message_id": "xyz789"  # Simulated message ID
-        }
-        
-        st.success(f"Successfully posted to Slack channel: {channel}")
-        return result
-    except Exception as e:
-        st.error(f"Error posting to Slack: {e}")
-        return {"success": False, "error": str(e)}
-
-
-def render_integration_manager_ui() -> str:
-    """Render the external integration manager UI.
-    
-    Returns:
-        str: HTML formatted integration manager UI
-    """
-    html = """
-    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-        <h2 style="color: #4a6fa5; margin-top: 0; text-align: center;">🔌 External Integrations</h2>
-        
-        <!-- Integration Cards -->
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 20px;">
-    """
-    
-    # Add integration cards
-    for integration_name, integration in EXTERNAL_INTEGRATIONS.items():
-        is_authenticated = st.session_state.get(f"{integration_name}_authenticated", False)
-        
-        html += f"""
-        <div style="background-color: white; border-radius: 10px; padding: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 1px solid #eee;">
-            <h3 style="color: #4a6fa5; margin-top: 0;">
-                {integration['name']}
-                <span style="float: right; font-size: 1.2em;">{'✅' if is_authenticated else '❌'}</span>
-            </h3>
-            <p style="color: #666; font-size: 0.9em; margin-bottom: 15px;">{integration['description']}</p>
-            <div style="display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 15px;">
-    """
-        
-        # Add capability tags
-        for capability in integration.get("capabilities", []):
-            html += f"""
-                <span style="background-color: #e3f2fd; color: #1565c0; padding: 3px 8px; border-radius: 10px; font-size: 0.7em;">
-                    {capability.replace('_', ' ').title()}
-                </span>
-            """
-        
-        html += """
-            </div>
-            <button onclick="configureIntegration('{integration_name}')" 
-                    style="width: 100%; background-color: #4a6fa5; color: white; border: none; padding: 8px; border-radius: 5px; cursor: pointer;">
-                {auth_button_text}
-            </button>
-        </div>
-        """.format(
-            integration_name=integration_name,
-            auth_button_text="Configure" if not is_authenticated else "Reconfigure"
-        )
-    
-    html += """
-        </div>
-        
-        <!-- Configuration Panel -->
-        <div id="integrationConfig" style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: none;">
-            <h3 style="color: #4a6fa5; margin-top: 0;">Configure Integration</h3>
-            <div id="configForm">
-                <!-- Configuration form will be populated by JavaScript -->
-            </div>
-        </div>
-        
-        <!-- Action Panel -->
-        <div id="integrationActions" style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 20px; display: none;">
-            <h3 style="color: #4a6fa5; margin-top: 0;">Integration Actions</h3>
-            <div id="actionButtons">
-                <!-- Action buttons will be populated by JavaScript -->
-            </div>
-        </div>
-    </div>
-    
-    <script>
-    let selectedIntegration = null;
-    
-    function configureIntegration(integrationName) {
-        selectedIntegration = integrationName;
-        document.getElementById('integrationConfig').style.display = 'block';
-        
-        // Populate configuration form
-        const formContainer = document.getElementById('configForm');
-        
-        // In a real implementation, this would dynamically generate forms
-        // based on the integration requirements
-        formContainer.innerHTML = `
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Authentication Token</label>
-                <input type="password" id="authToken" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;" placeholder="Enter your authentication token">
-                <p style="font-size: 0.8em; color: #666; margin-top: 5px;">
-                    Generate a token in your ${integrationName.charAt(0).toUpperCase() + integrationName.slice(1)} account settings
-                </p>
-            </div>
-            <div style="margin-bottom: 15px;">
-                <button onclick="saveConfiguration()" style="background-color: #4a6fa5; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                    Save Configuration
-                </button>
-                <button onclick="testConnection()" style="background-color: #6b8cbc; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-left: 10px;">
-                    Test Connection
-                </button>
-            </div>
-        `;
-        
-        // Show action panel
-        document.getElementById('integrationActions').style.display = 'block';
-        updateActionButtons(integrationName);
-    }
-    
-    function updateActionButtons(integrationName) {
-        const actionContainer = document.getElementById('actionButtons');
-        
-        // Different actions based on integration
-        let actionsHtml = '';
-        switch(integrationName) {
-            case 'github':
-                actionsHtml = `
-                    <button onclick="publishToRepo()" style="background-color: #4a6fa5; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
-                        Publish to Repository
-                    </button>
-                    <button onclick="createIssue()" style="background-color: #6b8cbc; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
-                        Create Issue
-                    </button>
-                `;
-                break;
-            case 'gitlab':
-                actionsHtml = `
-                    <button onclick="createGitlabIssue()" style="background-color: #4a6fa5; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
-                        Create Issue
-                    </button>
-                `;
-                break;
-            case 'slack':
-                actionsHtml = `
-                    <button onclick="postToChannel()" style="background-color: #4a6fa5; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
-                        Post to Channel
-                    </button>
-                `;
-                break;
-            default:
-                actionsHtml = `
-                    <button onclick="genericAction()" style="background-color: #4a6fa5; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
-                        Perform Action
-                    </button>
-                `;
-        }
-        
-        actionContainer.innerHTML = actionsHtml;
-    }
-    
-    function saveConfiguration() {
-        const token = document.getElementById('authToken').value;
-        if (!token) {
-            alert('Please enter an authentication token.');
-            return;
-        }
-        
-        // In a real implementation, this would save the configuration
-        alert(`Configuration saved for ${selectedIntegration}`);
-    }
-    
-    function testConnection() {
-        const token = document.getElementById('authToken').value;
-        if (!token) {
-            alert('Please enter an authentication token.');
-            return;
-        }
-        
-        // In a real implementation, this would test the connection
-        alert(`Connection test successful for ${selectedIntegration}`);
-    }
-    
-    function publishToRepo() {
-        // In a real implementation, this would show a publish dialog
-        alert('Publish to repository dialog would appear here');
-    }
-    
-    function createIssue() {
-        // In a real implementation, this would show an issue creation dialog
-        alert('Create issue dialog would appear here');
-    }
-    
-    function createGitlabIssue() {
-        // In a real implementation, this would show a GitLab issue creation dialog
-        alert('Create GitLab issue dialog would appear here');
-    }
-    
-    function postToChannel() {
-        // In a real implementation, this would show a Slack post dialog
-        alert('Post to Slack channel dialog would appear here');
-    }
-    
-    function genericAction() {
-        alert(`Performing generic action for ${selectedIntegration}`);
-    }
-    </script>
-    """
-    
-    return html
-
-
-# Machine Learning-Based Protocol Suggestions
-def list_ml_models() -> List[str]:
-    """List all available ML models for protocol suggestions.
-    
-    Returns:
-        List[str]: List of model names
-    """
-    return list(ML_SUGGESTION_MODELS.keys())
-
-
-def get_model_details(model_name: str) -> Optional[Dict]:
-    """Get details for a specific ML model.
-    
-    Args:
-        model_name (str): Name of the model
-        
-    Returns:
-        Optional[Dict]: Model details or None if not found
-    """
-    return ML_SUGGESTION_MODELS.get(model_name)
-
-
-def generate_ml_suggestions(model_name: str, protocol_text: str) -> Dict:
-    """Generate protocol suggestions using an ML model.
-    
-    Args:
-        model_name (str): Name of the ML model to use
-        protocol_text (str): Protocol text to analyze
-        
-    Returns:
-        Dict: Suggestions and improvements
-    """
-    model = get_model_details(model_name)
-    if not model:
-        return {"success": False, "error": f"Model '{model_name}' not found"}
-    
-    # In a real implementation, this would call an ML API
-    # For now, we'll simulate suggestions based on the model type
-    suggestions = []
-    
-    if model_name == "protocol_improver":
-        suggestions = [
-            "Consider adding a section on roles and responsibilities for better clarity",
-            "Add more specific examples to illustrate key concepts",
-            "Include a glossary of terms for complex terminology",
-            "Add cross-references to related sections for better navigation",
-            "Consider adding diagrams or flowcharts to visualize complex processes"
-        ]
-    elif model_name == "compliance_checker":
-        suggestions = [
-            {
-                "issue": "Missing GDPR compliance section",
-                "severity": "high",
-                "recommendation": "Add a section detailing GDPR compliance requirements"
-            },
-            {
-                "issue": "Lack of data retention policy",
-                "severity": "medium",
-                "recommendation": "Specify how long data will be retained and deletion procedures"
-            },
-            {
-                "issue": "No individual rights section",
-                "severity": "high",
-                "recommendation": "Include a section on individual rights under applicable regulations"
-            }
-        ]
-    elif model_name == "security_analyzer":
-        suggestions = [
-            {
-                "issue": "Weak authentication requirements",
-                "severity": "high",
-                "category": "access_control",
-                "recommendation": "Specify multi-factor authentication requirements for sensitive systems"
-            },
-            {
-                "issue": "Lack of encryption specifications",
-                "severity": "medium",
-                "category": "data_protection",
-                "recommendation": "Define encryption standards for data at rest and in transit"
-            },
-            {
-                "issue": "Insufficient incident response procedures",
-                "severity": "high",
-                "category": "incident_response",
-                "recommendation": "Add detailed incident response procedures with escalation paths"
-            }
-        ]
-    elif model_name == "readability_enhancer":
-        suggestions = [
-            "Shorten sentences longer than 25 words for better readability",
-            "Replace complex jargon with simpler terms where possible",
-            "Add subheadings to break up long sections",
-            "Use bullet points or numbered lists for procedural steps",
-            "Ensure consistent terminology throughout the document"
-        ]
-    
-    return {
-        "success": True,
-        "model": model_name,
-        "model_details": model,
-        "suggestions": suggestions,
-        "timestamp": datetime.now().isoformat()
-    }
-
-
-def apply_ml_suggestions(protocol_text: str, suggestions: List[Dict]) -> str:
-    """Apply ML-generated suggestions to improve a protocol.
-    
-    Args:
-        protocol_text (str): Original protocol text
-        suggestions (List[Dict]): List of suggestions to apply
-        
-    Returns:
-        str: Improved protocol text
-    """
-    # In a real implementation, this would intelligently apply suggestions
-    # For now, we'll simulate by adding a note about the suggestions
-    improved_text = protocol_text + "\n\n"
-    improved_text += "# AI-Generated Improvements\n\n"
-    improved_text += "The following improvements were suggested by AI analysis:\n\n"
-    
-    for i, suggestion in enumerate(suggestions, 1):
-        if isinstance(suggestion, str):
-            improved_text += f"{i}. {suggestion}\n"
-        elif isinstance(suggestion, dict):
-            improved_text += f"{i}. {suggestion.get('recommendation', suggestion.get('issue', 'Improvement'))}\n"
-    
-    return improved_text
-
-
-def render_ml_suggestions_ui(protocol_text: str) -> str:
-    """Render the ML suggestions UI.
-    
-    Args:
-        protocol_text (str): Protocol text to analyze
-        
-    Returns:
-        str: HTML formatted suggestions UI
-    """
-    html = """
-    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-        <h2 style="color: #4a6fa5; margin-top: 0; text-align: center;">🤖 AI-Powered Protocol Suggestions</h2>
-        
-        <!-- Model Selection -->
-        <div style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
-            <h3 style="color: #4a6fa5; margin-top: 0;">Select AI Analysis Model</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-    """
-    
-    # Add model cards
-    for model_name, model in ML_SUGGESTION_MODELS.items():
-        html += f"""
-        <div style="background-color: #e8f5e9; border-radius: 8px; padding: 15px; cursor: pointer; border: 2px solid #c8e6c9;" 
-             onclick="analyzeWithModel('{model_name}')">
-            <h4 style="color: #2e7d32; margin-top: 0;">{model['name']}</h4>
-            <p style="color: #388e3c; font-size: 0.9em; margin-bottom: 10px;">{model['description']}</p>
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="background-color: #a5d6a7; color: #1b5e20; padding: 3px 8px; border-radius: 10px; font-size: 0.8em;">
-                    {model['input_format'].upper()}
-                </span>
-                <span style="font-size: 0.8em; color: #388e3c;">
-                    → {model['output_format'].upper()}
-                </span>
-            </div>
-        </div>
-        """
-    
-    html += """
-            </div>
-        </div>
-        
-        <!-- Analysis Results -->
-        <div id="analysisResults" style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: none;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                <h3 style="color: #4a6fa5; margin: 0;">Analysis Results</h3>
-                <button onclick="applySuggestions()" style="background-color: #4caf50; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
-                    Apply Suggestions
-                </button>
-            </div>
-            <div id="suggestionsList" style="max-height: 400px; overflow-y: auto;">
-                <!-- Suggestions will be populated by JavaScript -->
-            </div>
-        </div>
-        
-        <!-- Applied Improvements -->
-        <div id="appliedImprovements" style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-top: 20px; display: none;">
-            <h3 style="color: #1565c0; margin-top: 0;">✨ Improvements Applied</h3>
-            <p id="improvementSummary">AI suggestions have been applied to your protocol.</p>
-            <div style="margin-top: 10px;">
-                <button onclick="viewImprovedProtocol()" style="background-color: #2196f3; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
-                    View Improved Protocol
-                </button>
-                <button onclick="undoImprovements()" style="background-color: #ff9800; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
-                    Undo Changes
-                </button>
-            </div>
-        </div>
-    </div>
-    
-    <script>
-    let currentSuggestions = [];
-    
-    function analyzeWithModel(modelName) {
-        // In a real implementation, this would call the ML API
-        // For now, we'll simulate results
-        const resultsContainer = document.getElementById('analysisResults');
-        const suggestionsContainer = document.getElementById('suggestionsList');
-        
-        // Show loading state
-        suggestionsContainer.innerHTML = '<p style="text-align: center; padding: 20px;">🔬 Analyzing protocol with AI model...</p>';
-        resultsContainer.style.display = 'block';
-        
-        // Simulate API delay
-        setTimeout(() => {
-            // Generate simulated suggestions based on model
-            let suggestions = [];
-            switch(modelName) {
-                case 'protocol_improver':
-                    suggestions = [
-                        "Consider adding a section on roles and responsibilities for better clarity",
-                        "Add more specific examples to illustrate key concepts",
-                        "Include a glossary of terms for complex terminology",
-                        "Add cross-references to related sections for better navigation",
-                        "Consider adding diagrams or flowcharts to visualize complex processes"
-                    ];
-                    break;
-                case 'compliance_checker':
-                    suggestions = [
-                        {
-                            "issue": "Missing GDPR compliance section",
-                            "severity": "high",
-                            "recommendation": "Add a section detailing GDPR compliance requirements"
-                        },
-                        {
-                            "issue": "Lack of data retention policy",
-                            "severity": "medium",
-                            "recommendation": "Specify how long data will be retained and deletion procedures"
-                        },
-                        {
-                            "issue": "No individual rights section",
-                            "severity": "high",
-                            "recommendation": "Include a section on individual rights under applicable regulations"
-                        }
-                    ];
-                    break;
-                case 'security_analyzer':
-                    suggestions = [
-                        {
-                            "issue": "Weak authentication requirements",
-                            "severity": "high",
-                            "category": "access_control",
-                            "recommendation": "Specify multi-factor authentication requirements for sensitive systems"
-                        },
-                        {
-                            "issue": "Lack of encryption specifications",
-                            "severity": "medium",
-                            "category": "data_protection",
-                            "recommendation": "Define encryption standards for data at rest and in transit"
-                        },
-                        {
-                            "issue": "Insufficient incident response procedures",
-                            "severity": "high",
-                            "category": "incident_response",
-                            "recommendation": "Add detailed incident response procedures with escalation paths"
-                        }
-                    ];
-                    break;
-                case 'readability_enhancer':
-                    suggestions = [
-                        "Shorten sentences longer than 25 words for better readability",
-                        "Replace complex jargon with simpler terms where possible",
-                        "Add subheadings to break up long sections",
-                        "Use bullet points or numbered lists for procedural steps",
-                        "Ensure consistent terminology throughout the document"
-                    ];
-                    break;
-            }
-            
-            currentSuggestions = suggestions;
-            
-            // Render suggestions
-            let suggestionsHtml = '<div style="display: grid; gap: 15px;">';
-            
-            suggestions.forEach((suggestion, index) => {
-                if (typeof suggestion === 'string') {
-                    suggestionsHtml += `
-                        <div style="background-color: #fff8e1; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800;">
-                            <div style="display: flex; align-items: flex-start;">
-                                <span style="margin-right: 10px; font-size: 1.2em;">💡</span>
-                                <div>
-                                    <p style="margin: 0;">${suggestion}</p>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    const severityColor = {
-                        'low': '#4caf50',
-                        'medium': '#ff9800',
-                        'high': '#f44336',
-                        'critical': '#9c27b0'
-                    }[suggestion.severity] || '#666';
-                    
-                    suggestionsHtml += `
-                        <div style="background-color: #fff8e1; padding: 15px; border-radius: 8px; border-left: 4px solid ${severityColor};">
-                            <div style="display: flex; align-items: flex-start;">
-                                <span style="margin-right: 10px; font-size: 1.2em;">${suggestion.severity === 'high' || suggestion.severity === 'critical' ? '⚠️' : 'ℹ️'}</span>
-                                <div style="flex: 1;">
-                                    <p style="margin: 0; font-weight: bold; color: ${severityColor};">${suggestion.issue}</p>
-                                    <p style="margin: 5px 0 0 0;">${suggestion.recommendation}</p>
-                                    ${suggestion.category ? `<span style="background-color: #bbdefb; color: #0d47a1; padding: 2px 6px; border-radius: 10px; font-size: 0.8em; margin-top: 5px; display: inline-block;">${suggestion.category.replace('_', ' ')}</span>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                }
-            });
-            
-            suggestionsHtml += '</div>';
-            suggestionsContainer.innerHTML = suggestionsHtml;
-        }, 1500);
-    }
-    
-    function applySuggestions() {
-        if (currentSuggestions.length === 0) {
-            alert('No suggestions to apply.');
-            return;
-        }
-        
-        // In a real implementation, this would apply the suggestions to the protocol
-        document.getElementById('appliedImprovements').style.display = 'block';
-        document.getElementById('improvementSummary').textContent = 
-            `Applied ${currentSuggestions.length} AI suggestions to improve your protocol.`;
-        
-        // Hide the analysis results
-        document.getElementById('analysisResults').style.display = 'none';
-        
-        alert('AI suggestions applied successfully!');
-    }
-    
-    function viewImprovedProtocol() {
-        alert('Viewing improved protocol... (This would show the updated protocol)');
-    }
-    
-    function undoImprovements() {
-        document.getElementById('appliedImprovements').style.display = 'none';
-        alert('AI improvements undone.');
-    }
-    </script>
-    """
-    
-    return html
-
-
-# External Integration Configuration
 EXTERNAL_INTEGRATIONS = {
     "github": {
         "name": "GitHub",
@@ -3257,7 +1981,6 @@ EXTERNAL_INTEGRATIONS = {
     }
 }
 
-
 def export_protocol_as_template(protocol_text: str, template_name: str) -> Dict:
     """Export protocol as a reusable template.
     
@@ -3276,7 +1999,6 @@ def export_protocol_as_template(protocol_text: str, template_name: str) -> Dict:
         "structure_analysis": extract_protocol_structure(protocol_text),
         "tags": []
     }
-
 
 def generate_ai_insights(protocol_text: str) -> Dict[str, Any]:
     """Generate AI-powered insights about the protocol.
@@ -3314,7 +2036,7 @@ def generate_ai_insights(protocol_text: str) -> Dict[str, Any]:
         min(structure["section_count"] / 10, 1) * 0.15
     ) * 100
     
-    complexity_score = max(0, 100 - complexity["complexity_score"])  # Invert complexity
+    complexity_score = max(0, 100 - complexity["complexity_score"])
     
     overall_score = (structure_score * 0.6 + complexity_score * 0.4)
     
@@ -3398,7 +2120,6 @@ def generate_ai_insights(protocol_text: str) -> Dict[str, Any]:
         "readability_score": round(readability_score, 1),
         "compliance_risk": compliance_risk
     }
-
 
 def render_ai_insights_dashboard(protocol_text: str) -> str:
     """Render an AI insights dashboard for the protocol.
@@ -3521,7 +2242,6 @@ def render_ai_insights_dashboard(protocol_text: str) -> str:
     
     return html
 
-
 def list_template_categories() -> List[str]:
     """List all template categories in the marketplace.
     
@@ -3529,7 +2249,6 @@ def list_template_categories() -> List[str]:
         List[str]: List of category names
     """
     return list(PROTOCOL_TEMPLATE_MARKETPLACE.keys())
-
 
 def list_templates_in_category(category: str) -> List[str]:
     """List all templates in a specific category.
@@ -3543,7 +2262,6 @@ def list_templates_in_category(category: str) -> List[str]:
     if category in PROTOCOL_TEMPLATE_MARKETPLACE:
         return list(PROTOCOL_TEMPLATE_MARKETPLACE[category].keys())
     return []
-
 
 def get_template_details(category: str, template_name: str) -> Optional[Dict]:
     """Get details for a specific template.
@@ -3559,7 +2277,6 @@ def get_template_details(category: str, template_name: str) -> Optional[Dict]:
         if template_name in PROTOCOL_TEMPLATE_MARKETPLACE[category]:
             return PROTOCOL_TEMPLATE_MARKETPLACE[category][template_name]
     return None
-
 
 def search_templates(query: str) -> List[Tuple[str, str, Dict]]:
     """Search templates by query term.
@@ -3585,7 +2302,6 @@ def search_templates(query: str) -> List[Tuple[str, str, Dict]]:
     results.sort(key=lambda x: x[2].get("rating", 0), reverse=True)
     return results
 
-
 def get_popular_templates(limit: int = 10) -> List[Tuple[str, str, Dict]]:
     """Get the most popular templates.
     
@@ -3604,91 +2320,6 @@ def get_popular_templates(limit: int = 10) -> List[Tuple[str, str, Dict]]:
     # Sort by downloads (descending)
     all_templates.sort(key=lambda x: x[2].get("downloads", 0), reverse=True)
     return all_templates[:limit]
-
-
-def list_template_categories() -> List[str]:
-    """List all template categories in the marketplace.
-    
-    Returns:
-        List[str]: List of category names
-    """
-    return list(PROTOCOL_TEMPLATE_MARKETPLACE.keys())
-
-
-def list_templates_in_category(category: str) -> List[str]:
-    """List all templates in a specific category.
-    
-    Args:
-        category (str): Category name
-        
-    Returns:
-        List[str]: List of template names
-    """
-    if category in PROTOCOL_TEMPLATE_MARKETPLACE:
-        return list(PROTOCOL_TEMPLATE_MARKETPLACE[category].keys())
-    return []
-
-
-def get_template_details(category: str, template_name: str) -> Optional[Dict]:
-    """Get details for a specific template.
-    
-    Args:
-        category (str): Category name
-        template_name (str): Template name
-        
-    Returns:
-        Optional[Dict]: Template details or None if not found
-    """
-    if category in PROTOCOL_TEMPLATE_MARKETPLACE:
-        if template_name in PROTOCOL_TEMPLATE_MARKETPLACE[category]:
-            return PROTOCOL_TEMPLATE_MARKETPLACE[category][template_name]
-    return None
-
-
-def search_templates(query: str) -> List[Tuple[str, str, Dict]]:
-    """Search templates by query term.
-    
-    Args:
-        query (str): Search query
-        
-    Returns:
-        List[Tuple[str, str, Dict]]: List of (category, template_name, details) tuples
-    """
-    results = []
-    query_lower = query.lower()
-    
-    for category, templates in PROTOCOL_TEMPLATE_MARKETPLACE.items():
-        for template_name, details in templates.items():
-            # Search in template name, description, tags
-            if (query_lower in template_name.lower() or 
-                query_lower in details.get("description", "").lower() or
-                any(query_lower in tag.lower() for tag in details.get("tags", []))):
-                results.append((category, template_name, details))
-    
-    # Sort by rating (descending)
-    results.sort(key=lambda x: x[2].get("rating", 0), reverse=True)
-    return results
-
-
-def get_popular_templates(limit: int = 10) -> List[Tuple[str, str, Dict]]:
-    """Get the most popular templates.
-    
-    Args:
-        limit (int): Maximum number of templates to return
-        
-    Returns:
-        List[Tuple[str, str, Dict]]: List of (category, template_name, details) tuples
-    """
-    all_templates = []
-    
-    for category, templates in PROTOCOL_TEMPLATE_MARKETPLACE.items():
-        for template_name, details in templates.items():
-            all_templates.append((category, template_name, details))
-    
-    # Sort by downloads (descending)
-    all_templates.sort(key=lambda x: x[2].get("downloads", 0), reverse=True)
-    return all_templates[:limit]
-
 
 def get_top_rated_templates(limit: int = 10) -> List[Tuple[str, str, Dict]]:
     """Get the top-rated templates.
@@ -3708,7 +2339,6 @@ def get_top_rated_templates(limit: int = 10) -> List[Tuple[str, str, Dict]]:
     # Sort by rating (descending)
     all_templates.sort(key=lambda x: x[2].get("rating", 0), reverse=True)
     return all_templates[:limit]
-
 
 def render_template_marketplace_ui() -> str:
     """Render the template marketplace UI.
@@ -3783,6 +2413,7 @@ def render_template_marketplace_ui() -> str:
     """
     
     return html
+    def import_project(project_data: Dict) -> bool:
     """Import a project including versions and comments.
     
     Args:
@@ -3809,3 +2440,63 @@ def render_template_marketplace_ui() -> str:
     except Exception as e:
         st.error(f"Error importing project: {e}")
         return False
+
+def add_validation_rule(rule_name: str, rule_config: Dict) -> bool:
+    """Add a new validation rule.
+    
+    Args:
+        rule_name (str): Name of the rule
+        rule_config (Dict): Configuration for the rule
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        VALIDATION_RULES[rule_name] = rule_config
+        return True
+    except Exception as e:
+        st.error(f"Error adding validation rule: {e}")
+        return False
+
+def update_validation_rule(rule_name: str, rule_config: Dict) -> bool:
+    """Update an existing validation rule.
+    
+    Args:
+        rule_name (str): Name of the rule to update
+        rule_config (Dict): New configuration for the rule
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    if rule_name in VALIDATION_RULES:
+        try:
+            VALIDATION_RULES[rule_name] = rule_config
+            return True
+        except Exception as e:
+            st.error(f"Error updating validation rule: {e}")
+            return False
+    else:
+        st.error(f"Validation rule '{rule_name}' does not exist")
+        return False
+
+def remove_validation_rule(rule_name: str) -> bool:
+    """Remove a validation rule.
+    
+    Args:
+        rule_name (str): Name of the rule to remove
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    if rule_name in VALIDATION_RULES:
+        try:
+            del VALIDATION_RULES[rule_name]
+            return True
+        except Exception as e:
+            st.error(f"Error removing validation rule: {e}")
+            return False
+    else:
+        st.error(f"Validation rule '{rule_name}' does not exist")
+        return False
+
+def run_compliance_check(content: str, compliance_framework: str = \"generic\") -> Dict:\n    \"\"\"Run a compliance check against a specific framework.\n    \n    Args:\n        content (str): Content to check\n        compliance_framework (str): Compliance framework to use\n        \n    Returns:\n        Dict: Compliance check results\n    \"\"\"\n    # Get the rule configuration\n    rule = VALIDATION_RULES.get(compliance_framework, VALIDATION_RULES.get(\"generic\", {}))\n    \n    # Apply the rule to the content\n    errors = []\n    warnings = []\n    suggestions = []\n    \n    # Check length constraints\n    if \"max_length\" in rule and len(content) > rule[\"max_length\"]:\n        errors.append(f\"Content exceeds maximum length of {rule['max_length']} characters\")\n    \n    if \"min_length\" in rule and len(content) < rule[\"min_length\"]:\n        errors.append(f\"Content is below minimum length of {rule['min_length']} characters\")\n    \n    # Check required sections\n    if \"required_sections\" in rule:\n        missing_sections = []\n        for section in rule[\"required_sections\"]:\n            if section.lower() not in content.lower():\n                missing_sections.append(section)\n        if missing_sections:\n            errors.append(f\"Missing required sections: {', '.join(missing_sections)}\")\n    \n    # Check required keywords\n    if \"required_keywords\" in rule:\n        missing_keywords = []\n        for keyword in rule[\"required_keywords\"]:\n            if keyword.lower() not in content.lower():\n                missing_keywords.append(keyword)\n        if missing_keywords:\n            warnings.append(f\"Consider adding these keywords: {', '.join(missing_keywords)}\")\n    \n    # Check forbidden patterns\n    if \"forbidden_patterns\" in rule:\n        for pattern in rule[\"forbidden_patterns\"]:\n            matches = re.findall(pattern, content)\n            if matches:\n                errors.append(f\"Forbidden pattern found: {matches[0][:50]}...\")\n    \n    return {\n        \"valid\": len(errors) == 0,\n        \"errors\": errors,\n        \"warnings\": warnings,\n        \"suggestions\": suggestions,\n        \"rule_name\": compliance_framework,\n        \"rule_config\": rule\n    }\n\ndef generate_content_summary(content: str) -> Dict:\n    \"\"\"Generate a summary of the content including key metrics.\n    \n    Args:\n        content (str): Content to summarize\n        \n    Returns:\n        Dict: Summary metrics\n    \"\"\"\n    if not content:\n        return {\n            \"word_count\": 0,\n            \"character_count\": 0,\n            \"sentence_count\": 0,\n            \"paragraph_count\": 0,\n            \"readability_score\": 0,\n            \"complexity_score\": 0\n        }\n\n    # Calculate metrics\n    complexity_metrics = calculate_protocol_complexity(content)\n    structure_analysis = extract_protocol_structure(content)\n    \n    # Simple readability calculation (Flesch Reading Ease approximation)\n    avg_sentence_length = complexity_metrics[\"avg_sentence_length\"]\n    avg_syllables_per_word = 1.3  # Rough approximation\n    readability_score = 206.835 - (1.015 * avg_sentence_length) - (84.6 * avg_syllables_per_word)\n    readability_score = max(0, min(100, readability_score))  # Clamp to 0-100 range\n    \n    return {\n        \"word_count\": complexity_metrics[\"word_count\"],\n        \"character_count\": len(content),\n        \"sentence_count\": complexity_metrics[\"sentence_count\"],\n        \"paragraph_count\": complexity_metrics[\"paragraph_count\"],\n        \"readability_score\": round(readability_score, 1),\n        \"complexity_score\": complexity_metrics[\"complexity_score\"],\n        \"has_headers\": structure_analysis[\"has_headers\"],\n        \"has_numbered_steps\": structure_analysis[\"has_numbered_steps\"],\n        \"has_bullet_points\": structure_analysis[\"has_bullet_points\"],\n        \"has_preconditions\": structure_analysis[\"has_preconditions\"],\n        \"has_postconditions\": structure_analysis[\"has_postconditions\"],\n        \"has_error_handling\": structure_analysis[\"has_error_handling\"]\n    }\n\n# Report templates\nREPORT_TEMPLATES = {\n    \"executive_summary\": {\n        \"name\": \"Executive Summary Report\",\n        \"description\": \"High-level summary of findings and recommendations\",\n        \"format\": \"markdown\",\n        \"sections\": [\"Executive Summary\", \"Key Findings\", \"Recommendations\", \"Conclusion\"]\n    },\n    \"technical_analysis\": {\n        \"name\": \"Technical Analysis Report\",\n        \"description\": \"Detailed technical analysis with implementation details\",\n        \"format\": \"markdown\",\n        \"sections\": [\"Introduction\", \"Methodology\", \"Analysis\", \"Results\", \"Implementation\", \"Conclusion\"]\n    },\n    \"security_audit\": {\n        \"name\": \"Security Audit Report\",\n        \"description\": \"Comprehensive security audit with vulnerabilities and remediation\",\n        \"format\": \"markdown\",\n        \"sections\": [\"Audit Scope\", \"Methodology\", \"Vulnerabilities\", \"Risk Assessment\", \"Remediation\", \"Conclusion\"]\n    },\n    \"compliance_review\": {\n        \"name\": \"Compliance Review Report\",\n        \"description\": \"Review of compliance with regulations and standards\",\n        \"format\": \"markdown\",\n        \"sections\": [\"Compliance Framework\", \"Assessment\", \"Findings\", \"Remediation Plan\", \"Conclusion\"]\n    },\n    \"performance_evaluation\": {\n        \"name\": \"Performance Evaluation Report\",\n        \"description\": \"Evaluation of system or process performance\",\n        \"format\": \"markdown\",\n        \"sections\": [\"Objectives\", \"Metrics\", \"Analysis\", \"Findings\", \"Improvements\", \"Conclusion\"]\n    }\n}\n\ndef list_report_templates() -> List[str]:\n    \"\"\"List all available report templates.\n    \n    Returns:\n        List[str]: List of report template names\n    \"\"\"\n    return list(REPORT_TEMPLATES.keys())\n\ndef get_report_template_details(template_name: str) -> Optional[Dict]:\n    \"\"\"Get details for a specific report template.\n    \n    Args:\n        template_name (str): Name of the template\n        \n    Returns:\n        Optional[Dict]: Template details or None if not found\n    \"\"\"\n    return REPORT_TEMPLATES.get(template_name)\n\ndef generate_custom_report(template_name: str, data: Dict) -> str:\n    \"\"\"Generate a custom report based on a template.\n    \n    Args:\n        template_name (str): Name of the template to use\n        data (Dict): Data to populate the report\n        \n    Returns:\n        str: Generated report content\n    \"\"\"\n    template = get_report_template_details(template_name)\n    if not template:\n        return f\"# Error: Template '{template_name}' not found\\n\\nUnable to generate report.\"\n\n    report_content = f\"# {template['name']}\\n\\n\"\n    report_content += f\"*Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\\n\\n\"\n    \n    # Add sections\n    for section in template.get(\"sections\", []):\n        report_content += f\"## {section}\\n\\n\"\n        \n        # Add data specific to this section\n        section_key = section.lower().replace(\" \", \"_\").replace(\"-\", \"_\")\n        if section_key in data:\n            section_data = data[section_key]\n            if isinstance(section_data, list):\n                for item in section_data:\n                    report_content += f\"- {item}\\n\"\n                report_content += \"\\n\"\n            elif isinstance(section_data, dict):\n                for key, value in section_data.items():\n                    report_content += f\"**{key}:** {value}\\n\\n\"\n            else:\n                report_content += f\"{section_data}\\n\\n\"\n        else:\n            report_content += \"*(Content to be added)*\\n\\n\"\n    \n    return report_content

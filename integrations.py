@@ -1,3 +1,85 @@
+import streamlit as st
+import requests
+import base64
+from typing import List, Dict, Optional
+from datetime import datetime
+
+
+def send_discord_notification(webhook_url: str, message: str) -> bool:
+    """Send a notification to a Discord webhook.
+
+    Args:
+        webhook_url (str): Discord webhook URL
+        message (str): Message to send
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        payload = {"content": message}
+        response = requests.post(webhook_url, json=payload, timeout=10)
+
+        if response.status_code == 204:
+            st.success("✅ Sent notification to Discord")
+            return True
+        else:
+            st.error(f"❌ Failed to send Discord notification: {response.status_code} - {response.text}")
+            return False
+
+    except Exception as e:
+        st.error(f"❌ Error sending Discord notification: {e}")
+        return False
+
+def send_msteams_notification(webhook_url: str, message: str) -> bool:
+    """Send a notification to a Microsoft Teams webhook.
+
+    Args:
+        webhook_url (str): Microsoft Teams webhook URL
+        message (str): Message to send
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        payload = {"text": message}
+        response = requests.post(webhook_url, json=payload, timeout=10)
+
+        if response.status_code == 200:
+            st.success("✅ Sent notification to Microsoft Teams")
+            return True
+        else:
+            st.error(f"❌ Failed to send Microsoft Teams notification: {response.status_code} - {response.text}")
+            return False
+
+    except Exception as e:
+        st.error(f"❌ Error sending Microsoft Teams notification: {e}")
+        return False
+
+def send_generic_webhook(webhook_url: str, payload: dict) -> bool:
+    """Send a payload to a generic webhook URL.
+
+    Args:
+        webhook_url (str): The webhook URL
+        payload (dict): The JSON payload to send
+
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        response = requests.post(webhook_url, json=payload, timeout=10)
+
+        if response.status_code >= 200 and response.status_code < 300:
+            st.success("✅ Sent webhook notification")
+            return True
+        else:
+            st.error(f"❌ Failed to send webhook notification: {response.status_code} - {response.text}")
+            return False
+
+    except Exception as e:
+        st.error(f"❌ Error sending webhook notification: {e}")
+        return False
+
+
 # GitHub Integration Functions
 def authenticate_github(token: str) -> bool:
     """Authenticate with GitHub using a personal access token.
