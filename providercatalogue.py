@@ -207,7 +207,7 @@ def fetch_providers_from_backend(api: OpenEvolveAPI) -> Dict[str, Any]:
         response.raise_for_status()
         return response.json()
     except requests.exceptions.RequestException as e:
-        st.error(f"Error fetching providers from backend: {e}")
+        print(f"Error fetching providers from backend: {e}")
         return {}
 
 

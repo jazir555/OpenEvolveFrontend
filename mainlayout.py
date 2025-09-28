@@ -263,6 +263,8 @@ def render_collaboration_ui():
     """, unsafe_allow_html=True)
 
 def render_main_layout():
+    if "activity_log" not in st.session_state:
+        st.session_state.activity_log = []
     render_collaboration_ui()
     check_password()
     # Apply theme-specific CSS with animations
@@ -458,10 +460,10 @@ def render_main_layout():
             # Add quick action buttons with enhanced styling
             quick_action_col1, quick_action_col2 = st.columns(2)
             with quick_action_col1:
-                if st.button("📋 Quick Guide", key="quick_guide_btn", use_container_width=True):
+                if st.button("📋 Quick Guide", key="main_layout_quick_guide_btn", use_container_width=True):
                     st.session_state.show_quick_guide = not st.session_state.get("show_quick_guide", False)
             with quick_action_col2:
-                if st.button("⌨️ Keyboard Shortcuts", key="keyboard_shortcuts_btn", use_container_width=True):
+                if st.button("⌨️ Keyboard Shortcuts", key="main_layout_keyboard_shortcuts_btn", use_container_width=True):
                     st.session_state.show_keyboard_shortcuts = not st.session_state.get("show_keyboard_shortcuts", False)
     # Show quick guide if requested with enhanced UI
     if st.session_state.get("show_quick_guide", False):
@@ -594,9 +596,9 @@ def render_main_layout():
                                     st.session_state.system_prompt = custom_prompts[selected_custom_prompt]['system_prompt']
                                     st.session_state.evaluator_system_prompt = custom_prompts[selected_custom_prompt]['evaluator_system_prompt']
                             
-                            st.text_area("System Prompt", key="system_prompt", height=150)
-                            st.text_area("Evaluator System Prompt", key="evaluator_system_prompt", height=150)
-                            st.checkbox("Use Specialized Evaluator", key="use_specialized_evaluator", help="Use a linter-based evaluator for more accurate code evaluation.")
+                            st.text_area("System Prompt", key="evolution_system_prompt", height=150)
+                            st.text_area("Evaluator System Prompt", key="evolution_evaluator_system_prompt", height=150)
+                            st.checkbox("Use Specialized Evaluator", key="evolution_use_specialized_evaluator", help="Use a linter-based evaluator for more accurate code evaluation.")
 
                             new_prompt_name = st.text_input("New Custom Prompt Name")
                             if st.button("Save Custom Prompt"):
@@ -633,39 +635,37 @@ def render_main_layout():
                             st.markdown("### 🎛️ Evolution Parameters")
                             col1, col2 = st.columns(2)
                             with col1:
-                                st.number_input("Max Iterations", 1, 200, 20, key="max_iterations")
-                                st.number_input("Population Size", 1, 100, 1, key="population_size")
-                                st.number_input("Number of Islands", 1, 10, 1, key="num_islands")
-                                st.slider("Elite Ratio", 0.0, 1.0, 1.0, 0.1, key="elite_ratio")
+                                st.number_input("Max Iterations", 1, 200, 20, key="evolution_max_iterations")
+                                st.number_input("Population Size", 1, 100, 1, key="evolution_population_size")
+                                st.number_input("Number of Islands", 1, 10, 1, key="evolution_num_islands")
+                                st.slider("Elite Ratio", 0.0, 1.0, 1.0, 0.1, key="evolution_elite_ratio")
                             with col2:
-                                st.number_input("Checkpoint Interval", 1, 100, 5, key="checkpoint_interval")
-                                st.slider("Exploration Ratio", 0.0, 1.0, 0.0, 0.1, key="exploration_ratio")
-                                st.slider("Exploitation Ratio", 0.0, 1.0, 0.0, 0.1, key="exploitation_ratio")
-                                st.number_input("Archive Size", 0, 100, 0, key="archive_size")
+                                st.number_input("Checkpoint Interval", 1, 100, 5, key="evolution_checkpoint_interval")
+                                st.slider("Exploration Ratio", 0.0, 1.0, 0.0, 0.1, key="evolution_exploration_ratio")
+                                st.slider("Exploitation Ratio", 0.0, 1.0, 0.0, 0.1, key="evolution_exploitation_ratio")
+                                st.number_input("Archive Size", 0, 100, 0, key="evolution_archive_size")
                             
                             st.markdown("### 🤖 Model Parameters")
                             col3, col4 = st.columns(2)
                             with col3:
-                                st.slider("Temperature", 0.0, 2.0, 0.7, 0.1, key="temperature")
-                                st.slider("Top-P", 0.0, 1.0, 1.0, 0.1, key="top_p")
+                                st.slider("Temperature", 0.0, 2.0, 0.7, 0.1, key="model_temperature")
+                                st.slider("Top-P", 0.0, 1.0, 1.0, 0.1, key="model_top_p")
                             with col4:
-                                st.slider("Frequency Penalty", -2.0, 2.0, 0.0, 0.1, key="frequency_penalty")
-                                st.slider("Presence Penalty", -2.0, 2.0, 0.0, 0.1, key="presence_penalty")
+                                st.slider("Frequency Penalty", -2.0, 2.0, 0.0, 0.1, key="model_frequency_penalty")
+                                st.slider("Presence Penalty", -2.0, 2.0, 0.0, 0.1, key="model_presence_penalty")
                             
                             st.markdown("### 🎯 Multi-Objective Evolution")
                             st.info("Define multiple objectives for the evolution. The fitness of each individual will be a vector of scores, one for each objective.")
-                            st.session_state.feature_dimensions = st_tags(
+                            st_tags(
                                 label='Feature Dimensions:',
                                 text='Press enter to add more',
                                 value=['complexity', 'diversity'],
-                                key='feature_dimensions')
-                            st.number_input("Feature Bins", 1, 100, 10, key="feature_bins")
+                                key='multi_objective_feature_dimensions')
+                            st.number_input("Feature Bins", 1, 100, 10, key="multi_objective_feature_bins")
 
-                            st.markdown("### 🏝️ Island Model Evolution")
-                            st.info("Divide the population into multiple islands to encourage diversity. Individuals will migrate between islands periodically.")
-                            st.number_input("Number of Islands", 1, 10, 1, key="num_islands")
-                            st.slider("Migration Interval", 0, 100, 50, key="migration_interval")
-                            st.slider("Migration Rate", 0.0, 1.0, 0.1, 0.05, key="migration_rate")
+                            st.number_input("Number of Islands", 1, 10, 1, key="multi_objective_num_islands_island_model")
+                            st.slider("Migration Interval", 0, 100, 50, key="multi_objective_migration_interval")
+                            st.slider("Migration Rate", 0.0, 1.0, 0.1, 0.05, key="multi_objective_migration_rate")
 
                         with st.expander("📊 Results", expanded=True):
                             left, right = st.columns(2)
@@ -1082,7 +1082,7 @@ Applies to all employees, contractors, and vendors with system access.
                 text="Type to search models...",
                 value=st.session_state.red_team_models,
                 suggestions=model_options,
-                key="red_team_select"
+                key="adversarial_red_team_select"
             )
             # Robust model ID extraction from descriptive string
             red_team_models = []
@@ -1115,7 +1115,7 @@ Applies to all employees, contractors, and vendors with system access.
                 text="Type to search models...",
                 value=st.session_state.blue_team_models,
                 suggestions=model_options,
-                key="blue_team_select"
+                key="adversarial_blue_team_select"
             )
             # Robust model ID extraction from descriptive string
             blue_team_models = []
@@ -1300,7 +1300,7 @@ Applies to all employees, contractors, and vendors with system access.
         st.slider("Patch Quality", 1, 10, key="adversarial_patch_quality",
                   help="Quality level for blue team patches (1-10)")
 
-    st.text_area("Compliance Requirements", key="compliance_requirements", height=150,
+    st.text_area("Compliance Requirements", key="adversarial_compliance_requirements", height=150,
                  help="Enter any compliance requirements that the red team should check for.")
 
     all_models = sorted(list(set(st.session_state.red_team_models + st.session_state.blue_team_models)))
@@ -1501,12 +1501,12 @@ Applies to all employees, contractors, and vendors with system access.
 
                     # Export options
                     st.markdown("### 📁 Export Results")
-                    st.text_input("Watermark for PDF Export", key="pdf_watermark")
-                    st.text_area("Custom CSS for HTML Export", key="custom_css")
+                    st.text_input("Watermark for PDF Export", key="adversarial_pdf_watermark")
+                    st.text_area("Custom CSS for HTML Export", key="adversarial_custom_css")
                     export_col1, export_col2, export_col3, export_col4 = st.columns(4)
                     
                     with export_col1:
-                        if st.button("📄 Export PDF", key="export_pdf", use_container_width=True):
+                        if st.button("📄 Export PDF", key="adversarial_export_pdf", use_container_width=True):
                             if results:
                                 pdf_bytes = generate_pdf_report(results, st.session_state.pdf_watermark)
                                 st.download_button(
@@ -1520,7 +1520,7 @@ Applies to all employees, contractors, and vendors with system access.
                                 st.warning("No results to export.")
                     
                     with export_col2:
-                        if st.button("📝 DOCX", key="export_docx", use_container_width=True):
+                        if st.button("📝 DOCX", key="adversarial_export_docx", use_container_width=True):
                             if results:
                                 docx_bytes = generate_docx_report(results)
                                 st.download_button(
@@ -1534,7 +1534,7 @@ Applies to all employees, contractors, and vendors with system access.
                                 st.warning("No results to export.")
                     
                     with export_col3:
-                        if st.button("📊 Export HTML", key="export_html", use_container_width=True):
+                        if st.button("📊 Export HTML", key="adversarial_export_html", use_container_width=True):
                             if results:
                                 html_content = generate_html_report(results, st.session_state.custom_css)
                                 st.download_button(
@@ -1548,7 +1548,7 @@ Applies to all employees, contractors, and vendors with system access.
                                 st.warning("No results to export.")
                     
                     with export_col4:
-                        if st.button("📋 Export JSON", key="export_json", use_container_width=True):
+                        if st.button("📋 Export JSON", key="adversarial_export_json", use_container_width=True):
                             if results:
                                 json_str = json.dumps(results, indent=2, default=str)
                                 st.download_button(
@@ -1562,7 +1562,7 @@ Applies to all employees, contractors, and vendors with system access.
                                 st.warning("No results to export.")
                     export_col5, = st.columns(1)
                     with export_col5:
-                        if st.button("📄 Export LaTeX", key="export_latex", use_container_width=True):
+                        if st.button("📄 Export LaTeX", key="adversarial_export_latex", use_container_width=True):
                             if results:
                                 latex_str = generate_latex_report(results)
                                 st.download_button(
@@ -1576,7 +1576,7 @@ Applies to all employees, contractors, and vendors with system access.
                                 st.warning("No results to export.")
                     export_col6, = st.columns(1)
                     with export_col6:
-                        if st.button("💬 Send to Discord", key="send_to_discord", use_container_width=True):
+                        if st.button("💬 Send to Discord", key="adversarial_send_to_discord", use_container_width=True):
                             if st.session_state.discord_webhook_url:
                                 message = f"Adversarial testing complete! Final approval rate: {results.get('final_approval_rate', 0.0):.1f}%"
                                 send_discord_notification(st.session_state.discord_webhook_url, message)
@@ -1584,7 +1584,7 @@ Applies to all employees, contractors, and vendors with system access.
                                 st.warning("Please configure the Discord webhook URL in the sidebar.")
                     export_col7, = st.columns(1)
                     with export_col7:
-                        if st.button("💬 Send to Teams", key="send_to_teams", use_container_width=True):
+                        if st.button("💬 Send to Teams", key="adversarial_send_to_teams", use_container_width=True):
                             if st.session_state.msteams_webhook_url:
                                 message = f"Adversarial testing complete! Final approval rate: {results.get('final_approval_rate', 0.0):.1f}%"
                                 send_msteams_notification(st.session_state.msteams_webhook_url, message)
@@ -1592,7 +1592,7 @@ Applies to all employees, contractors, and vendors with system access.
                                 st.warning("Please configure the Microsoft Teams webhook URL in the sidebar.")
                     export_col8, = st.columns(1)
                     with export_col8:
-                        if st.button("🚀 Send Webhook", key="send_webhook", use_container_width=True):
+                        if st.button("🚀 Send Webhook", key="adversarial_send_webhook", use_container_width=True):
                             if st.session_state.generic_webhook_url:
                                 payload = {"text": f"Adversarial testing complete! Final approval rate: {results.get('final_approval_rate', 0.0):.1f}%"}
                                 send_generic_webhook(st.session_state.generic_webhook_url, payload)
@@ -1600,7 +1600,7 @@ Applies to all employees, contractors, and vendors with system access.
                                 st.warning("Please configure the generic webhook URL in the sidebar.")
                     export_col9, = st.columns(1)
                     with export_col9:
-                        if st.button("📋 Generate Compliance Report", key="generate_compliance_report", use_container_width=True):
+                        if st.button("📋 Generate Compliance Report", key="adversarial_generate_compliance_report", use_container_width=True):
                             if results and st.session_state.compliance_requirements:
                                 compliance_report = generate_compliance_report(results, st.session_state.compliance_requirements)
                                 st.download_button(

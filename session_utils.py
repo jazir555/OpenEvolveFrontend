@@ -1509,8 +1509,8 @@ ADVERSARIAL_PRESETS = {
 DEFAULTS = {
     "provider": "openai",
     "api_key": "",
-    "base_url": PROVIDERS["OpenAI"]["base"],
-    "model": PROVIDERS["OpenAI"]["model"],
+    "base_url": PROVIDERS["openai"]["base"],
+    "model": PROVIDERS["openai"]["model"],
     "extra_headers": "{}",
     "max_tokens": 4096,
     "temperature": 0.7,
@@ -1533,6 +1533,7 @@ DEFAULTS = {
     "evolution_log": [],
     "evolution_current_best": "",
     "evolution_stop_flag": False,
+    "evolution_history": [],
     "openrouter_key": "",
     "red_team_models": [],
     "blue_team_models": [],

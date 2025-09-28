@@ -5,6 +5,8 @@ from openevolve_integration import OpenEvolveAPI
 
 
 def render_sidebar():
+    if "user_preferences" not in st.session_state:
+        st.session_state.user_preferences = {}
     with st.sidebar:
         # Welcome section
         st.markdown(
