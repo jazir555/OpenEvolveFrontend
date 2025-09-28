@@ -1,9 +1,9 @@
-
 import asyncio
 import websockets
 import json
 import threading
 from typing import Set, Dict, Any
+
 
 class CollaborationServer:
     def __init__(self, host="localhost", port=8765):
@@ -45,7 +45,7 @@ class CollaborationServer:
         """
         presence_data = {
             "type": "presence_update",
-            "payload": list(self.user_info.values())
+            "payload": list(self.user_info.values()),
         }
         message = json.dumps(presence_data)
         if self.users:
@@ -55,10 +55,7 @@ class CollaborationServer:
         """
         Broadcast a notification to all connected users.
         """
-        notification_data = {
-            "type": "notification",
-            "payload": payload
-        }
+        notification_data = {"type": "notification", "payload": payload}
         message = json.dumps(notification_data)
         if self.users:
             await asyncio.wait([user.send(message) for user in self.users])
@@ -67,10 +64,7 @@ class CollaborationServer:
         """
         Broadcast the evolution configuration to all connected users.
         """
-        config_data = {
-            "type": "config_update",
-            "payload": payload
-        }
+        config_data = {"type": "config_update", "payload": payload}
         message = json.dumps(config_data)
         if self.users:
             await asyncio.wait([user.send(message) for user in self.users])
@@ -79,10 +73,7 @@ class CollaborationServer:
         """
         Broadcast the evolution results to all connected users.
         """
-        results_data = {
-            "type": "results_update",
-            "payload": payload
-        }
+        results_data = {"type": "results_update", "payload": payload}
         message = json.dumps(results_data)
         if self.users:
             await asyncio.wait([user.send(message) for user in self.users])
@@ -91,36 +82,37 @@ class CollaborationServer:
         """
         Broadcast a new comment to all connected users.
         """
-        comment_data = {
-            "type": "comment_added",
-            "payload": payload
-        }
+        comment_data = {"type": "comment_added", "payload": payload}
         message = json.dumps(comment_data)
         if self.users:
             await asyncio.wait([user.send(message) for user in self.users])
 
-    async def broadcast_cursor(self, sender: websockets.WebSocketServerProtocol, payload: Dict[str, Any]):
+    async def broadcast_cursor(
+        self, sender: websockets.WebSocketServerProtocol, payload: Dict[str, Any]
+    ):
         """
         Broadcast cursor position to other users.
         """
         cursor_data = {
             "type": "cursor_update",
             "payload": payload,
-            "sender": self.user_info[sender]["id"]
+            "sender": self.user_info[sender]["id"],
         }
         message = json.dumps(cursor_data)
         for user in self.users:
             if user != sender:
                 await user.send(message)
 
-    async def broadcast_text(self, sender: websockets.WebSocketServerProtocol, payload: Dict[str, Any]):
+    async def broadcast_text(
+        self, sender: websockets.WebSocketServerProtocol, payload: Dict[str, Any]
+    ):
         """
         Broadcast text updates to other users.
         """
         text_data = {
             "type": "text_update",
             "payload": payload,
-            "sender": self.user_info[sender]["id"]
+            "sender": self.user_info[sender]["id"],
         }
         message = json.dumps(text_data)
         for user in self.users:
@@ -131,6 +123,7 @@ class CollaborationServer:
         """
         Start the websocket server in a separate thread.
         """
+
         async def run_server():
             self.server = await websockets.serve(self.handler, self.host, self.port)
             await self.server.wait_closed()
@@ -143,7 +136,9 @@ class CollaborationServer:
         thread.start()
         print(f"Collaboration server started on ws://{self.host}:{self.port}")
 
+
 collaboration_server = CollaborationServer()
+
 
 def start_collaboration_server():
     collaboration_server.start()

@@ -1,6 +1,7 @@
 import streamlit as st
 from typing import Any, Dict
 
+
 class State:
     def __init__(self, **kwargs):
         for key, value in kwargs.items():
@@ -16,7 +17,9 @@ class State:
     def __getattr__(self, key):
         if key in st.session_state:
             return st.session_state[key]
-        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{key}'")
+        raise AttributeError(
+            f"'{self.__class__.__name__}' object has no attribute '{key}'"
+        )
 
     def __setattr__(self, key, value):
         st.session_state[key] = value
@@ -25,7 +28,9 @@ class State:
         if key in st.session_state:
             del st.session_state[key]
         else:
-            raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{key}'")
+            raise AttributeError(
+                f"'{self.__class__.__name__}' object has no attribute '{key}'"
+            )
 
     def clear(self):
         for key in list(st.session_state.keys()):

@@ -3,16 +3,15 @@ Session Utilities for OpenEvolve - Core utilities and helper functions
 This file contains utility functions and core helpers that were in the original sessionstate.py
 File size: ~1500 lines (under the 2000 line limit)
 """
+
 import streamlit as st
 import threading
-from typing import Any, Callable, Dict, List, Optional, Tuple
-import uuid
+from typing import Any, Dict, List, Optional
 from datetime import datetime
 import json
 import hashlib
 import re
-import math
-from .providers import PROVIDERS
+from providers import PROVIDERS
 
 
 # Thread lock for safely updating shared session state from background threads.
@@ -27,26 +26,30 @@ if "thread_lock" not in st.session_state:
 if "collaboration_session" not in st.session_state:
     st.session_state.collaboration_session = {
         "active_users": [],
-        "last_activity": datetime.now().timestamp() * 1000, # Using datetime.now().timestamp() * 1000 for _now_ms()
+        "last_activity": datetime.now().timestamp()
+        * 1000,  # Using datetime.now().timestamp() * 1000 for _now_ms()
         "chat_messages": [],
         "notifications": [],
         "shared_cursor_position": 0,
-        "edit_locks": {}
+        "edit_locks": {},
     }
+
 
 def calculate_protocol_complexity(protocol_text: str) -> Dict:
     words = protocol_text.split()
     word_count = len(words)
-    sentences = re.split(r'[.!?]', protocol_text)
+    sentences = re.split(r"[.!?]", protocol_text)
     sentence_count = len([s for s in sentences if s.strip()])
-    paragraphs = protocol_text.split('\n\n')
+    paragraphs = protocol_text.split("\n\n")
     paragraph_count = len([p for p in paragraphs if p.strip()])
     unique_words = len(set(w.lower() for w in words))
     avg_sentence_length = word_count / max(1, sentence_count)
-    
+
     # Simple complexity score: more words, longer sentences, fewer unique words = higher complexity
-    complexity_score = (word_count / 100) + (avg_sentence_length * 2) - (unique_words / 50)
-    complexity_score = max(0, min(100, complexity_score)) # Clamp between 0 and 100
+    complexity_score = (
+        (word_count / 100) + (avg_sentence_length * 2) - (unique_words / 50)
+    )
+    complexity_score = max(0, min(100, complexity_score))  # Clamp between 0 and 100
 
     return {
         "word_count": word_count,
@@ -54,17 +57,23 @@ def calculate_protocol_complexity(protocol_text: str) -> Dict:
         "paragraph_count": paragraph_count,
         "complexity_score": round(complexity_score, 2),
         "unique_words": unique_words,
-        "avg_sentence_length": round(avg_sentence_length, 2)
+        "avg_sentence_length": round(avg_sentence_length, 2),
     }
 
+
 def extract_protocol_structure(protocol_text: str) -> Dict:
-    has_headers = bool(re.search(r'^#+\s', protocol_text, re.MULTILINE))
-    has_numbered_steps = bool(re.search(r'^\d+\.+', protocol_text, re.MULTILINE))
-    has_bullet_points = bool(re.search(r'^-+\s', protocol_text, re.MULTILINE))
+    has_headers = bool(re.search(r"^#+\s", protocol_text, re.MULTILINE))
+    has_numbered_steps = bool(re.search(r"^\d+\.+", protocol_text, re.MULTILINE))
+    has_bullet_points = bool(re.search(r"^-+\s", protocol_text, re.MULTILINE))
     has_preconditions = "preconditions" in protocol_text.lower()
     has_postconditions = "postconditions" in protocol_text.lower()
-    has_error_handling = "error handling" in protocol_text.lower() or "exception handling" in protocol_text.lower()
-    section_count = len(re.findall(r'^#+\s', protocol_text, re.MULTILINE)) + len(re.findall(r'^.*\n[=]{3,}', protocol_text, re.MULTILINE))
+    has_error_handling = (
+        "error handling" in protocol_text.lower()
+        or "exception handling" in protocol_text.lower()
+    )
+    section_count = len(re.findall(r"^#+\s", protocol_text, re.MULTILINE)) + len(
+        re.findall(r"^.*\n[=]{3,}", protocol_text, re.MULTILINE)
+    )
 
     return {
         "has_headers": has_headers,
@@ -73,8 +82,9 @@ def extract_protocol_structure(protocol_text: str) -> Dict:
         "has_preconditions": has_preconditions,
         "has_postconditions": has_postconditions,
         "has_error_handling": has_error_handling,
-        "section_count": section_count
+        "section_count": section_count,
     }
+
 
 def generate_protocol_recommendations(protocol_text: str) -> List[str]:
     recommendations = []
@@ -82,21 +92,25 @@ def generate_protocol_recommendations(protocol_text: str) -> List[str]:
         recommendations.append("Consider expanding the protocol with more details.")
     if "todo" in protocol_text.lower():
         recommendations.append("Address any 'TODO' items in the protocol.")
-    if not re.search(r'^\s*#+\s', protocol_text, re.MULTILINE):
+    if not re.search(r"^\s*#+\s", protocol_text, re.MULTILINE):
         recommendations.append("Add clear section headers to improve readability.")
     if not recommendations:
         recommendations.append("Protocol looks good, no immediate recommendations.")
-    
+
     return recommendations
+
 
 def _clamp(x: float, min_val: float, max_val: float) -> float:
     """Clamps a value between a minimum and maximum."""
     return max(min_val, min(max_val, x))
 
+
 def _rand_jitter_ms() -> float:
     """Returns a random jitter value in milliseconds."""
     import random
+
     return random.uniform(0.01, 0.1)
+
 
 def _approx_tokens(text: str) -> int:
     """Approximates the number of tokens in a text."""
@@ -105,12 +119,23 @@ def _approx_tokens(text: str) -> int:
         return 0
     return max(1, len(text) // 4)
 
-def _cost_estimate(prompt_tokens: int, completion_tokens: int, input_cost_per_million: float, output_cost_per_million: float) -> float:
+
+def _cost_estimate(
+    prompt_tokens: int,
+    completion_tokens: int,
+    input_cost_per_million: float,
+    output_cost_per_million: float,
+) -> float:
     """Estimates the cost of a request."""
     if input_cost_per_million is None or output_cost_per_million is None:
         # Return a default cost estimate based on OpenAI pricing if costs are not provided
-        return (prompt_tokens * 0.0000005) + (completion_tokens * 0.0000015)  # GPT-3.5-turbo pricing as fallback
-    return (prompt_tokens / 1_000_000 * input_cost_per_million) + (completion_tokens / 1_000_000 * output_cost_per_million)
+        return (prompt_tokens * 0.0000005) + (
+            completion_tokens * 0.0000015
+        )  # GPT-3.5-turbo pricing as fallback
+    return (prompt_tokens / 1_000_000 * input_cost_per_million) + (
+        completion_tokens / 1_000_000 * output_cost_per_million
+    )
+
 
 def safe_int(x: Any, default: int) -> int:
     """Safely converts a value to int, returning default if conversion fails."""
@@ -119,12 +144,14 @@ def safe_int(x: Any, default: int) -> int:
     except (TypeError, ValueError):
         return default
 
+
 def safe_float(x: Any, default: float) -> float:
     """Safely converts a value to float, returning default if conversion fails."""
     try:
         return float(x)
     except (TypeError, ValueError):
         return default
+
 
 def _safe_list(x: Any, key: str) -> List:
     """Safely extracts a list from a dictionary, returning an empty list if the key is missing or not a list."""
@@ -135,51 +162,54 @@ def _safe_list(x: Any, key: str) -> List:
         return []
     return val
 
+
 def _extract_json_block(text: str) -> Optional[Dict]:
     """Extracts a JSON object from a text block."""
     if not text:
         return None
     # Look for JSON within ```json ``` or {} brackets
-    import json
     import re
-    
+
     # Try to find JSON within code blocks first
-    json_match = re.search(r'```(?:json)?\s*({.*?})\s*```', text, re.DOTALL)
+    json_match = re.search(r"```(?:json)?\s*({.*?})\s*```", text, re.DOTALL)
     if json_match:
         try:
             return json.loads(json_match.group(1))
         except json.JSONDecodeError:
             pass
-    
+
     # Try to find JSON within curly braces
-    brace_start = text.find('{')
+    brace_start = text.find("{")
     if brace_start != -1:
         # Find the matching closing brace
         brace_count = 0
         for i, char in enumerate(text[brace_start:], brace_start):
-            if char == '{':
+            if char == "{":
                 brace_count += 1
-            elif char == '}':
+            elif char == "}":
                 brace_count -= 1
                 if brace_count == 0:
-                    json_str = text[brace_start:i+1]
+                    json_str = text[brace_start : i + 1]
                     try:
                         return json.loads(json_str)
                     except json.JSONDecodeError:
                         break
-    
+
     return None
+
 
 def _compose_messages(system_prompt: str, user_prompt: str) -> List[Dict[str, str]]:
     """Composes system and user messages for OpenAI API."""
     return [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt}
+        {"role": "user", "content": user_prompt},
     ]
+
 
 def _hash_text(text: str) -> str:
     """Create a hash of the text."""
     return hashlib.md5(text.encode()).hexdigest()
+
 
 # Validation rules for different content types
 VALIDATION_RULES = {
@@ -188,36 +218,41 @@ VALIDATION_RULES = {
         "required_sections": ["Overview", "Scope"],
         "required_keywords": ["purpose", "requirements"],
         "forbidden_patterns": [r"\bTODO\b", r"\bFIXME\b"],
-        "min_complexity": 20
+        "min_complexity": 20,
     },
     "protocol": {
         "max_length": 5000,
         "required_sections": ["Overview", "Scope", "Procedure"],
         "required_keywords": ["procedure", "guidelines", "requirements"],
         "forbidden_patterns": [r"\bTODO\b", r"\bFIXME\b"],
-        "min_complexity": 30
+        "min_complexity": 30,
     },
     "security": {
         "max_length": 8000,
         "required_sections": ["Overview", "Threats", "Mitigation", "Response"],
-        "required_keywords": ["vulnerability", "threat", "mitigation", "access control"],
+        "required_keywords": [
+            "vulnerability",
+            "threat",
+            "mitigation",
+            "access control",
+        ],
         "forbidden_patterns": [r"\bTODO\b", r"\bFIXME\b"],
-        "min_complexity": 50
+        "min_complexity": 50,
     },
     "code": {
         "max_length": 10000,
         "required_sections": ["Overview", "Implementation", "Examples"],
         "required_keywords": ["function", "class", "method", "implementation"],
         "forbidden_patterns": [r"\bTODO\b", r"\bFIXME\b"],
-        "min_complexity": 40
+        "min_complexity": 40,
     },
     "legal": {
         "max_length": 15000,
         "required_sections": ["Parties", "Terms", "Conditions", "Liabilities"],
         "required_keywords": ["agreement", "party", "liability", "compliance"],
         "forbidden_patterns": [r"\bTODO\b", r"\bFIXME\b"],
-        "min_complexity": 60
-    }
+        "min_complexity": 60,
+    },
 }
 
 # Report templates
@@ -226,32 +261,64 @@ REPORT_TEMPLATES = {
         "name": "Executive Summary Report",
         "description": "High-level summary of findings and recommendations",
         "format": "markdown",
-        "sections": ["Executive Summary", "Key Findings", "Recommendations", "Conclusion"]
+        "sections": [
+            "Executive Summary",
+            "Key Findings",
+            "Recommendations",
+            "Conclusion",
+        ],
     },
     "technical_analysis": {
         "name": "Technical Analysis Report",
         "description": "Detailed technical analysis with implementation details",
         "format": "markdown",
-        "sections": ["Introduction", "Methodology", "Analysis", "Results", "Implementation", "Conclusion"]
+        "sections": [
+            "Introduction",
+            "Methodology",
+            "Analysis",
+            "Results",
+            "Implementation",
+            "Conclusion",
+        ],
     },
     "security_audit": {
         "name": "Security Audit Report",
         "description": "Comprehensive security audit with vulnerabilities and remediation",
         "format": "markdown",
-        "sections": ["Audit Scope", "Methodology", "Vulnerabilities", "Risk Assessment", "Remediation", "Conclusion"]
+        "sections": [
+            "Audit Scope",
+            "Methodology",
+            "Vulnerabilities",
+            "Risk Assessment",
+            "Remediation",
+            "Conclusion",
+        ],
     },
     "compliance_review": {
         "name": "Compliance Review Report",
         "description": "Review of compliance with regulations and standards",
         "format": "markdown",
-        "sections": ["Compliance Framework", "Assessment", "Findings", "Remediation Plan", "Conclusion"]
+        "sections": [
+            "Compliance Framework",
+            "Assessment",
+            "Findings",
+            "Remediation Plan",
+            "Conclusion",
+        ],
     },
     "performance_evaluation": {
         "name": "Performance Evaluation Report",
         "description": "Evaluation of system or process performance",
         "format": "markdown",
-        "sections": ["Objectives", "Metrics", "Analysis", "Findings", "Improvements", "Conclusion"]
-    }
+        "sections": [
+            "Objectives",
+            "Metrics",
+            "Analysis",
+            "Findings",
+            "Improvements",
+            "Conclusion",
+        ],
+    },
 }
 
 # AI prompt templates
@@ -264,10 +331,10 @@ Please evaluate the provided SOP according to these criteria:
 5. Compliance: Does the SOP adhere to best practices?
 
 Respond in JSON format with:
-- "verdict": "APPROVED" or "REJECTED"
-- "score": 0-100 (numerical score)
-- "reasons": [array of brief reason strings for the verdict]
-- "suggestions": [array of improvement suggestions if any]
+- \"verdict\": \"APPROVED\" or \"REJECTED\"
+- \"score\": 0-100 (numerical score)
+- \"reasons\": [array of brief reason strings for the verdict]
+- \"suggestions\": [array of improvement suggestions if any]
 
 SOP: {sop}"""
 
@@ -285,8 +352,8 @@ Be specific and constructive in your critique.
 {compliance_requirements}
 
 Respond in JSON format with:
-- "issues": [array of issue objects, each with "title", "description", "severity" (low/medium/high/critical), and "category"]
-- "overall_assessment": "string with your overall assessment"
+- \"issues\": [array of issue objects, each with \"title\", \"description\", \"severity\" (low/medium/high/critical), and \"category\"]
+- \"overall_assessment\": \"string with your overall assessment\"
 
 SOP: {sop}"""
 
@@ -298,9 +365,9 @@ Your task is to improve the SOP by addressing these issues while preserving its 
 Update the SOP by incorporating fixes for the identified issues.
 
 Respond in JSON format with:
-- "sop": "the updated SOP with fixes applied"
-- "mitigation_matrix": [{"issue": "issue title", "status": "resolved/mitigated/acknowledged", "approach": "brief description of how it was addressed"}]
-- "residual_risks": ["list of any remaining risks or concerns"]
+- \"sop\": \"the updated SOP with fixes applied\" 
+- \"mitigation_matrix\": [{\"issue\": \"issue title\", \"status\": \"resolved/mitigated/acknowledged\", \"approach\": \"brief description of how it was addressed\"}]
+- \"residual_risks\": [\"list of any remaining risks or concerns\"]
 
 Original SOP: {sop}"""
 
@@ -317,8 +384,8 @@ Focus on finding:
 {compliance_requirements}
 
 Respond in JSON format with:
-- "issues": [array of issue objects, each with "title", "description", "severity" (low/medium/high/critical), and "category"]
-- "overall_assessment": "string with your overall assessment"
+- \"issues\": [array of issue objects, each with \"title\", \"description\", \"severity\" (low/medium/high/critical), and \"category\"]
+- \"overall_assessment\": \"string with your overall assessment\"
 
 Code: {sop}"""
 
@@ -330,9 +397,9 @@ Your task is to improve the code by addressing these issues while preserving its
 Update the code by incorporating fixes for the identified issues, improving security, performance, and quality.
 
 Respond in JSON format with:
-- "sop": "the updated code with fixes applied"
-- "mitigation_matrix": [{"issue": "issue title", "status": "resolved/mitigated/acknowledged", "approach": "brief description of how it was addressed"}]
-- "residual_risks": ["list of any remaining risks or concerns"]
+- \"sop\": \"the updated code with fixes applied\" 
+- \"mitigation_matrix\": [{\"issue\": \"issue title\", \"status\": \"resolved/mitigated/acknowledged\", \"approach\": \"brief description of how it was addressed\"}]
+- \"residual_risks\": [\"list of any remaining risks or concerns\"]
 
 Original Code: {sop}"""
 
@@ -349,8 +416,8 @@ Focus on finding:
 {compliance_requirements}
 
 Respond in JSON format with:
-- "issues": [array of issue objects, each with "title", "description", "severity" (low/medium/high/critical), and "category"]
-- "overall_assessment": "string with your overall assessment"
+- \"issues\": [array of issue objects, each with \"title\", \"description\", \"severity\" (low/medium/high/critical), and \"category\"]
+- \"overall_assessment\": \"string with your overall assessment\"
 
 Plan: {sop}"""
 
@@ -362,27 +429,32 @@ Your task is to improve the plan by addressing these issues while preserving its
 Update the plan by incorporating fixes for the identified issues, improving feasibility and risk management.
 
 Respond in JSON format with:
-- "sop": "the updated plan with improvements applied"
-- "mitigation_matrix": [{"issue": "issue title", "status": "resolved/mitigated/acknowledged", "approach": "brief description of how it was addressed"}]
-- "residual_risks": ["list of any remaining risks or concerns"]
+- \"sop\": \"the updated plan with improvements applied\" 
+- \"mitigation_matrix\": [{\"issue\": \"issue title\", \"status\": \"resolved/mitigated/acknowledged\", \"approach\": \"brief description of how it was addressed\"}]
+- \"residual_risks\": [\"list of any remaining risks or concerns\"]
 
 Original Plan: {sop}"""
+
 
 def display_success_message(message: str) -> None:
     """Display a success message in the UI."""
     st.success(message)
 
+
 def display_error_message(message: str) -> None:
     """Display an error message in the UI."""
     st.error(message)
+
 
 def display_warning_message(message: str) -> None:
     """Display a warning message in the UI."""
     st.warning(message)
 
+
 def display_info_message(message: str) -> None:
     """Display an info message in the UI."""
     st.info(message)
+
 
 # Protocol templates
 PROTOCOL_TEMPLATES = {
@@ -408,7 +480,6 @@ PROTOCOL_TEMPLATES = {
 
 ## Review and Updates
 [How often the policy will be reviewed and updated]""",
-    
     "Standard Operating Procedure": """# Standard Operating Procedure (SOP) Template
 
 ## Title
@@ -442,7 +513,6 @@ PROTOCOL_TEMPLATES = {
 
 ## Revision History
 [Track changes to the procedure]""",
-    
     "Incident Response Plan": """# Incident Response Plan Template
 
 ## Overview
@@ -474,7 +544,6 @@ PROTOCOL_TEMPLATES = {
 
 ## Contact Information
 [Key contacts and their availability]""",
-    
     "Software Development Process": """# Software Development Process Template
 
 ## Overview
@@ -529,7 +598,6 @@ PROTOCOL_TEMPLATES = {
 
 ## Review and Improvement
 [Process for continuous improvement]""",
-    
     "Data Privacy Policy": """# Data Privacy Policy Template
 
 ## Overview
@@ -578,7 +646,6 @@ PROTOCOL_TEMPLATES = {
 
 ## Review and Updates
 [How often the policy is reviewed]""",
-    
     "Business Continuity Plan": """# Business Continuity Plan Template
 
 ## Overview
@@ -627,7 +694,6 @@ PROTOCOL_TEMPLATES = {
 
 ## Plan Activation and Deactivation
 [Criteria and procedures for plan activation and deactivation]""",
-    
     "API Security Review Checklist": """# API Security Review Checklist Template
 
 ## Overview
@@ -698,7 +764,6 @@ PROTOCOL_TEMPLATES = {
 - [ ] HIPAA compliance (if applicable)
 - [ ] PCI DSS compliance (if applicable)
 - [ ] Industry-specific requirements""",
-
     "DevOps Workflow": """# DevOps Workflow Template
 
 ## Overview
@@ -761,7 +826,6 @@ PROTOCOL_TEMPLATES = {
 - Onboarding guides: [For new team members]
 
 ## ...""",
-
     "Risk Assessment Framework": """# Risk Assessment Framework Template
 
 ## Overview
@@ -815,7 +879,6 @@ PROTOCOL_TEMPLATES = {
 - Framework review: [Frequency and process]
 - Lessons learned: [How insights are captured]
 - Continuous improvement: [Process for implementing changes]""",
-
     "Disaster Recovery Plan": """# Disaster Recovery Plan Template
 
 ## Overview
@@ -874,7 +937,6 @@ PROTOCOL_TEMPLATES = {
 - Training Schedule: [How often personnel will be trained]
 - Training Materials: [Resources for training personnel]
 - Awareness Program: [How to keep personnel informed]""",
-
     "Change Management Process": """# Change Management Process Template
 
 ## Overview
@@ -931,7 +993,6 @@ PROTOCOL_TEMPLATES = {
 
 ## Plan Review and Improvement
 - Review Schedule: [How often the process is reviewed]""",
-
     "Business Impact Analysis": """# Business Impact Analysis Template
 
 ## Overview
@@ -975,7 +1036,6 @@ PROTOCOL_TEMPLATES = {
 
 ## Review and Approval
 [How the business impact analysis is reviewed and approved]""",
-
     "Data Classification Policy": """# Data Classification Policy Template
 
 ## Overview
@@ -1023,7 +1083,6 @@ PROTOCOL_TEMPLATES = {
 
 ## Review and Updates
 [How often the policy is reviewed]""",
-
     "Incident Response Communication Plan": """# Incident Response Communication Plan Template
 
 ## Overview
@@ -1080,7 +1139,6 @@ PROTOCOL_TEMPLATES = {
 
 ## Training and Awareness
 [Requirements for communication team training]""",
-
     "Vulnerability Management Process": """# Vulnerability Management Process Template
 
 ## Overview
@@ -1128,7 +1186,7 @@ PROTOCOL_TEMPLATES = {
 [Requirements for vulnerability management training]
 
 ## Plan Review and Improvement
-[How the process is reviewed and improved]"""
+[How the process is reviewed and improved]""",
 }
 
 
@@ -1143,7 +1201,7 @@ PROTOCOL_TEMPLATE_MARKETPLACE = {
             "tags": ["cybersecurity", "framework", "risk management"],
             "author": "NIST",
             "rating": 4.8,
-            "downloads": 12500
+            "downloads": 12500,
         },
         "ISO 27001 Information Security Management System": {
             "description": "Template for implementing an ISO 27001 compliant ISMS",
@@ -1153,7 +1211,7 @@ PROTOCOL_TEMPLATE_MARKETPLACE = {
             "tags": ["information security", "ISMS", "compliance"],
             "author": "ISO",
             "rating": 4.7,
-            "downloads": 9800
+            "downloads": 9800,
         },
         "OWASP Top 10 Mitigation Strategies": {
             "description": "Practical strategies for mitigating the OWASP Top 10 web application risks",
@@ -1163,8 +1221,8 @@ PROTOCOL_TEMPLATE_MARKETPLACE = {
             "tags": ["web security", "OWASP", "application security"],
             "author": "OWASP Community",
             "rating": 4.9,
-            "downloads": 15200
-        }
+            "downloads": 15200,
+        },
     },
     "Compliance Templates": {
         "GDPR Data Protection Impact Assessment": {
@@ -1175,7 +1233,7 @@ PROTOCOL_TEMPLATE_MARKETPLACE = {
             "tags": ["privacy", "GDPR", "DPIA", "data protection"],
             "author": "EU GDPR Expert Group",
             "rating": 4.6,
-            "downloads": 8700
+            "downloads": 8700,
         },
         "HIPAA Security Rule Compliance Checklist": {
             "description": "Comprehensive checklist for HIPAA Security Rule compliance",
@@ -1185,7 +1243,7 @@ PROTOCOL_TEMPLATE_MARKETPLACE = {
             "tags": ["healthcare", "HIPAA", "security", "compliance"],
             "author": "HHS OCR",
             "rating": 4.5,
-            "downloads": 7600
+            "downloads": 7600,
         },
         "SOX IT General Controls Framework": {
             "description": "Framework for implementing SOX-compliant IT general controls",
@@ -1195,8 +1253,8 @@ PROTOCOL_TEMPLATE_MARKETPLACE = {
             "tags": ["financial", "SOX", "ITGC", "controls"],
             "author": "SEC Compliance Team",
             "rating": 4.4,
-            "downloads": 6500
-        }
+            "downloads": 6500,
+        },
     },
     "DevOps Templates": {
         "Kubernetes Security Best Practices": {
@@ -1207,7 +1265,7 @@ PROTOCOL_TEMPLATE_MARKETPLACE = {
             "tags": ["Kubernetes", "container security", "DevSecOps"],
             "author": "CNCF Security SIG",
             "rating": 4.8,
-            "downloads": 11200
+            "downloads": 11200,
         },
         "CI/CD Pipeline Security Checklist": {
             "description": "Security checklist for securing CI/CD pipelines",
@@ -1217,7 +1275,7 @@ PROTOCOL_TEMPLATE_MARKETPLACE = {
             "tags": ["CI/CD", "pipeline security", "DevSecOps"],
             "author": "DevSecOps Community",
             "rating": 4.7,
-            "downloads": 9800
+            "downloads": 9800,
         },
         "Infrastructure as Code Security Guide": {
             "description": "Guide for securing infrastructure deployed through IaC tools",
@@ -1227,8 +1285,8 @@ PROTOCOL_TEMPLATE_MARKETPLACE = {
             "tags": ["IaC", "Terraform", "security", "cloud"],
             "author": "Cloud Security Alliance",
             "rating": 4.6,
-            "downloads": 8900
-        }
+            "downloads": 8900,
+        },
     },
     "Business Templates": {
         "Business Continuity Plan for Remote Work": {
@@ -1239,7 +1297,7 @@ PROTOCOL_TEMPLATE_MARKETPLACE = {
             "tags": ["business continuity", "remote work", "pandemic planning"],
             "author": "Business Resilience Institute",
             "rating": 4.5,
-            "downloads": 7200
+            "downloads": 7200,
         },
         "Digital Transformation Roadmap": {
             "description": "Step-by-step roadmap for enterprise digital transformation",
@@ -1249,7 +1307,7 @@ PROTOCOL_TEMPLATE_MARKETPLACE = {
             "tags": ["digital transformation", "change management", "strategy"],
             "author": "Digital Transformation Experts",
             "rating": 4.7,
-            "downloads": 8400
+            "downloads": 8400,
         },
         "Vendor Risk Management Framework": {
             "description": "Framework for assessing and managing third-party vendor risks",
@@ -1259,9 +1317,9 @@ PROTOCOL_TEMPLATE_MARKETPLACE = {
             "tags": ["vendor management", "third-party risk", "supply chain"],
             "author": "Risk Management Association",
             "rating": 4.6,
-            "downloads": 6800
-        }
-    }
+            "downloads": 6800,
+        },
+    },
 }
 
 # Adversarial Testing Presets
@@ -1269,8 +1327,16 @@ ADVERSARIAL_PRESETS = {
     "Security Hardening": {
         "name": "🔐 Security Hardening",
         "description": "Focus on identifying and closing security gaps, enforcing least privilege, and adding comprehensive error handling.",
-        "red_team_models": ["openai/gpt-4o-mini", "anthropic/claude-3-haiku", "google/gemini-1.5-flash"],
-        "blue_team_models": ["openai/gpt-4o", "anthropic/claude-3-sonnet", "google/gemini-1.5-pro"],
+        "red_team_models": [
+            "openai/gpt-4o-mini",
+            "anthropic/claude-3-haiku",
+            "google/gemini-1.5-flash",
+        ],
+        "blue_team_models": [
+            "openai/gpt-4o",
+            "anthropic/claude-3-sonnet",
+            "google/gemini-1.5-pro",
+        ],
         "min_iter": 5,
         "max_iter": 15,
         "confidence_threshold": 95,
@@ -1280,8 +1346,8 @@ ADVERSARIAL_PRESETS = {
             "critique_depth": 8,
             "patch_quality": 9,
             "detailed_tracking": True,
-            "early_stopping": True
-        }
+            "early_stopping": True,
+        },
     },
     "Compliance Focus": {
         "name": "⚖️ Compliance Focus",
@@ -1297,8 +1363,8 @@ ADVERSARIAL_PRESETS = {
             "critique_depth": 7,
             "patch_quality": 8,
             "detailed_tracking": True,
-            "performance_analytics": True
-        }
+            "performance_analytics": True,
+        },
     },
     "Operational Efficiency": {
         "name": "⚡ Operational Efficiency",
@@ -1314,8 +1380,8 @@ ADVERSARIAL_PRESETS = {
             "critique_depth": 6,
             "patch_quality": 7,
             "early_stopping": True,
-            "target_complexity": 50
-        }
+            "target_complexity": 50,
+        },
     },
     "Beginner-Friendly": {
         "name": "👶 Beginner-Friendly",
@@ -1331,14 +1397,22 @@ ADVERSARIAL_PRESETS = {
             "critique_depth": 5,
             "patch_quality": 8,
             "target_complexity": 30,
-            "target_length": 500
-        }
+            "target_length": 500,
+        },
     },
     "Code Review": {
         "name": "💻 Code Review",
         "description": "Specialized testing for software development protocols and code reviews.",
-        "red_team_models": ["openai/gpt-4o", "anthropic/claude-3-opus", "codellama/codellama-70b-instruct"],
-        "blue_team_models": ["openai/gpt-4o", "anthropic/claude-3-sonnet", "codellama/codellama-70b-instruct"],
+        "red_team_models": [
+            "openai/gpt-4o",
+            "anthropic/claude-3-opus",
+            "codellama/codellama-70b-instruct",
+        ],
+        "blue_team_models": [
+            "openai/gpt-4o",
+            "anthropic/claude-3-sonnet",
+            "codellama/codellama-70b-instruct",
+        ],
         "min_iter": 3,
         "max_iter": 10,
         "confidence_threshold": 90,
@@ -1348,14 +1422,22 @@ ADVERSARIAL_PRESETS = {
             "critique_depth": 9,
             "patch_quality": 9,
             "detailed_tracking": True,
-            "performance_analytics": True
-        }
+            "performance_analytics": True,
+        },
     },
     "Mission Critical": {
         "name": "🔥 Mission Critical",
         "description": "Maximum rigor for high-stakes protocols requiring the highest assurance.",
-        "red_team_models": ["openai/gpt-4o", "anthropic/claude-3-opus", "google/gemini-1.5-pro"],
-        "blue_team_models": ["openai/gpt-4o", "anthropic/claude-3-sonnet", "google/gemini-1.5-pro"],
+        "red_team_models": [
+            "openai/gpt-4o",
+            "anthropic/claude-3-opus",
+            "google/gemini-1.5-pro",
+        ],
+        "blue_team_models": [
+            "openai/gpt-4o",
+            "anthropic/claude-3-sonnet",
+            "google/gemini-1.5-pro",
+        ],
         "min_iter": 10,
         "max_iter": 25,
         "confidence_threshold": 98,
@@ -1366,14 +1448,22 @@ ADVERSARIAL_PRESETS = {
             "patch_quality": 10,
             "detailed_tracking": True,
             "performance_analytics": True,
-            "early_stopping": False
-        }
+            "early_stopping": False,
+        },
     },
     "AI Safety Review": {
         "name": "🛡️ AI Safety Review",
         "description": "Specialized testing for AI safety considerations, bias detection, and ethical alignment.",
-        "red_team_models": ["openai/gpt-4o", "anthropic/claude-3-opus", "google/gemini-1.5-pro"],
-        "blue_team_models": ["openai/gpt-4o", "anthropic/claude-3-sonnet", "meta-llama/llama-3-70b-instruct"],
+        "red_team_models": [
+            "openai/gpt-4o",
+            "anthropic/claude-3-opus",
+            "google/gemini-1.5-pro",
+        ],
+        "blue_team_models": [
+            "openai/gpt-4o",
+            "anthropic/claude-3-sonnet",
+            "meta-llama/llama-3-70b-instruct",
+        ],
         "min_iter": 5,
         "max_iter": 15,
         "confidence_threshold": 92,
@@ -1385,14 +1475,22 @@ ADVERSARIAL_PRESETS = {
             "detailed_tracking": True,
             "performance_analytics": True,
             "bias_detection": True,
-            "explainability_focus": True
-        }
+            "explainability_focus": True,
+        },
     },
     "Privacy Protection": {
         "name": "🔒 Privacy Protection",
         "description": "Focus on data privacy protection, consent mechanisms, and regulatory compliance.",
-        "red_team_models": ["openai/gpt-4o-mini", "anthropic/claude-3-haiku", "google/gemini-1.5-flash"],
-        "blue_team_models": ["openai/gpt-4o", "anthropic/claude-3-sonnet", "google/gemini-1.5-pro"],
+        "red_team_models": [
+            "openai/gpt-4o-mini",
+            "anthropic/claude-3-haiku",
+            "google/gemini-1.5-flash",
+        ],
+        "blue_team_models": [
+            "openai/gpt-4o",
+            "anthropic/claude-3-sonnet",
+            "google/gemini-1.5-pro",
+        ],
         "min_iter": 4,
         "max_iter": 12,
         "confidence_threshold": 93,
@@ -1403,16 +1501,16 @@ ADVERSARIAL_PRESETS = {
             "patch_quality": 8,
             "detailed_tracking": True,
             "privacy_by_design": True,
-            "consent_mechanisms": True
-        }
-    }
+            "consent_mechanisms": True,
+        },
+    },
 }
 
 DEFAULTS = {
     "provider": "OpenAI",
     "api_key": "",
-    "base_url": "https://api.openai.com/v1",  # Default provider base URL
-    "model": "gpt-3.5-turbo",  # Default provider model
+    "base_url": PROVIDERS["OpenAI"]["base"],
+    "model": PROVIDERS["OpenAI"]["model"],
     "extra_headers": "{}",
     "max_tokens": 4096,
     "temperature": 0.7,
@@ -1478,18 +1576,18 @@ DEFAULTS = {
         "font_size": "medium",
         "auto_save": True,
         "show_notifications": True,
-        "notification_preferences": {
-            "email": True,
-            "push": True,
-            "slack": False
-        }
-    }
+        "notification_preferences": {"email": True, "push": True, "slack": False},
+    },
 }
+
+for k, v in DEFAULTS.items():
+    if k not in st.session_state:
+        st.session_state[k] = v
 
 
 def reset_defaults():
     p = st.session_state.provider
-    if p in PROVIDERS:  # Assuming PROVIDERS is defined elsewhere
+    if p in PROVIDERS:
         st.session_state.base_url = PROVIDERS[p].get("base", "")
         st.session_state.model = PROVIDERS[p].get("model") or ""
     st.session_state.api_key = ""
@@ -1503,12 +1601,18 @@ def save_user_preferences():
     try:
         if "user_preferences" not in st.session_state:
             st.session_state.user_preferences = {}
-        
+
         # Update preferences from UI elements
-        st.session_state.user_preferences["theme"] = st.session_state.get("theme", "light")
-        st.session_state.user_preferences["font_size"] = st.session_state.get("font_size", "medium")
-        st.session_state.user_preferences["auto_save"] = st.session_state.get("auto_save", True)
-        
+        st.session_state.user_preferences["theme"] = st.session_state.get(
+            "theme", "light"
+        )
+        st.session_state.user_preferences["font_size"] = st.session_state.get(
+            "font_size", "medium"
+        )
+        st.session_state.user_preferences["auto_save"] = st.session_state.get(
+            "auto_save", True
+        )
+
         return True
     except Exception as e:
         st.error(f"Error saving user preferences: {e}")
@@ -1522,10 +1626,10 @@ def toggle_theme():
     current_theme = st.session_state.get("theme", "light")
     new_theme = "dark" if current_theme == "light" else "light"
     st.session_state.theme = new_theme
-    
+
     # Update user preferences
     if "user_preferences" not in st.session_state:
         st.session_state.user_preferences = {}
     st.session_state.user_preferences["theme"] = new_theme
-    
+
     return new_theme

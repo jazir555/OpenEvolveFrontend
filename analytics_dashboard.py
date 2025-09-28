@@ -1,19 +1,26 @@
 import streamlit as st
 import pandas as pd
 import time
+import requests
 from openevolve_integration import OpenEvolveAPI
+
 
 def render_analytics_dashboard():
     st.title("📊 Evolution Analytics Dashboard")
 
     if "evolution_id" not in st.session_state or not st.session_state.evolution_id:
-        st.info("No active evolution run to display analytics for. Start an evolution run first.")
+        st.info(
+            "No active evolution run to display analytics for. Start an evolution run first."
+        )
         return
 
     evolution_id = st.session_state.evolution_id
     st.subheader(f"Evolution ID: `{evolution_id}`")
 
-    api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+    api = OpenEvolveAPI(
+        base_url=st.session_state.openevolve_base_url,
+        api_key=st.session_state.openevolve_api_key,
+    )
 
     # Auto-refresh checkbox
     auto_refresh = st.checkbox("Auto-refresh (every 5 seconds)", value=False)
@@ -42,7 +49,9 @@ def render_analytics_dashboard():
             st.subheader("Evolution History")
             df = pd.DataFrame(history)
             if not df.empty:
-                st.line_chart(df.set_index("iteration")[["best_score", "average_score"]])
+                st.line_chart(
+                    df.set_index("iteration")[["best_score", "average_score"]]
+                )
                 # Display diversity metrics if available
                 if "diversity_score" in df.columns:
                     st.line_chart(df.set_index("iteration")[["diversity_score"]])
@@ -72,14 +81,14 @@ def render_analytics_dashboard():
                     st.write(f"**URL:** {artifact.get('url')}")
                     st.download_button(
                         label=f"Download {artifact.get('name')}",
-                        data=requests.get(artifact.get('url')).content,
-                        file_name=artifact.get('name'),
-                        mime=artifact.get('type')
+                        data=requests.get(artifact.get("url")).content,
+                        file_name=artifact.get("name"),
+                        mime=artifact.get("type"),
                     )
                     st.markdown("---")
         else:
             st.info("No artifacts available yet.")
-        
+
         if auto_refresh:
             time.sleep(5)
             st.rerun()

@@ -1,5 +1,6 @@
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any
 import re
+
 
 def analyze_plan_quality(plan_text: str) -> Dict[str, Any]:
     """Analyze plan quality metrics.
@@ -19,45 +20,73 @@ def analyze_plan_quality(plan_text: str) -> Dict[str, Any]:
             "risks": 0,
             "dependencies": 0,
             "timeline_elements": 0,
-            "quality_score": 0
+            "quality_score": 0,
         }
 
     # Count sections (headers)
-    sections = len(re.findall(r'^#{1,6}\s+|.*\n[=]{3,}|.*\n[-]{3,}', plan_text, re.MULTILINE))
+    sections = len(
+        re.findall(r"^#{1,6}\s+|.*\n[=]{3,}|.*\n[-]{3,}", plan_text, re.MULTILINE)
+    )
 
     # Count objectives (look for objective-related terms)
-    objective_patterns = [r'\bobjectives?\b', r'\bgoals?\b', r'\bpurpose\b', r'\baim\b']
+    objective_patterns = [r"\bobjectives?\b", r"\bgoals?\b", r"\bpurpose\b", r"\baim\b"]
     objectives = 0
     for pattern in objective_patterns:
         objectives += len(re.findall(pattern, plan_text, re.IGNORECASE))
 
     # Count milestones (look for milestone-related terms)
-    milestone_patterns = [r'\bmilestones?\b', r'\bdeadlines?\b', r'\btimelines?\b', r'\bschedule\b']
+    milestone_patterns = [
+        r"\bmilestones?\b",
+        r"\bdeadlines?\b",
+        r"\btimelines?\b",
+        r"\bschedule\b",
+    ]
     milestones = 0
     for pattern in milestone_patterns:
         milestones += len(re.findall(pattern, plan_text, re.IGNORECASE))
 
     # Count resources (look for resource-related terms)
-    resource_patterns = [r'\bresources?\b', r'\bbudget\b', r'\bcosts?\b', r'\bmaterials?\b']
+    resource_patterns = [
+        r"\bresources?\b",
+        r"\bbudget\b",
+        r"\bcosts?\b",
+        r"\bmaterials?\b",
+    ]
     resources = 0
     for pattern in resource_patterns:
         resources += len(re.findall(pattern, plan_text, re.IGNORECASE))
 
     # Count risks (look for risk-related terms)
-    risk_patterns = [r'\brisks?\b', r'\bthreats?\b', r'\bvulnerabilit(?:y|ies)\b', r'\bhazards?\b']
+    risk_patterns = [
+        r"\brisks?\b",
+        r"\bthreats?\b",
+        r"\bvulnerabilit(?:y|ies)\b",
+        r"\bhazards?\b",
+    ]
     risks = 0
     for pattern in risk_patterns:
         risks += len(re.findall(pattern, plan_text, re.IGNORECASE))
 
     # Count dependencies (look for dependency-related terms)
-    dependency_patterns = [r'\bdependenc(?:y|ies)\b', r'\bprerequisites?\b', r'\brequires?\b', r'\bneeds?\b']
+    dependency_patterns = [
+        r"\bdependenc(?:y|ies)\b",
+        r"\bprerequisites?\b",
+        r"\brequires?\b",
+        r"\bneeds?\b",
+    ]
     dependencies = 0
     for pattern in dependency_patterns:
         dependencies += len(re.findall(pattern, plan_text, re.IGNORECASE))
 
     # Count timeline elements (dates, time-related terms)
-    timeline_patterns = [r'\d{1,2}[/-]\d{1,2}[/-]\d{2,4}', r'\d{4}[/-]\d{1,2}[/-]\d{1,2}',
-                         r'\bweeks?\b', r'\bmonths?\b', r'\byears?\b', r'\bdays?\b']
+    timeline_patterns = [
+        r"\d{1,2}[/-]\d{1,2}[/-]\d{2,4}",
+        r"\d{4}[/-]\d{1,2}[/-]\d{1,2}",
+        r"\bweeks?\b",
+        r"\bmonths?\b",
+        r"\byears?\b",
+        r"\bdays?\b",
+    ]
     timeline_elements = 0
     for pattern in timeline_patterns:
         timeline_elements += len(re.findall(pattern, plan_text, re.IGNORECASE))
@@ -84,15 +113,16 @@ def analyze_plan_quality(plan_text: str) -> Dict[str, Any]:
         "risks": risks,
         "dependencies": dependencies,
         "timeline_elements": timeline_elements,
-        "quality_score": round(quality_score, 2)
+        "quality_score": round(quality_score, 2),
     }
+
 
 def generate_advanced_analytics(results: Dict) -> Dict:
     """Generate advanced analytics from adversarial testing results.
-    
+
     Args:
         results (Dict): Adversarial testing results
-        
+
     Returns:
         Dict: Advanced analytics data
     """
@@ -100,7 +130,8 @@ def generate_advanced_analytics(results: Dict) -> Dict:
         "total_iterations": len(results.get("iterations", [])),
         "final_approval_rate": results.get("final_approval_rate", 0),
         "total_cost_usd": results.get("cost_estimate_usd", 0),
-        "total_tokens": results.get("tokens", {}).get("prompt", 0) + results.get("tokens", {}).get("completion", 0),
+        "total_tokens": results.get("tokens", {}).get("prompt", 0)
+        + results.get("tokens", {}).get("completion", 0),
         "confidence_trend": [],
         "issue_resolution_rate": 0,
         "model_performance": {},
@@ -108,52 +139,57 @@ def generate_advanced_analytics(results: Dict) -> Dict:
         "security_strength": 0,
         "compliance_coverage": 0,
         "clarity_score": 0,
-        "completeness_score": 0
+        "completeness_score": 0,
     }
-    
+
     # Calculate confidence trend
     if results.get("iterations"):
-        confidence_history = [iter.get("approval_check", {}).get("approval_rate", 0) 
-                            for iter in results.get('iterations', [])]
+        confidence_history = [
+            iter.get("approval_check", {}).get("approval_rate", 0)
+            for iter in results.get("iterations", [])
+        ]
         analytics["confidence_trend"] = confidence_history
-    
+
     # Calculate issue resolution rate
     if results.get("iterations"):
         total_issues_found = 0
         total_issues_resolved = 0
         severity_weights = {"low": 1, "medium": 3, "high": 6, "critical": 12}
-        
+
         for iteration in results.get("iterations", []):
             critiques = iteration.get("critiques", [])
             for critique in critiques:
                 critique_json = critique.get("critique_json", {})
                 issues = critique_json.get("issues", [])
                 total_issues_found += len(issues)
-                
+
                 # Count resolved issues with severity weighting
                 patches = iteration.get("patches", [])
                 resolved_weighted = 0
                 total_weighted = 0
-                
+
                 for issue in issues:
                     severity = issue.get("severity", "low").lower()
                     weight = severity_weights.get(severity, 1)
                     total_weighted += weight
-                    
+
                 for patch in patches:
                     patch_json = patch.get("patch_json", {})
                     mitigation_matrix = patch_json.get("mitigation_matrix", [])
                     for mitigation in mitigation_matrix:
-                        if (mitigation.get("issue") == issue.get("title") and 
-                            str(mitigation.get("status", "")).lower() in ["resolved", "mitigated"]):
+                        if mitigation.get("issue") == issue.get("title") and str(
+                            mitigation.get("status", "")
+                        ).lower() in ["resolved", "mitigated"]:
                             resolved_weighted += 3  # Average weight
                             break
-                
+
                 total_issues_resolved += min(len(issues), len(patches))
-        
+
         if total_issues_found > 0:
-            analytics["issue_resolution_rate"] = (total_issues_resolved / total_issues_found) * 100
-    
+            analytics["issue_resolution_rate"] = (
+                total_issues_resolved / total_issues_found
+            ) * 100
+
     # Calculate efficiency score
     efficiency = 100
     if analytics["total_cost_usd"] > 0:
@@ -163,12 +199,12 @@ def generate_advanced_analytics(results: Dict) -> Dict:
         # More iterations = lower efficiency
         efficiency -= min(30, (analytics["total_iterations"] - 10) * 2)
     analytics["efficiency_score"] = max(0, efficiency)
-    
+
     # Calculate security strength based on resolved critical/high issues
     if results.get("iterations"):
         critical_high_resolved = 0
         total_critical_high = 0
-        
+
         for iteration in results.get("iterations", []):
             critiques = iteration.get("critiques", [])
             for critique in critiques:
@@ -183,41 +219,54 @@ def generate_advanced_analytics(results: Dict) -> Dict:
                             patch_json = patch.get("patch_json", {})
                             mitigation_matrix = patch_json.get("mitigation_matrix", [])
                             for mitigation in mitigation_matrix:
-                                if (mitigation.get("issue") == issue.get("title") and 
-                                    str(mitigation.get("status", "")).lower() in ["resolved", "mitigated"]):
+                                if mitigation.get("issue") == issue.get(
+                                    "title"
+                                ) and str(mitigation.get("status", "")).lower() in [
+                                    "resolved",
+                                    "mitigated",
+                                ]:
                                     critical_high_resolved += 1
                                     break
-        
+
         if total_critical_high > 0:
-            analytics["security_strength"] = (critical_high_resolved / total_critical_high) * 100
-    
+            analytics["security_strength"] = (
+                critical_high_resolved / total_critical_high
+            ) * 100
+
     # Calculate compliance coverage
     if results.get("compliance_requirements"):
         # Simple check for compliance mentions in final protocol
         final_sop = results.get("final_sop", "")
         compliance_reqs = results.get("compliance_requirements", "")
-        
+
         # Count how many compliance requirements are addressed
         reqs_addressed = 0
         total_reqs = 0
-        
+
         for req in compliance_reqs.split(","):
             req = req.strip().lower()
             if req:
                 total_reqs += 1
                 if req in final_sop.lower():
                     reqs_addressed += 1
-        
+
         if total_reqs > 0:
             analytics["compliance_coverage"] = (reqs_addressed / total_reqs) * 100
-    
+
     # Calculate clarity score based on protocol structure
     final_sop = results.get("final_sop", "")
     if final_sop:
         # Placeholder calls for now, will be replaced with actual functions
-        structure = {"has_headers": True, "has_numbered_steps": True, "has_preconditions": True, "has_postconditions": True, "has_error_handling": True, "section_count": 5}
+        structure = {
+            "has_headers": True,
+            "has_numbered_steps": True,
+            "has_preconditions": True,
+            "has_postconditions": True,
+            "has_error_handling": True,
+            "section_count": 5,
+        }
         complexity = {"word_count": 100, "unique_words": 50, "avg_sentence_length": 15}
-        
+
         # Clarity score based on structure elements
         clarity_score = 0
         if structure["has_headers"]:
@@ -230,15 +279,23 @@ def generate_advanced_analytics(results: Dict) -> Dict:
             clarity_score += 15
         if structure["has_error_handling"]:
             clarity_score += 20
-            
+
         analytics["clarity_score"] = clarity_score
-        
+
         # Completeness score based on structure and complexity
-        completeness_score = min(100, (
-            structure["section_count"] * 5 +  # Sections contribute to completeness
-            complexity["unique_words"] / max(1, complexity["word_count"]) * 100 * 0.3 +  # Vocabulary diversity
-            (1 - complexity["avg_sentence_length"] / 50) * 100 * 0.7  # Sentence complexity balance
-        ))
+        completeness_score = min(
+            100,
+            (
+                structure["section_count"] * 5  # Sections contribute to completeness
+                + complexity["unique_words"]
+                / max(1, complexity["word_count"])
+                * 100
+                * 0.3  # Vocabulary diversity
+                + (1 - complexity["avg_sentence_length"] / 50)
+                * 100
+                * 0.7  # Sentence complexity balance
+            ),
+        )
         analytics["completeness_score"] = completeness_score
-    
+
     return analytics

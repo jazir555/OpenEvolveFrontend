@@ -1,14 +1,41 @@
 import streamlit as st
 import json
-import uuid
 from datetime import datetime
 import threading
 import time
-import base64
 
 import difflib
+from typing import List, Dict
+import altair as alt
+import numpy as np
+from dataclasses import asdict
 
 from pyvis.network import Network
+from session_utils import _safe_list
+
+from session_manager import (
+    get_openrouter_models,
+    APPROVAL_PROMPT, RED_TEAM_CRITIQUE_PROMPT, BLUE_TEAM_PATCH_PROMPT
+)
+from openevolve_integration import (
+    OpenEvolveAPI, create_advanced_openevolve_config
+)
+
+from adversarial import (
+    run_adversarial_testing, generate_advanced_analytics, generate_html_report, generate_pdf_report, generate_docx_report,
+    generate_latex_report, generate_compliance_report, optimize_model_selection,
+    MODEL_META_LOCK, MODEL_META_BY_ID, _parse_price_per_million
+)
+from integrations import (
+    create_github_branch, commit_to_github,
+    list_linked_github_repositories, send_discord_notification, send_msteams_notification, send_generic_webhook
+)
+from tasks import create_task, get_tasks, update_task
+from suggestions import get_content_classification_and_tags, predict_improvement_potential, check_security_vulnerabilities
+from rbac import ROLES, assign_role
+from content_manager import content_manager
+
+HAS_STREAMLIT_TAGS = True
 
 def render_island_model_chart(history: List[Dict]):
     """Render an interactive graph of the island model evolution."""
@@ -63,37 +90,6 @@ def render_evolution_history_chart(history: List[Dict]):
     ).interactive()
 
     st.altair_chart(chart, use_container_width=True)
-
-from sessionstate import (
-    create_new_version, get_version_history, load_version, branch_version, get_comments, add_comment,
-    list_protocol_templates, load_protocol_template, list_adversarial_presets, apply_adversarial_preset,
-    load_adversarial_preset, export_project, import_project, get_openrouter_models,
-    _parse_price_per_million, MODEL_META_BY_ID, MODEL_META_LOCK, FENCE_RE, JSON_RE, APPROVAL_PROMPT,
-    RED_TEAM_CRITIQUE_PROMPT, BLUE_TEAM_PATCH_PROMPT, CODE_REVIEW_RED_TEAM_PROMPT,
-    CODE_REVIEW_BLUE_TEAM_PROMPT, PLAN_REVIEW_RED_TEAM_PROMPT, PLAN_REVIEW_BLUE_TEAM_PROMPT
-)
-from openevolve_integration import (
-    OpenEvolveAPI, run_advanced_code_evolution, create_advanced_openevolve_config,
-    create_multi_model_config, DEEP_INTEGRATION_AVAILABLE as DEEP_INTEGRATION_IMPORTED
-)
-
-from adversarial import (
-    run_adversarial_testing, suggest_performance_improvements, estimate_testing_time_and_cost,
-    generate_advanced_analytics, generate_html_report, generate_pdf_report, generate_docx_report,
-    generate_latex_report, generate_compliance_report, determine_review_type, get_appropriate_prompts, optimize_model_selection
-)
-from integrations import (
-    authenticate_github, list_github_repositories, create_github_branch, commit_to_github,
-    get_github_commit_history, link_github_repository, unlink_github_repository,
-    list_linked_github_repositories, save_protocol_generation_to_github,
-    get_protocol_generations_from_github, send_discord_notification, send_msteams_notification, send_generic_webhook
-)
-from tasks import create_task, get_tasks, update_task
-from suggestions import get_content_suggestions, get_content_classification_and_tags, predict_improvement_potential, check_security_vulnerabilities
-from rbac import has_permission, ROLES, assign_role
-from providercatalogue import PROVIDERS
-
-HAS_STREAMLIT_TAGS = True
 try:
     from streamlit_tags import st_tags
 except ImportError:
@@ -106,11 +102,11 @@ def render_notification_ui():
     st.markdown(f"""
     <style>
         .notification-icon {
-            position: relative;
+            /* position: relative; */
             cursor: pointer;
         }
         .notification-badge {
-            position: absolute;
+            /* position: absolute; */
             top: -5px;
             right: -5px;
             background-color: red;
@@ -458,16 +454,15 @@ def render_main_layout():
         st.markdown(
             '<span class="team-badge-lg red-team">Red Team</span><span class="team-badge-lg blue-team">Blue Team</span>',
             unsafe_allow_html=True)
-    with col3:
-        # Add quick action buttons with enhanced styling
-    quick_action_col1, quick_action_col2 = st.columns(2)
-    with quick_action_col1:
-        if st.button("📋 Quick Guide", key="quick_guide_btn", use_container_width=True):
-            st.session_state.show_quick_guide = not st.session_state.get("show_quick_guide", False)
-    with quick_action_col2:
-        if st.button("⌨️ Keyboard Shortcuts", key="keyboard_shortcuts_btn", use_container_width=True):
-            st.session_state.show_keyboard_shortcuts = not st.session_state.get("show_keyboard_shortcuts", False)
-
+        with col3:
+            # Add quick action buttons with enhanced styling
+            quick_action_col1, quick_action_col2 = st.columns(2)
+            with quick_action_col1:
+                if st.button("📋 Quick Guide", key="quick_guide_btn", use_container_width=True):
+                    st.session_state.show_quick_guide = not st.session_state.get("show_quick_guide", False)
+            with quick_action_col2:
+                if st.button("⌨️ Keyboard Shortcuts", key="keyboard_shortcuts_btn", use_container_width=True):
+                    st.session_state.show_keyboard_shortcuts = not st.session_state.get("show_keyboard_shortcuts", False)
     # Show quick guide if requested with enhanced UI
     if st.session_state.get("show_quick_guide", False):
         with st.expander("📘 Quick Guide", expanded=True):
@@ -504,110 +499,22 @@ def render_main_layout():
     # Keyboard shortcuts documentation
     if st.session_state.get("show_keyboard_shortcuts", False):
         with st.expander("⌨️ Keyboard Shortcuts", expanded=True):
-            st.markdown("""
-            ### 🎯 Available Keyboard Shortcuts
-            
-            **Navigation & General**
-            - `Ctrl+S` - Save current protocol
-            - `Ctrl+O` - Open file
-            - `Ctrl+N` - Create new file
-            - `Ctrl+Shift+N` - New window
-            - `F5` or `Ctrl+R` - Refresh the application
-            - `F1` - Open help documentation
-            - `Ctrl+Shift+P` - Open command palette
-            - `Esc` - Close current modal or expandable section
-            - `Tab` - Indent selected text or insert 4 spaces
-            - `Shift+Tab` - Unindent selected text
-            
-            **Editing**
-            - `Ctrl+Z` - Undo last action
-            - `Ctrl+Y` or `Ctrl+Shift+Z` - Redo last action
-            - `Ctrl+X` - Cut selected text
-            - `Ctrl+C` - Copy selected text
-            - `Ctrl+V` - Paste text
-            - `Ctrl+A` - Select all text
-            - `Ctrl+F` - Find in protocol text
-            - `Ctrl+H` - Replace in protocol text
-            - `Ctrl+/` - Comment/uncomment selected lines
-            - `Ctrl+D` - Select current word/pattern
-            - `Ctrl+L` - Select current line
-            
-            **Formatting**
-            - `Ctrl+B` - Bold selected text
-            - `Ctrl+I` - Italicize selected text
-            - `Ctrl+U` - Underline selected text
-            - `Ctrl+Shift+K` - Insert link
-            - `Ctrl+Shift+I` - Insert image
-            - `Ctrl+Shift+L` - Create list
-            
-            **Application Specific**
-            - `Ctrl+Enter` - Start evolution/adversarial testing
-            - `Ctrl+Shift+Enter` - Start adversarial testing
-            - `Ctrl+M` - Toggle between light/dark mode
-            - `Ctrl+P` - Toggle panel visibility
-            - `Ctrl+E` - Export current document
-            - `Ctrl+Shift+F` - Toggle full screen
-            
-            **Text Editor Controls**
-            - `Ctrl+]` - Indent current line
-            - `Ctrl+[` - Outdent current line
-            - `Alt+Up/Down` - Move selected lines up/down
-            - `Ctrl+Shift+D` - Duplicate current line
-            - `Ctrl+Shift+K` - Delete current line
-            - `Ctrl+/` - Toggle line comment
-            - `Ctrl+Shift+/` - Toggle block comment
-            ")
-            if st.button("Close Keyboard Shortcuts"):
-                st.session_state.show_keyboard_shortcuts = False
-                st.rerun()
+            st.markdown("### 🎯 Available Keyboard Shortcuts\n            \n            **Navigation & General**\n            - `Ctrl+S` - Save current protocol\n            - `Ctrl+O` - Open file\n            - `Ctrl+N` - Create new file\n            - `Ctrl+Shift+N` - New window\n            - `F5` or `Ctrl+R` - Refresh the application\n            - `F1` - Open help documentation\n            - `Ctrl+Shift+P` - Open command palette\n            - `Esc` - Close current modal or expandable section\n            - `Tab` - Indent selected text or insert 4 spaces\n            - `Shift+Tab` - Unindent selected text\n            \n            **Editing**\n            - `Ctrl+Z` - Undo last action\n            - `Ctrl+Y` or `Ctrl+Shift+Z` - Redo last action\n            - `Ctrl+X` - Cut selected text\n            - `Ctrl+C` - Copy selected text\n            - `Ctrl+V` - Paste text\n            - `Ctrl+A` - Select all text\n            - `Ctrl+F` - Find in protocol text\n            - `Ctrl+H` - Replace in protocol text\n            - `Ctrl+/` - Comment/uncomment selected lines\n            - `Ctrl+D` - Select current word/pattern\n            - `Ctrl+L` - Select current line\n            \n            **Formatting**\n            - `Ctrl+B` - Bold selected text\n            - `Ctrl+I` - Italicize selected text\n            - `Ctrl+U` - Underline selected text\n            - `Ctrl+Shift+K` - Insert link\n            - `Ctrl+Shift+I` - Insert image\n            - `Ctrl+Shift+L` - Create list\n            \n            **Application Specific**\n            - `Ctrl+Enter` - Start evolution/adversarial testing\n            - `Ctrl+Shift+Enter` - Start adversarial testing\n            - `Ctrl+M` - Toggle between light/dark mode\n            - `Ctrl+P` - Toggle panel visibility\n            - `Ctrl+E` - Export current document\n            - `Ctrl+Shift+F` - Toggle full screen\n            \n            **Text Editor Controls**\n            - `Ctrl+]` - Indent current line\n            - `Ctrl+[` - Outdent current line\n            - `Alt+Up/Down` - Move selected lines up/down\n            - `Ctrl+Shift+D` - Duplicate current line\n            - `Ctrl+Shift+K` - Delete current line\n            - `Ctrl+/` - Toggle line comment\n            - `Ctrl+Shift+/` - Toggle block comment\n            ")
 
-    tab_names = ["🔄 Evolution", "⚔️ Adversarial Testing", "🐙 GitHub", "📜 Activity Feed", "📊 Report Templates", "🤖 Model Dashboard", "✅ Tasks", "📂 Projects"]
-    if has_permission(st.session_state.get("username", "admin"), "manage_users"):
-        tab_names.append("👑 Admin")
-    tab_names.append("📈 Analytics")
-
+    tab_names = ["Evolution", "⚔️ Adversarial Testing", "🐙 GitHub", "📜 Activity Feed", "📊 Report Templates", "🤖 Model Dashboard", "✅ Tasks", "👑 Admin", "📂 Projects"]
     tabs = st.tabs(tab_names)
 
-    active_tab = st.session_state.get("active_tab", tab_names[0])
+    with tabs[0]: # Evolution tab
+        st.header("Real-time Evolution Logs")
 
-    for i, tab in enumerate(tabs):
-        with tab:
-            if tab_names[i] == active_tab:
-        st.markdown("""
-        <style>
-        .stTabs [data-baseweb="tab-list"] button [data-testid="stMarkdownContainer"] p {
-            font-size:1.5rem;
-        }
-        </style>
-        """,unsafe_allow_html=True)
-
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Evolution", "Adversarial Testing", "Integrations", "Collaboration", "Logs"])
-
-        with tab5:
-            st.header("Real-time Evolution Logs")
-            log_placeholder = st.empty()
-            # JavaScript to fetch and display logs
-            st.markdown("""
-            <script>
-            const eventSource = new EventSource('http://localhost:5001/logs');
-            eventSource.onmessage = function(event) {
-                const logContainer = window.parent.document.querySelector('[data-testid="stVerticalBlock"] div:nth-child(5) [data-testid="stMarkdownContainer"]');
-                if (logContainer) {
-                    logContainer.innerHTML += `<p>${event.data}</p>`;
-                    logContainer.scrollTop = logContainer.scrollHeight;
-                }
-            };
-            </script>
-            """, unsafe_allow_html=True)
-
-        with tab1:
-                    st.subheader("📝 Content Input")
-                    with st.expander("📝 Content Input", expanded=True):
+    with tabs[1]: # Adversarial Testing tab
+        st.subheader("📝 Content Input")
+        with st.expander("📝 Content Input", expanded=True):
                         st.text_area("Paste your draft content here:", height=300, key="protocol_text",
                                      value="# Sample Protocol\n\nThis is a sample protocol for testing purposes.",
                                      disabled=st.session_state.adversarial_running)
 
-                        templates = list_protocol_templates()
+                        templates = content_manager.list_protocol_templates()
                         if templates:
                             col1, col2 = st.columns([3, 1])
                             with col1:
@@ -615,7 +522,7 @@ def render_main_layout():
                             with col2:
                                 if selected_template and st.button("Load Selected Template", key="load_template_btn",
                                                                    use_container_width=True):
-                                    template_content = load_protocol_template(selected_template)
+                                    template_content = content_manager.load_protocol_template(selected_template)
                                     st.session_state.protocol_text = template_content
                                     st.success(f"Loaded template: {selected_template}")
                                     st.rerun()
@@ -626,7 +533,7 @@ def render_main_layout():
                                                    use_container_width=True)
                             stop_button = c2.button("⏹️ Stop Evolution", disabled=not st.session_state.evolution_running,
                                                     use_container_width=True)
-                            resume_button = c3.button("🔄 Resume Evolution", use_container_width=True)
+                            c3.button("🔄 Resume Evolution", use_container_width=True)
 
                         classify_button = st.button("🏷️ Classify and Tag", use_container_width=True)
 
@@ -836,73 +743,69 @@ def render_main_layout():
                             time.sleep(1)
                             st.rerun()
 
-                elif tab_names[i] == "⚔️ Adversarial Testing":
-                    render_adversarial_testing_tab()
+    with tabs[2]: # GitHub tab
+        st.title("🐙 GitHub Integration")
+        if not st.session_state.get("github_token"):
+            st.warning("Please authenticate with GitHub in the sidebar first.")
+            st.info("Go to the sidebar and enter your GitHub Personal Access Token to get started.")
+            st.stop()
+        linked_repos = list_linked_github_repositories()
+        if not linked_repos:
+            st.warning("Please link at least one GitHub repository in the sidebar first.")
+            st.info("Go to the sidebar, find the GitHub Integration section, and link a repository.")
+            st.stop()
+        selected_repo = st.selectbox("Select Repository", linked_repos)
+        if selected_repo:
+            st.markdown("### 🌿 Branch Management")
+            with st.expander("Create New Branch"):
+                new_branch_name = st.text_input("New Branch Name", placeholder="e.g., protocol-v1")
+                base_branch = st.text_input("Base Branch", "main")
+                if st.button("Create Branch") and new_branch_name:
+                    token = st.session_state.github_token
+                    if create_github_branch(token, selected_repo, new_branch_name, base_branch):
+                        st.success(f"Created branch '{new_branch_name}' from '{base_branch}'")
+            branch_name = st.text_input("Target Branch", "main")
+            st.markdown("### 💾 Commit and Push")
+            file_path = st.text_input("File Path", "protocols/evolved_protocol.md")
+            commit_message = st.text_input("Commit Message", "Update evolved protocol")
+            if st.button("Commit to GitHub") and st.session_state.protocol_text.strip():
+                token = st.session_state.github_token
+                if commit_to_github(token, selected_repo, file_path, st.session_state.protocol_text, commit_message, branch_name):
+                    st.success("✅ Committed to GitHub successfully!")
+                    if "github_generations" not in st.session_state:
+                        st.session_state.github_generations = []
+                    st.session_state.github_generations.append({
+                        "repo": selected_repo,
+                        "file_path": file_path,
+                        "branch": branch_name,
+                        "timestamp": datetime.now().isoformat(),
+                        "commit_message": commit_message
+                    })
+                else:
+                    st.error("❌ Failed to commit to GitHub")
 
-                elif tab_names[i] == "🐙 GitHub":
-                    st.title("🐙 GitHub Integration")
-                    if not st.session_state.get("github_token"):
-                        st.warning("Please authenticate with GitHub in the sidebar first.")
-                        st.info("Go to the sidebar and enter your GitHub Personal Access Token to get started.")
-                        st.stop()
-                    linked_repos = list_linked_github_repositories()
-                    if not linked_repos:
-                        st.warning("Please link at least one GitHub repository in the sidebar first.")
-                        st.info("Go to the sidebar, find the GitHub Integration section, and link a repository.")
-                        st.stop()
-                    selected_repo = st.selectbox("Select Repository", linked_repos)
-                    if selected_repo:
-                        st.markdown("### 🌿 Branch Management")
-                        with st.expander("Create New Branch"):
-                            new_branch_name = st.text_input("New Branch Name", placeholder="e.g., protocol-v1")
-                            base_branch = st.text_input("Base Branch", "main")
-                            if st.button("Create Branch") and new_branch_name:
-                                token = st.session_state.github_token
-                                if create_github_branch(token, selected_repo, new_branch_name, base_branch):
-                                    st.success(f"Created branch '{new_branch_name}' from '{base_branch}'")
-                        branch_name = st.text_input("Target Branch", "main")
-                        st.markdown("### 💾 Commit and Push")
-                        file_path = st.text_input("File Path", "protocols/evolved_protocol.md")
-                        commit_message = st.text_input("Commit Message", "Update evolved protocol")
-                        if st.button("Commit to GitHub") and st.session_state.protocol_text.strip():
-                            token = st.session_state.github_token
-                            if commit_to_github(token, selected_repo, file_path, st.session_state.protocol_text, commit_message, branch_name):
-                                st.success("✅ Committed to GitHub successfully!")
-                                if "github_generations" not in st.session_state:
-                                    st.session_state.github_generations = []
-                                st.session_state.github_generations.append({
-                                    "repo": selected_repo,
-                                    "file_path": file_path,
-                                    "branch": branch_name,
-                                    "timestamp": datetime.now().isoformat(),
-                                    "commit_message": commit_message
-                                })
-                            else:
-                                st.error("❌ Failed to commit to GitHub")
+    with tabs[3]: # Activity Feed tab
+        st.title("📜 Activity Feed")
+        for activity in reversed(st.session_state.activity_log):
+            st.markdown(f"- **{activity['timestamp']}**: **{activity['user']}** {activity['activity']}")
 
-                elif tab_names[i] == "📜 Activity Feed":
-                    st.title("📜 Activity Feed")
-                    for activity in reversed(st.session_state.activity_log):
-                        st.markdown(f"- **{activity['timestamp']}**: **{activity['user']}** {activity['activity']}")
+    with tabs[4]: # Report Templates tab
+        st.title("📊 Report Templates")
+        render_report_templates_ui()
 
-                elif tab_names[i] == "📊 Report Templates":
-                    st.title("📊 Report Templates")
-                    render_report_templates_ui()
+    with tabs[5]: # Model Dashboard tab
+        st.title("🤖 Model Dashboard")
+        render_model_dashboard_ui()
 
-                elif tab_names[i] == "🤖 Model Dashboard":
-                    st.title("🤖 Model Dashboard")
-                    render_model_dashboard_ui()
+    with tabs[6]: # Tasks tab
+        st.title("✅ Tasks")
+        render_tasks_ui()
 
-                elif tab_names[i] == "✅ Tasks":
-                    st.title("✅ Tasks")
-                    render_tasks_ui()
-
-                elif tab_names[i] == "👑 Admin":
-                    st.title("👑 Admin")
-                    render_admin_ui()
-                elif tab_names[i] == "📂 Projects":
-                    render_projects_tab()
-
+    with tabs[7]: # Admin tab
+        st.title("👑 Admin")
+        render_admin_ui()
+    with tabs[8]: # Projects tab
+        render_projects_tab()
 def render_model_dashboard_ui():
     """Render the model comparison dashboard UI."""
     st.subheader("Model Performance")
@@ -914,7 +817,8 @@ def render_model_dashboard_ui():
     model_performance = st.session_state.adversarial_model_performance
     sorted_models = sorted(model_performance.items(), key=lambda x: x[1].get("score", 0), reverse=True)
 
-    st.markdown("| Model | Score | Issues Found |")
+    model_dashboard_header = "Model Score Issues Found"
+    st.markdown(model_dashboard_header)
     st.markdown("|---|---|---|")
     for model_id, perf in sorted_models:
         st.markdown(f"| {model_id} | {perf.get('score', 0)} | {perf.get('issues_found', 0)} |")
@@ -981,12 +885,12 @@ def render_projects_tab():
     st.title("📂 Projects")
 
     st.subheader("Create New Project")
-    project_templates = list_protocol_templates()
+    project_templates = content_manager.list_protocol_templates()
     selected_template = st.selectbox("Select a project template", [""].extend(project_templates))
     new_project_name = st.text_input("New Project Name")
     if st.button("Create Project") and new_project_name:
         if selected_template:
-            template_content = load_protocol_template(selected_template)
+            template_content = content_manager.load_protocol_template(selected_template)
             st.session_state.protocol_text = template_content
         st.session_state.project_name = new_project_name
         st.success(f"Project '{new_project_name}' created.")
@@ -1049,15 +953,15 @@ def render_report_templates_ui():
                 st.rerun()
 
 def render_adversarial_testing_tab():
-    st.header("🔴🔵 Adversarial Testing with Multi-LLM Consensus")
+    st.header("Adversarial Testing with Multi-LLM Consensus")
 
     # Add a brief introduction
-    st.markdown("""
-    > **How it works:** Adversarial Testing uses two teams of AI models to improve your content:
-    > - **🔴 Red Team** finds flaws and vulnerabilities
-    > - **🔵 Blue Team** fixes the identified issues
-    > The process repeats until your content reaches the desired confidence level.
-    """)
+    st.markdown(
+        "> **How it works:** Adversarial Testing uses two teams of AI models to improve your content:\\n"
+        "> - Red Team finds flaws and vulnerabilities\\n"
+        "> - Blue Team fixes the identified issues\\n"
+        "> The process repeats until your content reaches the desired confidence level."
+    )
 
     # OpenRouter Configuration
     st.subheader("🔑 OpenRouter Configuration")
@@ -1116,13 +1020,11 @@ def render_adversarial_testing_tab():
         st.markdown("**📋 Quick Actions**")
 
         # Template loading
-        templates = list_protocol_templates()
+        templates = content_manager.list_protocol_templates()
         if templates:
-            selected_template = st.selectbox("Load Template", [""].extend(templates), key="adv_load_template_select")
+            selected_template = st.selectbox("Load Template", [""] + templates, key="adv_load_template_select")
             if selected_template and st.button("📥 Load Template", use_container_width=True):
-                template_content = load_protocol_template(selected_template)
-                st.session_state.protocol_text = template_content
-                st.success(f"Loaded: {selected_template}")
+                st.session_state.protocol_text = content_manager.load_protocol_template(selected_template)
                 st.rerun()
 
         # Sample protocol
@@ -1156,57 +1058,85 @@ Applies to all employees, contractors, and vendors with system access.
             st.session_state.protocol_text = sample_protocol
             st.rerun()
 
-    st.markdown("---")
-    st.subheader("⚔️ Adversarial Setup")
-    col1, col2 = st.columns(2)
-    with col1:
-        st.multiselect("🔴 Red Team (Critique)", model_options, key="red_team_models")
-    with col2:
-        st.multiselect("🔵 Blue Team (Improve)", model_options, key="blue_team_models")
-
-    with st.expander("⚙️ Advanced Settings"):
-        st.slider("Confidence Threshold (%)", 0, 100, 95, key="adversarial_confidence")
-        st.number_input("Min Iterations", 1, 50, 3, key="adversarial_min_iter")
-        st.number_input("Max Iterations", 1, 100, 10, key="adversarial_max_iter")
-        st.number_input("Max Tokens", 100, 16000, 8000, key="adversarial_max_tokens")
-        st.number_input("Max Workers", 1, 20, 6, key="adversarial_max_workers")
-        st.checkbox("Force JSON Output", True, key="adversarial_force_json")
-        st.text_input("Seed", key="adversarial_seed")
-        st.selectbox("Rotation Strategy", ["None", "Sequential", "Random"], key="adversarial_rotation_strategy")
-        st.number_input("Red Team Sample Size", 1, 10, 3, key="red_team_sample_size")
-        st.number_input("Blue Team Sample Size", 1, 10, 3, key="blue_team_sample_size")
-        st.text_area("Compliance Requirements", key="compliance_requirements")
-
-    if st.button("🚀 Start Adversarial Testing", type="primary", disabled=st.session_state.adversarial_running):
-        st.session_state.adversarial_running = True
-        threading.Thread(target=run_adversarial_testing).start()
-        st.rerun()
-
-    if st.session_state.adversarial_running:
-        st.warning("Adversarial testing is in progress...")
-        log_out = st.empty()
-        with st.session_state.thread_lock:
-            log_out.code("\n".join(st.session_state.adversarial_log), language="text")
-        time.sleep(1)
-        st.rerun()
-
-    if st.session_state.adversarial_results:
-        st.subheader("📊 Adversarial Results")
-        st.json(st.session_state.adversarial_results)
-- Emergency access requests require manager approval
-- Temporary exceptions require security team approval
-
-## Review and Updates
-- Policy reviewed annually
-- Updates approved by CISO"""
-            st.session_state.protocol_text = sample_protocol
-            st.success("Sample protocol loaded!")
-            st.rerun()
-
         # Clear button
         if st.session_state.protocol_text.strip() and st.button("🗑️ Clear", use_container_width=True):
             st.session_state.protocol_text = ""
             st.rerun()
+
+    # Model Selection
+    st.markdown("---")
+    st.subheader("🤖 Model Selection")
+
+    # Add model selection guidance
+    st.info(
+        "💡 **Tip:** Select 3-5 diverse models for each team for best results. Mix small and large models for cost-effectiveness.")
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.markdown("#### 🔴 Red Team (Critics)")
+        st.caption("Models that find flaws and vulnerabilities in your protocol")
+
+        if HAS_STREAMLIT_TAGS:
+            red_team_selected_full = st_tags(
+                label="Search and select models:",
+                text="Type to search models...",
+                value=st.session_state.red_team_models,
+                suggestions=model_options,
+                key="red_team_select"
+            )
+            # Robust model ID extraction from descriptive string
+            red_team_models = []
+            for m in red_team_selected_full:
+                if " (" in m:
+                    model_id = m.split(" (")[0].strip()
+                else:
+                    model_id = m.strip()
+                if model_id:
+                    red_team_models.append(model_id)
+            st.session_state.red_team_models = sorted(list(set(red_team_models)))
+        else:
+            st.warning("streamlit_tags not available. Using text input for model selection.")
+            red_team_input = st.text_input("Enter Red Team models (comma-separated):",
+                                           value=",".join(st.session_state.red_team_models))
+            st.session_state.red_team_models = sorted(
+                list(set([model.strip() for model in red_team_input.split(",") if model.strip()])))
+
+        # Model count indicator
+        st.caption(f"Selected: {len(st.session_state.red_team_models)} models")
+        print(f"Red Team Models: {st.session_state.red_team_models}")
+
+    with col2:
+        st.markdown("#### 🔵 Blue Team (Fixers)")
+        st.caption("Models that patch the identified flaws and improve the protocol")
+
+        if HAS_STREAMLIT_TAGS:
+            blue_team_selected_full = st_tags(
+                label="Search and select models:",
+                text="Type to search models...",
+                value=st.session_state.blue_team_models,
+                suggestions=model_options,
+                key="blue_team_select"
+            )
+            # Robust model ID extraction from descriptive string
+            blue_team_models = []
+            for m in blue_team_selected_full:
+                if " (" in m:
+                    model_id = m.split(" (")[0].strip()
+                else:
+                    model_id = m.strip()
+                if model_id:
+                    blue_team_models.append(model_id)
+            st.session_state.blue_team_models = sorted(list(set(blue_team_models)))
+        else:
+            st.warning("streamlit_tags not available. Using text input for model selection.")
+            blue_team_input = st.text_input("Enter Blue Team models (comma-separated):",
+                                            value=",".join(st.session_state.blue_team_models))
+            st.session_state.blue_team_models = sorted(
+                list(set([model.strip() for model in blue_team_input.split(",") if model.strip()])))
+
+        # Model count indicator
+        st.caption(f"Selected: {len(st.session_state.blue_team_models)} models")
+        print(f"Blue Team Models: {st.session_state.blue_team_models}")
 
     # Model Selection
     st.markdown("---")
@@ -1334,10 +1264,11 @@ Applies to all employees, contractors, and vendors with system access.
                      ["None", "Round Robin", "Random Sampling", "Performance-Based", "Staged", "Adaptive",
                       "Focus-Category"], key="adversarial_rotation_strategy")
         if st.session_state.adversarial_rotation_strategy == "Staged":
-            st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help="""
+            help_text = """
 [{"red": ["model1", "model2"], "blue": ["model3"]},
  {"red": ["model4"], "blue": ["model5", "model6"]}]
-""")
+"""
+            st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help=help_text)
         st.number_input("Red Team Sample Size", 1, 100, key="adversarial_red_team_sample_size")
         st.number_input("Blue Team Sample Size", 1, 100, key="adversarial_blue_team_sample_size")
         print(f"Min Iterations: {st.session_state.adversarial_min_iter}")

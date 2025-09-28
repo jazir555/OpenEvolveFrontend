@@ -9,7 +9,7 @@ CONFIG_PROFILES: Dict[str, Dict[str, Any]] = {
         "max_iterations": 15,
         "adversarial_confidence": 95,
         "adversarial_min_iter": 5,
-        "adversarial_max_iter": 20
+        "adversarial_max_iter": 20,
     },
     "Compliance Focus": {
         "system_prompt": "You are a compliance expert ensuring protocols meet regulatory requirements. Focus on completeness, auditability, and regulatory alignment.",
@@ -19,7 +19,7 @@ CONFIG_PROFILES: Dict[str, Dict[str, Any]] = {
         "max_iterations": 10,
         "adversarial_confidence": 90,
         "adversarial_min_iter": 3,
-        "adversarial_max_iter": 15
+        "adversarial_max_iter": 15,
     },
     "Operational Efficiency": {
         "system_prompt": "You are an operations expert focused on making protocols efficient and practical. Focus on streamlining processes while maintaining effectiveness.",
@@ -29,7 +29,7 @@ CONFIG_PROFILES: Dict[str, Dict[str, Any]] = {
         "max_iterations": 12,
         "adversarial_confidence": 85,
         "adversarial_min_iter": 3,
-        "adversarial_max_iter": 12
+        "adversarial_max_iter": 12,
     },
     "Beginner-Friendly": {
         "system_prompt": "You are helping a beginner write clear, understandable protocols. Focus on clarity, simplicity, and completeness.",
@@ -39,6 +39,6 @@ CONFIG_PROFILES: Dict[str, Dict[str, Any]] = {
         "max_iterations": 8,
         "adversarial_confidence": 80,
         "adversarial_min_iter": 2,
-        "adversarial_max_iter": 10
-    }
+        "adversarial_max_iter": 10,
+    },
 }
