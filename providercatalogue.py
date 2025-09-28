@@ -8,6 +8,40 @@ from typing import List, Dict, Any, Optional
 from openevolve_integration import OpenEvolveAPI
 
 
+def get_openrouter_models(api_key: Optional[str] = None) -> List[Dict[str, Any]]:
+    """Fetch models from OpenRouter and return their details."""
+    openrouter_config = PROVIDERS["openrouter"]
+    models_endpoint = openrouter_config["models_endpoint"]
+    
+    try:
+        headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
+        response = requests.get(models_endpoint, headers=headers, timeout=10)
+        response.raise_for_status()
+        data = response.json()
+        models = data.get("data", []) if isinstance(data, dict) else []
+        return models
+    except Exception as e:
+        st.warning(f"Could not fetch models from OpenRouter: {e}")
+        return []
+
+
+def _parse_price_per_million(price: Any) -> Optional[float]:
+    """Parses price per million tokens from various formats."""
+    if price is None:
+        return None
+    if isinstance(price, (int, float)):
+        return float(price)
+    if isinstance(price, str):
+        price = price.lower().replace("$", "").strip()
+        if "/m" in price:
+            price = price.replace("/m", "").strip()
+        try:
+            return float(price)
+        except ValueError:
+            pass
+    return None
+
+
 # Helper function for OpenAI-style loaders
 def _openai_style_loader(url: str, api_key: Optional[str] = None) -> List[str]:
     """Generic loader for OpenAI-style APIs."""

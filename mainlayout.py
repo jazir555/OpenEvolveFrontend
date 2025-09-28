@@ -13,8 +13,9 @@ from dataclasses import asdict
 from pyvis.network import Network
 from session_utils import _safe_list
 
+from providercatalogue import get_openrouter_models, _parse_price_per_million
+
 from session_manager import (
-    get_openrouter_models,
     APPROVAL_PROMPT, RED_TEAM_CRITIQUE_PROMPT, BLUE_TEAM_PATCH_PROMPT
 )
 from openevolve_integration import (
@@ -22,9 +23,9 @@ from openevolve_integration import (
 )
 
 from adversarial import (
-    run_adversarial_testing, generate_advanced_analytics, generate_html_report, generate_pdf_report, generate_docx_report,
+    run_adversarial_testing, generate_html_report, generate_pdf_report, generate_docx_report,
     generate_latex_report, generate_compliance_report, optimize_model_selection,
-    MODEL_META_LOCK, MODEL_META_BY_ID, _parse_price_per_million
+    MODEL_META_LOCK, MODEL_META_BY_ID
 )
 from integrations import (
     create_github_branch, commit_to_github,
@@ -34,6 +35,7 @@ from tasks import create_task, get_tasks, update_task
 from suggestions import get_content_classification_and_tags, predict_improvement_potential, check_security_vulnerabilities
 from rbac import ROLES, assign_role
 from content_manager import content_manager
+from analytics_manager import analytics_manager
 
 HAS_STREAMLIT_TAGS = True
 
@@ -99,14 +101,12 @@ def render_notification_ui():
     unread_notifications = [n for n in st.session_state.collaboration_session.get("notifications", []) if not n.get("read")]
     unread_count = len(unread_notifications)
 
-    st.markdown(f"""
+    st.markdown("""
     <style>
         .notification-icon {
-            /* position: relative; */
             cursor: pointer;
         }
         .notification-badge {
-            /* position: absolute; */
             top: -5px;
             right: -5px;
             background-color: red;
@@ -1493,7 +1493,7 @@ Applies to all employees, contractors, and vendors with system access.
                             st.metric("🔍 Total Issues Found", total_issues)
                     with metrics_tab4:
                         st.markdown("### 📊 Advanced Analytics")
-                        analytics = generate_advanced_analytics(results)
+                        analytics = analytics_manager.generate_advanced_analytics(results)
                         st.json(analytics)
 
                     st.markdown("### 📄 Final Hardened Protocol")

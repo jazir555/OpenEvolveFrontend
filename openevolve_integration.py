@@ -36,6 +36,10 @@ class OpenEvolveAPI:
         self.base_url = base_url
         self.headers = {"Authorization": f"Bearer {api_key}"}
 
+    def get(self, path: str) -> requests.Response:
+        """Makes a GET request to the OpenEvolve backend."""
+        return requests.get(f"{self.base_url}{path}", headers=self.headers)
+
     def start_evolution(
         self, config: Dict, checkpoint_path: Optional[str] = None
     ) -> Optional[str]:

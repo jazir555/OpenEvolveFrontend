@@ -1507,7 +1507,7 @@ ADVERSARIAL_PRESETS = {
 }
 
 DEFAULTS = {
-    "provider": "OpenAI",
+    "provider": "openai",
     "api_key": "",
     "base_url": PROVIDERS["OpenAI"]["base"],
     "model": PROVIDERS["OpenAI"]["model"],
@@ -1517,7 +1517,7 @@ DEFAULTS = {
     "top_p": 1.0,
     "frequency_penalty": 0.0,
     "presence_penalty": 0.0,
-    "seed": "",
+    "seed": 42,
     "protocol_text": "",
     "system_prompt": "You are an assistant that makes the draft airtight, precise, and foolproof.",
     "evaluator_system_prompt": "You are a trivial evaluator that accepts everything.",

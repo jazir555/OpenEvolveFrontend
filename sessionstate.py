@@ -6,7 +6,7 @@ Please use session_manager.py to access all functionality.
 
 # This file is maintained for backward compatibility
 # All functionality has been moved to modular files
-from session_manager import *
+# from session_manager import *
 
 # Additional compatibility imports if needed
 
