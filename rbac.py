@@ -31,3 +31,14 @@ def assign_role(username: str, role: str):
     """
     if role in ROLES:
         st.session_state.user_roles[username] = role
+
+def render_rbac_settings():
+    """
+    Placeholder function to render the RBAC settings section in the Streamlit UI.
+    This would typically allow administrators to view and manage user roles and permissions.
+    """
+    st.header("🔒 Role-Based Access Control (RBAC) Settings")
+    st.info("RBAC settings management features are under development. Stay tuned!")
+    st.subheader("Current User Roles (for demonstration)")
+    for user, role in st.session_state.user_roles.items():
+        st.write(f"- {user}: {role}")

@@ -234,3 +234,19 @@ class ValidationManager:
 
 # Initialize validation manager on import
 validation_manager = ValidationManager()
+
+def render_validation_manager():
+    """
+    Placeholder function to render the validation manager section in the Streamlit UI.
+    This would typically allow users to define, manage, and apply validation rules.
+    """
+    st.header("✅ Validation Manager")
+    st.info("Validation management features are under development. Stay tuned!")
+    # Example of how you might use the manager:
+    # st.subheader("Validation Rules")
+    # for rule_name in validation_manager.list_validation_rules():
+    #     st.write(f"- {rule_name}")
+    #
+    # if st.button("Run Validation"):
+    #     # Logic to run validation on current protocol_text
+    #     pass

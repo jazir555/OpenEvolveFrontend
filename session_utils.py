@@ -1634,3 +1634,9 @@ def toggle_theme():
     st.session_state.user_preferences["theme"] = new_theme
 
     return new_theme
+
+def get_project_root():
+    """
+    Returns the absolute path to the project's root directory.
+    """
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))

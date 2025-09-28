@@ -400,3 +400,21 @@ class ContentManagement:
 
 # Initialize content management on import
 content_manager = ContentManagement()
+
+def render_content_manager():
+    """
+    Placeholder function to render the content manager section in the Streamlit UI.
+    This would typically allow users to manage protocols, templates, and view content-related analytics.
+    """
+    import streamlit as st # Import streamlit here as it's a UI function
+    st.header("📝 Content Manager")
+    st.info("Content management features are under development. Stay tuned!")
+    # Example of how you might use the manager:
+    # st.subheader("Protocol Templates")
+    # for template_name in content_manager.list_protocol_templates():
+    #     st.write(f"- {template_name}")
+    #
+    # if st.button("Validate Current Protocol"):
+    #     if st.session_state.get("protocol_text"):
+    #         results = content_manager.validate_protocol(st.session_state.protocol_text)
+    #         st.write(results)

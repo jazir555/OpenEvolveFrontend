@@ -7,10 +7,9 @@ This is the main entry point that ties together all the components of the OpenEv
 """
 
 import streamlit as st
-from session_manager import get_session_id, get_session_state, save_session_state
-from session_utils import load_session_data, save_session_data, get_project_root
+from session_utils import get_project_root
 from sidebar import render_sidebar
-from message_display import display_messages
+
 from prompt_manager import handle_prompt_input
 from analytics_dashboard import render_analytics_dashboard
 from collaboration_manager import render_collaboration_section
@@ -27,7 +26,7 @@ from providers import render_provider_settings
 from analytics import render_analytics_settings
 from evolution import render_evolution_settings
 from adversarial import render_adversarial_settings
-from log_streaming import render_log_streaming
+from log_streaming import render_log_streaming, run_flask_app
 from config_data import load_config, save_config
 import os
 import sys
@@ -37,6 +36,7 @@ import threading
 import time
 import requests # For health check
 import subprocess
+import yaml # Added import for yaml
 
 # Configure logging for the backend launcher
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')

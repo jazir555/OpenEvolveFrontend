@@ -42,3 +42,24 @@ CONFIG_PROFILES: Dict[str, Dict[str, Any]] = {
         "adversarial_max_iter": 10,
     },
 }
+
+import yaml
+import os
+
+def load_config(config_file: str = "config.yaml") -> Dict[str, Any]:
+    """
+    Loads configuration from a YAML file.
+    """
+    config_path = os.path.join(os.path.dirname(__file__), os.pardir, config_file)
+    if os.path.exists(config_path):
+        with open(config_path, "r") as f:
+            return yaml.safe_load(f)
+    return {}
+
+def save_config(config_data: Dict[str, Any], config_file: str = "config.yaml") -> None:
+    """
+    Saves configuration to a YAML file.
+    """
+    config_path = os.path.join(os.path.dirname(__file__), os.pardir, config_file)
+    with open(config_path, "w") as f:
+        yaml.safe_dump(config_data, f)

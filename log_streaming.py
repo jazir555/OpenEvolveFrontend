@@ -22,3 +22,15 @@ def stream_logs():
 
 def run_flask_app():
     app.run(port=5001)
+
+import streamlit as st # Import streamlit here as it's a UI function
+
+def render_log_streaming():
+    """
+    Placeholder function to render the log streaming section in the Streamlit UI.
+    This would typically display real-time logs from the backend.
+    """
+    st.header("📄 Log Streaming")
+    st.info("Log streaming features are under development. Stay tuned!")
+    # Example of how you might embed the log stream:
+    # st.markdown('<iframe src="http://localhost:5001/logs" width="100%" height="400px"></iframe>', unsafe_allow_html=True)
