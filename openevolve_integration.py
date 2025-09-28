@@ -131,6 +131,7 @@ class OpenEvolveAPI:
             st.error(f"Error uploading evaluator: {e}")
             return None
 
+    @st.cache_data(ttl=3600) # Cache the result for 1 hour
     def save_custom_prompt(self, prompt_name: str, prompt_content: str) -> bool:
         try:
             response = requests.post(
@@ -144,6 +145,7 @@ class OpenEvolveAPI:
             st.error(f"Error saving custom prompt: {e}")
             return False
 
+    @st.cache_data(ttl=3600) # Cache the result for 1 hour
     def get_custom_prompts(self) -> Optional[Dict[str, str]]:
         try:
             response = requests.get(f"{self.base_url}/prompts", headers=self.headers)
@@ -153,6 +155,7 @@ class OpenEvolveAPI:
             st.error(f"Error getting custom prompts: {e}")
             return None
 
+    @st.cache_data(ttl=3600) # Cache the result for 1 hour
     def get_custom_evaluators(self) -> Optional[Dict[str, str]]:
         try:
             response = requests.get(f"{self.base_url}/evaluators", headers=self.headers)

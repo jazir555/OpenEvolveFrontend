@@ -3,11 +3,13 @@ Provider Catalogue for OpenEvolve
 """
 
 import streamlit as st
+import streamlit as st
 import requests
 from typing import List, Dict, Any, Optional
 from openevolve_integration import OpenEvolveAPI
 
 
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
 def get_openrouter_models(api_key: Optional[str] = None) -> List[Dict[str, Any]]:
     """Fetch models from OpenRouter and return their details."""
     openrouter_config = PROVIDERS["openrouter"]
