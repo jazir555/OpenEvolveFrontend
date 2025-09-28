@@ -1,6 +1,7 @@
 import streamlit as st
 from openevolve_integration import OpenEvolveAPI
 
+
 def render_evaluator_uploader():
     st.header("Custom Evaluators")
 
@@ -10,10 +11,15 @@ def render_evaluator_uploader():
 
     if st.button("Upload Evaluator"):
         if evaluator_code:
-            api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+            api = OpenEvolveAPI(
+                base_url=st.session_state.openevolve_base_url,
+                api_key=st.session_state.openevolve_api_key,
+            )
             evaluator_id = api.upload_evaluator(evaluator_code)
             if evaluator_id:
-                st.success(f"Evaluator uploaded successfully! Evaluator ID: {evaluator_id}")
+                st.success(
+                    f"Evaluator uploaded successfully! Evaluator ID: {evaluator_id}"
+                )
             else:
                 st.error("Failed to upload evaluator.")
         else:
@@ -21,7 +27,10 @@ def render_evaluator_uploader():
 
     st.header("Available Custom Evaluators")
 
-    api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+    api = OpenEvolveAPI(
+        base_url=st.session_state.openevolve_base_url,
+        api_key=st.session_state.openevolve_api_key,
+    )
     evaluators = api.get_custom_evaluators()
 
     if evaluators:

@@ -5,6 +5,7 @@ Provider Catalogue for OpenEvolve
 import streamlit as st
 import requests
 from typing import List, Dict, Any, Optional
+from openevolve_integration import OpenEvolveAPI
 
 
 # Helper function for OpenAI-style loaders
@@ -16,7 +17,9 @@ def _openai_style_loader(url: str, api_key: Optional[str] = None) -> List[str]:
         response.raise_for_status()
         data = response.json()
         models = data.get("data", []) if isinstance(data, dict) else []
-        return [model["id"] for model in models if isinstance(model, dict) and "id" in model]
+        return [
+            model["id"] for model in models if isinstance(model, dict) and "id" in model
+        ]
     except Exception as e:
         st.warning(f"Could not fetch models from {url}: {e}")
         return []
@@ -35,7 +38,7 @@ def _groq_loader(api_key: Optional[str] = None) -> List[str]:
         "llama-guard-3-8b",
         "mixtral-8x7b-32768",
         "gemma-7b-it",
-        "gemma2-9b-it"
+        "gemma2-9b-it",
     ]
 
 
@@ -43,11 +46,21 @@ def _together_loader(api_key: Optional[str] = None) -> List[str]:
     """Loader for Together models."""
     try:
         headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
-        response = requests.get("https://api.together.xyz/v1/models", headers=headers, timeout=10)
+        response = requests.get(
+            "https://api.together.xyz/v1/models", headers=headers, timeout=10
+        )
         response.raise_for_status()
         data = response.json()
-        models = data if isinstance(data, list) else data.get("data", []) if isinstance(data, dict) else []
-        return [model["id"] for model in models if isinstance(model, dict) and "id" in model]
+        models = (
+            data
+            if isinstance(data, list)
+            else data.get("data", [])
+            if isinstance(data, dict)
+            else []
+        )
+        return [
+            model["id"] for model in models if isinstance(model, dict) and "id" in model
+        ]
     except Exception as e:
         st.warning(f"Could not fetch Together models: {e}")
         # Return a predefined list if API fails
@@ -57,7 +70,7 @@ def _together_loader(api_key: Optional[str] = None) -> List[str]:
             "meta-llama/Meta-Llama-3.1-8B-Instruct-Turbo",
             "meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo",
             "mistralai/Mistral-7B-Instruct-v0.2",
-            "mistralai/Mixtral-8x7B-Instruct-v0.1"
+            "mistralai/Mixtral-8x7B-Instruct-v0.1",
         ]
 
 
@@ -65,11 +78,21 @@ def _fireworks_loader(api_key: Optional[str] = None) -> List[str]:
     """Loader for Fireworks models."""
     try:
         headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
-        response = requests.get("https://api.fireworks.ai/inference/v1/models", headers=headers, timeout=10)
+        response = requests.get(
+            "https://api.fireworks.ai/inference/v1/models", headers=headers, timeout=10
+        )
         response.raise_for_status()
         data = response.json()
-        models = data if isinstance(data, list) else data.get("data", []) if isinstance(data, dict) else []
-        return [model["id"] for model in models if isinstance(model, dict) and "id" in model]
+        models = (
+            data
+            if isinstance(data, list)
+            else data.get("data", [])
+            if isinstance(data, dict)
+            else []
+        )
+        return [
+            model["id"] for model in models if isinstance(model, dict) and "id" in model
+        ]
     except Exception as e:
         st.warning(f"Could not fetch Fireworks models: {e}")
         # Return a predefined list if API fails
@@ -78,18 +101,14 @@ def _fireworks_loader(api_key: Optional[str] = None) -> List[str]:
             "accounts/fireworks/models/llama-v3p1-70b-instruct",
             "accounts/fireworks/models/llama-v3p1-405b-instruct",
             "accounts/fireworks/models/mixtral-8x7b-instruct",
-            "accounts/fireworks/models/qwen2p5-72b-instruct"
+            "accounts/fireworks/models/qwen2p5-72b-instruct",
         ]
 
 
 def _moonshot_loader(api_key: Optional[str] = None) -> List[str]:
     """Loader for Moonshot models."""
     # Moonshot doesn't have a public models endpoint, so we'll return a predefined list
-    return [
-        "moonshot-v1-8k",
-        "moonshot-v1-32k",
-        "moonshot-v1-128k"
-    ]
+    return ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"]
 
 
 def _baichuan_loader(api_key: Optional[str] = None) -> List[str]:
@@ -100,7 +119,7 @@ def _baichuan_loader(api_key: Optional[str] = None) -> List[str]:
         "Baichuan2-Turbo-192k",
         "Baichuan3-Turbo",
         "Baichuan3-Turbo-128k",
-        "Baichuan4"
+        "Baichuan4",
     ]
 
 
@@ -116,18 +135,14 @@ def _zhipu_loader(api_key: Optional[str] = None) -> List[str]:
         "glm-4-long",
         "glm-4-flash",
         "glm-4v",
-        "glm-4v-plus"
+        "glm-4v-plus",
     ]
 
 
 def _minimax_loader(api_key: Optional[str] = None) -> List[str]:
     """Loader for Minimax models."""
     # Minimax doesn't have a public models endpoint, so we'll return a predefined list
-    return [
-        "abab6.5s-chat",
-        "abab6.5-chat",
-        "abab6-chat"
-    ]
+    return ["abab6.5s-chat", "abab6.5-chat", "abab6-chat"]
 
 
 def _yi_loader(api_key: Optional[str] = None) -> List[str]:
@@ -141,17 +156,14 @@ def _yi_loader(api_key: Optional[str] = None) -> List[str]:
         "yi-spark",
         "yi-large-rag",
         "yi-large-turbo",
-        "yi-large-preview"
+        "yi-large-preview",
     ]
 
 
 def _deepseek_loader(api_key: Optional[str] = None) -> List[str]:
     """Loader for DeepSeek models."""
     # DeepSeek doesn't have a public models endpoint, so we'll return a predefined list
-    return [
-        "deepseek-chat",
-        "deepseek-coder"
-    ]
+    return ["deepseek-chat", "deepseek-coder"]
 
 
 def fetch_providers_from_backend(api: OpenEvolveAPI) -> Dict[str, Any]:
@@ -164,7 +176,9 @@ def fetch_providers_from_backend(api: OpenEvolveAPI) -> Dict[str, Any]:
         st.error(f"Error fetching providers from backend: {e}")
         return {}
 
+
 PROVIDERS_CACHE = {}
+
 
 def get_providers(api: OpenEvolveAPI) -> Dict[str, Any]:
     """Get the list of available providers, from cache or backend."""

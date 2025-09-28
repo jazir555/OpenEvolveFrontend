@@ -1,7 +1,8 @@
-
 import streamlit as st
+import json
 from evolution import _request_openai_compatible_chat, _compose_messages
 from typing import List, Dict, Any
+
 
 def get_content_suggestions(content: str) -> List[str]:
     """
@@ -32,11 +33,12 @@ def get_content_suggestions(content: str) -> List[str]:
         frequency_penalty=frequency_penalty,
         presence_penalty=presence_penalty,
         max_tokens=max_tokens,
-        seed=seed
+        seed=seed,
     )
 
     suggestions = response.split("\n")
     return [s.strip() for s in suggestions if s.strip()]
+
 
 def get_content_classification_and_tags(content: str) -> Dict[str, Any]:
     """
@@ -67,13 +69,14 @@ def get_content_classification_and_tags(content: str) -> Dict[str, Any]:
         frequency_penalty=frequency_penalty,
         presence_penalty=presence_penalty,
         max_tokens=max_tokens,
-        seed=seed
+        seed=seed,
     )
 
     try:
         return json.loads(response)
     except json.JSONDecodeError:
         return {"classification": "", "tags": []}
+
 
 def predict_improvement_potential(content: str) -> float:
     """
@@ -82,12 +85,13 @@ def predict_improvement_potential(content: str) -> float:
     # This is a simple heuristic for now. A more advanced implementation could use a trained model.
     suggestions = get_content_suggestions(content)
     classification_and_tags = get_content_classification_and_tags(content)
-    
+
     score = 0
     score += len(suggestions) * 0.1
     score += len(classification_and_tags.get("tags", [])) * 0.05
-    
+
     return min(1.0, score)
+
 
 def check_security_vulnerabilities(content: str) -> List[str]:
     """
@@ -118,9 +122,8 @@ def check_security_vulnerabilities(content: str) -> List[str]:
         frequency_penalty=frequency_penalty,
         presence_penalty=presence_penalty,
         max_tokens=max_tokens,
-        seed=seed
+        seed=seed,
     )
 
     vulnerabilities = response.split("\n")
     return [v.strip() for v in vulnerabilities if v.strip()]
-

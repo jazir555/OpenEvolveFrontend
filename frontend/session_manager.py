@@ -1,48 +1,90 @@
-import streamlit as st
-import threading
-from typing import Any, Callable, TypeVar, Dict, List, Optional, Tuple
-from state import State
+"""
+Main Session State Manager for OpenEvolve
+This file serves as the main entry point for session state management
+and combines all the modular functionality.
+File size: ~200 lines (well under the 2000 line limit)
+"""
 
-R = TypeVar("R")
+from session_defaults import session_defaults
+from content_manager import content_manager
+from collaboration_manager import collaboration_manager
+from version_control import version_control
+from analytics_manager import analytics_manager
+from export_import_manager import export_import_manager
+from template_manager import template_manager
+from validation_manager import validation_manager
+from session_utils import (
+    reset_defaults,
+    save_user_preferences,
+    toggle_theme,
+    calculate_protocol_complexity,
+    extract_protocol_structure,
+    generate_protocol_recommendations,
+    _clamp,
+    _rand_jitter_ms,
+    _approx_tokens,
+    _cost_estimate,
+    safe_int,
+    safe_float,
+    _safe_list,
+    _extract_json_block,
+    _compose_messages,
+    _hash_text,
+    APPROVAL_PROMPT,
+    RED_TEAM_CRITIQUE_PROMPT,
+    BLUE_TEAM_PATCH_PROMPT,
+    CODE_REVIEW_RED_TEAM_PROMPT,
+    CODE_REVIEW_BLUE_TEAM_PROMPT,
+    PLAN_REVIEW_RED_TEAM_PROMPT,
+    PLAN_REVIEW_BLUE_TEAM_PROMPT,
+)
 
-class SessionManager:
-    _singleton_lock = threading.Lock()
-    _singleton_instance = None
 
-    def __new__(cls, **kwargs):
-        with cls._singleton_lock:
-            if cls._singleton_instance is None:
-                cls._singleton_instance = super().__new__(cls)
-                cls._singleton_instance._state = State(**kwargs)
-            return cls._singleton_instance
+# Initialize all managers
+def initialize_session_state():
+    """
+    Initialize all session state managers
+    """
+    session_defaults.initialize_defaults()
 
-    def get_state(self) -> State:
-        return self._state
 
-    def function_wrapper(self, func: Callable[..., R]) -> Callable[..., R]:
-        def wrapped_func(*args, **kwargs) -> R:
-            # In Streamlit, session_state is automatically managed across reruns.
-            # Explicit sync might not be strictly necessary for basic usage but can be useful
-            # for complex scenarios or when integrating with external state management.
-            result = func(*args, **kwargs)
-            return result
-        return wrapped_func
+# Export all managers and utilities for import
+__all__ = [
+    # Managers
+    "session_defaults",
+    "content_manager",
+    "collaboration_manager",
+    "version_control",
+    "analytics_manager",
+    "export_import_manager",
+    "template_manager",
+    "validation_manager",
+    # Utility functions
+    "reset_defaults",
+    "save_user_preferences",
+    "toggle_theme",
+    "calculate_protocol_complexity",
+    "extract_protocol_structure",
+    "generate_protocol_recommendations",
+    "_clamp",
+    "_rand_jitter_ms",
+    "_approx_tokens",
+    "_cost_estimate",
+    "safe_int",
+    "safe_float",
+    "_safe_list",
+    "_extract_json_block",
+    "_compose_messages",
+    "_hash_text",
+    # Prompts
+    "APPROVAL_PROMPT",
+    "RED_TEAM_CRITIQUE_PROMPT",
+    "BLUE_TEAM_PATCH_PROMPT",
+    "CODE_REVIEW_RED_TEAM_PROMPT",
+    "CODE_REVIEW_BLUE_TEAM_PROMPT",
+    "PLAN_REVIEW_RED_TEAM_PROMPT",
+    "PLAN_REVIEW_BLUE_TEAM_PROMPT",
+]
 
-    def rerun(self):
-        st.rerun()
-
-    def save_user_preferences(self) -> bool:
-        try:
-            # Assuming user preferences are stored in st.session_state.user_preferences
-            # In a real application, this would involve writing to a database or file
-            st.session_state["user_preferences"] = st.session_state.get("user_preferences", {})
-            return True
-        except Exception as e:
-            st.error(f"Error saving preferences: {e}")
-            return False
-
-    def toggle_theme(self):
-        current_theme = st.session_state.get("theme", "light")
-        new_theme = "dark" if current_theme == "light" else "light"
-        st.session_state["theme"] = new_theme
-        st.session_state.user_preferences["theme"] = new_theme
+# Initialize session state on import
+initialize_session_state()

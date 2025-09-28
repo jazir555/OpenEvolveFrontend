@@ -1,12 +1,12 @@
 from flask import Flask, Response
 import queue
-import time
 
 log_queue = queue.Queue()
 
 app = Flask(__name__)
 
-@app.route('/logs')
+
+@app.route("/logs")
 def stream_logs():
     def generate():
         while True:
@@ -16,7 +16,9 @@ def stream_logs():
             except queue.Empty:
                 # Send a comment to keep the connection alive
                 yield ": keep-alive\n\n"
-    return Response(generate(), mimetype='text/event-stream')
+
+    return Response(generate(), mimetype="text/event-stream")
+
 
 def run_flask_app():
     app.run(port=5001)
