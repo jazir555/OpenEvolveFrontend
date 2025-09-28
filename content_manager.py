@@ -4,6 +4,7 @@ This file manages protocol templates, content validation, and related utilities
 File size: ~1200 lines (under the 2000 line limit)
 """
 
+import streamlit as st # Import streamlit to use st.cache_data
 from datetime import datetime
 import re
 from typing import Dict, List, Optional
@@ -26,6 +27,7 @@ class ContentManagement:
         self.validation_rules = VALIDATION_RULES
         self.report_templates = REPORT_TEMPLATES
 
+    @st.cache_data(ttl=3600) # Cache the result for 1 hour
     def list_protocol_templates(self) -> List[str]:
         """
         List all available protocol templates.
@@ -406,7 +408,6 @@ def render_content_manager():
     Placeholder function to render the content manager section in the Streamlit UI.
     This would typically allow users to manage protocols, templates, and view content-related analytics.
     """
-    import streamlit as st # Import streamlit here as it's a UI function
     st.header("📝 Content Manager")
     st.info("Content management features are under development. Stay tuned!")
     # Example of how you might use the manager:

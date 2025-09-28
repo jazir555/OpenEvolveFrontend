@@ -10,9 +10,10 @@ import streamlit as st
 from session_utils import get_project_root
 from sidebar import render_sidebar
 
-from prompt_manager import handle_prompt_input
+
 from analytics_dashboard import render_analytics_dashboard
 from collaboration_manager import render_collaboration_section
+from collaboration import start_collaboration_server
 from rbac import render_rbac_settings
 from template_manager import render_template_manager
 from export_import_manager import render_export_import_manager
@@ -26,7 +27,8 @@ from providers import render_provider_settings
 from analytics import render_analytics_settings
 from evolution import render_evolution_settings
 from adversarial import render_adversarial_settings
-from log_streaming import render_log_streaming, run_flask_app
+from log_streaming import render_log_streaming, run_flask_app, log_queue
+from mainlayout import render_main_layout
 from config_data import load_config, save_config
 import os
 import sys
@@ -211,7 +213,7 @@ def main():
 
         render_analytics_dashboard()
     else:
-        mainlayout.render_main_layout()
+        render_main_layout()
 
 
 if __name__ == "__main__":
