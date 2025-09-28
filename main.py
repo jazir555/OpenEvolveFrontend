@@ -6,31 +6,85 @@ A Streamlit application for content improvement using LLMs.
 This is the main entry point that ties together all the components of the OpenEvolve application.
 """
 
-import sys
-import os
-
-# Add the current directory to the path so we can import our modules
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 import streamlit as st
-import yaml
-import threading
-from log_streaming import run_flask_app, log_queue
-
-import mainlayout
-# Explicitly import functions used directly in main()
+from session_manager import get_session_id, get_session_state, save_session_state
+from session_utils import load_session_data, save_session_data, get_project_root
 from sidebar import render_sidebar
-from collaboration import start_collaboration_server
+from message_display import display_messages
+from prompt_manager import handle_prompt_input
+from analytics_dashboard import render_analytics_dashboard
+from collaboration_manager import render_collaboration_section
+from rbac import render_rbac_settings
+from template_manager import render_template_manager
+from export_import_manager import render_export_import_manager
+from version_control import render_version_control
+from notifications import render_notifications
+from suggestions import render_suggestions
+from tasks import render_tasks
+from validation_manager import render_validation_manager
+from content_manager import render_content_manager
+from providers import render_provider_settings
+from analytics import render_analytics_settings
+from evolution import render_evolution_settings
+from adversarial import render_adversarial_settings
+from log_streaming import render_log_streaming
+from config_data import load_config, save_config
+import os
+import sys
+import logging
+import asyncio
+import threading
+import time
+import requests # For health check
+import subprocess
 
-try:
-    # Import modules to register their functionality (suppressing F401 warnings)
-    import providercatalogue  # noqa: F401
-    import evolution  # noqa: F401
-    import adversarial  # noqa: F401
-    import integrations  # noqa: F401
-except ImportError as e:
-    st.error(f"Error importing modules: {e}")
-    st.stop()
+# Configure logging for the backend launcher
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def start_openevolve_backend():
+    backend_path = os.path.join(get_project_root(), "openevolve")
+    backend_script = os.path.join(backend_path, "openevolve-run.py")
+    
+    # Check if backend is already running
+    try:
+        response = requests.get("http://localhost:8000/health", timeout=1) # Assuming a health endpoint
+        if response.status_code == 200:
+            logging.info("OpenEvolve backend is already running.")
+            return
+    except requests.exceptions.ConnectionError:
+        logging.info("OpenEvolve backend not running, starting it now...")
+    except requests.exceptions.Timeout:
+        logging.warning("Health check timed out, assuming backend is not fully ready or not running.")
+    except Exception as e:
+        logging.error(f"Error during backend health check: {e}")
+
+    command = [sys.executable, backend_script]
+    
+    try:
+        # Use Popen to start the backend without blocking the main thread
+        # stdout and stderr are redirected to files to prevent blocking and capture output
+        # We use a separate thread to run this to ensure it doesn't interfere with Streamlit's main loop
+        process = subprocess.Popen(
+            command,
+            cwd=backend_path,
+            stdout=subprocess.DEVNULL, # Redirect stdout to null
+            stderr=subprocess.DEVNULL, # Redirect stderr to null
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+        )
+        logging.info(f"OpenEvolve backend started with PID: {process.pid}")
+    except Exception as e:
+        logging.error(f"Failed to start OpenEvolve backend: {e}")
+
+# Initialize session state for backend_started if not present
+if "backend_started" not in st.session_state:
+    st.session_state["backend_started"] = False
+
+# Start the backend in a separate thread to avoid blocking Streamlit's startup
+if not st.session_state["backend_started"]:
+    backend_thread = threading.Thread(target=start_openevolve_backend)
+    backend_thread.daemon = True  # Allow the main program to exit even if the thread is still running
+    backend_thread.start()
+    st.session_state["backend_started"] = True
 
 
 def show_welcome_screen():
@@ -122,6 +176,15 @@ def main():
     for key, value in config["default"].items():
         if key not in st.session_state:
             st.session_state[key] = value
+
+    if "evolution_running" not in st.session_state:
+        st.session_state.evolution_running = False
+
+    if "adversarial_running" not in st.session_state:
+        st.session_state.adversarial_running = False
+
+    if "thread_lock" not in st.session_state:
+        st.session_state.thread_lock = threading.Lock()
 
     st.session_state.log_queue = log_queue
 

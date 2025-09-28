@@ -270,173 +270,9 @@ def render_main_layout():
     # Apply theme-specific CSS with animations
     current_theme = st.session_state.get("theme", "light")
     
-    # Define theme-specific CSS with animations and transitions
-    if current_theme == "dark":
-        theme_css = """
-        <style>
-        :root {
-            --primary-color: #4a6fa5;
-            --secondary-color: #6b8cbc;
-            --background-color: #0e1117;
-            --text-color: #ffffff;
-            --card-background: #1a1d23;
-            --border-color: #3a3f47;
-            --transition-speed: 0.3s;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .stApp {
-            background-color: var(--background-color) !important;
-            color: var(--text-color) !important;
-            font-family: var(--font-family);
-            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
-        }
-        
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--primary-color);
-        }
-        
-        .stButton>button {
-            background-color: var(--primary-color) !important;
-            color: white !important;
-            border: 1px solid var(--primary-color) !important;
-            transition: background-color var(--transition-speed) ease, transform 0.1s ease;
-            border-radius: 8px !important;
-        }
-        
-        .stButton>button:hover {
-            background-color: var(--secondary-color) !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .stButton>button:active {
-            transform: translateY(0);
-        }
-        
-        .stTextInput>div>div>input, .stTextArea textarea {
-            background-color: var(--card-background) !important;
-            color: var(--text-color) !important;
-            border: 1px solid var(--border-color) !important;
-            transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-            border-radius: 8px !important;
-        }
-        
-        .stTextInput>div>div>input:focus, .stTextArea textarea:focus {
-            border-color: var(--primary-color) !important;
-            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.3);
-        }
-        
-        .stSelectbox>div>div>select {
-            background-color: var(--card-background) !important;
-            color: var(--text-color) !important;
-            border: 1px solid var(--border-color) !important;
-            transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-            border-radius: 8px !important;
-        }
-        
-        .stSelectbox>div>div>select:focus {
-            border-color: var(--primary-color) !important;
-            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.3);
-        }
-        
-        .stSlider>div>div>div {
-            background-color: var(--primary-color) !important;
-            transition: background-color var(--transition-speed) ease;
-        }
-        
-        .st-expander {
-            background-color: var(--card-background) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 8px !important;
-            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
-        }
-        </style>
-        """
-    else:
-        theme_css = """
-        <style>
-        :root {
-            --primary-color: #4a6fa5;
-            --secondary-color: #6b8cbc;
-            --background-color: #f0f2f6;
-            --text-color: #333333;
-            --card-background: #ffffff;
-            --border-color: #dee2e6;
-            --transition-speed: 0.3s;
-            --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-        
-        .stApp {
-            background-color: var(--background-color) !important;
-            color: var(--text-color) !important;
-            font-family: var(--font-family);
-            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
-        }
-        
-        h1, h2, h3, h4, h5, h6 {
-            color: var(--primary-color);
-        }
-        
-        .stButton>button {
-            background-color: var(--primary-color) !important;
-            color: white !important;
-            border: 1px solid var(--primary-color) !important;
-            transition: background-color var(--transition-speed) ease, transform 0.1s ease;
-            border-radius: 8px !important;
-        }
-        
-        .stButton>button:hover {
-            background-color: var(--secondary-color) !important;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-        
-        .stButton>button:active {
-            transform: translateY(0);
-        }
-        
-        .stTextInput>div>div>input, .stTextArea textarea {
-            background-color: var(--card-background) !important;
-            color: var(--text-color) !important;
-            border: 1px solid var(--border-color) !important;
-            transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-            border-radius: 8px !important;
-        }
-        
-        .stTextInput>div>div>input:focus, .stTextArea textarea:focus {
-            border-color: var(--primary-color) !important;
-            box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.3);
-        }
-        
-        .stSelectbox>div>div>select {
-            background-color: var(--card-background) !important;
-            color: var(--text-color) !important;
-            border: 1px solid var(--border-color) !important;
-            transition: border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
-            border-radius: 8px !important;
-        }
-        
-        .stSelectbox>div>div>select:focus {
-            border-color: var(--primary-color) !important;
-            box-shadow: 0 0 0 2px rgba(74, 111, 165,.3);
-        }
-        
-        .stSlider>div>div>div {
-            background-color: var(--primary-color) !important;
-            transition: background-color var(--transition-speed) ease;
-        }
-        
-        .st-expander {
-            background-color: var(--card-background) !important;
-            border: 1px solid var(--border-color) !important;
-            border-radius: 8px !important;
-            transition: background-color var(--transition-speed) ease, border-color var(--transition-speed) ease;
-        }
-        </style>
-        """
-    
-    st.markdown(theme_css, unsafe_allow_html=True)
+    with open("styles.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
     
     st.markdown('<h2 style="text-align: center; color: var(--primary-color);">🧬 OpenEvolve Content Improver</h2>', 
                 unsafe_allow_html=True)
@@ -451,11 +287,9 @@ def render_main_layout():
     # Project information with enhanced UI
     col1, col2, col3 = st.columns([3, 1, 1])
     with col1:
-        st.markdown("## 🔴🔵 Adversarial Testing & Evolution-based Content Improvement")
+        st.markdown("## Adversarial Testing & Evolution-based Content Improvement")
     with col2:
-        st.markdown(
-            '<span class="team-badge-lg red-team">Red Team</span><span class="team-badge-lg blue-team">Blue Team</span>',
-            unsafe_allow_html=True)
+        
         with col3:
             # Add quick action buttons with enhanced styling
             quick_action_col1, quick_action_col2 = st.columns(2)
@@ -509,266 +343,276 @@ def render_main_layout():
     with tabs[0]: # Evolution tab
         st.header("Real-time Evolution Logs")
 
-    with tabs[1]: # Adversarial Testing tab
-        st.subheader("📝 Content Input")
         with st.expander("📝 Content Input", expanded=True):
-                        st.text_area("Paste your draft content here:", height=300, key="protocol_text",
-                                     value="# Sample Protocol\n\nThis is a sample protocol for testing purposes.",
-                                     disabled=st.session_state.adversarial_running)
+            st.text_area("Paste your draft content here:", height=300, key="protocol_text",
+                         value="# Sample Protocol\n\nThis is a sample protocol for testing purposes.",
+                         disabled=st.session_state.adversarial_running)
 
-                        templates = content_manager.list_protocol_templates()
-                        if templates:
-                            col1, col2 = st.columns([3, 1])
-                            with col1:
-                                selected_template = st.selectbox("Load Template", [""] + templates, key="load_template_select")
-                            with col2:
-                                if selected_template and st.button("Load Selected Template", key="load_template_btn",
-                                                                   use_container_width=True):
-                                    template_content = content_manager.load_protocol_template(selected_template)
-                                    st.session_state.protocol_text = template_content
-                                    st.success(f"Loaded template: {selected_template}")
-                                    st.rerun()
+            templates = content_manager.list_protocol_templates()
+            if templates:
+                col1, col2 = st.columns([3, 1])
+                with col1:
+                    selected_template = st.selectbox("Load Template", [""] + templates, key="load_template_select")
+                with col2:
+                    if selected_template and st.button("Load Selected Template", key="load_template_btn",
+                                                                                       use_container_width=True, type="secondary"):
+                        template_content = content_manager.load_protocol_template(selected_template)
+                        st.session_state.protocol_text = template_content
+                        st.success(f"Loaded template: {selected_template}")
+                        st.rerun()
 
-                        with st.expander("🎮 Action Controls", expanded=True):
-                            c1, c2, c3 = st.columns(3)
-                            run_button = c1.button("🚀 Start Evolution", type="primary", disabled=st.session_state.evolution_running,
-                                                   use_container_width=True)
-                            stop_button = c2.button("⏹️ Stop Evolution", disabled=not st.session_state.evolution_running,
-                                                    use_container_width=True)
-                            c3.button("🔄 Resume Evolution", use_container_width=True)
+        with st.expander("🎮 Action Controls", expanded=True):
+            c1, c2, c3 = st.columns(3)
+            run_button = c1.button("🚀 Start Evolution", type="primary", disabled=st.session_state.evolution_running,
+                                   use_container_width=True)
+            stop_button = c2.button("⏹️ Stop Evolution", disabled=not st.session_state.evolution_running,
+                                    use_container_width=True)
+            c3.button("🔄 Resume Evolution", use_container_width=True, type="secondary")
 
-                        classify_button = st.button("🏷️ Classify and Tag", use_container_width=True)
+        classify_button = st.button("🏷️ Classify and Tag", use_container_width=True, type="secondary")
 
-                        predict_button = st.button("🔮 Predict Improvement Potential", use_container_width=True)
+        predict_button = st.button("🔮 Predict Improvement Potential", use_container_width=True, type="secondary")
 
-                        security_button = st.button("🛡️ Check Security", use_container_width=True)
+        security_button = st.button("🛡️ Check Security", use_container_width=True, type="secondary")
 
-                        with st.expander("Compare Generations"):
-                            col1, col2 = st.columns(2)
-                            with col1:
-                                generation1 = st.selectbox("Select Generation 1", range(len(st.session_state.evolution_history)))
-                            with col2:
-                                generation2 = st.selectbox("Select Generation 2", range(len(st.session_state.evolution_history)))
-                            if st.button("Compare"):
-                                text1 = st.session_state.evolution_history[generation1]['population'][0]['code']
-                                text2 = st.session_state.evolution_history[generation2]['population'][0]['code']
-                                render_code_diff(text1, text2)
+        with st.expander("Compare Generations"):
+            col1, col2 = st.columns(2)
+            with col1:
+                generation1 = st.selectbox("Select Generation 1", range(len(st.session_state.evolution_history)))
+            with col2:
+                generation2 = st.selectbox("Select Generation 2", range(len(st.session_state.evolution_history)))
+            if st.button("Compare", type="secondary"):
+                text1 = st.session_state.evolution_history[generation1]['population'][0]['code']
+                text2 = st.session_state.evolution_history[generation2]['population'][0]['code']
+                render_code_diff(text1, text2)
 
-                        if "suggestions" in st.session_state and st.session_state.suggestions:
-                            with st.expander("💡 Suggestions", expanded=True):
-                                for suggestion in st.session_state.suggestions:
-                                    st.markdown(f"- {suggestion}")
+        if "suggestions" in st.session_state and st.session_state.suggestions:
+            with st.expander("💡 Suggestions", expanded=True):
+                for suggestion in st.session_state.suggestions:
+                    st.markdown(f"- {suggestion}")
 
-                        if classify_button:
-                            with st.spinner("Classifying and tagging..."):
-                                classification_and_tags = get_content_classification_and_tags(st.session_state.protocol_text)
-                                st.session_state.classification_and_tags = classification_and_tags
+        if classify_button:
+            with st.spinner("Classifying and tagging..."):
+                classification_and_tags = get_content_classification_and_tags(st.session_state.protocol_text)
+                st.session_state.classification_and_tags = classification_and_tags
 
-                        if "classification_and_tags" in st.session_state and st.session_state.classification_and_tags:
-                            with st.expander("🏷️ Classification and Tags", expanded=True):
-                                st.write(f"**Classification:** {st.session_state.classification_and_tags.get('classification')}")
-                                st.write(f"**Tags:** {', '.join(st.session_state.classification_and_tags.get('tags', []))}")
+        if "classification_and_tags" in st.session_state and st.session_state.classification_and_tags:
+            with st.expander("🏷️ Classification and Tags", expanded=True):
+                st.write(f"**Classification:** {st.session_state.classification_and_tags.get('classification')}")
+                st.write(f"**Tags:** {', '.join(st.session_state.classification_and_tags.get('tags', []))}")
 
-                        if predict_button:
-                            with st.spinner("Predicting improvement potential..."):
-                                potential = predict_improvement_potential(st.session_state.protocol_text)
-                                st.session_state.improvement_potential = potential
+        if predict_button:
+            with st.spinner("Predicting improvement potential..."):
+                potential = predict_improvement_potential(st.session_state.protocol_text)
+                st.session_state.improvement_potential = potential
 
-                        if "improvement_potential" in st.session_state and st.session_state.improvement_potential is not None:
-                            st.metric("Improvement Potential", f"{st.session_state.improvement_potential:.2%}")
+        if "improvement_potential" in st.session_state and st.session_state.improvement_potential is not None:
+            st.metric("Improvement Potential", f"{st.session_state.improvement_potential:.2%}")
 
-                        if security_button:
-                            with st.spinner("Checking for security vulnerabilities..."):
-                                vulnerabilities = check_security_vulnerabilities(st.session_state.protocol_text)
-                                st.session_state.vulnerabilities = vulnerabilities
+        if security_button:
+            with st.spinner("Checking for security vulnerabilities..."):
+                vulnerabilities = check_security_vulnerabilities(st.session_state.protocol_text)
+                st.session_state.vulnerabilities = vulnerabilities
 
-                        if "vulnerabilities" in st.session_state and st.session_state.vulnerabilities:
-                            with st.expander("🛡️ Security Vulnerabilities", expanded=True):
-                                for vulnerability in st.session_state.vulnerabilities:
-                                    st.warning(vulnerability)
+        if "vulnerabilities" in st.session_state and st.session_state.vulnerabilities:
+            with st.expander("🛡️ Security Vulnerabilities", expanded=True):
+                for vulnerability in st.session_state.vulnerabilities:
+                    st.warning(vulnerability)
 
-                            st.markdown("### 📝 Prompts")
-                            api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
-                            custom_prompts = api.get_custom_prompts()
-                            if custom_prompts:
-                                selected_custom_prompt = st.selectbox("Select a custom prompt", ["None"].extend(list(custom_prompts.keys())))
-                                if selected_custom_prompt != "None":
-                                    st.session_state.system_prompt = custom_prompts[selected_custom_prompt]['system_prompt']
-                                    st.session_state.evaluator_system_prompt = custom_prompts[selected_custom_prompt]['evaluator_system_prompt']
-                            
-                            st.text_area("System Prompt", key="evolution_system_prompt", height=150)
-                            st.text_area("Evaluator System Prompt", key="evolution_evaluator_system_prompt", height=150)
-                            st.checkbox("Use Specialized Evaluator", key="evolution_use_specialized_evaluator", help="Use a linter-based evaluator for more accurate code evaluation.")
+        with st.expander("📝 Prompts"):
+            api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+            custom_prompts = api.get_custom_prompts()
+            if custom_prompts:
+                selected_custom_prompt = st.selectbox("Select a custom prompt", ["None"].extend(list(custom_prompts.keys())))
+                if selected_custom_prompt != "None":
+                    st.session_state.system_prompt = custom_prompts[selected_custom_prompt]['system_prompt']
+                    st.session_state.evaluator_system_prompt = custom_prompts[selected_custom_prompt]['evaluator_system_prompt']
+            
+            st.text_area("System Prompt", key="evolution_system_prompt", height=150)
+            st.text_area("Evaluator System Prompt", key="evolution_evaluator_system_prompt", height=150)
+            st.checkbox("Use Specialized Evaluator", key="evolution_use_specialized_evaluator", help="Use a linter-based evaluator for more accurate code evaluation.")
 
-                            new_prompt_name = st.text_input("New Custom Prompt Name")
-                            if st.button("Save Custom Prompt"):
-                                if new_prompt_name:
-                                    api.save_custom_prompt(new_prompt_name, {"system_prompt": st.session_state.system_prompt, "evaluator_system_prompt": st.session_state.evaluator_system_prompt})
-                                    st.success(f"Custom prompt '{new_prompt_name}' saved.")
-                                else:
-                                    st.error("Prompt name cannot be empty.")
+            new_prompt_name = st.text_input("New Custom Prompt Name")
+            if st.button("Save Custom Prompt", type="secondary"):
+                if new_prompt_name:
+                    api.save_custom_prompt(new_prompt_name, {"system_prompt": st.session_state.system_prompt, "evaluator_system_prompt": st.session_state.evaluator_system_prompt})
+                    st.success(f"Custom prompt '{new_prompt_name}' saved.")
+                else:
+                    st.error("Prompt name cannot be empty.")
 
-                            st.markdown("### ⬆️ Upload Custom Evaluator")
-                            uploaded_evaluator_file = st.file_uploader("Upload Python file with 'evaluate' function", type=["py"])
-                            if uploaded_evaluator_file is not None:
-                                evaluator_code = uploaded_evaluator_file.read().decode("utf-8")
-                                api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
-                                evaluator_id = api.upload_evaluator(evaluator_code)
-                                if evaluator_id:
-                                    st.session_state.custom_evaluator_id = evaluator_id
-                                    st.success(f"Evaluator uploaded with ID: {evaluator_id}")
-                                else:
-                                    st.error("Failed to upload evaluator.")
+        with st.expander("⬆️ Upload Custom Evaluator"):
+            uploaded_evaluator_file = st.file_uploader("Upload Python file with 'evaluate' function", type=["py"])
+            if uploaded_evaluator_file is not None:
+                evaluator_code = uploaded_evaluator_file.read().decode("utf-8")
+                api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                evaluator_id = api.upload_evaluator(evaluator_code)
+                if evaluator_id:
+                    st.session_state.custom_evaluator_id = evaluator_id
+                    st.success(f"Evaluator uploaded with ID: {evaluator_id}")
+                else:
+                    st.error("Failed to upload evaluator.")
 
-                            st.markdown("### Manage Custom Evaluators")
-                            api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
-                            custom_evaluators = api.get_custom_evaluators()
-                            if custom_evaluators:
-                                for evaluator_id, evaluator_data in custom_evaluators.items():
-                                    with st.expander(f"Evaluator ID: {evaluator_id}"):
-                                        st.code(evaluator_data['code'], language="python")
-                                        if st.button("Delete Evaluator", key=f"delete_evaluator_{evaluator_id}"):
-                                            api.delete_evaluator(evaluator_id)
-                                            st.success(f"Evaluator {evaluator_id} deleted.")
-                                            st.rerun()
-                        with st.expander("⚙️ Advanced Settings", expanded=False):
-                            st.markdown("### 🎛️ Evolution Parameters")
-                            col1, col2 = st.columns(2)
-                            with col1:
-                                st.number_input("Max Iterations", 1, 200, 20, key="evolution_max_iterations")
-                                st.number_input("Population Size", 1, 100, 1, key="evolution_population_size")
-                                st.number_input("Number of Islands", 1, 10, 1, key="evolution_num_islands")
-                                st.slider("Elite Ratio", 0.0, 1.0, 1.0, 0.1, key="evolution_elite_ratio")
-                            with col2:
-                                st.number_input("Checkpoint Interval", 1, 100, 5, key="evolution_checkpoint_interval")
-                                st.slider("Exploration Ratio", 0.0, 1.0, 0.0, 0.1, key="evolution_exploration_ratio")
-                                st.slider("Exploitation Ratio", 0.0, 1.0, 0.0, 0.1, key="evolution_exploitation_ratio")
-                                st.number_input("Archive Size", 0, 100, 0, key="evolution_archive_size")
-                            
-                            st.markdown("### 🤖 Model Parameters")
-                            col3, col4 = st.columns(2)
-                            with col3:
-                                st.slider("Temperature", 0.0, 2.0, 0.7, 0.1, key="model_temperature")
-                                st.slider("Top-P", 0.0, 1.0, 1.0, 0.1, key="model_top_p")
-                            with col4:
-                                st.slider("Frequency Penalty", -2.0, 2.0, 0.0, 0.1, key="model_frequency_penalty")
-                                st.slider("Presence Penalty", -2.0, 2.0, 0.0, 0.1, key="model_presence_penalty")
-                            
-                            st.markdown("### 🎯 Multi-Objective Evolution")
-                            st.info("Define multiple objectives for the evolution. The fitness of each individual will be a vector of scores, one for each objective.")
-                            st_tags(
-                                label='Feature Dimensions:',
-                                text='Press enter to add more',
-                                value=['complexity', 'diversity'],
-                                key='multi_objective_feature_dimensions')
-                            st.number_input("Feature Bins", 1, 100, 10, key="multi_objective_feature_bins")
-
-                            st.number_input("Number of Islands", 1, 10, 1, key="multi_objective_num_islands_island_model")
-                            st.slider("Migration Interval", 0, 100, 50, key="multi_objective_migration_interval")
-                            st.slider("Migration Rate", 0.0, 1.0, 0.1, 0.05, key="multi_objective_migration_rate")
-
-                        with st.expander("📊 Results", expanded=True):
-                            left, right = st.columns(2)
-                            with left:
-                                st.subheader("📄 Current Best Content")
-                                proto_out = st.empty()
-
-                            with right:
-                                st.subheader("🔍 Logs")
-                                log_out = st.empty()
-
-                        if st.session_state.evolution_running:
-                            api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
-                            status = api.get_evolution_status(st.session_state.evolution_id)
-                            if status:
-                                proto_out.markdown(f"**Status:** {status['status']}\n\n**Best Score:** {status['best_score']}")
-                                log_out.code(status['log'], language="text")
-                                for log_chunk in api.stream_evolution_logs(st.session_state.evolution_id):
-                                    log_out.code(log_chunk, language="text")
-                                if status['status'] == 'completed':
-                                    st.session_state.evolution_running = False
-                                    previous_best = st.session_state.evolution_current_best
-                                    best_solution = api.get_best_solution(st.session_state.evolution_id)
-                                    st.session_state.evolution_current_best = best_solution['code']
-                                    render_code_diff(previous_best, st.session_state.evolution_current_best)
-                                    history = api.get_evolution_history(st.session_state.evolution_id)
-                                    if history:
-                                        render_evolution_history_chart(history)
-                                        if len(history[-1].get('islands', [])) > 1:
-                                            render_island_model_chart(history)
-                                    artifacts = api.get_artifacts(st.session_state.evolution_id)
-                                    if artifacts:
-                                        st.subheader("Artifacts")
-                                        for artifact in artifacts:
-                                            st.download_button(artifact['name'], api.download_artifact(st.session_state.evolution_id, artifact['name']), artifact['name'])
-                                    st.balloons()
-                            time.sleep(1)
-                            st.rerun()
-                        else:
-                            with st.session_state.thread_lock:
-                                current_log = "\n".join(st.session_state.evolution_log)
-                                current_content = st.session_state.evolution_current_best or st.session_state.protocol_text
-
-                            log_out.code(current_log, language="text")
-                            proto_out.code(current_content, language="markdown")
-
-                        if run_button:
-                            st.session_state.evolution_running = True
-                            api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
-                            config = create_advanced_openevolve_config(
-                                model_name=st.session_state.model,
-                                api_key=st.session_state.api_key,
-                                api_base=st.session_state.base_url,
-                                temperature=st.session_state.temperature,
-                                top_p=st.session_state.top_p,
-                                max_tokens=st.session_state.max_tokens,
-                                max_iterations=st.session_state.max_iterations,
-                                population_size=st.session_state.population_size,
-                                num_islands=st.session_state.num_islands,
-                                archive_size=st.session_state.archive_size,
-                                elite_ratio=st.session_state.elite_ratio,
-                                exploration_ratio=st.session_state.exploration_ratio,
-                                exploitation_ratio=st.session_state.exploitation_ratio,
-                                checkpoint_interval=st.session_state.checkpoint_interval,
-                            )
-                            evolution_id = api.start_evolution(config=asdict(config))
-                            if evolution_id:
-                                st.session_state.evolution_id = evolution_id
+        with st.expander("Manage Custom Evaluators"):
+            api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+            custom_evaluators = api.get_custom_evaluators()
+            if custom_evaluators:
+                for evaluator_id, evaluator_data in custom_evaluators.items():
+                    with st.expander(f"Evaluator ID: {evaluator_id}"):
+                        st.code(evaluator_data['code'], language="python")
+                        if st.button("Delete Evaluator", key=f"delete_evaluator_{evaluator_id}", type="secondary"):
+                            api.delete_evaluator(evaluator_id)
+                            st.success(f"Evaluator {evaluator_id} deleted.")
                             st.rerun()
 
-                        if stop_button:
-                            st.session_state.evolution_stop_flag = True
+        with st.expander("⚙️ Advanced Settings", expanded=False):
+            st.markdown("### 🎛️ Evolution Parameters")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.number_input("Max Iterations", 1, 200, 20, key="evolution_max_iterations")
+                st.number_input("Population Size", 1, 100, 1, key="evolution_population_size")
+                st.number_input("Number of Islands", 1, 10, 1, key="multi_objective_num_islands_island_model_2")
+                st.slider("Elite Ratio", 0.0, 1.0, 1.0, 0.1, key="evolution_elite_ratio")
+            with col2:
+                st.number_input("Checkpoint Interval", 1, 100, 5, key="evolution_checkpoint_interval")
+                st.slider("Exploration Ratio", 0.0, 1.0, 0.0, 0.1, key="evolution_exploration_ratio")
+                st.slider("Exploitation Ratio", 0.0, 1.0, 0.0, 0.1, key="evolution_exploitation_ratio")
+                st.number_input("Archive Size", 0, 100, 0, key="evolution_archive_size")
+            
+            st.markdown("### 🤖 Model Parameters")
+            col3, col4 = st.columns(2)
+            with col3:
+                st.slider("Temperature", 0.0, 2.0, 0.7, 0.1, key="model_temperature")
+                st.slider("Top-P", 0.0, 1.0, 1.0, 0.1, key="model_top_p")
+            with col4:
+                st.slider("Frequency Penalty", -2.0, 2.0, 0.0, 0.1, key="model_frequency_penalty")
+                st.slider("Presence Penalty", -2.0, 2.0, 0.0, 0.1, key="model_presence_penalty")
+            
+            st.markdown("### 🎯 Multi-Objective Evolution")
+            st.info("Define multiple objectives for the evolution. The fitness of each individual will be a vector of scores, one for each objective.")
+            st_tags(
+                label='Feature Dimensions:',
+                text='Press enter to add more',
+                value=['complexity', 'diversity'],
+                key='multi_objective_feature_dimensions')
+            st.number_input("Feature Bins", 1, 100, 10, key="multi_objective_feature_bins")
 
-                        if st.session_state.evolution_running:
-                            time.sleep(1)
-                            st.rerun()
+            st.number_input("Number of Islands", 1, 10, 1, key="multi_objective_num_islands_island_model_3")
+            st.slider("Migration Interval", 0, 100, 50, key="multi_objective_migration_interval")
+            st.slider("Migration Rate", 0.0, 1.0, 0.1, 0.05, key="multi_objective_migration_rate")
+
+        with st.expander("📊 Results", expanded=True):
+            left, right = st.columns(2)
+            with left:
+                st.subheader("📄 Current Best Content")
+                proto_out = st.empty()
+
+            with right:
+                st.subheader("🔍 Logs")
+                log_out = st.empty()
+
+            if st.session_state.evolution_running:
+                api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                status = api.get_evolution_status(st.session_state.evolution_id)
+                if status:
+                    proto_out.markdown(f"**Status:** {status['status']}\n\n**Best Score:** {status['best_score']}")
+                    log_out.code(status['log'], language="text")
+                    for log_chunk in api.stream_evolution_logs(st.session_state.evolution_id):
+                        log_out.code(log_chunk, language="text")
+                    if status['status'] == 'completed':
+                        st.session_state.evolution_running = False
+                        previous_best = st.session_state.evolution_current_best
+                        best_solution = api.get_best_solution(st.session_state.evolution_id)
+                        st.session_state.evolution_current_best = best_solution['code']
+                        render_code_diff(previous_best, st.session_state.evolution_current_best)
+                        history = api.get_evolution_history(st.session_state.evolution_id)
+                        if history:
+                            render_evolution_history_chart(history)
+                            if len(history[-1].get('islands', [])) > 1:
+                                render_island_model_chart(history)
+                        artifacts = api.get_artifacts(st.session_state.evolution_id)
+                        if artifacts:
+                            st.subheader("Artifacts")
+                            for artifact in artifacts:
+                                st.download_button(artifact['name'], api.download_artifact(st.session_state.evolution_id, artifact['name']), artifact['name'])
+                        st.balloons()
+                time.sleep(1)
+                st.rerun()
+            else:
+                with st.session_state.thread_lock:
+                    current_log = "\n".join(st.session_state.evolution_log)
+                    current_content = st.session_state.evolution_current_best or st.session_state.protocol_text
+
+                log_out.code(current_log, language="text")
+                proto_out.code(current_content, language="markdown")
+
+            if run_button:
+                st.session_state.evolution_running = True
+                api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                config = create_advanced_openevolve_config(
+                    model_name=st.session_state.model,
+                    api_key=st.session_state.api_key,
+                    api_base=st.session_state.base_url,
+                    temperature=st.session_state.temperature,
+                    top_p=st.session_state.top_p,
+                    max_tokens=st.session_state.max_tokens,
+                    max_iterations=st.session_state.max_iterations,
+                    population_size=st.session_state.population_size,
+                    num_islands=st.session_state.num_islands,
+                    archive_size=st.session_state.archive_size,
+                    elite_ratio=st.session_state.elite_ratio,
+                    exploration_ratio=st.session_state.exploration_ratio,
+                    exploitation_ratio=st.session_state.exploitation_ratio,
+                    checkpoint_interval=st.session_state.checkpoint_interval,
+                )
+                evolution_id = api.start_evolution(config=asdict(config))
+                if evolution_id:
+                    st.session_state.evolution_id = evolution_id
+                st.rerun()
+
+            if stop_button:
+                st.session_state.evolution_stop_flag = True
+
+            if st.session_state.evolution_running:
+                time.sleep(1)
+                st.rerun()
+
+    with tabs[1]: # Adversarial Testing tab
+        render_adversarial_testing_tab()
 
     with tabs[2]: # GitHub tab
         st.title("🐙 GitHub Integration")
+
         if not st.session_state.get("github_token"):
             st.warning("Please authenticate with GitHub in the sidebar first.")
             st.info("Go to the sidebar and enter your GitHub Personal Access Token to get started.")
             st.stop()
+
         linked_repos = list_linked_github_repositories()
         if not linked_repos:
             st.warning("Please link at least one GitHub repository in the sidebar first.")
             st.info("Go to the sidebar, find the GitHub Integration section, and link a repository.")
             st.stop()
+
+        st.subheader("Select Repository")
         selected_repo = st.selectbox("Select Repository", linked_repos)
+
         if selected_repo:
-            st.markdown("### 🌿 Branch Management")
+            st.markdown("--- ")
+            st.subheader("🌿 Branch Management")
             with st.expander("Create New Branch"):
                 new_branch_name = st.text_input("New Branch Name", placeholder="e.g., protocol-v1")
                 base_branch = st.text_input("Base Branch", "main")
-                if st.button("Create Branch") and new_branch_name:
+                if st.button("Create Branch", type="secondary") and new_branch_name:
                     token = st.session_state.github_token
                     if create_github_branch(token, selected_repo, new_branch_name, base_branch):
                         st.success(f"Created branch '{new_branch_name}' from '{base_branch}'")
+
+            st.markdown("--- ")
+            st.subheader("💾 Commit and Push")
             branch_name = st.text_input("Target Branch", "main")
-            st.markdown("### 💾 Commit and Push")
             file_path = st.text_input("File Path", "protocols/evolved_protocol.md")
             commit_message = st.text_input("Commit Message", "Update evolved protocol")
-            if st.button("Commit to GitHub") and st.session_state.protocol_text.strip():
+            if st.button("Commit to GitHub", type="primary") and st.session_state.protocol_text.strip():
                 token = st.session_state.github_token
                 if commit_to_github(token, selected_repo, file_path, st.session_state.protocol_text, commit_message, branch_name):
                     st.success("✅ Committed to GitHub successfully!")
@@ -786,8 +630,41 @@ def render_main_layout():
 
     with tabs[3]: # Activity Feed tab
         st.title("📜 Activity Feed")
+
+        st.markdown("""
+    <style>
+        .activity-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .activity-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            transition: all 0.3s ease;
+        }
+        .activity-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .activity-card p {
+            color: var(--text-color);
+            font-size: 1rem;
+            margin-bottom: 0;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+        st.markdown("<div class='activity-container'>", unsafe_allow_html=True)
         for activity in reversed(st.session_state.activity_log):
-            st.markdown(f"- **{activity['timestamp']}**: **{activity['user']}** {activity['activity']}")
+            st.markdown(f"""
+            <div class="activity-card">
+                <p><strong>{activity['timestamp']}**: <strong>{activity['user']}</strong> {activity['activity']}</p>
+            </div>
+            """, unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with tabs[4]: # Report Templates tab
         st.title("📊 Report Templates")
@@ -817,11 +694,46 @@ def render_model_dashboard_ui():
     model_performance = st.session_state.adversarial_model_performance
     sorted_models = sorted(model_performance.items(), key=lambda x: x[1].get("score", 0), reverse=True)
 
-    model_dashboard_header = "Model Score Issues Found"
-    st.markdown(model_dashboard_header)
-    st.markdown("|---|---|---|")
+    st.markdown("""
+    <style>
+        .model-dashboard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .model-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .model-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .model-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .model-card p {
+            color: var(--text-color);
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div class='model-dashboard-container'>", unsafe_allow_html=True)
     for model_id, perf in sorted_models:
-        st.markdown(f"| {model_id} | {perf.get('score', 0)} | {perf.get('issues_found', 0)} |")
+        st.markdown(f"""
+        <div class="model-card">
+            <h4>{model_id}</h4>
+            <p><strong>Score:</strong> {perf.get('score', 0)}</p>
+            <p><strong>Issues Found:</strong> {perf.get('issues_found', 0)}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 def render_tasks_ui():
     """Render the tasks UI."""
@@ -838,48 +750,109 @@ def render_tasks_ui():
 
     st.subheader("Tasks")
     tasks = get_tasks()
+    
+    st.markdown("""
+    <style>
+        .task-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .task-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .task-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .task-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .task-card p {
+            color: var(--text-color);
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div class='task-container'>", unsafe_allow_html=True)
     for task in tasks:
-        with st.expander(f"{task['title']} ({task['status']})"):
-            st.write(f"**Description:** {task['description']}")
-            st.write(f"**Assignee:** {task['assignee']}")
-            st.write(f"**Due Date:** {task['due_date']}")
-            new_status = st.selectbox("Status", ["To Do", "In Progress", "Done"], key=f"status_{task['id']}", index=["To Do", "In Progress", "Done"].index(task['status']))
-            if new_status != task['status']:
-                update_task(task['id'], status=new_status)
-                st.rerun()
+        st.markdown(f"""
+        <div class="task-card">
+            <h4>{task['title']} ({task['status']})</h4>
+            <p><strong>Description:</strong> {task['description']}</p>
+            <p><strong>Assignee:</strong> {task['assignee']}</p>
+            <p><strong>Due Date:</strong> {task['due_date']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 def render_admin_ui():
     """Render the admin UI for managing users and roles."""
     st.subheader("User Management")
 
     # Add new user form
-    with st.form("new_user_form"):
-        st.write("Add New User")
-        new_username = st.text_input("Username")
-        new_role = st.selectbox("Role", list(ROLES.keys()))
-        submitted = st.form_submit_button("Add User")
-        if submitted:
-            if new_username:
-                assign_role(new_username, new_role)
-                st.success(f"User '{new_username}' added with role '{new_role}'.")
-            else:
-                st.error("Username cannot be empty.")
+    with st.expander("Add New User", expanded=True):
+        with st.form("new_user_form"):
+            st.write("Add New User")
+            new_username = st.text_input("Username")
+            new_role = st.selectbox("Role", list(ROLES.keys()))
+            submitted = st.form_submit_button("Add User")
+            if submitted:
+                if new_username:
+                    assign_role(new_username, new_role)
+                    st.success(f"User '{new_username}' added with role '{new_role}'.")
+                else:
+                    st.error("Username cannot be empty.")
 
     st.subheader("Existing Users")
     users = list(st.session_state.user_roles.keys())
+    
+    st.markdown("""
+    <style>
+        .user-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .user-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .user-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .user-card p {
+            color: var(--text-color);
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div class='user-container'>", unsafe_allow_html=True)
     for user in users:
-        col1, col2, col3 = st.columns([2, 2, 1])
-        with col1:
-            st.write(user)
-        with col2:
-            st.write(st.session_state.user_roles[user])
-        with col3:
-            if st.button("Delete", key=f"delete_{user}"):
-                if user != "admin":  # Prevent deleting the admin user
-                    del st.session_state.user_roles[user]
-                    st.rerun()
-                else:
-                    st.warning("Cannot delete the admin user.")
+        st.markdown(f"""
+        <div class="user-card">
+            <h4>{user}</h4>
+            <p><strong>Role:</strong> {st.session_state.user_roles[user]}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 def render_projects_tab():
     st.title("📂 Projects")
@@ -899,22 +872,45 @@ def render_projects_tab():
     if "projects" not in st.session_state:
         st.session_state.projects = {}
 
+    st.markdown("""
+    <style>
+        .project-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .project-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .project-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+        .project-card p {
+            color: var(--text-color);
+            font-size: 1rem;
+            margin-bottom: 5px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div class='project-container'>", unsafe_allow_html=True)
     for project_name, project_data in st.session_state.projects.items():
-        with st.expander(project_name):
-            st.write(f"**Description:** {project_data.get('description', '')}")
-            col1, col2, col3 = st.columns(3)
-            with col1:
-                if st.button("Load", key=f"load_{project_name}"):
-                    st.session_state.project_name = project_name
-                    st.session_state.protocol_text = project_data.get('protocol_text', '')
-                    st.rerun()
-            with col2:
-                if st.button("Delete", key=f"delete_{project_name}"):
-                    del st.session_state.projects[project_name]
-                    st.rerun()
-            with col3:
-                if st.button("Share", key=f"share_{project_name}"):
-                    st.success(f"Shareable link: /shared/{project_name}")
+        st.markdown(f"""
+        <div class="project-card">
+            <h4>{project_name}</h4>
+            <p><strong>Description:</strong> {project_data.get('description', '')}</p>
+        </div>
+        """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 def render_report_templates_ui():
     """Render the report templates UI."""
@@ -942,15 +938,39 @@ def render_report_templates_ui():
             st.warning("Please provide a name and content for the template.")
 
     st.subheader("Existing Templates")
+    st.markdown("""
+    <style>
+        .template-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        .template-card {
+            background-color: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 20px;
+            transition: all 0.3s ease;
+        }
+        .template-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .template-card h4 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown("<div class='template-container'>", unsafe_allow_html=True)
     for template_name, template_content in st.session_state.report_templates.items():
-        with st.expander(template_name):
-            st.json(template_content)
-            if st.button("Delete Template", key=f"delete_{template_name}"):
-                del st.session_state.report_templates[template_name]
-                with open("report_templates.json", "w") as f:
-                    json.dump(st.session_state.report_templates, f, indent=4)
-                st.success(f"Template '{template_name}' deleted.")
-                st.rerun()
+        st.markdown(f"""
+        <div class="template-card">
+            <h4>{template_name}</h4>
+        </div>
+        """, unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
 
 def render_adversarial_testing_tab():
     st.header("Adversarial Testing with Multi-LLM Consensus")
