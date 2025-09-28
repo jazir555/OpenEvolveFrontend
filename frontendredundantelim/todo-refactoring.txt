@@ -1,0 +1,114 @@
+# Dependency Injection System Refactoring Plan
+
+## Phase 1: Assessment and Planning
+- [ ] Audit all current static classes to identify dependencies and coupling points and notate them in a text file
+- [ ] Document current architecture flaws and tight coupling issues
+- [ ] Map out dependency relationships between classes
+- [ ] Identify external dependencies (WordPress functions, globals, etc.)
+- [ ] Create dependency matrix showing class interdependencies
+- [ ] Assess which classes can be easily refactored vs. which need major rework
+
+## Phase 2: Core Architecture Refactoring
+- [ ] Refactor ServiceContainer to be a proper DI container (not just a wrapper)
+- [ ] Remove redundant manager wrapper classes
+- [ ] Convert static classes to instantiable injectable classes
+- [ ] Extract configuration and make it injectable
+- [ ] Replace direct WordPress function calls with injectable adapters
+- [ ] Implement proper constructor injection throughout
+
+## Phase 3: Individual Class Refactoring
+- [ ] Refactor Ajax class to be injectable (remove static methods)
+- [ ] Refactor AssetActionHandler class to be injectable
+- [ ] Refactor AssetData class to be injectable
+- [ ] Refactor AssetOrder class to be injectable
+- [ ] Refactor AssetUtils class to be injectable
+- [ ] Refactor AssetValidator class to be injectable
+- [ ] Refactor Cache class to be injectable
+- [ ] Refactor Cleanup class to be injectable
+- [ ] Refactor Database class to be injectable
+- [ ] Refactor Enqueue class to be injectable
+- [ ] Refactor Extract class to be injectable
+- [ ] Refactor FileLock class to be injectable
+- [ ] Refactor Generate class to be injectable
+- [ ] Refactor GetData class to be injectable
+- [ ] Refactor GetOption class to be injectable
+- [ ] Refactor Initialize class to be injectable
+- [ ] Refactor Normalize class to be injectable
+- [ ] Refactor Process class to be injectable
+- [ ] Refactor Render class to be injectable
+- [ ] Refactor Replace class to be injectable
+- [ ] Refactor Retry class to be injectable
+- [ ] Refactor Scanner class to be injectable
+- [ ] Refactor SelfHost class to be injectable
+- [ ] Refactor Settings class to be injectable
+- [ ] Refactor Speculation class to be injectable
+- [ ] Refactor SVG class to be injectable
+- [ ] Refactor Tasks class to be injectable
+- [ ] Refactor UrlProcessor class to be injectable
+
+## Phase 4: Dependency Extraction
+- [ ] Create HttpClientInterface and implementations (WordPress adapter, mock for testing)
+- [ ] Create FilesystemInterface and implementations (WordPress adapter, mock for testing)
+- [ ] Create DatabaseInterface and implementations (WordPress adapter, mock for testing)
+- [ ] Create LoggerInterface and implementations (FileLogger, NullLogger for testing)
+- [ ] Create CacheInterface and implementations (WordPress transients, memory cache, mock)
+- [ ] Create WordPressAdapter classes for core WordPress functions
+- [ ] Extract configuration management to injectable service
+- [ ] Create EventDispatcherInterface for decoupling event handling
+
+## Phase 5: Interface Refinement
+- [ ] Simplify overly complex interfaces (many current interfaces have 50+ methods)
+- [ ] Apply Interface Segregation Principle - split large interfaces into smaller, focused ones
+- [ ] Ensure interfaces follow Single Responsibility Principle
+- [ ] Create meaningful, focused interfaces that represent actual roles
+- [ ] Remove interfaces that don't provide real value or abstraction
+
+## Phase 6: Testing Infrastructure
+- [ ] Set up PHPUnit testing framework
+- [ ] Create base test classes with proper mocking capabilities
+- [ ] Implement dependency injection for tests
+- [ ] Create fixture data for testing
+- [ ] Set up test databases and filesystem mocks
+- [ ] Implement continuous integration testing
+
+## Phase 7: Performance Optimization
+- [ ] Implement proper caching strategies in refactored classes
+- [ ] Add lazy loading where appropriate
+- [ ] Optimize service container compilation and caching
+- [ ] Profile performance before and after refactoring
+- [ ] Implement memory usage monitoring and optimization
+
+## Phase 8: Documentation and Migration
+- [ ] Document new architecture and class responsibilities
+- [ ] Create migration guide for developers using the system
+- [ ] Update code examples and usage documentation
+- [ ] Create API reference for new injectable classes
+- [ ] Provide backward compatibility layer during transition
+
+## Phase 9: Quality Assurance
+- [ ] Implement comprehensive unit tests for all refactored classes
+- [ ] Add integration tests for key workflows
+- [ ] Perform security auditing of refactored code
+- [ ] Conduct performance benchmarking
+- [ ] Ensure full code coverage for critical functionality
+
+## Phase 10: Deployment and Monitoring
+- [ ] Plan gradual rollout strategy
+- [ ] Implement feature flags for new architecture
+- [ ] Set up monitoring for performance and error metrics
+- [ ] Create rollback procedures
+- [ ] Monitor production performance post-deployment
+
+## Quick Wins (Can be done immediately)
+- [ ] Remove redundant manager wrapper classes
+- [ ] Simplify overly complex interfaces
+- [ ] Extract configuration to injectable service
+- [ ] Create basic HTTP client adapter
+- [ ] Set up initial testing framework
+
+## Long-term Goals
+- [ ] Achieve full test coverage
+- [ ] Implement proper design patterns (Strategy, Observer, etc.)
+- [ ] Enable easy extensibility and customization
+- [ ] Achieve measurable performance improvements
+- [ ] Reduce overall code complexity and coupling
