@@ -245,10 +245,208 @@ from log_streaming import LogStreaming
 # from session_utils import get_current_session_id
 from session_state_classes import State, SessionManager
 
+from session_state_classes import State, SessionManager
+
+def _initialize_session_state():
+    if "theme" not in st.session_state:
+        st.session_state.theme = "light"
+    if "styles_css" not in st.session_state:
+        with open("styles.css") as f:
+            st.session_state.styles_css = f.read()
+    if "show_quick_guide" not in st.session_state:
+        st.session_state.show_quick_guide = False
+    if "show_keyboard_shortcuts" not in st.session_state:
+        st.session_state.show_keyboard_shortcuts = False
+    if "adversarial_running" not in st.session_state:
+        st.session_state.adversarial_running = False
+    if "evolution_running" not in st.session_state:
+        st.session_state.evolution_running = False
+    if "evolution_history" not in st.session_state:
+        st.session_state.evolution_history = []
+    if "suggestions" not in st.session_state:
+        st.session_state.suggestions = []
+    if "classification_and_tags" not in st.session_state:
+        st.session_state.classification_and_tags = {}
+    if "improvement_potential" not in st.session_state:
+        st.session_state.improvement_potential = None
+    if "vulnerabilities" not in st.session_state:
+        st.session_state.vulnerabilities = []
+    if "openevolve_base_url" not in st.session_state:
+        st.session_state.openevolve_base_url = "http://localhost:8000"
+    if "openevolve_api_key" not in st.session_state:
+        st.session_state.openevolve_api_key = ""
+    if "system_prompt" not in st.session_state:
+        st.session_state.system_prompt = ""
+    if "evaluator_system_prompt" not in st.session_state:
+        st.session_state.evaluator_system_prompt = ""
+    if "evolution_use_specialized_evaluator" not in st.session_state:
+        st.session_state.evolution_use_specialized_evaluator = False
+    if "evolution_max_iterations" not in st.session_state:
+        st.session_state.evolution_max_iterations = 20
+    if "evolution_population_size" not in st.session_state:
+        st.session_state.evolution_population_size = 1
+    if "multi_objective_num_islands_island_model_2" not in st.session_state:
+        st.session_state.multi_objective_num_islands_island_model_2 = 1
+    if "evolution_elite_ratio" not in st.session_state:
+        st.session_state.evolution_elite_ratio = 1.0
+    if "evolution_checkpoint_interval" not in st.session_state:
+        st.session_state.evolution_checkpoint_interval = 5
+    if "evolution_exploration_ratio" not in st.session_state:
+        st.session_state.evolution_exploration_ratio = 0.0
+    if "evolution_exploitation_ratio" not in st.session_state:
+        st.session_state.exploitation_ratio = 0.0
+    if "evolution_archive_size" not in st.session_state:
+        st.session_state.evolution_archive_size = 0
+    if "model_temperature" not in st.session_state:
+        st.session_state.model_temperature = 0.7
+    if "model_top_p" not in st.session_state:
+        st.session_state.model_top_p = 1.0
+    if "model_frequency_penalty" not in st.session_state:
+        st.session_state.model_frequency_penalty = 0.0
+    if "model_presence_penalty" not in st.session_state:
+        st.session_state.model_presence_penalty = 0.0
+    if "multi_objective_feature_dimensions" not in st.session_state:
+        st.session_state.multi_objective_feature_dimensions = ['complexity', 'diversity']
+    if "multi_objective_feature_bins" not in st.session_state:
+        st.session_state.multi_objective_feature_bins = 10
+    if "multi_objective_num_islands_island_model_3" not in st.session_state:
+        st.session_state.multi_objective_num_islands_island_model_3 = 1
+    if "multi_objective_migration_interval" not in st.session_state:
+        st.session_state.multi_objective_migration_interval = 50
+    if "multi_objective_migration_rate" not in st.session_state:
+        st.session_state.multi_objective_migration_rate = 0.1
+    if "evolution_id" not in st.session_state:
+        st.session_state.evolution_id = None
+    if "evolution_log" not in st.session_state:
+        st.session_state.evolution_log = []
+    if "evolution_current_best" not in st.session_state:
+        st.session_state.evolution_current_best = ""
+    if "thread_lock" not in st.session_state:
+        st.session_state.thread_lock = threading.Lock()
+    if "protocol_text" not in st.session_state:
+        st.session_state.protocol_text = "# Sample Protocol\n\nThis is a sample protocol for testing purposes."
+    if "openrouter_key" not in st.session_state:
+        st.session_state.openrouter_key = ""
+    if "red_team_models" not in st.session_state:
+        st.session_state.red_team_models = []
+    if "blue_team_models" not in st.session_state:
+        st.session_state.blue_team_models = []
+    if "adversarial_custom_mode" not in st.session_state:
+        st.session_state.adversarial_custom_mode = False
+    if "adversarial_custom_red_prompt" not in st.session_state:
+        st.session_state.adversarial_custom_red_prompt = RED_TEAM_CRITIQUE_PROMPT
+    if "adversarial_custom_blue_prompt" not in st.session_state:
+        st.session_state.adversarial_custom_blue_prompt = BLUE_TEAM_PATCH_PROMPT
+    if "adversarial_custom_approval_prompt" not in st.session_state:
+        st.session_state.adversarial_custom_approval_prompt = APPROVAL_PROMPT
+    if "adversarial_review_type" not in st.session_state:
+        st.session_state.adversarial_review_type = "Auto-Detect"
+    if "adversarial_min_iter" not in st.session_state:
+        st.session_state.adversarial_min_iter = 1
+    if "adversarial_max_iter" not in st.session_state:
+        st.session_state.adversarial_max_iter = 5
+    if "adversarial_confidence" not in st.session_state:
+        st.session_state.adversarial_confidence = 80
+    if "adversarial_max_tokens" not in st.session_state:
+        st.session_state.adversarial_max_tokens = 10000
+    if "adversarial_max_workers" not in st.session_state:
+        st.session_state.adversarial_max_workers = 4
+    if "adversarial_force_json" not in st.session_state:
+        st.session_state.adversarial_force_json = False
+    if "adversarial_seed" not in st.session_state:
+        st.session_state.adversarial_seed = ""
+    if "adversarial_rotation_strategy" not in st.session_state:
+        st.session_state.adversarial_rotation_strategy = "None"
+    if "adversarial_staged_rotation_config" not in st.session_state:
+        st.session_state.adversarial_staged_rotation_config = ""
+    if "adversarial_red_team_sample_size" not in st.session_state:
+        st.session_state.adversarial_red_team_sample_size = 1
+    if "adversarial_blue_team_sample_size" not in st.session_state:
+        st.session_state.adversarial_blue_team_sample_size = 1
+    if "adversarial_auto_optimize_models" not in st.session_state:
+        st.session_state.adversarial_auto_optimize_models = False
+    if "adversarial_budget_limit" not in st.session_state:
+        st.session_state.adversarial_budget_limit = 10.0 # Default budget limit
+    if "adversarial_critique_depth" not in st.session_state:
+        st.session_state.adversarial_critique_depth = 5
+    if "adversarial_patch_quality" not in st.session_state:
+        st.session_state.adversarial_patch_quality = 5
+    if "adversarial_compliance_requirements" not in st.session_state:
+        st.session_state.adversarial_compliance_requirements = ""
+    if "adversarial_status_message" not in st.session_state:
+        st.session_state.adversarial_status_message = ""
+    if "adversarial_confidence_history" not in st.session_state:
+        st.session_state.adversarial_confidence_history = []
+    if "adversarial_cost_estimate_usd" not in st.session_state:
+        st.session_state.adversarial_cost_estimate_usd = 0.0
+    if "adversarial_total_tokens_prompt" not in st.session_state:
+        st.session_state.adversarial_total_tokens_prompt = 0
+    if "adversarial_total_tokens_completion" not in st.session_state:
+        st.session_state.adversarial_total_tokens_completion = 0
+    if "adversarial_log" not in st.session_state:
+        st.session_state.adversarial_log = []
+    if "adversarial_results" not in st.session_state:
+        st.session_state.adversarial_results = None
+    if "adversarial_model_performance" not in st.session_state:
+        st.session_state.adversarial_model_performance = {}
+    if "pdf_watermark" not in st.session_state:
+        st.session_state.pdf_watermark = "OpenEvolve Confidential"
+    if "custom_css" not in st.session_state:
+        st.session_state.custom_css = ""
+    if "discord_webhook_url" not in st.session_state:
+        st.session_state.discord_webhook_url = ""
+    if "msteams_webhook_url" not in st.session_state:
+        st.session_state.msteams_webhook_url = ""
+    if "generic_webhook_url" not in st.session_state:
+        st.session_state.generic_webhook_url = ""
+    if "github_token" not in st.session_state:
+        st.session_state.github_token = ""
+    if "activity_log" not in st.session_state:
+        st.session_state.activity_log = []
+    if "report_templates" not in st.session_state:
+        st.session_state.report_templates = _load_report_templates()
+    if "user_roles" not in st.session_state:
+        st.session_state.user_roles = {"admin": "admin", "user": "user"} # Default roles
+    if "projects" not in st.session_state:
+        st.session_state.projects = {}
+    if "project_public" not in st.session_state:
+        st.session_state.project_public = False
+    if "project_password" not in st.session_state:
+        st.session_state.project_password = ""
+    if "collaboration_session" not in st.session_state:
+        st.session_state.collaboration_session = {"notifications": []}
+    if "model" not in st.session_state:
+        st.session_state.model = ""
+    if "api_key" not in st.session_state:
+        st.session_state.api_key = ""
+    if "base_url" not in st.session_state:
+        st.session_state.base_url = ""
+    if "temperature" not in st.session_state:
+        st.session_state.temperature = 0.7
+    if "top_p" not in st.session_state:
+        st.session_state.top_p = 1.0
+    if "max_tokens" not in st.session_state:
+        st.session_state.max_tokens = 1000
+    if "population_size" not in st.session_state:
+        st.session_state.population_size = 1
+    if "num_islands" not in st.session_state:
+        st.session_state.num_islands = 1
+    if "archive_size" not in st.session_state:
+        st.session_state.archive_size = 0
+    if "elite_ratio" not in st.session_state:
+        st.session_state.elite_ratio = 1.0
+    if "exploration_ratio" not in st.session_state:
+        st.session_state.exploration_ratio = 0.0
+    if "exploitation_ratio" not in st.session_state:
+        st.session_state.exploitation_ratio = 0.0
+    if "checkpoint_interval" not in st.session_state:
+        st.session_state.checkpoint_interval = 5
+    if "evolution_stop_flag" not in st.session_state:
+        st.session_state.evolution_stop_flag = False
+    if "adversarial_stop_flag" not in st.session_state:
+        st.session_state.adversarial_stop_flag = False
+
 def render_main_layout():
-    # Initialize manager objects and store them in session state to prevent re-instantiation
-    if "session_manager" not in st.session_state:
-        st.session_state.session_manager = session_defaults
 
     if "template_manager" not in st.session_state:
         st.session_state.template_manager = TemplateManager()
@@ -1207,81 +1405,33 @@ def render_main_layout():
                 st.divider()
 
     with tabs[3]: # Activity Feed tab
-        with st.container():
-            st.title("📜 Activity Feed")
-
-
-
-            st.markdown("<div class='activity-container'>", unsafe_allow_html=True)
-            for activity in reversed(st.session_state.activity_log):
-                st.markdown(f"""
-                <div class="activity-card">
-                    <p><strong>{activity['timestamp']}**: <strong>{activity['user']}</strong> {activity['activity']}</p>
-                </div>
-                """, unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
-            st.divider() # Add a divider at the end of the section
+        st.title("📜 Activity Feed")
+        render_activity_feed_ui()
+        st.markdown("<br>", unsafe_allow_html=True)
 
     with tabs[4]: # Report Templates tab
-        with st.container():
-            st.title("📊 Report Templates")
-
-            if "report_templates" not in st.session_state:
-                st.session_state.report_templates = _load_report_templates()
-
-            st.subheader("Create New Template")
-            new_template_name = st.text_input("Template Name")
-            new_template_content = st.text_area("Template Content (JSON)", height=200)
-            if st.button("Save Template"):
-                if new_template_name and new_template_content:
-                    try:
-                        template_data = json.loads(new_template_content)
-                        st.session_state.report_templates[new_template_name] = template_data
-                        with open("report_templates.json", "w") as f:
-                            json.dump(st.session_state.report_templates, f, indent=4)
-                        st.success(f"Template '{new_template_name}' saved.")
-                        _load_report_templates.clear()
-                    except json.JSONDecodeError:
-                        st.error("Invalid JSON format.")
-                else:
-                    st.warning("Please provide a name and content for the template.")
-            st.divider()
-
-            st.subheader("Existing Templates")
-
-
-            st.markdown("<div class='template-container'>", unsafe_allow_html=True)
-            for template_name, template_content in st.session_state.report_templates.items():
-                st.markdown(f"""
-                <div class="template-card">
-                    <h4>{template_name}</h4>
-                </div>
-                """, unsafe_allow_html=True)
-            st.markdown("</div>", unsafe_allow_html=True)
-            st.divider()
+        st.title("📊 Report Templates")
+        render_report_templates_ui()
+        st.markdown("<br>", unsafe_allow_html=True)
 
     with tabs[5]: # Model Dashboard tab
-        with st.container():
-            st.title("🤖 Model Dashboard")
-            render_model_dashboard_ui()
-            st.divider() # Add a divider at the end of the section
+        st.title("🤖 Model Dashboard")
+        render_model_dashboard_ui()
+        st.markdown("<br>", unsafe_allow_html=True)
 
     with tabs[6]: # Tasks tab
-        with st.container():
-            st.title("✅ Tasks")
-            render_tasks_ui()
-            st.divider() # Add a divider at the end of the section
+        st.title("✅ Tasks")
+        render_tasks_ui()
+        st.markdown("<br>", unsafe_allow_html=True)
 
     with tabs[7]: # Admin tab
-        with st.container():
-            st.title("👑 Admin")
-            render_admin_ui()
-            st.divider() # Add a divider at the end of the section
+        st.title("👑 Admin")
+        render_admin_ui()
+        st.markdown("<br>", unsafe_allow_html=True)
     with tabs[8]: # Projects tab
-        with st.container():
-            st.title("📂 Projects")
-            render_projects_tab()
-            st.divider() # Add a divider at the end of the section
+        st.title("📂 Projects")
+        render_projects_tab()
+        st.markdown("<br>", unsafe_allow_html=True)
 def render_model_dashboard_ui():
     """Render the model comparison dashboard UI."""
     with st.container(): # Wrap the entire function content in a container
@@ -2132,3 +2282,67 @@ Applies to all employees, contractors, and vendors with system access.
                                 )
                             else:
                                 st.warning("No results or compliance requirements to generate a report.")
+
+def render_report_templates_ui():
+    """Render the report templates UI."""
+    st.markdown("""
+    > Manage your custom report templates here. Create new templates or view existing ones.
+    """)
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    if "report_templates" not in st.session_state:
+        st.session_state.report_templates = _load_report_templates()
+
+    with st.container(border=True): # Create New Template Section
+        st.markdown("### Create New Template")
+        new_template_name = st.text_input("Template Name")
+        new_template_content = st.text_area("Template Content (JSON)", height=200)
+        if st.button("Save Template", type="primary"):
+            if new_template_name and new_template_content:
+                try:
+                    template_data = json.loads(new_template_content)
+                    st.session_state.report_templates[new_template_name] = template_data
+                    with open("report_templates.json", "w") as f:
+                        json.dump(st.session_state.report_templates, f, indent=4)
+                    st.success(f"Template '{new_template_name}' saved.")
+                    _load_report_templates.clear()
+                except json.JSONDecodeError:
+                    st.error("Invalid JSON format.")
+            else:
+                st.warning("Please provide a name and content for the template.")
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    with st.container(border=True): # Existing Templates Section
+        st.markdown("### Existing Templates")
+        st.markdown("<div class='template-container'>", unsafe_allow_html=True)
+        for template_name, template_content in st.session_state.report_templates.items():
+            st.markdown(f"""
+            <div class="template-card">
+                <h4>{template_name}</h4>
+                <p>{json.dumps(template_content, indent=2)}</p>
+                <button class="stButton secondary-button" onclick="
+                    var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'edit_template_{template_name}', value: true}}}});
+                    window.parent.document.dispatchEvent(event);
+                ">Edit</button>
+                <button class="stButton secondary-button" onclick="
+                    var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'delete_template_{template_name}', value: true}}}});
+                    window.parent.document.dispatchEvent(event);
+                ">Delete</button>
+            </div>
+            """, unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # Handle edit/delete actions (simplified for now, full implementation would involve more state management)
+        for template_name in st.session_state.report_templates.keys():
+            if st.session_state.get(f'edit_template_{template_name}') :
+                st.session_state[f'edit_template_{template_name}'] = False # Reset
+                st.info(f"Editing template: {template_name} (functionality to be implemented)")
+            if st.session_state.get(f'delete_template_{template_name}') :
+                st.session_state[f'delete_template_{template_name}'] = False # Reset
+                del st.session_state.report_templates[template_name]
+                with open("report_templates.json", "w") as f:
+                    json.dump(st.session_state.report_templates, f, indent=4)
+                st.success(f"Template '{template_name}' deleted.")
+                _load_report_templates.clear()
+                st.rerun()
+    st.markdown("<br>", unsafe_allow_html=True)
