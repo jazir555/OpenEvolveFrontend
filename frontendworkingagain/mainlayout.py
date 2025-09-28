@@ -232,41 +232,40 @@ def render_collaboration_ui():
     </script>
     """, unsafe_allow_html=True)
 
-from session_manager import SessionManager
+from session_manager import session_defaults
 from prompt_manager import PromptManager
 from template_manager import TemplateManager
-from content_manager import ContentManager
+from content_manager import content_manager
 from analytics_manager import AnalyticsManager
 from collaboration_manager import CollaborationManager
 from version_control import VersionControl
-from rbac import RBAC
+# from rbac import RBAC
 from notifications import NotificationManager
-from log_streaming import LogStreaming
-from session_utils import get_current_session_id
-from session_state_classes import SessionState, Session
+# from log_streaming import LogStreaming
+# from session_utils import get_current_session_id
+from session_state_classes import State, SessionManager
 
 def render_main_layout():
     # Initialize manager objects and store them in session state to prevent re-instantiation
     if "session_manager" not in st.session_state:
-        st.session_state.session_manager = SessionManager()
-    if "prompt_manager" not in st.session_state:
-        st.session_state.prompt_manager = PromptManager()
+        st.session_state.session_manager = session_defaults
+
     if "template_manager" not in st.session_state:
         st.session_state.template_manager = TemplateManager()
+    if "prompt_manager" not in st.session_state:
+        st.session_state.prompt_manager = PromptManager()
     if "content_manager_instance" not in st.session_state: # Renamed to avoid conflict with imported content_manager
-        st.session_state.content_manager_instance = ContentManager()
+        st.session_state.content_manager_instance = content_manager
     if "analytics_manager_instance" not in st.session_state: # Renamed to avoid conflict with imported analytics_manager
         st.session_state.analytics_manager_instance = AnalyticsManager()
     if "collaboration_manager" not in st.session_state:
         st.session_state.collaboration_manager = CollaborationManager()
     if "version_control" not in st.session_state:
         st.session_state.version_control = VersionControl()
-    if "rbac_instance" not in st.session_state: # Renamed to avoid conflict with imported rbac
-        st.session_state.rbac_instance = RBAC()
+
     if "notification_manager" not in st.session_state:
         st.session_state.notification_manager = NotificationManager()
-    if "log_streaming" not in st.session_state:
-        st.session_state.log_streaming = LogStreaming()
+
 
     # Assign references for easier access within the function
     session_manager = st.session_state.session_manager
@@ -597,10 +596,7 @@ def render_main_layout():
                 if stop_button:
                     st.session_state.evolution_stop_flag = True
 
-                if st.session_state.evolution_running:
-                    # Removed time.sleep(1) and st.rerun() for performance. Consider asynchronous updates or Streamlit's native capabilities for real-time data display without constant reruns.
 
-    with tabs[1]: # Adversarial Testing tab
         with st.container(): # Wrap the entire tab content in a container
             st.header("Adversarial Testing with Multi-LLM Consensus")
 
@@ -1479,32 +1475,32 @@ def render_adversarial_testing_tab():
 
     # OpenRouter Configuration
     st.subheader("🔑 OpenRouter Configuration")
-                openrouter_key = st.text_input("OpenRouter API Key", type="password", key="openrouter_key")
-                if not openrouter_key:
-                    st.info("Enter your OpenRouter API key to enable model selection and testing.")
-                    return
+    openrouter_key = st.text_input("OpenRouter API Key", type="password", key="openrouter_key")
+    if not openrouter_key:
+        st.info("Enter your OpenRouter API key to enable model selection and testing.")
+        return
     
-                # Cache models based on the openrouter_key
-                if "openrouter_models" not in st.session_state or st.session_state.get("last_openrouter_key") != openrouter_key:
-                    models = get_openrouter_models(openrouter_key)
-                    if not models:
-                        st.error("No models fetched. Check your OpenRouter key and connection.")
-                        return
-                    st.session_state.openrouter_models = models
-                    st.session_state.last_openrouter_key = openrouter_key
-                else:
+    # Cache models based on the openrouter_key
+    if "openrouter_models" not in st.session_state or st.session_state.get("last_openrouter_key") != openrouter_key:
+        models = get_openrouter_models(openrouter_key)
+        if not models:
+            st.error("No models fetched. Check your OpenRouter key and connection.")
+            return
+        st.session_state.openrouter_models = models
+        st.session_state.last_openrouter_key = openrouter_key
+    else:
                     models = st.session_state.openrouter_models
     
-                # Update global model metadata with thread safety
-                for m in models:
-                    if isinstance(m, dict) and (mid := m.get("id")):
-                        with MODEL_META_LOCK:
-                            MODEL_META_BY_ID[mid] = m
-    
-                model_options = sorted([
-                    f"{m['id']} (Ctx: {m.get('context_length', 'N/A')}, "
-                    f"In: {_parse_price_per_million(m.get('pricing', {}).get('prompt')) or 'N/A'}/M, "
-                    f"Out: {_parse_price_per_million(m.get('pricing', {}).get('completion')) or 'N/A'}/M)"
+    # Update global model metadata with thread safety
+    for m in models:
+        if isinstance(m, dict) and (mid := m.get("id")):
+            with MODEL_META_LOCK:
+                MODEL_META_BY_ID[mid] = m
+
+    model_options = sorted([
+        f"{m['id']} (Ctx: {m.get('context_length', 'N/A')}, "
+        f"In: {_parse_price_per_million(m.get('pricing', {}).get('prompt')) or 'N/A'}/M, "
+        f"Out: {_parse_price_per_million(m.get('pricing', {}).get('completion')) or 'N/A'}/M)"
                     for m in models if isinstance(m, dict) and "id" in m
                 ])
     # Protocol Templates
