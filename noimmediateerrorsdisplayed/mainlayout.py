@@ -1561,60 +1561,67 @@ def render_projects_tab():
 
 def render_report_templates_ui():
     """Render the report templates UI."""
+    st.markdown("""
+    > Manage your custom report templates here. Create new templates or view existing ones.
+    """)
+    st.markdown("<br>", unsafe_allow_html=True)
+
     if "report_templates" not in st.session_state:
         st.session_state.report_templates = _load_report_templates()
 
-    st.subheader("Create New Template")
-    new_template_name = st.text_input("Template Name")
-    new_template_content = st.text_area("Template Content (JSON)", height=200)
-    if st.button("Save Template"):
-        if new_template_name and new_template_content:
-            try:
-                template_data = json.loads(new_template_content)
-                st.session_state.report_templates[new_template_name] = template_data
+    with st.container(border=True): # Create New Template Section
+        st.markdown("### Create New Template")
+        new_template_name = st.text_input("Template Name")
+        new_template_content = st.text_area("Template Content (JSON)", height=200)
+        if st.button("Save Template", type="primary"):
+            if new_template_name and new_template_content:
+                try:
+                    template_data = json.loads(new_template_content)
+                    st.session_state.report_templates[new_template_name] = template_data
+                    with open("report_templates.json", "w") as f:
+                        json.dump(st.session_state.report_templates, f, indent=4)
+                    st.success(f"Template '{new_template_name}' saved.")
+                    _load_report_templates.clear()
+                except json.JSONDecodeError:
+                    st.error("Invalid JSON format.")
+            else:
+                st.warning("Please provide a name and content for the template.")
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    with st.container(border=True): # Existing Templates Section
+        st.markdown("### Existing Templates")
+        st.markdown("<div class='template-container'>", unsafe_allow_html=True)
+        for template_name, template_content in st.session_state.report_templates.items():
+            st.markdown(f"""
+            <div class="template-card">
+                <h4>{template_name}</h4>
+                <p>{json.dumps(template_content, indent=2)}</p>
+                <button class="stButton secondary-button" onclick="
+                    var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'edit_template_{template_name}', value: true}}}});
+                    window.parent.document.dispatchEvent(event);
+                ">Edit</button>
+                <button class="stButton secondary-button" onclick="
+                    var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'delete_template_{template_name}', value: true}}}});
+                    window.parent.document.dispatchEvent(event);
+                ">Delete</button>
+            </div>
+            """, unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+
+        # Handle edit/delete actions (simplified for now, full implementation would involve more state management)
+        for template_name in st.session_state.report_templates.keys():
+            if st.session_state.get(f'edit_template_{template_name}') :
+                st.session_state[f'edit_template_{template_name}'] = False # Reset
+                st.info(f"Editing template: {template_name} (functionality to be implemented)")
+            if st.session_state.get(f'delete_template_{template_name}') :
+                st.session_state[f'delete_template_{template_name}'] = False # Reset
+                del st.session_state.report_templates[template_name]
                 with open("report_templates.json", "w") as f:
                     json.dump(st.session_state.report_templates, f, indent=4)
-                st.success(f"Template '{new_template_name}' saved.")
+                st.success(f"Template '{template_name}' deleted.")
                 _load_report_templates.clear()
-            except json.JSONDecodeError:
-                st.error("Invalid JSON format.")
-        else:
-            st.warning("Please provide a name and content for the template.")
-
-    st.subheader("Existing Templates")
-    st.markdown("""
-    <style>
-        .template-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
-        }
-        .template-card {
-            background-color: var(--card-background);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            transition: all 0.3s ease;
-        }
-        .template-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-        .template-card h4 {
-            color: var(--primary-color);
-            margin-bottom: 10px;
-        }
-    </style>
-    """, unsafe_allow_html=True)
-
-    st.markdown("<div class='template-container'>", unsafe_allow_html=True)
-    for template_name, template_content in st.session_state.report_templates.items():
-        st.markdown(f"""
-        <div class="template-card">
-            <h4>{template_name}</h4>
-        </div>
-        """, unsafe_allow_html=True)
-    st.markdown("</div>", unsafe_allow_html=True)
+                st.rerun()
+    st.markdown("<br>", unsafe_allow_html=True)
 
 def render_adversarial_testing_tab():
     st.header("Adversarial Testing with Multi-LLM Consensus")
