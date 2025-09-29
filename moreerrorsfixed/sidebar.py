@@ -94,6 +94,18 @@ def on_provider_change():
     load_settings_for_scope()
 
 
+def create_tooltip_html(label, description):
+    return f"""
+    <div style="display: flex; align-items: center; gap: 5px;">
+        <span>{label}</span>
+        <span class="tooltip-container">
+            <span class="question-icon">?</span>
+            <span class="tooltip-text">{description}</span>
+        </span>
+    </div>
+    """
+
+
 def display_sidebar():
     # Initialize settings structures in session state if they don't exist
     if "user_preferences" not in st.session_state:
@@ -121,6 +133,55 @@ def display_sidebar():
         ''',
             unsafe_allow_html=True,
         )
+
+        # Inject custom CSS for tooltips
+        st.markdown("""
+        <style>
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+            margin-left: 5px; /* Space between label and icon */
+        }
+
+        .question-icon {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            line-height: 16px;
+            text-align: center;
+            border: 1px solid #ccc;
+            border-radius: 50%;
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #555;
+            background-color: #f0f0f0;
+        }
+
+        .tooltip-text {
+            visibility: hidden;
+            width: 200px; /* Adjust width as needed */
+            background-color: #555;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px 0;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%; /* Position the tooltip above the icon */
+            left: 50%;
+            margin-left: -100px; /* Center the tooltip */
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip-container:hover .tooltip-text {
+            visibility: visible;
+            opacity: 1;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 
         st.markdown("---")
 
@@ -172,12 +233,13 @@ def display_sidebar():
                 st.warning("No LLM providers configured. Please add providers to proceed.")
                 st.stop() # Stop rendering if no providers are available.
 
+        st.markdown(create_tooltip_html("Provider", "Select the LLM provider to use for evolution. Adversarial testing always uses OpenRouter."), unsafe_allow_html=True)
         st.selectbox(
             "Provider",
             provider_keys,
             key="provider",
             on_change=on_provider_change,
-            help="Select the LLM provider to use for evolution. Adversarial testing always uses OpenRouter."
+            label_visibility="hidden"
         )
 
         try:
@@ -226,30 +288,38 @@ def display_sidebar():
 
         # SETTINGS SCOPE SELECTOR
         st.subheader("Parameter Scope")
+        st.markdown(create_tooltip_html("Settings Level", "Select the scope for viewing and saving parameters. Settings are inherited from Global -> Provider -> Model."), unsafe_allow_html=True)
         st.radio(
             "Settings Level",
             ["Global", "Provider", "Model"],
             key="settings_scope",
             horizontal=True,
             on_change=load_settings_for_scope,
-            help="Select the scope for viewing and saving parameters. Settings are inherited from Global -> Provider -> Model.",
+            label_visibility="hidden"
         )
 
         with st.form("generation_parameters_form"):
             st.subheader("Generation Parameters")
-            st.slider("Temperature", 0.0, 2.0, key="temperature", step=0.1, help="Controls the randomness of the output. Higher values mean more creative, lower values mean more deterministic.")
-            st.slider("Top-P", 0.0, 1.0, key="top_p", step=0.1, help="Controls the diversity of the output by sampling from the most probable tokens whose cumulative probability exceeds top_p.")
+            st.markdown(create_tooltip_html("Temperature", "Controls the randomness of the output. Higher values mean more creative, lower values mean more deterministic."), unsafe_allow_html=True)
+            st.slider("Temperature", 0.0, 2.0, key="temperature", step=0.1, label_visibility="hidden")
+            st.markdown(create_tooltip_html("Top-P", "Controls the diversity of the output by sampling from the most probable tokens whose cumulative probability exceeds top_p."), unsafe_allow_html=True)
+            st.slider("Top-P", 0.0, 1.0, key="top_p", step=0.1, label_visibility="hidden")
+            st.markdown(create_tooltip_html("Frequency Penalty", "Penalizes new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim."), unsafe_allow_html=True)
             st.slider(
-                "Frequency Penalty", -2.0, 2.0, key="frequency_penalty", step=0.1, help="Penalizes new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim."
+                "Frequency Penalty", -2.0, 2.0, key="frequency_penalty", step=0.1, label_visibility="hidden"
             )
-            st.slider("Presence Penalty", -2.0, 2.0, key="presence_penalty", step=0.1, help="Penalizes new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.")
-            st.number_input("Max Tokens", 1, 100000, key="max_tokens", help="The maximum number of tokens to generate in the completion.")
-            st.number_input("Seed", key="seed", help="A seed for reproducible generation. Use the same seed to get the same output for the same input.")
+            st.markdown(create_tooltip_html("Presence Penalty", "Penalizes new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics."), unsafe_allow_html=True)
+            st.slider("Presence Penalty", -2.0, 2.0, key="presence_penalty", step=0.1, label_visibility="hidden")
+            st.markdown(create_tooltip_html("Max Tokens", "The maximum number of tokens to generate in the completion."), unsafe_allow_html=True)
+            st.number_input("Max Tokens", 1, 100000, key="max_tokens", label_visibility="hidden")
+            st.markdown(create_tooltip_html("Seed", "A seed for reproducible generation. Use the same seed to get the same output for the same input."), unsafe_allow_html=True)
+            st.number_input("Seed", key="seed", label_visibility="hidden")
+            st.markdown(create_tooltip_html("Reasoning Effort", "Controls the computational effort the model expends on reasoning. Higher effort may lead to better quality but slower generation."), unsafe_allow_html=True)
             st.selectbox(
                 "Reasoning Effort",
                 ["low", "medium", "high"],
                 key="reasoning_effort",
-                help="Controls the computational effort the model expends on reasoning. Higher effort may lead to better quality but slower generation."
+                label_visibility="hidden"
             )
             if st.form_submit_button("Apply Generation Parameters"):
                 scope = st.session_state.settings_scope
@@ -317,20 +387,31 @@ def display_sidebar():
         st.markdown("---")
         with st.form("evolution_parameters_form"):
             st.subheader("Evolution Parameters")
-            st.number_input("Max Iterations", 1, 200, key="max_iterations", help="The maximum number of evolutionary iterations to run.")
-            st.number_input("Population Size", 1, 100, key="population_size", help="The number of individuals (solutions) in each generation.")
-            st.number_input("Number of Islands", 1, 10, key="num_islands", help="The number of independent evolutionary populations (islands) to maintain.")
-            st.number_input("Migration Interval", 1, 100, key="migration_interval", help="How often individuals migrate between islands (in iterations).")
-            st.slider("Migration Rate", 0.0, 1.0, key="migration_rate", step=0.01, help="The proportion of individuals that migrate between islands during a migration event.")
-            st.number_input("Archive Size", 0, 100, key="archive_size", help="The maximum number of unique, high-performing solutions to store in the archive.")
-            st.slider("Elite Ratio", 0.0, 1.0, key="elite_ratio", step=0.01, help="The proportion of the best individuals from the current generation that are guaranteed to survive to the next generation without modification.")
+            st.markdown(create_tooltip_html("Max Iterations", "The maximum number of evolutionary iterations to run."), unsafe_allow_html=True)
+            st.number_input("Max Iterations", 1, 200, key="max_iterations", label_visibility="hidden")
+            st.markdown(create_tooltip_html("Population Size", "The number of individuals (solutions) in each generation."), unsafe_allow_html=True)
+            st.number_input("Population Size", 1, 100, key="population_size", label_visibility="hidden")
+            st.markdown(create_tooltip_html("Number of Islands", "The number of independent evolutionary populations (islands) to maintain."), unsafe_allow_html=True)
+            st.number_input("Number of Islands", 1, 10, key="num_islands", label_visibility="hidden")
+            st.markdown(create_tooltip_html("Migration Interval", "How often individuals migrate between islands (in iterations)."), unsafe_allow_html=True)
+            st.number_input("Migration Interval", 1, 100, key="migration_interval", label_visibility="hidden")
+            st.markdown(create_tooltip_html("Migration Rate", "The proportion of individuals that migrate between islands during a migration event."), unsafe_allow_html=True)
+            st.slider("Migration Rate", 0.0, 1.0, key="migration_rate", step=0.01, label_visibility="hidden")
+            st.markdown(create_tooltip_html("Archive Size", "The maximum number of unique, high-performing solutions to store in the archive."), unsafe_allow_html=True)
+            st.number_input("Archive Size", 0, 100, key="archive_size", label_visibility="hidden")
+            st.markdown(create_tooltip_html("Elite Ratio", "The proportion of the best individuals from the current generation that are guaranteed to survive to the next generation without modification."), unsafe_allow_html=True)
+            st.slider("Elite Ratio", 0.0, 1.0, key="elite_ratio", step=0.01, label_visibility="hidden")
+            st.markdown(create_tooltip_html("Exploration Ratio", "The proportion of the population dedicated to exploring new solution spaces."), unsafe_allow_html=True)
             st.slider(
-                "Exploration Ratio", 0.0, 1.0, key="exploration_ratio", step=0.01, help="The proportion of the population dedicated to exploring new solution spaces."
+                "Exploration Ratio", 0.0, 1.0, key="exploration_ratio", step=0.01, label_visibility="hidden"
             )
+            st.markdown(create_tooltip_html("Exploitation Ratio", "The proportion of the population dedicated to refining existing promising solutions."), unsafe_allow_html=True)
             st.slider(
-                "Exploitation Ratio", 0.0, 1.0, key="exploitation_ratio", step=0.01, help="The proportion of the population dedicated to refining existing promising solutions."
+                "Exploitation Ratio", 0.0, 1.0, key="exploitation_ratio", step=0.01, label_visibility="hidden"
             )
-            st.number_input("Checkpoint Interval", 1, 100, key="checkpoint_interval", help="How often to save the state of the evolution process (in iterations).")
+            st.markdown(create_tooltip_html("Checkpoint Interval", "How often to save the state of the evolution process (in iterations)."), unsafe_allow_html=True)
+            st.number_input("Checkpoint Interval", 1, 100, key="checkpoint_interval", label_visibility="hidden")
+            st.markdown(create_tooltip_html("Language", "The programming language or document type of the solutions being evolved."), unsafe_allow_html=True)
             st.selectbox(
                 "Language",
                 [
@@ -347,21 +428,25 @@ def display_sidebar():
                     "document",
                 ],
                 key="language",
-                help="The programming language or document type of the solutions being evolved."
+                label_visibility="hidden"
             )
-            st.text_input("File Suffix", key="file_suffix", help="The file extension for the generated solutions (e.g., .py, .js).")
+            st.markdown(create_tooltip_html("File Suffix", "The file extension for the generated solutions (e.g., .py, .js)."), unsafe_allow_html=True)
+            st.text_input("File Suffix", key="file_suffix", label_visibility="hidden")
+            st.markdown(create_tooltip_html("Feature Dimensions", "The criteria used to evaluate and diversify solutions (e.g., complexity, diversity, readability, performance)."), unsafe_allow_html=True)
             st.multiselect(
                 "Feature Dimensions",
                 ["complexity", "diversity", "readability", "performance"],
                 key="feature_dimensions",
-                help="The criteria used to evaluate and diversify solutions (e.g., complexity, diversity, readability, performance)."
+                label_visibility="hidden"
             )
-            st.number_input("Feature Bins", 1, 100, key="feature_bins", help="The number of bins to use for discretizing feature dimensions in quality diversity algorithms.")
+            st.markdown(create_tooltip_html("Feature Bins", "The number of bins to use for discretizing feature dimensions in quality diversity algorithms."), unsafe_allow_html=True)
+            st.number_input("Feature Bins", 1, 100, key="feature_bins", label_visibility="hidden")
+            st.markdown(create_tooltip_html("Diversity Metric", "The metric used to measure the diversity between solutions."), unsafe_allow_html=True)
             st.selectbox(
                 "Diversity Metric",
                 ["edit_distance", "cosine_similarity", "levenshtein_distance"],
                 key="diversity_metric",
-                help="The metric used to measure the diversity between solutions."
+                label_visibility="hidden"
             )
             if st.form_submit_button("Apply Evolution Parameters"):
                 scope = st.session_state.settings_scope
@@ -438,14 +523,16 @@ def display_sidebar():
         with st.form("checkpointing_form"):
             st.subheader("Checkpointing")
 
+            st.markdown(create_tooltip_html("Action", "Choose to save the current state as a checkpoint or load a previously saved checkpoint."), unsafe_allow_html=True)
             action = st.radio(
-                "Action", ["Save Checkpoint", "Load Checkpoint"], key="checkpoint_action"
+                "Action", ["Save Checkpoint", "Load Checkpoint"], key="checkpoint_action", label_visibility="hidden"
             )
 
             checkpoints = api.get_checkpoints()
             if checkpoints:
+                st.markdown(create_tooltip_html("Load Checkpoint", "Select a checkpoint to load."), unsafe_allow_html=True)
                 st.selectbox(
-                    "Load Checkpoint", options=checkpoints, key="selected_checkpoint"
+                    "Load Checkpoint", options=checkpoints, key="selected_checkpoint", label_visibility="hidden"
                 )
             else:
                 st.info("No checkpoints available to load.")
@@ -461,43 +548,52 @@ def display_sidebar():
 
         st.markdown("---")
         st.subheader("System Prompts")
-        st.text_area("System Prompt", key="system_prompt", height=200, help="The initial prompt given to the language model to set its persona or task.")
+        st.markdown(create_tooltip_html("System Prompt", "The initial prompt given to the language model to set its persona or task."), unsafe_allow_html=True)
+        st.text_area("System Prompt", key="system_prompt", height=200, label_visibility="hidden")
+        st.markdown(create_tooltip_html("Evaluator System Prompt", "The prompt given to the evaluator model to guide its assessment of generated solutions."), unsafe_allow_html=True)
         st.text_area(
-            "Evaluator System Prompt", key="evaluator_system_prompt", height=200, help="The prompt given to the evaluator model to guide its assessment of generated solutions."
+            "Evaluator System Prompt", key="evaluator_system_prompt", height=200, label_visibility="hidden"
         )
 
         st.markdown("---")
         st.subheader("Integrations")
+        st.markdown(create_tooltip_html("Discord Webhook URL", "Enter your Discord webhook URL to receive notifications."), unsafe_allow_html=True)
         st.text_input(
             "Discord Webhook URL",
             key="discord_webhook_url",
-            help="Enter your Discord webhook URL to receive notifications.",
+            label_visibility="hidden"
         )
+        st.markdown(create_tooltip_html("Microsoft Teams Webhook URL", "Enter your Microsoft Teams webhook URL to receive notifications."), unsafe_allow_html=True)
         st.text_input(
             "Microsoft Teams Webhook URL",
             key="msteams_webhook_url",
-            help="Enter your Microsoft Teams webhook URL to receive notifications.",
+            label_visibility="hidden"
         )
+        st.markdown(create_tooltip_html("Generic Webhook URL", "Enter a generic webhook URL to receive notifications."), unsafe_allow_html=True)
         st.text_input(
             "Generic Webhook URL",
             key="generic_webhook_url",
-            help="Enter a generic webhook URL to receive notifications.",
+            label_visibility="hidden"
         )
 
         st.markdown("---")
         st.subheader("Project Settings")
-        st.text_input("Project Name", key="project_name", help="A unique name for your project.")
-        st.text_area("Project Description", key="project_description", help="A brief description of your project.")
+        st.markdown(create_tooltip_html("Project Name", "A unique name for your project."), unsafe_allow_html=True)
+        st.text_input("Project Name", key="project_name", label_visibility="hidden")
+        st.markdown(create_tooltip_html("Project Description", "A brief description of your project."), unsafe_allow_html=True)
+        st.text_area("Project Description", key="project_description", label_visibility="hidden")
+        st.markdown(create_tooltip_html("Public Project", "Make your project publicly accessible."), unsafe_allow_html=True)
         st.checkbox(
             "Public Project",
             key="project_public",
-            help="Make your project publicly accessible.",
+            label_visibility="hidden"
         )
+        st.markdown(create_tooltip_html("Project Password", "Password-protect your public project."), unsafe_allow_html=True)
         st.text_input(
             "Project Password",
             key="project_password",
             type="password",
-            help="Password-protect your public project.",
+            label_visibility="hidden"
         )
         if st.button("Share Project"):
             if st.session_state.project_public:
@@ -536,7 +632,6 @@ def display_sidebar():
 
         # Fallback theme selector
         st.caption("Alternative theme selector:")
-        theme_options = ["light", "dark"]
         selected_theme = st.selectbox(
             "Select Theme",
             theme_options,
@@ -545,7 +640,7 @@ def display_sidebar():
                 if current_theme in theme_options
                 else 0
             ),
-            label_visibility="collapsed",
+            label_visibility="hidden"
         )
 
         if selected_theme != current_theme:
@@ -578,21 +673,23 @@ def display_sidebar():
         st.subheader("⚙️ User Preferences")
 
         # Auto-save preference
+        st.markdown(create_tooltip_html("Auto-save preferences", "Automatically save your user preferences."), unsafe_allow_html=True)
         auto_save = st.checkbox(
             "Auto-save preferences",
             value=st.session_state.user_preferences.get("auto_save", True),
-            help="Automatically save your user preferences."
+            label_visibility="hidden"
         )
         st.session_state.user_preferences["auto_save"] = auto_save
 
         # Font size preference
+        st.markdown(create_tooltip_html("Font Size", "Adjust the font size of the application interface."), unsafe_allow_html=True)
         font_size = st.selectbox(
             "Font Size",
             ["small", "medium", "large"],
             index=["small", "medium", "large"].index(
                 st.session_state.user_preferences.get("font_size", "medium")
             ),
-            help="Adjust the font size of the application interface."
+            label_visibility="hidden"
         )
         st.session_state.user_preferences["font_size"] = font_size
 
