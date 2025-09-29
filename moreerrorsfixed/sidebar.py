@@ -2,18 +2,123 @@ import streamlit as st
 from providercatalogue import get_providers
 from session_utils import reset_defaults, save_user_preferences
 from openevolve_integration import OpenEvolveAPI
+import json
+
+
+# It's good practice to define default parameter functions
+def get_default_generation_params():
+    """Returns a dictionary of default generation parameters."""
+    return {
+        "temperature": 0.7,
+        "top_p": 1.0,
+        "frequency_penalty": 0.0,
+        "presence_penalty": 0.0,
+        "max_tokens": 4096,
+        "seed": 42,
+        "reasoning_effort": "medium",
+    }
+
+
+def get_default_evolution_params():
+    """Returns a dictionary of default evolution parameters."""
+    return {
+        "max_iterations": 100,
+        "population_size": 10,
+        "num_islands": 1,
+        "migration_interval": 50,
+        "migration_rate": 0.1,
+        "archive_size": 100,
+        "elite_ratio": 0.1,
+        "exploration_ratio": 0.2,
+        "exploitation_ratio": 0.7,
+        "checkpoint_interval": 10,
+        "language": "python",
+        "file_suffix": ".py",
+        "feature_dimensions": ["complexity", "diversity"],
+        "feature_bins": 10,
+        "diversity_metric": "edit_distance",
+    }
+
+
+def load_settings_for_scope():
+    """
+    Loads parameters into session_state for the UI based on the selected scope.
+    It applies settings hierarchically: Global -> Provider -> Model.
+    """
+    scope = st.session_state.get("settings_scope", "Global")
+    provider = st.session_state.get("provider")
+    model = st.session_state.get("model")
+
+    # Start with base defaults
+    gen_params = get_default_generation_params()
+    evo_params = get_default_evolution_params()
+
+    # Layer 1: Global settings
+    global_settings = st.session_state.get("parameter_settings", {}).get("global", {})
+    gen_params.update(global_settings.get("generation", {}))
+    evo_params.update(global_settings.get("evolution", {}))
+
+    # Layer 2: Provider settings (if scope is Provider or Model)
+    if (scope == "Provider" or scope == "Model") and provider:
+        provider_settings = (
+            st.session_state.get("parameter_settings", {})
+            .get("providers", {})
+            .get(provider, {})
+        )
+        if "settings" in provider_settings:
+            gen_params.update(provider_settings["settings"].get("generation", {}))
+            evo_params.update(provider_settings["settings"].get("evolution", {}))
+
+    # Layer 3: Model settings (if scope is Model)
+    if scope == "Model" and provider and model:
+        model_settings = (
+            st.session_state.get("parameter_settings", {})
+            .get("providers", {})
+            .get(provider, {})
+            .get("models", {})
+            .get(model, {})
+        )
+        gen_params.update(model_settings.get("generation", {}))
+        evo_params.update(model_settings.get("evolution", {}))
+
+    # Update session_state for UI widgets
+    for key, value in gen_params.items():
+        st.session_state[key] = value
+    for key, value in evo_params.items():
+        st.session_state[key] = value
+
+
+def on_provider_change():
+    """Handler for provider change, resets defaults and loads new settings."""
+    reset_defaults()
+    load_settings_for_scope()
 
 
 def display_sidebar():
+    # Initialize settings structures in session state if they don't exist
     if "user_preferences" not in st.session_state:
         st.session_state.user_preferences = {}
+    if "parameter_settings" not in st.session_state:
+        st.session_state.parameter_settings = {
+            "global": {
+                "generation": get_default_generation_params(),
+                "evolution": get_default_evolution_params(),
+            },
+            "providers": {},
+        }
+    if "settings_scope" not in st.session_state:
+        st.session_state.settings_scope = "Global"
+
+    # Load initial settings into UI state
+    load_settings_for_scope()
+
     with st.sidebar:
         st.markdown(
-            """
+            '''
         <div style="text-align: center; padding: 10px;">
             <h2 style="color: #4a6fa5;">🧬 OpenEvolve</h2>
         </div>
-        """,
+        ''',
             unsafe_allow_html=True,
         )
 
@@ -21,7 +126,8 @@ def display_sidebar():
 
         # Quick start guide
         with st.expander("📖 Quick Start", expanded=False):
-            st.markdown("""
+            st.markdown(
+                '''
             **Getting Started:**
             1. Configure your LLM provider
             2. Enter your content in the main area
@@ -32,7 +138,8 @@ def display_sidebar():
             - Use Adversarial Testing for security hardening
             - Start with general templates for protocols
             - Save your work with project settings
-            """)
+            '''
+            )
 
         st.markdown("---")
 
@@ -42,18 +149,27 @@ def display_sidebar():
         )
 
         st.markdown("---")
-        if "openevolve_api_instance" not in st.session_state or \
-           st.session_state.openevolve_api_instance.base_url != st.session_state.openevolve_base_url or \
-           st.session_state.openevolve_api_instance.api_key != st.session_state.openevolve_api_key:
+        if (
+            "openevolve_api_instance" not in st.session_state
+            or st.session_state.openevolve_api_instance.base_url
+            != st.session_state.openevolve_base_url
+            or st.session_state.openevolve_api_instance.api_key
+            != st.session_state.openevolve_api_key
+        ):
             st.session_state.openevolve_api_instance = OpenEvolveAPI(
                 base_url=st.session_state.openevolve_base_url,
                 api_key=st.session_state.openevolve_api_key,
             )
         api = st.session_state.openevolve_api_instance
         providers = get_providers(api)
+
         st.selectbox(
-            "Provider", list(providers.keys()), key="provider", on_change=reset_defaults
+            "Provider",
+            list(providers.keys()),
+            key="provider",
+            on_change=on_provider_change,
         )
+
         with st.form("provider_configuration_form"):
             provider_info = providers[st.session_state.provider]
 
@@ -62,43 +178,112 @@ def display_sidebar():
 
             if loader := provider_info.get("loader"):
                 models = loader(st.session_state.api_key)
-                st.selectbox("Model", models, key="model")
+                st.selectbox(
+                    "Model", models, key="model", on_change=load_settings_for_scope
+                )
             else:
-                st.text_input("Model", key="model")
+                st.text_input("Model", key="model", on_change=load_settings_for_scope)
 
             st.text_area("Extra Headers (JSON)", key="extra_headers")
             st.form_submit_button("Apply Provider Configuration")
 
         st.markdown("---")
+
+        # SETTINGS SCOPE SELECTOR
+        st.subheader("Parameter Scope")
+        st.radio(
+            "Settings Level",
+            ["Global", "Provider", "Model"],
+            key="settings_scope",
+            horizontal=True,
+            on_change=load_settings_for_scope,
+            help="Select the scope for viewing and saving parameters. Settings are inherited from Global -> Provider -> Model.",
+        )
+
         with st.form("generation_parameters_form"):
             st.subheader("Generation Parameters")
-            st.slider("Temperature", 0.0, 2.0, 0.7, 0.1, key="temperature")
-            st.slider("Top-P", 0.0, 1.0, 1.0, 0.1, key="top_p")
-            st.slider("Frequency Penalty", -2.0, 2.0, 0.0, 0.1, key="frequency_penalty")
-            st.slider("Presence Penalty", -2.0, 2.0, 0.0, 0.1, key="presence_penalty")
-            st.number_input("Max Tokens", 1, 100000, 4096, key="max_tokens")
-            st.number_input("Seed", value=42, key="seed")
+            st.slider("Temperature", 0.0, 2.0, key="temperature", step=0.1)
+            st.slider("Top-P", 0.0, 1.0, key="top_p", step=0.1)
+            st.slider(
+                "Frequency Penalty", -2.0, 2.0, key="frequency_penalty", step=0.1
+            )
+            st.slider("Presence Penalty", -2.0, 2.0, key="presence_penalty", step=0.1)
+            st.number_input("Max Tokens", 1, 100000, key="max_tokens")
+            st.number_input("Seed", key="seed")
             st.selectbox(
                 "Reasoning Effort",
                 ["low", "medium", "high"],
-                index=1,
                 key="reasoning_effort",
             )
-            st.form_submit_button("Apply Generation Parameters")
+            if st.form_submit_button("Apply Generation Parameters"):
+                scope = st.session_state.settings_scope
+                provider = st.session_state.provider
+                model = st.session_state.model
+
+                gen_settings_to_save = {
+                    "temperature": st.session_state.temperature,
+                    "top_p": st.session_state.top_p,
+                    "frequency_penalty": st.session_state.frequency_penalty,
+                    "presence_penalty": st.session_state.presence_penalty,
+                    "max_tokens": st.session_state.max_tokens,
+                    "seed": st.session_state.seed,
+                    "reasoning_effort": st.session_state.reasoning_effort,
+                }
+
+                if scope == "Global":
+                    st.session_state.parameter_settings["global"][
+                        "generation"
+                    ] = gen_settings_to_save
+                elif scope == "Provider":
+                    if (
+                        provider
+                        not in st.session_state.parameter_settings["providers"]
+                    ):
+                        st.session_state.parameter_settings["providers"][
+                            provider
+                        ] = {"settings": {}, "models": {}}
+                    st.session_state.parameter_settings["providers"][provider][
+                        "settings"
+                    ]["generation"] = gen_settings_to_save
+                elif scope == "Model":
+                    if (
+                        provider
+                        not in st.session_state.parameter_settings["providers"]
+                    ):
+                        st.session_state.parameter_settings["providers"][
+                            provider
+                        ] = {"settings": {}, "models": {}}
+                    if (
+                        model
+                        not in st.session_state.parameter_settings["providers"][
+                            provider
+                        ]["models"]
+                    ):
+                        st.session_state.parameter_settings["providers"][provider][
+                            "models"
+                        ][model] = {}
+                    st.session_state.parameter_settings["providers"][provider][
+                        "models"
+                    ][model]["generation"] = gen_settings_to_save
+                st.success(f"{scope}-level generation parameters saved!")
 
         st.markdown("---")
         with st.form("evolution_parameters_form"):
             st.subheader("Evolution Parameters")
-            st.number_input("Max Iterations", 1, 200, 100, key="max_iterations")
-            st.number_input("Population Size", 1, 100, 10, key="population_size")
-            st.number_input("Number of Islands", 1, 10, 1, key="num_islands")
-            st.number_input("Migration Interval", 1, 100, 50, key="migration_interval")
-            st.slider("Migration Rate", 0.0, 1.0, 0.1, 0.01, key="migration_rate")
-            st.number_input("Archive Size", 0, 100, 100, key="archive_size")
-            st.slider("Elite Ratio", 0.0, 1.0, 0.1, 0.01, key="elite_ratio")
-            st.slider("Exploration Ratio", 0.0, 1.0, 0.2, 0.01, key="exploration_ratio")
-            st.slider("Exploitation Ratio", 0.0, 1.0, 0.7, 0.01, key="exploitation_ratio")
-            st.number_input("Checkpoint Interval", 1, 100, 10, key="checkpoint_interval")
+            st.number_input("Max Iterations", 1, 200, key="max_iterations")
+            st.number_input("Population Size", 1, 100, key="population_size")
+            st.number_input("Number of Islands", 1, 10, key="num_islands")
+            st.number_input("Migration Interval", 1, 100, key="migration_interval")
+            st.slider("Migration Rate", 0.0, 1.0, key="migration_rate", step=0.01)
+            st.number_input("Archive Size", 0, 100, key="archive_size")
+            st.slider("Elite Ratio", 0.0, 1.0, key="elite_ratio", step=0.01)
+            st.slider(
+                "Exploration Ratio", 0.0, 1.0, key="exploration_ratio", step=0.01
+            )
+            st.slider(
+                "Exploitation Ratio", 0.0, 1.0, key="exploitation_ratio", step=0.01
+            )
+            st.number_input("Checkpoint Interval", 1, 100, key="checkpoint_interval")
             st.selectbox(
                 "Language",
                 [
@@ -116,26 +301,85 @@ def display_sidebar():
                 ],
                 key="language",
             )
-            st.text_input("File Suffix", value=".py", key="file_suffix")
+            st.text_input("File Suffix", key="file_suffix")
             st.multiselect(
                 "Feature Dimensions",
                 ["complexity", "diversity", "readability", "performance"],
-                default=["complexity", "diversity"],
                 key="feature_dimensions",
             )
-            st.number_input("Feature Bins", 1, 100, 10, key="feature_bins")
+            st.number_input("Feature Bins", 1, 100, key="feature_bins")
             st.selectbox(
                 "Diversity Metric",
                 ["edit_distance", "cosine_similarity", "levenshtein_distance"],
                 key="diversity_metric",
             )
-            st.form_submit_button("Apply Evolution Parameters")
+            if st.form_submit_button("Apply Evolution Parameters"):
+                scope = st.session_state.settings_scope
+                provider = st.session_state.provider
+                model = st.session_state.model
+
+                evo_settings_to_save = {
+                    "max_iterations": st.session_state.max_iterations,
+                    "population_size": st.session_state.population_size,
+                    "num_islands": st.session_state.num_islands,
+                    "migration_interval": st.session_state.migration_interval,
+                    "migration_rate": st.session_state.migration_rate,
+                    "archive_size": st.session_state.archive_size,
+                    "elite_ratio": st.session_state.elite_ratio,
+                    "exploration_ratio": st.session_state.exploration_ratio,
+                    "exploitation_ratio": st.session_state.exploitation_ratio,
+                    "checkpoint_interval": st.session_state.checkpoint_interval,
+                    "language": st.session_state.language,
+                    "file_suffix": st.session_state.file_suffix,
+                    "feature_dimensions": st.session_state.feature_dimensions,
+                    "feature_bins": st.session_state.feature_bins,
+                    "diversity_metric": st.session_state.diversity_metric,
+                }
+
+                if scope == "Global":
+                    st.session_state.parameter_settings["global"][
+                        "evolution"
+                    ] = evo_settings_to_save
+                elif scope == "Provider":
+                    if (
+                        provider
+                        not in st.session_state.parameter_settings["providers"]
+                    ):
+                        st.session_state.parameter_settings["providers"][
+                            provider
+                        ] = {"settings": {}, "models": {}}
+                    st.session_state.parameter_settings["providers"][provider][
+                        "settings"
+                    ]["evolution"] = evo_settings_to_save
+                elif scope == "Model":
+                    if (
+                        provider
+                        not in st.session_state.parameter_settings["providers"]
+                    ):
+                        st.session_state.parameter_settings["providers"][
+                            provider
+                        ] = {"settings": {}, "models": {}}
+                    if (
+                        model
+                        not in st.session_state.parameter_settings["providers"][
+                            provider
+                        ]["models"]
+                    ):
+                        st.session_state.parameter_settings["providers"][provider][
+                            "models"
+                        ][model] = {}
+                    st.session_state.parameter_settings["providers"][provider][
+                        "models"
+                    ][model]["evolution"] = evo_settings_to_save
+                st.success(f"{scope}-level evolution parameters saved!")
 
         st.markdown("---")
         with st.form("checkpointing_form"):
             st.subheader("Checkpointing")
 
-            action = st.radio("Action", ["Save Checkpoint", "Load Checkpoint"], key="checkpoint_action")
+            action = st.radio(
+                "Action", ["Save Checkpoint", "Load Checkpoint"], key="checkpoint_action"
+            )
 
             checkpoints = api.get_checkpoints()
             if checkpoints:
@@ -218,7 +462,9 @@ def display_sidebar():
         # Enhanced theme toggle with better UX
         current_theme = st.session_state.get("theme", "light")
         theme_emoji = "🌙" if current_theme == "light" else "☀️"
-        theme_label = f"{theme_emoji} Switch to {'Dark' if current_theme == 'light' else 'Light'} Mode"
+        theme_label = (
+            f"{theme_emoji} Switch to {'Dark' if current_theme == 'light' else 'Light'} Mode"
+        )
 
         if st.button(theme_label, key="theme_toggle_btn", use_container_width=True):
             if st.session_state.get("theme", "light") == "light":
@@ -233,9 +479,11 @@ def display_sidebar():
         selected_theme = st.selectbox(
             "Select Theme",
             theme_options,
-            index=theme_options.index(current_theme)
-            if current_theme in theme_options
-            else 0,
+            index=(
+                theme_options.index(current_theme)
+                if current_theme in theme_options
+                else 0
+            ),
             label_visibility="collapsed",
         )
 
@@ -246,7 +494,7 @@ def display_sidebar():
             )
             # Use JavaScript to apply theme changes immediately
             st.markdown(
-                f"""
+                f'''
                 <script>
                 const theme = "{selected_theme}";
                 document.documentElement.setAttribute('data-theme', theme);
@@ -260,7 +508,7 @@ def display_sidebar():
                     document.querySelector('.stApp').style.backgroundColor = 'white';
                 }}
                 </script>
-                """,
+                ''',
                 unsafe_allow_html=True,
             )
 
