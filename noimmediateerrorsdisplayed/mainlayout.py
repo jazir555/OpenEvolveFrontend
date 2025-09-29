@@ -8,6 +8,7 @@ import difflib
 from typing import List, Dict
 import altair as alt
 import numpy as np
+import pandas as pd
 from dataclasses import asdict
 
 from pyvis.network import Network
@@ -106,7 +107,7 @@ def render_evolution_history_chart(history: List[Dict]):
                 'code': individual['code']
             })
 
-    chart = alt.Chart(alt.Data(values=data)).mark_circle(size=60).encode(
+    chart = alt.Chart(pd.DataFrame(data)).mark_circle(size=60).encode(
         x='generation',
         y='fitness',
         tooltip=['generation', 'fitness', 'code']
@@ -256,8 +257,6 @@ from version_control import VersionControl
 from notifications import NotificationManager
 from log_streaming import LogStreaming
 # from session_utils import get_current_session_id
-from session_state_classes import State, SessionManager
-
 from session_state_classes import State, SessionManager
 
 def _initialize_session_state():
@@ -644,14 +643,14 @@ def render_main_layout():
             with st.expander("📝 Prompts"):
                 api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
                 # This part needs error handling in a real app
-                # custom_prompts = api.get_custom_prompts() 
+                # custom_prompts = api.get_custom_prompts()
                 custom_prompts = {} # Placeholder
                 if custom_prompts:
                     selected_custom_prompt = st.selectbox("Select a custom prompt", ["None"] + list(custom_prompts.keys()))
                     if selected_custom_prompt != "None":
                         st.session_state.system_prompt = custom_prompts[selected_custom_prompt]['system_prompt']
                         st.session_state.evaluator_system_prompt = custom_prompts[selected_custom_prompt]['evaluator_system_prompt']
-                
+
                 st.text_area("System Prompt", key="evolution_system_prompt", height=150)
                 st.text_area("Evaluator System Prompt", key="evolution_evaluator_system_prompt", height=150)
                 st.checkbox("Use Specialized Evaluator", key="evolution_use_specialized_evaluator", help="Use a linter-based evaluator for more accurate code evaluation.")
@@ -708,7 +707,7 @@ def render_main_layout():
                     st.slider("Exploration Ratio", 0.0, 1.0, 0.0, 0.1, key="evolution_exploration_ratio")
                     st.slider("Exploitation Ratio", 0.0, 1.0, 0.0, 0.1, key="evolution_exploitation_ratio")
                     st.number_input("Archive Size", 0, 100, 0, key="evolution_archive_size")
-                
+
                 st.markdown("### 🤖 Model Parameters")
                 col3, col4 = st.columns(2)
                 with col3:
@@ -717,7 +716,7 @@ def render_main_layout():
                 with col4:
                     st.slider("Frequency Penalty", -2.0, 2.0, 0.0, 0.1, key="model_frequency_penalty")
                     st.slider("Presence Penalty", -2.0, 2.0, 0.0, 0.1, key="model_presence_penalty")
-                
+
                 st.markdown("### 🎯 Multi-Objective Evolution")
                 st.info("Define multiple objectives for the evolution. The fitness of each individual will be a vector of scores, one for each objective.")
                 if HAS_STREAMLIT_TAGS:
@@ -743,44 +742,82 @@ def render_main_layout():
                     st.subheader("🔍 Logs")
                     log_out = st.empty()
 
-                if st.session_state.evolution_running and st.session_state.evolution_id:\n                    api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)\n                    status = api.get_evolution_status(st.session_state.evolution_id)\n                    if status:\n                        proto_out.markdown(f\"**Status:** {status['status']}\\n\\n**Best Score:** {status['best_score']}\")\n                        log_out.code(status['log'], language=\"text\")\n                        for log_chunk in api.stream_evolution_logs(st.session_state.evolution_id):\n                            log_out.code(log_chunk, language=\"text\")\n                        if status['status'] == 'completed':\n                            st.session_state.evolution_running = False\n                            previous_best = st.session_state.evolution_current_best\n                            best_solution = api.get_best_solution(st.session_state.evolution_id)\n                            st.session_state.evolution_current_best = best_solution['code']\n                            render_code_diff(previous_best, st.session_state.evolution_current_best)\n                            history = api.get_evolution_history(st.session_state.evolution_id)\n                            st.session_state.evolution_history = history\n                            if history:\n                                render_evolution_history_chart(history)\n                                if len(history[-1].get('islands', [])) > 1:\n                                    render_island_model_chart(history)\n                            artifacts = api.get_artifacts(st.session_state.evolution_id)\n                            if artifacts:\n                                st.subheader(\"Artifacts\")\n                                for artifact in artifacts:\n                                    st.download_button(artifact['name'], api.download_artifact(st.session_state.evolution_id, artifact['name']), artifact['name'])\n                            st.balloons()\n                            # Refresh the UI after completion\n                            st.rerun()\n                    # Provide a manual refresh button for real-time updates\n                    if st.button(\"🔄 Refresh Status\", use_container_width=True, type=\"secondary\"):\n                        st.rerun()
+                # FIXED: This block was moved here from outside the function
+                if st.session_state.evolution_running and st.session_state.evolution_id:
+                    api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                    status = api.get_evolution_status(st.session_state.evolution_id)
+                    if status:
+                        proto_out.markdown(f"**Status:** {status['status']}\n\n**Best Score:** {status['best_score']}")
+                        log_out.code(status['log'], language="text")
+
+                        # Stream logs and update the UI element
+                        full_log = status.get('log', '')
+                        for log_chunk in api.stream_evolution_logs(st.session_state.evolution_id):
+                            full_log += log_chunk
+                            log_out.code(full_log, language="text")
+
+                        if status['status'] == 'completed':
+                            st.session_state.evolution_running = False
+                            previous_best = st.session_state.evolution_current_best
+                            best_solution = api.get_best_solution(st.session_state.evolution_id)
+                            st.session_state.evolution_current_best = best_solution['code']
+                            render_code_diff(previous_best, st.session_state.evolution_current_best)
+                            history = api.get_evolution_history(st.session_state.evolution_id)
+                            st.session_state.evolution_history = history
+                            if history:
+                                render_evolution_history_chart(history)
+                                if len(history[-1].get('islands', [])) > 1:
+                                    render_island_model_chart(history)
+                            artifacts = api.get_artifacts(st.session_state.evolution_id)
+                            if artifacts:
+                                st.subheader("Artifacts")
+                                for artifact in artifacts:
+                                    st.download_button(artifact['name'], api.download_artifact(st.session_state.evolution_id, artifact['name']), artifact['name'])
+                            st.balloons()
+                            # Refresh the UI after completion
+                            st.rerun()
+
+                    # Manual refresh button for intermediate updates
+                    if st.button("🔄 Refresh Status", use_container_width=True, type="secondary"):
+                        st.rerun()
                 else:
                     with st.session_state.thread_lock:
                         current_log = "\n".join(st.session_state.evolution_log)
                         current_content = st.session_state.evolution_current_best or st.session_state.protocol_text
 
-                    log_out.code(current_content, language="markdown")
+                    # FIXED: log_out was incorrectly displaying content
+                    log_out.code(current_log, language="text")
                     proto_out.code(current_content, language="markdown")
 
-                if run_button:
-                    st.session_state.evolution_running = True
-                    api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
-                    config = create_advanced_openevolve_config(
-                        model_name=st.session_state.model,
-                        api_key=st.session_state.api_key,
-                        api_base=st.session_state.base_url,
-                        temperature=st.session_state.temperature,
-                        top_p=st.session_state.top_p,
-                        max_tokens=st.session_state.max_tokens,
-                        max_iterations=st.session_state.max_iterations,
-                        population_size=st.session_state.population_size,
-                        num_islands=st.session_state.num_islands,
-                        archive_size=st.session_state.archive_size,
-                        elite_ratio=st.session_state.elite_ratio,
-                        exploration_ratio=st.session_state.exploration_ratio,
-                        exploitation_ratio=st.session_state.exploitation_ratio,
-                        checkpoint_interval=st.session_state.checkpoint_interval,
-                    )
-                    if config is not None:
-                        evolution_id = api.start_evolution(config=asdict(config))
-                        if evolution_id:
-                            st.session_state.evolution_id = evolution_id
-                        st.rerun()
-                    else:
-                        st.error("Failed to create OpenEvolve configuration. Please check your settings.")
+            if run_button:
+                st.session_state.evolution_running = True
+                api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                config = create_advanced_openevolve_config(
+                    model_name=st.session_state.model,
+                    api_key=st.session_state.api_key,
+                    api_base=st.session_state.base_url,
+                    temperature=st.session_state.temperature,
+                    top_p=st.session_state.top_p,
+                    max_tokens=st.session_state.max_tokens,
+                    max_iterations=st.session_state.max_iterations,
+                    population_size=st.session_state.population_size,
+                    num_islands=st.session_state.num_islands,
+                    archive_size=st.session_state.archive_size,
+                    elite_ratio=st.session_state.elite_ratio,
+                    exploration_ratio=st.session_state.exploration_ratio,
+                    exploitation_ratio=st.session_state.exploitation_ratio,
+                    checkpoint_interval=st.session_state.checkpoint_interval,
+                )
+                if config is not None:
+                    evolution_id = api.start_evolution(config=asdict(config))
+                    if evolution_id:
+                        st.session_state.evolution_id = evolution_id
+                    st.rerun()
+                else:
+                    st.error("Failed to create OpenEvolve configuration. Please check your settings.")
 
-                if stop_button:
-                    st.session_state.evolution_stop_flag = True
+            if stop_button:
+                st.session_state.evolution_stop_flag = True
 
     with tabs[1]: # Adversarial Testing tab
         with st.container(border=True):
@@ -825,10 +862,11 @@ def render_main_layout():
             with protocol_col1:
                 input_tab, preview_tab = st.tabs(["📝 Edit", "👁️ Preview"])
                 with input_tab:
+                    # FIXED: Changed key from "protocol_text_adversarial" to "protocol_text"
                     protocol_text = st.text_area("✏️ Enter or paste your content:",
                                                  value=st.session_state.protocol_text,
                                                  height=300,
-                                                 key="protocol_text_adversarial",
+                                                 key="protocol_text",
                                                  placeholder="Paste your draft content here...\n\nExample:\n# Security Policy\n\n## Overview\nThis policy defines requirements for secure system access.\n\n## Scope\nApplies to all employees and contractors.\n\n## Policy Statements\n1. All users must use strong passwords\n2. Multi-factor authentication is required for sensitive systems\n3. Regular security training is mandatory\n\n## Compliance\nViolations result in disciplinary action.")
 
                 with preview_tab:
@@ -866,12 +904,12 @@ Applies to all employees, contractors, and vendors with system access.
 3. Regular security training is mandatory
 4. Incident reporting must occur within 24 hours."""
 
-                # Define callback for clearing content  
+                # Define callback for clearing content
                 def clear_content_callback():
                     st.session_state.protocol_text = ""
 
                 st.button("🧪 Load Sample", use_container_width=True, type="secondary", on_click=load_sample_callback)
-                
+
                 if st.session_state.protocol_text.strip():
                     st.button("🗑️ Clear", use_container_width=True, type="secondary", on_click=clear_content_callback)
             st.divider()
@@ -934,7 +972,7 @@ Applies to all employees, contractors, and vendors with system access.
                 st.slider("Confidence threshold (%)", 50, 100, key="adversarial_confidence", help="Stop if this % of Red Team approves the SOP.")
                 st.number_input("Max parallel workers", 1, 24, key="adversarial_max_workers")
                 st.selectbox("Rotation Strategy",
-                             ["None", "Round Robin", "Random Sampling", "Performance-Based", "Staged", "Adaptive", "Focus-Category"], 
+                             ["None", "Round Robin", "Random Sampling", "Performance-Based", "Staged", "Adaptive", "Focus-Category"],
                              key="adversarial_rotation_strategy")
                 st.slider("Critique Depth", 1, 10, key="adversarial_critique_depth", help="How deeply the red team should analyze (1-10)")
             with c2:
@@ -947,7 +985,7 @@ Applies to all employees, contractors, and vendors with system access.
             if st.session_state.adversarial_rotation_strategy == "Staged":
                 help_text = """[{"red": ["model1", "model2"], "blue": ["model3"]}, {"red": ["model4"], "blue": ["model5", "model6"]}]"""
                 st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help=help_text)
-            
+
             st.number_input("Red Team Sample Size", 1, 100, key="adversarial_red_team_sample_size")
             st.number_input("Blue Team Sample Size", 1, 100, key="adversarial_blue_team_sample_size")
 
@@ -1014,7 +1052,7 @@ Applies to all employees, contractors, and vendors with system access.
                         with st.expander("🔍 Real-time Logs", expanded=True):
                             log_content = "\n".join(st.session_state.adversarial_log[-50:])
                             st.text_area("Activity Log", value=log_content, height=300, key="adversarial_log_display", disabled=True)
-            
+
             if st.session_state.adversarial_results and not st.session_state.adversarial_running:
                 with st.container(border=True):
                     with st.expander("🏆 Adversarial Testing Results", expanded=True):
@@ -1025,16 +1063,15 @@ Applies to all employees, contractors, and vendors with system access.
                         col2.metric("🔄 Iterations", len(results.get('iterations', [])))
                         col3.metric("💰 Total Cost (USD)", f"${results.get('cost_estimate_usd', 0):.4f}")
                         col4.metric(" Tokens", f"{results.get('tokens', {}).get('prompt', 0) + results.get('tokens', {}).get('completion', 0):,}")
-                        
+
                         metrics_tab1, metrics_tab2, metrics_tab3 = st.tabs(["📈 Confidence Trend", "🏆 Model Performance", "🧮 Issue Analysis"])
                         with metrics_tab1:
                             if results.get('iterations'):
                                 confidence_history = [iter.get("approval_check", {}).get("approval_rate", 0) for iter in results.get('iterations', [])]
                                 if confidence_history:
-                                    import pandas as pd
                                     df = pd.DataFrame({'Confidence': confidence_history})
                                     st.line_chart(df)
-                        
+
                         with metrics_tab2:
                             if st.session_state.get("adversarial_model_performance"):
                                 st.bar_chart({k: v.get("score", 0) for k, v in st.session_state.adversarial_model_performance.items()})
@@ -1061,7 +1098,7 @@ Applies to all employees, contractors, and vendors with system access.
                         export_col1, export_col2, export_col3, export_col4, export_col5 = st.columns(5)
                         pdf_bytes = generate_pdf_report(results, st.session_state.pdf_watermark)
                         export_col1.download_button("📄 PDF", pdf_bytes, f"report_{datetime.now().strftime('%Y%m%d')}.pdf", "application/pdf", use_container_width=True, type="secondary")
-                        
+
                         docx_bytes = generate_docx_report(results)
                         export_col2.download_button("📝 DOCX", docx_bytes, f"report_{datetime.now().strftime('%Y%m%d')}.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True, type="secondary")
 
@@ -1070,14 +1107,14 @@ Applies to all employees, contractors, and vendors with system access.
 
                         json_str = json.dumps(results, indent=2, default=str)
                         export_col4.download_button("📋 JSON", json_str, f"report_{datetime.now().strftime('%Y%m%d')}.json", "application/json", use_container_width=True, type="secondary")
-                        
+
                         latex_str = generate_latex_report(results)
                         export_col5.download_button("📄 LaTeX", latex_str, f"report_{datetime.now().strftime('%Y%m%d')}.tex", "application/x-latex", use_container_width=True, type="secondary")
 
                         if st.session_state.compliance_requirements:
                             compliance_report = generate_compliance_report(results, st.session_state.compliance_requirements)
                             st.download_button("📋 Compliance Report", compliance_report, f"compliance_report_{datetime.now().strftime('%Y%m%d')}.md", "text/markdown", use_container_width=True, type="secondary")
-                        
+
                         st.divider()
                         st.subheader("Integrations")
                         int_col1, int_col2, int_col3 = st.columns(3)
