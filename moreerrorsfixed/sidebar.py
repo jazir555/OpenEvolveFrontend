@@ -632,6 +632,7 @@ def display_sidebar():
 
         # Fallback theme selector
         st.caption("Alternative theme selector:")
+        theme_options = ["light", "dark"]
         selected_theme = st.selectbox(
             "Select Theme",
             theme_options,
