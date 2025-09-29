@@ -13,6 +13,12 @@ from dataclasses import asdict
 from pyvis.network import Network
 from session_utils import _safe_list
 
+# Import autorefresh for real-time updates
+try:
+    from streamlit_autorefresh import st_autorefresh
+except ImportError:
+    st_autorefresh = None
+
 def _safe_list(data: dict, key: str) -> List:
     """Safely retrieves a list from a dictionary, returning an empty list if the key is not found or the value is not a list."""
     value = data.get(key)
@@ -737,34 +743,7 @@ def render_main_layout():
                     st.subheader("🔍 Logs")
                     log_out = st.empty()
 
-                if st.session_state.evolution_running and st.session_state.evolution_id:
-                    api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
-                    status = api.get_evolution_status(st.session_state.evolution_id)
-                    if status:
-                        proto_out.markdown(f"**Status:** {status['status']}\n\n**Best Score:** {status['best_score']}")
-                        log_out.code(status['log'], language="text")
-                        for log_chunk in api.stream_evolution_logs(st.session_state.evolution_id):
-                            log_out.code(log_chunk, language="text")
-                        if status['status'] == 'completed':
-                            st.session_state.evolution_running = False
-                            previous_best = st.session_state.evolution_current_best
-                            best_solution = api.get_best_solution(st.session_state.evolution_id)
-                            st.session_state.evolution_current_best = best_solution['code']
-                            render_code_diff(previous_best, st.session_state.evolution_current_best)
-                            history = api.get_evolution_history(st.session_state.evolution_id)
-                            st.session_state.evolution_history = history
-                            if history:
-                                render_evolution_history_chart(history)
-                                if len(history[-1].get('islands', [])) > 1:
-                                    render_island_model_chart(history)
-                            artifacts = api.get_artifacts(st.session_state.evolution_id)
-                            if artifacts:
-                                st.subheader("Artifacts")
-                                for artifact in artifacts:
-                                    st.download_button(artifact['name'], api.download_artifact(st.session_state.evolution_id, artifact['name']), artifact['name'])
-                            st.balloons()
-                    time.sleep(1)
-                    st.rerun()
+                if st.session_state.evolution_running and st.session_state.evolution_id:\n                    api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)\n                    status = api.get_evolution_status(st.session_state.evolution_id)\n                    if status:\n                        proto_out.markdown(f\"**Status:** {status['status']}\\n\\n**Best Score:** {status['best_score']}\")\n                        log_out.code(status['log'], language=\"text\")\n                        for log_chunk in api.stream_evolution_logs(st.session_state.evolution_id):\n                            log_out.code(log_chunk, language=\"text\")\n                        if status['status'] == 'completed':\n                            st.session_state.evolution_running = False\n                            previous_best = st.session_state.evolution_current_best\n                            best_solution = api.get_best_solution(st.session_state.evolution_id)\n                            st.session_state.evolution_current_best = best_solution['code']\n                            render_code_diff(previous_best, st.session_state.evolution_current_best)\n                            history = api.get_evolution_history(st.session_state.evolution_id)\n                            st.session_state.evolution_history = history\n                            if history:\n                                render_evolution_history_chart(history)\n                                if len(history[-1].get('islands', [])) > 1:\n                                    render_island_model_chart(history)\n                            artifacts = api.get_artifacts(st.session_state.evolution_id)\n                            if artifacts:\n                                st.subheader(\"Artifacts\")\n                                for artifact in artifacts:\n                                    st.download_button(artifact['name'], api.download_artifact(st.session_state.evolution_id, artifact['name']), artifact['name'])\n                            st.balloons()\n                            # Refresh the UI after completion\n                            st.rerun()\n                    # Provide a manual refresh button for real-time updates\n                    if st.button(\"🔄 Refresh Status\", use_container_width=True, type=\"secondary\"):\n                        st.rerun()
                 else:
                     with st.session_state.thread_lock:
                         current_log = "\n".join(st.session_state.evolution_log)
@@ -861,18 +840,40 @@ def render_main_layout():
                 st.markdown("**📋 Quick Actions**")
                 templates = content_manager.list_protocol_templates()
                 if templates:
-                    selected_template = st.selectbox("Load Template", [""] + templates, key="adv_load_template_select")
-                    if selected_template and st.button("📥 Load Template", use_container_width=True, type="secondary"):
-                        st.session_state.protocol_text = content_manager.load_protocol_template(selected_template)
-                        st.rerun()
+                    # Define callback to update protocol text in adversarial tab
+                    def load_adv_template_callback():
+                        selected_template = st.session_state.adv_load_template_select
+                        if selected_template:
+                            st.session_state.protocol_text = content_manager.load_protocol_template(selected_template)
 
-                if st.button("🧪 Load Sample", use_container_width=True, type="secondary"):
-                    st.session_state.protocol_text = """# Sample Security Policy\n\n## Overview\nThis policy defines security requirements for accessing company systems.\n\n## Scope\nApplies to all employees, contractors, and vendors with system access.\n\n## Policy Statements\n1. All users must use strong passwords\n2. Multi-factor authentication is required for sensitive systems\n3. Regular security training is mandatory\n4. Incident reporting must occur within 24 hours."""
-                    st.rerun()
-                
-                if st.session_state.protocol_text.strip() and st.button("🗑️ Clear", use_container_width=True, type="secondary"):
+                    selected_template = st.selectbox("Load Template", [""] + templates, key="adv_load_template_select")
+                    if selected_template:
+                        st.button("📥 Load Template", use_container_width=True, type="secondary", on_click=load_adv_template_callback)
+
+                # Define callback for loading sample content
+                def load_sample_callback():
+                    st.session_state.protocol_text = """# Sample Security Policy
+
+## Overview
+This policy defines security requirements for accessing company systems.
+
+## Scope
+Applies to all employees, contractors, and vendors with system access.
+
+## Policy Statements
+1. All users must use strong passwords
+2. Multi-factor authentication is required for sensitive systems
+3. Regular security training is mandatory
+4. Incident reporting must occur within 24 hours."""
+
+                # Define callback for clearing content  
+                def clear_content_callback():
                     st.session_state.protocol_text = ""
-                    st.rerun()
+
+                st.button("🧪 Load Sample", use_container_width=True, type="secondary", on_click=load_sample_callback)
+                
+                if st.session_state.protocol_text.strip():
+                    st.button("🗑️ Clear", use_container_width=True, type="secondary", on_click=clear_content_callback)
             st.divider()
 
             st.subheader("🤖 Model Selection")
