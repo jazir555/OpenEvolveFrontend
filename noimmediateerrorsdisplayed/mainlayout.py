@@ -338,6 +338,7 @@ def _initialize_session_state():
         "project_public": False,
         "project_password": "",
         "collaboration_session": {"notifications": []},
+        "tasks": [],
         "model": "",
         "api_key": "",
         "base_url": "",
@@ -536,7 +537,12 @@ def render_main_layout():
             st.markdown("Iteratively improve your content using a single AI model.")
 
             with st.expander("📝 Content Input", expanded=True):
+                # Initialize protocol_text in session_state if not already present
+                if "protocol_text" not in st.session_state:
+                    st.session_state.protocol_text = "# Sample Protocol\n\nThis is a sample protocol for testing purposes."
+
                 st.text_area("Paste your draft content here:", height=300, key="protocol_text",
+                             value=st.session_state.protocol_text,
                              disabled=st.session_state.adversarial_running)
 
                 templates = content_manager.list_protocol_templates()
@@ -551,6 +557,7 @@ def render_main_layout():
                             template_content = content_manager.load_protocol_template(selected_template)
                             st.session_state.protocol_text = template_content
                             st.success(f"Loaded template: {selected_template}")
+                            st.rerun() # Rerun to update the text_area with the new content
             st.divider() # Add a divider
 
             with st.expander("🎮 Action Controls", expanded=True):
@@ -831,11 +838,11 @@ def render_main_layout():
             with protocol_col1:
                 input_tab, preview_tab = st.tabs(["📝 Edit", "👁️ Preview"])
                 with input_tab:
-                    st.session_state.protocol_text = st.text_area("✏️ Enter or paste your content:",
+                    protocol_text = st.text_area("✏️ Enter or paste your content:",
                                                  value=st.session_state.protocol_text,
                                                  height=300,
                                                  key="protocol_text_adversarial",
-                                                 placeholder="Paste your draft content here...")
+                                                 placeholder="Paste your draft content here...\n\nExample:\n# Security Policy\n\n## Overview\nThis policy defines requirements for secure system access.\n\n## Scope\nApplies to all employees and contractors.\n\n## Policy Statements\n1. All users must use strong passwords\n2. Multi-factor authentication is required for sensitive systems\n3. Regular security training is mandatory\n\n## Compliance\nViolations result in disciplinary action.")
 
                 with preview_tab:
                     if st.session_state.protocol_text:
