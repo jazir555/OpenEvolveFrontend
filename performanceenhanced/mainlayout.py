@@ -475,12 +475,8 @@ def render_main_layout():
     st.markdown(
         '<p style="text-align: center; font-size: 1.2rem;">AI-Powered Content Hardening with Multi-LLM Consensus</p>',
         unsafe_allow_html=True)
-    st.markdown("---")
-
     # Notification UI
     render_notification_ui()
-
-
     # Quick action buttons with enhanced styling
     quick_action_col1, quick_action_col2 = st.columns(2)
     with quick_action_col1:
