@@ -55,6 +55,27 @@ from analytics_manager import analytics_manager
 
 HAS_STREAMLIT_TAGS = True
 
+def _stream_evolution_logs_in_thread(evolution_id, api, thread_lock):
+    while True:
+        with thread_lock:
+            if not st.session_state.evolution_running:
+                break
+
+        status = api.get_evolution_status(evolution_id)
+        if status:
+            with thread_lock:
+                st.session_state.evolution_log = status.get('log', '').splitlines()
+                st.session_state.evolution_current_best = status.get('current_best_content', '')
+                st.session_state.evolution_status_message = status.get('status', 'Running')
+                st.session_state.evolution_best_score = status.get('best_score', 0)
+
+            if status.get('status') == 'completed':
+                with thread_lock:
+                    st.session_state.evolution_running = False
+                break
+        time.sleep(2) # Poll every 2 seconds
+
+
 @st.cache_data(ttl=3600) # Cache for 1 hour
 def _load_report_templates():
     try:
@@ -376,6 +397,16 @@ def _initialize_session_state():
     if "report_templates" not in st.session_state:
         st.session_state.report_templates = _load_report_templates()
 
+def _stream_evolution_logs_in_thread(evolution_id, api, thread_lock):
+    full_log = []
+    for log_chunk in api.stream_evolution_logs(evolution_id):
+        full_log.append(log_chunk)
+        with thread_lock:
+            st.session_state.evolution_log = full_log.copy()
+    # Once streaming is complete, set evolution_running to False
+    with thread_lock:
+        st.session_state.evolution_running = False
+
 def render_main_layout():
     """Renders the main layout of the Streamlit application."""
     _initialize_session_state()
@@ -604,6 +635,9 @@ def render_main_layout():
                     evolution_id = api.start_evolution(config=asdict(config))
                     if evolution_id:
                         st.session_state.evolution_id = evolution_id
+                        # Start log streaming in a separate thread
+                        threading.Thread(target=_stream_evolution_logs_in_thread,
+                                         args=(evolution_id, api, st.session_state.thread_lock)).start()
                     st.rerun()
                 else:
                     st.error("Failed to create OpenEvolve configuration. Please check your settings.")
@@ -779,18 +813,19 @@ def render_main_layout():
                     api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
                     status = api.get_evolution_status(st.session_state.evolution_id)
                     if status:
-                        proto_out.markdown(f"**Status:** {status['status']}\n\n**Best Score:** {status['best_score']}")
-                        log_out.code(status['log'], language="text")
+                        proto_out.markdown(f"**Status:** {status['status']}\\n\\n**Best Score:** {status['best_score']}")
+                        
+                        # Display current log from session state
+                        with st.session_state.thread_lock:
+                            log_out.code("\\n".join(st.session_state.evolution_log), language="text")
 
-                        # Stream logs and update the UI element
-                        full_log = status.get('log', '')
-                        for log_chunk in api.stream_evolution_logs(st.session_state.evolution_id):
-                            full_log += log_chunk
-                            log_out.code(full_log, language="text")
-
-                        if status['status'] == 'completed':
-                            st.session_state.evolution_running = False
+                    # Check if evolution has completed (this will be updated by the thread)
+                    if status_message == 'completed':
+                        # Only perform final actions once
+                        if "evolution_finalized" not in st.session_state or not st.session_state.evolution_finalized:
+                            st.session_state.evolution_finalized = True
                             previous_best = st.session_state.evolution_current_best
+                            # Fetch final results after completion
                             best_solution = api.get_best_solution(st.session_state.evolution_id)
                             st.session_state.evolution_current_best = best_solution['code']
                             render_code_diff(previous_best, st.session_state.evolution_current_best)
@@ -808,13 +843,16 @@ def render_main_layout():
                             st.balloons()
                             # Refresh the UI after completion
                             st.rerun()
+                        else:
+                            # If already finalized, just display the content
+                            pass # Content is already displayed above
 
                     # Manual refresh button for intermediate updates
                     if st.button("🔄 Refresh Status", use_container_width=True, type="secondary"):
                         st.rerun()
                 else:
                     with st.session_state.thread_lock:
-                        current_log = "\n".join(st.session_state.evolution_log)
+                        current_log = "\\n".join(st.session_state.evolution_log)
                         current_content = st.session_state.evolution_current_best or st.session_state.protocol_text
 
                     log_out.code(current_log, language="text")
@@ -825,9 +863,9 @@ def render_main_layout():
             st.header("Adversarial Testing with Multi-LLM Consensus")
 
             st.markdown(
-                "> **How it works:** Adversarial Testing uses two teams of AI models to improve your content:\n"
-                "> - **🔴 Red Team** finds flaws and vulnerabilities.\n"
-                "> - **🔵 Blue Team** fixes the identified issues.\n"
+                "> **How it works:** Adversarial Testing uses two teams of AI models to improve your content:\\n"
+                "> - **🔴 Red Team** finds flaws and vulnerabilities.\\n"
+                "> - **🔵 Blue Team** fixes the identified issues.\\n"
                 "> The process repeats until your content reaches the desired confidence level."
             )
             st.divider()
@@ -866,8 +904,8 @@ def render_main_layout():
                     protocol_text = st.text_area("✏️ Enter or paste your content:",
                                                  value=st.session_state.protocol_text,
                                                  height=300,
-                                                 key="protocol_text", # FIXED
-                                                 placeholder="Paste your draft content here...\n\nExample:\n# Security Policy\n\n## Overview\nThis policy defines requirements for secure system access.\n\n## Scope\nApplies to all employees and contractors.\n\n## Policy Statements\n1. All users must use strong passwords\n2. Multi-factor authentication is required for sensitive systems\n3. Regular security training is mandatory\n\n## Compliance\nViolations result in disciplinary action.")
+                                                 key="main_protocol_text_editor",
+                                                 placeholder="Paste your draft content here...\\n\\nExample:\\n# Security Policy\\n\\n## Overview\\nThis policy defines requirements for secure system access.\\n\\n## Scope\\nApplies to all employees and contractors.\\n\\n## Policy Statements\\n1. All users must use strong passwords\\n2. Multi-factor authentication is required for sensitive systems\\n3. Regular security training is mandatory\\n\\n## Compliance\\nViolations result in disciplinary action.")
 
                 with preview_tab:
                     if st.session_state.protocol_text:
@@ -1050,7 +1088,7 @@ Applies to all employees, contractors, and vendors with system access.
                             col4.metric("📝 Completion Tokens", f"{st.session_state.adversarial_total_tokens_completion:,}")
 
                         with st.expander("🔍 Real-time Logs", expanded=True):
-                            log_content = "\n".join(st.session_state.adversarial_log[-50:])
+                            log_content = "\\n".join(st.session_state.adversarial_log[-50:])
                             st.text_area("Activity Log", value=log_content, height=300, key="adversarial_log_display", disabled=True)
 
             if st.session_state.adversarial_results and not st.session_state.adversarial_running:
