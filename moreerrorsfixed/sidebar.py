@@ -168,23 +168,24 @@ def display_sidebar():
             list(providers.keys()),
             key="provider",
             on_change=on_provider_change,
+            help="Select the LLM provider to use for evolution. Adversarial testing always uses OpenRouter."
         )
 
         with st.form("provider_configuration_form"):
             provider_info = providers[st.session_state.provider]
 
-            st.text_input("API Key", type="password", key="api_key")
-            st.text_input("Base URL", key="base_url")
+            st.text_input("API Key", type="password", key="api_key", help="Your API key for the selected provider. Keep this confidential.")
+            st.text_input("Base URL", key="base_url", help="The base URL for the provider's API endpoint.")
 
             if loader := provider_info.get("loader"):
                 models = loader(st.session_state.api_key)
                 st.selectbox(
-                    "Model", models, key="model", on_change=load_settings_for_scope
+                    "Model", models, key="model", on_change=load_settings_for_scope, help="The specific model to use from the selected provider."
                 )
             else:
-                st.text_input("Model", key="model", on_change=load_settings_for_scope)
+                st.text_input("Model", key="model", on_change=load_settings_for_scope, help="The name or ID of the model to use from the selected provider.")
 
-            st.text_area("Extra Headers (JSON)", key="extra_headers")
+            st.text_area("Extra Headers (JSON)", key="extra_headers", help="Additional HTTP headers to send with API requests, in JSON format.")
             st.form_submit_button("Apply Provider Configuration")
 
         st.markdown("---")
@@ -202,18 +203,19 @@ def display_sidebar():
 
         with st.form("generation_parameters_form"):
             st.subheader("Generation Parameters")
-            st.slider("Temperature", 0.0, 2.0, key="temperature", step=0.1)
-            st.slider("Top-P", 0.0, 1.0, key="top_p", step=0.1)
+            st.slider("Temperature", 0.0, 2.0, key="temperature", step=0.1, help="Controls the randomness of the output. Higher values mean more creative, lower values mean more deterministic.")
+            st.slider("Top-P", 0.0, 1.0, key="top_p", step=0.1, help="Controls the diversity of the output by sampling from the most probable tokens whose cumulative probability exceeds top_p.")
             st.slider(
-                "Frequency Penalty", -2.0, 2.0, key="frequency_penalty", step=0.1
+                "Frequency Penalty", -2.0, 2.0, key="frequency_penalty", step=0.1, help="Penalizes new tokens based on their existing frequency in the text so far, decreasing the model's likelihood to repeat the same line verbatim."
             )
-            st.slider("Presence Penalty", -2.0, 2.0, key="presence_penalty", step=0.1)
-            st.number_input("Max Tokens", 1, 100000, key="max_tokens")
-            st.number_input("Seed", key="seed")
+            st.slider("Presence Penalty", -2.0, 2.0, key="presence_penalty", step=0.1, help="Penalizes new tokens based on whether they appear in the text so far, increasing the model's likelihood to talk about new topics.")
+            st.number_input("Max Tokens", 1, 100000, key="max_tokens", help="The maximum number of tokens to generate in the completion.")
+            st.number_input("Seed", key="seed", help="A seed for reproducible generation. Use the same seed to get the same output for the same input.")
             st.selectbox(
                 "Reasoning Effort",
                 ["low", "medium", "high"],
                 key="reasoning_effort",
+                help="Controls the computational effort the model expends on reasoning. Higher effort may lead to better quality but slower generation."
             )
             if st.form_submit_button("Apply Generation Parameters"):
                 scope = st.session_state.settings_scope
@@ -281,20 +283,20 @@ def display_sidebar():
         st.markdown("---")
         with st.form("evolution_parameters_form"):
             st.subheader("Evolution Parameters")
-            st.number_input("Max Iterations", 1, 200, key="max_iterations")
-            st.number_input("Population Size", 1, 100, key="population_size")
-            st.number_input("Number of Islands", 1, 10, key="num_islands")
-            st.number_input("Migration Interval", 1, 100, key="migration_interval")
-            st.slider("Migration Rate", 0.0, 1.0, key="migration_rate", step=0.01)
-            st.number_input("Archive Size", 0, 100, key="archive_size")
-            st.slider("Elite Ratio", 0.0, 1.0, key="elite_ratio", step=0.01)
+            st.number_input("Max Iterations", 1, 200, key="max_iterations", help="The maximum number of evolutionary iterations to run.")
+            st.number_input("Population Size", 1, 100, key="population_size", help="The number of individuals (solutions) in each generation.")
+            st.number_input("Number of Islands", 1, 10, key="num_islands", help="The number of independent evolutionary populations (islands) to maintain.")
+            st.number_input("Migration Interval", 1, 100, key="migration_interval", help="How often individuals migrate between islands (in iterations).")
+            st.slider("Migration Rate", 0.0, 1.0, key="migration_rate", step=0.01, help="The proportion of individuals that migrate between islands during a migration event.")
+            st.number_input("Archive Size", 0, 100, key="archive_size", help="The maximum number of unique, high-performing solutions to store in the archive.")
+            st.slider("Elite Ratio", 0.0, 1.0, key="elite_ratio", step=0.01, help="The proportion of the best individuals from the current generation that are guaranteed to survive to the next generation without modification.")
             st.slider(
-                "Exploration Ratio", 0.0, 1.0, key="exploration_ratio", step=0.01
+                "Exploration Ratio", 0.0, 1.0, key="exploration_ratio", step=0.01, help="The proportion of the population dedicated to exploring new solution spaces."
             )
             st.slider(
-                "Exploitation Ratio", 0.0, 1.0, key="exploitation_ratio", step=0.01
+                "Exploitation Ratio", 0.0, 1.0, key="exploitation_ratio", step=0.01, help="The proportion of the population dedicated to refining existing promising solutions."
             )
-            st.number_input("Checkpoint Interval", 1, 100, key="checkpoint_interval")
+            st.number_input("Checkpoint Interval", 1, 100, key="checkpoint_interval", help="How often to save the state of the evolution process (in iterations).")
             st.selectbox(
                 "Language",
                 [
@@ -311,18 +313,21 @@ def display_sidebar():
                     "document",
                 ],
                 key="language",
+                help="The programming language or document type of the solutions being evolved."
             )
-            st.text_input("File Suffix", key="file_suffix")
+            st.text_input("File Suffix", key="file_suffix", help="The file extension for the generated solutions (e.g., .py, .js).")
             st.multiselect(
                 "Feature Dimensions",
                 ["complexity", "diversity", "readability", "performance"],
                 key="feature_dimensions",
+                help="The criteria used to evaluate and diversify solutions (e.g., complexity, diversity, readability, performance)."
             )
-            st.number_input("Feature Bins", 1, 100, key="feature_bins")
+            st.number_input("Feature Bins", 1, 100, key="feature_bins", help="The number of bins to use for discretizing feature dimensions in quality diversity algorithms.")
             st.selectbox(
                 "Diversity Metric",
                 ["edit_distance", "cosine_similarity", "levenshtein_distance"],
                 key="diversity_metric",
+                help="The metric used to measure the diversity between solutions."
             )
             if st.form_submit_button("Apply Evolution Parameters"):
                 scope = st.session_state.settings_scope
@@ -422,9 +427,9 @@ def display_sidebar():
 
         st.markdown("---")
         st.subheader("System Prompts")
-        st.text_area("System Prompt", key="system_prompt", height=200)
+        st.text_area("System Prompt", key="system_prompt", height=200, help="The initial prompt given to the language model to set its persona or task.")
         st.text_area(
-            "Evaluator System Prompt", key="evaluator_system_prompt", height=200
+            "Evaluator System Prompt", key="evaluator_system_prompt", height=200, help="The prompt given to the evaluator model to guide its assessment of generated solutions."
         )
 
         st.markdown("---")
@@ -447,8 +452,8 @@ def display_sidebar():
 
         st.markdown("---")
         st.subheader("Project Settings")
-        st.text_input("Project Name", key="project_name")
-        st.text_area("Project Description", key="project_description")
+        st.text_input("Project Name", key="project_name", help="A unique name for your project.")
+        st.text_area("Project Description", key="project_description", help="A brief description of your project.")
         st.checkbox(
             "Public Project",
             key="project_public",
@@ -542,6 +547,7 @@ def display_sidebar():
         auto_save = st.checkbox(
             "Auto-save preferences",
             value=st.session_state.user_preferences.get("auto_save", True),
+            help="Automatically save your user preferences."
         )
         st.session_state.user_preferences["auto_save"] = auto_save
 
@@ -552,6 +558,7 @@ def display_sidebar():
             index=["small", "medium", "large"].index(
                 st.session_state.user_preferences.get("font_size", "medium")
             ),
+            help="Adjust the font size of the application interface."
         )
         st.session_state.user_preferences["font_size"] = font_size
 
