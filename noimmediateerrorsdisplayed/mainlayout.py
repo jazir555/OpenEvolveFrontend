@@ -552,12 +552,17 @@ def render_main_layout():
                         selected_template = st.selectbox("Load Template", [""] + templates, key="load_template_select")
                     with col2:
                         st.markdown("<div style='margin-top: 28px;'></div>", unsafe_allow_html=True)
-                        if selected_template and st.button("Load", key="load_template_btn",
-                                                                                           use_container_width=True, type="secondary"):
-                            template_content = content_manager.load_protocol_template(selected_template)
-                            st.session_state.protocol_text = template_content
-                            st.success(f"Loaded template: {selected_template}")
-                            st.rerun() # Rerun to update the text_area with the new content
+                        # Define callback to update protocol text
+                        def load_template_callback():
+                            selected_template = st.session_state.load_template_select
+                            if selected_template:
+                                template_content = content_manager.load_protocol_template(selected_template)
+                                st.session_state.protocol_text = template_content
+                                st.success(f"Loaded template: {selected_template}")
+
+                        if selected_template:
+                            st.button("Load", key="load_template_btn", on_click=load_template_callback,
+                                                                                           use_container_width=True, type="secondary")
             st.divider() # Add a divider
 
             with st.expander("🎮 Action Controls", expanded=True):
@@ -787,10 +792,13 @@ def render_main_layout():
                         exploitation_ratio=st.session_state.exploitation_ratio,
                         checkpoint_interval=st.session_state.checkpoint_interval,
                     )
-                    evolution_id = api.start_evolution(config=asdict(config))
-                    if evolution_id:
-                        st.session_state.evolution_id = evolution_id
-                    st.rerun()
+                    if config is not None:
+                        evolution_id = api.start_evolution(config=asdict(config))
+                        if evolution_id:
+                            st.session_state.evolution_id = evolution_id
+                        st.rerun()
+                    else:
+                        st.error("Failed to create OpenEvolve configuration. Please check your settings.")
 
                 if stop_button:
                     st.session_state.evolution_stop_flag = True
