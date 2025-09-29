@@ -96,9 +96,9 @@ def on_provider_change():
 
 def create_tooltip_html(label, description):
     return f"""
-    <div style="display: flex; align-items: center; gap: 5px;">
-        <span>{label}</span>
-        <span class="tooltip-container">
+    <div style="display: block; margin-bottom: 5px;">
+        <span style="display: inline-block; vertical-align: middle;">{label}</span>
+        <span class="tooltip-container" style="vertical-align: middle;">
             <span class="question-icon">?</span>
             <span class="tooltip-text">{description}</span>
         </span>
@@ -134,7 +134,7 @@ def display_sidebar():
             unsafe_allow_html=True,
         )
 
-        # Inject custom CSS for tooltips
+        # Inject custom CSS for tooltips and other fixes
         st.markdown("""
         <style>
         .tooltip-container {
@@ -184,6 +184,26 @@ def display_sidebar():
         .tooltip-container:hover .tooltip-text {
             visibility: visible;
             opacity: 1;
+        }
+
+        /* Fix for st.multiselect text cutoff */
+        .stMultiSelect {
+            width: 100% !important;
+        }
+
+        /* Fix for st.radio background and appearance */
+        .stRadio > label > div {
+            background-color: #f0f2f6; /* Streamlit's default light gray */
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            border: 1px solid #ccc; /* Add a border around the group */
+        }
+
+        .stRadio input[type="radio"] {
+            -webkit-appearance: radio;
+            -moz-appearance: radio;
+            appearance: radio;
+            margin-right: 5px;
         }
         </style>
         """, unsafe_allow_html=True)
