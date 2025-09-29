@@ -160,20 +160,25 @@ def display_sidebar():
 
         .tooltip-text {
             visibility: hidden;
-            width: 200px; /* Adjust width as needed */
+            max-width: 250px; /* Max width for the tooltip */
+            min-width: 100px; /* Min width to prevent squishing */
             background-color: #555;
             color: #fff;
-            text-align: center;
+            text-align: left; /* Align text left for better readability */
             border-radius: 6px;
-            padding: 5px 0;
+            padding: 5px 8px;
             position: absolute;
             z-index: 1;
-            bottom: 125%; /* Position the tooltip above the icon */
-            left: 50%;
-            margin-left: -100px; /* Center the tooltip */
+            bottom: 125%; /* Position above the icon */
+            right: 0; /* Align to the right edge of the .tooltip-container */
+            left: auto; /* Let browser calculate left */
+            transform: translateX(0); /* No horizontal translation */
             opacity: 0;
             transition: opacity 0.3s;
             font-size: 12px;
+            white-space: normal; /* Allow text to wrap */
+            word-wrap: break-word; /* Break long words */
+            box-sizing: border-box; /* Include padding in width calculation */
         }
 
         .tooltip-container:hover .tooltip-text {
