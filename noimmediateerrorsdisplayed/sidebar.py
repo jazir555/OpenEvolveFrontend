@@ -44,101 +44,117 @@ def render_sidebar():
         )
 
         st.markdown("---")
-
-        api = OpenEvolveAPI(
-            base_url=st.session_state.openevolve_base_url,
-            api_key=st.session_state.openevolve_api_key,
-        )
+        if "openevolve_api_instance" not in st.session_state or \
+           st.session_state.openevolve_api_instance.base_url != st.session_state.openevolve_base_url or \
+           st.session_state.openevolve_api_instance.api_key != st.session_state.openevolve_api_key:
+            st.session_state.openevolve_api_instance = OpenEvolveAPI(
+                base_url=st.session_state.openevolve_base_url,
+                api_key=st.session_state.openevolve_api_key,
+            )
+        api = st.session_state.openevolve_api_instance
         providers = get_providers(api)
         st.selectbox(
             "Provider", list(providers.keys()), key="provider", on_change=reset_defaults
         )
+        with st.form("provider_configuration_form"):
+            provider_info = providers[st.session_state.provider]
 
-        provider_info = providers[st.session_state.provider]
+            st.text_input("API Key", type="password", key="api_key")
+            st.text_input("Base URL", key="base_url")
 
-        st.text_input("API Key", type="password", key="api_key")
-        st.text_input("Base URL", key="base_url")
+            if loader := provider_info.get("loader"):
+                models = loader(st.session_state.api_key)
+                st.selectbox("Model", models, key="model")
+            else:
+                st.text_input("Model", key="model")
 
-        if loader := provider_info.get("loader"):
-            models = loader(st.session_state.api_key)
-            st.selectbox("Model", models, key="model")
-        else:
-            st.text_input("Model", key="model")
-
-        st.text_area("Extra Headers (JSON)", key="extra_headers")
-
-        st.markdown("---")
-        st.subheader("Generation Parameters")
-        st.slider("Temperature", 0.0, 2.0, 0.7, 0.1, key="temperature")
-        st.slider("Top-P", 0.0, 1.0, 1.0, 0.1, key="top_p")
-        st.slider("Frequency Penalty", -2.0, 2.0, 0.0, 0.1, key="frequency_penalty")
-        st.slider("Presence Penalty", -2.0, 2.0, 0.0, 0.1, key="presence_penalty")
-        st.number_input("Max Tokens", 1, 100000, 4096, key="max_tokens")
-        st.number_input("Seed", value=42, key="seed")
-        st.selectbox(
-            "Reasoning Effort",
-            ["low", "medium", "high"],
-            index=1,
-            key="reasoning_effort",
-        )
+            st.text_area("Extra Headers (JSON)", key="extra_headers")
+            st.form_submit_button("Apply Provider Configuration")
 
         st.markdown("---")
-        st.subheader("Evolution Parameters")
-        st.number_input("Max Iterations", 1, 200, 100, key="max_iterations")
-        st.number_input("Population Size", 1, 100, 10, key="population_size")
-        st.number_input("Number of Islands", 1, 10, 1, key="num_islands")
-        st.number_input("Migration Interval", 1, 100, 50, key="migration_interval")
-        st.slider("Migration Rate", 0.0, 1.0, 0.1, 0.01, key="migration_rate")
-        st.number_input("Archive Size", 0, 100, 100, key="archive_size")
-        st.slider("Elite Ratio", 0.0, 1.0, 0.1, 0.01, key="elite_ratio")
-        st.slider("Exploration Ratio", 0.0, 1.0, 0.2, 0.01, key="exploration_ratio")
-        st.slider("Exploitation Ratio", 0.0, 1.0, 0.7, 0.01, key="exploitation_ratio")
-        st.number_input("Checkpoint Interval", 1, 100, 10, key="checkpoint_interval")
-        st.selectbox(
-            "Language",
-            [
-                "python",
-                "javascript",
-                "java",
-                "cpp",
-                "csharp",
-                "go",
-                "rust",
-                "swift",
-                "kotlin",
-                "typescript",
-                "document",
-            ],
-            key="language",
-        )
-        st.text_input("File Suffix", value=".py", key="file_suffix")
-        st.multiselect(
-            "Feature Dimensions",
-            ["complexity", "diversity", "readability", "performance"],
-            default=["complexity", "diversity"],
-            key="feature_dimensions",
-        )
-        st.number_input("Feature Bins", 1, 100, 10, key="feature_bins")
-        st.selectbox(
-            "Diversity Metric",
-            ["edit_distance", "cosine_similarity", "levenshtein_distance"],
-            key="diversity_metric",
-        )
-
-        st.markdown("---")
-        st.subheader("Checkpointing")
-        if st.button("Save Checkpoint"):
-            st.session_state.save_checkpoint_triggered = True
-
-        checkpoints = api.get_checkpoints()
-        if checkpoints:
+        with st.form("generation_parameters_form"):
+            st.subheader("Generation Parameters")
+            st.slider("Temperature", 0.0, 2.0, 0.7, 0.1, key="temperature")
+            st.slider("Top-P", 0.0, 1.0, 1.0, 0.1, key="top_p")
+            st.slider("Frequency Penalty", -2.0, 2.0, 0.0, 0.1, key="frequency_penalty")
+            st.slider("Presence Penalty", -2.0, 2.0, 0.0, 0.1, key="presence_penalty")
+            st.number_input("Max Tokens", 1, 100000, 4096, key="max_tokens")
+            st.number_input("Seed", value=42, key="seed")
             st.selectbox(
-                "Load Checkpoint", options=checkpoints, key="selected_checkpoint"
+                "Reasoning Effort",
+                ["low", "medium", "high"],
+                index=1,
+                key="reasoning_effort",
             )
-            if st.button("Load Selected Checkpoint"):
-                st.session_state.load_checkpoint_triggered = True
-        else:
-            st.info("No checkpoints available.")
+            st.form_submit_button("Apply Generation Parameters")
+
+        st.markdown("---")
+        with st.form("evolution_parameters_form"):
+            st.subheader("Evolution Parameters")
+            st.number_input("Max Iterations", 1, 200, 100, key="max_iterations")
+            st.number_input("Population Size", 1, 100, 10, key="population_size")
+            st.number_input("Number of Islands", 1, 10, 1, key="num_islands")
+            st.number_input("Migration Interval", 1, 100, 50, key="migration_interval")
+            st.slider("Migration Rate", 0.0, 1.0, 0.1, 0.01, key="migration_rate")
+            st.number_input("Archive Size", 0, 100, 100, key="archive_size")
+            st.slider("Elite Ratio", 0.0, 1.0, 0.1, 0.01, key="elite_ratio")
+            st.slider("Exploration Ratio", 0.0, 1.0, 0.2, 0.01, key="exploration_ratio")
+            st.slider("Exploitation Ratio", 0.0, 1.0, 0.7, 0.01, key="exploitation_ratio")
+            st.number_input("Checkpoint Interval", 1, 100, 10, key="checkpoint_interval")
+            st.selectbox(
+                "Language",
+                [
+                    "python",
+                    "javascript",
+                    "java",
+                    "cpp",
+                    "csharp",
+                    "go",
+                    "rust",
+                    "swift",
+                    "kotlin",
+                    "typescript",
+                    "document",
+                ],
+                key="language",
+            )
+            st.text_input("File Suffix", value=".py", key="file_suffix")
+            st.multiselect(
+                "Feature Dimensions",
+                ["complexity", "diversity", "readability", "performance"],
+                default=["complexity", "diversity"],
+                key="feature_dimensions",
+            )
+            st.number_input("Feature Bins", 1, 100, 10, key="feature_bins")
+            st.selectbox(
+                "Diversity Metric",
+                ["edit_distance", "cosine_similarity", "levenshtein_distance"],
+                key="diversity_metric",
+            )
+            st.form_submit_button("Apply Evolution Parameters")
+
+        st.markdown("---")
+        with st.form("checkpointing_form"):
+            st.subheader("Checkpointing")
+
+            action = st.radio("Action", ["Save Checkpoint", "Load Checkpoint"], key="checkpoint_action")
+
+            checkpoints = api.get_checkpoints()
+            if checkpoints:
+                st.selectbox(
+                    "Load Checkpoint", options=checkpoints, key="selected_checkpoint"
+                )
+            else:
+                st.info("No checkpoints available to load.")
+
+            if st.form_submit_button("Execute Action"):
+                if st.session_state.checkpoint_action == "Save Checkpoint":
+                    st.session_state.save_checkpoint_triggered = True
+                elif st.session_state.checkpoint_action == "Load Checkpoint":
+                    if checkpoints:
+                        st.session_state.load_checkpoint_triggered = True
+                    else:
+                        st.warning("No checkpoints available to load.")
 
         st.markdown("---")
         st.subheader("System Prompts")
@@ -207,9 +223,10 @@ def render_sidebar():
         theme_label = f"{theme_emoji} Switch to {'Dark' if current_theme == 'light' else 'Light'} Mode"
 
         if st.button(theme_label, key="theme_toggle_btn", use_container_width=True):
-            from sessionstate import toggle_theme
-
-            toggle_theme()
+            if st.session_state.get("theme", "light") == "light":
+                st.session_state.theme = "dark"
+            else:
+                st.session_state.theme = "light"
             st.rerun()
 
         # Fallback theme selector
