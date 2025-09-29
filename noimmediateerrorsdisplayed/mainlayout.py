@@ -84,6 +84,7 @@ def _load_report_templates():
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+@st.cache_data(ttl=3600) # Cache for 1 hour
 def render_island_model_chart(history: List[Dict]):
     """Render an interactive graph of the island model evolution."""
     if not history:
@@ -116,6 +117,7 @@ def render_code_diff(text1: str, text2: str):
     st.code("".join(diff), language="diff")
 
 
+@st.cache_data(ttl=3600) # Cache for 1 hour
 def render_evolution_history_chart(history: List[Dict]):
     """Render an interactive scatter plot of the evolution history."""
     if not history:
@@ -184,90 +186,95 @@ def check_password():
 
 def render_collaboration_ui():
     """Render the collaboration UI, including presence indicators and notifications."""
-    st.markdown("""
-    <div id="presence-container" class="presence-container"></div>
-    <div id="notification-center" class="notification-center"></div>
-    <script>
-        const presenceContainer = document.getElementById("presence-container");
-        const notificationCenter = document.getElementById("notification-center");
-        const websocket = new WebSocket("ws://localhost:8765");
+    if "collaboration_ui_rendered" not in st.session_state:
+        st.session_state.collaboration_ui_rendered = False
 
-        websocket.onmessage = (event) => {
-            const data = JSON.parse(event.data);
-            if (data.type === "presence_update") {
-                presenceContainer.innerHTML = "";
-                data.payload.forEach(user => {
-                    const indicator = document.createElement("div");
-                    indicator.className = "presence-indicator";
-                    indicator.title = user.id;
-                    presenceContainer.appendChild(indicator);
-                });
-            } else if (data.type === "notification") {
-                const notification = document.createElement("div");
-                notification.className = "notification";
-                notification.innerText = data.payload.message;
-                notificationCenter.appendChild(notification);
-                notificationCenter.style.display = "block";
-            } else if (data.type === "cursor_update") {
-                const editor = document.querySelector('.stTextArea textarea');
-                let cursor = document.getElementById(`cursor-${data.sender}`);
-                if (!cursor) {
-                    cursor = document.createElement('div');
-                    cursor.id = `cursor-${data.sender}`;
-                    cursor.className = 'other-cursor';
-                    document.body.appendChild(cursor);
-                }
-                cursor.style.left = `${data.payload.x}px`;
-                cursor.style.top = `${data.payload.y}px`;
-            } else if (data.type === "text_update") {
-                const editor = document.querySelector('.stTextArea textarea');
-                if (editor.value !== data.payload.text) {
-                    editor.value = data.payload.text;
-                }
-            }
-        };
+    if not st.session_state.collaboration_ui_rendered:
+        st.markdown("""
+        <div id="presence-container" class="presence-container"></div>
+        <div id="notification-center" class="notification-center"></div>
+        <script>
+            const presenceContainer = document.getElementById("presence-container");
+            const notificationCenter = document.getElementById("notification-center");
+            const websocket = new WebSocket("ws://localhost:8765");
 
-        const textArea = document.querySelector('[data-testid="stTextAreawithLabel"] textarea');
-        if (textArea) {
-            textArea.addEventListener('input', (event) => {
-                const text_update = {
-                    type: "text_update",
-                    payload: {
-                        text: event.target.value
+            websocket.onmessage = (event) => {
+                const data = JSON.parse(event.data);
+                if (data.type === "presence_update") {
+                    presenceContainer.innerHTML = "";
+                    data.payload.forEach(user => {
+                        const indicator = document.createElement("div");
+                        indicator.className = "presence-indicator";
+                        indicator.title = user.id;
+                        presenceContainer.appendChild(indicator);
+                    });
+                } else if (data.type === "notification") {
+                    const notification = document.createElement("div");
+                    notification.className = "notification";
+                    notification.innerText = data.payload.message;
+                    notificationCenter.appendChild(notification);
+                    notificationCenter.style.display = "block";
+                } else if (data.type === "cursor_update") {
+                    const editor = document.querySelector('.stTextArea textarea');
+                    let cursor = document.getElementById(`cursor-${data.sender}`);
+                    if (!cursor) {
+                        cursor = document.createElement('div');
+                        cursor.id = `cursor-${data.sender}`;
+                        cursor.className = 'other-cursor';
+                        document.body.appendChild(cursor);
                     }
-                };
-                websocket.send(JSON.stringify(text_update));
-            });
-
-            textArea.addEventListener('mousemove', (event) => {
-                const cursor_update = {
-                    type: "cursor_update",
-                    payload: {
-                        x: event.clientX,
-                        y: event.clientY
+                    cursor.style.left = `${data.payload.x}px`;
+                    cursor.style.top = `${data.payload.y}px`;
+                } else if (data.type === "text_update") {
+                    const editor = document.querySelector('.stTextArea textarea');
+                    if (editor.value !== data.payload.text) {
+                        editor.value = data.payload.text;
                     }
-                };
-                websocket.send(JSON.stringify(cursor_update));
-            });
-        }
-
-        websocket.onopen = () => {
-            const presenceData = {
-                type: "update_presence",
-                payload: {
-                    id: Math.random().toString(36).substring(7)
                 }
             };
-            websocket.send(JSON.stringify(presenceData));
-        };
 
-        document.addEventListener("click", (event) => {
-            if (!notificationCenter.contains(event.target)) {
-                notificationCenter.style.display = "none";
+            const textArea = document.querySelector('[data-testid="stTextAreawithLabel"] textarea');
+            if (textArea) {
+                textArea.addEventListener('input', (event) => {
+                    const text_update = {
+                        type: "text_update",
+                        payload: {
+                            text: event.target.value
+                        }
+                    };
+                    websocket.send(JSON.stringify(text_update));
+                });
+
+                textArea.addEventListener('mousemove', (event) => {
+                    const cursor_update = {
+                        type: "cursor_update",
+                        payload: {
+                            x: event.clientX,
+                            y: event.clientY
+                        }
+                    };
+                    websocket.send(JSON.stringify(cursor_update));
+                });
             }
-        });
-    </script>
-    """, unsafe_allow_html=True)
+
+            websocket.onopen = () => {
+                const presenceData = {
+                    type: "update_presence",
+                    payload: {
+                        id: Math.random().toString(36).substring(7)
+                    }
+                };
+                websocket.send(JSON.stringify(presenceData));
+            };
+
+            document.addEventListener("click", (event) => {
+                if (!notificationCenter.contains(event.target)) {
+                    notificationCenter.style.display = "none";
+                }
+            });
+        </script>
+        """, unsafe_allow_html=True)
+        st.session_state.collaboration_ui_rendered = True
 
 from session_manager import session_defaults
 from prompt_manager import PromptManager
@@ -414,7 +421,15 @@ def render_main_layout():
     if "template_manager" not in st.session_state:
         st.session_state.template_manager = TemplateManager()
     if "prompt_manager" not in st.session_state:
-        st.session_state.prompt_manager = PromptManager()
+        # Ensure openevolve_api_instance is available before passing it
+        if "openevolve_api_instance" not in st.session_state:
+            # This should ideally be initialized in sidebar.py before mainlayout.py is rendered
+            # For robustness, initialize a dummy one or handle gracefully
+            st.session_state.openevolve_api_instance = OpenEvolveAPI(
+                base_url=st.session_state.get("openevolve_base_url", "http://localhost:8000"),
+                api_key=st.session_state.get("openevolve_api_key", ""),
+            )
+        st.session_state.prompt_manager = PromptManager(api=st.session_state.openevolve_api_instance)
     if "content_manager_instance" not in st.session_state: # Renamed to avoid conflict with imported content_manager
         st.session_state.content_manager_instance = content_manager
     if "analytics_manager_instance" not in st.session_state: # Renamed to avoid conflict with imported analytics_manager
@@ -708,7 +723,7 @@ def render_main_layout():
                 st.divider()
 
             with st.expander("📝 Prompts"):
-                api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                api = st.session_state.openevolve_api_instance # Use cached API instance
                 # This part needs error handling in a real app
                 # custom_prompts = api.get_custom_prompts()
                 custom_prompts = {} # Placeholder
@@ -735,7 +750,7 @@ def render_main_layout():
                 uploaded_evaluator_file = st.file_uploader("Upload Python file with 'evaluate' function", type=["py"])
                 if uploaded_evaluator_file is not None:
                     evaluator_code = uploaded_evaluator_file.read().decode("utf-8")
-                    api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                    api = st.session_state.openevolve_api_instance # Use cached API instance
                     # evaluator_id = api.upload_evaluator(evaluator_code)
                     evaluator_id = "eval_dummy_123" # Placeholder
                     if evaluator_id:
@@ -746,7 +761,7 @@ def render_main_layout():
             st.divider()
 
             with st.expander("🗂️ Manage Custom Evaluators"):
-                api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                api = st.session_state.openevolve_api_instance # Use cached API instance
                 # custom_evaluators = api.get_custom_evaluators()
                 custom_evaluators = {} # Placeholder
                 if custom_evaluators:
@@ -1088,7 +1103,7 @@ Applies to all employees, contractors, and vendors with system access.
                             col4.metric("📝 Completion Tokens", f"{st.session_state.adversarial_total_tokens_completion:,}")
 
                         with st.expander("🔍 Real-time Logs", expanded=True):
-                            log_content = "\\n".join(st.session_state.adversarial_log[-50:])
+                            log_content = "\n".join(st.session_state.adversarial_log[-50:])
                             st.text_area("Activity Log", value=log_content, height=300, key="adversarial_log_display", disabled=True)
 
             if st.session_state.adversarial_results and not st.session_state.adversarial_running:
