@@ -480,8 +480,6 @@ def render_main_layout():
     # Notification UI
     render_notification_ui()
 
-    # Project information with enhanced UI
-    st.markdown("## Adversarial Testing & Evolution-based Content Improvement")
 
     # Quick action buttons with enhanced styling
     quick_action_col1, quick_action_col2 = st.columns(2)
@@ -1165,15 +1163,15 @@ Applies to all employees, contractors, and vendors with system access.
 
             if not st.session_state.get("github_token"):
                 st.warning("Please authenticate with GitHub in the sidebar first.")
-            st.divider()
 
             linked_repos = list_linked_github_repositories()
             if not linked_repos:
                 st.info("Please link at least one GitHub repository in the sidebar to get started.")
-            st.divider()
 
             selected_repo = st.selectbox("Select Repository", linked_repos)
-            st.divider()
+
+            if linked_repos:
+                st.divider()
 
             if selected_repo:
                 st.subheader("🌿 Branch Management")
@@ -1183,7 +1181,6 @@ Applies to all employees, contractors, and vendors with system access.
                     if st.button("Create Branch", type="secondary") and new_branch_name:
                         if create_github_branch(st.session_state.github_token, selected_repo, new_branch_name, base_branch):
                             st.success(f"Created branch '{new_branch_name}' from '{base_branch}'")
-                st.divider()
 
                 st.subheader("💾 Commit and Push")
                 branch_name = st.text_input("Target Branch", "main")
@@ -1196,7 +1193,6 @@ Applies to all employees, contractors, and vendors with system access.
                         st.success("✅ Committed to GitHub successfully!")
                     else:
                         st.error("❌ Failed to commit to GitHub. Check your token and permissions.")
-                st.divider()
 
     with tabs[3]: # Activity Feed tab
         with st.container(border=True):
