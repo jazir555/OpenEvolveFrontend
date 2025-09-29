@@ -57,7 +57,7 @@
 }
 
 /* Dark Theme */
-[data-theme="dark"] {
+html[data-theme="dark"], [data-theme="dark"], .stApp[data-theme="dark"] {
     --bg-primary: #0f172a;
     --bg-secondary: #1e293b;
     --bg-tertiary: #334155;
@@ -88,6 +88,38 @@ html, body {
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Force light theme as default */
+    background-color: #ffffff !important;
+    color: #1e293b !important;
+}
+
+/* Force light theme as default for the entire app */
+html, .stApp, body, .main, .block-container {
+    --bg-primary: #ffffff !important;
+    --bg-secondary: #f8fafc !important;
+    --bg-tertiary: #f1f5f9 !important;
+    --bg-quaternary: #e2e8f0 !important;
+    
+    --text-primary: #1e293b !important;
+    --text-secondary: #64748b !important;
+    --text-light: #94a3b8 !important;
+    --text-muted: #cbd5e1 !important;
+    
+    --border: #e2e8f0 !important;
+    --border-light: #f1f5f9 !important;
+    --border-dark: #cbd5e1 !important;
+    
+    --primary: #6366f1 !important;
+    --primary-hover: #5855f7 !important;
+    --primary-light: #a5b4fc !important;
+    --primary-dark: #4338ca !important;
+}
+
+/* Ensure all basic elements have light theme by default */
+.stApp * {
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border) !important;
 }
 
 /* Streamlit App Override */
@@ -95,6 +127,30 @@ html, body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
     background: var(--bg-secondary) !important;
     color: var(--text-primary) !important;
+    /* Ensure light theme is default unless explicitly set to dark */
+    background-color: var(--bg-secondary) !important;
+}
+
+/* Default light theme styles to override any Streamlit defaults */
+.stApp:not([data-theme="dark"]) {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f8fafc;
+    --bg-tertiary: #f1f5f9;
+    --bg-quaternary: #e2e8f0;
+    
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-light: #94a3b8;
+    --text-muted: #cbd5e1;
+    
+    --border: #e2e8f0;
+    --border-light: #f1f5f9;
+    --border-dark: #cbd5e1;
+    
+    --primary: #6366f1;
+    --primary-hover: #5855f7;
+    --primary-light: #a5b4fc;
+    --primary-dark: #4338ca;
 }
 
 .main .block-container {
@@ -170,12 +226,17 @@ p {
 }
 
 /* Input Styles */
-.stTextInput > div > div > input,
-.stTextArea > div > div > textarea,
-.stSelectbox > div > div > select,
-.stNumberInput > div > div > input {
-    background: #ffffff !important; /* Force white background */
-    color: var(--text-primary) !important;
+.stApp [data-testid="stTextInput"] input,
+.stApp [data-testid="stTextArea"] textarea,
+.stApp [data-testid="stSelectbox"] select,
+.stApp [data-testid="stNumberInput"] input,
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+textarea {
+    background: #f8fafc !important; /* Force light background */
+    color: #1e293b !important; /* Force dark text */
     border: 1px solid var(--border) !important;
     border-radius: var(--radius-sm) !important;
     padding: 0.75rem !important;
@@ -183,18 +244,57 @@ p {
     font-family: inherit !important;
     transition: all var(--transition-normal) !important;
 }
-.stTextInput > div > div > input:focus,
-.stTextArea > div > div > textarea:focus,
-.stSelectbox > div > div > select:focus,
-.stNumberInput > div > div > input:focus {
+.stApp [data-testid="stTextInput"] input:focus,
+.stApp [data-testid="stTextArea"] textarea:focus,
+.stApp [data-testid="stSelectbox"] select:focus,
+.stApp [data-testid="stNumberInput"] input:focus,
+input[type="text"]:focus,
+input[type="password"]:focus,
+input[type="email"]:focus,
+input[type="number"]:focus,
+textarea:focus {
     outline: none !important;
     border-color: var(--primary) !important;
     box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1) !important;
 }
-.stTextInput > div > div > input::placeholder,
-.stTextArea > div > div > textarea::placeholder {
+.stApp [data-testid="stTextInput"] input::placeholder,
+.stApp [data-testid="stTextArea"] textarea::placeholder {
     color: var(--text-muted) !important;
 }
+/* Checkbox Styles */
+.stCheckbox > label > div[data-testid="stMarkdownContainer"] {
+    color: #1e293b !important; /* Force dark text for label */
+}
+/* More specific checkbox styling to override defaults */
+.stApp [data-testid="stCheckbox"] input[type="checkbox"] {
+    background: #f8fafc !important; /* Force light background for checkbox */
+    border: 1px solid var(--border) !important;
+    border-radius: var(--radius-sm) !important;
+    appearance: none;
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    position: relative;
+    top: 2px;
+}
+.stApp [data-testid="stCheckbox"] input[type="checkbox"]:checked {
+    background: var(--primary) !important; /* Primary color when checked */
+    border-color: var(--primary) !important;
+}
+.stApp [data-testid="stCheckbox"] input[type="checkbox"]:checked::after {
+    content: '✓';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white !important;
+    font-size: 10px;
+    font-weight: bold;
+}
+.stCheckbox [data-testid="stCheckbox"] svg {
+    color: white !important; /* Checkmark color */
+}
+
 /* Labels */
 .stTextInput > label,
 .stTextArea > label,
@@ -259,6 +359,11 @@ p {
     box-shadow: var(--shadow-sm) !important;
 }
 
+/* Ensure tab content areas are light */
+.stTabs [data-testid="stHorizontalBlock"] {
+    background: var(--bg-primary) !important;
+}
+
 /* Expanders */
 .streamlit-expanderHeader {
     background: var(--bg-primary) !important;
@@ -274,10 +379,26 @@ p {
 }
 .streamlit-expanderContent {
     background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
     border: 1px solid var(--border) !important;
     border-top: none !important;
     border-radius: 0 0 var(--radius-sm) var(--radius-sm) !important;
     padding: var(--spacing-lg) !important;
+}
+/* Ensure content inside expanders is readable */
+.streamlit-expanderContent * {
+    color: var(--text-primary) !important;
+}
+/* More specific expander content styling */
+div[data-testid="stExpander"] {
+    background: var(--bg-primary) !important;
+}
+div[data-testid="stExpander"] details {
+    background: var(--bg-primary) !important;
+}
+div[data-testid="stExpander"] summary {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
 }
 
 /* Containers */
