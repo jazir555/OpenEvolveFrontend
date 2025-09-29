@@ -13,6 +13,13 @@ from dataclasses import asdict
 from pyvis.network import Network
 from session_utils import _safe_list
 
+def _safe_list(data: dict, key: str) -> List:
+    """Safely retrieves a list from a dictionary, returning an empty list if the key is not found or the value is not a list."""
+    value = data.get(key)
+    if isinstance(value, list):
+        return value
+    return []
+
 from providercatalogue import get_openrouter_models, _parse_price_per_million
 
 from session_manager import (
@@ -557,8 +564,9 @@ def render_main_layout():
     tabs = st.tabs(tab_names)
 
     with tabs[0]: # Evolution tab
-        with st.container(): # Wrap the entire tab content in a container
-            st.header("Real-time Evolution Logs")
+        with st.container(border=True): # Wrap the entire tab content in a container
+            st.header("🧬 Real-time Evolution Logs")
+            st.markdown("Iteratively improve your content using a single AI model.")
 
             with st.expander("📝 Content Input", expanded=True):
                 st.text_area("Paste your draft content here:", height=300, key="protocol_text",
@@ -1432,77 +1440,107 @@ def render_main_layout():
         st.title("📂 Projects")
         render_projects_tab()
         st.markdown("<br>", unsafe_allow_html=True)
+def render_activity_feed_ui():
+    """Render the activity feed UI."""
+    st.subheader("Recent Activity")
+    if st.session_state.get("activity_log"):
+        for entry in reversed(st.session_state.activity_log):
+            st.markdown(f"- {entry}")
+    else:
+        st.info("No activity yet.")
+    st.divider() # Add a divider at the end of the section
+
 def render_model_dashboard_ui():
     """Render the model comparison dashboard UI."""
-    with st.container(): # Wrap the entire function content in a container
-        st.subheader("Model Performance")
+    with st.container(border=True):
+        st.subheader("🤖 Model Performance Dashboard")
+        st.markdown("Analyze the performance of different models used in adversarial testing.")
 
         if "adversarial_model_performance" not in st.session_state or not st.session_state.adversarial_model_performance:
-            st.warning("No model performance data available. Run adversarial testing to generate data.")
+            st.info("No model performance data available. Run adversarial testing to generate data.")
             return
 
         model_performance = st.session_state.adversarial_model_performance
         sorted_models = sorted(model_performance.items(), key=lambda x: x[1].get("score", 0), reverse=True)
 
-
-
-        st.markdown("<div class='model-dashboard-container'>", unsafe_allow_html=True)
+        st.markdown("<div class='model-dashboard-grid'>", unsafe_allow_html=True)
         for model_id, perf in sorted_models:
+            score = perf.get('score', 0)
+            issues = perf.get('issues_found', 0)
             st.markdown(f"""
             <div class="model-card">
-                <h4>{model_id}</h4>
-                <p><strong>Score:</strong> {perf.get('score', 0)}</p>
-                <p><strong>Issues Found:</strong> {perf.get('issues_found', 0)}</p>
+                <h4 class="model-card-title">{model_id}</h4>
+                <p><strong>Score:</strong> <span class="model-score">{score}</span></p>
+                <p><strong>Issues Found:</strong> <span class="model-issues">{issues}</span></p>
+                <div class="model-progress-bar">
+                    <div class="model-progress-fill" style="width: {min(score, 100)}%;"></div>
+                </div>
             </div>
             """, unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
-        st.divider() # Add a divider at the end of the section
+    st.divider() # Add a divider at the end of the section
 
 def render_tasks_ui():
     """Render the tasks UI."""
-    with st.container():
-        st.subheader("Create New Task")
-        with st.form("new_task_form"):
-            title = st.text_input("Title")
-            description = st.text_area("Description")
-            assignee = st.text_input("Assignee")
-            due_date = st.date_input("Due Date")
-            submitted = st.form_submit_button("Create Task")
-            if submitted:
-                create_task(title, description, assignee, due_date)
-                st.success("Task created successfully!")
+    with st.container(border=True):
+        st.subheader("✅ Task Management")
+        st.markdown("Create, view, and manage tasks related to content improvement.")
+
+        with st.expander("➕ Create New Task", expanded=False):
+            with st.form("new_task_form"):
+                title = st.text_input("Task Title", placeholder="e.g., Review security policy")
+                description = st.text_area("Description", placeholder="Provide details about the task...")
+                assignee = st.text_input("Assignee", placeholder="e.g., John Doe")
+                due_date = st.date_input("Due Date")
+                submitted = st.form_submit_button("Create Task", type="primary")
+                if submitted:
+                    create_task(title, description, assignee, due_date)
+                    st.success("Task created successfully!")
         st.divider()
 
-        st.subheader("Tasks")
+        st.subheader("📋 Existing Tasks")
         tasks = get_tasks()
 
+        if not tasks:
+            st.info("No tasks created yet.")
+            return
 
-
-        st.markdown("<div class='task-container'>", unsafe_allow_html=True)
+        st.markdown("<div class='task-grid'>", unsafe_allow_html=True)
         for task in tasks:
+            status_color = "green" if task['status'] == "Completed" else ("orange" if task['status'] == "In Progress" else "red")
             st.markdown(f"""
             <div class="task-card">
-                <h4>{task['title']} ({task['status']})</h4>
+                <h4 class="task-card-title">{task['title']}</h4>
+                <p><strong>Status:</strong> <span style="color: {status_color};">{task['status']}</span></p>
                 <p><strong>Description:</strong> {task['description']}</p>
                 <p><strong>Assignee:</strong> {task['assignee']}</p>
                 <p><strong>Due Date:</strong> {task['due_date']}</p>
+                <button class="stButton secondary-button" onclick="
+                    var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'complete_task_{task['id']}', value: true}}}});
+                    window.parent.document.dispatchEvent(event);
+                ">Mark as Complete</button>
             </div>
             """, unsafe_allow_html=True)
+            # Handle task completion (placeholder for actual update_task call)
+            if st.session_state.get(f'complete_task_{task['id']}'):
+                st.session_state[f'complete_task_{task['id']}'] = False
+                update_task(task['id'], "Completed") # Assuming update_task exists and takes ID and new status
+                st.success(f"Task '{task['title']}' marked as complete!")
+                st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
-        st.divider() # Add a divider at the end of the section
+    st.divider() # Add a divider at the end of the section
 
 def render_admin_ui():
     """Render the admin UI for managing users and roles."""
-    with st.container():
-        st.subheader("User Management")
+    with st.container(border=True):
+        st.subheader("👑 User and Role Management")
+        st.markdown("Manage user accounts, assign roles, and configure access permissions.")
 
-        # Add new user form
-        with st.expander("Add New User", expanded=True):
+        with st.expander("➕ Add New User", expanded=False):
             with st.form("new_user_form"):
-                st.write("Add New User")
-                new_username = st.text_input("Username")
-                new_role = st.selectbox("Role", list(ROLES.keys()))
-                submitted = st.form_submit_button("Add User")
+                new_username = st.text_input("Username", placeholder="Enter new username")
+                new_role = st.selectbox("Role", list(ROLES.keys()), help="Select a role for the new user.")
+                submitted = st.form_submit_button("Add User", type="primary")
                 if submitted:
                     if new_username:
                         assign_role(new_username, new_role)
@@ -1511,108 +1549,144 @@ def render_admin_ui():
                         st.error("Username cannot be empty.")
         st.divider()
 
-        st.subheader("Existing Users")
+        st.subheader("👥 Existing Users")
         users = list(st.session_state.user_roles.keys())
 
+        if not users:
+            st.info("No users registered yet.")
+            return
 
-
-        st.markdown("<div class='user-container'>", unsafe_allow_html=True)
+        st.markdown("<div class='user-grid'>", unsafe_allow_html=True)
         for user in users:
             st.markdown(f"""
             <div class="user-card">
-                <h4>{user}</h4>
-                <p><strong>Role:</strong> {st.session_state.user_roles[user]}</p>
+                <h4 class="user-card-title">{user}</h4>
+                <p><strong>Role:</strong> <span class="user-role">{st.session_state.user_roles[user]}</span></p>
+                <button class="stButton secondary-button" onclick="
+                    var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'edit_user_{user}', value: true}}}});
+                    window.parent.document.dispatchEvent(event);
+                ">Edit Role</button>
+                <button class="stButton secondary-button" onclick="
+                    var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'delete_user_{user}', value: true}}}});
+                    window.parent.document.dispatchEvent(event);
+                ">Delete User</button>
             </div>
             """, unsafe_allow_html=True)
+            # Placeholder for edit/delete functionality
+            if st.session_state.get(f'edit_user_{user}'):
+                st.session_state[f'edit_user_{user}'] = False
+                st.info(f"Editing role for user: {user} (functionality to be implemented)")
+            if st.session_state.get(f'delete_user_{user}'):
+                st.session_state[f'delete_user_{user}'] = False
+                st.warning(f"Deleting user: {user} (functionality to be implemented)")
         st.markdown("</div>", unsafe_allow_html=True)
-        st.divider() # Add a divider at the end of the section
+    st.divider() # Add a divider at the end of the section
 
 def render_projects_tab():
-    st.title("📂 Projects")
-    with st.container():
-        st.subheader("Create New Project")
-        project_templates = content_manager.list_protocol_templates()
-        selected_template = st.selectbox("Select a project template", [""] + project_templates)
-        new_project_name = st.text_input("New Project Name")
-        if st.button("Create Project") and new_project_name:
-            if selected_template:
-                template_content = content_manager.load_protocol_template(selected_template)
-                st.session_state.protocol_text = template_content
-            st.session_state.project_name = new_project_name
-            st.success(f"Project '{new_project_name}' created.")
+    with st.container(border=True):
+        st.subheader("📂 Project Management")
+        st.markdown("Create and manage your content improvement projects.")
+
+        with st.expander("➕ Create New Project", expanded=False):
+            project_templates = content_manager.list_protocol_templates()
+            selected_template = st.selectbox("Select a project template", [""] + project_templates, help="Optionally start a new project from an existing template.")
+            new_project_name = st.text_input("New Project Name", placeholder="e.g., My New Security Policy Project")
+            if st.button("Create Project", type="primary") and new_project_name:
+                if selected_template:
+                    template_content = content_manager.load_protocol_template(selected_template)
+                    st.session_state.protocol_text = template_content
+                st.session_state.project_name = new_project_name
+                st.session_state.projects[new_project_name] = {"description": "", "created_at": datetime.now().isoformat()}
+                st.success(f"Project '{new_project_name}' created.")
         st.divider()
 
-        st.subheader("Manage Existing Projects")
-        if "projects" not in st.session_state:
-            st.session_state.projects = {}
+        st.subheader("📋 Existing Projects")
+        if "projects" not in st.session_state or not st.session_state.projects:
+            st.info("No projects created yet.")
+            return
 
-
-
-        st.markdown("<div class='project-container'>", unsafe_allow_html=True)
+        st.markdown("<div class='project-grid'>", unsafe_allow_html=True)
         for project_name, project_data in st.session_state.projects.items():
             st.markdown(f"""
             <div class="project-card">
-                <h4>{project_name}</h4>
-                <p><strong>Description:</strong> {project_data.get('description', '')}</p>
+                <h4 class="project-card-title">{project_name}</h4>
+                <p><strong>Description:</strong> {project_data.get('description', 'No description provided.')}</p>
+                <p><strong>Created:</strong> {project_data.get('created_at', 'N/A')}</p>
+                <button class="stButton secondary-button" onclick="
+                    var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'load_project_{project_name}', value: true}}}});
+                    window.parent.document.dispatchEvent(event);
+                ">Load Project</button>
+                <button class="stButton secondary-button" onclick="
+                    var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'delete_project_{project_name}', value: true}}}});
+                    window.parent.document.dispatchEvent(event);
+                ">Delete Project</button>
             </div>
             """, unsafe_allow_html=True)
+            # Placeholder for load/delete functionality
+            if st.session_state.get(f'load_project_{project_name}'):
+                st.session_state[f'load_project_{project_name}'] = False
+                st.info(f"Loading project: {project_name} (functionality to be implemented)")
+                # In a real app, you'd load project-specific data into session_state
+            if st.session_state.get(f'delete_project_{project_name}'):
+                st.session_state[f'delete_project_{project_name}'] = False
+                del st.session_state.projects[project_name]
+                st.success(f"Project '{project_name}' deleted.")
+                st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
-        st.divider() # Add a divider at the end of the section
-
 def render_report_templates_ui():
     """Render the report templates UI."""
-    st.markdown("""
-    > Manage your custom report templates here. Create new templates or view existing ones.
-    """)
-    st.markdown("<br>", unsafe_allow_html=True)
+    with st.container(border=True):
+        st.subheader("📊 Report Template Management")
+        st.markdown("Manage your custom report templates here. Create new templates or view existing ones.")
 
-    if "report_templates" not in st.session_state:
-        st.session_state.report_templates = _load_report_templates()
+        with st.expander("➕ Create New Template", expanded=False):
+            new_template_name = st.text_input("Template Name", placeholder="e.g., Security Audit Report")
+            new_template_content = st.text_area("Template Content (JSON)", height=200, placeholder="Paste your JSON template content here...")
+            if st.button("Save Template", type="primary"):
+                if new_template_name and new_template_content:
+                    try:
+                        template_data = json.loads(new_template_content)
+                        st.session_state.report_templates[new_template_name] = template_data
+                        with open("report_templates.json", "w") as f:
+                            json.dump(st.session_state.report_templates, f, indent=4)
+                        st.success(f"Template '{new_template_name}' saved.")
+                        _load_report_templates.clear()
+                        st.rerun()
+                    except json.JSONDecodeError:
+                        st.error("Invalid JSON format.")
+                else:
+                    st.warning("Please provide a name and content for the template.")
+        st.divider()
 
-    with st.container(border=True): # Create New Template Section
-        st.markdown("### Create New Template")
-        new_template_name = st.text_input("Template Name")
-        new_template_content = st.text_area("Template Content (JSON)", height=200)
-        if st.button("Save Template", type="primary"):
-            if new_template_name and new_template_content:
-                try:
-                    template_data = json.loads(new_template_content)
-                    st.session_state.report_templates[new_template_name] = template_data
-                    with open("report_templates.json", "w") as f:
-                        json.dump(st.session_state.report_templates, f, indent=4)
-                    st.success(f"Template '{new_template_name}' saved.")
-                    _load_report_templates.clear()
-                except json.JSONDecodeError:
-                    st.error("Invalid JSON format.")
-            else:
-                st.warning("Please provide a name and content for the template.")
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.subheader("📋 Existing Templates")
+        if "report_templates" not in st.session_state or not st.session_state.report_templates:
+            st.info("No report templates found.")
+            return
 
-    with st.container(border=True): # Existing Templates Section
-        st.markdown("### Existing Templates")
-        st.markdown("<div class='template-container'>", unsafe_allow_html=True)
+        st.markdown("<div class='template-grid'>", unsafe_allow_html=True)
         for template_name, template_content in st.session_state.report_templates.items():
             st.markdown(f"""
             <div class="template-card">
-                <h4>{template_name}</h4>
-                <p>{json.dumps(template_content, indent=2)}</p>
-                <button class="stButton secondary-button" onclick="
-                    var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'edit_template_{template_name}', value: true}}}});
-                    window.parent.document.dispatchEvent(event);
-                ">Edit</button>
-                <button class="stButton secondary-button" onclick="
-                    var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'delete_template_{template_name}', value: true}}}});
-                    window.parent.document.dispatchEvent(event);
-                ">Delete</button>
+                <h4 class="template-card-title">{template_name}</h4>
+                <pre class="template-content">{json.dumps(template_content, indent=2)}</pre>
+                <div class="template-actions">
+                    <button class="stButton secondary-button" onclick="
+                        var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'edit_template_{template_name}', value: true}}}});
+                        window.parent.document.dispatchEvent(event);
+                    ">Edit</button>
+                    <button class="stButton secondary-button" onclick="
+                        var event = new CustomEvent('streamlit:setComponentValue', {{detail: {{key: 'delete_template_{template_name}', value: true}}}});
+                        window.parent.document.dispatchEvent(event);
+                    ">Delete</button>
+                </div>
             </div>
             """, unsafe_allow_html=True)
-        st.markdown("</div>", unsafe_allow_html=True)
 
-        # Handle edit/delete actions (simplified for now, full implementation would involve more state management)
-        for template_name in st.session_state.report_templates.keys():
+            # Handle edit/delete actions
             if st.session_state.get(f'edit_template_{template_name}') :
                 st.session_state[f'edit_template_{template_name}'] = False # Reset
                 st.info(f"Editing template: {template_name} (functionality to be implemented)")
+                # In a real app, you'd populate the 'Create New Template' form with this template's data for editing
             if st.session_state.get(f'delete_template_{template_name}') :
                 st.session_state[f'delete_template_{template_name}'] = False # Reset
                 del st.session_state.report_templates[template_name]
@@ -1621,18 +1695,10 @@ def render_report_templates_ui():
                 st.success(f"Template '{template_name}' deleted.")
                 _load_report_templates.clear()
                 st.rerun()
-    st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("</div>", unsafe_allow_html=True)
+    st.divider() # Add a divider at the end of the section
 
-def render_adversarial_testing_tab():
-    st.header("Adversarial Testing with Multi-LLM Consensus")
 
-    # Add a brief introduction
-    st.markdown(
-        "> **How it works:** Adversarial Testing uses two teams of AI models to improve your content:\\n"
-        "> - Red Team finds flaws and vulnerabilities\\n"
-        "> - Blue Team fixes the identified issues\\n"
-        "> The process repeats until your content reaches the desired confidence level."
-    )
 
     # OpenRouter Configuration
     st.subheader("🔑 OpenRouter Configuration")
