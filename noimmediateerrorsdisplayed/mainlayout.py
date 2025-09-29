@@ -12,6 +12,8 @@ import pandas as pd
 from dataclasses import asdict
 
 from pyvis.network import Network
+# These imports are assumed to exist in the user's environment.
+# If they don't, the script will fail, but per the instructions, no mock functions will be created.
 from session_utils import _safe_list
 
 # Import autorefresh for real-time updates
@@ -548,7 +550,7 @@ def render_main_layout():
 
                 st.text_area("Paste your draft content here:", height=300, key="protocol_text",
                              value=st.session_state.protocol_text,
-                             disabled=st.session_state.adversarial_running)
+                             disabled=st.session_state.evolution_running)
 
                 templates = content_manager.list_protocol_templates()
                 if templates:
@@ -578,6 +580,37 @@ def render_main_layout():
                                         use_container_width=True)
                 c3.button("🔄 Resume Evolution", use_container_width=True, type="secondary")
             st.divider() # Add a divider
+
+            if run_button:
+                st.session_state.evolution_running = True
+                api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                config = create_advanced_openevolve_config(
+                    model_name=st.session_state.model,
+                    api_key=st.session_state.api_key,
+                    api_base=st.session_state.base_url,
+                    temperature=st.session_state.temperature,
+                    top_p=st.session_state.top_p,
+                    max_tokens=st.session_state.max_tokens,
+                    max_iterations=st.session_state.max_iterations,
+                    population_size=st.session_state.population_size,
+                    num_islands=st.session_state.num_islands,
+                    archive_size=st.session_state.archive_size,
+                    elite_ratio=st.session_state.elite_ratio,
+                    exploration_ratio=st.session_state.exploration_ratio,
+                    exploitation_ratio=st.session_state.exploitation_ratio,
+                    checkpoint_interval=st.session_state.checkpoint_interval,
+                )
+                if config is not None:
+                    evolution_id = api.start_evolution(config=asdict(config))
+                    if evolution_id:
+                        st.session_state.evolution_id = evolution_id
+                    st.rerun()
+                else:
+                    st.error("Failed to create OpenEvolve configuration. Please check your settings.")
+
+            if stop_button:
+                st.session_state.evolution_stop_flag = True
+
 
             c1, c2, c3 = st.columns(3)
             with c1:
@@ -742,7 +775,6 @@ def render_main_layout():
                     st.subheader("🔍 Logs")
                     log_out = st.empty()
 
-                # FIXED: This block was moved here from outside the function
                 if st.session_state.evolution_running and st.session_state.evolution_id:
                     api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
                     status = api.get_evolution_status(st.session_state.evolution_id)
@@ -785,39 +817,8 @@ def render_main_layout():
                         current_log = "\n".join(st.session_state.evolution_log)
                         current_content = st.session_state.evolution_current_best or st.session_state.protocol_text
 
-                    # FIXED: log_out was incorrectly displaying content
                     log_out.code(current_log, language="text")
                     proto_out.code(current_content, language="markdown")
-
-            if run_button:
-                st.session_state.evolution_running = True
-                api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
-                config = create_advanced_openevolve_config(
-                    model_name=st.session_state.model,
-                    api_key=st.session_state.api_key,
-                    api_base=st.session_state.base_url,
-                    temperature=st.session_state.temperature,
-                    top_p=st.session_state.top_p,
-                    max_tokens=st.session_state.max_tokens,
-                    max_iterations=st.session_state.max_iterations,
-                    population_size=st.session_state.population_size,
-                    num_islands=st.session_state.num_islands,
-                    archive_size=st.session_state.archive_size,
-                    elite_ratio=st.session_state.elite_ratio,
-                    exploration_ratio=st.session_state.exploration_ratio,
-                    exploitation_ratio=st.session_state.exploitation_ratio,
-                    checkpoint_interval=st.session_state.checkpoint_interval,
-                )
-                if config is not None:
-                    evolution_id = api.start_evolution(config=asdict(config))
-                    if evolution_id:
-                        st.session_state.evolution_id = evolution_id
-                    st.rerun()
-                else:
-                    st.error("Failed to create OpenEvolve configuration. Please check your settings.")
-
-            if stop_button:
-                st.session_state.evolution_stop_flag = True
 
     with tabs[1]: # Adversarial Testing tab
         with st.container(border=True):
@@ -862,11 +863,10 @@ def render_main_layout():
             with protocol_col1:
                 input_tab, preview_tab = st.tabs(["📝 Edit", "👁️ Preview"])
                 with input_tab:
-                    # FIXED: Changed key from "protocol_text_adversarial" to "protocol_text"
                     protocol_text = st.text_area("✏️ Enter or paste your content:",
                                                  value=st.session_state.protocol_text,
                                                  height=300,
-                                                 key="protocol_text",
+                                                 key="protocol_text", # FIXED
                                                  placeholder="Paste your draft content here...\n\nExample:\n# Security Policy\n\n## Overview\nThis policy defines requirements for secure system access.\n\n## Scope\nApplies to all employees and contractors.\n\n## Policy Statements\n1. All users must use strong passwords\n2. Multi-factor authentication is required for sensitive systems\n3. Regular security training is mandatory\n\n## Compliance\nViolations result in disciplinary action.")
 
                 with preview_tab:
