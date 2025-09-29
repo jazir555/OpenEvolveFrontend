@@ -217,8 +217,8 @@ def display_sidebar():
             )
             if st.form_submit_button("Apply Generation Parameters"):
                 scope = st.session_state.settings_scope
-                provider = st.session_state.provider
-                model = st.session_state.model
+                provider = st.session_state.get("provider")
+                model = st.session_state.get("model")
 
                 gen_settings_to_save = {
                     "temperature": st.session_state.temperature,
@@ -234,7 +234,9 @@ def display_sidebar():
                     st.session_state.parameter_settings["global"][
                         "generation"
                     ] = gen_settings_to_save
-                elif scope == "Provider":
+                    st.success("Global generation parameters saved!")
+                    st.rerun()
+                elif scope == "Provider" and provider:
                     if (
                         provider
                         not in st.session_state.parameter_settings["providers"]
@@ -245,7 +247,11 @@ def display_sidebar():
                     st.session_state.parameter_settings["providers"][provider][
                         "settings"
                     ]["generation"] = gen_settings_to_save
-                elif scope == "Model":
+                    st.success(
+                        f"Provider-level ({provider}) generation parameters saved!"
+                    )
+                    st.rerun()
+                elif scope == "Model" and provider and model:
                     if (
                         provider
                         not in st.session_state.parameter_settings["providers"]
@@ -265,7 +271,12 @@ def display_sidebar():
                     st.session_state.parameter_settings["providers"][provider][
                         "models"
                     ][model]["generation"] = gen_settings_to_save
-                st.success(f"{scope}-level generation parameters saved!")
+                    st.success(f"Model-level ({model}) generation parameters saved!")
+                    st.rerun()
+                else:
+                    st.warning(
+                        f"Cannot save settings for scope '{scope}'. Provider or model not selected."
+                    )
 
         st.markdown("---")
         with st.form("evolution_parameters_form"):
@@ -315,8 +326,8 @@ def display_sidebar():
             )
             if st.form_submit_button("Apply Evolution Parameters"):
                 scope = st.session_state.settings_scope
-                provider = st.session_state.provider
-                model = st.session_state.model
+                provider = st.session_state.get("provider")
+                model = st.session_state.get("model")
 
                 evo_settings_to_save = {
                     "max_iterations": st.session_state.max_iterations,
@@ -340,7 +351,9 @@ def display_sidebar():
                     st.session_state.parameter_settings["global"][
                         "evolution"
                     ] = evo_settings_to_save
-                elif scope == "Provider":
+                    st.success("Global evolution parameters saved!")
+                    st.rerun()
+                elif scope == "Provider" and provider:
                     if (
                         provider
                         not in st.session_state.parameter_settings["providers"]
@@ -351,7 +364,11 @@ def display_sidebar():
                     st.session_state.parameter_settings["providers"][provider][
                         "settings"
                     ]["evolution"] = evo_settings_to_save
-                elif scope == "Model":
+                    st.success(
+                        f"Provider-level ({provider}) evolution parameters saved!"
+                    )
+                    st.rerun()
+                elif scope == "Model" and provider and model:
                     if (
                         provider
                         not in st.session_state.parameter_settings["providers"]
@@ -371,7 +388,12 @@ def display_sidebar():
                     st.session_state.parameter_settings["providers"][provider][
                         "models"
                     ][model]["evolution"] = evo_settings_to_save
-                st.success(f"{scope}-level evolution parameters saved!")
+                    st.success(f"Model-level ({model}) evolution parameters saved!")
+                    st.rerun()
+                else:
+                    st.warning(
+                        f"Cannot save settings for scope '{scope}'. Provider or model not selected."
+                    )
 
         st.markdown("---")
         with st.form("checkpointing_form"):
