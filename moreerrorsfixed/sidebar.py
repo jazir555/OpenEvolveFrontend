@@ -266,16 +266,17 @@ def display_sidebar():
             label_visibility="hidden"
         )
 
-                    try:
-                        with st.form("provider_configuration_form"):
-                            provider_info = None
-                            try:
-                                provider_info = providers[st.session_state.provider]
-                            except KeyError:
-                                st.error(f"Selected provider '{st.session_state.provider}' not found. Please select a valid provider.")
-                                st.stop() # Stop rendering the form if provider is invalid
-        
-                            st.markdown(create_tooltip_html("API Key", "Your API key for the selected provider. Keep this confidential."), unsafe_allow_html=True)                st.text_input("API Key", type="password", key="api_key", label_visibility="hidden")
+        try: # This is line 269
+            with st.form("provider_configuration_form"):
+                provider_info = None
+                try:
+                    provider_info = providers[st.session_state.provider]
+                except KeyError:
+                    st.error(f"Selected provider '{st.session_state.provider}' not found. Please select a valid provider.")
+                    st.stop() # Stop rendering the form if provider is invalid
+
+                st.markdown(create_tooltip_html("API Key", "Your API key for the selected provider. Keep this confidential."), unsafe_allow_html=True)
+                st.text_input("API Key", type="password", key="api_key", label_visibility="hidden")
                 
                 st.markdown(create_tooltip_html("Base URL", "The base URL for the provider's API endpoint."), unsafe_allow_html=True)
                 st.text_input("Base URL", key="base_url", label_visibility="hidden")
