@@ -430,6 +430,26 @@ def _initialize_session_state():
         if "providers" not in st.session_state.parameter_settings:
             st.session_state.parameter_settings["providers"] = {}
 
+    # Ensure parameter_settings has the default structure if loaded empty or partially
+    if "parameter_settings" not in st.session_state or not st.session_state.parameter_settings:
+        st.session_state.parameter_settings = {
+            "global": {
+                "generation": get_default_generation_params(),
+                "evolution": get_default_evolution_params(),
+            },
+            "providers": {},
+        }
+    else:
+        # Ensure sub-keys exist if parameter_settings was partially loaded
+        if "global" not in st.session_state.parameter_settings:
+            st.session_state.parameter_settings["global"] = {}
+        if "generation" not in st.session_state.parameter_settings["global"]:
+            st.session_state.parameter_settings["global"]["generation"] = get_default_generation_params()
+        if "evolution" not in st.session_state.parameter_settings["global"]:
+            st.session_state.parameter_settings["global"]["evolution"] = get_default_evolution_params()
+        if "providers" not in st.session_state.parameter_settings:
+            st.session_state.parameter_settings["providers"] = {}
+
 def _stream_evolution_logs_in_thread(evolution_id, api, thread_lock):
     full_log = []
     for log_chunk in api.stream_evolution_logs(evolution_id):
