@@ -762,30 +762,57 @@ def display_sidebar():
             label_visibility="hidden"
         )
 
-        if selected_theme != current_theme:
+        # New checkbox for OS theme inheritance
+        allow_os_theme_inheritance = st.checkbox(
+            "Allow OS Theme Inheritance",
+            value=st.session_state.user_preferences.get("allow_os_theme_inheritance", False),
+            key="allow_os_theme_inheritance_checkbox"
+        )
+        # Update user preferences immediately
+        st.session_state.user_preferences["allow_os_theme_inheritance"] = allow_os_theme_inheritance
+
+        # Check if theme or inheritance setting has changed
+        theme_changed = (selected_theme != current_theme)
+        inheritance_setting_changed = (st.session_state.user_preferences.get("allow_os_theme_inheritance") != allow_os_theme_inheritance)
+
+        if theme_changed or inheritance_setting_changed:
             st.session_state.theme = selected_theme
-            st.session_state.user_preferences["theme"] = (
-                selected_theme  # Update preferences
-            )
+            st.session_state.user_preferences["theme"] = selected_theme  # Update preferences
+
             # Use JavaScript to apply theme changes immediately
-            st.markdown(
-                f'''
-                <script>
-                const theme = "{selected_theme}";
-                document.documentElement.setAttribute('data-theme', theme);
-                
-                // Apply theme to Streamlit elements if possible
-                if (theme === 'dark') {{
-                    document.body.style.backgroundColor = '#0e1117';
-                    document.querySelector('.stApp').style.backgroundColor = '#0e1117';
-                }} else {{
-                    document.body.style.backgroundColor = 'white';
-                    document.querySelector('.stApp').style.backgroundColor = 'white';
-                }}
-                </script>
-                ''',
-                unsafe_allow_html=True,
-            )
+            if not allow_os_theme_inheritance:
+                st.markdown(
+                    f'''
+                    <script>
+                    const theme = "{selected_theme}";
+                    document.documentElement.setAttribute('data-theme', theme);
+                    
+                    // Apply theme to Streamlit elements if possible
+                    if (theme === 'dark') {{
+                        document.body.style.backgroundColor = '#0e1117';
+                        document.querySelector('.stApp').style.backgroundColor = '#0e1117';
+                    }} else {{
+                        document.body.style.backgroundColor = 'white';
+                        document.querySelector('.stApp').style.backgroundColor = 'white';
+                    }}
+                    </script>
+                    ''',
+                    unsafe_allow_html=True,
+                )
+            else:
+                # If allowing OS theme inheritance, remove the data-theme attribute
+                st.markdown(
+                    '''
+                    <script>
+                    document.documentElement.removeAttribute('data-theme');
+                    // Reset Streamlit elements to default/OS theme
+                    document.body.style.backgroundColor = '';
+                    document.querySelector('.stApp').style.backgroundColor = '';
+                    </script>
+                    ''',
+                    unsafe_allow_html=True,
+                )
+            st.rerun() # Rerun to apply changes
 
         # Additional user preferences
         st.markdown("---")
