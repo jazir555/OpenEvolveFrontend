@@ -230,51 +230,59 @@ def show_welcome_screen():
 @st.cache_data
 def load_app_config():
     """Loads application configuration from config.yaml, caching the result."""
-    with open("config.yaml", "r") as f:
-        return yaml.safe_load(f)
+    try:
+        with open("config.yaml", "r") as f:
+            return yaml.safe_load(f)
+    except FileNotFoundError:
+        st.error("Error: config.yaml not found. Please ensure it exists in the project root.")
+        st.stop()
+    except yaml.YAMLError as e:
+        st.error(f"Error parsing config.yaml: {e}. Please check the file format.")
+        st.stop()
 
 
 def main():
     """Main application entry point."""
+    try:
+        # Start the Flask app for log streaming in a separate thread, but only once.
+        if "log_streaming" not in st.session_state:
+            from log_streaming import LogStreaming
+            st.session_state.log_streaming = LogStreaming()
+            flask_thread = threading.Thread(target=st.session_state.log_streaming.run_flask_app_in_thread, daemon=True)
+            flask_thread.start()
 
+        # Load config using cached function for performance
+        config = load_app_config()
 
-    # Start the Flask app for log streaming in a separate thread, but only once.
-    if "log_streaming" not in st.session_state:
-        from log_streaming import LogStreaming
-        st.session_state.log_streaming = LogStreaming()
-        flask_thread = threading.Thread(target=st.session_state.log_streaming.run_flask_app_in_thread, daemon=True)
-        flask_thread.start()
+        # Set session state from config
+        for key, value in config["default"].items():
+            if key not in st.session_state:
+                st.session_state[key] = value
 
-    # Load config using cached function for performance
-    config = load_app_config()
+        if "evolution_running" not in st.session_state:
+            st.session_state.evolution_running = False
 
-    # Set session state from config
-    for key, value in config["default"].items():
-        if key not in st.session_state:
-            st.session_state[key] = value
+        if "adversarial_running" not in st.session_state:
+            st.session_state.adversarial_running = False
 
-    if "evolution_running" not in st.session_state:
-        st.session_state.evolution_running = False
+        if "thread_lock" not in st.session_state:
+            st.session_state.thread_lock = threading.Lock()
 
-    if "adversarial_running" not in st.session_state:
-        st.session_state.adversarial_running = False
+        # Start the collaboration server
+        start_collaboration_server()
 
-    if "thread_lock" not in st.session_state:
-        st.session_state.thread_lock = threading.Lock()
+        # Show welcome screen for first-time users
+        show_welcome_screen()
 
+        # Render the sidebar
+        display_sidebar()
 
+        # Render the main layout
+        render_main_layout()
 
-    # Start the collaboration server
-    start_collaboration_server()
-
-    # Show welcome screen for first-time users
-    show_welcome_screen()
-
-    # Render the sidebar
-    display_sidebar()
-
-    # Render the main layout
-    render_main_layout()
+    except Exception as e:
+        st.error(f"A critical application error occurred: {e}")
+        st.exception(e) # Display full traceback for debugging
 
 
 if __name__ == "__main__":
