@@ -203,6 +203,44 @@ def display_sidebar():
         </style>
         """, unsafe_allow_html=True)
 
+        # Inject JavaScript for message timeouts
+        st.markdown("""
+        <script>
+            function setupMessageTimeout() {
+                const alerts = document.querySelectorAll('[role=\"alert\"]');
+                alerts.forEach(alert => {
+                    // Check if a timeout has already been set for this alert
+                    if (!alert.dataset.timeoutId) {
+                        const timeoutId = setTimeout(() => {
+                            alert.style.opacity = '0';
+                            alert.style.transition = 'opacity 1s ease-out';
+                            setTimeout(() => {
+                                alert.remove();
+                            }, 1000); // Remove after fade out
+                        }, 3000); // 3 seconds before starting fade out
+
+                        alert.dataset.timeoutId = timeoutId; // Store timeout ID to prevent duplicates
+                    }
+                });
+            }
+
+            // Run on initial load
+            setupMessageTimeout();
+
+            // Use a MutationObserver to detect when new alert messages are added to the DOM
+            const observer = new MutationObserver((mutationsList, observer) => {
+                for (const mutation of mutationsList) {
+                    if (mutation.type === 'childList' && mutation.addedNodes.length > 0) {
+                        setupMessageTimeout();
+                    }
+                }
+            });
+
+            // Observe the entire document body for changes
+            observer.observe(document.body, { childList: true, subtree: true });
+        </script>
+        """, unsafe_allow_html=True)
+
         st.markdown("---")
 
         # Quick start guide
