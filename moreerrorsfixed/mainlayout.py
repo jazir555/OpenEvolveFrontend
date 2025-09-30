@@ -205,84 +205,124 @@ def render_collaboration_ui():
         <div id="presence-container" class="presence-container"></div>
         <div id="notification-center" class="notification-center"></div>
         <script>
-            const presenceContainer = document.getElementById("presence-container");
-            const notificationCenter = document.getElementById("notification-center");
-            const websocket = new WebSocket("ws://localhost:8765");
-
-            websocket.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                if (data.type === "presence_update") {
-                    presenceContainer.innerHTML = "";
-                    data.payload.forEach(user => {
-                        const indicator = document.createElement("div");
-                        indicator.className = "presence-indicator";
-                        indicator.title = user.id;
-                        presenceContainer.appendChild(indicator);
-                    });
-                } else if (data.type === "notification") {
-                    const notification = document.createElement("div");
-                    notification.className = "notification";
-                    notification.innerText = data.payload.message;
-                    notificationCenter.appendChild(notification);
-                    notificationCenter.style.display = "block";
-                } else if (data.type === "cursor_update") {
-                    const editor = document.querySelector('.stTextArea textarea');
-                    let cursor = document.getElementById(`cursor-${data.sender}`);
-                    if (!cursor) {
-                        cursor = document.createElement('div');
-                        cursor.id = `cursor-${data.sender}`;
-                        cursor.className = 'other-cursor';
-                        document.body.appendChild(cursor);
-                    }
-                    cursor.style.left = `${data.payload.x}px`;
-                    cursor.style.top = `${data.payload.y}px`;
-                } else if (data.type === "text_update") {
-                    const editor = document.querySelector('.stTextArea textarea');
-                    if (editor.value !== data.payload.text) {
-                        editor.value = data.payload.text;
-                    }
-                }
-            };
-
-            const textArea = document.querySelector('[data-testid="stTextAreawithLabel"] textarea');
-            if (textArea) {
-                textArea.addEventListener('input', (event) => {
-                    const text_update = {
-                        type: "text_update",
-                        payload: {
-                            text: event.target.value
-                        }
-                    };
-                    websocket.send(JSON.stringify(text_update));
-                });
-
-                textArea.addEventListener('mousemove', (event) => {
-                    const cursor_update = {
-                        type: "cursor_update",
-                        payload: {
-                            x: event.clientX,
-                            y: event.clientY
-                        }
-                    };
-                    websocket.send(JSON.stringify(cursor_update));
-                });
+            // Use a global variable to store the WebSocket and prevent multiple initializations
+            if (!window.collaborationWebSocket) {
+                window.collaborationWebSocket = new WebSocket("ws://localhost:8765");
+                window.collaborationWebSocketInitialized = false; // Flag to ensure event listeners are added once
             }
 
-            websocket.onopen = () => {
-                const presenceData = {
-                    type: "update_presence",
-                    payload: {
-                        id: Math.random().toString(36).substring(7)
+            const websocket = window.collaborationWebSocket;
+
+            // Function to initialize event listeners and message handling
+            function initializeCollaborationUI() {
+                if (window.collaborationWebSocketInitialized) {
+                    return; // Already initialized
+                }
+                window.collaborationWebSocketInitialized = true;
+
+                const presenceContainer = document.getElementById("presence-container");
+                const notificationCenter = document.getElementById("notification-center");
+                const textArea = document.querySelector('[data-testid="stTextAreawithLabel"] textarea');
+
+                websocket.onmessage = (event) => {
+                    const data = JSON.parse(event.data);
+                    if (data.type === "presence_update") {
+                        if (presenceContainer) {
+                            presenceContainer.innerHTML = "";
+                            data.payload.forEach(user => {
+                                const indicator = document.createElement("div");
+                                indicator.className = "presence-indicator";
+                                indicator.title = user.id;
+                                presenceContainer.appendChild(indicator);
+                            });
+                        }
+                    } else if (data.type === "notification") {
+                        if (notificationCenter) {
+                            const notification = document.createElement("div");
+                            notification.className = "notification";
+                            notification.innerText = data.payload.message;
+                            notificationCenter.appendChild(notification);
+                            notificationCenter.style.display = "block";
+                        }
+                    } else if (data.type === "cursor_update") {
+                        if (textArea) { // Ensure editor exists
+                            let cursor = document.getElementById(`cursor-${data.sender}`);
+                            if (!cursor) {
+                                cursor = document.createElement('div');
+                                cursor.id = `cursor-${data.sender}`;
+                                cursor.className = 'other-cursor';
+                                document.body.appendChild(cursor);
+                            }
+                            cursor.style.left = `${data.payload.x}px`;
+                            cursor.style.top = `${data.payload.y}px`;
+                        }
+                    } else if (data.type === "text_update") {
+                        if (textArea && textArea.value !== data.payload.text) {
+                            textArea.value = data.payload.text;
+                        }
                     }
                 };
-                websocket.send(JSON.stringify(presenceData));
-            };
 
-            document.addEventListener("click", (event) => {
-                if (!notificationCenter.contains(event.target)) {
-                    notificationCenter.style.display = "none";
+                if (textArea) {
+                    // Debounce function for mousemove
+                    let debounceTimer;
+                    const sendCursorUpdate = (event) => {
+                        clearTimeout(debounceTimer);
+                        debounceTimer = setTimeout(() => {
+                            const cursor_update = {
+                                type: "cursor_update",
+                                payload: {
+                                    x: event.clientX,
+                                    y: event.clientY
+                                }
+                            };
+                            if (websocket.readyState === WebSocket.OPEN) {
+                                websocket.send(JSON.stringify(cursor_update));
+                            }
+                        }, 50); // Send cursor update every 50ms at most
+                    };
+
+                    textArea.addEventListener('input', (event) => {
+                        const text_update = {
+                            type: "text_update",
+                            payload: {
+                                text: event.target.value
+                            }
+                        };
+                        if (websocket.readyState === WebSocket.OPEN) {
+                            websocket.send(JSON.stringify(text_update));
+                        }
+                    });
+
+                    textArea.addEventListener('mousemove', sendCursorUpdate);
                 }
-            });
+
+                websocket.onopen = () => {
+                    const presenceData = {
+                        type: "update_presence",
+                        payload: {
+                            id: Math.random().toString(36).substring(7)
+                        }
+                    };
+                    if (websocket.readyState === WebSocket.OPEN) {
+                        websocket.send(JSON.stringify(presenceData));
+                    }
+                };
+
+                if (notificationCenter) {
+                    document.addEventListener("click", (event) => {
+                        if (!notificationCenter.contains(event.target)) {
+                            notificationCenter.style.display = "none";
+                        }
+                    });
+                }
+            }
+
+            // Call initialization function when the DOM is ready
+            document.addEventListener('DOMContentLoaded', initializeCollaborationUI);
+            // Also call it if the script is re-evaluated (e.g., due to Streamlit reruns)
+            // but ensure it only runs once via the flag.
+            initializeCollaborationUI();
         </script>
         """, unsafe_allow_html=True)
         st.session_state.collaboration_ui_rendered = True
