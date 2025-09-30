@@ -1060,35 +1060,56 @@ def render_main_layout():
 
                 if st.session_state.evolution_running and st.session_state.evolution_id:
                     api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
-                    status = api.get_evolution_status(st.session_state.evolution_id)
+                    status = None
+                    try:
+                        status = api.get_evolution_status(st.session_state.evolution_id)
+                    except Exception as e:
+                        st.error(f"Failed to get evolution status: {e}")
+
                     if status:
-                        proto_out.markdown(f"**Status:** {status['status']}\\n\\n**Best Score:** {status['best_score']}")
+                        proto_out.markdown(f"**Status:** {status['status']}\n\n**Best Score:** {status['best_score']}")
                         
                         # Display current log from session state
                         with st.session_state.thread_lock:
-                            log_out.code("\\n".join(st.session_state.evolution_log), language="text")
+                            log_out.code("\n".join(st.session_state.evolution_log), language="text")
 
                     # Check if evolution has completed (this will be updated by the thread)
-                    if status.get('status') == 'completed':
+                    if status and status.get('status') == 'completed':
                         # Only perform final actions once
                         if "evolution_finalized" not in st.session_state or not st.session_state.evolution_finalized:
                             st.session_state.evolution_finalized = True
                             previous_best = st.session_state.evolution_current_best
                             # Fetch final results after completion
-                            best_solution = api.get_best_solution(st.session_state.evolution_id)
-                            st.session_state.evolution_current_best = best_solution['code']
-                            render_code_diff(previous_best, st.session_state.evolution_current_best)
-                            history = api.get_evolution_history(st.session_state.evolution_id)
-                            st.session_state.evolution_history = history
-                            if history:
-                                render_evolution_history_chart(history)
-                                if len(history[-1].get('islands', [])) > 1:
-                                    render_island_model_chart(history)
-                            artifacts = api.get_artifacts(st.session_state.evolution_id)
-                            if artifacts:
-                                st.subheader("Artifacts")
-                                for artifact in artifacts:
-                                    st.download_button(artifact['name'], api.download_artifact(st.session_state.evolution_id, artifact['name']), artifact['name'])
+                            try:
+                                best_solution = api.get_best_solution(st.session_state.evolution_id)
+                                st.session_state.evolution_current_best = best_solution['code']
+                                render_code_diff(previous_best, st.session_state.evolution_current_best)
+                            except Exception as e:
+                                st.error(f"Failed to get best solution: {e}")
+
+                            try:
+                                history = api.get_evolution_history(st.session_state.evolution_id)
+                                st.session_state.evolution_history = history
+                                if history:
+                                    render_evolution_history_chart(history)
+                                    if len(history[-1].get('islands', [])) > 1:
+                                        render_island_model_chart(history)
+                            except Exception as e:
+                                st.error(f"Failed to get evolution history: {e}")
+
+                            try:
+                                artifacts = api.get_artifacts(st.session_state.evolution_id)
+                                if artifacts:
+                                    st.subheader("Artifacts")
+                                    for artifact in artifacts:
+                                        try:
+                                            download_data = api.download_artifact(st.session_state.evolution_id, artifact['name'])
+                                            st.download_button(artifact['name'], download_data, artifact['name'])
+                                        except Exception as e:
+                                            st.error(f"Failed to download artifact {artifact['name']}: {e}")
+                            except Exception as e:
+                                st.error(f"Failed to get artifacts: {e}")
+
                             st.balloons()
                             # Refresh the UI after completion
                             st.rerun()
