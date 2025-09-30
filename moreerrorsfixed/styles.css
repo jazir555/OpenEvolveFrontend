@@ -157,6 +157,9 @@ p {
     transition: all var(--transition-normal) !important;
     box-shadow: var(--shadow-sm) !important;
     cursor: pointer !important;
+    white-space: normal !important; /* Allow button text to wrap */
+    word-wrap: break-word !important; /* Ensure long words break */
+    overflow-wrap: break-word !important; /* Standard property for word wrapping */
 }
 .stButton > button:hover {
     background: var(--primary-hover) !important;
@@ -206,23 +209,36 @@ textarea {
     box-sizing: border-box !important; /* Ensure padding is included in element's total width/height */
     word-wrap: break-word !important; /* Break long words to prevent overflow */
     overflow-wrap: break-word !important; /* Standard property for word wrapping */
-}
-.stApp [data-testid="stTextInput"] input:focus,
-.stApp [data-testid="stTextArea"] textarea:focus,
-.stApp [data-testid="stSelectbox"] select:focus,
-.stApp [data-testid="stNumberInput"] input:focus,
-input[type="text"]:focus,
-input[type="password"]:focus,
-input[type="email"]:focus,
-input[type="number"]:focus,
-textarea:focus {
-    outline: none !important;
-    border-color: var(--primary) !important;
-    box-shadow: 0 0 0 3px rgb(99 102 241 / 0.1) !important;
+    text-align: left !important; /* Explicitly left-align text */
+    line-height: 1.5 !important; /* Ensure consistent line height for vertical alignment */
+    white-space: normal !important; /* Allow text to wrap within inputs/textareas */
+    overflow: hidden !important; /* Hide overflowing content */
+    text-overflow: ellipsis !important; /* Show ellipsis for truncated text */
 }
 .stApp [data-testid="stTextInput"] input::placeholder,
 .stApp [data-testid="stTextArea"] textarea::placeholder {
     color: var(--text-muted) !important;
+}
+.stApp [data-testid="stTextInput"] input:focus::placeholder,
+.stApp [data-testid="stTextArea"] textarea:focus::placeholder {
+    color: transparent !important; /* Hide placeholder on focus */
+}
+
+/* Ensure password input and eye icon are aligned correctly using flexbox */
+[data-testid="stTextInput"] > div:has(input[type="password"]) {
+    display: flex !important;
+    align-items: center !important; /* Vertically center items */
+    gap: 0.5rem !important; /* Space between input and icon */
+}
+/* Make the password input take up available space */
+[data-testid="stTextInput"] input[type="password"] {
+    flex-grow: 1 !important;
+    padding-right: 0.75rem !important; /* Reset to default padding, flexbox manages space */
+}
+/* Style the eye icon button */
+[data-testid="stTextInput"] button[data-testid="stTextInput-toggle-password-visibility"] {
+    flex-shrink: 0 !important; /* Prevent button from shrinking */
+    margin-left: auto !important; /* Push button to the right */
 }
 /* Radio Button Styles */
 .stRadio > label {
