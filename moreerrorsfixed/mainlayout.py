@@ -822,9 +822,12 @@ def render_main_layout():
                         def load_template_callback():
                             selected_template = st.session_state.load_template_select
                             if selected_template:
-                                template_content = content_manager.load_protocol_template(selected_template)
-                                st.session_state.protocol_text = template_content
-                                st.success(f"Loaded template: {selected_template}")
+                                try:
+                                    template_content = content_manager.load_protocol_template(selected_template)
+                                    st.session_state.protocol_text = template_content
+                                    st.success(f"Loaded template: {selected_template}")
+                                except Exception as e:
+                                    st.error(f"Failed to load template: {e}")
 
                         if selected_template:
                             st.button("Load", key="load_template_btn", on_click=load_template_callback,
@@ -872,13 +875,17 @@ def render_main_layout():
                     checkpoint_interval=st.session_state.checkpoint_interval,
                 )
                 if config is not None:
-                    evolution_id = api.start_evolution(config=asdict(config))
-                    if evolution_id:
-                        st.session_state.evolution_id = evolution_id
-                        # Start log streaming in a separate thread
-                        threading.Thread(target=_stream_evolution_logs_in_thread,
-                                         args=(evolution_id, api, st.session_state.thread_lock)).start()
-                    st.rerun()
+                    try:
+                        evolution_id = api.start_evolution(config=asdict(config))
+                        if evolution_id:
+                            st.session_state.evolution_id = evolution_id
+                            # Start log streaming in a separate thread
+                            threading.Thread(target=_stream_evolution_logs_in_thread,
+                                             args=(evolution_id, api, st.session_state.thread_lock)).start()
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Failed to start evolution: {e}")
+                        st.session_state.evolution_running = False # Reset flag on failure
                 else:
                     st.error("Failed to create OpenEvolve configuration. Please check your settings.")
 
@@ -919,9 +926,12 @@ def render_main_layout():
 
             if classify_button:
                 with st.spinner("Classifying and tagging..."):
-                    classification_and_tags = get_content_classification_and_tags(st.session_state.protocol_text)
-                    st.session_state.classification_and_tags = classification_and_tags
-                st.success("Content classified and tagged successfully!")
+                    try:
+                        classification_and_tags = get_content_classification_and_tags(st.session_state.protocol_text)
+                        st.session_state.classification_and_tags = classification_and_tags
+                        st.success("Content classified and tagged successfully!")
+                    except Exception as e:
+                        st.error(f"Failed to classify and tag content: {e}")
 
             if "classification_and_tags" in st.session_state and st.session_state.classification_and_tags:
                 with st.expander("🏷️ Classification and Tags", expanded=True):
@@ -931,9 +941,12 @@ def render_main_layout():
 
             if predict_button:
                 with st.spinner("Predicting improvement potential..."):
-                    potential = predict_improvement_potential(st.session_state.protocol_text)
-                    st.session_state.improvement_potential = potential
-                st.success("Improvement potential predicted successfully!")
+                    try:
+                        potential = predict_improvement_potential(st.session_state.protocol_text)
+                        st.session_state.improvement_potential = potential
+                        st.success("Improvement potential predicted successfully!")
+                    except Exception as e:
+                        st.error(f"Failed to predict improvement potential: {e}")
 
             if "improvement_potential" in st.session_state and st.session_state.improvement_potential is not None:
                 st.metric("Improvement Potential", f"{st.session_state.improvement_potential:.2%}")
@@ -941,9 +954,12 @@ def render_main_layout():
 
             if security_button:
                 with st.spinner("Checking for security vulnerabilities..."):
-                    vulnerabilities = check_security_vulnerabilities(st.session_state.protocol_text)
-                    st.session_state.vulnerabilities = vulnerabilities
-                st.success("Security check completed successfully!")
+                    try:
+                        vulnerabilities = check_security_vulnerabilities(st.session_state.protocol_text)
+                        st.session_state.vulnerabilities = vulnerabilities
+                        st.success("Security check completed successfully!")
+                    except Exception as e:
+                        st.error(f"Failed to check security vulnerabilities: {e}")
 
             if "vulnerabilities" in st.session_state and st.session_state.vulnerabilities:
                 with st.expander("🛡️ Security Vulnerabilities", expanded=True):
@@ -1150,11 +1166,14 @@ def render_main_layout():
                     def load_adv_template_callback():
                         selected_template = st.session_state.adv_load_template_select
                         if selected_template:
-                            st.session_state.protocol_text = content_manager.load_protocol_template(selected_template)
+                            try:
+                                st.session_state.protocol_text = content_manager.load_protocol_template(selected_template)
+                                st.success(f"Loaded template: {selected_template}")
+                            except Exception as e:
+                                st.error(f"Failed to load template: {e}")
                     selected_template = st.selectbox("Load Template", [""] + templates, key="adv_load_template_select")
                     if selected_template:
                         st.button("📥 Load Template", use_container_width=True, type="secondary", on_click=load_adv_template_callback)
-                        st.success(f"Loaded template: {selected_template}")
 
                 def load_sample_callback():
                     st.session_state.protocol_text = '''# Sample Security Policy
@@ -1413,8 +1432,13 @@ Applies to all employees, contractors, and vendors with system access.
                     new_branch_name = st.text_input("New Branch Name", placeholder="e.g., protocol-v1")
                     base_branch = st.text_input("Base Branch", "main")
                     if st.button("Create Branch", type="secondary") and new_branch_name:
-                        if create_github_branch(st.session_state.github_token, selected_repo, new_branch_name, base_branch):
-                            st.success(f"Created branch '{new_branch_name}' from '{base_branch}'")
+                        try:
+                            if create_github_branch(st.session_state.github_token, selected_repo, new_branch_name, base_branch):
+                                st.success(f"Created branch '{new_branch_name}' from '{base_branch}')")
+                            else:
+                                st.error(f"Failed to create branch '{new_branch_name}'.")
+                        except Exception as e:
+                            st.error(f"Error creating branch: {e}")
 
                 st.subheader("💾 Commit and Push")
                 branch_name = st.text_input("Target Branch", "main")
@@ -1519,8 +1543,11 @@ Applies to all employees, contractors, and vendors with system access.
                     assignee = st.text_input("Assignee", placeholder="e.g., John Doe")
                     due_date = st.date_input("Due Date")
                     if st.form_submit_button("Create Task", type="primary"):
-                        create_task(title, description, assignee, due_date)
-                        st.success("Task created successfully!")
+                        try:
+                            create_task(title, description, assignee, due_date)
+                            st.success("Task created successfully!")
+                        except Exception as e:
+                            st.error(f"Failed to create task: {e}")
             st.divider()
 
             st.subheader("📋 Existing Tasks")
@@ -1555,8 +1582,11 @@ Applies to all employees, contractors, and vendors with system access.
                     new_role = st.selectbox("Role", list(ROLES.keys()), help="Select a role for the new user.")
                     if st.form_submit_button("Add User", type="primary"):
                         if new_username:
-                            assign_role(new_username, new_role)
-                            st.success(f"User '{new_username}' added with role '{new_role}'.")
+                            try:
+                                assign_role(new_username, new_role)
+                                st.success(f"User '{new_username}' added with role '{new_role}'.")
+                            except Exception as e:
+                                st.error(f"Failed to add user: {e}")
                         else:
                             st.error("Username cannot be empty.")
             st.divider()
