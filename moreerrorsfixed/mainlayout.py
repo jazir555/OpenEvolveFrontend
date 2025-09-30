@@ -1126,7 +1126,14 @@ Applies to all employees, contractors, and vendors with system access.
 
             if st.session_state.adversarial_rotation_strategy == "Staged":
                 help_text = '''[{"red": ["model1", "model2"], "blue": ["model3"]}, {"red": ["model4"], "blue": ["model5", "model6"]}]'''
-                st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help=help_text)
+                staged_config_input = st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help=help_text)
+                
+                # Add JSON validation
+                if staged_config_input:
+                    try:
+                        json.loads(staged_config_input)
+                    except json.JSONDecodeError:
+                        st.error("Invalid JSON format for Staged Rotation Config.")
 
             if st.session_state.adversarial_auto_optimize_models:
                 protocol_complexity = len(st.session_state.protocol_text.split())
