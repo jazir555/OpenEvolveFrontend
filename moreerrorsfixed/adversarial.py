@@ -649,7 +649,10 @@ def _merge_consensus_sop(
     issue_details = {}
     for critique in critiques:
         if critique and critique.get("critique_json"):
-            for issue in _safe_list(critique["critique_json"], "issues"):
+            critique_json = critique.get("critique_json")
+            if not isinstance(critique_json, dict): # Add check here
+                continue
+            for issue in _safe_list(critique_json, "issues"): # Use critique_json here
                 issue_details[issue.get("title")] = {
                     "severity": issue.get("severity", "low"),
                     "category": issue.get("category", "uncategorized"),
@@ -658,6 +661,10 @@ def _merge_consensus_sop(
     scored = []
     for patch in valid_patches:
         patch_json = patch.get("patch_json", {})
+        # Add check here
+        if not isinstance(patch_json, dict):
+            continue # Skip malformed patches
+
         sop_text = patch_json.get("sop", "").strip()
 
         mm = _safe_list(patch_json, "mitigation_matrix")
