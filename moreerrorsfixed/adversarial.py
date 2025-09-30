@@ -1783,7 +1783,7 @@ def _run_adversarial_testing_with_api_backend(
     max_iter,
     confidence,
     max_tokens,
-    json_mode,
+    force_json,
     max_workers,
     rotation_strategy,
     seed,
@@ -1791,31 +1791,285 @@ def _run_adversarial_testing_with_api_backend(
     red_team_prompt,
     blue_team_prompt,
     approval_prompt,
+    red_team_sample_size,
+    blue_team_sample_size,
+    compliance_requirements,
+    critique_depth,
+    patch_quality,
+    staged_rotation_config,
+    review_type,
+    red_team_prompt_enhancement,
+    blue_team_prompt_enhancement,
 ):
-    _update_adv_log_and_status(
-        "❌ Error: OpenEvolve backend not available and API-based adversarial testing is not yet implemented."
-    )
+    _update_adv_log_and_status("🚀 Starting API-based adversarial testing...")
+    iteration_results = []
+    current_sop_hash = _hash_text(current_sop)
+    current_sop_content = current_sop
+    total_prompt_tokens = 0
+    total_completion_tokens = 0
+    total_cost = 0.0
+    final_approval_rate = 0.0
+    
+    # Initialize model rotation state
+    rotation_state = {"red_idx": 0, "blue_idx": 0}
+    
+    # Parse staged rotation config if applicable
+    staged_configs = []
+    if rotation_strategy == "Staged" and staged_rotation_config:
+        try:
+            staged_configs = json.loads(staged_rotation_config)
+        except json.JSONDecodeError:
+            _update_adv_log_and_status("❌ Error: Invalid JSON for Staged Rotation Config. Falling back to Round Robin.")
+            rotation_strategy = "Round Robin"
 
+    for iteration in range(max_iter):
+        with st.session_state.thread_lock:
+            if st.session_state.adversarial_stop_flag:
+                _update_adv_log_and_status("⏹️ Adversarial testing stopped by user.")
+                break
+
+        _update_adv_log_and_status(f"--- Iteration {iteration + 1}/{max_iter} ---")
+
+        # --- Model Selection based on Rotation Strategy ---
+        red_team_models = []
+        blue_team_models = []
+
+        if rotation_strategy == "Round Robin":
+            for _ in range(red_team_sample_size):
+                red_team_models.append(red_team_base[rotation_state["red_idx"]])
+                rotation_state["red_idx"] = (rotation_state["red_idx"] + 1) % len(red_team_base)
+            for _ in range(blue_team_sample_size):
+                blue_team_models.append(blue_team_base[rotation_state["blue_idx"]])
+                rotation_state["blue_idx"] = (rotation_state["blue_idx"] + 1) % len(blue_team_base)
+        elif rotation_strategy == "Random Sampling":
+            red_team_models = random.sample(red_team_base, min(red_team_sample_size, len(red_team_base)))
+            blue_team_models = random.sample(blue_team_base, min(blue_team_sample_size, len(blue_team_base)))
+        elif rotation_strategy == "Staged" and staged_configs:
+            if iteration < len(staged_configs):
+                stage = staged_configs[iteration]
+                red_team_models = stage.get("red", [])
+                blue_team_models = stage.get("blue", [])
+            else:
+                _update_adv_log_and_status("⚠️ Staged rotation config exhausted. Using last stage models.")
+                last_stage = staged_configs[-1]
+                red_team_models = last_stage.get("red", [])
+                blue_team_models = last_stage.get("blue", [])
+        else: # Default to using all base models
+            red_team_models = red_team_base
+            blue_team_models = blue_team_base
+
+        if not red_team_models or not blue_team_models:
+            _update_adv_log_and_status("❌ Error: No models selected for current iteration. Stopping.")
+            break
+
+        _update_adv_log_and_status(f"Red Team: {', '.join(red_team_models)} | Blue Team: {', '.join(blue_team_models)}")
+
+        # --- Red Team Critiques ---
+        critiques = []
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            future_to_critique = {
+                ex.submit(
+                    analyze_with_model,
+                    api_key,
+                    model_id,
+                    current_sop_content,
+                    model_configs.get(model_id, {}),
+                    red_team_prompt,
+                    user_suffix=f"Critique Depth: {critique_depth}",
+                    force_json=True,
+                    seed=seed,
+                    compliance_requirements=compliance_requirements,
+                    prompt_enhancement=red_team_prompt_enhancement,
+                ): model_id
+                for model_id in red_team_models
+            }
+            for future in as_completed(future_to_critique):
+                model_id = future_to_critique[future]
+                try:
+                    res = future.result()
+                    total_prompt_tokens += res["ptoks"]
+                    total_completion_tokens += res["ctoks"]
+                    total_cost += res["cost"]
+                    if res["ok"]:
+                        critiques.append(
+                            {"model": model_id, "critique_json": res["json"], "raw_text": res["text"]}
+                        )
+                        _update_adv_log_and_status(f"🔴 {model_id} critiqued SOP.")
+                        _update_model_performance([{"model": model_id, "critique_json": res["json"]}])
+                    else:
+                        _update_adv_log_and_status(f"🔴 {model_id} critique failed: {res['text']}")
+                except Exception as exc:
+                    _update_adv_log_and_status(f"🔴 {model_id} generated an exception: {exc}")
+
+        if not critiques:
+            _update_adv_log_and_status("⚠️ No valid critiques generated. Stopping.")
+            break
+
+        # --- Blue Team Patches ---
+        blue_patches = []
+        with ThreadPoolExecutor(max_workers=max_workers) as ex:
+            future_to_patch = {
+                ex.submit(
+                    analyze_with_model,
+                    api_key,
+                    model_id,
+                    current_sop_content,
+                    model_configs.get(model_id, {}),
+                    blue_team_prompt,
+                    user_suffix=f"Critiques:
+{json.dumps([c['critique_json'] for c in critiques if c['critique_json']], indent=2)}
+
+Patch Quality: {patch_quality}",
+                    force_json=True,
+                    seed=seed,
+                    compliance_requirements=compliance_requirements,
+                    prompt_enhancement=blue_team_prompt_enhancement,
+                ): model_id
+                for model_id in blue_team_models
+            }
+            for future in as_completed(future_to_patch):
+                model_id = future_to_patch[future]
+                try:
+                    res = future.result()
+                    total_prompt_tokens += res["ptoks"]
+                    total_completion_tokens += res["ctoks"]
+                    total_cost += res["cost"]
+                    if res["ok"]:
+                        blue_patches.append(
+                            {"model": model_id, "patch_json": res["json"], "raw_text": res["text"]}
+                        )
+                        _update_adv_log_and_status(f"🔵 {model_id} patched SOP.")
+                    else:
+                        _update_adv_log_and_status(f"🔵 {model_id} patch failed: {res['text']}")
+                except Exception as exc:
+                    _update_adv_log_and_status(f"🔵 {model_id} generated an exception: {exc}")
+
+        # --- Consensus Merging ---
+        new_sop_content, merge_diagnostics = _merge_consensus_sop(
+            current_sop_content, blue_patches, critiques
+        )
+        _update_adv_log_and_status(f"✨ SOP merged. Reason: {merge_diagnostics.get('reason')}, Score: {merge_diagnostics.get('score')}")
+
+        # --- Approval Check ---
+        approval_check = check_approval_rate(
+            api_key,
+            red_team_models,
+            new_sop_content,
+            model_configs,
+            seed,
+            max_workers,
+            approval_prompt,
+        )
+        total_prompt_tokens += approval_check["prompt_tokens"]
+        total_completion_tokens += approval_check["completion_tokens"]
+        total_cost += approval_check["cost"]
+        final_approval_rate = approval_check["approval_rate"]
+        _update_adv_log_and_status(f"✅ Approval Rate: {final_approval_rate:.1f}%")
+
+        # --- Update State ---
+        iteration_results.append(
+            {
+                "iteration": iteration + 1,
+                "sop_before_patch": current_sop_content,
+                "critiques": critiques,
+                "patches": blue_patches,
+                "sop_after_patch": new_sop_content,
+                "merge_diagnostics": merge_diagnostics,
+                "approval_check": approval_check,
+                "agg_risk": _aggregate_red_risk(critiques),
+            }
+        )
+        current_sop_content = new_sop_content
+        current_sop_hash = _hash_text(current_sop_content)
+
+        with st.session_state.thread_lock:
+            st.session_state.adversarial_confidence_history.append(final_approval_rate)
+            st.session_state.adversarial_log = [entry for entry in st.session_state.adversarial_log if not entry.startswith("--- Iteration")] + [f"--- Iteration {iteration + 1}/{max_iter} ---", f"✅ Approval Rate: {final_approval_rate:.1f}%"]
+            st.session_state.adversarial_status_message = f"Iteration {iteration + 1}: Approval Rate {final_approval_rate:.1f}%"
+            st.session_state.adversarial_cost_estimate_usd = total_cost
+            st.session_state.adversarial_total_tokens_prompt = total_prompt_tokens
+            st.session_state.adversarial_total_tokens_completion = total_completion_tokens
+
+        # --- Check Stopping Conditions ---
+        if final_approval_rate >= confidence and iteration + 1 >= min_iter:
+            _update_adv_log_and_status(f"🎉 Confidence threshold ({confidence:.1f}%) reached after {iteration + 1} iterations.")
+            break
+        if iteration + 1 >= max_iter:
+            _update_adv_log_and_status(f"🏁 Max iterations ({max_iter}) reached.")
+            break
+
+    _update_adv_log_and_status("✅ Adversarial testing complete.")
+    with st.session_state.thread_lock:
+        st.session_state.adversarial_running = False
+        st.session_state.adversarial_results = {
+            "final_sop": current_sop_content,
+            "final_approval_rate": final_approval_rate,
+            "iterations": iteration_results,
+            "cost_estimate_usd": total_cost,
+            "tokens": {
+                "prompt": total_prompt_tokens,
+                "completion": total_completion_tokens,
+            },
+            "log": st.session_state.adversarial_log,
+        }
+    
+    # Save model performance data
+    try:
+        with open("model_performance.json", "w") as f:
+            json.dump(st.session_state.adversarial_model_performance, f, indent=2)
+    except Exception as e:
+        _update_adv_log_and_status(f"⚠️ Failed to save model performance data: {e}")
+
+
+
+
+def _load_human_feedback() -> List[Dict]:
+    feedback_file = "human_feedback.json"
+    if os.path.exists(feedback_file):
+        try:
+            with open(feedback_file, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            _update_adv_log_and_status(f"⚠️ Corrupted human feedback file: {feedback_file}. Starting fresh.")
+            return []
+    return []
 
 def capture_human_feedback(
     adversarial_example: Dict[str, Any], human_score: float, human_comments: str
 ):
     """
-    Simulates capturing human feedback on an adversarial example.
-    In a real system, this would store feedback in a database or persistent storage.
+    Captures human feedback on an adversarial example and stores it in a local JSON file.
     """
     feedback_entry = {
         "timestamp": time.time(),
         "adversarial_example_id": adversarial_example.get("id"),
         "human_score": human_score,
         "human_comments": human_comments,
+        "content": adversarial_example.get("content"), # Store content for context
+        "content_type": adversarial_example.get("content_type"),
+        "iteration": adversarial_example.get("iteration"),
     }
-    if "human_feedback_log" not in st.session_state:
-        st.session_state.human_feedback_log = []
-    st.session_state.human_feedback_log.append(feedback_entry)
-    _update_adv_log_and_status(
-        f"📝 Captured human feedback for adversarial example {adversarial_example.get('id')}"
-    )
+
+    feedback_file = "human_feedback.json"
+    all_feedback = []
+    if os.path.exists(feedback_file):
+        try:
+            with open(feedback_file, "r") as f:
+                all_feedback = json.load(f)
+        except json.JSONDecodeError:
+            _update_adv_log_and_status(f"⚠️ Corrupted human feedback file: {feedback_file}. Starting fresh.")
+            all_feedback = []
+
+    all_feedback.append(feedback_entry)
+
+    try:
+        with open(feedback_file, "w") as f:
+            json.dump(all_feedback, f, indent=2)
+        _update_adv_log_and_status(
+            f"📝 Captured human feedback for adversarial example {adversarial_example.get('id')} and saved to {feedback_file}"
+        )
+    except Exception as e:
+        _update_adv_log_and_status(f"❌ Failed to save human feedback to {feedback_file}: {e}")
 
 
 def generate_adversarial_data_augmentation(
@@ -1867,22 +2121,3 @@ def generate_adversarial_data_augmentation(
     except Exception as e:
         _update_adv_log_and_status(f"Error during adversarial data augmentation: {e}")
         return content  # Return original content on error
-
-import streamlit as st # Import streamlit here as it's a UI function
-from session_utils import ADVERSARIAL_PRESETS # Assuming ADVERSARIAL_PRESETS is defined here or imported
-
-def render_adversarial_settings():
-    """
-    Placeholder function to render the adversarial settings section in the Streamlit UI.
-    This would typically allow users to configure red team/blue team models, iterations, etc.
-    """
-    st.header("⚔️ Adversarial Testing Settings")
-    st.info("Adversarial testing settings management features are under development. Stay tuned!")
-    # Example of how you might display adversarial presets:
-    # st.subheader("Adversarial Presets")
-    # selected_preset = st.selectbox("Select a preset", list(ADVERSARIAL_PRESETS.keys()))
-    # if selected_preset:
-    #     preset_details = ADVERSARIAL_PRESETS[selected_preset]
-    #     st.write(f"Description: {preset_details['description']}")
-    #     st.write(f"Red Team Models: {', '.join(preset_details['red_team_models'])}")
-    #     st.write(f"Blue Team Models: {', '.join(preset_details['blue_team_models'])}")
