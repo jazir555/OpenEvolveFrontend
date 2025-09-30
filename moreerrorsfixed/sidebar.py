@@ -314,11 +314,10 @@ def display_sidebar():
                         json.loads(st.session_state.extra_headers)
                 except json.JSONDecodeError:
                     st.error("Invalid JSON format for Extra Headers.")
-                st.form_submit_button("Apply Provider Configuration")
-                st.success("Provider configuration applied.")
+                if st.form_submit_button("Apply Provider Configuration"):
+                    st.success("Provider configuration applied.")
         except Exception as e:
             st.error(f"An unexpected error occurred in Provider Configuration: {e}")
-
         st.markdown("---")
 
         # SETTINGS SCOPE SELECTOR
