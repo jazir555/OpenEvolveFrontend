@@ -961,6 +961,7 @@ def render_main_layout():
                         label='Feature Dimensions:',
                         text='Press enter to add more',
                         value=st.session_state.feature_dimensions,
+                        suggestions=['complexity', 'diversity', 'readability', 'performance', 'security', 'cost'],
                         key='feature_dimensions_mainlayout')
                 st.number_input("Feature Bins", 1, 100, st.session_state.feature_bins, key="feature_bins_mainlayout")
 
