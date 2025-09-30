@@ -599,13 +599,42 @@ def render_main_layout():
             - `Ctrl+Shift+/` - Toggle block comment
             """)
 
-    tab_names = ["🧬 Evolution", "⚔️ Adversarial Testing", "🐙 GitHub", "📜 Activity Feed", "📊 Report Templates", "🤖 Model Dashboard", "✅ Tasks", "👑 Admin", "📂 Projects"]
-    tabs = st.tabs(tab_names)
+    # Conditional rendering for custom pages
+    if st.session_state.get("page") == "evaluator_uploader":
+        st.subheader("⬆️ Upload Custom Evaluator")
+        # Content for evaluator uploader page
+        st.write("This is the Custom Evaluator Uploader page.")
+        # Add actual UI for uploading evaluators here
+        # For now, just a placeholder
+        if st.button("Back to Main Tabs"):
+            st.session_state.page = None
+            st.rerun()
+    elif st.session_state.get("page") == "prompt_manager":
+        st.subheader("📝 Custom Prompts")
+        # Content for prompt manager page
+        st.write("This is the Custom Prompts Manager page.")
+        # Add actual UI for managing prompts here
+        # For now, just a placeholder
+        if st.button("Back to Main Tabs"):
+            st.session_state.page = None
+            st.rerun()
+    elif st.session_state.get("page") == "analytics_dashboard":
+        st.subheader("📊 Analytics Dashboard")
+        # Content for analytics dashboard page
+        st.write("This is the Analytics Dashboard page.")
+        # Add actual UI for analytics here
+        # For now, just a placeholder
+        if st.button("Back to Main Tabs"):
+            st.session_state.page = None
+            st.rerun()
+    else:
+        tab_names = ["🧬 Evolution", "⚔️ Adversarial Testing", "🐙 GitHub", "📜 Activity Feed", "📊 Report Templates", "🤖 Model Dashboard", "✅ Tasks", "👑 Admin", "📂 Projects"]
+        tabs = st.tabs(tab_names)
 
-    with tabs[0]: # Evolution tab
-        with st.container(border=True): # Wrap the entire tab content in a container
-            st.header("Real-time Evolution")
-            st.markdown("Iteratively improve your content using a single AI model.")
+        with tabs[0]: # Evolution tab
+            with st.container(border=True): # Wrap the entire tab content in a container
+                st.header("Real-time Evolution")
+                st.markdown("Iteratively improve your content using a single AI model.")
 
             with st.expander("📝 Content Input", expanded=True):
                 # Initialize protocol_text in session_state if not already present
