@@ -281,37 +281,90 @@ def display_sidebar():
             )
         api = st.session_state.openevolve_api_instance
         providers = {}
-        try:
-            providers = get_providers(api)
-        except Exception as e:
-            st.error(f"Failed to get LLM providers: {e}")
-        provider_keys = list(providers.keys())
+        provider_keys = []
+        providers_available = False
 
-        # Ensure st.session_state.provider is initialized and valid
-        if "provider" not in st.session_state or st.session_state.provider not in provider_keys:
-            if provider_keys:
-                st.session_state.provider = provider_keys[0]
+        try:
+            fetched_providers = get_providers(api)
+            if fetched_providers:
+                providers = fetched_providers
+                provider_keys = list(providers.keys())
+                providers_available = True
             else:
                 st.warning("No LLM providers configured. Please add providers to proceed.")
-                st.stop() # Stop rendering if no providers are available.
+        except Exception as e:
+            st.error(f"Failed to get LLM providers: {e}")
 
-        st.markdown(create_tooltip_html("Provider", "Select the LLM provider to use for evolution. Adversarial testing always uses OpenRouter."), unsafe_allow_html=True)
-        st.selectbox(
-            "Provider",
-            provider_keys,
-            key="provider",
-            on_change=on_provider_change,
-            label_visibility="hidden"
-        )
+        if providers_available:
+            # Ensure st.session_state.provider is initialized and valid
+            if "provider" not in st.session_state or st.session_state.provider not in provider_keys:
+                st.session_state.provider = provider_keys[0] # Default to first provider
 
-        try: # This is line 269
-            with st.form("provider_configuration_form"):
-                provider_info = None
-                try:
-                    provider_info = providers[st.session_state.provider]
-                except KeyError:
-                    st.error(f"Selected provider '{st.session_state.provider}' not found. Please select a valid provider.")
-                    st.stop() # Stop rendering the form if provider is invalid
+            st.markdown(create_tooltip_html("Provider", "Select the LLM provider to use for evolution. Adversarial testing always uses OpenRouter."), unsafe_allow_html=True)
+            st.selectbox(
+                "Provider",
+                provider_keys,
+                key="provider",
+                on_change=on_provider_change,
+                label_visibility="hidden"
+            )
+
+            try: # This is line 269
+                with st.form("provider_configuration_form"):
+                    provider_info = None
+                    try:
+                        provider_info = providers[st.session_state.provider]
+                    except KeyError:
+                        st.error(f"Selected provider '{st.session_state.provider}' not found. Please select a valid provider.")
+                        # Do not st.stop() here, just show error and disable form elements if needed
+                        # For now, the error message is sufficient.
+                        pass
+
+                    st.markdown(create_tooltip_html("API Key", "Your API key for the selected provider. Keep this confidential."), unsafe_allow_html=True)
+                    st.text_input("API Key", type="password", key="api_key", label_visibility="hidden")
+                    
+                    st.markdown(create_tooltip_html("Base URL", "The base URL for the provider's API endpoint."), unsafe_allow_html=True)
+                    st.text_input("Base URL", key="base_url", label_visibility="hidden")
+
+                    if loader := provider_info.get("loader"):
+                        api_key = st.session_state.get("api_key")
+                        if not api_key:
+                            st.warning("API Key is required to load models for this provider.")
+                            st.markdown(create_tooltip_html("Model", "The name or ID of the model to use from the selected provider."), unsafe_allow_html=True)
+                            st.text_input("Model", key="model", label_visibility="hidden")
+                        else:
+                            try:
+                                models = loader(api_key)
+                                if not models or not isinstance(models, list): # Check if models list is empty or not a list
+                                    st.warning("No models found for this provider with the given API Key, or models data is malformed.")
+                                    st.markdown(create_tooltip_html("Model", "The name or ID of the model to use from the selected provider."), unsafe_allow_html=True)
+                                else:
+                                    st.markdown(create_tooltip_html("Model", "The specific model to use from the selected provider."), unsafe_allow_html=True)
+                                    st.selectbox(
+                                        "Model", models, key="model", label_visibility="hidden"
+                                    )
+                            except Exception as e:
+                                st.error(f"Error loading models: {e}. Please check your API Key and Base URL.")
+                                st.markdown(create_tooltip_html("Model", "The name or ID of the model to use from the selected provider."), unsafe_allow_html=True)
+                                st.text_input("Model", key="model", label_visibility="hidden")
+                    else:
+                        st.markdown(create_tooltip_html("Model", "The name or ID of the model to use from the selected provider."), unsafe_allow_html=True)
+                        st.text_input("Model", key="model", label_visibility="hidden")
+
+                    st.markdown(create_tooltip_html("Extra Headers (JSON)", "Additional HTTP headers to send with API requests, in JSON format."), unsafe_allow_html=True)
+                    st.text_area("Extra Headers (JSON)", key="extra_headers", label_visibility="hidden")
+                    try:
+                        if st.session_state.extra_headers:
+                            json.loads(st.session_state.extra_headers)
+                    except json.JSONDecodeError:
+                        st.error("Invalid JSON format for Extra Headers.")
+                    if st.form_submit_button("Apply Provider Configuration"):
+                        st.success("Provider configuration applied.")
+            except Exception as e:
+                st.error(f"An unexpected error occurred in Provider Configuration: {e}")
+        else:
+            # Display a message if providers are not available, but don't stop the app
+            st.info("Provider configuration is unavailable. Please ensure the backend is running and accessible.")
 
                 st.markdown(create_tooltip_html("API Key", "Your API key for the selected provider. Keep this confidential."), unsafe_allow_html=True)
                 st.text_input("API Key", type="password", key="api_key", label_visibility="hidden")
