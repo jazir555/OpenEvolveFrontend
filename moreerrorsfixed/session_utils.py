@@ -1587,6 +1587,28 @@ for k, v in DEFAULTS.items():
         st.session_state[k] = v
 
 
+def _load_parameter_settings() -> Dict:
+    settings_file = "parameter_settings.json"
+    if os.path.exists(settings_file):
+        try:
+            with open(settings_file, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            st.warning(f"⚠️ Corrupted parameter settings file: {settings_file}. Using defaults.")
+            return {}
+    return {}
+
+def _load_user_preferences() -> Dict:
+    preferences_file = "user_preferences.json"
+    if os.path.exists(preferences_file):
+        try:
+            with open(preferences_file, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            st.warning(f"⚠️ Corrupted user preferences file: {preferences_file}. Using defaults.")
+            return {}
+    return {}
+
 def reset_defaults():
     p = st.session_state.provider
     if p in PROVIDERS:
@@ -1596,28 +1618,24 @@ def reset_defaults():
     st.session_state.extra_headers = "{}"
 
 
-def save_user_preferences():
+def save_user_preferences(preferences: Dict, parameter_settings: Dict) -> bool:
     """
-    Save user preferences to session state.
+    Save user preferences and parameter settings to local JSON files.
     """
     try:
-        if "user_preferences" not in st.session_state:
-            st.session_state.user_preferences = {}
+        # Save user preferences
+        preferences_file = "user_preferences.json"
+        with open(preferences_file, "w") as f:
+            json.dump(preferences, f, indent=2)
 
-        # Update preferences from UI elements
-        st.session_state.user_preferences["theme"] = st.session_state.get(
-            "theme", "light"
-        )
-        st.session_state.user_preferences["font_size"] = st.session_state.get(
-            "font_size", "medium"
-        )
-        st.session_state.user_preferences["auto_save"] = st.session_state.get(
-            "auto_save", True
-        )
+        # Save parameter settings
+        parameter_settings_file = "parameter_settings.json"
+        with open(parameter_settings_file, "w") as f:
+            json.dump(parameter_settings, f, indent=2)
 
         return True
     except Exception as e:
-        st.error(f"Error saving user preferences: {e}")
+        st.error(f"Error saving preferences and settings: {e}")
         return False
 
 
