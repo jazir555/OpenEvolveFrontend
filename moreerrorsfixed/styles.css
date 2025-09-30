@@ -242,8 +242,8 @@ textarea:focus {
     margin-right: 5px; /* Space between radio button and label */
 }
 .stRadio input[type="radio"]:checked {
-    background-color: var(--primary); /* Primary color when checked */
-    border-color: var(--primary);
+    background-color: #6366f1 !important; /* Force blue fill */
+    border-color: #6366f1 !important;
 }
 .stRadio input[type="radio"]:checked::after {
     content: '';
@@ -298,14 +298,14 @@ textarea:focus {
 
 /* Custom Slider Styles */
 .stSlider .st-bo { /* This is the filled track */
-    background-color: #a0a0a0 !important; /* Silver/grey */
+    background-color: var(--primary) !important; /* Use primary color */
 }
 .stSlider .st-bn { /* This is the empty track */
-    background-color: #e0e0e0 !important; /* Lighter grey */
+    background-color: var(--bg-quaternary) !important; /* Use a background color */
 }
 .stSlider .st-bq { /* This is the thumb */
-    background-color: #808080 !important; /* Darker grey for thumb */
-    border: 1px solid #606060 !important;
+    background-color: var(--primary) !important; /* Use primary color for thumb */
+    border: 1px solid var(--primary-dark) !important; /* Darker primary for border */
 }
 
 /* Labels */
@@ -331,18 +331,18 @@ textarea:focus {
     background: rgba(6, 182, 212, 0.1) !important;
     border-left: 4px solid var(--info) !important;
 }
-.stAlert[data-baseweb="notification"] * {
+.stAlert[data-baseweb="notification"] *,
+.stSuccess *,
+.stWarning *,
+.stError *,
+.stInfo * {
     color: var(--text-primary) !important;
     opacity: 1 !important;
 }
 .stSuccess { background: rgba(16,185,129,0.1) !important; border-left: 4px solid var(--success) !important; }
-.stSuccess * { color: var(--text-primary) !important; opacity: 1 !important; }
 .stWarning { background: rgba(245,158,11,0.1) !important; border-left: 4px solid var(--warning) !important; }
-.stWarning * { color: var(--text-primary) !important; opacity: 1 !important; }
 .stError { background: rgba(239,68,68,0.1) !important; border-left: 4px solid var(--error) !important; }
-.stError * { color: var(--text-primary) !important; opacity: 1 !important; }
 .stInfo { background: rgba(6,182,212,0.1) !important; border-left: 4px solid var(--info) !important; }
-.stInfo * { color: var(--text-primary) !important; opacity: 1 !important; }
 .stAlert::before, .stAlert::after { display: none !important; }
 
 /* Tabs */
