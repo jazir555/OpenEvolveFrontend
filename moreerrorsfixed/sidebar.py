@@ -580,7 +580,7 @@ def display_sidebar():
                 if st.session_state.checkpoint_action == "Save Checkpoint":
                     with st.spinner("Saving checkpoint..."):
                         try:
-                            api.save_checkpoint()
+                            api.save_checkpoint(st.session_state.evolution_id)
                             st.success("Checkpoint saved successfully!")
                         except Exception as e:
                             st.error(f"Failed to save checkpoint: {e}")
