@@ -343,8 +343,11 @@ from sidebar import get_default_generation_params, get_default_evolution_params
 
 def _initialize_session_state():
     """Initialize session state with default values."""
+    # Load user preferences early to set theme
+    user_prefs = _load_user_preferences()
+
     defaults = {
-        "theme": "light",
+        "theme": user_prefs.get("theme", "light"), # Use preference, or default to light
         "show_quick_guide": False,
         "show_keyboard_shortcuts": False,
         "adversarial_running": False,
@@ -442,7 +445,7 @@ def _initialize_session_state():
         "evolution_stop_flag": False,
         "adversarial_stop_flag": False,
         "human_feedback_log": _load_human_feedback(),
-        "user_preferences": _load_user_preferences(),
+        "user_preferences": user_prefs, # Use the loaded preferences
         "parameter_settings": _load_parameter_settings(),
     }
     for key, value in defaults.items():
@@ -570,14 +573,26 @@ def render_main_layout():
         '<p style="text-align: center; font-size: 1.2rem;">AI-Powered Content Hardening with Multi-LLM Consensus</p>',
         unsafe_allow_html=True)
     # Inject JavaScript to set data-theme attribute on html element
-    st.markdown(
-        f"""
-        <script>
-            document.documentElement.setAttribute('data-theme', '{current_theme}');
-        </script>
-        """,
-        unsafe_allow_html=True
-    )
+    # This is the primary place to control the theme based on user preferences
+    allow_os_theme_inheritance = st.session_state.user_preferences.get("allow_os_theme_inheritance", False)
+    if not allow_os_theme_inheritance:
+        st.markdown(
+            f"""
+            <script>
+                document.documentElement.setAttribute('data-theme', '{current_theme}');
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
+    else:
+        st.markdown(
+            """
+            <script>
+                document.documentElement.removeAttribute('data-theme');
+            </script>
+            """,
+            unsafe_allow_html=True
+        )
 
     
 
