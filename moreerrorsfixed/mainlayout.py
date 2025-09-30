@@ -103,7 +103,7 @@ def render_island_model_chart(history: List[Dict]):
         for j, other_island in enumerate(history[-1]['islands']):
             if i != j:
                 if abs(i - j) == 1:
-                    net.add_edge(i, j, value=1)
+                    net.add_edge(i, j, value=np.random.randint(1, 10)) # Simulate migration value
 
     net.show("island_model.html")
     st.components.v1.html(open("island_model.html", 'r', encoding='utf-8').read(), height=500)
@@ -614,6 +614,25 @@ def render_main_layout():
                         st.error("Failed to upload evaluator.")
                 except Exception as e:
                     st.error(f"Error uploading evaluator: {e}")
+
+        st.markdown("---")
+        st.subheader("🗂️ Manage Custom Evaluators")
+        api = st.session_state.openevolve_api_instance
+        custom_evaluators = api.get_custom_evaluators()
+        if custom_evaluators:
+            for evaluator_id, evaluator_data in custom_evaluators.items():
+                with st.expander(f"Evaluator ID: {evaluator_id}"):
+                    st.code(evaluator_data['code'], language="python")
+                    if st.button("Delete Evaluator", key=f"delete_evaluator_{evaluator_id}_page", type="secondary"):
+                        try:
+                            api.delete_evaluator(evaluator_id)
+                            st.success(f"Evaluator {evaluator_id} deleted.")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Failed to delete evaluator: {e}")
+        else:
+            st.info("No custom evaluators found.")
+
         if st.button("Back to Main Tabs"):
             st.session_state.page = None
             st.rerun()
@@ -662,31 +681,70 @@ def render_main_layout():
         st.subheader("📊 Analytics Dashboard")
         st.write("Welcome to your Analytics Dashboard!")
 
-        # Placeholder for some dummy metrics
+        # Derive metrics from session state
+        total_evolutions = len(st.session_state.evolution_history) if st.session_state.evolution_history else 0
+        avg_confidence_score = np.mean(st.session_state.adversarial_confidence_history) if st.session_state.adversarial_confidence_history else 0.0
+        total_cost_usd = st.session_state.adversarial_cost_estimate_usd
+
         st.markdown("---")
         st.subheader("Key Metrics")
         col1, col2, col3 = st.columns(3)
-        col1.metric("Total Evolutions", "1,234")
-        col2.metric("Avg. Confidence Score", "85.5%")
-        col3.metric("Total Cost (USD)", "$123.45")
+        col1.metric("Total Evolutions", f"{total_evolutions:,}")
+        col2.metric("Avg. Confidence Score", f"{avg_confidence_score:.1f}%")
+        col3.metric("Total Cost (USD)", f"${total_cost_usd:.2f}")
 
         st.markdown("---")
         st.subheader("Evolution History")
-        # Placeholder for a simple chart
-        chart_data = pd.DataFrame(
-            np.random.randn(20, 3),
-            columns=['a', 'b', 'c']
-        ).cumsum()
-        st.line_chart(chart_data)
+        if st.session_state.evolution_history:
+            evolution_data = []
+            for gen_idx, generation in enumerate(st.session_state.evolution_history):
+                for individual in generation.get('population', []):
+                    evolution_data.append({
+                        'Generation': gen_idx,
+                        'Fitness': individual.get('fitness', 0),
+                        'Complexity': individual.get('complexity', 0),
+                        'Diversity': individual.get('diversity', 0)
+                    })
+            if evolution_data:
+                chart_data = pd.DataFrame(evolution_data)
+                st.line_chart(chart_data.set_index('Generation'))
+            else:
+                st.info("No evolution history data available.")
+        else:
+            st.info("Run an evolution to see history here.")
 
         st.markdown("---")
         st.subheader("Model Performance Overview")
-        # Placeholder for a bar chart
-        model_perf_data = pd.DataFrame({
-            'Model': ['Model A', 'Model B', 'Model C', 'Model D'],
-            'Score': [85, 92, 78, 88]
-        })
-        st.bar_chart(model_perf_data.set_index('Model'))
+        if st.session_state.get("adversarial_model_performance"):
+            model_perf_data = pd.DataFrame([
+                {'Model': k, 'Score': v.get('score', 0)}
+                for k, v in st.session_state.adversarial_model_performance.items()
+            ])
+            st.bar_chart(model_perf_data.set_index('Model'))
+        else:
+            st.info("No model performance data available.")
+
+        st.markdown("---")
+        st.subheader("Issue Severity Distribution")
+        if st.session_state.adversarial_results and st.session_state.adversarial_results.get('iterations'):
+            severity_counts = {}
+            for iteration in st.session_state.adversarial_results['iterations']:
+                for critique in iteration.get('critiques', []):
+                    if critique.get('critique_json'):
+                        for issue in _safe_list(critique['critique_json'], 'issues'):
+                            severity = issue.get('severity', 'low').lower()
+                            severity_counts[severity] = severity_counts.get(severity, 0) + 1
+            if severity_counts:
+                severity_data = pd.DataFrame({
+                    'Severity': list(severity_counts.keys()),
+                    'Count': list(severity_counts.values())
+                })
+                st.pie_chart(severity_data.set_index('Severity'))
+            else:
+                st.info("No issue data to display.")
+        else:
+            st.info("Run adversarial testing to see issue distribution here.")
+
 
         if st.button("Back to Main Tabs", key="back_to_main_tabs_analytics"):
             st.session_state.page = None
