@@ -290,6 +290,7 @@ from notifications import NotificationManager
 from log_streaming import LogStreaming
 # from session_utils import get_current_session_id
 from session_state_classes import State, SessionManager
+from sidebar import get_default_generation_params, get_default_evolution_params
 
 def _initialize_session_state():
     """Initialize session state with default values."""
@@ -408,6 +409,26 @@ def _initialize_session_state():
 
     if "report_templates" not in st.session_state:
         st.session_state.report_templates = _load_report_templates()
+
+    # Ensure parameter_settings has the default structure if loaded empty or partially
+    if "parameter_settings" not in st.session_state or not st.session_state.parameter_settings:
+        st.session_state.parameter_settings = {
+            "global": {
+                "generation": get_default_generation_params(),
+                "evolution": get_default_evolution_params(),
+            },
+            "providers": {},
+        }
+    else:
+        # Ensure sub-keys exist if parameter_settings was partially loaded
+        if "global" not in st.session_state.parameter_settings:
+            st.session_state.parameter_settings["global"] = {}
+        if "generation" not in st.session_state.parameter_settings["global"]:
+            st.session_state.parameter_settings["global"]["generation"] = get_default_generation_params()
+        if "evolution" not in st.session_state.parameter_settings["global"]:
+            st.session_state.parameter_settings["global"]["evolution"] = get_default_evolution_params()
+        if "providers" not in st.session_state.parameter_settings:
+            st.session_state.parameter_settings["providers"] = {}
 
 def _stream_evolution_logs_in_thread(evolution_id, api, thread_lock):
     full_log = []
