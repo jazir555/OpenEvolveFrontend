@@ -316,8 +316,6 @@ def display_sidebar():
                         provider_info = providers[st.session_state.provider]
                     except KeyError:
                         st.error(f"Selected provider '{st.session_state.provider}' not found. Please select a valid provider.")
-                        # Do not st.stop() here, just show error and disable form elements if needed
-                        # For now, the error message is sufficient.
                         pass
 
                     st.markdown(create_tooltip_html("API Key", "Your API key for the selected provider. Keep this confidential."), unsafe_allow_html=True)
@@ -337,7 +335,6 @@ def display_sidebar():
                                 models = loader(api_key)
                                 if not models or not isinstance(models, list): # Check if models list is empty or not a list
                                     st.warning("No models found for this provider with the given API Key, or models data is malformed.")
-                                    st.markdown(create_tooltip_html("Model", "The name or ID of the model to use from the selected provider."), unsafe_allow_html=True)
                                 else:
                                     st.markdown(create_tooltip_html("Model", "The specific model to use from the selected provider."), unsafe_allow_html=True)
                                     st.selectbox(
@@ -366,50 +363,7 @@ def display_sidebar():
             # Display a message if providers are not available, but don't stop the app
             st.info("Provider configuration is unavailable. Please ensure the backend is running and accessible.")
 
-                st.markdown(create_tooltip_html("API Key", "Your API key for the selected provider. Keep this confidential."), unsafe_allow_html=True)
-                st.text_input("API Key", type="password", key="api_key", label_visibility="hidden")
-                
-                st.markdown(create_tooltip_html("Base URL", "The base URL for the provider's API endpoint."), unsafe_allow_html=True)
-                st.text_input("Base URL", key="base_url", label_visibility="hidden")
 
-                if loader := provider_info.get("loader"):
-                    api_key = st.session_state.get("api_key")
-                    if not api_key:
-                        st.warning("API Key is required to load models for this provider.")
-                        st.markdown(create_tooltip_html("Model", "The name or ID of the model to use from the selected provider."), unsafe_allow_html=True)
-                        st.text_input("Model", key="model", label_visibility="hidden")
-                    else:
-                        try:
-                            models = loader(api_key)
-                            if not models or not isinstance(models, list): # Check if models list is empty or not a list
-                                st.warning("No models found for this provider with the given API Key, or models data is malformed.")
-                                st.markdown(create_tooltip_html("Model", "The name or ID of the model to use from the selected provider."), unsafe_allow_html=True)
-                                st.text_input("Model", key="model", label_visibility="hidden")
-                            else:
-                                st.markdown(create_tooltip_html("Model", "The specific model to use from the selected provider."), unsafe_allow_html=True)
-                                st.selectbox(
-                                    "Model", models, key="model", label_visibility="hidden"
-                                )
-                        except Exception as e:
-                            st.error(f"Error loading models: {e}. Please check your API Key and Base URL.")
-                            st.markdown(create_tooltip_html("Model", "The name or ID of the model to use from the selected provider."), unsafe_allow_html=True)
-                            st.text_input("Model", key="model", label_visibility="hidden")
-                else:
-                    st.markdown(create_tooltip_html("Model", "The name or ID of the model to use from the selected provider."), unsafe_allow_html=True)
-                    st.text_input("Model", key="model", label_visibility="hidden")
-
-                st.markdown(create_tooltip_html("Extra Headers (JSON)", "Additional HTTP headers to send with API requests, in JSON format."), unsafe_allow_html=True)
-                st.text_area("Extra Headers (JSON)", key="extra_headers", label_visibility="hidden")
-                try:
-                    if st.session_state.extra_headers:
-                        json.loads(st.session_state.extra_headers)
-                except json.JSONDecodeError:
-                    st.error("Invalid JSON format for Extra Headers.")
-                if st.form_submit_button("Apply Provider Configuration"):
-                    st.success("Provider configuration applied.")
-        except Exception as e:
-            st.error(f"An unexpected error occurred in Provider Configuration: {e}")
-        st.markdown("---")
 
         # SETTINGS SCOPE SELECTOR
         st.subheader("Parameter Scope")
