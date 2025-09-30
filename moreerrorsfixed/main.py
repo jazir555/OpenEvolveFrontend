@@ -136,7 +136,7 @@ from content_manager import render_content_manager
 from providers import render_provider_settings
 from analytics import render_analytics_settings
 from evolution import render_evolution_settings
-from adversarial import render_adversarial_settings
+
 from mainlayout import render_main_layout
 from config_data import load_config, save_config
 
@@ -274,23 +274,7 @@ def main():
     display_sidebar()
 
     # Render the main layout
-    if st.session_state.get("page") == "evaluator_uploader":
-        from evaluator_uploader import render_evaluator_uploader
-
-        render_evaluator_uploader()
-    elif st.session_state.get("page") == "prompt_manager":
-        # PromptManager is instantiated in mainlayout.py and stored in session_state
-        # Ensure mainlayout.py has been rendered at least once to have prompt_manager in session_state
-        if "prompt_manager" in st.session_state:
-            st.session_state.prompt_manager.render_prompt_manager_ui()
-        else:
-            st.warning("Prompt Manager not initialized. Please navigate to the main layout first.")
-    elif st.session_state.get("page") == "analytics_dashboard":
-        from analytics_dashboard import render_analytics_dashboard
-
-        render_analytics_dashboard()
-    else:
-        render_main_layout()
+    render_main_layout()
 
 
 if __name__ == "__main__":
