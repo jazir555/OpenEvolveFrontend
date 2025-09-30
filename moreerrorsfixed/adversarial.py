@@ -1916,10 +1916,10 @@ def _run_adversarial_testing_with_api_backend(
                     current_sop_content,
                     model_configs.get(model_id, {}),
                     blue_team_prompt,
-                    user_suffix=f"Critiques:
+                    user_suffix=f"""Critiques:
 {json.dumps([c['critique_json'] for c in critiques if c['critique_json']], indent=2)}
 
-Patch Quality: {patch_quality}",
+Patch Quality: {patch_quality}""",
                     force_json=True,
                     seed=seed,
                     compliance_requirements=compliance_requirements,
