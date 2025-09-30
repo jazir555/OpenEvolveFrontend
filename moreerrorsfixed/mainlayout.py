@@ -340,6 +340,7 @@ from log_streaming import LogStreaming
 # from session_utils import get_current_session_id
 from session_state_classes import State, SessionManager
 from sidebar import get_default_generation_params, get_default_evolution_params
+from streamlit.components.v1 import html # Import html component
 
 def _initialize_session_state():
     """Initialize session state with default values."""
@@ -575,36 +576,47 @@ def render_main_layout():
     # Inject JavaScript to set data-theme attribute on html element
     # This is the primary place to control the theme based on user preferences
     allow_os_theme_inheritance = st.session_state.user_preferences.get("allow_os_theme_inheritance", False)
-    if not allow_os_theme_inheritance:
-        st.markdown(
-            f"""
-            <script>
-                const theme = '{current_theme}';
+    
+    # Use st.components.v1.html to ensure JavaScript executes on every rerun
+    html(
+        f"""
+        <script>
+            console.log('Theme JS in mainlayout.py executed.');
+            const allowOsThemeInheritance = {str(allow_os_theme_inheritance).lower()}; // Pass Python boolean to JS
+            const theme = '{current_theme}';
+            const sidebar = document.querySelector('[data-testid="stSidebar"]'); // Target the sidebar
+
+            console.log('JS - allowOsThemeInheritance:', allowOsThemeInheritance, 'theme:', theme);
+
+            if (!allowOsThemeInheritance) {{
                 document.documentElement.setAttribute('data-theme', theme);
-                // Force background colors using inline styles as a last resort
+                console.log('JS - data-theme set to:', theme);
+                // Force background colors using inline styles for both themes as a last resort
                 if (theme === 'dark') {{
-                    document.body.style.backgroundColor = '#0e1117';
-                    document.querySelector('.stApp').style.backgroundColor = '#0e1117';
+                    document.body.style.backgroundColor = '#0e1117'; // Dark primary background
+                    document.querySelector('.stApp').style.backgroundColor = '#1e293b'; // Dark secondary background
+                    if (sidebar) sidebar.style.backgroundColor = '#0e1117'; // Force sidebar dark background
+                    console.log('JS - Forced dark inline styles.');
                 }} else {{
-                    document.body.style.backgroundColor = 'white';
-                    document.querySelector('.stApp').style.backgroundColor = 'white';
+                    document.body.style.backgroundColor = 'white'; // Light primary background
+                    document.querySelector('.stApp').style.backgroundColor = '#f8fafc'; // Light secondary background
+                    if (sidebar) sidebar.style.backgroundColor = 'white'; // Force sidebar light background
+                    console.log('JS - Forced light inline styles.');
                 }}
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
-    else:
-        st.markdown(
-            """
-            <script>
+            }} else {{
                 document.documentElement.removeAttribute('data-theme');
+                console.log('JS - data-theme removed.');
                 // Reset inline background styles if inheriting OS theme
                 document.body.style.backgroundColor = '';
                 document.querySelector('.stApp').style.backgroundColor = '';
-            </script>
-            """,
-            unsafe_allow_html=True
-        )
+                if (sidebar) sidebar.style.backgroundColor = ''; // Reset sidebar background
+                console.log('JS - Reset inline styles for OS inheritance.');
+            }}
+        </script>
+        """,
+        height=0, # Make the component invisible
+        width=0,
+    )
 
     
 
