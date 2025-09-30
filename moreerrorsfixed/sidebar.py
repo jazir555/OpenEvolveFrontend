@@ -242,7 +242,11 @@ def display_sidebar():
                 api_key=st.session_state.openevolve_api_key,
             )
         api = st.session_state.openevolve_api_instance
-        providers = get_providers(api)
+        providers = {}
+        try:
+            providers = get_providers(api)
+        except Exception as e:
+            st.error(f"Failed to get LLM providers: {e}")
         provider_keys = list(providers.keys())
 
         # Ensure st.session_state.provider is initialized and valid
@@ -262,12 +266,16 @@ def display_sidebar():
             label_visibility="hidden"
         )
 
-        try:
-            with st.form("provider_configuration_form"):
-                provider_info = providers[st.session_state.provider]
-
-                st.markdown(create_tooltip_html("API Key", "Your API key for the selected provider. Keep this confidential."), unsafe_allow_html=True)
-                st.text_input("API Key", type="password", key="api_key", label_visibility="hidden")
+                    try:
+                        with st.form("provider_configuration_form"):
+                            provider_info = None
+                            try:
+                                provider_info = providers[st.session_state.provider]
+                            except KeyError:
+                                st.error(f"Selected provider '{st.session_state.provider}' not found. Please select a valid provider.")
+                                st.stop() # Stop rendering the form if provider is invalid
+        
+                            st.markdown(create_tooltip_html("API Key", "Your API key for the selected provider. Keep this confidential."), unsafe_allow_html=True)                st.text_input("API Key", type="password", key="api_key", label_visibility="hidden")
                 
                 st.markdown(create_tooltip_html("Base URL", "The base URL for the provider's API endpoint."), unsafe_allow_html=True)
                 st.text_input("Base URL", key="base_url", label_visibility="hidden")
@@ -300,6 +308,11 @@ def display_sidebar():
 
                 st.markdown(create_tooltip_html("Extra Headers (JSON)", "Additional HTTP headers to send with API requests, in JSON format."), unsafe_allow_html=True)
                 st.text_area("Extra Headers (JSON)", key="extra_headers", label_visibility="hidden")
+                try:
+                    if st.session_state.extra_headers:
+                        json.loads(st.session_state.extra_headers)
+                except json.JSONDecodeError:
+                    st.error("Invalid JSON format for Extra Headers.")
                 st.form_submit_button("Apply Provider Configuration")
                 st.success("Provider configuration applied.")
         except Exception as e:
@@ -549,7 +562,11 @@ def display_sidebar():
                 "Action", ["Save Checkpoint", "Load Checkpoint"], key="checkpoint_action", label_visibility="hidden"
             )
 
-            checkpoints = api.get_checkpoints()
+            checkpoints = []
+            try:
+                checkpoints = api.get_checkpoints()
+            except Exception as e:
+                st.error(f"Failed to retrieve checkpoints: {e}")
             if checkpoints:
                 st.markdown(create_tooltip_html("Load Checkpoint", "Select a checkpoint to load."), unsafe_allow_html=True)
                 st.selectbox(
