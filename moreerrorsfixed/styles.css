@@ -65,27 +65,7 @@ html[data-theme="dark"], .stApp[data-theme="dark"] {
     --primary-dark: #4f46e5;
 }
 
-/* Light Theme (explicitly set when data-theme="light") */
-html[data-theme="light"], .stApp[data-theme="light"] {
-    --bg-primary: #ffffff;
-    --bg-secondary: #f8fafc;
-    --bg-tertiary: #f1f5f9;
-    --bg-quaternary: #e2e8f0;
-    
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --text-light: #94a3b8;
-    --text-muted: #cbd5e1;
-    
-    --border: #e2e8f0;
-    --border-light: #f1f5f9;
-    --border-dark: #cbd5e1;
-    
-    --primary: #6366f1;
-    --primary-hover: #5855f7;
-    --primary-light: #a5b4fc;
-    --primary-dark: #4338ca;
-}
+
 
 /* 3. Reset & typography
 --------------------------------------------------------------- */
@@ -250,10 +230,8 @@ input[type=text],input[type=password],input[type=email],input[type=number],texta
 --------------------------------------------------------------- */
 /* Notifications */
 .notification-container {
-    position: fixed; /* Maintain its position relative to the viewport */
-    top: var(--spacing-lg);
-    right: var(--spacing-lg);
-    z-index: 1000;
+    position: static; /* Make it scroll with the page */
+    /* Removed top, right, z-index as they are not relevant for static positioning */
 }
 .notification-badge{background:var(--error);color:#fff;border-radius:50%;padding:var(--spacing-xs) var(--spacing-sm);font-size:.75rem;font-weight:600}
 
@@ -266,23 +244,46 @@ input[type=text],input[type=password],input[type=email],input[type=number],texta
 
 /* AGGRESSIVE OVERRIDES FOR LIGHT THEME BACKGROUND */
 /* This is a last resort to prevent dark theme from taking over */
-body, html {
+/* Apply when data-theme is NOT dark */
+body:not([data-theme="dark"]), html:not([data-theme="dark"]) {
     background-color: white !important;
 }
 
-.stApp {
+.stApp:not([data-theme="dark"]) {
     background-color: white !important;
 }
 
-.main .block-container {
+.main .block-container:not([data-theme="dark"]) {
     background-color: white !important;
 }
 
-.stApp > header,
-.stApp > div > div > div.main,
-.stApp > div > div > div.main > div,
-.stApp > div > div > div.main > div > div,
-.stApp > div > div > div.main > div > div > div {
+.stApp:not([data-theme="dark"]) > header,
+.stApp:not([data-theme="dark"]) > div > div > div.main,
+.stApp:not([data-theme="dark"]) > div > div > div.main > div,
+.stApp:not([data-theme="dark"]) > div > div > div.main > div > div,
+.stApp:not([data-theme="dark"]) > div > div > div.main > div > div > div {
     background-color: white !important;
+}
+
+/* AGGRESSIVE OVERRIDES FOR DARK THEME BACKGROUND */
+/* This is to ensure dark theme applies when data-theme="dark" is present */
+body[data-theme="dark"], html[data-theme="dark"] {
+    background-color: #0f172a !important; /* --bg-primary dark */
+}
+
+.stApp[data-theme="dark"] {
+    background-color: #1e293b !important; /* --bg-secondary dark */
+}
+
+.main .block-container[data-theme="dark"] {
+    background-color: #1e293b !important; /* --bg-secondary dark */
+}
+
+.stApp[data-theme="dark"] > header,
+.stApp[data-theme="dark"] > div > div > div.main,
+.stApp[data-theme="dark"] > div > div > div.main > div,
+.stApp[data-theme="dark"] > div > div > div.main > div > div,
+.stApp[data-theme="dark"] > div > div > div.main > div > div > div {
+    background-color: #1e293b !important; /* --bg-secondary dark */
 }
 ```
