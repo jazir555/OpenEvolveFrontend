@@ -65,17 +65,17 @@ def _stream_evolution_logs_in_thread(evolution_id, api, thread_lock):
                 st.session_state.evolution_stop_flag = False
                 break
 
-                    status = None
-                    try:
-                        status = api.get_evolution_status(evolution_id)
-                    except Exception as e:
-                        with thread_lock:
-                            st.session_state.evolution_log.append(f"Error getting evolution status: {e}")
-                            st.session_state.evolution_status_message = f"Error: {e}"
-                        # Optionally, break or set a flag to stop the thread if API calls consistently fail
-                        # For now, just log and continue polling
-                        time.sleep(2) # Wait before retrying
-                        continue        if status:
+        status = None
+        try:
+            status = api.get_evolution_status(evolution_id)
+        except Exception as e:
+            with thread_lock:
+                st.session_state.evolution_log.append(f"Error getting evolution status: {e}")
+                st.session_state.evolution_status_message = f"Error: {e}"
+            # Optionally, break or set a flag to stop the thread if API calls consistently fail
+            # For now, just log and continue polling
+            time.sleep(2) # Wait before retrying
+            continue        if status:
             with thread_lock:
                 st.session_state.evolution_log = status.get('log', '').splitlines()
                 st.session_state.evolution_current_best = status.get('current_best_content', '')
