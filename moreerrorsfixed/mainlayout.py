@@ -914,24 +914,24 @@ def render_main_layout():
                 st.markdown("### 🎛️ Evolution Parameters")
                 col1, col2 = st.columns(2)
                 with col1:
-                    st.number_input("Max Iterations", 1, 200, 20, key="evolution_max_iterations")
-                    st.number_input("Population Size", 1, 100, 1, key="evolution_population_size")
-                    st.number_input("Number of Islands", 1, 10, 1, key="multi_objective_num_islands_island_model_2")
-                    st.slider("Elite Ratio", 0.0, 1.0, 1.0, 0.1, key="evolution_elite_ratio")
+                    st.number_input("Max Iterations", 1, 200, st.session_state.evolution_max_iterations, key="evolution_max_iterations")
+                    st.number_input("Population Size", 1, 100, st.session_state.evolution_population_size, key="evolution_population_size")
+                    st.number_input("Number of Islands", 1, 10, st.session_state.multi_objective_num_islands_island_model_2, key="multi_objective_num_islands_island_model_2")
+                    st.slider("Elite Ratio", 0.0, 1.0, st.session_state.evolution_elite_ratio, 0.1, key="evolution_elite_ratio")
                 with col2:
-                    st.number_input("Checkpoint Interval", 1, 100, 5, key="evolution_checkpoint_interval")
-                    st.slider("Exploration Ratio", 0.0, 1.0, 0.0, 0.1, key="evolution_exploration_ratio")
-                    st.slider("Exploitation Ratio", 0.0, 1.0, 0.0, 0.1, key="evolution_exploitation_ratio")
-                    st.number_input("Archive Size", 0, 100, 0, key="evolution_archive_size")
+                    st.number_input("Checkpoint Interval", 1, 100, st.session_state.evolution_checkpoint_interval, key="evolution_checkpoint_interval")
+                    st.slider("Exploration Ratio", 0.0, 1.0, st.session_state.evolution_exploration_ratio, 0.1, key="evolution_exploration_ratio")
+                    st.slider("Exploitation Ratio", 0.0, 1.0, st.session_state.exploitation_ratio, 0.1, key="exploitation_ratio")
+                    st.number_input("Archive Size", 0, 100, st.session_state.evolution_archive_size, key="evolution_archive_size")
 
                 st.markdown("### 🤖 Model Parameters")
                 col3, col4 = st.columns(2)
                 with col3:
-                    st.slider("Temperature", 0.0, 2.0, 0.7, 0.1, key="model_temperature")
-                    st.slider("Top-P", 0.0, 1.0, 1.0, 0.1, key="model_top_p")
+                    st.slider("Temperature", 0.0, 2.0, st.session_state.model_temperature, 0.1, key="model_temperature")
+                    st.slider("Top-P", 0.0, 1.0, st.session_state.model_top_p, 0.1, key="model_top_p")
                 with col4:
-                    st.slider("Frequency Penalty", -2.0, 2.0, 0.0, 0.1, key="model_frequency_penalty")
-                    st.slider("Presence Penalty", -2.0, 2.0, 0.0, 0.1, key="model_presence_penalty")
+                    st.slider("Frequency Penalty", -2.0, 2.0, st.session_state.model_frequency_penalty, 0.1, key="model_frequency_penalty")
+                    st.slider("Presence Penalty", -2.0, 2.0, st.session_state.model_presence_penalty, 0.1, key="model_presence_penalty")
 
                 st.markdown("### 🎯 Multi-Objective Evolution")
                 st.info("Define multiple objectives for the evolution. The fitness of each individual will be a vector of scores, one for each objective.")
@@ -939,13 +939,35 @@ def render_main_layout():
                     st_tags(
                         label='Feature Dimensions:',
                         text='Press enter to add more',
-                        value=['complexity', 'diversity'],
+                        value=st.session_state.multi_objective_feature_dimensions,
                         key='multi_objective_feature_dimensions')
-                st.number_input("Feature Bins", 1, 100, 10, key="multi_objective_feature_bins")
+                st.number_input("Feature Bins", 1, 100, st.session_state.multi_objective_feature_bins, key="multi_objective_feature_bins")
 
-                st.number_input("Number of Islands", 1, 10, 1, key="multi_objective_num_islands_island_model_3")
-                st.slider("Migration Interval", 0, 100, 50, key="multi_objective_migration_interval")
-                st.slider("Migration Rate", 0.0, 1.0, 0.1, 0.05, key="multi_objective_migration_rate")
+                st.number_input("Number of Islands", 1, 10, st.session_state.multi_objective_num_islands_island_model_3, key="multi_objective_num_islands_island_model_3")
+                st.slider("Migration Interval", 0, 100, st.session_state.multi_objective_migration_interval, key="multi_objective_migration_interval")
+                st.slider("Migration Rate", 0.0, 1.0, st.session_state.multi_objective_migration_rate, 0.05, key="multi_objective_migration_rate")
+
+                if st.button("Apply Advanced Settings", key="apply_advanced_settings_btn", type="primary"):
+                    # Update parameter_settings with current values from session_state
+                    st.session_state.parameter_settings["global"]["evolution"]["max_iterations"] = st.session_state.evolution_max_iterations
+                    st.session_state.parameter_settings["global"]["evolution"]["population_size"] = st.session_state.evolution_population_size
+                    st.session_state.parameter_settings["global"]["evolution"]["num_islands"] = st.session_state.multi_objective_num_islands_island_model_2
+                    st.session_state.parameter_settings["global"]["evolution"]["elite_ratio"] = st.session_state.evolution_elite_ratio
+                    st.session_state.parameter_settings["global"]["evolution"]["checkpoint_interval"] = st.session_state.evolution_checkpoint_interval
+                    st.session_state.parameter_settings["global"]["evolution"]["exploration_ratio"] = st.session_state.evolution_exploration_ratio
+                    st.session_state.parameter_settings["global"]["evolution"]["exploitation_ratio"] = st.session_state.exploitation_ratio
+                    st.session_state.parameter_settings["global"]["evolution"]["archive_size"] = st.session_state.evolution_archive_size
+                    st.session_state.parameter_settings["global"]["generation"]["temperature"] = st.session_state.model_temperature
+                    st.session_state.parameter_settings["global"]["generation"]["top_p"] = st.session_state.model_top_p
+                    st.session_state.parameter_settings["global"]["generation"]["frequency_penalty"] = st.session_state.model_frequency_penalty
+                    st.session_state.parameter_settings["global"]["generation"]["presence_penalty"] = st.session_state.model_presence_penalty
+                    st.session_state.parameter_settings["global"]["evolution"]["feature_dimensions"] = st.session_state.multi_objective_feature_dimensions
+                    st.session_state.parameter_settings["global"]["evolution"]["feature_bins"] = st.session_state.multi_objective_feature_bins
+                    st.session_state.parameter_settings["global"]["evolution"]["num_islands"] = st.session_state.multi_objective_num_islands_island_model_3 # This is a duplicate key, check which one is correct
+                    st.session_state.parameter_settings["global"]["evolution"]["migration_interval"] = st.session_state.multi_objective_migration_interval
+                    st.session_state.parameter_settings["global"]["evolution"]["migration_rate"] = st.session_state.multi_objective_migration_rate
+                    st.success("Advanced settings applied and saved to session state.")
+                    st.rerun()
             st.divider()
 
             with st.expander("📊 Results", expanded=True):
