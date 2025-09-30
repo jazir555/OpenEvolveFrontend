@@ -60,6 +60,10 @@ def _stream_evolution_logs_in_thread(evolution_id, api, thread_lock):
         with thread_lock:
             if not st.session_state.evolution_running:
                 break
+            if st.session_state.evolution_stop_flag: # Check stop flag
+                st.session_state.evolution_running = False
+                st.session_state.evolution_stop_flag = False
+                break
 
         status = api.get_evolution_status(evolution_id)
         if status:
@@ -98,8 +102,6 @@ def render_island_model_chart(history: List[Dict]):
     for i, island in enumerate(history[-1]['islands']):
         for j, other_island in enumerate(history[-1]['islands']):
             if i != j:
-                # This is a placeholder for actual migration data
-                # In a real implementation, you would get this data from the backend
                 if abs(i - j) == 1:
                     net.add_edge(i, j, value=1)
 
@@ -474,16 +476,37 @@ def render_main_layout():
         '<h2 style="text-align: center;">🧬 OpenEvolve Content Improver</h2>'
         '<p style="text-align: center; font-size: 1.2rem;">AI-Powered Content Hardening with Multi-LLM Consensus</p>',
         unsafe_allow_html=True)
+    # Inject JavaScript to set data-theme attribute on html element
+    st.markdown(
+        f"""
+        <script>
+            document.documentElement.setAttribute('data-theme', '{current_theme}');
+        </script>
+        """,
+        unsafe_allow_html=True
+    )
+
+    if "styles_css" not in st.session_state:
+        try:
+            with open("styles.css") as f:
+                st.session_state.styles_css = f.read()
+        except FileNotFoundError:
+            st.session_state.styles_css = ""
+    st.markdown(f"<style>{st.session_state.styles_css}</style>", unsafe_allow_html=True)
+
     # Notification UI
     render_notification_ui()
+
+    # Theme toggle
+    if st.button("Toggle Theme", key=f"theme_toggle_btn_{st.session_state.theme}"):
+        if st.session_state.theme == "light":
+            st.session_state.theme = "dark"
+        else:
+            st.session_state.theme = "light"
+        st.rerun()
+
     # Quick action buttons with enhanced styling
     quick_action_col1, quick_action_col2 = st.columns(2)
-    with quick_action_col1:
-        if st.button("📋 Quick Guide", key="main_layout_quick_guide_btn", use_container_width=True, type="secondary"):
-            st.session_state.show_quick_guide = not st.session_state.get("show_quick_guide", False)
-    with quick_action_col2:
-        if st.button("⌨️ Keyboard Shortcuts", key="main_layout_keyboard_shortcuts_btn", use_container_width=True, type="secondary"):
-            st.session_state.show_keyboard_shortcuts = not st.session_state.get("show_keyboard_shortcuts", False)
     # Show quick guide if requested with enhanced UI
     if st.session_state.get("show_quick_guide", False):
         with st.expander("📘 Quick Guide", expanded=True):
@@ -574,13 +597,108 @@ def render_main_layout():
             - `Ctrl+Shift+/` - Toggle block comment
             """)
 
-    tab_names = ["🧬 Evolution", "⚔️ Adversarial Testing", "🐙 GitHub", "📜 Activity Feed", "📊 Report Templates", "🤖 Model Dashboard", "✅ Tasks", "👑 Admin", "📂 Projects"]
-    tabs = st.tabs(tab_names)
+    # Conditional rendering for custom pages
+    if st.session_state.get("page") == "evaluator_uploader":
+        st.subheader("⬆️ Upload Custom Evaluator")
+        uploaded_evaluator_file = st.file_uploader("Upload Python file with 'evaluate' function", type=["py"], key="evaluator_uploader_file")
+        if uploaded_evaluator_file is not None:
+            evaluator_code = uploaded_evaluator_file.read().decode("utf-8")
+            if st.button("Upload Evaluator", key="upload_evaluator_btn"):
+                api = st.session_state.openevolve_api_instance
+                try:
+                    evaluator_id = api.upload_evaluator(evaluator_code)
+                    if evaluator_id:
+                        st.session_state.custom_evaluator_id = evaluator_id
+                        st.success(f"Evaluator uploaded with ID: {evaluator_id}")
+                    else:
+                        st.error("Failed to upload evaluator.")
+                except Exception as e:
+                    st.error(f"Error uploading evaluator: {e}")
+        if st.button("Back to Main Tabs"):
+            st.session_state.page = None
+            st.rerun()
+    elif st.session_state.get("page") == "prompt_manager":
+        st.subheader("📝 Custom Prompts")
+        api = st.session_state.openevolve_api_instance
+        custom_prompts = api.get_custom_prompts() # Already uncommented this API call
 
-    with tabs[0]: # Evolution tab
-        with st.container(border=True): # Wrap the entire tab content in a container
-            st.header("Real-time Evolution")
-            st.markdown("Iteratively improve your content using a single AI model.")
+        if custom_prompts:
+            st.write("Existing Prompts:")
+            for prompt_name, prompt_data in custom_prompts.items():
+                with st.expander(f"Prompt: {prompt_name}"):
+                    st.code(f"System Prompt:\n{prompt_data.get('system_prompt', '')}", language="python")
+                    st.code(f"Evaluator System Prompt:\n{prompt_data.get('evaluator_system_prompt', '')}", language="python")
+                    if st.button(f"Delete {prompt_name}", key=f"delete_prompt_{prompt_name}"):
+                        try:
+                            api.delete_custom_prompt(prompt_name)
+                            st.success(f"Prompt '{prompt_name}' deleted.")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Failed to delete prompt: {e}")
+        else:
+            st.info("No custom prompts found.")
+
+        st.markdown("---")
+        st.subheader("Create New Prompt")
+        new_prompt_name = st.text_input("New Custom Prompt Name", key="new_prompt_name_manager")
+        new_system_prompt = st.text_area("System Prompt", key="new_system_prompt_manager", height=150)
+        new_evaluator_system_prompt = st.text_area("Evaluator System Prompt", key="new_evaluator_system_prompt_manager", height=150)
+
+        if st.button("Save New Custom Prompt", key="save_new_prompt_btn"):
+            if new_prompt_name:
+                try:
+                    api.save_custom_prompt(new_prompt_name, {"system_prompt": new_system_prompt, "evaluator_system_prompt": new_evaluator_system_prompt})
+                    st.success(f"Custom prompt '{new_prompt_name}' saved.")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Failed to save custom prompt: {e}")
+            else:
+                st.error("Prompt name cannot be empty.")
+
+        if st.button("Back to Main Tabs", key="back_to_main_tabs_prompt_manager"):
+            st.session_state.page = None
+            st.rerun()
+    elif st.session_state.get("page") == "analytics_dashboard":
+        st.subheader("📊 Analytics Dashboard")
+        st.write("Welcome to your Analytics Dashboard!")
+
+        # Placeholder for some dummy metrics
+        st.markdown("---")
+        st.subheader("Key Metrics")
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Total Evolutions", "1,234")
+        col2.metric("Avg. Confidence Score", "85.5%")
+        col3.metric("Total Cost (USD)", "$123.45")
+
+        st.markdown("---")
+        st.subheader("Evolution History")
+        # Placeholder for a simple chart
+        chart_data = pd.DataFrame(
+            np.random.randn(20, 3),
+            columns=['a', 'b', 'c']
+        ).cumsum()
+        st.line_chart(chart_data)
+
+        st.markdown("---")
+        st.subheader("Model Performance Overview")
+        # Placeholder for a bar chart
+        model_perf_data = pd.DataFrame({
+            'Model': ['Model A', 'Model B', 'Model C', 'Model D'],
+            'Score': [85, 92, 78, 88]
+        })
+        st.bar_chart(model_perf_data.set_index('Model'))
+
+        if st.button("Back to Main Tabs", key="back_to_main_tabs_analytics"):
+            st.session_state.page = None
+            st.rerun()
+    else:
+        tab_names = ["🧬 Evolution", "⚔️ Adversarial Testing", "🐙 GitHub", "📜 Activity Feed", "📊 Report Templates", "🤖 Model Dashboard", "✅ Tasks", "👑 Admin", "📂 Projects"]
+        tabs = st.tabs(tab_names)
+
+        with tabs[0]: # Evolution tab
+            with st.container(border=True): # Wrap the entire tab content in a container
+                st.header("Real-time Evolution")
+                st.markdown("Iteratively improve your content using a single AI model.")
 
             with st.expander("📝 Content Input", expanded=True):
                 # Initialize protocol_text in session_state if not already present
@@ -617,7 +735,19 @@ def render_main_layout():
                                        use_container_width=True)
                 stop_button = c2.button("⏹️ Stop Evolution", disabled=not st.session_state.evolution_running, type="secondary",
                                         use_container_width=True)
-                c3.button("🔄 Resume Evolution", use_container_width=True, type="secondary")
+                if c3.button("🔄 Resume Evolution", use_container_width=True, type="secondary"):
+                    if st.session_state.evolution_id and not st.session_state.evolution_running:
+                        st.session_state.evolution_running = True
+                        st.session_state.evolution_stop_flag = False # Ensure flag is reset
+                        api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
+                        threading.Thread(target=_stream_evolution_logs_in_thread,
+                                         args=(st.session_state.evolution_id, api, st.session_state.thread_lock)).start()
+                        st.info("Evolution resumed.")
+                        st.rerun()
+                    elif st.session_state.evolution_running:
+                        st.warning("Evolution is already running.")
+                    else:
+                        st.warning("No evolution to resume. Please start a new evolution.")
             st.divider() # Add a divider
 
             if run_button:
@@ -715,59 +845,9 @@ def render_main_layout():
                         st.warning(vulnerability)
                 st.divider()
 
-            with st.expander("📝 Prompts"):
-                api = st.session_state.openevolve_api_instance # Use cached API instance
-                # This part needs error handling in a real app
-                # custom_prompts = api.get_custom_prompts()
-                custom_prompts = {} # Placeholder
-                if custom_prompts:
-                    selected_custom_prompt = st.selectbox("Select a custom prompt", ["None"] + list(custom_prompts.keys()))
-                    if selected_custom_prompt != "None":
-                        st.session_state.system_prompt = custom_prompts[selected_custom_prompt]['system_prompt']
-                        st.session_state.evaluator_system_prompt = custom_prompts[selected_custom_prompt]['evaluator_system_prompt']
 
-                st.text_area("System Prompt", key="evolution_system_prompt", height=150)
-                st.text_area("Evaluator System Prompt", key="evolution_evaluator_system_prompt", height=150)
-                st.checkbox("Use Specialized Evaluator", key="evolution_use_specialized_evaluator", help="Use a linter-based evaluator for more accurate code evaluation.")
 
-                new_prompt_name = st.text_input("New Custom Prompt Name")
-                if st.button("Save Custom Prompt", type="secondary"):
-                    if new_prompt_name:
-                        # api.save_custom_prompt(new_prompt_name, {"system_prompt": st.session_state.system_prompt, "evaluator_system_prompt": st.session_state.evaluator_system_prompt})
-                        st.success(f"Custom prompt '{new_prompt_name}' saved.")
-                    else:
-                        st.error("Prompt name cannot be empty.")
-            st.divider()
 
-            with st.expander("⬆️ Upload Custom Evaluator"):
-                uploaded_evaluator_file = st.file_uploader("Upload Python file with 'evaluate' function", type=["py"])
-                if uploaded_evaluator_file is not None:
-                    evaluator_code = uploaded_evaluator_file.read().decode("utf-8")
-                    api = st.session_state.openevolve_api_instance # Use cached API instance
-                    # evaluator_id = api.upload_evaluator(evaluator_code)
-                    evaluator_id = "eval_dummy_123" # Placeholder
-                    if evaluator_id:
-                        st.session_state.custom_evaluator_id = evaluator_id
-                        st.success(f"Evaluator uploaded with ID: {evaluator_id}")
-                    else:
-                        st.error("Failed to upload evaluator.")
-            st.divider()
-
-            with st.expander("🗂️ Manage Custom Evaluators"):
-                api = st.session_state.openevolve_api_instance # Use cached API instance
-                # custom_evaluators = api.get_custom_evaluators()
-                custom_evaluators = {} # Placeholder
-                if custom_evaluators:
-                    for evaluator_id, evaluator_data in custom_evaluators.items():
-                        with st.expander(f"Evaluator ID: {evaluator_id}"):
-                            st.code(evaluator_data['code'], language="python")
-                            if st.button("Delete Evaluator", key=f"delete_evaluator_{evaluator_id}", type="secondary"):
-                                # api.delete_evaluator(evaluator_id)
-                                st.success(f"Evaluator {evaluator_id} deleted.")
-                                st.rerun()
-                else:
-                    st.info("No custom evaluators found.")
-            st.divider()
 
             with st.expander("⚙️ Advanced Settings", expanded=False):
                 st.markdown("### 🎛️ Evolution Parameters")
@@ -828,7 +908,7 @@ def render_main_layout():
                             log_out.code("\\n".join(st.session_state.evolution_log), language="text")
 
                     # Check if evolution has completed (this will be updated by the thread)
-                    if status_message == 'completed':
+                    if status.get('status') == 'completed':
                         # Only perform final actions once
                         if "evolution_finalized" not in st.session_state or not st.session_state.evolution_finalized:
                             st.session_state.evolution_finalized = True
