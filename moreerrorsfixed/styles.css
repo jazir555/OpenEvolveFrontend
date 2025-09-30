@@ -203,6 +203,9 @@ textarea {
     font-size: 0.875rem !important;
     font-family: inherit !important;
     transition: all var(--transition-normal) !important;
+    box-sizing: border-box !important; /* Ensure padding is included in element's total width/height */
+    word-wrap: break-word !important; /* Break long words to prevent overflow */
+    overflow-wrap: break-word !important; /* Standard property for word wrapping */
 }
 .stApp [data-testid="stTextInput"] input:focus,
 .stApp [data-testid="stTextArea"] textarea:focus,
