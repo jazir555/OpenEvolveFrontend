@@ -75,7 +75,7 @@ def _stream_evolution_logs_in_thread(evolution_id, api, thread_lock):
             # Optionally, break or set a flag to stop the thread if API calls consistently fail
             # For now, just log and continue polling
             time.sleep(2) # Wait before retrying
-            continue        if status:
+        if status: # This is line 78, but the error points to 'continue if status:'
             with thread_lock:
                 st.session_state.evolution_log = status.get('log', '').splitlines()
                 st.session_state.evolution_current_best = status.get('current_best_content', '')
