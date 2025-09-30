@@ -560,9 +560,13 @@ def display_sidebar():
             if st.form_submit_button("Execute Action"):
                 if st.session_state.checkpoint_action == "Save Checkpoint":
                     st.session_state.save_checkpoint_triggered = True
+                    # Placeholder for actual save logic
+                    st.info("Checkpoint save triggered (actual save logic not implemented yet).")
                 elif st.session_state.checkpoint_action == "Load Checkpoint":
                     if checkpoints:
                         st.session_state.load_checkpoint_triggered = True
+                        # Placeholder for actual load logic
+                        st.info(f"Checkpoint load triggered for {st.session_state.selected_checkpoint} (actual load logic not implemented yet).")
                     else:
                         st.warning("No checkpoints available to load.")
 
@@ -631,10 +635,13 @@ def display_sidebar():
         st.sidebar.header("Customization")
         if st.sidebar.button("Custom Evaluators"):
             st.session_state.page = "evaluator_uploader"
+            st.info("Navigating to Custom Evaluators page (actual page rendering handled elsewhere).")
         if st.sidebar.button("Custom Prompts"):
             st.session_state.page = "prompt_manager"
+            st.info("Navigating to Custom Prompts page (actual page rendering handled elsewhere).")
         if st.sidebar.button("Analytics Dashboard"):
             st.session_state.page = "analytics_dashboard"
+            st.info("Navigating to Analytics Dashboard page (actual page rendering handled elsewhere).")
 
         # Enhanced theme toggle with better UX
         current_theme = st.session_state.get("theme", "light")
@@ -643,7 +650,7 @@ def display_sidebar():
             f"{theme_emoji} Switch to {'Dark' if current_theme == 'light' else 'Light'} Mode"
         )
 
-        if st.button(theme_label, key="theme_toggle_btn", use_container_width=True):
+        if st.button(theme_label, key=f"sidebar_theme_toggle_btn_{st.session_state.theme}", use_container_width=True):
             if st.session_state.get("theme", "light") == "light":
                 st.session_state.theme = "dark"
             else:
