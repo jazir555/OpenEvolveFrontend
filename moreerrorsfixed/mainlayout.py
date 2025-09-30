@@ -14,7 +14,7 @@ from dataclasses import asdict
 from pyvis.network import Network
 # These imports are assumed to exist in the user's environment.
 # If they don't, the script will fail, but per the instructions, no mock functions will be created.
-from session_utils import _safe_list
+from session_utils import _safe_list, _load_user_preferences, _load_parameter_settings
 
 # Import autorefresh for real-time updates
 try:
@@ -40,7 +40,7 @@ from openevolve_integration import (
 
 from adversarial import (
     run_adversarial_testing, generate_html_report, generate_pdf_report, generate_docx_report,
-    generate_latex_report, generate_compliance_report, optimize_model_selection,
+    generate_latex_report, generate_compliance_report, optimize_model_selection, _load_human_feedback,
     MODEL_META_LOCK, MODEL_META_BY_ID
 )
 from integrations import (
@@ -391,6 +391,9 @@ def _initialize_session_state():
         "checkpoint_interval": 5,
         "evolution_stop_flag": False,
         "adversarial_stop_flag": False,
+        "human_feedback_log": _load_human_feedback(),
+        "user_preferences": _load_user_preferences(),
+        "parameter_settings": _load_parameter_settings(),
     }
     for key, value in defaults.items():
         if key not in st.session_state:
