@@ -279,21 +279,26 @@ def display_sidebar():
                 base_url=st.session_state.openevolve_base_url,
                 api_key=st.session_state.openevolve_api_key,
             )
+        @st.cache_data(ttl=3600) # Cache for 1 hour
+        def _get_cached_providers(api_instance):
+            return get_providers(api_instance)
+
         api = st.session_state.openevolve_api_instance
         providers = {}
         provider_keys = []
         providers_available = False
 
-        try:
-            fetched_providers = get_providers(api)
-            if fetched_providers:
-                providers = fetched_providers
-                provider_keys = list(providers.keys())
-                providers_available = True
-            else:
-                st.warning("No LLM providers configured. Please add providers to proceed.")
-        except Exception as e:
-            st.error(f"Failed to get LLM providers: {e}")
+        with st.spinner("Fetching LLM providers..."):
+            try:
+                fetched_providers = _get_cached_providers(api)
+                if fetched_providers:
+                    providers = fetched_providers
+                    provider_keys = list(providers.keys())
+                    providers_available = True
+                else:
+                    st.warning("No LLM providers configured. Please add providers to proceed.")
+            except Exception as e:
+                st.error(f"Failed to get LLM providers: {e}")
 
         if providers_available:
             # Ensure st.session_state.provider is initialized and valid
@@ -606,10 +611,11 @@ def display_sidebar():
             )
 
             checkpoints = []
-            try:
-                checkpoints = api.get_checkpoints()
-            except Exception as e:
-                st.error(f"Failed to retrieve checkpoints: {e}")
+            with st.spinner("Fetching checkpoints..."):
+                try:
+                    checkpoints = api.get_checkpoints()
+                except Exception as e:
+                    st.error(f"Failed to retrieve checkpoints: {e}")
             if checkpoints:
                 st.markdown(create_tooltip_html("Load Checkpoint", "Select a checkpoint to load."), unsafe_allow_html=True)
                 st.selectbox(
