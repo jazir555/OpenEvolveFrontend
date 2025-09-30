@@ -279,9 +279,9 @@ def display_sidebar():
                 base_url=st.session_state.openevolve_base_url,
                 api_key=st.session_state.openevolve_api_key,
             )
-        @st.cache_data(ttl=3600) # Cache for 1 hour
-        def _get_cached_providers(api_instance):
-            return get_providers(api_instance)
+        @st.cache_resource(ttl=3600, show_spinner=False) # Cache for 1 hour, disable default spinner message
+        def _get_cached_providers(_api_instance): # Added underscore
+            return get_providers(_api_instance)
 
         api = st.session_state.openevolve_api_instance
         providers = {}
