@@ -301,6 +301,7 @@ def display_sidebar():
                 st.markdown(create_tooltip_html("Extra Headers (JSON)", "Additional HTTP headers to send with API requests, in JSON format."), unsafe_allow_html=True)
                 st.text_area("Extra Headers (JSON)", key="extra_headers", label_visibility="hidden")
                 st.form_submit_button("Apply Provider Configuration")
+                st.success("Provider configuration applied.")
         except Exception as e:
             st.error(f"An unexpected error occurred in Provider Configuration: {e}")
 
