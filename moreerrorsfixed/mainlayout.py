@@ -977,12 +977,26 @@ def render_main_layout():
                 st.markdown("### 🎯 Multi-Objective Evolution")
                 st.info("Define multiple objectives for the evolution. The fitness of each individual will be a vector of scores, one for each objective.")
                 if HAS_STREAMLIT_TAGS:
-                    st_tags(
-                        label='Feature Dimensions:',
-                        text='Press enter to add more',
-                        value=st.session_state.feature_dimensions,
-                        suggestions=['complexity', 'diversity', 'readability', 'performance', 'security', 'cost'],
-                        key='feature_dimensions_mainlayout')
+                    # Default suggestions for feature dimensions
+                    default_feature_suggestions = ['complexity', 'diversity', 'readability', 'performance', 'security', 'cost']
+
+                    # Multiselect for default options, directly updating st.session_state.feature_dimensions
+                    st.multiselect(
+                        label='Select Feature Dimensions:',
+                        options=default_feature_suggestions,
+                        default=st.session_state.feature_dimensions,
+                        key='feature_dimensions_mainlayout') # Use feature_dimensions_mainlayout as the key for multiselect
+
+                    # Text input for custom dimensions
+                    custom_dimension_input = st.text_input(
+                        label='Add Custom Feature Dimension (comma-separated):',
+                        value=", ".join([d for d in st.session_state.feature_dimensions if d not in default_feature_suggestions]), # Pre-fill with existing custom dimensions
+                        key='custom_feature_dimension_input_mainlayout')
+
+                    # The actual st.session_state.feature_dimensions will be updated when 'Apply Advanced Settings' is clicked
+                    # For display purposes, we can show the combined current selection
+                    combined_display_dimensions = list(set(st.session_state.feature_dimensions + [d.strip() for d in custom_dimension_input.split(',') if d.strip()]))
+                    st.write(f"Current Combined Feature Dimensions: {', '.join(combined_display_dimensions)}")
                 st.number_input("Feature Bins", 1, 100, st.session_state.feature_bins, key="feature_bins_mainlayout")
 
                 st.number_input("Number of Islands", 1, 10, st.session_state.num_islands, key="num_islands_multi_objective_mainlayout")
@@ -1003,7 +1017,9 @@ def render_main_layout():
                     st.session_state.parameter_settings["global"]["generation"]["top_p"] = st.session_state.top_p_mainlayout
                     st.session_state.parameter_settings["global"]["generation"]["frequency_penalty"] = st.session_state.frequency_penalty_mainlayout
                     st.session_state.parameter_settings["global"]["generation"]["presence_penalty"] = st.session_state.presence_penalty_mainlayout
-                    st.session_state.parameter_settings["global"]["evolution"]["feature_dimensions"] = st.session_state.feature_dimensions_mainlayout
+                    # Combine selected and custom dimensions for saving
+                    combined_feature_dimensions = list(set(st.session_state.feature_dimensions_mainlayout + [d.strip() for d in st.session_state.custom_feature_dimension_input_mainlayout.split(',') if d.strip()]))
+                    st.session_state.parameter_settings["global"]["evolution"]["feature_dimensions"] = combined_feature_dimensions
                     st.session_state.parameter_settings["global"]["evolution"]["feature_bins"] = st.session_state.feature_bins_mainlayout
                     st.session_state.parameter_settings["global"]["evolution"]["num_islands_multi_objective"] = st.session_state.num_islands_multi_objective_mainlayout # Corrected key
                     st.session_state.parameter_settings["global"]["evolution"]["migration_interval"] = st.session_state.migration_interval_mainlayout
