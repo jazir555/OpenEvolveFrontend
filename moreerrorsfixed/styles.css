@@ -93,24 +93,134 @@ p{margin:var(--spacing-md) 0;color:var(--text-secondary)}
 }
 .main .block-container{padding:var(--spacing-xl) var(--spacing-md)!important;background:var(--bg-secondary)!important}
 
+/* Ensure text is visible in evolution tab buttons */
+/* Maintain original button text colors */
+
+/* Center headers in containers */
+.stContainer > .stVertical > .stHorizontal > h1,
+.stContainer > .stVertical > .stHorizontal > h2,
+.stContainer > .stVertical > .stHorizontal > h3,
+.stContainer > .stVertical > .stHorizontal > h4,
+.stContainer > .stVertical > .stHorizontal > h5,
+.stContainer > .stVertical > .stHorizontal > h6 {
+    text-align: center !important;
+}
+
+/* Also target headers directly in bordered containers */
+div[data-testid="stContainer"] h1,
+div[data-testid="stContainer"] h2,
+div[data-testid="stContainer"] h3,
+div[data-testid="stContainer"] h4,
+div[data-testid="stContainer"] h5,
+div[data-testid="stContainer"] h6 {
+    text-align: center !important;
+}
+
+/* Center the specific Real-time Evolution header in the evolution tab */
+div[data-testid="stExpander"] h1, div[data-testid="stExpander"] h2, div[data-testid="stExpander"] h3 {
+    text-align: center !important;
+}
+
+/* Center headers inside bordered containers */
+div[data-testid="stContainer"][border="true"] h1,
+div[data-testid="stContainer"][border="true"] h2,
+div[data-testid="stContainer"][border="true"] h3 {
+    text-align: center !important;
+}
+
+/* More specific selector for the real-time evolution header - target header in container */
+div[data-testid="stHorizontal"] > div > h1, 
+div[data-testid="stHorizontal"] > div > h2, 
+div[data-testid="stHorizontal"] > div > h3 {
+    text-align: center !important;
+}
+
+
+
+
+
 /* hide top bar + menu + footer */
 #MainMenu,footer,.stDeployButton,header[data-testid="stHeader"]{display:none}
 
 /* 5. Buttons
 --------------------------------------------------------------- */
+/* Default button styles - reverted to original structure to avoid global changes */
 .stButton>button{
-  background:var(--primary);color:#fff;border:none;border-radius:var(--radius-sm);
-  padding:.75rem 1.5rem;font-weight:500;font-size:.875rem;font-family:inherit;
-  box-shadow:var(--shadow-sm);cursor:pointer;transition:all var(--transition-normal);
-  white-space:normal;word-wrap:break-word;overflow-wrap:break-word;
+  background:var(--primary);
+  color:#fff;
+  border:1px solid var(--primary);
+  border-radius:var(--radius-sm);
+  padding:.75rem 1.5rem;
+  font-weight:500;
+  font-size:.875rem;
+  font-family:inherit;
+  box-shadow:var(--shadow-sm);
+  cursor:pointer;
+  transition:all var(--transition-normal);
+  white-space:normal;
+  word-wrap:break-word;
+  overflow-wrap:break-word;
 }
-.stButton>button:hover{background:var(--primary-hover);box-shadow:var(--shadow-md);transform:translateY(-1px)}
-.stButton>button:active{transform:none;box-shadow:var(--shadow-sm)}
-.stButton>button:disabled{background:var(--bg-quaternary);color:var(--text-muted);cursor:not-allowed;box-shadow:none}
+.stButton>button:hover{
+  background:var(--primary-hover);
+  border-color:var(--primary-hover);
+  box-shadow:var(--shadow-md);
+  transform:translateY(-1px);
+}
+.stButton>button:active{
+  transform:none;
+  box-shadow:var(--shadow-sm);
+}
+.stButton>button:disabled{
+  background:var(--bg-quaternary);
+  color:var(--text-muted);
+  cursor:not-allowed;
+  box-shadow:none;
+  border:1px solid var(--border);
+}
 
 /* secondary variant */
-.stButton>button[kind="secondary"]{background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border)}
-.stButton>button[kind="secondary"]:hover{background:var(--bg-tertiary);border-color:var(--border-dark)}
+.stButton>button[kind="secondary"]{
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  border:1px solid var(--border);
+  box-shadow:var(--shadow-sm);
+}
+.stButton>button[kind="secondary"]:hover{
+  background:var(--bg-tertiary);
+  border-color:var(--border-dark);
+  box-shadow:var(--shadow-md);
+}
+
+/* primary variant */
+.stButton>button[kind="primary"]{
+  background:var(--primary);
+  color:#fff;
+  border:1px solid var(--primary);
+  box-shadow:var(--shadow-sm);
+}
+.stButton>button[kind="primary"]:hover{
+  background:var(--primary-hover);
+  border-color:var(--primary-hover);
+  box-shadow:var(--shadow-md);
+}
+
+/* Additional specificity for secondary buttons to ensure they appear in main content */
+div[data-testid="stVerticalBlock"] .stButton>button[kind="secondary"] {
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  border:1px solid var(--border) !important;
+  box-shadow:var(--shadow-sm);
+}
+div[data-testid="stVerticalBlock"] .stButton>button[kind="secondary"]:hover {
+  background:var(--bg-tertiary);
+  border-color:var(--border-dark) !important;
+  box-shadow:var(--shadow-md);
+}
+
+
+
+
 
 /* 6. Inputs & textareas
 --------------------------------------------------------------- */
@@ -151,9 +261,17 @@ input[type=text],input[type=password],input[type=email],input[type=number],texta
 --------------------------------------------------------------- */
 .stTextInput>label,.stTextArea>label,.stSelectbox>label,.stNumberInput>label{color:var(--text-primary)!important;font-weight:500!important;font-size:.875rem!important;margin-bottom:var(--spacing-xs)!important}
 
-/* 10. Alerts
---------------------------------------------------------------- */
-.stAlert{border-radius:var(--radius-sm);border:none;font-size:.875rem;padding:1rem;margin:var(--spacing-md) 0}
+/* Alerts */
+.stAlert {
+    border-radius: var(--radius-sm) !important;
+    border: none !important;
+    font-size: 0.875rem !important;
+    padding: 1rem !important;
+    margin: var(--spacing-md) 0 !important;
+    white-space: normal !important; /* Ensure text wraps */
+    word-wrap: break-word !important; /* Break long words */
+    overflow-wrap: break-word !important; /* Standard property for word wrapping */
+}
 .stSuccess{background:rgba(16,185,129,.1);border-left:4px solid var(--success)}
 .stWarning{background:rgba(245,158,11,.1);border-left:4px solid var(--warning)}
 .stError{background:rgba(239,68,68,.1);border-left:4px solid var(--error)}
