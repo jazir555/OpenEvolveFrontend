@@ -199,12 +199,7 @@ def display_sidebar():
             border: 1px solid #ccc; /* Add a border around the group */
         }
 
-        .stRadio input[type="radio"] {
-            -webkit-appearance: radio;
-            -moz-appearance: radio;
-            appearance: radio;
-            margin-right: 5px;
-        }
+
         </style>
         """, unsafe_allow_html=True)
 
