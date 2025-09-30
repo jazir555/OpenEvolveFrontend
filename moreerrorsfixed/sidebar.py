@@ -730,7 +730,7 @@ def display_sidebar():
 
         # Save preferences button
         if st.button("💾 Save All Preferences"):
-            if save_user_preferences():
+            if save_user_preferences(st.session_state.user_preferences, st.session_state.parameter_settings):
                 st.success("Preferences saved successfully!")
             else:
                 st.error("Failed to save preferences.")
