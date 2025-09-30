@@ -65,8 +65,17 @@ def _stream_evolution_logs_in_thread(evolution_id, api, thread_lock):
                 st.session_state.evolution_stop_flag = False
                 break
 
-        status = api.get_evolution_status(evolution_id)
-        if status:
+                    status = None
+                    try:
+                        status = api.get_evolution_status(evolution_id)
+                    except Exception as e:
+                        with thread_lock:
+                            st.session_state.evolution_log.append(f"Error getting evolution status: {e}")
+                            st.session_state.evolution_status_message = f"Error: {e}"
+                        # Optionally, break or set a flag to stop the thread if API calls consistently fail
+                        # For now, just log and continue polling
+                        time.sleep(2) # Wait before retrying
+                        continue        if status:
             with thread_lock:
                 st.session_state.evolution_log = status.get('log', '').splitlines()
                 st.session_state.evolution_current_best = status.get('current_best_content', '')
@@ -845,10 +854,14 @@ def render_main_layout():
                         st.session_state.evolution_running = True
                         st.session_state.evolution_stop_flag = False # Ensure flag is reset
                         api = OpenEvolveAPI(base_url=st.session_state.openevolve_base_url, api_key=st.session_state.openevolve_api_key)
-                        threading.Thread(target=_stream_evolution_logs_in_thread,
-                                         args=(st.session_state.evolution_id, api, st.session_state.thread_lock)).start()
-                        st.info("Evolution resumed.")
-                        st.rerun()
+                        try:
+                            threading.Thread(target=_stream_evolution_logs_in_thread,
+                                             args=(st.session_state.evolution_id, api, st.session_state.thread_lock)).start()
+                            st.info("Evolution resumed.")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Failed to start evolution thread: {e}")
+                            st.session_state.evolution_running = False # Reset flag on failure
                     elif st.session_state.evolution_running:
                         st.warning("Evolution is already running.")
                     else:
