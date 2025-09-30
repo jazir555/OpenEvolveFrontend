@@ -594,34 +594,57 @@ def display_sidebar():
                         st.warning("No checkpoints available to load.")
 
         st.markdown("---")
-        st.subheader("System Prompts")
-        st.markdown(create_tooltip_html("System Prompt", "The initial prompt given to the language model to set its persona or task."), unsafe_allow_html=True)
-        st.text_area("System Prompt", key="system_prompt", height=200, label_visibility="hidden")
-        st.markdown(create_tooltip_html("Evaluator System Prompt", "The prompt given to the evaluator model to guide its assessment of generated solutions."), unsafe_allow_html=True)
-        st.text_area(
-            "Evaluator System Prompt", key="evaluator_system_prompt", height=200, label_visibility="hidden"
-        )
+        with st.form("system_prompts_form"):
+            st.subheader("System Prompts")
+            st.markdown(create_tooltip_html("System Prompt", "The initial prompt given to the language model to set its persona or task."), unsafe_allow_html=True)
+            st.text_area("System Prompt", key="system_prompt", height=200, label_visibility="hidden")
+            st.markdown(create_tooltip_html("Evaluator System Prompt", "The prompt given to the evaluator model to guide its assessment of generated solutions."), unsafe_allow_html=True)
+            st.text_area(
+                "Evaluator System Prompt", key="evaluator_system_prompt", height=200, label_visibility="hidden"
+            )
+            if st.form_submit_button("Save System Prompts"):
+                try:
+                    st.session_state.user_preferences["system_prompt"] = st.session_state.system_prompt
+                    st.session_state.user_preferences["evaluator_system_prompt"] = st.session_state.evaluator_system_prompt
+                    if save_user_preferences(st.session_state.user_preferences, st.session_state.parameter_settings):
+                        st.success("System prompts saved successfully!")
+                    else:
+                        st.error("Failed to save system prompts.")
+                except Exception as e:
+                    st.error(f"An error occurred while saving prompts: {e}")
 
         st.markdown("---")
-        st.subheader("Integrations")
-        st.markdown(create_tooltip_html("Discord Webhook URL", "Enter your Discord webhook URL to receive notifications."), unsafe_allow_html=True)
-        st.text_input(
-            "Discord Webhook URL",
-            key="discord_webhook_url",
-            label_visibility="hidden"
-        )
-        st.markdown(create_tooltip_html("Microsoft Teams Webhook URL", "Enter your Microsoft Teams webhook URL to receive notifications."), unsafe_allow_html=True)
-        st.text_input(
-            "Microsoft Teams Webhook URL",
-            key="msteams_webhook_url",
-            label_visibility="hidden"
-        )
-        st.markdown(create_tooltip_html("Generic Webhook URL", "Enter a generic webhook URL to receive notifications."), unsafe_allow_html=True)
-        st.text_input(
-            "Generic Webhook URL",
-            key="generic_webhook_url",
-            label_visibility="hidden"
-        )
+        with st.form("integrations_form"):
+            st.subheader("Integrations")
+            st.markdown(create_tooltip_html("Discord Webhook URL", "Enter your Discord webhook URL to receive notifications."), unsafe_allow_html=True)
+            st.text_input(
+                "Discord Webhook URL",
+                key="discord_webhook_url",
+                label_visibility="hidden"
+            )
+            st.markdown(create_tooltip_html("Microsoft Teams Webhook URL", "Enter your Microsoft Teams webhook URL to receive notifications."), unsafe_allow_html=True)
+            st.text_input(
+                "Microsoft Teams Webhook URL",
+                key="msteams_webhook_url",
+                label_visibility="hidden"
+            )
+            st.markdown(create_tooltip_html("Generic Webhook URL", "Enter a generic webhook URL to receive notifications."), unsafe_allow_html=True)
+            st.text_input(
+                "Generic Webhook URL",
+                key="generic_webhook_url",
+                label_visibility="hidden"
+            )
+            if st.form_submit_button("Save Integrations"):
+                try:
+                    st.session_state.user_preferences["discord_webhook_url"] = st.session_state.discord_webhook_url
+                    st.session_state.user_preferences["msteams_webhook_url"] = st.session_state.msteams_webhook_url
+                    st.session_state.user_preferences["generic_webhook_url"] = st.session_state.generic_webhook_url
+                    if save_user_preferences(st.session_state.user_preferences, st.session_state.parameter_settings):
+                        st.success("Integrations saved successfully!")
+                    else:
+                        st.error("Failed to save integrations.")
+                except Exception as e:
+                    st.error(f"An error occurred while saving integrations: {e}")
 
         st.markdown("---")
         st.subheader("Project Settings")
