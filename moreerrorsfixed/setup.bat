@@ -14,4 +14,22 @@ echo Shortcut created on your desktop.
 
 start "" %TARGET_URL%
 
+:: --- Configure Streamlit config.toml ---
+:: Create .streamlit directory if it doesn't exist
+if not exist ".streamlit" mkdir ".streamlit"
+
+:: Write config.toml content
+(
+    echo [general]
+    echo showEmailPrompt = false
+    echo.
+    echo [server]
+    echo headless = true
+    echo.
+    echo [theme]
+    echo primaryColor = "#a0a0a0"
+) > ".streamlit\config.toml"
+
+echo Streamlit config.toml configured.
+
 streamlit run main.py
