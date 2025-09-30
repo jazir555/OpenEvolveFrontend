@@ -902,160 +902,167 @@ def check_approval_rate(
 
 def generate_docx_report(results: dict) -> bytes:
     """Generates a DOCX report from the adversarial testing results."""
-    document = docx.Document()
-    document.add_heading("Adversarial Testing Report", 0)
+    try:
+        document = docx.Document()
+        document.add_heading("Adversarial Testing Report", 0)
 
-    document.add_heading("Summary", level=1)
-    document.add_paragraph(
-        f"Final Approval Rate: {results.get('final_approval_rate', 0.0):.1f}%\n"
-        f"Total Iterations: {len(results.get('iterations', []))}\n"
-        f"Total Cost (USD): ${results.get('cost_estimate_usd', 0.0):,.4f}\n"
-        f"Total Prompt Tokens: {results.get('tokens', {}).get('prompt', 0):,}\n"
-        f"Total Completion Tokens: {results.get('tokens', {}).get('completion', 0):,}"
-    )
+        document.add_heading("Summary", level=1)
+        document.add_paragraph(
+            f"Final Approval Rate: {results.get('final_approval_rate', 0.0):.1f}%\n"
+            f"Total Iterations: {len(results.get('iterations', []))}\n"
+            f"Total Cost (USD): ${results.get('cost_estimate_usd', 0.0):,.4f}\n"
+            f"Total Prompt Tokens: {results.get('tokens', {}).get('prompt', 0):,}\n"
+            f"Total Completion Tokens: {results.get('tokens', {}).get('completion', 0):,}"
+        )
 
-    document.add_heading("Final Hardened SOP", level=1)
-    document.add_paragraph(results.get("final_sop", ""))
+        document.add_heading("Final Hardened SOP", level=1)
+        document.add_paragraph(results.get("final_sop", ""))
 
-    document.add_heading("Issues Found", level=1)
-    for i, iteration in enumerate(results.get("iterations", [])):
-        document.add_heading(f"Iteration {i + 1}", level=2)
-        for critique in iteration.get("critiques", []):
-            if critique.get("critique_json"):
-                for issue in _safe_list(critique["critique_json"], "issues"):
-                    document.add_paragraph(
-                        f"- {issue.get('title')} ({issue.get('severity')})",
-                        style="List Bullet",
-                    )
+        document.add_heading("Issues Found", level=1)
+        for i, iteration in enumerate(results.get("iterations", [])):
+            document.add_heading(f"Iteration {i + 1}", level=2)
+            for critique in iteration.get("critiques", []):
+                if critique.get("critique_json"):
+                    for issue in _safe_list(critique["critique_json"], "issues"):
+                        document.add_paragraph(
+                            f"- {issue.get('title')} ({issue.get('severity')})",
+                            style="List Bullet",
+                        )
 
-    document.add_heading("Final Votes", level=1)
-    if results.get("iterations"):
-        for vote in (
-            results["iterations"][-1].get("approval_check", {}).get("votes", [])
-        ):
-            document.add_paragraph(
-                f"- {vote.get('model')}: {vote.get('verdict')} ({vote.get('score')})",
-                style="List Bullet",
-            )
+        document.add_heading("Final Votes", level=1)
+        if results.get("iterations"):
+            for vote in (
+                results["iterations"][-1].get("approval_check", {}).get("votes", [])
+            ):
+                document.add_paragraph(
+                    f"- {vote.get('model')}: {vote.get('verdict')} ({vote.get('score')})",
+                    style="List Bullet",
+                )
 
-    document.add_heading("Audit Trail", level=1)
-    for log_entry in results.get("log", []):
-        document.add_paragraph(log_entry)
+        document.add_heading("Audit Trail", level=1)
+        for log_entry in results.get("log", []):
+            document.add_paragraph(log_entry)
 
-    from io import BytesIO
+        from io import BytesIO
 
-    bio = BytesIO()
-    document.save(bio)
-    return bio.getvalue()
+        bio = BytesIO()
+        document.save(bio)
+        return bio.getvalue()
+    except Exception as e:
+        st.error(f"Failed to generate DOCX report: {e}")
+        return b""
 
 
 def generate_pdf_report(
     results: dict, watermark: str = None, custom_style: dict = None
 ) -> bytes:
     """Generates a PDF report from the adversarial testing results."""
+    try:
+        # Set default styling if not provided
+        if custom_style is None:
+            custom_style = {
+                "font_face": "Arial",
+                "font_size": 12,
+                "header_font_size": 14,
+                "title_font_size": 16,
+                "primary_color": (42, 82, 152),  # RGB for #2a5298
+                "secondary_color": (0, 0, 0),  # RGB for black
+                "background_color": (255, 255, 255),  # RGB for white
+            }
 
-    # Set default styling if not provided
-    if custom_style is None:
-        custom_style = {
-            "font_face": "Arial",
-            "font_size": 12,
-            "header_font_size": 14,
-            "title_font_size": 16,
-            "primary_color": (42, 82, 152),  # RGB for #2a5298
-            "secondary_color": (0, 0, 0),  # RGB for black
-            "background_color": (255, 255, 255),  # RGB for white
-        }
+        pdf = FPDF()
+        pdf.add_page()
+        pdf.set_font(custom_style["font_face"], size=custom_style["font_size"])
 
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font(custom_style["font_face"], size=custom_style["font_size"])
+        # Set background color
+        pdf.set_fill_color(*custom_style["background_color"])
+        pdf.rect(0, 0, 210, 297, "F")  # A4 size in mm
 
-    # Set background color
-    pdf.set_fill_color(*custom_style["background_color"])
-    pdf.rect(0, 0, 210, 297, "F")  # A4 size in mm
+        # Add watermark if provided
+        if watermark:
+            pdf.set_font(custom_style["font_face"], "B", 50)
+            pdf.set_text_color(220, 220, 220)
+            pdf.rotate(45)
+            pdf.text(60, 150, watermark)
+            pdf.rotate(0)
+            pdf.set_text_color(0, 0, 0)
 
-    # Add watermark if provided
-    if watermark:
-        pdf.set_font(custom_style["font_face"], "B", 50)
-        pdf.set_text_color(220, 220, 220)
-        pdf.rotate(45)
-        pdf.text(60, 150, watermark)
-        pdf.rotate(0)
-        pdf.set_text_color(0, 0, 0)
+        # Set primary color for header text
+        pdf.set_text_color(*custom_style["primary_color"])
+        pdf.set_font(custom_style["font_face"], "B", custom_style["title_font_size"])
+        pdf.cell(200, 10, txt="Adversarial Testing Report", ln=True, align="C")
 
-    # Set primary color for header text
-    pdf.set_text_color(*custom_style["primary_color"])
-    pdf.set_font(custom_style["font_face"], "B", custom_style["title_font_size"])
-    pdf.cell(200, 10, txt="Adversarial Testing Report", ln=True, align="C")
+        # Add a line separator
+        pdf.set_draw_color(*custom_style["primary_color"])
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(10)
 
-    # Add a line separator
-    pdf.set_draw_color(*custom_style["primary_color"])
-    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
-    pdf.ln(10)
+        # Reset to secondary color for content
+        pdf.set_text_color(*custom_style["secondary_color"])
 
-    # Reset to secondary color for content
-    pdf.set_text_color(*custom_style["secondary_color"])
+        pdf.set_font(custom_style["font_face"], "B", custom_style["header_font_size"])
+        pdf.cell(200, 10, txt="Summary", ln=True)
+        pdf.set_font(custom_style["font_face"], size=custom_style["font_size"])
+        pdf.multi_cell(
+            0,
+            10,
+            f"Final Approval Rate: {results.get('final_approval_rate', 0.0):.1f}%\n"
+            f"Total Iterations: {len(results.get('iterations', []))}\n"
+            f"Total Cost (USD): ${results.get('cost_estimate_usd', 0.0):,.4f}\n"
+            f"Total Prompt Tokens: {results.get('tokens', {}).get('prompt', 0):,}\n"
+            f"Total Completion Tokens: {results.get('tokens', {}).get('completion', 0):,}",
+        )
 
-    pdf.set_font(custom_style["font_face"], "B", custom_style["header_font_size"])
-    pdf.cell(200, 10, txt="Summary", ln=True)
-    pdf.set_font(custom_style["font_face"], size=custom_style["font_size"])
-    pdf.multi_cell(
-        0,
-        10,
-        f"Final Approval Rate: {results.get('final_approval_rate', 0.0):.1f}%\n"
-        f"Total Iterations: {len(results.get('iterations', []))}\n"
-        f"Total Cost (USD): ${results.get('cost_estimate_usd', 0.0):,.4f}\n"
-        f"Total Prompt Tokens: {results.get('tokens', {}).get('prompt', 0):,}\n"
-        f"Total Completion Tokens: {results.get('tokens', {}).get('completion', 0):,}",
-    )
+        pdf.ln(10)
 
-    pdf.ln(10)
+        pdf.set_font(custom_style["font_face"], "B", custom_style["header_font_size"])
+        pdf.cell(200, 10, txt="Final Hardened SOP", ln=True)
+        pdf.set_font(custom_style["font_face"], size=custom_style["font_size"])
+        pdf.multi_cell(0, 10, results.get("final_sop", ""))
 
-    pdf.set_font(custom_style["font_face"], "B", custom_style["header_font_size"])
-    pdf.cell(200, 10, txt="Final Hardened SOP", ln=True)
-    pdf.set_font(custom_style["font_face"], size=custom_style["font_size"])
-    pdf.multi_cell(0, 10, results.get("final_sop", ""))
+        pdf.ln(10)
 
-    pdf.ln(10)
-
-    pdf.set_font(custom_style["font_face"], "B", custom_style["header_font_size"])
-    pdf.cell(200, 10, txt="Issues Found", ln=True)
-    pdf.set_font(custom_style["font_face"], size=custom_style["font_size"] - 2)
-    for i, iteration in enumerate(results.get("iterations", [])):
-        pdf.set_font(custom_style["font_face"], "B", custom_style["font_size"] - 1)
-        pdf.cell(200, 10, txt=f"Iteration {i + 1}", ln=True)
+        pdf.set_font(custom_style["font_face"], "B", custom_style["header_font_size"])
+        pdf.cell(200, 10, txt="Issues Found", ln=True)
         pdf.set_font(custom_style["font_face"], size=custom_style["font_size"] - 2)
-        for critique in iteration.get("critiques", []):
-            if critique.get("critique_json"):
-                for issue in _safe_list(critique["critique_json"], "issues"):
-                    pdf.multi_cell(
-                        0, 10, f"- {issue.get('title')} ({issue.get('severity')})"
-                    )
+        for i, iteration in enumerate(results.get("iterations", [])):
+            pdf.set_font(custom_style["font_face"], "B", custom_style["font_size"] - 1)
+            pdf.cell(200, 10, txt=f"Iteration {i + 1}", ln=True)
+            pdf.set_font(custom_style["font_face"], size=custom_style["font_size"] - 2)
+            for critique in iteration.get("critiques", []):
+                if critique.get("critique_json"):
+                    for issue in _safe_list(critique["critique_json"], "issues"):
+                        pdf.multi_cell(
+                            0, 10, f"- {issue.get('title')} ({issue.get('severity')})"
+                        )
 
-    pdf.ln(10)
+        pdf.ln(10)
 
-    pdf.set_font(custom_style["font_face"], "B", custom_style["header_font_size"])
-    pdf.cell(200, 10, txt="Final Votes", ln=True)
-    pdf.set_font(custom_style["font_face"], size=custom_style["font_size"] - 2)
-    if results.get("iterations"):
-        for vote in (
-            results["iterations"][-1].get("approval_check", {}).get("votes", [])
-        ):
-            pdf.multi_cell(
-                0,
-                10,
-                f"- {vote.get('model')}: {vote.get('verdict')} ({vote.get('score')})",
-            )
+        pdf.set_font(custom_style["font_face"], "B", custom_style["header_font_size"])
+        pdf.cell(200, 10, txt="Final Votes", ln=True)
+        pdf.set_font(custom_style["font_face"], size=custom_style["font_size"] - 2)
+        if results.get("iterations"):
+            for vote in (
+                results["iterations"][-1].get("approval_check", {}).get("votes", [])
+            ):
+                pdf.multi_cell(
+                    0,
+                    10,
+                    f"- {vote.get('model')}: {vote.get('verdict')} ({vote.get('score')})",
+                )
 
-    pdf.ln(10)
+        pdf.ln(10)
 
-    pdf.set_font(custom_style["font_face"], "B", custom_style["header_font_size"])
-    pdf.cell(200, 10, txt="Audit Trail", ln=True)
-    pdf.set_font(custom_style["font_face"], size=custom_style["font_size"] - 4)
-    for log_entry in results.get("log", []):
-        pdf.multi_cell(0, 5, log_entry)
+        pdf.set_font(custom_style["font_face"], "B", custom_style["header_font_size"])
+        pdf.cell(200, 10, txt="Audit Trail", ln=True)
+        pdf.set_font(custom_style["font_face"], size=custom_style["font_size"] - 4)
+        for log_entry in results.get("log", []):
+            pdf.multi_cell(0, 5, log_entry)
 
-    return pdf.output(dest="S").encode("latin-1")
+        return pdf.output(dest="S").encode("latin-1")
+    except Exception as e:
+        st.error(f"Failed to generate PDF report: {e}")
+        return b""
 
 
 def generate_html_report(
