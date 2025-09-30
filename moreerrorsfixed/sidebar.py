@@ -357,68 +357,67 @@ def display_sidebar():
                 label_visibility="hidden"
             )
             if st.form_submit_button("Apply Generation Parameters"):
-                scope = st.session_state.settings_scope
-                provider = st.session_state.get("provider")
-                model = st.session_state.get("model")
+                try:
+                    scope = st.session_state.settings_scope
+                    provider = st.session_state.get("provider")
+                    model = st.session_state.get("model")
 
-                gen_settings_to_save = {
-                    "temperature": st.session_state.temperature,
-                    "top_p": st.session_state.top_p,
-                    "frequency_penalty": st.session_state.frequency_penalty,
-                    "presence_penalty": st.session_state.presence_penalty,
-                    "max_tokens": st.session_state.max_tokens,
-                    "seed": st.session_state.seed,
-                    "reasoning_effort": st.session_state.reasoning_effort,
-                }
+                    gen_settings_to_save = {
+                        "temperature": st.session_state.temperature,
+                        "top_p": st.session_state.top_p,
+                        "frequency_penalty": st.session_state.frequency_penalty,
+                        "presence_penalty": st.session_state.presence_penalty,
+                        "max_tokens": st.session_state.max_tokens,
+                        "seed": st.session_state.seed,
+                        "reasoning_effort": st.session_state.reasoning_effort,
+                    }
 
-                if scope == "Global":
-                    st.session_state.parameter_settings["global"][
-                        "generation"
-                    ] = gen_settings_to_save
-                    st.success("Global generation parameters saved!")
-                    st.rerun()
-                elif scope == "Provider" and provider:
-                    if (
-                        provider
-                        not in st.session_state.parameter_settings["providers"]
-                    ):
-                        st.session_state.parameter_settings["providers"][
+                    if scope == "Global":
+                        st.session_state.parameter_settings["global"][
+                            "generation"
+                        ] = gen_settings_to_save
+                        st.success("Global generation parameters saved!")
+                    elif scope == "Provider" and provider:
+                        if (
                             provider
-                        ] = {"settings": {}, "models": {}}
-                    st.session_state.parameter_settings["providers"][provider][
-                        "settings"
-                    ]["generation"] = gen_settings_to_save
-                    st.success(
-                        f"Provider-level ({provider}) generation parameters saved!"
-                    )
-                    st.rerun()
-                elif scope == "Model" and provider and model:
-                    if (
-                        provider
-                        not in st.session_state.parameter_settings["providers"]
-                    ):
-                        st.session_state.parameter_settings["providers"][
+                            not in st.session_state.parameter_settings["providers"]
+                        ):
+                            st.session_state.parameter_settings["providers"][
+                                provider
+                            ] = {"settings": {}, "models": {}}
+                        st.session_state.parameter_settings["providers"][provider][
+                            "settings"
+                        ]["generation"] = gen_settings_to_save
+                        st.success(
+                            f"Provider-level ({provider}) generation parameters saved!"
+                        )
+                    elif scope == "Model" and provider and model:
+                        if (
                             provider
-                        ] = {"settings": {}, "models": {}}
-                    if (
-                        model
-                        not in st.session_state.parameter_settings["providers"][
-                            provider
-                        ]["models"]
-                    ):
+                            not in st.session_state.parameter_settings["providers"]
+                        ):
+                            st.session_state.parameter_settings["providers"][
+                                provider
+                            ] = {"settings": {}, "models": {}}
+                        if (
+                            model
+                            not in st.session_state.parameter_settings["providers"][
+                                provider
+                            ]["models"]
+                        ):
+                            st.session_state.parameter_settings["providers"][provider][
+                                "models"
+                            ][model] = {}
                         st.session_state.parameter_settings["providers"][provider][
                             "models"
-                        ][model] = {}
-                    st.session_state.parameter_settings["providers"][provider][
-                        "models"
-                    ][model]["generation"] = gen_settings_to_save
-                    st.success(f"Model-level ({model}) generation parameters saved!")
-                    st.rerun()
-                else:
-                    st.warning(
-                        f"Cannot save settings for scope '{scope}'. Provider or model not selected."
-                    )
-
+                        ][model]["generation"] = gen_settings_to_save
+                        st.success(f"Model-level ({model}) generation parameters saved!")
+                    else:
+                        st.warning(
+                            f"Cannot save settings for scope '{scope}'. Provider or model not selected."
+                        )
+                except Exception as e:
+                    st.error(f"Failed to apply generation parameters: {e}")
         st.markdown("---")
         with st.form("evolution_parameters_form"):
             st.subheader("Evolution Parameters")
@@ -484,76 +483,75 @@ def display_sidebar():
                 label_visibility="hidden"
             )
             if st.form_submit_button("Apply Evolution Parameters"):
-                scope = st.session_state.settings_scope
-                provider = st.session_state.get("provider")
-                model = st.session_state.get("model")
+                try:
+                    scope = st.session_state.settings_scope
+                    provider = st.session_state.get("provider")
+                    model = st.session_state.get("model")
 
-                evo_settings_to_save = {
-                    "max_iterations": st.session_state.max_iterations,
-                    "population_size": st.session_state.population_size,
-                    "num_islands": st.session_state.num_islands,
-                    "migration_interval": st.session_state.migration_interval,
-                    "migration_rate": st.session_state.migration_rate,
-                    "archive_size": st.session_state.archive_size,
-                    "elite_ratio": st.session_state.elite_ratio,
-                    "exploration_ratio": st.session_state.exploration_ratio,
-                    "exploitation_ratio": st.session_state.exploitation_ratio,
-                    "checkpoint_interval": st.session_state.checkpoint_interval,
-                    "language": st.session_state.language,
-                    "file_suffix": st.session_state.file_suffix,
-                    "feature_dimensions": st.session_state.feature_dimensions,
-                    "feature_bins": st.session_state.feature_bins,
-                    "diversity_metric": st.session_state.diversity_metric,
-                }
+                    evo_settings_to_save = {
+                        "max_iterations": st.session_state.max_iterations,
+                        "population_size": st.session_state.population_size,
+                        "num_islands": st.session_state.num_islands,
+                        "migration_interval": st.session_state.migration_interval,
+                        "migration_rate": st.session_state.migration_rate,
+                        "archive_size": st.session_state.archive_size,
+                        "elite_ratio": st.session_state.elite_ratio,
+                        "exploration_ratio": st.session_state.exploration_ratio,
+                        "exploitation_ratio": st.session_state.exploitation_ratio,
+                        "checkpoint_interval": st.session_state.checkpoint_interval,
+                        "language": st.session_state.language,
+                        "file_suffix": st.session_state.file_suffix,
+                        "feature_dimensions": st.session_state.feature_dimensions,
+                        "feature_bins": st.session_state.feature_bins,
+                        "diversity_metric": st.session_state.diversity_metric,
+                    }
 
-                if scope == "Global":
-                    st.session_state.parameter_settings["global"][
-                        "evolution"
-                    ] = evo_settings_to_save
-                    st.success("Global evolution parameters saved!")
-                    st.rerun()
-                elif scope == "Provider" and provider:
-                    if (
-                        provider
-                        not in st.session_state.parameter_settings["providers"]
-                    ):
-                        st.session_state.parameter_settings["providers"][
+                    if scope == "Global":
+                        st.session_state.parameter_settings["global"][
+                            "evolution"
+                        ] = evo_settings_to_save
+                        st.success("Global evolution parameters saved!")
+                    elif scope == "Provider" and provider:
+                        if (
                             provider
-                        ] = {"settings": {}, "models": {}}
-                    st.session_state.parameter_settings["providers"][provider][
-                        "settings"
-                    ]["evolution"] = evo_settings_to_save
-                    st.success(
-                        f"Provider-level ({provider}) evolution parameters saved!"
-                    )
-                    st.rerun()
-                elif scope == "Model" and provider and model:
-                    if (
-                        provider
-                        not in st.session_state.parameter_settings["providers"]
-                    ):
-                        st.session_state.parameter_settings["providers"][
+                            not in st.session_state.parameter_settings["providers"]
+                        ):
+                            st.session_state.parameter_settings["providers"][
+                                provider
+                            ] = {"settings": {}, "models": {}}
+                        st.session_state.parameter_settings["providers"][provider][
+                            "settings"
+                        ]["evolution"] = evo_settings_to_save
+                        st.success(
+                            f"Provider-level ({provider}) evolution parameters saved!"
+                        )
+                    elif scope == "Model" and provider and model:
+                        if (
                             provider
-                        ] = {"settings": {}, "models": {}}
-                    if (
-                        model
-                        not in st.session_state.parameter_settings["providers"][
-                            provider
-                        ]["models"]
-                    ):
+                            not in st.session_state.parameter_settings["providers"]
+                        ):
+                            st.session_state.parameter_settings["providers"][
+                                provider
+                            ] = {"settings": {}, "models": {}}
+                        if (
+                            model
+                            not in st.session_state.parameter_settings["providers"][
+                                provider
+                            ]["models"]
+                        ):
+                            st.session_state.parameter_settings["providers"][provider][
+                                "models"
+                            ][model] = {}
                         st.session_state.parameter_settings["providers"][provider][
                             "models"
-                        ][model] = {}
-                    st.session_state.parameter_settings["providers"][provider][
-                        "models"
-                    ][model]["evolution"] = evo_settings_to_save
-                    st.success(f"Model-level ({model}) evolution parameters saved!")
-                    st.rerun()
-                else:
-                    st.warning(
-                        f"Cannot save settings for scope '{scope}'. Provider or model not selected."
-                    )
-
+                        ][model]["evolution"] = evo_settings_to_save
+                        st.success(f"Model-level ({model}) evolution parameters saved!")
+                    else:
+                        st.warning(
+                            f"Cannot save settings for scope '{scope}'. Provider or model not selected."
+                        )
+                except Exception as e:
+                    st.error(f"Failed to apply evolution parameters: {e}")
         st.markdown("---")
         with st.form("checkpointing_form"):
             st.subheader("Checkpointing")
