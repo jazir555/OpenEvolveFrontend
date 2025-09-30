@@ -289,8 +289,8 @@ def display_sidebar():
                     else:
                         try:
                             models = loader(api_key)
-                            if not models: # Check if models list is empty
-                                st.warning("No models found for this provider with the given API Key.")
+                            if not models or not isinstance(models, list): # Check if models list is empty or not a list
+                                st.warning("No models found for this provider with the given API Key, or models data is malformed.")
                                 st.markdown(create_tooltip_html("Model", "The name or ID of the model to use from the selected provider."), unsafe_allow_html=True)
                                 st.text_input("Model", key="model", label_visibility="hidden")
                             else:
