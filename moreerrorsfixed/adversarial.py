@@ -1069,23 +1069,23 @@ def generate_html_report(
     results: dict, custom_css: str = "", custom_style: dict = None
 ) -> str:
     """Generates an HTML report from the adversarial testing results."""
+    try:
+        # Set default styling if not provided
+        if custom_style is None:
+            custom_style = {
+                "font_family": "Arial, sans-serif",
+                "primary_color": "#4a6fa5",
+                "secondary_color": "#2a5298",
+                "background_color": "#f8f9fa",
+                "card_background": "#ffffff",
+                "header_size": "2em",
+                "subheader_size": "1.5em",
+                "text_size": "1em",
+                "border_radius": "8px",
+                "box_shadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
+            }
 
-    # Set default styling if not provided
-    if custom_style is None:
-        custom_style = {
-            "font_family": "Arial, sans-serif",
-            "primary_color": "#4a6fa5",
-            "secondary_color": "#2a5298",
-            "background_color": "#f8f9fa",
-            "card_background": "#ffffff",
-            "header_size": "2em",
-            "subheader_size": "1.5em",
-            "text_size": "1em",
-            "border_radius": "8px",
-            "box_shadow": "0 4px 6px rgba(0, 0, 0, 0.1)",
-        }
-
-    html = f"""
+        html = f"""
     <!DOCTYPE html>
     <html>
     <head>
@@ -1177,159 +1177,169 @@ def generate_html_report(
         </div>
     """
 
-    if results.get("iterations"):
-        html += """
+        if results.get("iterations"):
+            html += """
         <div class="section">
             <h2>Issues Found</h2>
         """
-        for i, iteration in enumerate(results.get("iterations", [])):
-            html += f"<h3>Iteration {i + 1}</h3><ul>"
-            for critique in iteration.get("critiques", []):
-                if critique.get("critique_json"):
-                    for issue in _safe_list(critique["critique_json"], "issues"):
-                        severity = issue.get("severity", "low")
-                        severity_color = {
-                            "low": "#4caf50",
-                            "medium": "#ff9800",
-                            "high": "#f44336",
-                            "critical": "#9c27b0",
-                        }.get(severity, "#000000")
-                        html += f"<li><span style='color: {severity_color}; font-weight: bold;'>{severity.upper()}</span>: {issue.get('title')}</li>"
-            html += "</ul>"
-        html += "</div>"
+            for i, iteration in enumerate(results.get("iterations", [])):
+                html += f"<h3>Iteration {i + 1}</h3><ul>"
+                for critique in iteration.get("critiques", []):
+                    if critique.get("critique_json"):
+                        for issue in _safe_list(critique["critique_json"], "issues"):
+                            severity = issue.get("severity", "low")
+                            severity_color = {
+                                "low": "#4caf50",
+                                "medium": "#ff9800",
+                                "high": "#f44336",
+                                "critical": "#9c27b0",
+                            }.get(severity, "#000000")
+                            html += f"<li><span style='color: {severity_color}; font-weight: bold;'>{severity.upper()}</span>: {issue.get('title')}</li>"
+                html += "</ul>"
+            html += "</div>"
 
-        html += """
+            html += """
         <div class="section">
             <h2>Final Votes</h2>
             <table>
                 <tr><th>Model</th><th>Verdict</th><th>Score</th></tr>
         """
-        for vote in (
-            results["iterations"][-1].get("approval_check", {}).get("votes", [])
-        ):
-            verdict = vote.get("verdict", "")
-            verdict_color = "#4caf50" if verdict.upper() == "APPROVED" else "#f44336"
-            html += f"<tr><td>{vote.get('model')}</td><td style='color: {verdict_color}; font-weight: bold;'>{verdict}</td><td>{vote.get('score')}</td></tr>"
-        html += "</table></div>"
+            for vote in (
+                results["iterations"][-1].get("approval_check", {}).get("votes", [])
+            ):
+                verdict = vote.get("verdict", "")
+                verdict_color = "#4caf50" if verdict.upper() == "APPROVED" else "#f44336"
+                html += f"<tr><td>{vote.get('model')}</td><td style='color: {verdict_color}; font-weight: bold;'>{verdict}</td><td>{vote.get('score')}</td></tr>"
+            html += "</table></div>"
 
-        # Add performance chart data
-        html += """
+            # Add performance chart data
+            html += """
         <div class="section">
             <h2>Performance Metrics</h2>
             <div style="display: flex; justify-content: space-around; flex-wrap: wrap;">
         """
 
-        # Approval rate chart
-        approval_rates = [
-            iter["approval_check"].get("approval_rate", 0)
-            for iter in results.get("iterations", [])
-        ]
-        if approval_rates:
-            avg_approval = sum(approval_rates) / len(approval_rates)
-            html += f"""
+            # Approval rate chart
+            approval_rates = [
+                iter["approval_check"].get("approval_rate", 0)
+                for iter in results.get("iterations", [])
+            ]
+            if approval_rates:
+                avg_approval = sum(approval_rates) / len(approval_rates)
+                html += f"""
             <div class="metric">
                 <div>Avg Approval Rate</div>
                 <div style="font-size: 24px;">{avg_approval:.1f}%</div>
             </div>
             """
 
-        # Issue count chart
-        issue_counts = [
-            iter["agg_risk"].get("count", 0) for iter in results.get("iterations", [])
-        ]
-        if issue_counts:
-            total_issues = sum(issue_counts)
-            html += f"""
+            # Issue count chart
+            issue_counts = [
+                iter["agg_risk"].get("count", 0) for iter in results.get("iterations", [])
+            ]
+            if issue_counts:
+                total_issues = sum(issue_counts)
+                html += f"""
             <div class="metric">
                 <div>Total Issues Found</div>
                 <div style="font-size: 24px;">{total_issues}</div>
             </div>
             """
 
-        html += "</div></div>"
+            html += "</div></div>"
 
-    html += """
+        html += """
         <div class="section">
             <h2>Audit Trail</h2>
             <div class="log">
-    """
-    for log_entry in results.get("log", []):
-        html += f"<div>{log_entry}</div>"
-    html += """
+        """
+        for log_entry in results.get("log", []):
+            html += f"<div>{log_entry}</div>"
+        html += """
             </div>
         </div>
     </body>
     </html>
     """
 
-    return html
-
+        return html
+    except Exception as e:
+        st.error(f"Failed to generate HTML report: {e}")
+        return "<html><body><h1>Error generating report</h1></body></html>"
 
 def generate_latex_report(results: dict) -> str:
     """Generates a LaTeX report from the adversarial testing results."""
-    latex = "\\documentclass{article}\n"
-    latex += "\\usepackage[utf8]{inputenc}\n"
-    latex += "\\usepackage{geometry}\n"
-    latex += "\\geometry{a4paper, margin=1in}\n"
-    latex += "\\title{Adversarial Testing Report}\n"
-    latex += "\\author{OpenEvolve}\n"
-    latex += "\\date{\\today}\n"
-    latex += "\\begin{document}\n"
-    latex += "\\maketitle\n"
+    try:
+        latex = "\\documentclass{article}\n"
+        latex += "\\usepackage[utf8]{inputenc}\n"
+        latex += "\\usepackage{geometry}\n"
+        latex += "\\geometry{a4paper, margin=1in}\n"
+        latex += "\\title{Adversarial Testing Report}\n"
+        latex += "\\author{OpenEvolve}\n"
+        latex += "\\date{\\today}\n"
+        latex += "\\begin{document}\n"
+        latex += "\\maketitle\n"
 
-    latex += "\\section{Summary}\n"
-    latex += f"Final Approval Rate: {results.get('final_approval_rate', 0.0):.1f}\%\\n"
-    latex += f"Total Iterations: {len(results.get('iterations', []))}\\n"
-    latex += f"Total Cost (USD): ${results.get('cost_estimate_usd', 0.0):,.4f}\\n"
-    latex += f"Total Prompt Tokens: {results.get('tokens', {}).get('prompt', 0):,}\\n"
-    latex += f"Total Completion Tokens: {results.get('tokens', {}).get('completion', 0):,}\\n"
+        latex += "\\section{Summary}\n"
+        latex += f"Final Approval Rate: {results.get('final_approval_rate', 0.0):.1f}\%\\n"
+        latex += f"Total Iterations: {len(results.get('iterations', []))}\\n"
+        latex += f"Total Cost (USD): ${results.get('cost_estimate_usd', 0.0):,.4f}\\n"
+        latex += f"Total Prompt Tokens: {results.get('tokens', {}).get('prompt', 0):,}\\n"
+        latex += f"Total Completion Tokens: {results.get('tokens', {}).get('completion', 0):,}\\n"
 
-    latex += "\\section{Final Hardened SOP}\n"
-    latex += f"\\begin{{verbatim}}\n{results.get('final_sop', '')}\\end{{verbatim}}\n"
+        latex += "\\section{Final Hardened SOP}\n"
+        latex += f"\\begin{{verbatim}}\n{results.get('final_sop', '')}\\end{{verbatim}}\n"
 
-    latex += "\\section{Issues Found}\n"
-    for i, iteration in enumerate(results.get("iterations", [])):
-        latex += f"\\subsection*{{Iteration {i + 1}}}\n"
+        latex += "\\section{Issues Found}\n"
+        for i, iteration in enumerate(results.get("iterations", [])):
+            latex += f"\\subsection*{{Iteration {i + 1}}}\n"
+            latex += "\\begin{itemize}\n"
+            for critique in iteration.get("critiques", []):
+                if critique.get("critique_json"):
+                    for issue in _safe_list(critique["critique_json"], "issues"):
+                        latex += f"\\item {issue.get('title')} ({issue.get('severity')})\n"
+            latex += "\\end{itemize}\n"
+
+        latex += "\\section{Final Votes}\n"
         latex += "\\begin{itemize}\n"
-        for critique in iteration.get("critiques", []):
-            if critique.get("critique_json"):
-                for issue in _safe_list(critique["critique_json"], "issues"):
-                    latex += f"\\item {issue.get('title')} ({issue.get('severity')})\n"
+        if results.get("iterations"):
+            for vote in (
+                results["iterations"][-1].get("approval_check", {}).get("votes", [])
+            ):
+                latex += f"\\item {vote.get('model')}: {vote.get('verdict')} ({vote.get('score')})\n"
         latex += "\\end{itemize}\n"
 
-    latex += "\\section{Final Votes}\n"
-    latex += "\\begin{itemize}\n"
-    if results.get("iterations"):
-        for vote in (
-            results["iterations"][-1].get("approval_check", {}).get("votes", [])
-        ):
-            latex += f"\\item {vote.get('model')}: {vote.get('verdict')} ({vote.get('score')})\n"
-    latex += "\\end{itemize}\n"
+        latex += "\\section{Audit Trail}\n"
+        latex += "\\begin{verbatim}\n"
+        for log_entry in results.get("log", []):
+            latex += f"{log_entry}\\n"
+        latex += "\\end{verbatim}\n"
 
-    latex += "\\section{Audit Trail}\n"
-    latex += "\\begin{verbatim}\n"
-    for log_entry in results.get("log", []):
-        latex += f"{log_entry}\\n"
-    latex += "\\end{verbatim}\n"
+        latex += "\\end{document}\n"
 
-    latex += "\\end{document}\n"
-
-    return latex
+        return latex
+    except Exception as e:
+        st.error(f"Failed to generate LaTeX report: {e}")
+        return "% Error generating report"
 
 
 def generate_compliance_report(results: dict, compliance_requirements: str) -> str:
     """Generates a compliance report from the adversarial testing results."""
-    # This is a simplified compliance report. A real implementation would require a more sophisticated analysis.
-    report = "# Compliance Report\n\n"
-    report += f"## Compliance Requirements\n\n{compliance_requirements}\n\n"
+    try:
+        # This is a simplified compliance report. A real implementation would require a more sophisticated analysis.
+        report = "# Compliance Report\n\n"
+        report += f"## Compliance Requirements\n\n{compliance_requirements}\n\n"
 
-    report += "## Compliance Status\n\n"
-    if results.get("final_approval_rate", 0) >= 90:
-        report += "✅ The protocol is compliant with the specified requirements.\n"
-    else:
-        report += "❌ The protocol is not compliant with the specified requirements.\n"
+        report += "## Compliance Status\n\n"
+        if results.get("final_approval_rate", 0) >= 90:
+            report += "✅ The protocol is compliant with the specified requirements.\n"
+        else:
+            report += "❌ The protocol is not compliant with the specified requirements.\n"
 
-    return report
+        return report
+    except Exception as e:
+        st.error(f"Failed to generate compliance report: {e}")
+        return "# Error generating compliance report"
 
 
 def suggest_performance_improvements(current_config: Dict) -> List[str]:
