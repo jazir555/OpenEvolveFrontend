@@ -884,6 +884,7 @@ def render_main_layout():
 
             if stop_button:
                 st.session_state.evolution_stop_flag = True
+                st.success("Evolution stop requested.")
 
 
             c1, c2, c3 = st.columns(3)
@@ -920,6 +921,7 @@ def render_main_layout():
                 with st.spinner("Classifying and tagging..."):
                     classification_and_tags = get_content_classification_and_tags(st.session_state.protocol_text)
                     st.session_state.classification_and_tags = classification_and_tags
+                st.success("Content classified and tagged successfully!")
 
             if "classification_and_tags" in st.session_state and st.session_state.classification_and_tags:
                 with st.expander("🏷️ Classification and Tags", expanded=True):
@@ -931,6 +933,7 @@ def render_main_layout():
                 with st.spinner("Predicting improvement potential..."):
                     potential = predict_improvement_potential(st.session_state.protocol_text)
                     st.session_state.improvement_potential = potential
+                st.success("Improvement potential predicted successfully!")
 
             if "improvement_potential" in st.session_state and st.session_state.improvement_potential is not None:
                 st.metric("Improvement Potential", f"{st.session_state.improvement_potential:.2%}")
@@ -940,6 +943,7 @@ def render_main_layout():
                 with st.spinner("Checking for security vulnerabilities..."):
                     vulnerabilities = check_security_vulnerabilities(st.session_state.protocol_text)
                     st.session_state.vulnerabilities = vulnerabilities
+                st.success("Security check completed successfully!")
 
             if "vulnerabilities" in st.session_state and st.session_state.vulnerabilities:
                 with st.expander("🛡️ Security Vulnerabilities", expanded=True):
@@ -1150,6 +1154,7 @@ def render_main_layout():
                     selected_template = st.selectbox("Load Template", [""] + templates, key="adv_load_template_select")
                     if selected_template:
                         st.button("📥 Load Template", use_container_width=True, type="secondary", on_click=load_adv_template_callback)
+                        st.success(f"Loaded template: {selected_template}")
 
                 def load_sample_callback():
                     st.session_state.protocol_text = '''# Sample Security Policy
@@ -1168,8 +1173,10 @@ Applies to all employees, contractors, and vendors with system access.
                 def clear_content_callback():
                     st.session_state.protocol_text = ""
                 st.button("🧪 Load Sample", use_container_width=True, type="secondary", on_click=load_sample_callback)
+                st.success("Sample content loaded.")
                 if st.session_state.protocol_text.strip():
                     st.button("🗑️ Clear", use_container_width=True, type="secondary", on_click=clear_content_callback)
+                    st.success("Content cleared.")
 
         # --- Step 2: Model Selection & Strategy ---
         with st.expander("Step 2: Define Teams and Strategy", expanded=True):
@@ -1279,6 +1286,7 @@ Applies to all employees, contractors, and vendors with system access.
                 st.rerun()
             if stop_button:
                 st.session_state.adversarial_stop_flag = True
+                st.success("Adversarial testing stop requested.")
 
             if st.session_state.adversarial_running or st.session_state.adversarial_status_message:
                 if st.session_state.adversarial_status_message:
@@ -1366,16 +1374,19 @@ Applies to all employees, contractors, and vendors with system access.
                     if int_col1.button("💬 Discord", use_container_width=True, type="secondary"):
                         if st.session_state.discord_webhook_url:
                             send_discord_notification(st.session_state.discord_webhook_url, f"Adversarial testing complete! Final approval: {results.get('final_approval_rate', 0.0):.1f}%")
+                            st.success("Discord notification sent!")
                         else:
                             st.warning("Discord webhook URL not configured.")
                     if int_col2.button("💬 Teams", use_container_width=True, type="secondary"):
                         if st.session_state.msteams_webhook_url:
                             send_msteams_notification(st.session_state.msteams_webhook_url, f"Adversarial testing complete! Final approval: {results.get('final_approval_rate', 0.0):.1f}%")
+                            st.success("Microsoft Teams notification sent!")
                         else:
                             st.warning("Microsoft Teams webhook URL not configured.")
                     if int_col3.button("🚀 Webhook", use_container_width=True, type="secondary"):
                         if st.session_state.generic_webhook_url:
                             send_generic_webhook(st.session_state.generic_webhook_url, {"text": f"Adversarial testing complete! Final approval: {results.get('final_approval_rate', 0.0):.1f}%"})
+                            st.success("Generic webhook notification sent!")
                         else:
                             st.warning("Generic webhook URL not configured.")
 
