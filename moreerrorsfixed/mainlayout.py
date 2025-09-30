@@ -579,7 +579,16 @@ def render_main_layout():
         st.markdown(
             f"""
             <script>
-                document.documentElement.setAttribute('data-theme', '{current_theme}');
+                const theme = '{current_theme}';
+                document.documentElement.setAttribute('data-theme', theme);
+                // Force background colors using inline styles as a last resort
+                if (theme === 'dark') {{
+                    document.body.style.backgroundColor = '#0e1117';
+                    document.querySelector('.stApp').style.backgroundColor = '#0e1117';
+                }} else {{
+                    document.body.style.backgroundColor = 'white';
+                    document.querySelector('.stApp').style.backgroundColor = 'white';
+                }}
             </script>
             """,
             unsafe_allow_html=True
@@ -589,6 +598,9 @@ def render_main_layout():
             """
             <script>
                 document.documentElement.removeAttribute('data-theme');
+                // Reset inline background styles if inheriting OS theme
+                document.body.style.backgroundColor = '';
+                document.querySelector('.stApp').style.backgroundColor = '';
             </script>
             """,
             unsafe_allow_html=True
