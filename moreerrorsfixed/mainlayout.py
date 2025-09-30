@@ -579,13 +579,7 @@ def render_main_layout():
         unsafe_allow_html=True
     )
 
-    if "styles_css" not in st.session_state:
-        try:
-            with open("styles.css") as f:
-                st.session_state.styles_css = f.read()
-        except FileNotFoundError:
-            st.session_state.styles_css = ""
-    st.markdown(f"<style>{st.session_state.styles_css}</style>", unsafe_allow_html=True)
+    
 
     # Notification UI
     render_notification_ui()
