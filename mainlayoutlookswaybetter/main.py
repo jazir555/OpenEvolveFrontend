@@ -20,51 +20,51 @@ import yaml # Added import for yaml
 import streamlit as st
 
 st.set_page_config(page_title="OpenEvolve", layout="wide")
-import streamlit as st
-from streamlit.components.v1 import html
+# Custom CSS to style the knob and remove the focus "glow"
+custom_css = """
+<style>
+    /* Target the slider thumb (knob) */
+    div[role="slider"] {
+        background: linear-gradient(to bottom, #f5f5f5 0%, #cccccc 100%) !important;
+        border: 1px solid #999999 !important;
+        /* The glow is often a box-shadow, which we'll disable on focus */
+    }
 
-# one-shot JS that recolours every slider without touching theme.primaryColor
-html(
-    """
-    <style>
-    /* track */
-    .stSlider > div > div > div:first-child {
-        background: #d0d0d0 !important;   /* empty track */
+    /* Style the value text inside the thumb */
+    .st-emotion-cache-muukut.ezks3vl2 {
+        color: #333 !important;
     }
-    /* fill */
-    .stSlider > div > div > div:nth-child(2) {
-        background: #c0c0c0 !important;   /* filled part */
-    }
-    /* thumb */
-    .stSlider > div > div > div[role='slider'] {
-        background: #c0c0c0 !important;
-        border: 2px solid #a0a0a0 !important;
+
+    /* NEW RULE: This specifically targets and removes the "glow" */
+    div[role="slider"]:focus {
         box-shadow: none !important;
-        width: 20px !important;
-        height: 20px !important;
-        border-radius: 50% !important;
+        outline: none !important;
     }
-    </style>
 
-    <script>
-    // re-apply after every Streamlit repaint
-    const obs = new MutationObserver(() => {
-        document.querySelectorAll('.stSlider div[role="slider"]').forEach(t => {
-            t.style.background = '#c0c0c0';
-            t.style.borderColor = '#a0a0a0';
-            t.style.boxShadow = 'none';
-        });
-        document.querySelectorAll('.stSlider > div > div > div').forEach(t => {
-            const bg = getComputedStyle(t).backgroundImage;   // skip gradients
-            if (!bg.includes('gradient')) {
-                t.style.background = t.style.background.includes('primary') ? '#c0c0c0' : '#d0d0d0';
-            }
-        });
-    });
-    obs.observe(document.body, {childList: true, subtree: true});
-    </script>
-    """,
-    height=0,
+    /* --- We'll keep the bar styles for our next attempt --- */
+
+    /* Target the main slider track (the full bar) */
+    .st-am .st-gu {
+        background: linear-gradient(to right, #a9a9a9, #d3d3d3) !important;
+        border: 1px solid #aaa !important;
+    }
+
+    /* Target the "filled" portion of the slider track */
+    .st-am .st-gu > div {
+        background: linear-gradient(to right, #cccccc, #f5f5f5) !important;
+    }
+</style>
+"""
+
+st.markdown(custom_css, unsafe_allow_html=True)
+
+# Your slider component
+st.slider(
+    "Frequency Penalty",
+    min_value=-2.0,
+    max_value=2.0,
+    value=0.0,
+    step=0.01
 )
 
 
