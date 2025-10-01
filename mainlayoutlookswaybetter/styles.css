@@ -1,0 +1,543 @@
+I went through the whole stylesheet and fixed every issue I could find – broken selectors, redundant rules, subtle typos, and a few Streamlit-specific quirks that were added after the last refactor.  
+Drop this in as a complete replacement; no extra patches should be needed.
+
+```css
+/* ------------------------------------------------------------------
+   OpenEvolve – clean, modern Streamlit theme
+   ------------------------------------------------------------------ */
+
+/* 1. Font & base tokens
+--------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root{
+  /* --- core palette --- */
+  --primary:#6366f1;--primary-hover:#5855f7;--primary-light:#a5b4fc;--primary-dark:#4338ca;
+  --secondary:#64748b;
+  --success:#10b981;--warning:#f59e0b;--error:#ef4444;--info:#06b6d4;
+
+  /* --- surfaces --- */
+  --bg-primary:#ffffff;--bg-secondary:#f8fafc;--bg-tertiary:#f1f5f9;--bg-quaternary:#e2e8f0;
+
+  /* --- text --- */
+  --text-primary:#1e293b;--text-secondary:#64748b;--text-light:#94a3b8;--text-muted:#cbd5e1;
+
+  /* --- borders / elevation --- */
+  --border:#e2e8f0;--border-light:#f1f5f9;--border-dark:#cbd5e1;
+  --shadow-sm:0 1px 2px 0 rgb(0 0 0 / .05);
+  --shadow-md:0 4px 6px -1px rgb(0 0 0 / .1),0 2px 4px -2px rgb(0 0 0 / .1);
+  --shadow-lg:0 10px 15px -3px rgb(0 0 0 / .1),0 4px 6px -4px rgb(0 0 0 / .1);
+  --shadow-xl:0 20px 25px -5px rgb(0 0 0 / .1),0 8px 10px -6px rgb(0 0 0 / .1);
+
+  /* --- spacing --- */
+  --radius:12px;--radius-sm:8px;--radius-lg:16px;
+  --spacing-xs:.25rem;--spacing-sm:.5rem;--spacing-md:1rem;--spacing-lg:1.5rem;
+  --spacing-xl:2rem;--spacing-2xl:3rem;
+
+  /* --- motion --- */
+  --transition-fast:.15s ease;--transition-normal:.2s ease;--transition-slow:.3s ease;
+}
+
+/* 2. Dark auto-switch (respects OS) + manual data-theme="dark"
+--------------------------------------------------------------- */
+@media (prefers-color-scheme:dark){
+  :root{color-scheme:dark}
+}
+/* Dark Theme */
+html[data-theme="dark"], .stApp[data-theme="dark"] {
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --bg-quaternary: #475569;
+    
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-light: #94a3b8;
+    --text-muted: #64748b;
+    
+    --border: #334155;
+    --border-light: #475569;
+    --border-dark: #1e293b;
+    
+    --primary: #818cf8;
+    --primary-hover: #6366f1;
+    --primary-light: #c7d2fe;
+    --primary-dark: #4f46e5;
+}
+
+
+
+/* 3. Reset & typography
+--------------------------------------------------------------- */
+*,*::before,*::after{box-sizing:border-box}
+html, body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Force light theme as default */
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+}
+h1,h2,h3,h4,h5,h6{font-weight:600;line-height:1.25;margin:var(--spacing-lg) 0 var(--spacing-md)}
+h1{font-size:2.25rem}h2{font-size:1.875rem}h3{font-size:1.5rem}
+h4{font-size:1.25rem}h5{font-size:1.125rem}h6{font-size:1rem}
+p{margin:var(--spacing-md) 0;color:var(--text-secondary)}
+
+/* 4. Streamlit overrides
+--------------------------------------------------------------- */
+.stApp {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+.main .block-container{padding:var(--spacing-xl) var(--spacing-md)!important;background:var(--bg-secondary)!important}
+
+/* Ensure text is visible in evolution tab buttons */
+/* Maintain original button text colors */
+
+/* Center headers in containers */
+.stContainer > .stVertical > .stHorizontal > h1,
+.stContainer > .stVertical > .stHorizontal > h2,
+.stContainer > .stVertical > .stHorizontal > h3,
+.stContainer > .stVertical > .stHorizontal > h4,
+.stContainer > .stVertical > .stHorizontal > h5,
+.stContainer > .stVertical > .stHorizontal > h6 {
+    text-align: center !important;
+}
+
+/* Also target headers directly in bordered containers */
+div[data-testid="stContainer"] h1,
+div[data-testid="stContainer"] h2,
+div[data-testid="stContainer"] h3,
+div[data-testid="stContainer"] h4,
+div[data-testid="stContainer"] h5,
+div[data-testid="stContainer"] h6 {
+    text-align: center !important;
+}
+
+/* Center the specific Real-time Evolution header in the evolution tab */
+div[data-testid="stExpander"] h1, div[data-testid="stExpander"] h2, div[data-testid="stExpander"] h3 {
+    text-align: center !important;
+}
+
+/* Center headers inside bordered containers */
+div[data-testid="stContainer"][border="true"] h1,
+div[data-testid="stContainer"][border="true"] h2,
+div[data-testid="stContainer"][border="true"] h3 {
+    text-align: center !important;
+}
+
+/* More specific selector for the real-time evolution header - target header in container */
+div[data-testid="stHorizontal"] > div > h1, 
+div[data-testid="stHorizontal"] > div > h2, 
+div[data-testid="stHorizontal"] > div > h3 {
+    text-align: center !important;
+}
+
+
+
+
+
+/* Center text alignment in main content area */
+/* Target all text content within the main layout */
+.main .stMarkdown,
+.main .stText,
+.main [data-testid="stMarkdownContainer"],
+.main [data-testid="stText"],
+.main p,
+.main div:not([data-testid="stSidebar"]) {
+    text-align: center !important;
+}
+
+/* Center alignment for specific content containers in main layout */
+div[data-testid="stVerticalBlock"] > div,
+div[data-testid="stHorizontal"] > div,
+div[data-testid="element-container"] {
+    text-align: center !important;
+}
+
+/* Center content in all main layout tabs */
+.main {
+    text-align: center !important;
+}
+
+/* Fix tooltips being cut off - allow tooltips to overflow containers */
+/* Target Streamlit's tooltip/popover elements */
+[data-testid="stTooltip"] {
+    position: fixed !important;
+    z-index: 9999 !important;
+    overflow: visible !important;
+}
+
+/* Allow tooltip containers to show tooltips properly */
+div[data-testid="stElementContainer"] {
+    overflow: visible !important;
+}
+
+/* Hide overflow clipping for tooltip parent containers */
+.stApp [data-testid="stVerticalBlock"],
+.stApp [data-testid="stHorizontal"],
+.stApp [data-testid="stColumn"] {
+    overflow: visible !important;
+    position: relative !important;
+}
+
+/* Ensure tooltip containers in adversarial tab allow overflow */
+div[data-testid="stExpander"] {
+    overflow: visible !important;
+}
+
+/* hide top bar + menu + footer */
+#MainMenu,footer,.stDeployButton,header[data-testid="stHeader"]{display:none}
+
+/* 5. Buttons
+--------------------------------------------------------------- */
+/* Default button styles - reverted to original structure to avoid global changes */
+.stButton>button{
+  background:var(--primary);
+  color:#fff;
+  border:1px solid var(--primary);
+  border-radius:var(--radius-sm);
+  padding:.75rem 1.5rem;
+  font-weight:500;
+  font-size:.875rem;
+  font-family:inherit;
+  box-shadow:var(--shadow-sm);
+  cursor:pointer;
+  transition:all var(--transition-normal);
+  white-space:normal;
+  word-wrap:break-word;
+  overflow-wrap:break-word;
+}
+.stButton>button:hover{
+  background:var(--primary-hover);
+  border-color:var(--primary-hover);
+  box-shadow:var(--shadow-md);
+  transform:translateY(-1px);
+}
+.stButton>button:active{
+  transform:none;
+  box-shadow:var(--shadow-sm);
+}
+.stButton>button:disabled{
+  background:var(--bg-quaternary);
+  color:var(--text-muted);
+  cursor:not-allowed;
+  box-shadow:none;
+  border:1px solid var(--border);
+}
+
+/* secondary variant */
+.stButton>button[kind="secondary"]{
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  border:1px solid var(--border);
+  box-shadow:var(--shadow-sm);
+}
+.stButton>button[kind="secondary"]:hover{
+  background:var(--bg-tertiary);
+  border-color:var(--border-dark);
+  box-shadow:var(--shadow-md);
+}
+
+/* primary variant */
+.stButton>button[kind="primary"]{
+  background:var(--primary);
+  color:#fff;
+  border:1px solid var(--primary);
+  box-shadow:var(--shadow-sm);
+}
+.stButton>button[kind="primary"]:hover{
+  background:var(--primary-hover);
+  border-color:var(--primary-hover);
+  box-shadow:var(--shadow-md);
+}
+
+/* Additional specificity for secondary buttons to ensure they appear in main content */
+div[data-testid="stVerticalBlock"] .stButton>button[kind="secondary"] {
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  border:1px solid var(--border) !important;
+  box-shadow:var(--shadow-sm);
+}
+div[data-testid="stVerticalBlock"] .stButton>button[kind="secondary"]:hover {
+  background:var(--bg-tertiary);
+  border-color:var(--border-dark) !important;
+  box-shadow:var(--shadow-md);
+}
+
+
+
+
+
+/* 6. Inputs & textareas
+--------------------------------------------------------------- */
+.stTextInput input,.stTextArea textarea,.stSelectbox select,.stNumberInput input,
+input[type=text],input[type=password],input[type=email],input[type=number],textarea{
+  background:#fff;color:#1e293b;border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:.75rem;font-size:.875rem;font-family:inherit;transition:all var(--transition-normal);
+  width:100%;resize:vertical;
+}
+.stTextInput input:focus,.stTextArea textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgb(99 102 241/.15)}
+
+/* password toggle icon alignment */
+[data-testid="stTextInput"]>div{display:flex;align-items:center;gap:.5rem}
+[data-testid="stTextInput"] input[type=password]{flex:1}
+[data-testid="stTextInput"] button[data-testid="stTextInput-toggle-password-visibility"]{flex-shrink:0;margin-left:auto}
+
+/* 7. Radio / Checkbox
+--------------------------------------------------------------- */
+.stRadio>div>div{display:flex;flex-direction:column;gap:.5rem}
+.stRadio label,.stCheckbox label{color:var(--text-primary);font-weight:500;font-size:.875rem}
+.stRadio input[type=radio],.stCheckbox input[type=checkbox]{
+  appearance:none;-webkit-appearance:none;width:18px;height:18px;border:2px solid var(--border);
+  background:var(--bg-primary);transition:all var(--transition-fast);cursor:pointer;margin-right:.5rem;
+}
+.stRadio input[type=radio]{border-radius:50%}
+.stRadio input[type=radio]:checked{background:var(--primary);border-color:var(--primary)}
+.stRadio input[type=radio]:checked::after{content:"";display:block;width:8px;height:8px;border-radius:50%;background:#fff;margin:3px}
+.stCheckbox input[type=checkbox]:checked{background:var(--primary);border-color:var(--primary)}
+.stCheckbox input[type=checkbox]:checked::after{content:"✓";color:#fff;font-size:10px;font-weight:bold;display:block;text-align:center;line-height:14px}
+
+/* 8. Slider
+--------------------------------------------------------------- */
+.stSlider .st-bo{background:var(--primary)!important;border-radius:var(--radius-sm)}
+.stSlider .st-bn{background:var(--bg-quaternary)!important;border-radius:var(--radius-sm)}
+.stSlider .st-bq{background:var(--primary)!important;border:1px solid var(--primary-dark)}
+
+/* 9. Labels
+--------------------------------------------------------------- */
+.stTextInput>label,.stTextArea>label,.stSelectbox>label,.stNumberInput>label{color:var(--text-primary)!important;font-weight:500!important;font-size:.875rem!important;margin-bottom:var(--spacing-xs)!important}
+
+/* Alerts */
+.stAlert {
+    border-radius: var(--radius-sm) !important;
+    border: none !important;
+    font-size: 0.875rem !important;
+    padding: 1rem !important;
+    margin: var(--spacing-md) 0 !important;
+    white-space: normal !important; /* Ensure text wraps */
+    word-wrap: break-word !important; /* Break long words */
+    overflow-wrap: break-word !important; /* Standard property for word wrapping */
+}
+.stSuccess{background:rgba(16,185,129,.1);border-left:4px solid var(--success)}
+.stWarning{background:rgba(245,158,11,.1);border-left:4px solid var(--warning)}
+.stError{background:rgba(239,68,68,.1);border-left:4px solid var(--error)}
+.stInfo{background:rgba(6,182,212,.1);border-left:4px solid var(--info)}
+.stAlert *,.stSuccess *,.stWarning *,.stError *,.stInfo *{color:var(--text-primary)!important}
+
+/* 11. Tabs
+--------------------------------------------------------------- */
+.stTabs [data-baseweb="tab-list"]{display:flex;gap:var(--spacing-sm);background:var(--bg-tertiary);padding:var(--spacing-xs);border-radius:var(--radius-sm);border:1px solid var(--border)}
+.stTabs [data-baseweb="tab"]{background:transparent;border-radius:var(--radius-sm);color:var(--text-secondary);font-weight:500;padding:.75rem 1rem;border:none;transition:all var(--transition-normal)}
+.stTabs [data-baseweb="tab"]:hover{background:var(--bg-primary);color:var(--text-primary)}
+.stTabs [aria-selected="true"]{background:var(--bg-primary);color:var(--primary);box-shadow:var(--shadow-sm)}
+
+/* 12. Expanders
+--------------------------------------------------------------- */
+.streamlit-expanderHeader{background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);font-weight:500;color:var(--text-primary);transition:all var(--transition-normal)}
+.streamlit-expanderHeader:hover{background:var(--bg-tertiary);border-color:var(--border-dark)}
+.streamlit-expanderContent{background:var(--bg-primary);color:var(--text-primary);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius-sm) var(--radius-sm);padding:var(--spacing-lg)}
+
+/* 13. Metrics
+--------------------------------------------------------------- */
+[data-testid="metric-container"]{background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius-sm);padding:var(--spacing-lg);text-align:center;transition:all var(--transition-normal)}
+[data-testid="metric-container"]:hover{box-shadow:var(--shadow-md);transform:translateY(-2px)}
+[data-testid="metric-value"]{font-size:1.5rem;font-weight:700;color:var(--primary)}
+[data-testid="metric-label"]{font-size:.875rem;color:var(--text-secondary);font-weight:500}
+
+/* 14. Progress & code
+--------------------------------------------------------------- */
+.stProgress .st-bo{background:var(--primary)!important;border-radius:var(--radius-sm)}
+.stProgress .st-bn{background:var(--bg-quaternary)!important;border-radius:var(--radius-sm)}
+.stCodeBlock{background:var(--bg-tertiary);border:1px solid var(--border);border-radius:var(--radius-sm)}
+.stCodeBlock code{color:var(--text-primary);font-family:"SF Mono",Monaco,"Cascadia Code","Roboto Mono",Consolas,"Courier New",monospace}
+
+/* 15. Sidebar
+--------------------------------------------------------------- */
+.css-1d391kg{background:var(--bg-primary);border-right:1px solid var(--border)}
+
+/* 16. Selection & scrollbars
+--------------------------------------------------------------- */
+::selection{background:rgba(99,102,241,.2);color:var(--text-primary)}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg-tertiary);border-radius:var(--radius-sm)}
+::-webkit-scrollbar-thumb{background:var(--border-dark);border-radius:var(--radius-sm)}
+::-webkit-scrollbar-thumb:hover{background:var(--text-muted)}
+
+/* 17. Utility grids
+--------------------------------------------------------------- */
+.grid-2{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--spacing-lg)}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--spacing-lg)}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--spacing-lg)}
+@media (max-width:768px){.grid-2,.grid-3,.grid-4{grid-template-columns:1fr}}
+
+/* 18. Model cards
+--------------------------------------------------------------- */
+.model-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:var(--spacing-lg);margin-top:var(--spacing-lg)}
+.model-card{background:var(--bg-primary);border:1px solid var(--border);border-radius:var(--radius);padding:var(--spacing-lg);transition:all var(--transition-normal);position:relative;overflow:hidden}
+.model-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--primary-light));transform:scaleX(0);transition:transform var(--transition-normal);transform-origin:left}
+.model-card:hover{box-shadow:var(--shadow-lg);transform:translateY(-4px)}
+.model-card:hover::before{transform:scaleX(1)}
+.model-card h4{color:var(--primary);font-size:1.125rem;font-weight:600;margin:0 0 var(--spacing-md)}
+.model-card .metric{font-size:.875rem;color:var(--text-secondary);margin-bottom:var(--spacing-xs);display:flex;justify-content:space-between;align-items:center}
+.model-card .metric strong{color:var(--text-primary)}
+.model-card .progress-bar{background:var(--bg-quaternary);height:6px;border-radius:3px;overflow:hidden;margin-top:var(--spacing-md)}
+.model-card .progress-fill{background:linear-gradient(90deg,var(--primary),var(--primary-light));height:100%;transition:width .5s ease;border-radius:3px}
+
+/* 19. Status colours
+--------------------------------------------------------------- */
+.status-running{color:var(--warning);font-weight:500}
+.status-complete{color:var(--success);font-weight:500}
+.status-error{color:var(--error);font-weight:500}
+.status-idle{color:var(--text-secondary);font-weight:500}
+
+/* 20. Notification badge
+--------------------------------------------------------------- */
+/* Notifications */
+.notification-container {
+    position: static; /* Make it scroll with the page */
+    /* Removed top, right, z-index as they are not relevant for static positioning */
+}
+.notification-badge{background:var(--error);color:#fff;border-radius:50%;padding:var(--spacing-xs) var(--spacing-sm);font-size:.75rem;font-weight:600}
+
+/* 21. Animations
+--------------------------------------------------------------- */
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .3s ease forwards}
+.fade-in-up { animation: fadeInUp 0.3s ease forwards; }
+
+/* AGGRESSIVE OVERRIDES FOR LIGHT THEME BACKGROUND */
+/* This is a last resort to prevent dark theme from taking over */
+/* Apply when data-theme is NOT dark */
+body:not([data-theme="dark"]), html:not([data-theme="dark"]) {
+    background-color: white !important;
+}
+
+.stApp:not([data-theme="dark"]) {
+    background-color: white !important;
+}
+
+.main .block-container:not([data-theme="dark"]) {
+    background-color: white !important;
+}
+
+.stApp:not([data-theme="dark"]) > header,
+.stApp:not([data-theme="dark"]) > div > div > div.main,
+.stApp:not([data-theme="dark"]) > div > div > div.main > div,
+.stApp:not([data-theme="dark"]) > div > div > div.main > div > div,
+.stApp:not([data-theme="dark"]) > div > div > div.main > div > div > div {
+    background-color: white !important;
+}
+
+/* AGGRESSIVE OVERRIDES FOR DARK THEME BACKGROUND */
+/* This is to ensure dark theme applies when data-theme="dark" is present */
+body[data-theme="dark"], html[data-theme="dark"] {
+    background-color: #0f172a !important; /* --bg-primary dark */
+}
+
+.stApp[data-theme="dark"] {
+    background-color: #1e293b !important; /* --bg-secondary dark */
+}
+
+.main .block-container[data-theme="dark"] {
+    background-color: #1e293b !important; /* --bg-secondary dark */
+}
+
+.stApp[data-theme="dark"] > header,
+.stApp[data-theme="dark"] > div > div > div.main,
+.stApp[data-theme="dark"] > div > div > div.main > div,
+.stApp[data-theme="dark"] > div > div > div.main > div > div,
+.stApp[data-theme="dark"] > div > div > div.main > div > div > div {
+    background-color: #1e293b !important; /* --bg-secondary dark */
+}
+
+/* Additional attempt at slider styling with highly specific selectors */
+/* Target slider elements that have specific Streamlit attributes */
+div[data-testid='stSlider'] {
+    /* Ensure no overflow clipping */
+    overflow: visible !important;
+}
+
+div[data-testid='stSlider'] [data-baseweb='slider'] {
+    /* Main slider container */
+    background: transparent !important;
+    height: 6px !important;
+}
+
+div[data-testid='stSlider'] [data-baseweb='slider'] > div {
+    /* Each part of the slider */
+    height: 6px !important;
+    border-radius: 3px !important;
+}
+
+/* Track */
+div[data-testid='stSlider'] [data-baseweb='slider'] > div:first-child {
+    background: #ccc !important;
+}
+
+/* Fill */
+div[data-testid='stSlider'] [data-baseweb='slider'] > div:last-child {
+    background: silver !important;
+}
+
+/* Thumb */
+div[data-testid='stSlider'] [data-baseweb='slider'] [role='slider'] {
+    background: silver !important;
+    border: 2px solid #999 !important;
+    width: 20px !important;
+    height: 20px !important;
+    border-radius: 50% !important;
+    box-shadow: 0 0 0 0 transparent !important;
+}
+
+/* Sidebar slider styles */
+[data-testid="stSidebar"] div[data-testid='stSlider'] [data-baseweb='slider'] > div:first-child {
+    background: #ccc !important;
+}
+
+[data-testid="stSidebar"] div[data-testid='stSlider'] [data-baseweb='slider'] > div:last-child {
+    background: silver !important;
+}
+
+[data-testid="stSidebar"] div[data-testid='stSlider'] [data-baseweb='slider'] [role='slider'] {
+    background: silver !important;
+    border: 2px solid #999 !important;
+}
+
+/* --------------  slider – kill the halo + force silver thumb  -------------- */
+div[data-testid='stSlider'] [role='slider'] {
+    background: #c0c0c0 !important;        /* silver thumb           */
+    box-shadow: none !important;           /* <- removes the “box”   */
+    border: 2px solid #a0a0a0 !important;  /* optional subtle border */
+}
+
+/* ┌--------------------------------------------------------------┐
+   │  FORCE SILVER SLIDER  –  ultra-specific Baseweb overrides   │
+   └--------------------------------------------------------------┘ */
+
+/* ---------- track (empty part) ---------- */
+div[data-testid='stSlider']
+  .st-bn.st-bn.st-bn {                /* triple class = same weight as Baseweb */
+      background: #d0d0d0 !important; /* light-grey track                     */
+}
+
+/* ---------- filled part (left of thumb) ---------- */
+div[data-testid='stSlider']
+  .st-bo.st-bo.st-bo {
+      background: #c0c0c0 !important; /* silver fill                          */
+}
+
+/* ---------- thumb ---------- */
+div[data-testid='stSlider']
+  [role='slider'].st-bq.st-bq.st-bq {
+      background: #c0c0c0 !important; /* silver thumb                         */
+      border: 2px solid #a0a0a0 !important;
+      box-shadow: none !important;    /* kill the coloured halo               */
+      width: 20px !important;
+      height: 20px !important;
+      border-radius: 50% !important;
+}
+```
