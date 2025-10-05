@@ -237,16 +237,126 @@ validation_manager = ValidationManager()
 
 def render_validation_manager():
     """
-    Placeholder function to render the validation manager section in the Streamlit UI.
-    This would typically allow users to define, manage, and apply validation rules.
+    Renders the validation manager section in the Streamlit UI.
+    Allows users to define, manage, and apply validation rules.
     """
     st.header("✅ Validation Manager")
-    st.info("Validation management features are under development. Stay tuned!")
-    # Example of how you might use the manager:
-    # st.subheader("Validation Rules")
-    # for rule_name in validation_manager.list_validation_rules():
-    #     st.write(f"- {rule_name}")
-    #
-    # if st.button("Run Validation"):
-    #     # Logic to run validation on current protocol_text
-    #     pass
+    
+    # Initialize validation manager
+    vm = ValidationManager()
+    
+    # Rule management tab
+    tab1, tab2, tab3 = st.tabs(["📋 Manage Rules", "🔍 Apply Validation", "📊 Validation Results"])
+    
+    with tab1:
+        st.subheader("Manage Validation Rules")
+        
+        # Show existing rules
+        rules = vm.list_validation_rules()
+        if rules:
+            st.write("**Available Rules:**")
+            for rule_name in rules:
+                rule_details = vm.get_validation_rule(rule_name)
+                with st.expander(f"Rule: {rule_name}"):
+                    st.json(rule_details)
+                    if st.button(f"Delete Rule: {rule_name}", key=f"delete_{rule_name}"):
+                        vm.remove_validation_rule(rule_name)
+                        st.success(f"Rule '{rule_name}' deleted")
+                        st.rerun()
+        else:
+            st.info("No validation rules defined yet.")
+        
+        # Add new rule
+        with st.expander("Add New Validation Rule"):
+            rule_name = st.text_input("Rule Name")
+            col1, col2 = st.columns(2)
+            with col1:
+                max_length = st.number_input("Max Length (0 = no limit)", min_value=0, value=0)
+                min_length = st.number_input("Min Length (0 = no limit)", min_value=0, value=0)
+            with col2:
+                required_keywords = st.text_input("Required Keywords (comma-separated)")
+                forbidden_patterns = st.text_input("Forbidden Patterns (comma-separated regex)")
+            
+            required_sections = st.text_input("Required Sections (comma-separated)")
+            
+            if st.button("Add Rule"):
+                if rule_name:
+                    rule_config = {}
+                    if max_length > 0:
+                        rule_config["max_length"] = max_length
+                    if min_length > 0:
+                        rule_config["min_length"] = min_length
+                    if required_keywords.strip():
+                        rule_config["required_keywords"] = [kw.strip() for kw in required_keywords.split(",")]
+                    if forbidden_patterns.strip():
+                        rule_config["forbidden_patterns"] = [pt.strip() for pt in forbidden_patterns.split(",")]
+                    if required_sections.strip():
+                        rule_config["required_sections"] = [sec.strip() for sec in required_sections.split(",")]
+                    
+                    if vm.add_validation_rule(rule_name, rule_config):
+                        st.success(f"Rule '{rule_name}' added successfully!")
+                        st.rerun()
+                    else:
+                        st.error(f"Failed to add rule '{rule_name}'")
+                else:
+                    st.error("Please provide a rule name")
+    
+    with tab2:
+        st.subheader("Apply Validation")
+        
+        all_rules = vm.list_validation_rules()
+        if all_rules:
+            selected_rules = st.multiselect("Select rules to apply", all_rules, default=all_rules)
+            
+            if st.button("Run Validation on Current Content"):
+                if selected_rules:
+                    content = st.session_state.get("protocol_text", "")
+                    if content.strip():
+                        validation_results = vm.validate_content_against_custom_rules(content, selected_rules)
+                        
+                        # Store results in session state
+                        st.session_state.validation_results = validation_results
+                        
+                        st.success("Validation completed!")
+                        
+                        # Display summary
+                        st.subheader("Validation Summary")
+                        col1, col2, col3 = st.columns(3)
+                        with col1:
+                            st.metric("Overall Result", "✅ Pass" if validation_results["overall_result"] else "❌ Fail")
+                        with col2:
+                            st.metric("Errors", validation_results["error_count"])
+                        with col3:
+                            st.metric("Warnings", validation_results["warning_count"])
+                    else:
+                        st.error("No content to validate. Please enter content in the main editor.")
+                else:
+                    st.error("Please select at least one rule to apply.")
+        else:
+            st.info("No validation rules available. Create some rules in the 'Manage Rules' tab first.")
+    
+    with tab3:
+        st.subheader("Validation Results")
+        
+        if "validation_results" in st.session_state:
+            results = st.session_state.validation_results
+            st.json(results)
+            
+            # Detailed breakdown
+            st.subheader("Detailed Results")
+            for rule_name, rule_result in results["validations"].items():
+                with st.expander(f"Rule: {rule_name} - {'✅ Pass' if rule_result['valid'] else '❌ Fail'}"):
+                    if rule_result["errors"]:
+                        st.error(f"Errors ({len(rule_result['errors'])}):")
+                        for error in rule_result["errors"]:
+                            st.write(f"- {error}")
+                    if rule_result["warnings"]:
+                        st.warning(f"Warnings ({len(rule_result['warnings'])}):")
+                        for warning in rule_result["warnings"]:
+                            st.write(f"- {warning}")
+                    if rule_result["suggestions"]:
+                        st.info(f"Suggestions ({len(rule_result['suggestions'])}):")
+                        for suggestion in rule_result["suggestions"]:
+                            st.write(f"- {suggestion}")
+        else:
+            st.info("Run validation first to see results here.")

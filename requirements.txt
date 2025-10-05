@@ -1,44 +1,36 @@
-streamlit>=1.27.0
-requests>=2.31.0
-streamlit-tags>=0.1.0
-fpdf>=1.7.2
-python-docx>=0.8.11
-numpy
-pandas
-altair
-pydeck
-watchdog
-protobuf
-blinker
-cachetools
-certifi
-charset-normalizer
-click
-colorama
-python-dateutil
-gitpython
-idna
-jinja2
-jsonschema
-lxml
-markupsafe
-packaging
-pillow
-pyarrow
-pytz
-referencing
-rpds-py
-six
-smmap
-tenacity
-toml
-tornado
-typing-extensions
-tzdata
-urllib3
-openai>=1.0.0
-pyyaml>=6.0
-tqdm>=4.64.0
-flask
-websockets
-pyvis
+# OpenEvolve Requirements
+
+# Core dependencies
+nltk>=3.9.0
+textstat>=0.7.10
+scikit-learn>=1.7.0
+scipy>=1.16.0
+numpy>=2.3.0
+PyYAML>=6.0.0
+Jinja2>=3.1.0
+requests>=2.32.0
+
+# Data processing
+pandas>=2.2.0
+matplotlib>=3.9.0
+seaborn>=0.13.0
+
+# Web framework
+streamlit>=1.38.0
+plotly>=5.24.0
+
+# Database (optional)
+sqlite3
+
+# Development tools
+pytest>=8.3.0
+black>=24.8.0
+flake8>=7.1.0
+mypy>=1.11.0
+
+# Documentation
+mkdocs>=1.6.0
+mkdocs-material>=9.5.0
+
+# Performance optimization
+asyncio-multiprocessing>=0.1.0

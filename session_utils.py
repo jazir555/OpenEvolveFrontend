@@ -11,7 +11,8 @@ from datetime import datetime
 import json
 import hashlib
 import re
-from providers import PROVIDERS
+import os
+from providercatalogue import PROVIDERS
 
 
 # Thread lock for safely updating shared session state from background threads.
@@ -1509,8 +1510,8 @@ ADVERSARIAL_PRESETS = {
 DEFAULTS = {
     "provider": "openai",
     "api_key": "",
-    "base_url": PROVIDERS["openai"]["base"],
-    "model": PROVIDERS["openai"]["model"],
+    "base_url": PROVIDERS["openai"]["api_base"], # Changed from "base" to "api_base"
+    "model": PROVIDERS["openai"]["default_model"], # Changed from "model" to "default_model"
     "extra_headers": "{}",
     "max_tokens": 4096,
     "temperature": 0.7,
@@ -1537,6 +1538,7 @@ DEFAULTS = {
     "openrouter_key": "",
     "red_team_models": [],
     "blue_team_models": [],
+    "evaluator_models": [],  # New: Evaluator team models
     "adversarial_running": False,
     "adversarial_results": {},
     "adversarial_status_message": "Idle.",
@@ -1555,10 +1557,17 @@ DEFAULTS = {
     "adversarial_rotation_strategy": "None",
     "adversarial_red_team_sample_size": 3,
     "adversarial_blue_team_sample_size": 3,
+    "adversarial_evaluator_sample_size": 3,  # New: Evaluator team sample size
     "adversarial_model_performance": {},
     "adversarial_confidence_history": [],
     "adversarial_staged_rotation_config": "",
-    "compliance_requirements": "",
+    "adversarial_compliance_requirements": "",
+    "adversarial_keyword_analysis_enabled": True,  # New: Keyword analysis enabled
+    "adversarial_keywords_to_target": [],  # New: Keywords to target in content
+    "adversarial_keyword_penalty_weight": 0.5,  # New: Keyword penalty weight
+    "adversarial_evaluator_threshold": 90.0,  # New: Evaluator team threshold (e.g., 90%)
+    "adversarial_evaluator_consecutive_rounds": 1,  # New: Consecutive rounds required
+    "adversarial_content_type": "general",  # New: Content type for processing
     # Collaborative features
     "project_name": "Untitled Project",
     "collaborators": [],
@@ -1586,37 +1595,55 @@ for k, v in DEFAULTS.items():
         st.session_state[k] = v
 
 
+def _load_parameter_settings() -> Dict:
+    settings_file = "parameter_settings.json"
+    if os.path.exists(settings_file):
+        try:
+            with open(settings_file, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            st.warning(f"⚠️ Corrupted parameter settings file: {settings_file}. Using defaults.")
+            return {}
+    return {}
+
+def _load_user_preferences() -> Dict:
+    preferences_file = "user_preferences.json"
+    if os.path.exists(preferences_file):
+        try:
+            with open(preferences_file, "r") as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            st.warning(f"⚠️ Corrupted user preferences file: {preferences_file}. Using defaults.")
+            return {}
+    return {}
+
 def reset_defaults():
     p = st.session_state.provider
     if p in PROVIDERS:
-        st.session_state.base_url = PROVIDERS[p].get("base", "")
-        st.session_state.model = PROVIDERS[p].get("model") or ""
+        st.session_state.base_url = PROVIDERS[p].get("api_base", "")
+        st.session_state.model = PROVIDERS[p].get("default_model") or ""
     st.session_state.api_key = ""
     st.session_state.extra_headers = "{}"
 
 
-def save_user_preferences():
+def save_user_preferences(preferences: Dict, parameter_settings: Dict) -> bool:
     """
-    Save user preferences to session state.
+    Save user preferences and parameter settings to local JSON files.
     """
     try:
-        if "user_preferences" not in st.session_state:
-            st.session_state.user_preferences = {}
+        # Save user preferences
+        preferences_file = "user_preferences.json"
+        with open(preferences_file, "w") as f:
+            json.dump(preferences, f, indent=2)
 
-        # Update preferences from UI elements
-        st.session_state.user_preferences["theme"] = st.session_state.get(
-            "theme", "light"
-        )
-        st.session_state.user_preferences["font_size"] = st.session_state.get(
-            "font_size", "medium"
-        )
-        st.session_state.user_preferences["auto_save"] = st.session_state.get(
-            "auto_save", True
-        )
+        # Save parameter settings
+        parameter_settings_file = "parameter_settings.json"
+        with open(parameter_settings_file, "w") as f:
+            json.dump(parameter_settings, f, indent=2)
 
         return True
     except Exception as e:
-        st.error(f"Error saving user preferences: {e}")
+        st.error(f"Error saving preferences and settings: {e}")
         return False
 
 
@@ -1639,4 +1666,13 @@ def get_project_root():
     """
     Returns the absolute path to the project's root directory.
     """
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    try:
+        return os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    except Exception as e:
+        # Fallback implementation - os is already imported at the module level
+        try:
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            return os.path.abspath(os.path.join(current_dir, os.pardir))
+        except Exception:
+            # Last resort fallback to current working directory
+            return os.getcwd()

@@ -374,15 +374,115 @@ version_control = VersionControl()
 
 def render_version_control():
     """
-    Placeholder function to render the version control section in the Streamlit UI.
-    This would typically allow users to view history, load versions, branch, and compare.
+    Renders the version control section in the Streamlit UI.
+    Allows users to view history, load versions, branch, and compare.
     """
     st.header("📜 Version Control")
-    st.info("Version control features are under development. Stay tuned!")
-    # Example of how you might use the manager:
-    # st.subheader("Version History")
-    # version_control.render_version_timeline()
-    #
-    # if st.button("Create New Version"):
-    #     version_control.create_new_version(st.session_state.protocol_text, "Manual Save")
-    #     st.success("New version created!")
+    
+    # Initialize version control if not already done
+    vc = VersionControl()
+    
+    # Create new version
+    with st.expander("💾 Save Current Version"):
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            version_name = st.text_input("Version Name (optional)", placeholder="e.g., Initial Draft, Updated Security Policy")
+        with col2:
+            st.write("")  # Spacer
+            st.write("")  # Spacer
+            if st.button("💾 Save Version", use_container_width=True):
+                if st.session_state.get("protocol_text", "").strip():
+                    comment = st.text_input("Optional Comment", placeholder="Brief description of changes")
+                    version_id = vc.create_new_version(st.session_state.protocol_text, version_name or "", comment)
+                    if version_id:
+                        st.success(f"Version saved successfully with ID: {version_id[:8]}...")
+                        st.rerun()
+                else:
+                    st.error("Cannot save empty protocol text")
+    
+    # Version history
+    st.subheader("📋 Version History")
+    versions = vc.get_version_history()
+    
+    if versions:
+        # Show most recent versions first
+        versions.reverse()
+        
+        # Pagination for versions
+        items_per_page = 5
+        total_pages = (len(versions) + items_per_page - 1) // items_per_page
+        if total_pages > 1:
+            page = st.selectbox("Page", range(1, total_pages + 1), format_func=lambda x: f"Page {x}")
+        else:
+            page = 1
+            
+        start_idx = (page - 1) * items_per_page
+        end_idx = start_idx + items_per_page
+        current_versions = versions[start_idx:end_idx]
+        
+        for version in current_versions:
+            is_current = version["id"] == st.session_state.get("current_version_id", "")
+            with st.container(border=True):
+                col1, col2 = st.columns([4, 1])
+                with col1:
+                    st.write(f"**{version['name']}**")
+                    st.caption(f"ID: {version['id'][:8]}...")
+                    st.caption(f"Author: {version['author']}")
+                    st.caption(f"Date: {version['timestamp'][:19].replace('T', ' ')}")
+                    if version.get("comment"):
+                        st.text(f"Comment: {version['comment']}")
+                with col2:
+                    if st.button(f"{'🔴' if is_current else '🔄'} Load", key=f"load_{version['id']}", 
+                                type="primary" if is_current else "secondary"):
+                        vc.load_version(version["id"])
+                        st.success(f"Loaded version: {version['name']}")
+                        st.rerun()
+                    
+                    if not is_current and st.button(f"SetBranch", key=f"branch_{version['id']}"):
+                        new_name = st.text_input("New Branch Name", value=f"Branch of {version['name']}")
+                        if st.button("Confirm Branch Creation"):
+                            new_id = vc.branch_version(version["id"], new_name)
+                            if new_id:
+                                st.success(f"Created branch from {version['name']}")
+                                st.rerun()
+        
+        # Compare versions
+        st.subheader("🔍 Compare Versions")
+        if len(versions) >= 2:
+            version_list = [v for v in versions]  # We reversed it earlier, so need to reverse again for proper chronological order
+            version_list.reverse()
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                version1_id = st.selectbox("First Version", 
+                                         [v["id"] for v in version_list], 
+                                         format_func=lambda x: next(v["name"] for v in version_list if v["id"] == x))
+            with col2:
+                version2_id = st.selectbox("Second Version", 
+                                         [v["id"] for v in version_list], 
+                                         format_func=lambda x: next(v["name"] for v in version_list if v["id"] == x),
+                                         index=len(version_list)-1)
+            
+            if st.button("Compare Versions"):
+                comparison = vc.compare_versions(version1_id, version2_id)
+                if "error" not in comparison:
+                    st.subheader("Comparison Results")
+                    st.json(comparison)
+                else:
+                    st.error(comparison["error"])
+        else:
+            st.info("Need at least 2 versions to compare")
+    else:
+        st.info("No versions saved yet. Save your first version above.")
+    
+    # Current version info
+    st.subheader("ℹ️ Current Version Info")
+    current = vc.get_current_version()
+    if current:
+        st.write(f"**Name:** {current['name']}")
+        st.write(f"**ID:** {current['id'][:8]}...")
+        st.write(f"**Timestamp:** {current['timestamp'][:19].replace('T', ' ')}")
+        if current.get("comment"):
+            st.write(f"**Comment:** {current['comment']}")
+    else:
+        st.info("No current version loaded")

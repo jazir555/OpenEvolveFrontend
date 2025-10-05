@@ -345,147 +345,16 @@ def get_github_commit_history(
         return []
 
 
-def render_github_integration_ui() -> str:
-    """Render the GitHub integration UI.
-
-    Returns:
-        str: HTML formatted GitHub integration UI
-    """
-    html = """
-    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-        <h2 style="color: #4a6fa5; margin-top: 0; text-align: center;">🔗 GitHub Integration</h2>
-
-        <!-- Authentication Section -->
-        <div style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
-            <h3 style="color: #4a6fa5; margin-top: 0;">🔐 Authentication</h3>
-    """
-
-    # Check if already authenticated
-    if st.session_state.get("github_user"):
-        user = st.session_state.github_user
-        html += f"""
-            <div style="display: flex; align-items: center; margin-bottom: 15px;">
-                <img src="{user.get("avatar_url", "")}" alt="Avatar" style="width: 40px; height: 40px; border-radius: 50%; margin-right: 10px;">
-                <div>
-                    <strong style="color: #4a6fa5;">{user.get("login", "Unknown")}</strong>
-                    <div style="font-size: 0.9em; color: #666;">Authenticated with GitHub</div>
-                </div>
-                <button onclick="disconnectGitHub()" style="margin-left: auto; background-color: #f44336; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
-                    Disconnect
-                </button>
-            </div>
-        """
-    else:
-        html += """
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">GitHub Personal Access Token</label>
-                <input type="password" id="githubToken" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;" placeholder="Enter your GitHub personal access token">
-                <p style="font-size: 0.8em; color: #666; margin-top: 5px;">
-                    Generate a token with 'repo' permissions at <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings</a>
-                </p>
-            </div>
-            <button onclick="authenticateGitHub()" style="background-color: #4a6fa5; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                Authenticate with GitHub
-            </button>
-        """
-
-    html += """
-        </div>
-
-        <!-- Repository Selection -->
-        <div id="repoSelection" style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; display: none;">
-            <h3 style="color: #4a6fa5; margin-top: 0;">📂 Select Repository</h3>
-            <div id="repoList">
-                <!-- Repositories will be populated by JavaScript -->
-            </div>
-        </div>
-
-        <!-- Branch Management -->
-        <div id="branchManagement" style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px; display: none;">
-            <h3 style="color: #4a6fa5; margin-top: 0;">🌿 Branch Management</h3>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Create New Branch</label>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="newBranchName" placeholder="Enter branch name (e.g., protocol-improvement-v1)" style="flex: 1; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-                    <button onclick="createBranch()" style="background-color: #4a6fa5; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer;">
-                        Create Branch
-                    </button>
-                </div>
-            </div>
-            <div id="branchList">
-                <!-- Branches will be populated by JavaScript -->
-            </div>
-        </div>
-
-        <!-- Commit and Push -->
-        <div id="commitSection" style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: none;">
-            <h3 style="color: #4a6fa5; margin-top: 0;">💾 Commit and Push</h3>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">File Path</label>
-                <input type="text" id="filePath" value="protocols/evolved_protocol.md" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Commit Message</label>
-                <input type="text" id="commitMessage" placeholder="Enter commit message" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Branch</label>
-                <select id="commitBranch" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-                    <option value="main">main</option>
-                    <!-- Other branches will be populated by JavaScript -->
-                </select>
-            </div>
-            <button onclick="commitToGitHub()" style="width: 100%; background-color: #4a6fa5; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 1.1em;">
-                🚀 Commit and Push to GitHub
-            </button>
-        </div>
-    </div>
-
-    <script>
-    function authenticateGitHub() {
-        const token = document.getElementById('githubToken').value;
-        if (!token) {
-            alert('Please enter a GitHub personal access token.');
-            return;
-        }
-
-        // In a real implementation, this would authenticate with GitHub
-        alert('Authenticating with GitHub... (This would connect in a real implementation)');
-    }
-
-    function disconnectGitHub() {
-        // In a real implementation, this would disconnect from GitHub
-        alert('Disconnecting from GitHub... (This would disconnect in a real implementation)');
-    }
-
-    function createBranch() {
-        const branchName = document.getElementById('newBranchName').value;
-        if (!branchName) {
-            alert('Please enter a branch name.');
-            return;
-        }
-
-        // In a real implementation, this would create a branch
-        alert(`Creating branch: ${branchName} (This would create the branch in a real implementation)`);
-    }
-
-    function commitToGitHub() {
-        const filePath = document.getElementById('filePath').value;
-        const commitMessage = document.getElementById('commitMessage').value;
-        const branch = document.getElementById('commitBranch').value;
-
-        if (!filePath || !commitMessage) {
-            alert('Please fill in all fields.');
-            return;
-        }
-
-        // In a real implementation, this would commit to GitHub
-        alert(`Committing to GitHub: ${filePath} on branch ${branch} (This would commit in a real implementation)`);
-    }
-    </script>
-    """
-
-    return html
+# Note: This function is deprecated as GitHub functionality has been moved to the GitHub tab in mainlayout.py
+# The functionality is now implemented using Streamlit native components instead of HTML/JS
+def render_github_integration_ui():
+    """Deprecated: GitHub integration UI. Use the GitHub tab in mainlayout.py instead."""
+    import streamlit as st
+    st.warning("GitHub integration is now available in the GitHub tab.")
+    if st.button("Go to GitHub Tab"):
+        # This requires Streamlit's experimental feature which might not work as expected
+        st.info("Navigate to the GitHub tab (🐙) in the main interface")
+    return ""
 
 
 # GitHub Repository Integration
@@ -699,211 +568,53 @@ def get_protocol_generations_from_github(repo_name: str) -> List[Dict]:
     return []
 
 
-def render_github_branching_ui() -> str:
-    """Render the GitHub branching UI.
+# Note: This function is deprecated as GitHub branching functionality has been moved to the GitHub tab in mainlayout.py
+# The functionality is now implemented using Streamlit native components instead of HTML/JS
+def render_github_branching_ui():
+    """Deprecated: GitHub branching UI. Use the GitHub tab in mainlayout.py instead."""
+    import streamlit as st
+    st.warning("GitHub branching is now available in the GitHub tab.")
+    if st.button("Go to GitHub Tab for Branching"):
+        st.info("Navigate to the GitHub tab (🐙) in the main interface")
+    return ""
 
+
+def sync_content_to_github(
+    content: str,
+    repo_name: str,
+    file_path: str,
+    commit_message: str = None,
+    branch_name: str = "main"
+) -> bool:
+    """
+    Sync evolved content to a GitHub repository.
+    
+    Args:
+        content: Content to sync
+        repo_name: Full name of the repository
+        file_path: Path to the file in the repository
+        commit_message: Commit message (optional)
+        branch_name: Branch to commit to (default: "main")
+        
     Returns:
-        str: HTML formatted branching UI
+        True if sync is successful, False otherwise
     """
-    html = """
-    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-        <h2 style="color: #4a6fa5; margin-top: 0; text-align: center;">🌿 GitHub Branching</h2>
-
-        <!-- Branch Creation -->
-        <div style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
-            <h3 style="color: #4a6fa5; margin-top: 0;">Create New Branch</h3>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Branch Name</label>
-                <input type="text" id="branchName" placeholder="e.g., protocol-improvement-v1" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Base Branch</label>
-                <select id="baseBranch" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-                    <option value="main">main</option>
-                    <option value="develop">develop</option>
-                </select>
-            </div>
-            <button onclick="createBranch()" style="width: 100%; background-color: #4a6fa5; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 1.1em;">
-                🌿 Create Branch
-            </button>
-        </div>
-
-        <!-- Branch List -->
-        <div style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h3 style="color: #4a6fa5; margin-top: 0;">Existing Branches</h3>
-            <div id="branchList" style="max-height: 300px; overflow-y: auto;">
-                <!-- Branches will be populated by JavaScript -->
-                <div style="background-color: #e8f5e9; padding: 10px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid #4caf50;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <strong style="color: #2e7d32;">main</strong>
-                            <div style="font-size: 0.9em; color: #666;">Default branch</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 0.9em; color: #666;">Last updated: Today</div>
-                            <button onclick="switchToBranch('main')" style="background-color: #4a6fa5; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em; margin-top: 5px;">
-                                Switch
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <div style="background-color: #fff8e1; padding: 10px; border-radius: 5px; margin-bottom: 10px; border-left: 4px solid #ff9800;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <strong style="color: #f57f17;">develop</strong>
-                            <div style="font-size: 0.9em; color: #666;">Development branch</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 0.9em; color: #666;">Last updated: Yesterday</div>
-                            <button onclick="switchToBranch('develop')" style="background-color: #4a6fa5; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em; margin-top: 5px;">
-                                Switch
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    function createBranch() {
-        const branchName = document.getElementById('branchName').value;
-        const baseBranch = document.getElementById('baseBranch').value;
-
-        if (!branchName) {
-            alert('Please enter a branch name.');
-            return;
-        }
-
-        // In a real implementation, this would create a branch
-        alert(`Creating branch '${branchName}' from '${baseBranch}' (This would create the branch in a real implementation)`);
-    }
-
-    function switchToBranch(branchName) {
-        // In a real implementation, this would switch to the branch
-        alert(`Switching to branch: ${branchName} (This would switch branches in a real implementation)`);
-    }
-    </script>
-    """
-
-    return html
-
-
-def render_remote_storage_ui() -> str:
-    """Render the remote storage UI for protocol generations.
-
-    Returns:
-        str: HTML formatted remote storage UI
-    """
-    html = """
-    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-        <h2 style="color: #4a6fa5; margin-top: 0; text-align: center;">☁️ Remote Storage</h2>
-
-        <!-- Save Generation -->
-        <div style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 20px;">
-            <h3 style="color: #4a6fa5; margin-top: 0;">Save Current Generation</h3>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Generation Name</label>
-                <input type="text" id="generationName" placeholder="e.g., security-policy-v1" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Repository</label>
-                <select id="storageRepo" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-                    <option value="">Select a repository</option>
-                    <option value="user/repo1">user/repo1</option>
-                    <option value="user/repo2">user/repo2</option>
-                </select>
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Branch (Optional)</label>
-                <select id="storageBranch" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-                    <option value="">Use default branch</option>
-                    <option value="main">main</option>
-                    <option value="develop">develop</option>
-                </select>
-            </div>
-            <div style="margin-bottom: 15px;">
-                <label style="display: block; margin-bottom: 5px; font-weight: bold;">Commit Message (Optional)</label>
-                <input type="text" id="commitMessage" placeholder="Enter commit message" style="width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd;">
-            </div>
-            <button onclick="saveGeneration()" style="width: 100%; background: linear-gradient(135deg, #4a6fa5, #6b8cbc); color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-size: 1.1em; font-weight: 600;">
-                ☁️ Save to Remote Storage
-            </button>
-        </div>
-
-        <!-- Generation History -->
-        <div style="background-color: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-            <h3 style="color: #4a6fa5; margin-top: 0;">Generation History</h3>
-            <div id="generationHistory" style="max-height: 400px; overflow-y: auto;">
-                <!-- Generations will be populated by JavaScript -->
-                <div style="background-color: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #2196f3;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <strong style="color: #1565c0;">security-policy-v1</strong>
-                            <div style="font-size: 0.9em; color: #666;">user/repo1 • protocols/security-policy-v1_20231201_143022.md</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 0.9em; color: #666;">Dec 1, 2023 • 2:30 PM</div>
-                            <div style="margin-top: 5px;">
-                                <button onclick="viewGeneration('user/repo1', 'protocols/security-policy-v1_20231201_143022.md')" style="background-color: #4a6fa5; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em; margin-right: 5px;">
-                                    View
-                                </button>
-                                <button onclick="downloadGeneration('user/repo1', 'protocols/security-policy-v1_20231201_143022.md')" style="background-color: #6b8cbc; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">
-                                    Download
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div style="background-color: #e8f5e9; padding: 15px; border-radius: 8px; margin-bottom: 15px; border-left: 4px solid #4caf50;">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
-                        <div>
-                            <strong style="color: #2e7d32;">api-security-review-v2</strong>
-                            <div style="font-size: 0.9em; color: #666;">user/repo2 • protocols/api-security-review-v2_20231130_091545.md</div>
-                        </div>
-                        <div style="text-align: right;">
-                            <div style="font-size: 0.9em; color: #666;">Nov 30, 2023 • 9:15 AM</div>
-                            <div style="margin-top: 5px;">
-                                <button onclick="viewGeneration('user/repo2', 'protocols/api-security-review-v2_20231130_091545.md')" style="background-color: #4a6fa5; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em; margin-right: 5px;">
-                                    View
-                                </button>
-                                <button onclick="downloadGeneration('user/repo2', 'protocols/api-security-review-v2_20231130_091545.md')" style="background-color: #6b8cbc; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em;">
-                                    Download
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    function saveGeneration() {
-        const generationName = document.getElementById('generationName').value;
-        const repo = document.getElementById('storageRepo').value;
-        const branch = document.getElementById('storageBranch').value;
-        const commitMsg = document.getElementById('commitMessage').value;
-
-        if (!generationName || !repo) {
-            alert('Please fill in all required fields.');
-            return;
-        }
-
-        // In a real implementation, this would save the generation
-        alert(`Saving generation '${generationName}' to ${repo}${branch ? ` on branch ${branch}` : ''} (This would save in a real implementation)`);
-    }
-
-    function viewGeneration(repo, filePath) {
-        // In a real implementation, this would view the generation
-        alert(`Viewing generation: ${repo}/${filePath} (This would display the content in a real implementation)`);
-    }
-
-    function downloadGeneration(repo, filePath) {
-        // In a real implementation, this would download the generation
-        alert(`Downloading generation: ${repo}/${filePath} (This would download the file in a real implementation)`);
-    }
-    </script>
-    """
-
-    return html
+    try:
+        github_token = st.session_state.get("github_token")
+        if not github_token:
+            st.error("GitHub token not configured")
+            return False
+            
+        commit_msg = commit_message or f"Update evolved content - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        
+        return commit_to_github(
+            github_token,
+            repo_name,
+            file_path,
+            content,
+            commit_msg,
+            branch_name
+        )
+    except Exception as e:
+        st.error(f"Error syncing content to GitHub: {e}")
+        return False

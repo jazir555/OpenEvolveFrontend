@@ -28,16 +28,17 @@ class ContentManagement:
         self.report_templates = REPORT_TEMPLATES
 
     @st.cache_data(ttl=3600) # Cache the result for 1 hour
-    def list_protocol_templates(self) -> List[str]:
+    def list_protocol_templates(_self) -> List[str]:
         """
         List all available protocol templates.
 
         Returns:
             List[str]: List of template names
         """
-        return list(self.protocol_templates.keys())
+        return list(_self.protocol_templates.keys())
 
-    def load_protocol_template(self, template_name: str) -> str:
+    @st.cache_data(ttl=300) # Cache for 5 minutes
+    def load_protocol_template(_self, template_name: str) -> str:
         """
         Load a protocol template.
 
@@ -47,7 +48,7 @@ class ContentManagement:
         Returns:
             str: Template content
         """
-        return self.protocol_templates.get(template_name, "")
+        return _self.protocol_templates.get(template_name, "")
 
     def export_protocol_as_template(
         self, protocol_text: str, template_name: str
@@ -71,8 +72,9 @@ class ContentManagement:
             "tags": [],
         }
 
+    @st.cache_data(ttl=300) # Cache for 5 minutes
     def validate_protocol(
-        self, protocol_text: str, validation_type: str = "generic"
+        _self, protocol_text: str, validation_type: str = "generic"
     ) -> Dict:
         """
         Validate a protocol against predefined rules.
@@ -93,8 +95,8 @@ class ContentManagement:
                 "suggestions": ["Please provide protocol text to validate"],
             }
 
-        rules = self.validation_rules.get(
-            validation_type, self.validation_rules.get("generic", {{}})
+        rules = _self.validation_rules.get(
+            validation_type, _self.validation_rules.get("generic", {{}})
         )
 
         errors = []
@@ -352,7 +354,8 @@ class ContentManagement:
 
         return report_content
 
-    def generate_content_summary(self, content: str) -> Dict:
+    @st.cache_data(ttl=300) # Cache for 5 minutes
+    def generate_content_summary(_self, content: str) -> Dict:
         """
         Generate a summary of the content including key metrics.
 
@@ -405,17 +408,152 @@ content_manager = ContentManagement()
 
 def render_content_manager():
     """
-    Placeholder function to render the content manager section in the Streamlit UI.
-    This would typically allow users to manage protocols, templates, and view content-related analytics.
+    Renders the content manager section in the Streamlit UI.
+    Allows users to manage protocols, templates, and view content-related analytics.
     """
     st.header("📝 Content Manager")
-    st.info("Content management features are under development. Stay tuned!")
-    # Example of how you might use the manager:
-    # st.subheader("Protocol Templates")
-    # for template_name in content_manager.list_protocol_templates():
-    #     st.write(f"- {template_name}")
-    #
-    # if st.button("Validate Current Protocol"):
-    #     if st.session_state.get("protocol_text"):
-    #         results = content_manager.validate_protocol(st.session_state.protocol_text)
-    #         st.write(results)
+    
+    # Initialize content manager
+    cm = ContentManagement()
+    
+    st.info("Manage your content, templates, and analyze content quality.")
+    
+    # Create tabs for different content management features
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "📋 My Protocols", 
+        "📁 Templates", 
+        "🔍 Content Analysis", 
+        "📊 Content Metrics"
+    ])
+    
+    with tab1:
+        st.subheader("My Protocols")
+        
+        # Save current content as protocol
+        with st.expander("💾 Save Current Content", expanded=True):
+            protocol_name = st.text_input("Protocol Name", placeholder="e.g., Security Policy v1.0")
+            protocol_description = st.text_area("Description (optional)", placeholder="Brief description of the protocol...")
+            
+            if st.button("Save Protocol"):
+                if protocol_name.strip():
+                    content = st.session_state.get("protocol_text", "")
+                    if content.strip():
+                        protocol_id = cm.save_protocol(protocol_name, content, protocol_description)
+                        st.success(f"Protocol '{protocol_name}' saved successfully with ID: {protocol_id}")
+                        st.rerun()
+                    else:
+                        st.error("No content to save. Please enter content in the main editor first.")
+                else:
+                    st.error("Protocol name is required!")
+        
+        # List existing protocols
+        protocols = cm.list_protocols()
+        if protocols:
+            st.subheader(f"Saved Protocols ({len(protocols)})")
+            
+            # Pagination for protocols
+            items_per_page = 5
+            total_pages = (len(protocols) + items_per_page - 1) // items_per_page
+            if total_pages > 1:
+                page = st.selectbox("Page", range(1, total_pages + 1), format_func=lambda x: f"Page {x}")
+            else:
+                page = 1
+                
+            start_idx = (page - 1) * items_per_page
+            end_idx = start_idx + items_per_page
+            current_protocols = protocols[start_idx:end_idx]
+            
+            for protocol_id in current_protocols:
+                details = cm.get_protocol_details(protocol_id)
+                if details:
+                    with st.container(border=True):
+                        col1, col2, col3 = st.columns([3, 2, 1])
+                        with col1:
+                            st.write(f"**{details.get('name', 'Unknown')}**")
+                            if details.get("description"):
+                                st.caption(details["description"])
+                        with col2:
+                            st.caption(f"Created: {details.get('timestamp', 'Unknown')[:19].replace('T', ' ')}")
+                        with col3:
+                            if st.button("Load", key=f"load_{protocol_id}"):
+                                st.session_state.protocol_text = details.get("content", "")
+                                st.success(f"Protocol '{details['name']}' loaded!")
+                                st.rerun()
+                            # Delete button
+                            if st.button("🗑️", key=f"delete_{protocol_id}"):
+                                cm.delete_protocol(protocol_id)
+                                st.rerun()
+        else:
+            st.info("No protocols saved yet. Save one above!")
+    
+    with tab2:
+        st.subheader("Content Templates")
+        
+        # Create from template
+        templates = cm.list_protocol_templates()
+        if templates:
+            selected_template = st.selectbox("Select Template", [""] + templates)
+            if selected_template:
+                if st.button(f"Create from '{selected_template}'"):
+                    content = cm.load_protocol_template(selected_template)
+                    st.session_state.protocol_text = content
+                    st.success(f"Created content from template: {selected_template}")
+                    st.rerun()
+            
+            # Show template content preview
+            if selected_template:
+                st.subheader(f"Template Preview: {selected_template}")
+                content = cm.load_protocol_template(selected_template)
+                st.code(content[:500] + ("..." if len(content) > 500 else ""), language="markdown")
+        else:
+            st.info("No templates available.")
+    
+    with tab3:
+        st.subheader("Content Analysis")
+        
+        content = st.session_state.get("protocol_text", "")
+        if content.strip():
+            if st.button("Analyze Current Content"):
+                with st.spinner("Analyzing content..."):
+                    # Get various content metrics
+                    word_count = len(content.split())
+                    char_count = len(content)
+                    line_count = len(content.splitlines())
+                    
+                    # Simple readability estimation
+                    avg_word_length = sum(len(word) for word in content.split()) / (len(content.split()) or 1)
+                    
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.metric("Words", word_count)
+                    with col2:
+                        st.metric("Characters", char_count)
+                    with col3:
+                        st.metric("Lines", line_count)
+                    
+                    col4, col5 = st.columns(2)
+                    with col4:
+                        st.metric("Avg. Word Length", f"{avg_word_length:.1f}")
+                    with col5:
+                        # Complexity estimation
+                        complexity_score = min(10, (word_count * avg_word_length) / 50)
+                        st.metric("Complexity", f"{complexity_score:.1f}/10")
+        else:
+            st.info("Enter content in the main editor to analyze it.")
+    
+    with tab4:
+        st.subheader("Content Metrics")
+        
+        total_protocols = len(cm.list_protocols())
+        st.metric("Total Protocols", total_protocols)
+        
+        if total_protocols > 0:
+            st.write("Recent Activity:")
+            # Show recent protocols (last 5)
+            recent_protocols = cm.list_protocols()[-5:]
+            for protocol_id in reversed(recent_protocols):
+                details = cm.get_protocol_details(protocol_id)
+                if details:
+                    st.caption(f"• {details.get('name')} - {details.get('timestamp', '')[:19].replace('T', ' ')}")
+    
+    st.info("💡 Pro Tip: Use the content manager to organize, save, and reuse your protocols and templates efficiently.")

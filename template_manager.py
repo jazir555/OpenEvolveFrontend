@@ -296,14 +296,140 @@ template_manager = TemplateManager()
 
 def render_template_manager():
     """
-    Placeholder function to render the template manager section in the Streamlit UI.
-    This would typically allow users to browse, search, and manage templates.
+    Renders the template manager section in the Streamlit UI.
+    Allows users to browse, search, and manage templates.
     """
     st.header("📚 Template Manager")
-    st.info("Template management features are under development. Stay tuned!")
-    # Example of how you might use the manager:
-    # st.subheader("Template Marketplace")
-    # template_manager.render_template_marketplace_ui()
-    #
-    # st.subheader("My Custom Templates")
-    # # Logic to display custom templates
+    
+    # Initialize template manager
+    tm = TemplateManager()
+    
+    # Create tabs for different template functions
+    tab1, tab2, tab3 = st.tabs(["🏪 Marketplace", "📁 My Templates", "➕ Create Template"])
+    
+    with tab1:
+        st.subheader("Template Marketplace")
+        
+        # Search functionality
+        search_query = st.text_input("Search Templates", placeholder="Search by name, description, or tags...")
+        
+        if search_query:
+            results = tm.search_templates(search_query)
+            if results:
+                for category, template_name, details in results:
+                    with st.container(border=True):
+                        col1, col2 = st.columns([4, 1])
+                        with col1:
+                            st.write(f"**{template_name}**")
+                            st.caption(f"Category: {details.get('category', 'General')}")
+                            st.caption(details.get("description", "No description provided"))
+                            if details.get("tags"):
+                                tag_str = " ".join([f"`{tag}`" for tag in details.get("tags", [])[:3]])  # Show first 3 tags
+                                st.caption(f"Tags: {tag_str}")
+                        with col2:
+                            st.caption(f"⭐ {details.get('rating', 0)}/5 ({details.get('downloads', 0)} downloads)")
+                            if st.button("Use Template", key=f"use_{template_name}"):
+                                st.session_state.protocol_text = details.get("content", "")
+                                st.success(f"Template '{template_name}' loaded!")
+                                st.rerun()
+        else:
+            # Show categories and templates
+            col1, col2 = st.columns(2)
+            with col1:
+                st.write("**Popular Templates**")
+                popular = tm.get_popular_templates(5)
+                for category, template_name, details in popular:
+                    if st.button(f"📋 {template_name}", key=f"popular_{template_name}"):
+                        st.session_state.protocol_text = details.get("content", "")
+                        st.success(f"Loaded popular template: {template_name}")
+                        st.rerun()
+            
+            with col2:
+                st.write("**Top Rated Templates**")
+                top_rated = tm.get_top_rated_templates(5)
+                for category, template_name, details in top_rated:
+                    if st.button(f"⭐ {template_name}", key=f"rated_{template_name}"):
+                        st.session_state.protocol_text = details.get("content", "")
+                        st.success(f"Loaded top-rated template: {template_name}")
+                        st.rerun()
+            
+            # Show by category
+            st.subheader("Browse by Category")
+            categories = tm.list_template_categories()
+            if categories:
+                selected_category = st.selectbox("Select Category", categories)
+                if selected_category:
+                    templates = tm.list_templates_in_category(selected_category)
+                    if templates:
+                        for template_name in templates:
+                            details = tm.get_template_details(selected_category, template_name)
+                            with st.container(border=True):
+                                st.write(f"**{template_name}**")
+                                st.caption(details.get("description", "No description provided"))
+                                col1, col2 = st.columns([3, 1])
+                                with col1:
+                                    st.caption(f"⭐ Rating: {details.get('rating', 0)}/5 | 📥 Downloads: {details.get('downloads', 0)}")
+                                with col2:
+                                    if st.button("Load", key=f"load_{template_name}"):
+                                        st.session_state.protocol_text = details.get("content", "")
+                                        st.success(f"Template '{template_name}' loaded!")
+                                        st.rerun()
+    
+    with tab2:
+        st.subheader("My Custom Templates")
+        
+        # Show custom templates if any exist
+        all_templates = tm.get_all_templates()
+        
+        custom_templates_exist = "custom_templates" in st.session_state and st.session_state.get("custom_templates", {})
+        
+        if custom_templates_exist:
+            custom_cats = st.session_state.custom_templates
+            for category, templates in custom_cats.items():
+                st.write(f"**{category}**")
+                for template_name, details in templates.items():
+                    with st.container(border=True):
+                        col1, col2 = st.columns([3, 1])
+                        with col1:
+                            st.write(f"**{template_name}**")
+                            st.caption(details.get("description", "No description"))
+                        with col2:
+                            if st.button("Use", key=f"my_{template_name}"):
+                                st.session_state.protocol_text = details.get("content", "")
+                                st.success(f"Loaded custom template: {template_name}")
+                                st.rerun()
+        else:
+            st.info("You don't have any custom templates yet. Create one in the 'Create Template' tab!")
+    
+    with tab3:
+        st.subheader("Create New Template")
+        
+        with st.form("create_template_form"):
+            col1, col2 = st.columns(2)
+            with col1:
+                new_template_name = st.text_input("Template Name", placeholder="e.g., Security Policy Template")
+                category = st.text_input("Category", placeholder="e.g., Security, Documentation")
+            with col2:
+                description = st.text_input("Description", placeholder="Brief description of the template")
+            
+            tags = st.text_input("Tags (comma-separated)", placeholder="e.g., security, policy, compliance")
+            template_content = st.text_area("Template Content", height=200, 
+                                          value=st.session_state.get("protocol_text", ""))
+            
+            submitted = st.form_submit_button("Save as Template")
+            if submitted:
+                if new_template_name.strip() and template_content.strip():
+                    tags_list = [tag.strip() for tag in tags.split(",")] if tags.strip() else []
+                    if tm.add_custom_template(category or "Uncategorized", 
+                                            new_template_name, 
+                                            template_content, 
+                                            description, 
+                                            tags_list):
+                        st.success(f"Template '{new_template_name}' saved successfully!")
+                        st.rerun()
+                    else:
+                        st.error("Failed to save template")
+                else:
+                    st.error("Template name and content are required!")
+        
+        st.info("💡 Pro Tip: You can save your current content as a template to reuse later!")

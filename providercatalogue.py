@@ -45,8 +45,12 @@ def _parse_price_per_million(price: Any) -> Optional[float]:
 
 
 # Helper function for OpenAI-style loaders
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
 def _openai_style_loader(url: str, api_key: Optional[str] = None) -> List[str]:
     """Generic loader for OpenAI-style APIs."""
+    if not url:
+        st.warning("Could not fetch models: Model endpoint URL is missing or invalid.")
+        return []
     try:
         headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
         response = requests.get(url, headers=headers, timeout=10)
@@ -78,6 +82,7 @@ def _groq_loader(api_key: Optional[str] = None) -> List[str]:
     ]
 
 
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
 def _together_loader(api_key: Optional[str] = None) -> List[str]:
     """Loader for Together models."""
     try:
@@ -110,6 +115,7 @@ def _together_loader(api_key: Optional[str] = None) -> List[str]:
         ]
 
 
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
 def _fireworks_loader(api_key: Optional[str] = None) -> List[str]:
     """Loader for Fireworks models."""
     try:
@@ -200,6 +206,10 @@ def _deepseek_loader(api_key: Optional[str] = None) -> List[str]:
     """Loader for DeepSeek models."""
     # DeepSeek doesn't have a public models endpoint, so we'll return a predefined list
     return ["deepseek-chat", "deepseek-coder"]
+
+def _generic_loader(api_key: Optional[str] = None) -> List[str]:
+    """Generic loader for models without a public models endpoint."""
+    return ["default-model-1", "default-model-2", "default-model-3"]
 
 
 def fetch_providers_from_backend(api: OpenEvolveAPI) -> Dict[str, Any]:
@@ -304,6 +314,167 @@ PROVIDERS = {
         "models_endpoint": None,
         "loader": _deepseek_loader,
         "default_model": "deepseek-chat",
+    },
+    "azure_openai": {
+        "name": "Azure OpenAI",
+        "api_base": "YOUR_AZURE_ENDPOINT",
+        "models_endpoint": "YOUR_AZURE_ENDPOINT/openai/deployments?api-version=2023-05-15",
+        "loader": _openai_style_loader,
+        "default_model": "gpt-4",
+    },
+    "perplexity": {
+        "name": "Perplexity AI",
+        "api_base": "https://api.perplexity.ai",
+        "models_endpoint": "https://api.perplexity.ai/models",
+        "loader": _openai_style_loader,
+        "default_model": "llama-3-sonar-small-32k-online",
+    },
+    "cohere": {
+        "name": "Cohere",
+        "api_base": "https://api.cohere.ai",
+        "models_endpoint": "https://api.cohere.ai/v1/models",
+        "loader": _openai_style_loader,
+        "default_model": "command-r-plus",
+    },
+    "mistral": {
+        "name": "Mistral AI",
+        "api_base": "https://api.mistral.ai/v1",
+        "models_endpoint": "https://api.mistral.ai/v1/models",
+        "loader": _openai_style_loader,
+        "default_model": "mistral-large-latest",
+    },
+    "anyscale": {
+        "name": "Anyscale Endpoints",
+        "api_base": "https://api.endpoints.anyscale.com/v1",
+        "models_endpoint": "https://api.endpoints.anyscale.com/v1/models",
+        "loader": _openai_style_loader,
+        "default_model": "mistralai/Mistral-7B-Instruct-v0.1",
+    },
+    "databricks": {
+        "name": "Databricks",
+        "api_base": "https://dbc-YOUR_WORKSPACE_ID.cloud.databricks.com/serving-endpoints",
+        "models_endpoint": "https://dbc-YOUR_WORKSPACE_ID.cloud.databricks.com/api/2.0/serving-endpoints",
+        "loader": _openai_style_loader,
+        "default_model": "databricks-llama-2-70b-chat",
+    },
+    "novita": {
+        "name": "Novita AI",
+        "api_base": "https://api.novita.ai/v3/openai",
+        "models_endpoint": "https://api.novita.ai/v3/openai/models",
+        "loader": _openai_style_loader,
+        "default_model": "gpt-3.5-turbo",
+    },
+    "deepinfra": {
+        "name": "DeepInfra",
+        "api_base": "https://api.deepinfra.com/v1/openai",
+        "models_endpoint": "https://api.deepinfra.com/v1/openai/models",
+        "loader": _openai_style_loader,
+        "default_model": "meta-llama/Llama-2-70b-chat-hf",
+    },
+    "tii": {
+        "name": "TII Falcon",
+        "api_base": "https://api.tii.ae/v1",
+        "models_endpoint": "https://api.tii.ae/v1/models",
+        "loader": _openai_style_loader,
+        "default_model": "falcon-180b-chat",
+    },
+    "huggingface": {
+        "name": "Hugging Face",
+        "api_base": "https://api-inference.huggingface.co/models",
+        "models_endpoint": "https://api-inference.huggingface.co/models", # This might need a custom loader for specific HF models
+        "loader": _openai_style_loader, # Placeholder, might need custom logic
+        "default_model": "HuggingFaceH4/zephyr-7b-beta",
+    },
+    "amazon_bedrock": {
+        "name": "Amazon Bedrock",
+        "api_base": "https://bedrock.us-east-1.amazonaws.com",
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "anthropic.claude-3-sonnet-20240229-v1:0",
+    },
+    "google_vertex_ai": {
+        "name": "Google Vertex AI",
+        "api_base": "https://us-central1-aiplatform.googleapis.com",
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "gemini-pro",
+    },
+    "nvidia": {
+        "name": "NVIDIA AI Foundation Models",
+        "api_base": "https://api.nvcf.nvidia.com/v2/nvcf/infer",
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "nv-llama2-70b",
+    },
+    "replicate": {
+        "name": "Replicate",
+        "api_base": "https://api.replicate.com/v1",
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "meta/llama-2-70b-chat",
+    },
+    "aleph_alpha": {
+        "name": "Aleph Alpha",
+        "api_base": "https://api.aleph-alpha.com",
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "luminous-extended",
+    },
+    "ai21": {
+        "name": "AI21 Labs",
+        "api_base": "https://api.ai21.com/studio/v1",
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "j2-ultra",
+    },
+    "baseten": {
+        "name": "Baseten",
+        "api_base": "https://model.baseten.co",
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "llama-2-7b-chat",
+    },
+    "runpod": {
+        "name": "RunPod",
+        "api_base": "https://api.runpod.ai/v2",
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "llama2-70b-chat",
+    },
+    "modal": {
+        "name": "Modal Labs",
+        "api_base": "https://api.modal.com/v1",
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "modal-llama-2-70b-chat",
+    },
+    "vllm": {
+        "name": "vLLM",
+        "api_base": "http://localhost:8000/v1", # Assuming local vLLM instance
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "llama-2-7b-chat",
+    },
+    "llama_cpp": {
+        "name": "llama.cpp",
+        "api_base": "http://localhost:8080/v1", # Assuming local llama.cpp instance
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "llama-2-7b-chat.Q4_0.gguf",
+    },
+    "ollama": {
+        "name": "Ollama",
+        "api_base": "http://localhost:11434/api",
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "llama2",
+    },
+    "local_llm": {
+        "name": "Local LLM (Generic)",
+        "api_base": "http://localhost:8000/v1",
+        "models_endpoint": None,
+        "loader": _generic_loader,
+        "default_model": "local-model",
     },
 }
 

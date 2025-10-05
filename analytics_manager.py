@@ -4,12 +4,15 @@ This file manages analytics, insights, and data analysis features
 File size: ~1200 lines (under the 2000 line limit)
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, List
 from session_utils import (
     calculate_protocol_complexity,
     extract_protocol_structure,
     generate_protocol_recommendations,
 )
+import time
+import numpy as np
+from collections import defaultdict
 
 
 class AnalyticsManager:
@@ -48,6 +51,473 @@ class AnalyticsManager:
         structure = extract_protocol_structure(protocol_text)
 
         # Overall score calculation (weighted)
+        structure_score = self._calculate_structure_score(structure)
+        complexity_score = self._calculate_complexity_score(complexity)
+        readability_score = self._calculate_readability_score(protocol_text)
+        
+        overall_score = (
+            structure_score * 0.4 +
+            complexity_score * 0.3 +
+            readability_score * 0.3
+        )
+
+        # Generate SWOT analysis
+        strengths = self._identify_strengths(structure, complexity)
+        weaknesses = self._identify_weaknesses(structure, complexity)
+        opportunities = self._identify_opportunities(structure, complexity)
+        threats = self._identify_threats(structure, complexity)
+
+        # Generate recommendations
+        recommendations = generate_protocol_recommendations(
+            structure, complexity, readability_score
+        )
+
+        return {
+            "overall_score": round(overall_score, 2),
+            "strengths": strengths,
+            "weaknesses": weaknesses,
+            "opportunities": opportunities,
+            "threats": threats,
+            "recommendations": recommendations,
+            "complexity_analysis": complexity,
+            "readability_score": round(readability_score, 2),
+            "compliance_risk": self._assess_compliance_risk(protocol_text),
+        }
+
+    def _calculate_structure_score(self, structure: Dict) -> float:
+        """Calculate structure quality score."""
+        if not structure:
+            return 0.0
+            
+        # Points for good structure elements
+        score = 0.0
+        max_score = 100.0
+        
+        # Headers contribute significantly to structure
+        headers = structure.get("headers", [])
+        score += min(30, len(headers) * 5)  # Up to 30 points for headers
+        
+        # Sections contribute to structure
+        sections = structure.get("sections", [])
+        score += min(25, len(sections) * 3)  # Up to 25 points for sections
+        
+        # Lists contribute to structure
+        lists = structure.get("lists", [])
+        score += min(15, len(lists) * 2)  # Up to 15 points for lists
+        
+        # Code blocks contribute to structure
+        code_blocks = structure.get("code_blocks", [])
+        score += min(10, len(code_blocks) * 2)  # Up to 10 points for code blocks
+        
+        # Tables contribute to structure
+        tables = structure.get("tables", [])
+        score += min(10, len(tables) * 3)  # Up to 10 points for tables
+        
+        # Images contribute to structure
+        images = structure.get("images", [])
+        score += min(10, len(images) * 2)  # Up to 10 points for images
+        
+        return min(max_score, score)
+
+    def _calculate_complexity_score(self, complexity: Dict) -> float:
+        """Calculate complexity appropriateness score."""
+        if not complexity:
+            return 0.0
+            
+        # Ideal complexity range is 0.3-0.7 (normalized)
+        ideal_min = 0.3
+        ideal_max = 0.7
+        actual_complexity = complexity.get("normalized_score", 0.0)
+        
+        # Score is highest when complexity is in ideal range
+        if ideal_min <= actual_complexity <= ideal_max:
+            return 100.0
+        elif actual_complexity < ideal_min:
+            # Too simple - score decreases linearly
+            return max(0.0, 100.0 * (actual_complexity / ideal_min))
+        else:
+            # Too complex - score decreases linearly
+            return max(0.0, 100.0 * (1.0 - (actual_complexity - ideal_max) / (1.0 - ideal_max)))
+
+    def _calculate_readability_score(self, text: str) -> float:
+        """Calculate readability score using simplified Flesch-Kincaid."""
+        if not text:
+            return 0.0
+            
+        # Split into sentences and words
+        sentences = [s.strip() for s in text.split('.') if s.strip()]
+        words = text.split()
+        
+        if not sentences or not words:
+            return 0.0
+            
+        avg_sentence_length = len(words) / len(sentences)
+        avg_word_length = sum(len(word) for word in words) / len(words)
+        
+        # Simplified readability formula
+        readability = 100 - (avg_sentence_length * 1.0) - (avg_word_length * 5.0)
+        return max(0.0, min(100.0, readability))
+
+    def _identify_strengths(self, structure: Dict, complexity: Dict) -> List[str]:
+        """Identify strengths in the protocol."""
+        strengths = []
+        
+        if structure:
+            headers = structure.get("headers", [])
+            if len(headers) >= 5:
+                strengths.append("Well-structured with clear headings")
+            
+            sections = structure.get("sections", [])
+            if len(sections) >= 3:
+                strengths.append("Good section organization")
+                
+            lists = structure.get("lists", [])
+            if len(lists) >= 2:
+                strengths.append("Effective use of lists for clarity")
+                
+            code_blocks = structure.get("code_blocks", [])
+            if len(code_blocks) >= 1:
+                strengths.append("Includes code examples for illustration")
+                
+            tables = structure.get("tables", [])
+            if len(tables) >= 1:
+                strengths.append("Uses tables for data presentation")
+        
+        if complexity:
+            score = complexity.get("normalized_score", 0.0)
+            if 0.3 <= score <= 0.7:
+                strengths.append("Appropriate complexity level")
+            elif score < 0.3:
+                strengths.append("Simple and easy to understand")
+        
+        return strengths if strengths else ["No major strengths identified"]
+
+    def _identify_weaknesses(self, structure: Dict, complexity: Dict) -> List[str]:
+        """Identify weaknesses in the protocol."""
+        weaknesses = []
+        
+        if structure:
+            headers = structure.get("headers", [])
+            if len(headers) < 3:
+                weaknesses.append("Lacks sufficient headings for navigation")
+            
+            sections = structure.get("sections", [])
+            if len(sections) < 2:
+                weaknesses.append("Poor section organization")
+                
+            lists = structure.get("lists", [])
+            if len(lists) < 1:
+                weaknesses.append("Limited use of lists for better readability")
+                
+            code_blocks = structure.get("code_blocks", [])
+            if len(code_blocks) < 1 and complexity.get("domain") == "code":
+                weaknesses.append("Missing code examples despite being a code protocol")
+                
+            tables = structure.get("tables", [])
+            if len(tables) < 1 and "data" in structure.get("content_types", []):
+                weaknesses.append("Missing tables for data presentation")
+        
+        if complexity:
+            score = complexity.get("normalized_score", 0.0)
+            if score > 0.7:
+                weaknesses.append("Overly complex for typical audience")
+            elif score < 0.3 and complexity.get("domain") not in ["simple", "basic"]:
+                weaknesses.append("Too simplistic for complex subject matter")
+        
+        return weaknesses if weaknesses else ["No major weaknesses identified"]
+
+    def _identify_opportunities(self, structure: Dict, complexity: Dict) -> List[str]:
+        """Identify opportunities for improvement."""
+        opportunities = []
+        
+        if structure:
+            # Suggest adding missing elements
+            if not structure.get("headers"):
+                opportunities.append("Add clear headings to improve navigation")
+            
+            if not structure.get("lists"):
+                opportunities.append("Use bullet points or numbered lists to break up dense text")
+                
+            if not structure.get("code_blocks") and complexity.get("domain") == "code":
+                opportunities.append("Include code examples to illustrate concepts")
+                
+            if not structure.get("tables") and "data" in structure.get("content_types", []):
+                opportunities.append("Add tables to present data more effectively")
+                
+            if not structure.get("images") and complexity.get("domain") in ["technical", "medical"]:
+                opportunities.append("Consider adding diagrams or illustrations")
+        
+        return opportunities if opportunities else ["No specific opportunities identified"]
+
+    def _identify_threats(self, structure: Dict, complexity: Dict) -> List[str]:
+        """Identify potential threats to protocol effectiveness."""
+        threats = []
+        
+        if complexity:
+            score = complexity.get("normalized_score", 0.0)
+            if score > 0.8:
+                threats.append("High complexity may hinder adoption or understanding")
+            elif score < 0.2 and complexity.get("domain") not in ["simple", "basic"]:
+                threats.append("Oversimplification may miss important details")
+        
+        if structure:
+            # Check for structural issues that could cause problems
+            if len(structure.get("headers", [])) < 2:
+                threats.append("Poor structure may cause confusion for readers")
+                
+            if not structure.get("sections") and len(structure.get("content", "").split("\n\n")) > 10:
+                threats.append("Lack of sections makes long documents hard to navigate")
+        
+        return threats if threats else ["No major threats identified"]
+
+    def _assess_compliance_risk(self, text: str) -> str:
+        """Assess compliance risk level."""
+        if not text:
+            return "low"
+            
+        # Look for compliance-related keywords
+        high_risk_keywords = ["must", "shall", "required", "mandatory", "compliance"]
+        med_risk_keywords = ["should", "recommended", "suggested", "guideline"]
+        low_risk_keywords = ["may", "optional", "consider", "might"]
+        
+        text_lower = text.lower()
+        high_count = sum(1 for word in high_risk_keywords if word in text_lower)
+        med_count = sum(1 for word in med_risk_keywords if word in text_lower)
+        low_count = sum(1 for word in low_risk_keywords if word in text_lower)
+        
+        if high_count > 3:
+            return "high"
+        elif high_count > 0 or med_count > 5:
+            return "medium"
+        else:
+            return "low"
+
+    def get_evolution_metrics(self) -> Dict[str, Any]:
+        """Get evolution performance metrics."""
+        metrics = {
+            "timestamp": time.time(),
+            "evolution_runs": len(getattr(st.session_state, "evolution_history", [])),
+            "successful_evolutions": getattr(st.session_state, "successful_evolutions", 0),
+            "failed_evolutions": getattr(st.session_state, "failed_evolutions", 0),
+            "avg_evolution_time": getattr(st.session_state, "avg_evolution_time", 0),
+            "total_generations": sum(
+                len(gen.get("population", [])) 
+                for gen in getattr(st.session_state, "evolution_history", [])
+            ),
+            "best_fitness_ever": getattr(st.session_state, "best_fitness_ever", 0),
+            "current_fitness": self._get_current_fitness(),
+            "population_diversity": self._calculate_population_diversity(),
+            "convergence_rate": self._calculate_convergence_rate(),
+        }
+        return metrics
+
+    def _get_current_fitness(self) -> float:
+        """Get current fitness from session state."""
+        if hasattr(st.session_state, "evolution_history") and st.session_state.evolution_history:
+            latest_gen = st.session_state.evolution_history[-1]
+            if "population" in latest_gen and latest_gen["population"]:
+                return max(ind.get("fitness", 0) for ind in latest_gen["population"])
+        return 0.0
+
+    def _calculate_population_diversity(self) -> float:
+        """Calculate current population diversity."""
+        if hasattr(st.session_state, "evolution_history") and st.session_state.evolution_history:
+            latest_gen = st.session_state.evolution_history[-1]
+            if "population" in latest_gen and len(latest_gen["population"]) > 1:
+                fitnesses = [ind.get("fitness", 0) for ind in latest_gen["population"]]
+                if fitnesses:
+                    return float(np.std(fitnesses))
+        return 0.0
+
+    def _calculate_convergence_rate(self) -> float:
+        """Calculate convergence rate."""
+        if hasattr(st.session_state, "evolution_history") and len(st.session_state.evolution_history) >= 2:
+            history = st.session_state.evolution_history
+            if len(history) >= 5:  # Need at least 5 generations to calculate meaningful convergence
+                recent_fitnesses = []
+                for gen in history[-5:]:  # Last 5 generations
+                    if "population" in gen and gen["population"]:
+                        best_fitness = max(ind.get("fitness", 0) for ind in gen["population"])
+                        recent_fitnesses.append(best_fitness)
+                
+                if len(recent_fitnesses) >= 2:
+                    # Calculate average improvement rate
+                    improvements = [recent_fitnesses[i] - recent_fitnesses[i-1] 
+                                  for i in range(1, len(recent_fitnesses))]
+                    avg_improvement = sum(improvements) / len(improvements)
+                    return float(avg_improvement)
+        return 0.0
+
+    def get_adversarial_metrics(self) -> Dict[str, Any]:
+        """Get adversarial testing performance metrics."""
+        metrics = {
+            "timestamp": time.time(),
+            "adversarial_runs": len(getattr(st.session_state, "adversarial_history", [])),
+            "successful_tests": getattr(st.session_state, "successful_adversarial_tests", 0),
+            "failed_tests": getattr(st.session_state, "failed_adversarial_tests", 0),
+            "avg_test_time": getattr(st.session_state, "avg_adversarial_test_time", 0),
+            "total_iterations": sum(
+                len(run.get("iterations", [])) 
+                for run in getattr(st.session_state, "adversarial_history", [])
+            ),
+            "final_approval_rate": getattr(st.session_state, "final_adversarial_approval_rate", 0),
+            "current_approval_rate": self._get_current_approval_rate(),
+            "issues_found": self._count_issues_found(),
+            "issues_resolved": self._count_issues_resolved(),
+            "model_performance": self._get_model_performance_stats(),
+        }
+        return metrics
+
+    def _get_current_approval_rate(self) -> float:
+        """Get current approval rate from session state."""
+        if hasattr(st.session_state, "adversarial_results") and st.session_state.adversarial_results:
+            return float(st.session_state.adversarial_results.get("final_approval_rate", 0))
+        return 0.0
+
+    def _count_issues_found(self) -> int:
+        """Count total issues found in adversarial testing."""
+        count = 0
+        if hasattr(st.session_state, "adversarial_results") and st.session_state.adversarial_results:
+            for iteration in st.session_state.adversarial_results.get("iterations", []):
+                for critique in iteration.get("critiques", []):
+                    if critique.get("critique_json"):
+                        count += len(critique["critique_json"].get("issues", []))
+        return count
+
+    def _count_issues_resolved(self) -> int:
+        """Count total issues resolved in adversarial testing."""
+        count = 0
+        if hasattr(st.session_state, "adversarial_results") and st.session_state.adversarial_results:
+            for iteration in st.session_state.adversarial_results.get("iterations", []):
+                for patch in iteration.get("patches", []):
+                    if patch.get("patch_json"):
+                        count += len(patch["patch_json"].get("mitigation_matrix", []))
+        return count
+
+    def _get_model_performance_stats(self) -> Dict[str, Any]:
+        """Get statistics on model performance."""
+        if hasattr(st.session_state, "adversarial_model_performance"):
+            return st.session_state.adversarial_model_performance
+        return {}
+
+    def get_model_performance_metrics(self) -> Dict[str, Any]:
+        """Get detailed model performance metrics."""
+        metrics = {
+            "timestamp": time.time(),
+            "models_used": list(getattr(st.session_state, "adversarial_model_performance", {}).keys()),
+            "model_scores": {
+                model: perf.get("score", 0) 
+                for model, perf in getattr(st.session_state, "adversarial_model_performance", {}).items()
+            },
+            "model_issues_found": {
+                model: perf.get("issues_found", 0) 
+                for model, perf in getattr(st.session_state, "adversarial_model_performance", {}).items()
+            },
+            "best_performing_model": self._get_best_model(),
+            "avg_model_score": self._calculate_avg_model_score(),
+            "model_diversity": self._calculate_model_diversity(),
+        }
+        return metrics
+
+    def _get_best_model(self) -> str:
+        """Get the best performing model."""
+        if hasattr(st.session_state, "adversarial_model_performance"):
+            best_model = ""
+            best_score = -1
+            for model, perf in st.session_state.adversarial_model_performance.items():
+                score = perf.get("score", 0)
+                if score > best_score:
+                    best_score = score
+                    best_model = model
+            return best_model
+        return ""
+
+    def _calculate_avg_model_score(self) -> float:
+        """Calculate average model score."""
+        if hasattr(st.session_state, "adversarial_model_performance"):
+            scores = [perf.get("score", 0) 
+                     for perf in st.session_state.adversarial_model_performance.values()]
+            if scores:
+                return float(sum(scores) / len(scores))
+        return 0.0
+
+    def _calculate_model_diversity(self) -> float:
+        """Calculate model diversity based on performance variance."""
+        if hasattr(st.session_state, "adversarial_model_performance"):
+            scores = [perf.get("score", 0) 
+                     for perf in st.session_state.adversarial_model_performance.values()]
+            if len(scores) > 1:
+                return float(np.std(scores))
+        return 0.0
+
+    def generate_comprehensive_report(self, protocol_text: str) -> Dict[str, Any]:
+        """Generate a comprehensive analytics report."""
+        ai_insights = self.generate_ai_insights(protocol_text)
+        evolution_metrics = self.get_evolution_metrics()
+        adversarial_metrics = self.get_adversarial_metrics()
+        model_metrics = self.get_model_performance_metrics()
+        
+        # Calculate overall score combining all metrics
+        overall_score = (
+            ai_insights.get("overall_score", 0) * 0.3 +
+            evolution_metrics.get("current_fitness", 0) * 100 * 0.3 +  # Scale fitness to 0-100
+            adversarial_metrics.get("final_approval_rate", 0) * 0.2 +
+            model_metrics.get("avg_model_score", 0) * 0.2
+        )
+        
+        return {
+            "timestamp": time.time(),
+            "ai_insights": ai_insights,
+            "evolution_metrics": evolution_metrics,
+            "adversarial_metrics": adversarial_metrics,
+            "model_metrics": model_metrics,
+            "overall_score": round(overall_score, 2),
+            "recommendations": self._generate_comprehensive_recommendations(
+                ai_insights, evolution_metrics, adversarial_metrics, model_metrics
+            )
+        }
+
+    def _generate_comprehensive_recommendations(
+        self, 
+        ai_insights: Dict, 
+        evolution_metrics: Dict, 
+        adversarial_metrics: Dict, 
+        model_metrics: Dict
+    ) -> List[str]:
+        """Generate comprehensive recommendations based on all analytics."""
+        recommendations = []
+        
+        # AI Insights recommendations
+        recommendations.extend(ai_insights.get("recommendations", []))
+        
+        # Evolution recommendations
+        if evolution_metrics.get("convergence_rate", 0) < 0.01:
+            recommendations.append("Evolution convergence rate is low. Consider adjusting parameters or using different models.")
+        
+        if evolution_metrics.get("population_diversity", 0) < 0.1:
+            recommendations.append("Low population diversity detected. Try increasing mutation rates or using more diverse models.")
+        
+        # Adversarial recommendations
+        if adversarial_metrics.get("final_approval_rate", 0) < 70:
+            recommendations.append("Approval rate is below target. Consider more adversarial iterations or different models.")
+        
+        if adversarial_metrics.get("issues_resolved", 0) < adversarial_metrics.get("issues_found", 0) * 0.5:
+            recommendations.append("Less than 50% of issues resolved. Review patching strategies or model capabilities.")
+        
+        # Model recommendations
+        if len(model_metrics.get("models_used", [])) < 3:
+            recommendations.append("Using more diverse models could improve results.")
+        
+        if model_metrics.get("model_diversity", 0) < 10:
+            recommendations.append("Low model diversity detected. Try using models with different architectures or capabilities.")
+        
+        # Generic recommendations if no specific issues
+        if not recommendations:
+            recommendations.append("Protocol quality is high. Continue with current approach.")
+            recommendations.append("Evolution and adversarial testing are performing well.")
+            recommendations.append("Model performance is satisfactory.")
+        
+        return recommendations
         structure_score = (
             (1 if structure["has_headers"] else 0) * 0.2
             + (

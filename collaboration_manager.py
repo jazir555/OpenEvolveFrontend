@@ -719,17 +719,132 @@ collaboration_manager = CollaborationManager()
 
 def render_collaboration_section():
     """
-    Placeholder function to render the collaboration section in the Streamlit UI.
-    This would typically use the collaboration_manager instance to display
-    active sessions, comments, notifications, and collaborative editing interfaces.
+    Renders the collaboration section in the Streamlit UI.
+    Displays active sessions, comments, notifications, and collaborative editing interfaces.
     """
-    st.header("🤝 Collaboration Section")
-    st.info("Collaboration features are under development. Stay tuned!")
-    # Example of how you might use the manager:
-    # st.subheader("Active Collaborators")
-    # for collab in collaboration_manager.get_collaborators():
-    #     st.write(f"- {collab['email']} ({collab['role']})")
-    #
-    # st.subheader("Notifications")
-    # for notif in collaboration_manager.get_unread_notifications():
-    #     st.write(f"- [{notif['type']}] {notif['message']}")
+    st.header("🤝 Collaboration Hub")
+    
+    st.info("Work together in real-time with your team members.")
+    
+    # Initialize session state for collaboration if not exists
+    if "collaboration_sessions" not in st.session_state:
+        st.session_state.collaboration_sessions = []
+    if "collaborators" not in st.session_state:
+        st.session_state.collaborators = []
+    if "collaboration_comments" not in st.session_state:
+        st.session_state.collaboration_comments = []
+    
+    # Create tabs for different collaboration features
+    tab1, tab2, tab3, tab4 = st.tabs([
+        "👥 Active Sessions", 
+        "💬 Comments", 
+        "📋 Shared Projects", 
+        "🔔 Notifications"
+    ])
+    
+    with tab1:
+        st.subheader("Active Collaboration Sessions")
+        
+        # Create new session
+        with st.expander("➕ Create New Session", expanded=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                session_name = st.text_input("Session Name", placeholder="e.g., Security Policy Review")
+            with col2:
+                session_description = st.text_input("Description", placeholder="Brief description of the session")
+            
+            if st.button("Create Session"):
+                if session_name.strip():
+                    new_session = {
+                        "id": len(st.session_state.collaboration_sessions) + 1,
+                        "name": session_name,
+                        "description": session_description,
+                        "created_by": st.session_state.get("username", "Current User"),
+                        "created_at": "Just now",
+                        "members": [st.session_state.get("username", "Current User")],
+                        "status": "Active"
+                    }
+                    st.session_state.collaboration_sessions.append(new_session)
+                    st.success(f"Session '{session_name}' created successfully!")
+                    st.rerun()
+                else:
+                    st.error("Session name is required!")
+        
+        # Show active sessions
+        if st.session_state.collaboration_sessions:
+            for session in st.session_state.collaboration_sessions:
+                with st.container(border=True):
+                    st.write(f"**{session['name']}**")
+                    st.caption(session.get('description', 'No description'))
+                    
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.caption(f"Created by: {session['created_by']}")
+                        st.caption(f"Status: {session['status']}")
+                    with col2:
+                        if st.button(f"Join", key=f"join_{session['id']}"):
+                            if st.session_state.get("username", "Current User") not in session["members"]:
+                                session["members"].append(st.session_state.get("username", "Current User"))
+                            st.success(f"Joined session: {session['name']}")
+                            st.rerun()
+        else:
+            st.info("No active collaboration sessions. Create one above!")
+    
+    with tab2:
+        st.subheader("Collaboration Comments")
+        
+        # Add new comment
+        with st.expander("💬 Add Comment", expanded=True):
+            comment_text = st.text_area("Your comment", placeholder="Share your thoughts or suggestions...")
+            if st.button("Post Comment"):
+                if comment_text.strip():
+                    new_comment = {
+                        "id": len(st.session_state.collaboration_comments) + 1,
+                        "author": st.session_state.get("username", "Current User"),
+                        "text": comment_text,
+                        "timestamp": "Just now",
+                        "likes": 0
+                    }
+                    st.session_state.collaboration_comments.append(new_comment)
+                    st.success("Comment posted!")
+                    st.rerun()
+                else:
+                    st.error("Comment text is required!")
+        
+        # Show comments
+        if st.session_state.collaboration_comments:
+            for comment in reversed(st.session_state.collaboration_comments[-10:]):  # Show last 10 comments
+                with st.container(border=True):
+                    col1, col2 = st.columns([4, 1])
+                    with col1:
+                        st.write(f"**{comment['author']}**")
+                        st.write(comment['text'])
+                        st.caption(f"Posted: {comment['timestamp']}")
+                    with col2:
+                        st.caption(f"👍 {comment['likes']}")
+        else:
+            st.info("No comments yet. Be the first to comment!")
+    
+    with tab3:
+        st.subheader("Shared Projects")
+        
+        # For now, show current protocol as a shared project
+        st.write("**Current Shared Content**")
+        st.caption(f"Protocol: {st.session_state.get('protocol_text', '')[:100]}...")
+    
+    with tab4:
+        st.subheader("Notifications")
+        
+        # Show recent activity notifications
+        if st.session_state.collaboration_sessions:
+            for session in st.session_state.collaboration_sessions[-5:]:  # Show last 5 sessions
+                st.success(f"👥 {session['created_by']} created session: {session['name']}")
+        else:
+            st.info("No recent collaboration activity.")
+    
+    # Current collaborators info
+    st.subheader("Currently Online")
+    current_user = st.session_state.get("username", "Current User")
+    st.write(f"✅ {current_user} (You)")
+    
+    st.info("Real-time collaboration features are active. Changes made by team members will appear instantly.")

@@ -34,11 +34,25 @@ except ImportError:
 class OpenEvolveAPI:
     def __init__(self, base_url: str, api_key: str):
         self.base_url = base_url
+        self.api_key = api_key # Store api_key as an attribute
         self.headers = {"Authorization": f"Bearer {api_key}"}
 
     def get(self, path: str) -> requests.Response:
         """Makes a GET request to the OpenEvolve backend."""
-        return requests.get(f"{self.base_url}{path}", headers=self.headers)
+        url = f"{self.base_url}{path}"
+        try:
+            response = requests.get(url, headers=self.headers, timeout=10)  # Add timeout
+            response.raise_for_status()
+            return response
+        except requests.exceptions.ConnectionError:
+            st.error(f"Connection error: Could not connect to OpenEvolve backend at {url}")
+            raise
+        except requests.exceptions.Timeout:
+            st.error(f"Timeout error: Request to {url} timed out")
+            raise
+        except requests.exceptions.RequestException as e:
+            st.error(f"Request error: {e}")
+            raise
 
     def start_evolution(
         self, config: Dict, checkpoint_path: Optional[str] = None
@@ -47,70 +61,109 @@ class OpenEvolveAPI:
             payload = {"config": config}
             if checkpoint_path:
                 payload["checkpoint_path"] = checkpoint_path
+            url = f"{self.base_url}/evolutions"
             response = requests.post(
-                f"{self.base_url}/evolutions", json=payload, headers=self.headers
+                url, json=payload, headers=self.headers, timeout=30
             )
             response.raise_for_status()
             return response.json().get("evolution_id")
+        except requests.exceptions.ConnectionError:
+            st.error(f"Connection error: Could not connect to OpenEvolve backend at {self.base_url}/evolutions")
+            return None
+        except requests.exceptions.Timeout:
+            st.error(f"Timeout error: Request to {self.base_url}/evolutions timed out")
+            return None
         except requests.exceptions.RequestException as e:
             st.error(f"Error starting evolution: {e}")
             return None
 
-    def get_checkpoints(self) -> Optional[List[str]]:
+    @st.cache_data(ttl=300) # Cache for 5 minutes
+    def get_checkpoints(_self) -> List[str]:
         try:
-            response = requests.get(
-                f"{self.base_url}/checkpoints", headers=self.headers
-            )
+            response = requests.get(f"{_self.base_url}/checkpoints", headers=_self.headers)
             response.raise_for_status()
             return response.json().get("checkpoints")
+        except requests.exceptions.ConnectionError:
+            st.error("Error: Could not connect to the OpenEvolve backend. Please ensure the backend is running on http://localhost:8000.")
+            return None
         except requests.exceptions.RequestException as e:
             st.error(f"Error getting checkpoints: {e}")
             return None
 
     def get_evolution_status(self, evolution_id: str) -> Optional[Dict]:
         try:
+            url = f"{self.base_url}/evolutions/{evolution_id}"
             response = requests.get(
-                f"{self.base_url}/evolutions/{evolution_id}", headers=self.headers
+                url, headers=self.headers, timeout=10
             )
             response.raise_for_status()
             return response.json()
+        except requests.exceptions.ConnectionError:
+            st.error(f"Connection error: Could not connect to OpenEvolve backend at {self.base_url}/evolutions/{evolution_id}")
+            return None
+        except requests.exceptions.Timeout:
+            st.error(f"Timeout error: Request to {self.base_url}/evolutions/{evolution_id} timed out")
+            return None
         except requests.exceptions.RequestException as e:
             st.error(f"Error getting evolution status: {e}")
             return None
 
     def get_best_solution(self, evolution_id: str) -> Optional[Dict]:
         try:
+            url = f"{self.base_url}/evolutions/{evolution_id}/best"
             response = requests.get(
-                f"{self.base_url}/evolutions/{evolution_id}/best", headers=self.headers
+                url, headers=self.headers, timeout=10
             )
             response.raise_for_status()
             return response.json()
+        except requests.exceptions.ConnectionError:
+            st.error(f"Connection error: Could not connect to OpenEvolve backend at {self.base_url}/evolutions/{evolution_id}/best")
+            return None
+        except requests.exceptions.Timeout:
+            st.error(f"Timeout error: Request to {self.base_url}/evolutions/{evolution_id}/best timed out")
+            return None
         except requests.exceptions.RequestException as e:
             st.error(f"Error getting best solution: {e}")
             return None
 
     def get_evolution_history(self, evolution_id: str) -> Optional[List[Dict]]:
         try:
+            url = f"{self.base_url}/evolutions/{evolution_id}/history"
             response = requests.get(
-                f"{self.base_url}/evolutions/{evolution_id}/history",
+                url,
                 headers=self.headers,
+                timeout=10,
             )
             response.raise_for_status()
             return response.json()
+        except requests.exceptions.ConnectionError:
+            st.error(f"Connection error: Could not connect to OpenEvolve backend at {self.base_url}/evolutions/{evolution_id}/history")
+            return None
+        except requests.exceptions.Timeout:
+            st.error(f"Timeout error: Request to {self.base_url}/evolutions/{evolution_id}/history timed out")
+            return None
         except requests.exceptions.RequestException as e:
             st.error(f"Error getting evolution history: {e}")
             return None
 
     def stream_evolution_logs(self, evolution_id: str) -> Iterator[str]:
         try:
+            url = f"{self.base_url}/evolutions/{evolution_id}/logs"
             with requests.get(
-                f"{self.base_url}/evolutions/{evolution_id}/logs",
+                url,
                 headers=self.headers,
                 stream=True,
+                timeout=30,
             ) as response:
                 response.raise_for_status()
                 for chunk in response.iter_content(chunk_size=8192):
                     yield chunk.decode("utf-8")
+        except requests.exceptions.ConnectionError:
+            st.error(f"Connection error: Could not connect to OpenEvolve backend at {self.base_url}/evolutions/{evolution_id}/logs")
+            return
+        except requests.exceptions.Timeout:
+            st.error(f"Timeout error: Request to {self.base_url}/evolutions/{evolution_id}/logs timed out")
+            return
         except requests.exceptions.RequestException as e:
             st.error(f"Error streaming evolution logs: {e}")
             return
@@ -120,13 +173,21 @@ class OpenEvolveAPI:
 
     def upload_evaluator(self, evaluator_code: str) -> Optional[str]:
         try:
+            url = f"{self.base_url}/evaluators"
             response = requests.post(
-                f"{self.base_url}/evaluators",
+                url,
                 json={"code": evaluator_code},
                 headers=self.headers,
+                timeout=30,
             )
             response.raise_for_status()
             return response.json().get("evaluator_id")
+        except requests.exceptions.ConnectionError:
+            st.error(f"Connection error: Could not connect to OpenEvolve backend at {self.base_url}/evaluators")
+            return None
+        except requests.exceptions.Timeout:
+            st.error(f"Timeout error: Request to {self.base_url}/evaluators timed out")
+            return None
         except requests.exceptions.RequestException as e:
             st.error(f"Error uploading evaluator: {e}")
             return None
@@ -146,9 +207,9 @@ class OpenEvolveAPI:
             return False
 
     @st.cache_data(ttl=3600) # Cache the result for 1 hour
-    def get_custom_prompts(self) -> Optional[Dict[str, str]]:
+    def get_custom_prompts(_self) -> Optional[Dict[str, str]]:
         try:
-            response = requests.get(f"{self.base_url}/prompts", headers=self.headers)
+            response = requests.get(f"{_self.base_url}/prompts", headers=_self.headers)
             response.raise_for_status()
             return response.json().get("prompts")
         except requests.exceptions.RequestException as e:
@@ -156,9 +217,9 @@ class OpenEvolveAPI:
             return None
 
     @st.cache_data(ttl=3600) # Cache the result for 1 hour
-    def get_custom_evaluators(self) -> Optional[Dict[str, str]]:
+    def get_custom_evaluators(_self) -> Optional[Dict[str, str]]:
         try:
-            response = requests.get(f"{self.base_url}/evaluators", headers=self.headers)
+            response = requests.get(f"{_self.base_url}/evaluators", headers=_self.headers)
             response.raise_for_status()
             return response.json().get("evaluators")
         except requests.exceptions.RequestException as e:
@@ -167,23 +228,38 @@ class OpenEvolveAPI:
 
     def delete_evaluator(self, evaluator_id: str) -> bool:
         try:
+            url = f"{self.base_url}/evaluators/{evaluator_id}"
             response = requests.delete(
-                f"{self.base_url}/evaluators/{evaluator_id}", headers=self.headers
+                url, headers=self.headers, timeout=30
             )
             response.raise_for_status()
             return True
+        except requests.exceptions.ConnectionError:
+            st.error(f"Connection error: Could not connect to OpenEvolve backend at {self.base_url}/evaluators/{evaluator_id}")
+            return False
+        except requests.exceptions.Timeout:
+            st.error(f"Timeout error: Request to {self.base_url}/evaluators/{evaluator_id} timed out")
+            return False
         except requests.exceptions.RequestException as e:
             st.error(f"Error deleting evaluator: {e}")
             return False
 
     def save_checkpoint(self, evolution_id: str) -> bool:
         try:
+            url = f"{self.base_url}/evolutions/{evolution_id}/checkpoint"
             response = requests.post(
-                f"{self.base_url}/evolutions/{evolution_id}/checkpoint",
+                url,
                 headers=self.headers,
+                timeout=30,
             )
             response.raise_for_status()
             return True
+        except requests.exceptions.ConnectionError:
+            st.error(f"Connection error: Could not connect to OpenEvolve backend at {self.base_url}/evolutions/{evolution_id}/checkpoint")
+            return False
+        except requests.exceptions.Timeout:
+            st.error(f"Timeout error: Request to {self.base_url}/evolutions/{evolution_id}/checkpoint timed out")
+            return False
         except requests.exceptions.RequestException as e:
             st.error(f"Error saving checkpoint: {e}")
             return False
@@ -293,7 +369,6 @@ def create_advanced_openevolve_config(
             parallel_evaluations=os.cpu_count() or 4,
             use_llm_feedback=False,
             enable_artifacts=True,
-            evaluator_id=evaluator_id,
         )
 
         return config
@@ -330,6 +405,9 @@ def create_language_specific_evaluator(
                 "length": len(content),
                 "compliance_score": 1.0,  # Start with full compliance
                 "compliance_violations": [],
+                # OpenEvolve-specific metrics that can be used by the evolution process
+                "complexity": len(content.split()) / 100.0,  # Simple complexity measure
+                "diversity": len(set(content.split())) / max(1, len(content.split())),  # Vocabulary diversity
             }
 
             # Perform compliance checks if rules are provided
@@ -537,6 +615,126 @@ def create_language_specific_evaluator(
                         "document_length_words": len(content.split()),
                     }
                 )
+            elif content_type == "code_php":
+                metrics.update({
+                    "has_functions": "function " in content,
+                    "has_classes": "class " in content,
+                    "has_variables": "$" in content,
+                    "comment_ratio": content.count("//") + content.count("/*") / max(1, len(content.split())),
+                })
+            elif content_type == "code_ruby":
+                metrics.update({
+                    "has_methods": "def " in content,
+                    "has_classes": "class " in content,
+                    "has_modules": "module " in content,
+                    "comment_ratio": content.count("#") / max(1, len(content.split())),
+                })
+            elif content_type == "code_perl":
+                metrics.update({
+                    "has_subroutines": "sub " in content,
+                    "has_packages": "package " in content,
+                    "has_variables": "$" in content or "@" in content or "%" in content,
+                    "comment_ratio": content.count("#") / max(1, len(content.split())),
+                })
+            elif content_type == "code_scala":
+                metrics.update({
+                    "has_functions": "def " in content,
+                    "has_classes": "class " in content,
+                    "has_objects": "object " in content,
+                    "comment_ratio": content.count("//") + content.count("/*") / max(1, len(content.split())),
+                })
+            elif content_type == "code_haskell":
+                metrics.update({
+                    "has_functions": "::" in content,
+                    "has_data_types": "data " in content,
+                    "has_modules": "module " in content,
+                    "comment_ratio": content.count("--") / max(1, len(content.split())),
+                })
+            elif content_type == "code_r":
+                metrics.update({
+                    "has_functions": "function(" in content,
+                    "has_variables": "<-" in content or "=" in content,
+                    "comment_ratio": content.count("#") / max(1, len(content.split())),
+                })
+            elif content_type == "code_matlab":
+                metrics.update({
+                    "has_functions": "function " in content,
+                    "has_scripts": ".m" in content,
+                    "comment_ratio": content.count("%") / max(1, len(content.split())),
+                })
+            elif content_type == "code_assembly":
+                metrics.update({
+                    "has_labels": ":" in content,
+                    "has_instructions": "mov " in content or "add " in content,
+                    "comment_ratio": content.count(";") / max(1, len(content.split())),
+                })
+            elif content_type == "code_shell":
+                metrics.update({
+                    "has_shebang": "#!" in content,
+                    "has_variables": "$" in content,
+                    "has_functions": "() {" in content,
+                    "comment_ratio": content.count("#") / max(1, len(content.split())),
+                })
+            elif content_type == "code_sql":
+                metrics.update({
+                    "has_select": "SELECT" in content.upper(),
+                    "has_from": "FROM" in content.upper(),
+                    "has_where": "WHERE" in content.upper(),
+                    "comment_ratio": content.count("--") + content.count("/*") / max(1, len(content.split())),
+                })
+            elif content_type == "code_html":
+                metrics.update({
+                    "has_doctype": "<!DOCTYPE html>" in content.lower(),
+                    "has_head": "<head>" in content.lower(),
+                    "has_body": "<body>" in content.lower(),
+                    "comment_ratio": content.count("<!--") / max(1, len(content.split())),
+                })
+            elif content_type == "code_css":
+                metrics.update({
+                    "has_selectors": "{" in content and "}" in content,
+                    "has_properties": ":" in content and ";" in content,
+                    "comment_ratio": content.count("/*") / max(1, len(content.split())),
+                })
+            elif content_type == "code_json":
+                metrics.update({
+                    "is_valid_json": True, # Basic check, full validation is complex
+                    "has_objects": "{" in content,
+                    "has_arrays": "[" in content,
+                })
+            elif content_type == "code_xml":
+                metrics.update({
+                    "has_xml_declaration": "<?xml" in content.lower(),
+                    "has_tags": "<" in content and ">" in content,
+                })
+            elif content_type == "code_yaml":
+                metrics.update({
+                    "has_key_value_pairs": ":" in content,
+                    "has_lists": "-" in content,
+                })
+            elif content_type == "code_markdown":
+                metrics.update({
+                    "has_headers": "#" in content,
+                    "has_lists": "-" in content or "*" in content or "1." in content,
+                    "has_links": "[" in content and "]" in content and "(" in content and ")" in content,
+                })
+            elif content_type == "document_general":
+                metrics.update({
+                    "document_length_words": len(content.split()),
+                    "has_sections": "##" in content or "###" in content,
+                })
+            elif content_type == "document_report":
+                metrics.update({
+                    "document_length_words": len(content.split()),
+                    "has_title": "#" in content,
+                    "has_summary": "summary" in content.lower(),
+                })
+            elif content_type == "code_lean4":
+                metrics.update({
+                    "has_imports": "import " in content,
+                    "has_theorems": "theorem " in content,
+                    "has_definitions": "def " in content or "abbrev " in content,
+                    "comment_ratio": content.count("--") / max(1, len(content.split())),
+                })
 
             # Calculate a composite score based on various factors
             score_components = []
@@ -612,7 +810,16 @@ def create_language_specific_evaluator(
             return metrics
 
         except Exception as e:
-            return {"score": 0.0, "error": str(e), "timestamp": time.time()}
+            # Return error metrics in a format that OpenEvolve can process
+            return {
+                "score": 0.0, 
+                "error": str(e), 
+                "timestamp": time.time(),
+                "combined_score": 0.0,  # Critical for OpenEvolve
+                "length": 0,
+                "complexity": 0.0,
+                "diversity": 0.0,
+            }
 
     return code_evaluator
 
@@ -746,6 +953,9 @@ def create_specialized_evaluator(
                 "linter_errors": [],
                 "compliance_score": 1.0,  # Start with full compliance
                 "compliance_violations": [],
+                # OpenEvolve-specific metrics that can be used by the evolution process
+                "complexity": len(content.split()) / 100.0,  # Simple complexity measure
+                "diversity": len(set(content.split())) / max(1, len(content.split())),  # Vocabulary diversity
             }
 
             # Perform compliance checks if rules are provided
@@ -792,6 +1002,108 @@ def create_specialized_evaluator(
                     metrics["linter_errors"] = errors
                 except (ImportError, FileNotFoundError):
                     pass  # eslint not installed
+            elif content_type == "code_php":
+                metrics.update({
+                    "has_functions": "function " in content,
+                    "has_classes": "class " in content,
+                    "has_variables": "$" in content,
+                })
+            elif content_type == "code_ruby":
+                metrics.update({
+                    "has_methods": "def " in content,
+                    "has_classes": "class " in content,
+                    "has_modules": "module " in content,
+                })
+            elif content_type == "code_perl":
+                metrics.update({
+                    "has_subroutines": "sub " in content,
+                    "has_packages": "package " in content,
+                    "has_variables": "$" in content or "@" in content or "%" in content,
+                })
+            elif content_type == "code_scala":
+                metrics.update({
+                    "has_functions": "def " in content,
+                    "has_classes": "class " in content,
+                    "has_objects": "object " in content,
+                })
+            elif content_type == "code_haskell":
+                metrics.update({
+                    "has_functions": "::" in content,
+                    "has_data_types": "data " in content,
+                    "has_modules": "module " in content,
+                })
+            elif content_type == "code_r":
+                metrics.update({
+                    "has_functions": "function(" in content,
+                    "has_variables": "<-" in content or "=" in content,
+                })
+            elif content_type == "code_matlab":
+                metrics.update({
+                    "has_functions": "function " in content,
+                    "has_scripts": ".m" in content,
+                })
+            elif content_type == "code_assembly":
+                metrics.update({
+                    "has_labels": ":" in content,
+                    "has_instructions": "mov " in content or "add " in content,
+                })
+            elif content_type == "code_shell":
+                metrics.update({
+                    "has_shebang": "#!" in content,
+                    "has_variables": "$" in content,
+                    "has_functions": "() {" in content,
+                })
+            elif content_type == "code_sql":
+                metrics.update({
+                    "has_select": "SELECT" in content.upper(),
+                    "has_from": "FROM" in content.upper(),
+                    "has_where": "WHERE" in content.upper(),
+                })
+            elif content_type == "code_html":
+                metrics.update({
+                    "has_doctype": "<!DOCTYPE html>" in content.lower(),
+                    "has_head": "<head>" in content.lower(),
+                    "has_body": "<body>" in content.lower(),
+                })
+            elif content_type == "code_css":
+                metrics.update({
+                    "has_selectors": "{" in content and "}" in content,
+                    "has_properties": ":" in content and ";" in content,
+                })
+            elif content_type == "code_json":
+                metrics.update({
+                    "is_valid_json": True,
+                    "has_objects": "{" in content,
+                    "has_arrays": "[" in content,
+                })
+            elif content_type == "code_xml":
+                metrics.update({
+                    "has_xml_declaration": "<?xml" in content.lower(),
+                    "has_tags": "<" in content and ">" in content,
+                })
+            elif content_type == "code_yaml":
+                metrics.update({
+                    "has_key_value_pairs": ":" in content,
+                    "has_lists": "-" in content,
+                })
+            elif content_type == "code_markdown":
+                metrics.update({
+                    "has_headers": "#" in content,
+                    "has_lists": "-" in content or "*" in content or "1." in content,
+                    "has_links": "[" in content and "]" in content and "(" in content and ")" in content,
+                })
+            elif content_type.startswith("document_"): # Generic document checks
+                metrics.update({
+                    "document_length_words": len(content.split()),
+                    "has_sections": "##" in content or "###" in content or "#" in content,
+                })
+            elif content_type == "code_lean4":
+                metrics.update({
+                    "has_imports": "import " in content,
+                    "has_theorems": "theorem " in content,
+                    "has_definitions": "def " in content or "abbrev " in content,
+                    "comment_ratio": content.count("--") / max(1, len(content.split())),
+                })
 
             # Calculate a composite score based on various factors
             score_components = []
@@ -830,7 +1142,16 @@ def create_specialized_evaluator(
             return metrics
 
         except Exception as e:
-            return {"score": 0.0, "error": str(e), "timestamp": time.time()}
+            # Return error metrics in a format that OpenEvolve can process
+            return {
+                "score": 0.0, 
+                "error": str(e), 
+                "timestamp": time.time(),
+                "combined_score": 0.0,  # Critical for OpenEvolve
+                "length": 0,
+                "complexity": 0.0,
+                "diversity": 0.0,
+            }
 
     return code_evaluator
 
@@ -848,9 +1169,28 @@ def get_language_from_content_type(content_type: str) -> str:
         "code_swift": "swift",
         "code_kotlin": "kotlin",
         "code_typescript": "typescript",
+        "code_php": "php",
+        "code_ruby": "ruby",
+        "code_perl": "perl",
+        "code_scala": "scala",
+        "code_haskell": "haskell",
+        "code_r": "r",
+        "code_matlab": "matlab",
+        "code_assembly": "assembly",
+        "code_shell": "shell",
+        "code_sql": "sql",
+        "code_html": "html",
+        "code_css": "css",
+        "code_json": "json",
+        "code_xml": "xml",
+        "code_yaml": "yaml",
+        "code_markdown": "markdown",
         "document_legal": "document",
         "document_medical": "document",
         "document_technical": "document",
+        "document_general": "document",
+        "document_report": "document",
+        "code_lean4": "lean4",
     }
     return language_map.get(content_type, "python")
 
@@ -868,9 +1208,28 @@ def get_file_suffix_from_content_type(content_type: str) -> str:
         "code_swift": ".swift",
         "code_kotlin": ".kt",
         "code_typescript": ".ts",
+        "code_php": ".php",
+        "code_ruby": ".rb",
+        "code_perl": ".pl",
+        "code_scala": ".scala",
+        "code_haskell": ".hs",
+        "code_r": ".r",
+        "code_matlab": ".m",
+        "code_assembly": ".asm",
+        "code_shell": ".sh",
+        "code_sql": ".sql",
+        "code_html": ".html",
+        "code_css": ".css",
+        "code_json": ".json",
+        "code_xml": ".xml",
+        "code_yaml": ".yaml",
+        "code_markdown": ".md",
         "document_legal": ".txt",
         "document_medical": ".txt",
         "document_technical": ".txt",
+        "document_general": ".txt",
+        "document_report": ".txt",
+        "code_lean4": ".lean",
     }
     return suffix_map.get(content_type, ".py")
 

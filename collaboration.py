@@ -1,4 +1,5 @@
 import asyncio
+import streamlit as st
 import websockets
 import json
 import threading
@@ -137,8 +138,26 @@ class CollaborationServer:
         print(f"Collaboration server started on ws://{self.host}:{self.port}")
 
 
-collaboration_server = CollaborationServer()
-
-
 def start_collaboration_server():
-    collaboration_server.start()
+    if "collaboration_server_instance" not in st.session_state:
+        # Check if the port is available before creating the server
+        import socket
+        port = 8765  # Default collaboration port
+        
+        # Test if port is available
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            result = sock.connect_ex(('localhost', port))
+            if result == 0:  # Port is in use
+                st.warning(f"Port {port} is already in use. Collaboration server may not start properly.")
+        
+        st.session_state.collaboration_server_instance = CollaborationServer(host="localhost", port=port)
+        st.session_state.collaboration_server_started = False
+
+    if not st.session_state.collaboration_server_started:
+        try:
+            st.session_state.collaboration_server_instance.start()
+            st.session_state.collaboration_server_started = True
+            print(f"Collaboration server started successfully on ws://localhost:{8765}")
+        except Exception as e:
+            st.error(f"Failed to start collaboration server: {e}")
+            st.session_state.collaboration_server_started = False

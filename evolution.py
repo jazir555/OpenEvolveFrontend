@@ -133,90 +133,213 @@ def run_evolution_loop(
     presence_penalty: float,
     max_tokens: int,
     seed: Optional[int],
+    use_adversarial_diagnostics: bool = False,
+    multi_objective_optimization: bool = False,
+    feature_dimensions: Optional[List[str]] = None,
+    feature_bins: Optional[int] = None,
+    elite_ratio: float = 0.1,
+    exploration_ratio: float = 0.2,
+    exploitation_ratio: float = 0.7,
+    archive_size: int = 100,
+    checkpoint_interval: int = 10
 ):
     """
-    The main evolution loop.
+    The main evolution loop with enhanced capabilities that can utilize adversarial testing diagnostics.
     """
-    for i in range(max_iterations):
-        if st.session_state.evolution_stop_flag:
-            _update_evolution_log_and_status("⏹️ Evolution stopped by user.")
-            break
+    try:
+        for i in range(max_iterations):
+            # Check if we have adversarial stop flag (for integrated workflows)
+            if st.session_state.get("adversarial_stop_flag", False):
+                _update_evolution_log_and_status("⏹️ Evolution stopped due to adversarial stop flag.")
+                break
+                
+            if st.session_state.evolution_stop_flag:
+                _update_evolution_log_and_status("⏹️ Evolution stopped by user.")
+                break
 
-        _update_evolution_log_and_status(f"🔄 Iteration {i + 1}/{max_iterations}")
-        _update_evolution_log_and_status("🧬 Generating new population...")
+            _update_evolution_log_and_status(f"🔄 Iteration {i + 1}/{max_iterations}")
+            _update_evolution_log_and_status("🧬 Generating new population...")
 
-        if i % st.session_state.checkpoint_interval == 0:
-            _update_evolution_log_and_status(f"💾 Saving checkpoint at iteration {i}")
-            print(f"Saving checkpoint at iteration {i}")
+            if i % checkpoint_interval == 0:
+                _update_evolution_log_and_status(f"💾 Saving checkpoint at iteration {i}")
+                print(f"Saving checkpoint at iteration {i}")
 
-        # Generate new population
-        with ThreadPoolExecutor(max_workers=population_size) as executor:
-            futures = [
-                executor.submit(
-                    _request_openai_compatible_chat,
-                    api_key,
-                    base_url,
-                    model,
-                    _compose_messages(system_prompt, current_content),
-                    extra_headers,
-                    temperature,
-                    top_p,
-                    frequency_penalty,
-                    presence_penalty,
-                    max_tokens,
-                    seed + i if seed is not None else None,
+            # Generate new population
+            with ThreadPoolExecutor(max_workers=population_size) as executor:
+                futures = [
+                    executor.submit(
+                        _request_openai_compatible_chat,
+                        api_key,
+                        base_url,
+                        model,
+                        _compose_messages(system_prompt, current_content),
+                        extra_headers,
+                        temperature,
+                        top_p,
+                        frequency_penalty,
+                        presence_penalty,
+                        max_tokens,
+                        seed + i if seed is not None else None,
+                    )
+                    for i in range(population_size)
+                ]
+
+                new_population = []
+                for future in as_completed(futures):
+                    try:
+                        result = future.result()
+                        new_population.append(result)
+                    except Exception as e:
+                        _update_evolution_log_and_status(f"❌ Error generating candidate: {e}")
+                        # Add a placeholder if generation fails
+                        new_population.append(current_content)
+
+            _update_evolution_log_and_status("🔍 Evaluating new population...")
+
+            best_candidate = ""
+            best_score = -1
+
+            # Use adversarial diagnostics to inform the evolution process if enabled
+            if use_adversarial_diagnostics:
+                adversarial_history = st.session_state.get("integrated_adversarial_history", [])
+                if adversarial_history:
+                    # Get the latest adversarial diagnostics to inform evolution
+                    latest_diag = adversarial_history[-1]
+                    # If there were many issues found in adversarial testing, 
+                    # we should focus more on fixing those issues in evolution
+                    if latest_diag.get("issues_found", 0) > latest_diag.get("mitigations", 0):
+                        # Adjust system prompt to focus on fixing issues
+                        improvement_system_prompt = f"{system_prompt}\n\nBased on adversarial testing results, there are still more issues than have been mitigated. Focus on addressing remaining issues and vulnerabilities identified during adversarial testing."
+                        
+                        # Generate alternative candidates specifically focused on addressing issues
+                        with ThreadPoolExecutor(max_workers=max(1, population_size//2)) as executor:
+                            improvement_futures = [
+                                executor.submit(
+                                    _request_openai_compatible_chat,
+                                    api_key,
+                                    base_url,
+                                    model,
+                                    _compose_messages(improvement_system_prompt, current_content),
+                                    extra_headers,
+                                    temperature,
+                                    top_p,
+                                    frequency_penalty,
+                                    presence_penalty,
+                                    max_tokens,
+                                    seed + population_size + i if seed is not None else None,
+                                )
+                                for i in range(max(1, population_size//2))
+                            ]
+                            
+                            for future in as_completed(improvement_futures):
+                                try:
+                                    result = future.result()
+                                    new_population.append(result)
+                                except Exception as e:
+                                    _update_evolution_log_and_status(f"❌ Error generating improvement candidate: {e}")
+
+            # Evaluate new population
+            with ThreadPoolExecutor(max_workers=population_size) as executor:
+                futures = {
+                    executor.submit(
+                        _evaluate_candidate_with_diagnostics,
+                        candidate,
+                        api_key,
+                        base_url,
+                        model,
+                        evaluator,
+                        extra_headers,
+                        temperature,
+                        top_p,
+                        frequency_penalty,
+                        presence_penalty,
+                        max_tokens,
+                        seed,
+                        use_adversarial_diagnostics
+                    ): candidate
+                    for candidate in new_population
+                }
+
+                for future in as_completed(futures):
+                    try:
+                        candidate = futures[future]
+                        score = future.result()
+
+                        if score > best_score:
+                            best_score = score
+                            best_candidate = candidate
+                    except Exception as e:
+                        _update_evolution_log_and_status(f"❌ Error evaluating candidate: {e}")
+                        continue
+
+            if best_candidate and best_score > 0:
+                current_content = best_candidate
+                with st.session_state.thread_lock:
+                    st.session_state.evolution_current_best = current_content
+                _update_evolution_log_and_status(
+                    f"🏆 New best candidate found with score: {best_score:.2f}"
                 )
-                for i in range(population_size)
-            ]
+            else:
+                _update_evolution_log_and_status("🤔 No improvement in this iteration.")
 
-            new_population = [future.result() for future in as_completed(futures)]
+        _update_evolution_log_and_status("🏁 Evolution finished.")
+        return current_content
+    except Exception as e:
+        _update_evolution_log_and_status(f"💥 Evolution loop failed: {e}")
+        import traceback
+        traceback.print_exc()
+        return current_content
 
-        _update_evolution_log_and_status("🔍 Evaluating new population...")
 
-        best_candidate = ""
-        best_score = -1
-
-        # Evaluate new population
-        with ThreadPoolExecutor(max_workers=population_size) as executor:
-            futures = {
-                executor.submit(
-                    _evaluate_candidate,
-                    candidate,
-                    api_key,
-                    base_url,
-                    model,
-                    evaluator,
-                    extra_headers,
-                    temperature,
-                    top_p,
-                    frequency_penalty,
-                    presence_penalty,
-                    max_tokens,
-                    seed,
-                ): candidate
-                for candidate in new_population
-            }
-
-            for future in as_completed(futures):
-                candidate = futures[future]
-                score = future.result()
-
-                if score > best_score:
-                    best_score = score
-                    best_candidate = candidate
-
-        if best_candidate and best_score > 0:
-            current_content = best_candidate
-            with st.session_state.thread_lock:
-                st.session_state.evolution_current_best = current_content
-            _update_evolution_log_and_status(
-                f"🏆 New best candidate found with score: {best_score:.2f}"
-            )
-        else:
-            _update_evolution_log_and_status("🤔 No improvement in this iteration.")
-
-    _update_evolution_log_and_status("🏁 Evolution finished.")
-    return current_content
+def _evaluate_candidate_with_diagnostics(
+    candidate: str,
+    api_key: str,
+    base_url: str,
+    model: str,
+    evaluator: ContentEvaluator,
+    extra_headers: Dict,
+    temperature: float,
+    top_p: float,
+    frequency_penalty: float,
+    presence_penalty: float,
+    max_tokens: int,
+    seed: Optional[int],
+    use_adversarial_diagnostics: bool = False,
+) -> float:
+    """
+    Evaluate a single candidate with potential integration with adversarial diagnostics.
+    """
+    try:
+        # If the evaluator has an evaluate method that works with file paths,
+        # we need to create a temporary file for the candidate
+        import tempfile
+        import os
+        
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as temp_file:
+            temp_file.write(candidate)
+            temp_file_path = temp_file.name
+        
+        try:
+            # Call the evaluator
+            evaluation_result = evaluator.evaluate(temp_file_path)
+            score = evaluation_result.get("score", 0.0)
+            
+            # If using adversarial diagnostics, potentially adjust score based on issue resolution
+            if use_adversarial_diagnostics:
+                # Consider the content's improvement over adversarial testing results
+                # This is a simplified approach - in a full implementation, we'd use more sophisticated logic
+                base_score = evaluation_result.get("score", 0.0)
+                length_factor = min(1.0, len(candidate) / 1000.0)  # Favor reasonable length
+                score = (base_score * 0.7) + (length_factor * 0.3)  # Weighted combination
+            
+        finally:
+            # Clean up the temporary file
+            os.unlink(temp_file_path)
+        
+        return score
+    except Exception as e:
+        print(f"Error evaluating candidate: {e}")
+        return 0.0  # Return zero score if evaluation fails
 
 
 def _evaluate_candidate(
@@ -236,44 +359,60 @@ def _evaluate_candidate(
     """
     Evaluate a single candidate.
     """
-    evaluation = _request_openai_compatible_chat(
-        api_key,
-        base_url,
-        model,
-        _compose_messages(evaluator.evaluator_system_prompt, candidate),
-        extra_headers,
-        temperature,
-        top_p,
-        frequency_penalty,
-        presence_penalty,
-        max_tokens,
-        seed,
-    )
     try:
-        # Try to parse the evaluation result - might be a score or improvement assessment
-        score_str = evaluation.strip()
-        # Look for numeric score in the response
-        score_match = re.search(r"(\d+\.?\d*)", score_str)
-        if score_match:
-            score = float(score_match.group(1))
-        else:
-            # If no numeric score found, evaluate based on keyword presence
-            score = 0.5  # Default neutral score
-            if (
-                "good" in score_str.lower()
-                or "improved" in score_str.lower()
-                or "better" in score_str.lower()
-            ):
-                score = 0.8
-            elif (
-                "poor" in score_str.lower()
-                or "bad" in score_str.lower()
-                or "worse" in score_str.lower()
-            ):
-                score = 0.2
-    except (ValueError, TypeError):
-        score = 0.0
-    return score
+        evaluation = _request_openai_compatible_chat(
+            api_key,
+            base_url,
+            model,
+            _compose_messages(evaluator.evaluator_system_prompt, candidate),
+            extra_headers,
+            temperature,
+            top_p,
+            frequency_penalty,
+            presence_penalty,
+            max_tokens,
+            seed,
+        )
+        try:
+            # Try to parse the evaluation result - might be a score or improvement assessment
+            score_str = evaluation.strip()
+            # Look for numeric score in the response
+            score_match = re.search(r"(\d+\.?\d*)", score_str)
+            if score_match:
+                score = float(score_match.group(1))
+                # Ensure score is between 0 and 1
+                score = max(0.0, min(1.0, score / 100.0))  # Assuming scores are out of 100
+            else:
+                # If no numeric score found, evaluate based on keyword presence
+                score = 0.5  # Default neutral score
+                if (
+                    "good" in score_str.lower()
+                    or "improved" in score_str.lower()
+                    or "better" in score_str.lower()
+                    or "excellent" in score_str.lower()
+                    or "great" in score_str.lower()
+                ):
+                    score = 0.8
+                elif (
+                    "poor" in score_str.lower()
+                    or "bad" in score_str.lower()
+                    or "worse" in score_str.lower()
+                    or "terrible" in score_str.lower()
+                    or "awful" in score_str.lower()
+                ):
+                    score = 0.2
+                elif (
+                    "average" in score_str.lower()
+                    or "okay" in score_str.lower()
+                    or "acceptable" in score_str.lower()
+                ):
+                    score = 0.5
+        except (ValueError, TypeError, AttributeError):
+            score = 0.0
+        return score
+    except Exception as e:
+        print(f"Error evaluating candidate: {e}")
+        return 0.0  # Return zero score if evaluation fails
 
 
 def _run_evolution_with_openevolve_backend_refactored(
@@ -536,12 +675,46 @@ def _run_evolution_with_api_backend_refactored(
 
 
 def _update_evolution_log_and_status(msg: str):
+    """Thread-safe way to update logs and status message with optimization."""
+    # Only update if we're actually running evolution
+    if not st.session_state.get("evolution_running", False):
+        return
+    
+    current_time = time.strftime('%H:%M:%S')
+    log_entry = f"[{current_time}] {msg}"
+    
+    # Throttling: Only allow updates every 100ms to prevent flooding
+    last_update_key = "_last_evolution_log_update"
+    current_timestamp = time.time()
+    
     with st.session_state.thread_lock:
-        st.session_state.evolution_log.append(f"[{time.strftime('%H:%M:%S')}] {msg}")
+        # Check if this is actually a new message to avoid duplicates
+        if st.session_state.evolution_log and st.session_state.evolution_log[-1] == log_entry:
+            return
+            
+        # Throttling check
+        if last_update_key in st.session_state:
+            last_timestamp = st.session_state[last_update_key]
+            if current_timestamp - last_timestamp < 0.1:  # 100ms minimum interval
+                return
+        
+        st.session_state.evolution_log.append(log_entry)
+        st.session_state.evolution_status_message = msg
+        st.session_state[last_update_key] = current_timestamp
+        
+        # Limit log size to prevent memory issues
+        if len(st.session_state.evolution_log) > 100:
+            st.session_state.evolution_log = st.session_state.evolution_log[-100:]
+    
+    # Only update log queue if it exists and we have new content
     if "log_queue" in st.session_state and st.session_state.log_queue:
-        st.session_state.log_queue.put(f"[{time.strftime('%H:%M:%S')}] {msg}")
+        try:
+            st.session_state.log_queue.put(log_entry)
+        except:
+            pass  # Silently fail if queue is full or closed
 
 
+@st.cache_data(ttl=3600) # Cache for 1 hour
 def _request_openai_compatible_chat(
     api_key: str,
     base_url: str,
@@ -602,16 +775,3 @@ def _request_openai_compatible_chat(
     raise RuntimeError(
         f"Request failed for {model} after {max_retries} attempts: {last_err}"
     )
-
-def render_evolution_settings():
-    """
-    Placeholder function to render the evolution settings section in the Streamlit UI.
-    This would typically allow users to configure parameters for the evolutionary algorithm.
-    """
-    st.header("🧬 Evolution Settings")
-    st.info("Evolution settings management features are under development. Stay tuned!")
-    # Example of how you might display evolution parameters:
-    # st.subheader("Algorithm Parameters")
-    # st.slider("Max Iterations", 1, 100, st.session_state.max_iterations)
-    # st.slider("Population Size", 1, 50, st.session_state.population_size)
-    # st.slider("Temperature", 0.0, 2.0, st.session_state.temperature)
