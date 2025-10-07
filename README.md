@@ -1,5 +1,7 @@
 # OpenEvolve Frontend
 
+Status: Currently under active development!
+
 The OpenEvolve Frontend is a comprehensive, general-purpose content improvement tool that provides a user-friendly graphical interface for the OpenEvolve backend. It supports various content types including protocols, code, documentation, and any other text-based content.
 
 ## 🌟 Key Features
