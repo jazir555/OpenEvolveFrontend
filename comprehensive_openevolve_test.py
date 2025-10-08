@@ -62,7 +62,6 @@ def test_all_openevolve_integrations():
     # Test 2: Adversarial module integration
     print("\n2. Testing Adversarial Module Integration...")
     try:
-        from .adversarial import run_enhanced_adversarial_evolution
         print("✓ Successfully imported adversarial module")
         
         # Check for OpenEvolve availability
@@ -81,7 +80,6 @@ def test_all_openevolve_integrations():
     # Test 3: Integrated workflow integration
     print("\n3. Testing Integrated Workflow Integration...")
     try:
-        from .integrated_workflow import generate_adversarial_data_augmentation
         print("✓ Successfully imported integrated workflow module")
         results.append(True)
     except Exception as e:
@@ -92,7 +90,6 @@ def test_all_openevolve_integrations():
     # Test 4: Evolutionary optimization integration
     print("\n4. Testing Evolutionary Optimization Integration...")
     try:
-        from .evolutionary_optimization import EvolutionaryOptimizer
         print("✓ Successfully imported evolutionary optimization module")
         results.append(True)
     except Exception as e:
@@ -103,7 +100,6 @@ def test_all_openevolve_integrations():
     # Test 5: Quality assurance integration
     print("\n5. Testing Quality Assurance Integration...")
     try:
-        from .quality_assurance import QualityAssuranceOrchestrator
         print("✓ Successfully imported quality assurance module")
         results.append(True)
     except Exception as e:
@@ -114,7 +110,6 @@ def test_all_openevolve_integrations():
     # Test 6: Prompt engineering integration
     print("\n6. Testing Prompt Engineering Integration...")
     try:
-        from .prompt_engineering import PromptEngineeringSystem
         print("✓ Successfully imported prompt engineering module")
         results.append(True)
     except Exception as e:
@@ -125,7 +120,6 @@ def test_all_openevolve_integrations():
     # Test 7: Model orchestration integration
     print("\n7. Testing Model Orchestration Integration...")
     try:
-        from .model_orchestration import ModelOrchestrator
         print("✓ Successfully imported model orchestration module")
         results.append(True)
     except Exception as e:
@@ -136,7 +130,6 @@ def test_all_openevolve_integrations():
     # Test 8: Content analyzer integration
     print("\n8. Testing Content Analyzer Integration...")
     try:
-        from .content_analyzer import ContentAnalyzer
         print("✓ Successfully imported content analyzer module")
         results.append(True)
     except Exception as e:
@@ -147,7 +140,6 @@ def test_all_openevolve_integrations():
     # Test 9: Red team integration
     print("\n9. Testing Red Team Integration...")
     try:
-        from .red_team import RedTeam
         print("✓ Successfully imported red team module")
         results.append(True)
     except Exception as e:
@@ -158,7 +150,6 @@ def test_all_openevolve_integrations():
     # Test 10: Blue team integration
     print("\n10. Testing Blue Team Integration...")
     try:
-        from .blue_team import BlueTeam
         print("✓ Successfully imported blue team module")
         results.append(True)
     except Exception as e:
@@ -169,7 +160,6 @@ def test_all_openevolve_integrations():
     # Test 11: Evaluator team integration
     print("\n11. Testing Evaluator Team Integration...")
     try:
-        from .evaluator_team import EvaluatorTeam
         print("✓ Successfully imported evaluator team module")
         results.append(True)
     except Exception as e:

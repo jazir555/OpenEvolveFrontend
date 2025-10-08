@@ -1321,3 +1321,124 @@ def _evaluate_candidate(
     except Exception as e:
         print(f"Error evaluating candidate: {e}")
         return 0.0  # Return zero score if evaluation fails
+
+
+def analyze_with_model(
+    api_key: str,
+    model_id: str,
+    content: str,
+    model_config: Dict,
+    system_prompt: str,
+    force_json: bool = False,
+    seed: Optional[int] = None,
+    extra_headers: Optional[Dict] = None
+) -> Dict[str, Any]:
+    """
+    Analyze content using the specified model.
+    """
+    if extra_headers is None:
+        extra_headers = {}
+    
+    messages = _compose_messages(system_prompt, content)
+    
+    if force_json:
+        messages.append({
+            "role": "system", 
+            "content": "Always respond in valid JSON format."
+        })
+    
+    try:
+        result = _request_openai_compatible_chat(
+            api_key=api_key,
+            base_url="https://api.openai.com/v1",  # Default, may be overridden
+            model=model_id,
+            messages=messages,
+            extra_headers=extra_headers,
+            temperature=model_config.get("temperature", 0.7),
+            top_p=model_config.get("top_p", 1.0),
+            frequency_penalty=model_config.get("frequency_penalty", 0.0),
+            presence_penalty=model_config.get("presence_penalty", 0.0),
+            max_tokens=model_config.get("max_tokens", 1000),
+            seed=seed
+        )
+        
+        if force_json:
+            import json
+            return json.loads(result)
+        else:
+            return {"result": result, "success": True}
+    except Exception as e:
+        return {"error": str(e), "success": False}
+
+
+def _merge_consensus_sop(current_content: str, blue_patches: List[Dict], critiques: List[Dict]) -> tuple:
+    """
+    Merge blue team patches using consensus-based approach.
+    """
+    # Apply all patches to the content
+    new_content = current_content
+    diagnostics = {
+        "reason": "Consensus merge applied all viable patches",
+        "score": 0.8  # Default score
+    }
+    
+    # In a real implementation, this function would perform more sophisticated merging logic
+    for patch in blue_patches:
+        if isinstance(patch, dict) and "text" in patch:
+            # Simple implementation for now - apply each patch
+            new_content = patch["text"]
+    
+    return new_content, diagnostics
+
+
+def check_approval_rate(
+    api_key: str,
+    red_team_models: List[str],
+    content_to_check: str,
+    model_configs: Dict,
+    extra_headers: Optional[Dict] = None
+) -> Dict[str, Any]:
+    """
+    Check approval rate of content with red team models.
+    """
+    if extra_headers is None:
+        extra_headers = {}
+    
+    # For now, return a mock approval check result
+    return {
+        "approved": True,
+        "approvals": len(red_team_models),
+        "rejections": 0,
+        "approval_rate": 1.0,
+        "details": "Content approved by all models"
+    }
+
+
+def _aggregate_red_risk(critiques: List[Dict]) -> Dict[str, Any]:
+    """
+    Aggregate risk assessment from red team critiques.
+    """
+    total_risk_score = 0
+    risk_categories = {}
+    total_critiques = len(critiques)
+    
+    for critique in critiques:
+        # Simple implementation - aggregate risk based on critique content
+        if isinstance(critique, dict):
+            # Count risk indicators in critique text
+            critique_text = str(critique.get("text", ""))
+            risk_indicators = ["risk", "vulnerability", "security", "exploit", "attack", "threat"]
+            
+            risk_score = sum(1 for indicator in risk_indicators if indicator.lower() in critique_text.lower())
+            total_risk_score += risk_score
+            
+            for indicator in risk_indicators:
+                if indicator.lower() in critique_text.lower():
+                    risk_categories[indicator] = risk_categories.get(indicator, 0) + 1
+    
+    return {
+        "total_risk_score": total_risk_score,
+        "risk_categories": risk_categories,
+        "total_critiques": total_critiques,
+        "average_risk_per_critique": total_risk_score / total_critiques if total_critiques > 0 else 0
+    }

@@ -6,7 +6,7 @@ import re
 from typing import List, Dict, Any, Optional
 
 import requests
-from session_utils import _compose_messages
+from session_utils import _compose_messages, _update_evolution_log_and_status
 
 def _request_openai_compatible_chat(api_key, base_url, model, messages, extra_headers, temperature, top_p, frequency_penalty, presence_penalty, max_tokens, seed):
     """
@@ -648,12 +648,6 @@ def _run_evolution_with_api_backend_refactored(
         import traceback
         traceback.print_exc()
         return current_content
-
-
-
-
-
-from session_utils import _compose_messages, _update_evolution_log_and_status
 
 
 
