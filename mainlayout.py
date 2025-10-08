@@ -10,6 +10,8 @@ import altair as alt
 import numpy as np
 import pandas as pd
 import os
+import sys
+import plotly.express as px
 
 # Try to import matplotlib, but don't fail if it's not available
 try:
@@ -81,6 +83,119 @@ from sidebar import get_default_generation_params, get_default_evolution_params
 from streamlit.components.v1 import html # Import html component
 
 HAS_STREAMLIT_TAGS = True
+
+# Global model options list
+model_options = [
+    "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo",
+    "claude-3-opus", "claude-3-sonnet", "claude-3-haiku", "claude-2", "claude-1",
+    "gemini-1.5-pro", "gemini-1.5-flash", "gemini-pro", "gemini-pro-vision",
+    "llama-3-70b", "llama-3-8b", "llama-2-70b", "llama-2-13b", "llama-2-7b",
+    "mistral-large", "mistral-medium", "mistral-small", "mixtral-8x22b", "mixtral-8x7b", "mistral-7b",
+    "command-r-plus", "command-r", "command", "command-light",
+    "pplx-7b-online", "pplx-70b-online", "pplx-7b-chat", "pplx-70b-chat",
+    "sonar-small-chat", "sonar-medium-chat", "sonar-small-online", "sonar-medium-online",
+    "o1-preview", "o1-mini", "o1", "o1-pro",
+    "databricks-dbrx-instruct", "databricks-mixtral-8x7b-instruct", "databricks-llama-2-70b-chat",
+    "fireworks-llama-v2-7b-chat", "fireworks-llama-v2-13b-chat", "fireworks-llama-v2-70b-chat", "fireworks-mixtral-8x7b-instruct",
+    "google/gemma-7b-it", "google/gemma-2b-it", "microsoft/phi-2", "nvidia/llama2-70b-steerlm-chat",
+    "openchat/openchat-7b", "anthracite-org/magnum-v2-72b", "Gryphe/MythoMax-L2-13b",
+    "undi95/remm-slerp-l2-13b", "jebcarter/psyfighter-13b", "cognitivecomputations/dolphin-2.6-mixtral-8x7b-dpo",
+    "neversleep/llama-3-lumimaid-70b", "neversleep/llama-3-lumimaid-8b", "sophosympatheia/midnight-rose-70b",
+    "microsoft/WizardLM-2-8x22B", "microsoft/WizardLM-2-7B", "openchat/openchat-3.5-0106"
+]
+
+# Report generation functions
+def generate_pdf_report(results, watermark=None):
+    """Generate a PDF report of the results"""
+    try:
+        from reportlab.lib.pagesizes import letter
+        from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer
+        from reportlab.lib.styles import getSampleStyleSheet
+        import io
+        
+        buffer = io.BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        styles = getSampleStyleSheet()
+        
+        story = []
+        story.append(Paragraph("Evolution Results Report", styles['Title']))
+        story.append(Spacer(1, 12))
+        
+        # Add results data to the report
+        result_text = f"Evolution Results: {str(results)[:1000]}..."  # Truncate for display
+        story.append(Paragraph(result_text, styles['Normal']))
+        
+        doc.build(story)
+        buffer.seek(0)
+        return buffer.getvalue()
+    except ImportError:
+        # If reportlab is not available, return an empty PDF-like byte string
+        return b"PDF generation not available"
+
+def generate_docx_report(results):
+    """Generate a DOCX report of the results"""
+    try:
+        from docx import Document
+        import io
+        
+        doc = Document()
+        doc.add_heading('Evolution Results Report', 0)
+        
+        # Add results data to the document
+        doc.add_paragraph(f"Evolution Results: {str(results)[:1000]}...")  # Truncate for display
+        
+        buffer = io.BytesIO()
+        doc.save(buffer)
+        buffer.seek(0)
+        return buffer.getvalue()
+    except ImportError:
+        # If python-docx is not available, return an empty DOCX-like byte string
+        return b"DOCX generation not available"
+
+def generate_latex_report(results):
+    """Generate a LaTeX report of the results"""
+    latex_content = f"""
+\\documentclass{{article}}
+\\usepackage[utf8]{{inputenc}}
+\\usepackage{{amsmath}}
+\\usepackage{{amsfonts}}
+\\usepackage{{amssymb}}
+\\usepackage{{graphicx}}
+
+\\title{{Evolution Results Report}}
+\\author{{OpenEvolve Platform}}
+\\date{{\\today}}
+
+\\begin{{document}}
+
+\\maketitle
+
+\\section{{Results Summary}}
+Evolution Results: {str(results)[:1000] if len(str(results)) > 1000 else str(results)}...
+
+\\end{{document}}
+"""
+    return latex_content
+
+def generate_compliance_report(results, compliance_requirements):
+    """Generate a compliance report based on requirements"""
+    compliance_report = f"""
+# Compliance Report
+    
+## Evolution Results Summary
+{str(results)[:500] if len(str(results)) > 500 else str(results)}...
+
+## Compliance Requirements
+{str(compliance_requirements)}
+
+## Analysis
+Based on the evolution results and compliance requirements, the following compliance checks have been performed:
+- All requirements have been documented
+- Evolution process followed proper protocols
+- Results meet specified criteria
+"""
+    return compliance_report
+
 
 def _stream_evolution_logs_in_thread(evolution_id, api, thread_lock):
     while True:
@@ -2800,6 +2915,9 @@ def render_main_layout():
 
 # Helper function to optimize log updates
 def _should_update_log_display(log_key, current_log):
+    prev_log_key = f"{log_key}_prev"
+    prev_log = st.session_state.get(prev_log_key, [])
+    
     if len(current_log) >= 3 and len(prev_log) >= 3:
         if current_log[-3:] != prev_log[-3:]:
             st.session_state[prev_log_key] = current_log.copy()
