@@ -3319,10 +3319,11 @@ Applies to all employees, contractors, and vendors with system access.
                         if selected_repo_to_link and st.button("🔗 Link Repository", key="link_repo"):
                             if link_github_repository(st.session_state.github_token, selected_repo_to_link):
                                 st.rerun()
-                    else:
+                    except Exception as e:
+                        st.error(f"Error fetching repositories: {e}")
+                    
+                    if not repo_names:
                         st.info("No repositories found for your account.")
-                except Exception as e:
-                    st.error(f"Error fetching repositories: {e}")
                 
                 # Show linked repositories
                 linked_repos = list_linked_github_repositories() 
