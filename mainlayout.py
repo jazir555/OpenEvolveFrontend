@@ -734,11 +734,6 @@ def render_adversarial_testing_tab():
     st.header("⚔️ Adversarial Testing")
     st.write("Configure and run adversarial testing to harden your content.")
 
-    # Placeholder for adversarial testing UI
-def render_adversarial_testing_tab():
-    st.header("⚔️ Adversarial Testing")
-    st.write("Configure and run adversarial testing to harden your content.")
-
     # Content to be tested
     st.subheader("Content to Test")
     protocol_text = st.text_area("Enter content here", value=st.session_state.get("protocol_text", ""), height=300, key="adversarial_protocol_text")
@@ -830,7 +825,6 @@ def render_adversarial_testing_tab():
                 st.session_state.adversarial_running = False
                 st.session_state.adversarial_status_message = f"Adversarial testing failed: {e}"
                 st.error(f"Adversarial testing failed: {e}")
-                import traceback
                 st.exception(e)
 
     # Stop button
@@ -3577,7 +3571,7 @@ Applies to all employees, contractors, and vendors with system access.
                         # Add action buttons for each activity (if needed)
                         col_btn1, col_btn2 = st.columns([1, 5])
                         with col_btn1:
-                            if st.button(f"📋 Copy", key=f"copy_activity_{i}"):
+                            if st.button("📋 Copy", key=f"copy_activity_{i}"):
                                 st.code(entry_text)
                         with col_btn2:
                             pass  # Placeholder to maintain column structure
@@ -4618,7 +4612,7 @@ Applies to all employees, contractors, and vendors with system access.
                 with col1:
                     st.markdown("### Application")
                     st.write(f"**Name**: {st.session_state.admin_settings.get('system_name', 'OpenEvolve Platform')}")
-                    st.write(f"**Version**: 1.0.0")  # Would come from actual version in real implementation
+                    st.write("**Version**: 1.0.0")  # Would come from actual version in real implementation
                     st.write(f"**Environment**: {os.getenv('ENVIRONMENT', 'Development')}")
                 
                 with col2:
