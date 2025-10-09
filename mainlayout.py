@@ -52,15 +52,16 @@ from evolution import (
 )
 
 # Check if OpenEvolve is available
+OPENEVOLVE_AVAILABLE = False
 try:
     from openevolve_visualization import render_openevolve_visualization_ui, render_evolution_insights, render_openevolve_advanced_ui, render_advanced_diagnostics
     from monitoring_system import render_comprehensive_monitoring_ui
     from reporting_system import render_reporting_dashboard, create_evolution_report
     from openevolve_orchestrator import start_openevolve_services, stop_openevolve_services, restart_openevolve_services
     OPENEVOLVE_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     OPENEVOLVE_AVAILABLE = False
-    print("OpenEvolve backend not available - using API-based evolution only")
+    print(f"OpenEvolve backend not available - using API-based evolution only: {e}")
 from integrations import (
     create_github_branch, commit_to_github,
     list_linked_github_repositories, send_discord_notification, send_msteams_notification, send_generic_webhook
@@ -1078,11 +1079,23 @@ def render_main_layout():
         if "openevolve_api_instance" not in st.session_state:
             # This should ideally be initialized in sidebar.py before mainlayout.py is rendered
             # For robustness, initialize a dummy one or handle gracefully
-            st.session_state.openevolve_api_instance = OpenEvolveAPI(
-                base_url=st.session_state.get("openevolve_base_url", "http://localhost:8000"),
-                api_key=st.session_state.get("openevolve_api_key", ""),
-            )
-        st.session_state.prompt_manager = PromptManager(api=st.session_state.openevolve_api_instance)
+            try:
+                st.session_state.openevolve_api_instance = OpenEvolveAPI(
+                    base_url=st.session_state.get("openevolve_base_url", "http://localhost:8000"),
+                    api_key=st.session_state.get("openevolve_api_key", ""),
+                )
+            except Exception as e:
+                # Create a mock or simplified API instance if the real one fails
+                class MockOpenEvolveAPI:
+                    def __init__(self):
+                        pass
+                st.session_state.openevolve_api_instance = MockOpenEvolveAPI()
+                st.error(f"Failed to initialize OpenEvolve API: {e}. Using mock API.")
+                
+        try:
+            st.session_state.prompt_manager = PromptManager(api=st.session_state.openevolve_api_instance)
+        except Exception as e:
+            st.error(f"Failed to initialize PromptManager: {e}")
     if "content_manager_instance" not in st.session_state: # Renamed to avoid conflict with imported content_manager
         st.session_state.content_manager_instance = content_manager
     if "analytics_manager_instance" not in st.session_state: # Renamed to avoid conflict with imported analytics_manager
@@ -1108,9 +1121,19 @@ def render_main_layout():
     current_theme = st.session_state.get("theme", "light")
     
     if "styles_css" not in st.session_state:
-        with open("styles.css") as f:
-            st.session_state.styles_css = f.read()
-    st.markdown(f"<style>{st.session_state.styles_css}</style>", unsafe_allow_html=True)
+        try:
+            with open("styles.css") as f:
+                st.session_state.styles_css = f.read()
+        except FileNotFoundError:
+            st.session_state.styles_css = ""  # Default to empty if file not found
+            st.warning("styles.css file not found. Using default styling.")
+        except Exception as e:
+            st.session_state.styles_css = ""
+            st.error(f"Error reading styles.css: {e}")
+    try:
+        st.markdown(f"<style>{st.session_state.styles_css}</style>", unsafe_allow_html=True)
+    except Exception as e:
+        st.error(f"Error applying CSS: {e}")
 
     
     st.markdown(
