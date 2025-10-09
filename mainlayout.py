@@ -1386,7 +1386,10 @@ def render_main_layout():
 
     # Conditional rendering for custom pages
 
-
+    # Ensure we have a valid page state - if it's set to something unexpected, reset to main view
+    valid_pages = [None, "evaluator_uploader", "prompt_manager", "analytics_dashboard", "openevolve_dashboard"]
+    if st.session_state.get("page") not in valid_pages:
+        st.session_state.page = None
 
     if st.session_state.get("page") == "evaluator_uploader":
         st.subheader("⬆️ Upload Custom Evaluator")
