@@ -5699,47 +5699,4 @@ Applies to all employees, contractors, and vendors with system access.
                     
                     st.info("Advanced analytics would include performance trends, resource usage, and optimization recommendations in a full implementation.")
 
-# Ensure all main tabs have content rendered
-# This fixes the issue where tabs[1] through tabs[10] were blank
-else:
-    # Render main tab interface
-    with tabs[0]:  # Evolution tab
-        st.header("🧬 Evolution Engine")
-        st.info("Configure and run evolutionary processes to improve your content.")
-        # Add more evolution content here or call existing render function
-        
-    with tabs[1]:  # Adversarial Testing tab
-        render_adversarial_testing_tab()
-        
-    with tabs[2]:  # GitHub tab
-        render_github_tab()
-        
-    with tabs[3]:  # Activity Feed tab
-        render_activity_feed_tab()
-        
-    with tabs[4]:  # Report Templates tab
-        render_report_templates_tab()
-        
-    with tabs[5]:  # Model Dashboard tab
-        render_model_dashboard_tab()
-        
-    with tabs[6]:  # Tasks tab
-        render_tasks_tab()
-        
-    with tabs[7]:  # Admin tab
-        render_admin_tab()
-        
-    with tabs[8]:  # Analytics Dashboard tab
-        st.header("📊 Analytics Dashboard")
-        st.info("Comprehensive analytics and metrics dashboard.")
-        # Add analytics dashboard content here
-        
-    with tabs[9]:  # OpenEvolve Dashboard tab
-        st.header("🧬 OpenEvolve Advanced Dashboard")
-        st.info("Advanced OpenEvolve platform features.")
-        # Add OpenEvolve dashboard content here
-        
-    with tabs[10]:  # OpenEvolve Orchestrator tab
-        st.header("🤖 OpenEvolve Workflow Orchestrator")
-        st.info("Orchestrate complex evolutionary workflows.")
-        # Add orchestrator content here
+
