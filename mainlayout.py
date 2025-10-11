@@ -2697,7 +2697,7 @@ def render_main_layout():
 
             # Adversarial Testing tab (tabs[1])
             with tabs[1]: # Adversarial Testing tab  # noqa: F821
-                st.header("Adversarial Testing with Multi-LLM Consensus")
+                render_adversarial_testing_tab()
                 st.markdown(
                     "> **How it works:** Adversarial Testing uses two teams of AI models to improve your content:\\n"
                     "> - **🔴 Red Team** finds flaws and vulnerabilities.\\n"
