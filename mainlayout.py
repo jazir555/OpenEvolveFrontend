@@ -3414,16 +3414,107 @@ Applies to all employees, contractors, and vendors with system access.
 
 
     with tabs[2]: # GitHub tab  # noqa: F821
-        with st.container(border=True):
-            st.header("🐙 GitHub Integration")
-            st.markdown("Connect your GitHub repositories, manage commits, branches, and sync evolution results.")
-            
-            # GitHub Authentication Section
-            st.subheader("🔐 GitHub Authentication")
-            github_token = st.text_input("GitHub Personal Access Token", type="password", 
-                                        value=st.session_state.get("github_token", ""))
-            if st.button("Authenticate with GitHub", key="auth_github"):
-                if github_token:
+        render_github_tab()
+
+    with tabs[3]: # Activity Feed tab  # noqa: F821
+        render_activity_feed_tab()
+
+    with tabs[4]: # Report Templates tab  # noqa: F821
+        render_report_templates_tab()
+
+    with tabs[5]: # Model Dashboard tab  # noqa: F821
+        render_model_dashboard_tab()
+
+    with tabs[6]: # Tasks tab  # noqa: F821
+        render_tasks_tab()
+
+    with tabs[7]: # Admin tab  # noqa: F821
+        render_admin_tab()
+
+    with tabs[8]: # Analytics Dashboard tab  # noqa: F821
+        st.header("📊 Analytics Dashboard")
+        st.write("Welcome to your Analytics Dashboard!")
+
+        # Create tabs for different analytics views
+        analytics_tabs = st.tabs(["📈 Standard Analytics", "🧬 OpenEvolve Features"])
+
+        with analytics_tabs[0]:
+            # Derive metrics from session state
+            total_evolutions = len(st.session_state.evolution_history) if st.session_state.evolution_history else 0
+            avg_confidence_score = np.mean(st.session_state.adversarial_confidence_history) if st.session_state.adversarial_confidence_history else 0.0
+            total_cost_usd = st.session_state.adversarial_cost_estimate_usd
+
+            st.markdown("---")
+            st.subheader("Key Metrics")
+            col1, col2, col3 = st.columns(3)
+            col1.metric("Total Evolutions", f"{total_evolutions:,}")
+            col2.metric("Avg. Confidence Score", f"{avg_confidence_score:.1f}%")
+            col3.metric("Total Cost (USD)", f"${total_cost_usd:.2f}")
+
+            st.markdown("---")
+            st.subheader("Evolution History")
+            if st.session_state.evolution_history:
+                evolution_data = []
+                for gen_idx, generation in enumerate(st.session_state.evolution_history):
+                    for individual in generation.get('population', []):
+                        evolution_data.append({
+                            'Generation': gen_idx,
+                            'Fitness': individual.get('fitness', 0),
+                            'Complexity': individual.get('complexity', 0),
+                            'Diversity': individual.get('diversity', 0)
+                        })
+                if evolution_data:
+                    chart_data = pd.DataFrame(evolution_data)
+                    st.line_chart(chart_data.set_index('Generation'))
+                else:
+                    st.info("No evolution history data available.")
+            else:
+                st.info("Run an evolution to see history here.")
+
+            st.markdown("---")
+            st.subheader("Model Performance Overview")
+            if st.session_state.get("adversarial_model_performance"):
+                model_perf_data = pd.DataFrame([
+                    {'Model': k, 'Score': v.get('score', 0)}
+                    for k, v in st.session_state.adversarial_model_performance.items()
+                ])
+                st.bar_chart(model_perf_data.set_index('Model'))
+            else:
+                st.info("No model performance data available.")
+
+            st.markdown("---")
+            st.subheader("Issue Severity Distribution")
+            if st.session_state.adversarial_results and st.session_state.adversarial_results.get('iterations'):
+                severity_counts = {}
+                for iteration in st.session_state.adversarial_results['iterations']:
+                    for critique in iteration.get('critiques', []):
+                        if critique.get('critique_json'):
+                            for issue in _safe_list(critique['critique_json'], 'issues'):
+                                severity = issue.get('severity', 'low').lower()
+                                severity_counts[severity] = severity_counts.get(severity, 0) + 1
+                if severity_counts:
+                    severity_data = pd.DataFrame({
+                        'Severity': list(severity_counts.keys()),
+                        'Count': list(severity_counts.values())
+                    })
+                    st.pie_chart(severity_data.set_index('Severity'))
+                else:
+                    st.info("No issue data to display.")
+            else:
+                st.info("Run adversarial testing to see issue distribution here.")
+
+    with tabs[9]: # OpenEvolve Dashboard tab  # noqa: F821
+        st.header("🧬 OpenEvolve Dashboard")
+        st.write("Welcome to your comprehensive OpenEvolve dashboard!")
+
+        # Create tabs for different OpenEvolve features
+        openevolve_tabs = st.tabs(["📊 Evolution Visualizations", "🔍 Advanced Analytics", "📈 Performance Metrics", "🔬 Algorithm Discovery"])
+
+        with openevolve_tabs[0]:  # Evolution Visualizations
+            render_openevolve_visualization_ui()
+
+    with tabs[10]: # OpenEvolve Orchestrator tab  # noqa: F821
+        render_openevolve_orchestrator_tab()
                     # For now, just store the token since authenticate_github is not available in imports
                     st.session_state.github_token = github_token
                     st.success("GitHub token stored! Note: Full authentication requires backend implementation.")
