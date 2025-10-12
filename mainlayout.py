@@ -1067,6 +1067,563 @@ def render_openevolve_orchestrator_tab():
     else:
         st.warning("OpenEvolve backend is not available. Orchestrator functions are disabled.")
 
+def render_analytics_dashboard_tab():
+    with st.container(border=True):
+        st.header("📊 Analytics Dashboard")
+        
+        # Comprehensive analytics dashboard implementation
+        # Import and render the analytics dashboard if available, otherwise use fallback
+        analytics_dashboard_available = False
+        try:
+            from analytics_dashboard import render_analytics_dashboard
+            render_analytics_dashboard()
+            analytics_dashboard_available = True
+        except ImportError:
+            # Use comprehensive self-contained implementation
+            st.subheader("📊 Advanced Analytics Dashboard")
+            
+            # Create tabs for different analytics views
+            analytics_tabs = st.tabs(["📈 Standard Analytics", "🧬 Quality-Diversity", "🎯 Performance Metrics", "📋 Reports"])
+            
+            with analytics_tabs[0]:  # Standard Analytics
+                # Key metrics
+                col1, col2, col3, col4 = st.columns(4)
+                
+                # Evolution metrics
+                evolution_history = st.session_state.get("evolution_history", [])
+                total_evolutions = len(evolution_history)
+                if evolution_history:
+                    latest_generation = evolution_history[-1]
+                    population = latest_generation.get("population", [])
+                    if population:
+                        best_fitness = max(ind.get("fitness", 0) for ind in population)
+                        avg_fitness = sum(ind.get("fitness", 0) for ind in population) / len(population)
+                    else:
+                        best_fitness = 0
+                        avg_fitness = 0
+                else:
+                    best_fitness = 0
+                    avg_fitness = 0
+                
+                # Adversarial metrics
+                adversarial_results = st.session_state.get("adversarial_results", {})
+                adversarial_iterations = adversarial_results.get("iterations", [])
+
+                if adversarial_iterations:
+                    latest_iteration = adversarial_iterations[-1]
+                    approval_check = latest_iteration.get("approval_check", {})
+                    final_approval_rate = approval_check.get("approval_rate", 0)
+                else:
+                    final_approval_rate = 0
+                
+                # Cost metrics
+                total_cost = st.session_state.get("adversarial_cost_estimate_usd", 0) + \
+                             st.session_state.get("evolution_cost_estimate_usd", 0)
+                
+                col1.metric("Total Evolutions", f"{total_evolutions:,}")
+                col2.metric("Best Fitness", f"{best_fitness:.4f}")
+                col3.metric("Final Approval Rate", f"{final_approval_rate:.1f}%")
+                col4.metric("Total Cost ($)", f"${total_cost:.4f}")
+                
+                st.divider()
+                
+                # Charts
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    # Fitness trend
+                    if evolution_history:
+                        fitness_data = []
+                        generation_numbers = []
+                        for generation in evolution_history:
+                            population = generation.get("population", [])
+                            if population:
+                                best_fitness_gen = max(ind.get("fitness", 0) for ind in population)
+                                avg_fitness_gen = sum(ind.get("fitness", 0) for ind in population) / len(population)
+                                fitness_data.append({
+                                    'Generation': generation.get("generation", 0),
+                                    'Best Fitness': best_fitness_gen,
+                                    'Average Fitness': avg_fitness_gen
+                                })
+                        
+                        if fitness_data:
+                            df = pd.DataFrame(fitness_data)
+                            fig = px.line(df, x="Generation", y=["Best Fitness", "Average Fitness"], 
+                                        title="Fitness Trend Over Generations")
+                            st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.info("Run an evolution to see fitness trends")
+                
+                with col2:
+                    # Approval rate trend
+                    if adversarial_iterations:
+                        approval_data = []
+                        iteration_numbers = []
+                        for iteration in adversarial_iterations:
+                            approval_check = iteration.get("approval_check", {})
+                            approval_rate = approval_check.get("approval_rate", 0)
+                            approval_data.append({
+                                'Iteration': iteration.get("iteration", 0),
+                                'Approval Rate': approval_rate
+                            })
+                            iteration_numbers.append(iteration.get("iteration", 0))
+                        
+                        if approval_data:
+                            df = pd.DataFrame(approval_data)
+                            fig = px.line(df, x="Iteration", y="Approval Rate", title="Approval Rate Trend")
+                            st.plotly_chart(fig, use_container_width=True)
+                    else:
+                        st.info("Run adversarial testing to see approval trends")
+                
+                # Additional metrics
+                st.subheader("Evolution Progress Metrics")
+                if evolution_history:
+                    progress_data = []
+                    for i, gen in enumerate(evolution_history):
+                        population = gen.get("population", [])
+                        if population:
+                            best = max(ind.get("fitness", 0) for ind in population)
+                            avg = sum(ind.get("fitness", 0) for ind in population) / len(population)
+                            diversity = sum(ind.get("diversity", 0) for ind in population) / len(population) if population else 0
+                            progress_data.append({
+                                'Generation': i,
+                                'Best Fitness': best,
+                                'Average Fitness': avg,
+                                'Diversity': diversity
+                            })
+                    
+                    if progress_data:
+                        df_progress = pd.DataFrame(progress_data)
+                        st.line_chart(df_progress.set_index('Generation'))
+                
+                # Fallback model performance visualization
+                st.subheader("Model Performance Overview")
+                model_performance = st.session_state.get("adversarial_model_performance", {})
+                if model_performance:
+                    model_data = []
+                    for model_id, perf_data in model_performance.items():
+                        model_data.append({
+                            "Model": model_id,
+                            "Score": perf_data.get("score", 0),
+                            "Issues Found": perf_data.get("issues_found", 0),
+                            "Avg Response Time": perf_data.get("avg_response_time", 0),
+                            "Cost": perf_data.get("cost", 0.0)
+                        })
+                    
+                    if model_data:
+                        df = pd.DataFrame(model_data)
+                        df_sorted = df.sort_values(by="Score", ascending=False)
+                        st.dataframe(df_sorted, use_container_width=True)
+                        
+                        # Model performance chart
+                        col1, col2 = st.columns(2)
+                        with col1:
+                            fig = px.bar(df_sorted, x="Model", y="Score", title="Model Performance Comparison")
+                            st.plotly_chart(fig, use_container_width=True)
+                        with col2:
+                            fig = px.bar(df_sorted, x="Model", y="Cost", title="Model Cost Comparison")
+                            st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("Run adversarial testing with multiple models to see performance data.")
+
+            with analytics_tabs[1]:  # Quality-Diversity Analytics
+                st.subheader("Quality-Diversity (MAP-Elites) Analysis")
+                
+                # Show MAP-Elites grid visualization if available
+                if evolution_history:
+                    st.info("MAP-Elites grid visualization would be shown here when using Quality-Diversity evolution mode.")
+                    
+                    # Feature diversity analysis
+                    if evolution_history and len(evolution_history) > 0:
+                        latest_pop = evolution_history[-1].get('population', [])
+                        if latest_pop:
+                            feature_data = []
+                            for ind in latest_pop:
+                                feature_data.append({
+                                    'Complexity': ind.get('complexity', 0),
+                                    'Diversity': ind.get('diversity', 0),
+                                    'Performance': ind.get('fitness', 0),
+                                    'Code Length': len(ind.get('code', ''))
+                                })
+                            
+                            if feature_data:
+                                df_features = pd.DataFrame(feature_data)
+                                
+                                # Feature correlation matrix
+                                features = ['Complexity', 'Diversity', 'Performance']
+                                if all(col in df_features.columns for col in features):
+                                    feature_subset = df_features[features]
+                                    st.subheader("Feature Correlation Matrix")
+                                    correlation_matrix = feature_subset.corr()
+                                    st.dataframe(correlation_matrix)
+                                    
+                                    # Scatter plot matrix
+                                    st.subheader("Feature Relationships")
+                                    if len(feature_subset) > 1:
+                                        col1, col2 = st.columns(2)
+                                        with col1:
+                                            fig = px.scatter(df_features, x='Complexity', y='Performance', 
+                                                           title='Complexity vs Performance')
+                                            st.plotly_chart(fig, use_container_width=True)
+                                        with col2:
+                                            fig = px.scatter(df_features, x='Diversity', y='Performance', 
+                                                           title='Diversity vs Performance')
+                                            st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("Run Quality-Diversity evolution to see MAP-Elites analysis.")
+            
+            with analytics_tabs[2]:  # Performance Metrics
+                st.subheader("Performance Metrics Dashboard")
+                
+                # System performance metrics
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    st.metric("Total Evolution Runs", st.session_state.get("total_evolution_runs", 0))
+                with col2:
+                    st.metric("Avg Best Score", f"{st.session_state.get('avg_best_score', 0.0):.3f}")
+                with col3:
+                    st.metric("Best Ever Score", f"{st.session_state.get('best_ever_score', 0.0):.3f}")
+                
+                # Success rate metrics
+                if "monitoring_metrics" in st.session_state:
+                    st.subheader("Real-time Monitoring Metrics")
+                    monitoring = st.session_state.monitoring_metrics
+                    col1, col2, col3, col4 = st.columns(4)
+                    with col1:
+                        st.metric("Current Best Score", f"{monitoring.get('best_score', 0.0):.3f}")
+                    with col2:
+                        st.metric("Current Generation", monitoring.get('current_generation', 0))
+                    with col3:
+                        st.metric("Avg Diversity", f"{monitoring.get('avg_diversity', 0.0):.3f}")
+                    with col4:
+                        st.metric("Convergence Rate", f"{monitoring.get('convergence_rate', 0.0):.3f}")
+                
+                st.subheader("Resource Utilization")
+                # This would show actual system resources in a real implementation
+                st.info("Resource utilization metrics would be displayed in a full implementation.")
+            
+            with analytics_tabs[3]:  # Reports
+                st.subheader("Analytics Reports")
+                st.info("Generate and view detailed analytics reports here.")
+                
+                # Report generation options
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    if st.button("Generate Evolution Report", type="primary", use_container_width=True):
+                        st.info("Evolution report would be generated in a full implementation.")
+                with col2:
+                    if st.button("Generate Model Comparison Report", use_container_width=True):
+                        st.info("Model comparison report would be generated in a full implementation.")
+                with col3:
+                    if st.button("Export All Data", type="secondary", use_container_width=True):
+                        st.info("All analytics data would be exported in a full implementation.")
+
+def render_openevolve_dashboard_tab():
+    with st.container(border=True):
+        st.header("🧬 OpenEvolve Advanced Dashboard")
+        
+        # Comprehensive OpenEvolve dashboard implementation
+        # Import and render the OpenEvolve dashboard if available, otherwise use fallback
+        openevolve_dashboard_available = False
+        try:
+            from openevolve_dashboard import render_openevolve_dashboard
+            render_openevolve_dashboard()
+            openevolve_dashboard_available = True
+        except ImportError:
+            # Use comprehensive fallback implementation
+            st.subheader("OpenEvolve Features Overview")
+            st.markdown('''
+            **OpenEvolve provides advanced evolutionary computing capabilities:**
+            
+            - **Quality-Diversity Evolution** (MAP-Elites)
+            - **Multi-Objective Optimization** (Pareto fronts)
+            - **Adversarial Evolution** (Red Team/Blue Team)
+            - **Symbolic Regression** (Mathematical discovery)
+            - **Neuroevolution** (Neural architecture search)
+            - **Algorithm Discovery** (Novel algorithm design)
+            - **Prompt Evolution** (Optimize LLM prompts)
+            
+            These advanced features require the full OpenEvolve backend installation.
+            ''')
+            
+            # Main navigation tabs for OpenEvolve features
+            main_tabs = st.tabs([
+                "🎯 Evolution Modes", 
+                "📊 Live Analytics", 
+                "🎛️ Configuration", 
+                "📈 Performance", 
+                "📋 Reports"
+            ])
+            
+            with main_tabs[0]:  # Evolution Modes
+                st.subheader("Choose Evolution Mode")
+                
+                col1, col2, col3 = st.columns(3)
+                
+                with col1:
+                    standard_evolution = st.button(
+                        "🧬 Standard Evolution", 
+                        help="Traditional genetic programming evolution",
+                        use_container_width=True)
+                    quality_diversity = st.button(
+                        "🎯 Quality-Diversity (MAP-Elites)", 
+                        help="Maintain diverse, high-performing solutions across feature dimensions",
+                        use_container_width=True)
+                    multi_objective = st.button(
+                        "⚖️ Multi-Objective Optimization", 
+                        help="Optimize for multiple competing objectives simultaneously",
+                        use_container_width=True)
+                
+                with col2:
+                    adversarial = st.button(
+                        "⚔️ Adversarial Evolution", 
+                        help="Red Team/Blue Team approach for robustness",
+                        use_container_width=True)
+                    symbolic_regression = st.button(
+                        "🔍 Symbolic Regression", 
+                        help="Discover mathematical expressions from data",
+                        use_container_width=True)
+                    neuroevolution = st.button(
+                        "🧠 Neuroevolution", 
+                        help="Evolve neural network architectures",
+                        use_container_width=True)
+                
+                with col3:
+                    algorithm_discovery = st.button(
+                        "💡 Algorithm Discovery", 
+                        help="Discover novel algorithmic approaches",
+                        use_container_width=True)
+                    prompt_evolution = st.button(
+                        "📝 Prompt Evolution", 
+                        help="Optimize prompts for LLMs",
+                        use_container_width=True)
+                    custom_evolution = st.button(
+                        "🛠️ Custom Evolution", 
+                        help="Customizable evolution parameters",
+                        use_container_width=True)
+                
+                # Handle button clicks by setting session state
+                if standard_evolution:
+                    st.session_state.evolution_mode = "standard"
+                    st.success("Standard Evolution mode selected")
+                elif quality_diversity:
+                    st.session_state.evolution_mode = "quality_diversity"
+                    st.success("Quality-Diversity Evolution mode selected")
+                elif multi_objective:
+                    st.session_state.evolution_mode = "multi_objective"
+                    st.success("Multi-Objective Evolution mode selected")
+                elif adversarial:
+                    st.session_state.evolution_mode = "adversarial"
+                    st.success("Adversarial Evolution mode selected")
+                elif symbolic_regression:
+                    st.session_state.evolution_mode = "symbolic_regression"
+                    st.success("Symbolic Regression mode selected")
+                elif neuroevolution:
+                    st.session_state.evolution_mode = "neuroevolution"
+                    st.success("Neuroevolution mode selected")
+                elif algorithm_discovery:
+                    st.session_state.evolution_mode = "algorithm_discovery"
+                    st.success("Algorithm Discovery mode selected")
+                elif prompt_evolution:
+                    st.session_state.evolution_mode = "prompt_optimization"
+                    st.success("Prompt Evolution mode selected")
+                elif custom_evolution:
+                    st.session_state.evolution_mode = "custom"
+                    st.success("Custom Evolution mode selected")
+            
+            with main_tabs[1]:  # Live Analytics
+                st.subheader("Live Evolution Analytics")
+                
+                # Check if there's an active evolution run
+                if st.session_state.get("evolution_running", False):
+                    st.info("Evolution is currently running. Live data will appear here.")
+                    
+                    # Live metrics
+                    col1, col2, col3, col4 = st.columns(4)
+                    with col1:
+                        st.metric("Current Generation", st.session_state.get("current_generation", 0))
+                    with col2:
+                        st.metric("Best Score", f"{st.session_state.get('best_score', 0.0):.3f}")
+                    with col3:
+                        st.metric("Population Size", st.session_state.get("population_size", 100))
+                    with col4:
+                        st.metric("Archive Size", st.session_state.get("archive_size", 0))
+                    
+                    # Real-time chart (simulated for now)
+                    st.subheader("Performance Over Time")
+                    progress_data = {
+                        "Generation": list(range(1, 11)),
+                        "Best Score": [0.1, 0.2, 0.3, 0.5, 0.6, 0.7, 0.75, 0.82, 0.87, 0.91]
+                    }
+                    df = pd.DataFrame(progress_data)
+                    fig = px.line(df, x="Generation", y="Best Score", title="Best Score Progression")
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.info("No active evolution run. Start an evolution to see live analytics.")
+                    
+                    # Display recent results if available
+                    if "evolution_history" in st.session_state and st.session_state.evolution_history:
+                        st.subheader("Recent Evolution Results")
+                        st.info("Evolution insights would be displayed here when evolution history is available.")
+            
+            with main_tabs[2]:  # Configuration
+                st.subheader("OpenEvolve Configuration")
+                
+                config_tabs = st.tabs([" Core Settings", " Island Model", " Feature Dimensions", " Advanced"])
+                
+                with config_tabs[0]:  # Core Settings
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.session_state.max_iterations = st.number_input(
+                            "Max Iterations", 
+                            min_value=1, 
+                            max_value=10000, 
+                            value=st.session_state.get("max_iterations", 100),
+                            help="Maximum number of evolutionary iterations"
+                        )
+                        st.session_state.population_size = st.number_input(
+                            "Population Size", 
+                            min_value=10, 
+                            max_value=10000, 
+                            value=st.session_state.get("population_size", 100),
+                            help="Size of the population in each generation"
+                        )
+                        st.session_state.temperature = st.slider(
+                            "LLM Temperature", 
+                            min_value=0.0, 
+                            max_value=2.0, 
+                            value=st.session_state.get("temperature", 0.7),
+                            step=0.1,
+                            help="Temperature for LLM generation (higher = more creative)"
+                        )
+                    
+                    with col2:
+                        st.session_state.max_tokens = st.number_input(
+                            "Max Tokens", 
+                            min_value=100, 
+                            max_value=32000, 
+                            value=st.session_state.get("max_tokens", 4096),
+                            help="Maximum tokens for LLM responses"
+                        )
+                        st.session_state.top_p = st.slider(
+                            "Top-P Sampling", 
+                            min_value=0.0, 
+                            max_value=1.0, 
+                            value=st.session_state.get("top_p", 0.95),
+                            step=0.05,
+                            help="Top-P sampling parameter for generation"
+                        )
+                        st.session_state.seed = st.number_input(
+                            "Random Seed", 
+                            value=st.session_state.get("seed", 42),
+                            help="Seed for reproducible evolution runs"
+                        )
+                
+                with config_tabs[1]:  # Island Model
+                    col1, col2, col3 = st.columns(3)
+                    with col1:
+                        st.session_state.num_islands = st.number_input(
+                            "Number of Islands", 
+                            min_value=1, 
+                            max_value=20, 
+                            value=st.session_state.get("num_islands", 3),
+                            help="Number of parallel populations in island model"
+                        )
+                    with col2:
+                        st.session_state.migration_interval = st.number_input(
+                            "Migration Interval", 
+                            min_value=1, 
+                            max_value=1000, 
+                            value=st.session_state.get("migration_interval", 25),
+                            help="How often individuals migrate between islands"
+                        )
+                    with col3:
+                        st.session_state.migration_rate = st.slider(
+                            "Migration Rate", 
+                            min_value=0.0, 
+                            max_value=1.0, 
+                            value=st.session_state.get("migration_rate", 0.1),
+                            step=0.01,
+                            help="Proportion of individuals that migrate"
+                        )
+                
+                with config_tabs[2]:  # Feature Dimensions
+                    st.session_state.feature_dimensions = st.multiselect(
+                        "Feature Dimensions (for MAP-Elites)",
+                        options=["complexity", "diversity", "performance", "readability", "efficiency", "accuracy", "robustness"],
+                        default=st.session_state.get("feature_dimensions", ["complexity", "diversity"]),
+                        help="Dimensions for quality-diversity optimization"
+                    )
+                    
+                    st.session_state.feature_bins = st.slider(
+                        "Feature Bins", 
+                        min_value=5, 
+                        max_value=50, 
+                        value=st.session_state.get("feature_bins", 10),
+                        help="Number of bins for each feature dimension in MAP-Elites"
+                    )
+                
+                with config_tabs[3]:  # Advanced
+                    col1, col2 = st.columns(2)
+                    with col1:
+                        st.session_state.elite_ratio = st.slider(
+                            "Elite Ratio", 
+                            min_value=0.0, 
+                            max_value=1.0, 
+                            value=st.session_state.get("elite_ratio", 0.1),
+                            step=0.01,
+                            help="Ratio of elite individuals preserved each generation"
+                        )
+                        st.session_state.exploration_ratio = st.slider(
+                            "Exploration Ratio", 
+                            min_value=0.0, 
+                            max_value=1.0, 
+                            value=st.session_state.get("exploration_ratio", 0.3),
+                            step=0.01,
+                            help="Ratio of population dedicated to exploration"
+                        )
+                        st.session_state.enable_artifacts = st.checkbox(
+                            "Enable Artifact Feedback", 
+                            value=st.session_state.get("enable_artifacts", True),
+                            help="Enable error feedback to LLM for improved iterations"
+                        )
+                    
+                    with col2:
+                        st.session_state.cascade_evaluation = st.checkbox(
+                            "Cascade Evaluation", 
+                            value=st.session_state.get("cascade_evaluation", True),
+                            help="Use multi-stage testing to filter bad solutions early"
+                        )
+                        st.session_state.use_llm_feedback = st.checkbox(
+                            "Use LLM Feedback", 
+                            value=st.session_state.get("use_llm_feedback", False),
+                            help="Use LLM-based feedback for evolution guidance"
+                        )
+                        st.session_state.evolution_trace_enabled = st.checkbox(
+                            "Evolution Tracing", 
+                            value=st.session_state.get("evolution_trace_enabled", False),
+                            help="Enable detailed logging of evolution process"
+                        )
+            
+            with main_tabs[3]:  # Performance
+                st.subheader("Performance & Monitoring")
+                st.info("Comprehensive monitoring system would be displayed here when available.")
+                
+                # Fallback metrics
+                col1, col2, col3, col4 = st.columns(4)
+                with col1:
+                    st.metric("Total Evolution Runs", st.session_state.get("total_evolution_runs", 0))
+                with col2:
+                    st.metric("Avg Best Score", f"{st.session_state.get('avg_best_score', 0.0):.3f}")
+                with col3:
+                    st.metric("Best Ever Score", f"{st.session_state.get('best_ever_score', 0.0):.3f}")
+                with col4:
+                    st.metric("Success Rate", f"{st.session_state.get('success_rate', 0.0):.1%}")
+            
+            with main_tabs[4]:  # Reports
+                st.subheader("Evolution Reports & Analytics")
+                st.info("Evolution reports would be displayed here when available.")
+
 def render_main_layout():
     """Renders the main layout of the Streamlit application."""
     _initialize_session_state()
@@ -2695,915 +3252,35 @@ def render_main_layout():
 
             # End of tabs[0] content
 
-            # Adversarial Testing tab (tabs[1])
-            with tabs[1]: # Adversarial Testing tab  # noqa: F821
-                render_adversarial_testing_tab()
-                st.markdown(
-                    "> **How it works:** Adversarial Testing uses two teams of AI models to improve your content:\\n"
-                    "> - **🔴 Red Team** finds flaws and vulnerabilities.\\n"
-                    "> - **🔵 Blue Team** fixes the identified issues.\\n"
-                    "> The process repeats until your content reaches the desired confidence level."
-                )
-                st.divider()
+        with tabs[1]: # Adversarial Testing tab
+            render_adversarial_testing_tab()
 
-                # --- Step 1: Configuration & Content ---
-                with st.expander("Step 1: Configure API and Content", expanded=True):
-                    st.subheader("🔑 OpenRouter Configuration")
-                    openrouter_key = st.text_input("OpenRouter API Key", type="password", key="openrouter_key")
-                    if not openrouter_key:
-                        st.info("Enter your OpenRouter API key to enable model selection and testing.")
+        with tabs[2]: # GitHub tab
+            render_github_tab()
 
-                    models = get_openrouter_models(openrouter_key)
-                    if models:
-                        for m in models:
-                            if isinstance(m, dict) and (mid := m.get("id")):
-                                with MODEL_META_LOCK:
-                                    MODEL_META_BY_ID[mid] = m
-                    else:
-                        if openrouter_key:
-                            st.error("No models fetched. Check your OpenRouter key and connection.")
+        with tabs[3]: # Activity Feed tab
+            render_activity_feed_tab()
 
-                    model_options = sorted([
-                        f"{m['id']} (Ctx: {m.get('context_length', 'N/A')}, "
-                        f"In: {_parse_price_per_million(m.get('pricing', {}).get('prompt')) or 'N/A'}/M, "
-                        f"Out: {_parse_price_per_million(m.get('pricing', {}).get('completion')) or 'N/A'}/M)"
-                        for m in models if isinstance(m, dict) and "id" in m
-                ])
+        with tabs[4]: # Report Templates tab
+            render_report_templates_tab()
 
-                    st.divider()
+        with tabs[5]: # Model Dashboard tab
+            render_model_dashboard_tab()
 
-                    st.subheader("📝 Content Input")
-                    st.info("💡 **Tip:** Start with a clear, well-structured content. The better your starting point, the better the results.")
-                    protocol_col1, protocol_col2 = st.columns([3, 1])
-                    with protocol_col1:
-                        input_tab, preview_tab = st.tabs(["📝 Edit", "👁️ Preview"])
-                        with input_tab:
-                            st.text_area("✏️ Enter or paste your content:",
-                                                 value=st.session_state.protocol_text,
-                                                 height=300,
-                                                 key="main_protocol_text_editor",
-                                                 placeholder="Paste your draft content here...\n\nExample:\n# Security Policy\n\n## Overview\nThis policy defines requirements for secure system access.\n\n## Scope\nApplies to all employees and contractors.\n\n## Policy Statements\n1. All users must use strong passwords\n2. Multi-factor authentication is required for sensitive systems\n3. Regular security training is mandatory\n\n## Compliance\nViolations result in disciplinary action.")
-                        with preview_tab:
-                            if st.session_state.protocol_text:
-                                st.markdown(st.session_state.protocol_text, unsafe_allow_html=True)
-                            else:
-                                st.info("Enter content in the 'Edit' tab to see the preview here.")
-                    with protocol_col2:
-                        st.markdown("**📋 Quick Actions**")
-                        templates = content_manager.list_protocol_templates()
-                        if templates:
-                            def load_adv_template_callback():
-                                selected_template = st.session_state.adv_load_template_select
-                                if selected_template:
-                                    content_manager.load_protocol_template(selected_template, st.session_state)
-                                    st.rerun()
+        with tabs[6]: # Tasks tab
+            render_tasks_tab()
 
-                            def load_sample_callback():
-                                selected_sample = st.session_state.adv_load_sample_select
-                                if selected_sample:
-                                    content_manager.load_sample_protocol(selected_sample, st.session_state)  
-                                    st.rerun()
+        with tabs[7]: # Admin tab
+            render_admin_tab()
 
-                            def clear_content_callback():
-                                st.session_state.protocol_text = ""
-                                st.rerun()
+        with tabs[8]: # Analytics Dashboard tab
+            render_analytics_dashboard_tab()
 
-                            # Template selection
-                            st.selectbox(
-                                "Load Template:",
-                                options=[""] + templates,
-                                key="adv_load_template_select",
-                                on_change=load_adv_template_callback,
-                                placeholder="Choose a template..."
-                            )
+        with tabs[9]: # OpenEvolve Dashboard tab
+            render_openevolve_dashboard_tab()
 
-                            # Sample protocols
-                            samples = content_manager.list_sample_protocols()
-                            if samples:
-                                st.selectbox(
-                                    "Or Load Sample:",
-                                    options=[""] + samples,
-                                    key="adv_load_sample_select", 
-                                    on_change=load_sample_callback,
-                                    placeholder="Choose a sample..."
-                                )
-
-                            # Clear button
-                            if st.button("Clear Content", on_click=clear_content_callback, type="secondary"):
-                                pass  # Callback handles the clearing
-
-                    with protocol_col2:
-                        # Content analysis and suggestions
-                        if st.session_state.protocol_text.strip():
-                            with st.expander("🔍 Content Analysis"):
-                                from content_analyzer import analyze_content
-                                analysis = analyze_content(st.session_state.protocol_text)
-                                if analysis:
-                                    st.subheader("📊 Analysis Results")
-                                    for category, details in analysis.items():
-                                        with st.container(border=True):
-                                            if isinstance(details, dict):
-                                                st.write(f"**{category.replace('_', ' ').title()}:**")
-                                                for key, value in details.items():
-                                                    st.write(f"- {key.replace('_', ' ').title()}: {value}")
-                                            else:
-                                                st.write(f"**{category.replace('_', ' ').title()}:** {details}")
-
-                            with st.expander("💡 Suggestions"):
-                                st.write("Based on your content, consider:")
-                                st.write("- Adding more specific examples")
-                                st.write("- Clarifying ambiguous statements")
-                                st.write("- Adding compliance checkpoints")
-                                if len(st.session_state.protocol_text) < 500:
-                                    st.write("- Expanding with more details")
-
-                    st.divider()
-
-                    # --- Step 2: Model Selection ---
-                    with st.expander("Step 2: Select Models for Red & Blue Teams", expanded=True):
-                        st.subheader("👥 Team Configuration")
-
-                        # Initialize session state for team models if not already set
-                        if "red_team_models" not in st.session_state:
-                            st.session_state.red_team_models = ["openai/gpt-4o", "anthropic/claude-3-opus"]
-                        if "blue_team_models" not in st.session_state:
-                            st.session_state.blue_team_models = ["openai/gpt-4o", "anthropic/claude-3-opus"]
-
-                        # Create columns for side-by-side team configuration
-                        red_col, blue_col = st.columns(2)
-
-                        with red_col:
-                            st.markdown("**🔴 Red Team (Critique & Find Flaws)**")
-
-                            # Red team model selection
-                            if model_options:
-                                # Multi-select for red team models
-                                selected_red_models = st.multiselect(
-                                    "Select Red Team Models",
-                                    options=model_options,
-                                    default=st.session_state.red_team_models,
-                                    key="red_team_multiselect"
-                                )
-                                # Update session state when selection changes
-                                if selected_red_models != st.session_state.red_team_models:
-                                    st.session_state.red_team_models = selected_red_models
-                            else:
-                                st.warning("No models available. Check your API key.")
-
-                        with blue_col:
-                            st.markdown("**🔵 Blue Team (Fix & Improve)**")
-
-                            # Blue team model selection
-                            if model_options:
-                                # Multi-select for blue team models  
-                                selected_blue_models = st.multiselect(
-                                    "Select Blue Team Models",
-                                    options=model_options,
-                                    default=st.session_state.blue_team_models,
-                                    key="blue_team_multiselect"
-                                )
-                                # Update session state when selection changes
-                                if selected_blue_models != st.session_state.blue_team_models:
-                                    st.session_state.blue_team_models = selected_blue_models
-                            else:
-                                st.warning("No models available. Check your API key.")
-
-                        # Budget and constraints
-                                st.divider()
-                        col1, col2, col3 = st.columns(3)
-                        with col1:
-                            st.number_input("Budget Limit ($)", min_value=0.0, step=0.01, format="%.2f", key="adversarial_budget_limit")
-                        with col2:
-                            st.number_input("Max Cost per Iteration ($)", min_value=0.0, step=0.01, format="%.2f", key="adversarial_max_cost_per_iter")
-                        with col3:
-                            st.selectbox("Cost Alert Level", ["Low", "Medium", "High"], key="adversarial_cost_alert_level")
-
-                        # Advanced configuration
-                        with st.expander("Advanced Configuration"):
-                            rotation_strategies = ["None", "Round Robin", "Random Sampling", "Performance-Based", "Staged", "Adaptive", "Focus-Category"]
-                            c1, c2 = st.columns(2)
-                            with c1:
-                                st.selectbox("Rotation Strategy", rotation_strategies, key="adversarial_rotation_strategy")
-                                st.number_input("Red Team Sample Size", 1, 100, key="adversarial_red_team_sample_size")
-                            with c2:
-                                st.number_input("Blue Team Sample Size", 1, 100, key="adversarial_blue_team_sample_size")
-                                st.toggle("Auto-Optimize Model Selection", key="adversarial_auto_optimize_models", help="Automatically select optimal models based on protocol complexity and budget")
-
-                            if st.session_state.adversarial_rotation_strategy == "Staged":
-                                help_text = '''[{"red": ["model1", "model2"], "blue": ["model3"]}, {"red": ["model4"], "blue": ["model5", "model6"]}]'''
-                                staged_config_input = st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help=help_text)
-                                
-                                # Add JSON validation
-                                if staged_config_input:
-                                    try:
-                                        json.loads(staged_config_input)
-                                    except json.JSONDecodeError:
-                                        st.error("Invalid JSON format for Staged Rotation Config.")
-
-                            if st.session_state.adversarial_auto_optimize_models:
-                                protocol_complexity = len(st.session_state.protocol_text.split())
-                                optimized_models = optimize_model_selection(st.session_state.red_team_models, st.session_state.blue_team_models, protocol_complexity, st.session_state.adversarial_budget_limit)
-                                st.session_state.red_team_models = optimized_models["red_team"]
-                                st.session_state.blue_team_models = optimized_models["blue_team"]
-
-                        # --- Step 3: Testing Parameters ---
-                        with st.expander("Step 3: Adjust Testing Parameters", expanded=False):
-                            st.subheader("⚙️ General Parameters")
-                            c1, c2 = st.columns(2)
-                            with c1:
-                                st.number_input("Min iterations", 1, 50, key="adversarial_min_iter")
-                                st.slider("Confidence threshold (%)", 50, 100, key="adversarial_confidence", help="Stop if this % of Red Team approves the SOP.")
-                                st.number_input("Max parallel workers", 1, 24, key="adversarial_max_workers")
-                                st.slider("Critique Depth", 1, 10, key="adversarial_critique_depth", help="How deeply the red team should analyze (1-10)")
-                            with c2:
-                                st.number_input("Max iterations", 1, 200, key="adversarial_max_iter")
-                                st.number_input("Max tokens per model", 1000, 100000, key="adversarial_max_tokens")
-                                st.selectbox("Review Type", ["Auto-Detect", "General SOP", "Code Review", "Plan Review"], key="adversarial_review_type", help="Select the type of review to perform. Auto-Detect will analyze the content and choose the appropriate review type.")
-                                st.slider("Patch Quality", 1, 10, key="adversarial_patch_quality", help="Quality level for blue team patches (1-10)")
-
-                            st.text_area("Compliance Requirements", key="adversarial_compliance_requirements", height=100, help="Enter any compliance requirements that the red team should check for.")
-
-                            with st.expander("🔧 Advanced & Custom Settings"):
-                                use_custom_mode = st.toggle("Enable Custom Prompts", key="adversarial_custom_mode", help="Enable custom prompts and configurations for adversarial testing")
-                                if use_custom_mode:
-                                    st.text_area("Red Team Prompt (Critique)", key="adversarial_custom_red_prompt", height=150, help="Custom prompt for the red team to find flaws")
-                                    st.text_area("Blue Team Prompt (Patch)", key="adversarial_custom_blue_prompt", height=150, help="Custom prompt for the blue team to patch flaws")
-                                    st.text_area("Approval Prompt", key="adversarial_custom_approval_prompt", height=100, help="Custom prompt for final approval checking")
-
-                                st.divider()
-                                c1, c2 = st.columns(2)
-
-# Helper function to optimize log updates
-def _should_update_log_display(log_key, current_log):
-    prev_log_key = f"{log_key}_prev"
-    prev_log = st.session_state.get(prev_log_key, [])
-    
-    if len(current_log) >= 3 and len(prev_log) >= 3:
-        if current_log[-3:] != prev_log[-3:]:
-            st.session_state[prev_log_key] = current_log.copy()
-            return True
-    elif current_log != prev_log:
-        st.session_state[prev_log_key] = current_log.copy()
-        return True
-    
-    return False
-
-
-
-
-    st.divider()
-
-    st.subheader("📝 Content Input")
-    st.info("💡 **Tip:** Start with a clear, well-structured content. The better your starting point, the better the results.")
-    protocol_col1, protocol_col2 = st.columns([3, 1])
-    with protocol_col1:
-        input_tab, preview_tab = st.tabs(["📝 Edit", "👁️ Preview"])
-        with input_tab:
-            st.text_area("✏️ Enter or paste your content:",
-                                         value=st.session_state.protocol_text,
-                                         height=300,
-                                         key="main_protocol_text_editor",
-                                         placeholder="Paste your draft content here...\n\nExample:\n# Security Policy\n\n## Overview\nThis policy defines requirements for secure system access.\n\n## Scope\nApplies to all employees and contractors.\n\n## Policy Statements\n1. All users must use strong passwords\n2. Multi-factor authentication is required for sensitive systems\n3. Regular security training is mandatory\n\n## Compliance\nViolations result in disciplinary action.")
-        with preview_tab:
-            if st.session_state.protocol_text:
-                st.markdown(st.session_state.protocol_text, unsafe_allow_html=True)
-            else:
-                st.info("Enter content in the 'Edit' tab to see the preview here.")
-    with protocol_col2:
-        st.markdown("**📋 Quick Actions**")
-        templates = content_manager.list_protocol_templates()
-        if templates:
-            def load_adv_template_callback():
-                selected_template = st.session_state.adv_load_template_select
-                if selected_template:
-                    try:
-                        st.session_state.protocol_text = content_manager.load_protocol_template(selected_template)
-                        st.success(f"Loaded template: {selected_template}")
-                    except Exception as e:
-                        st.error(f"Failed to load template: {e}")
-            selected_template = st.selectbox("Load Template", [""] + templates, key="adv_load_template_select")
-            if selected_template:
-                st.button("📥 Load Template", use_container_width=True, type="secondary", on_click=load_adv_template_callback)
-
-        def load_sample_callback():
-            st.session_state.protocol_text = '''# Sample Security Policy
-
-## Overview
-This policy defines security requirements for accessing company systems.
-
-## Scope
-Applies to all employees, contractors, and vendors with system access.
-
-## Policy Statements
-1. All users must use strong passwords
-2. Multi-factor authentication is required for sensitive systems
-3. Regular security training is mandatory
-4. Incident reporting must occur within 24 hours.'''
-            def clear_content_callback():
-                st.session_state.protocol_text = ""
-            st.button("🧪 Load Sample", use_container_width=True, type="secondary", on_click=load_sample_callback)
-            st.success("Sample content loaded.")
-            if st.session_state.protocol_text.strip():
-                st.button("🗑️ Clear", use_container_width=True, type="secondary", on_click=clear_content_callback)
-                st.success("Content cleared.")
-
-    # --- Step 2: Model Selection & Strategy ---
-    with st.expander("Step 2: Define Teams and Strategy", expanded=True):
-        st.subheader("🤖 Model Selection")
-        st.info("💡 **Tip:** Select 3-5 diverse models for each team for best results. Mix small and large models for cost-effectiveness.")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("#### 🔴 Red Team (Critics)")
-            st.caption("Models that find flaws and vulnerabilities in your protocol")
-            if HAS_STREAMLIT_TAGS:
-                red_team_selected_full = st_tags(label="Search and select models:", text="Type to search models...", value=st.session_state.red_team_models, suggestions=model_options, key="adversarial_red_team_select")
-                st.session_state.red_team_models = sorted(list(set([m.split(" (")[0].strip() for m in red_team_selected_full])))
-            else:
-                red_team_input = st.text_input("Enter Red Team models (comma-separated):", value=",".join(st.session_state.red_team_models))
-                st.session_state.red_team_models = sorted(list(set([model.strip() for model in red_team_input.split(",") if model.strip()])))
-            st.caption(f"Selected: {len(st.session_state.red_team_models)} models")
-        with col2:
-            st.markdown("#### 🔵 Blue Team (Fixers)")
-            st.caption("Models that patch the identified flaws and improve the protocol")
-            if HAS_STREAMLIT_TAGS:
-                blue_team_selected_full = st_tags(label="Search and select models:", text="Type to search models...", value=st.session_state.blue_team_models, suggestions=model_options, key="adversarial_blue_team_select")
-                st.session_state.blue_team_models = sorted(list(set([m.split(" (")[0].strip() for m in blue_team_selected_full])))
-            else:
-                blue_team_input = st.text_input("Enter Blue Team models (comma-separated):", value=",".join(st.session_state.blue_team_models))
-                st.session_state.blue_team_models = sorted(list(set([model.strip() for model in blue_team_input.split(",") if model.strip()])))
-            st.caption(f"Selected: {len(st.session_state.blue_team_models)} models")
-
-        st.divider()
-        st.subheader("♟️ Strategy")
-        c1, c2 = st.columns(2)
-        with c1:
-            st.selectbox("Rotation Strategy", ["None", "Round Robin", "Random Sampling", "Performance-Based", "Staged", "Adaptive", "Focus-Category"], key="adversarial_rotation_strategy")
-            st.number_input("Red Team Sample Size", 1, 100, key="adversarial_red_team_sample_size")
-        with c2:
-            st.number_input("Blue Team Sample Size", 1, 100, key="adversarial_blue_team_sample_size")
-            st.toggle("Auto-Optimize Model Selection", key="adversarial_auto_optimize_models", help="Automatically select optimal models based on protocol complexity and budget")
-
-        if st.session_state.adversarial_rotation_strategy == "Staged":
-            help_text = '''[{"red": ["model1", "model2"], "blue": ["model3"]}, {"red": ["model4"], "blue": ["model5", "model6"]}]'''
-            staged_config_input = st.text_area("Staged Rotation Config (JSON)", key="adversarial_staged_rotation_config", height=150, help=help_text)
-            
-            # Add JSON validation
-            if staged_config_input:
-                try:
-                    json.loads(staged_config_input)
-                except json.JSONDecodeError:
-                    st.error("Invalid JSON format for Staged Rotation Config.")
-
-        if st.session_state.adversarial_auto_optimize_models:
-            protocol_complexity = len(st.session_state.protocol_text.split())
-            optimized_models = optimize_model_selection(st.session_state.red_team_models, st.session_state.blue_team_models, protocol_complexity, st.session_state.adversarial_budget_limit)
-            st.session_state.red_team_models = optimized_models["red_team"]
-            st.session_state.blue_team_models = optimized_models["blue_team"]
-
-        # --- Step 3: Testing Parameters ---
-        with st.expander("Step 3: Adjust Testing Parameters", expanded=False):
-            st.subheader("⚙️ General Parameters")
-            c1, c2 = st.columns(2)
-            with c1:
-                st.number_input("Min iterations", 1, 50, key="adversarial_min_iter")
-                st.slider("Confidence threshold (%)", 50, 100, key="adversarial_confidence", help="Stop if this % of Red Team approves the SOP.")
-                st.number_input("Max parallel workers", 1, 24, key="adversarial_max_workers")
-                st.slider("Critique Depth", 1, 10, key="adversarial_critique_depth", help="How deeply the red team should analyze (1-10)")
-            with c2:
-                st.number_input("Max iterations", 1, 200, key="adversarial_max_iter")
-                st.number_input("Max tokens per model", 1000, 100000, key="adversarial_max_tokens")
-                st.selectbox("Review Type", ["Auto-Detect", "General SOP", "Code Review", "Plan Review"], key="adversarial_review_type", help="Select the type of review to perform. Auto-Detect will analyze the content and choose the appropriate review type.")
-                st.slider("Patch Quality", 1, 10, key="adversarial_patch_quality", help="Quality level for blue team patches (1-10)")
-
-            st.text_area("Compliance Requirements", key="adversarial_compliance_requirements", height=100, help="Enter any compliance requirements that the red team should check for.")
-
-            with st.expander("🔧 Advanced & Custom Settings"):
-                use_custom_mode = st.toggle("Enable Custom Prompts", key="adversarial_custom_mode", help="Enable custom prompts and configurations for adversarial testing")
-                if use_custom_mode:
-                    st.text_area("Red Team Prompt (Critique)", key="adversarial_custom_red_prompt", height=150, help="Custom prompt for the red team to find flaws")
-                    st.text_area("Blue Team Prompt (Patch)", key="adversarial_custom_blue_prompt", height=150, help="Custom prompt for the blue team to patch flaws")
-                    st.text_area("Approval Prompt", key="adversarial_custom_approval_prompt", height=100, help="Custom prompt for final approval checking")
-
-                st.divider()
-                c1, c2 = st.columns(2)
-                with c1:
-                    st.text_input("Deterministic seed", key="adversarial_seed", help="Integer for reproducible runs.")
-                with c2:
-                    st.toggle("Force JSON mode", key="adversarial_force_json", help="Use model's built-in JSON mode if available.")
-
-                all_models = sorted(list(set(st.session_state.red_team_models + st.session_state.blue_team_models)))
-                if all_models:
-                    st.markdown("##### Per-Model Configuration")
-                    for model_id in all_models:
-                        st.markdown(f"**{model_id}**")
-                        cc1, cc2, cc3, cc4 = st.columns(4)
-                        cc1.slider(f"Temp##{model_id}", 0.0, 2.0, 0.7, 0.1, key=f"temp_{model_id}")
-                        cc2.slider(f"Top-P##{model_id}", 0.0, 1.0, 1.0, 0.1, key=f"topp_{model_id}")
-                        cc3.slider(f"Freq Pen##{model_id}", -2.0, 2.0, 0.0, 0.1, key=f"freqpen_{model_id}")
-                        cc4.slider(f"Pres Pen##{model_id}", -2.0, 2.0, 0.0, 0.1, key=f"prespen_{model_id}")
-
-        # --- Step 4: Execution & Monitoring ---
-        with st.container(border=True):
-            st.subheader("Step 4: Execute & Monitor")
-            col1, col2, col3 = st.columns(3)
-            start_button = col1.button("🚀 Start Adversarial Testing", type="primary", disabled=st.session_state.adversarial_running or not st.session_state.protocol_text.strip(), use_container_width=True)
-            integrated_button = col2.button("🔄 Run Integrated (Adv + Evol)", type="secondary", disabled=st.session_state.adversarial_running or not st.session_state.protocol_text.strip(), use_container_width=True)
-            stop_button = col3.button("⏹️ Stop Adversarial Testing", disabled=not st.session_state.adversarial_running, type="secondary", use_container_width=True)
-
-            if start_button:
-                # Validate inputs before starting
-                if not st.session_state.get("openrouter_key", "").strip():
-                    st.error("❌ OpenRouter API key is required to start adversarial testing.")
-                    st.session_state.adversarial_running = False
-                elif not st.session_state.get("red_team_models", []):
-                    st.error("❌ Please select at least one model for the red team.")
-                    st.session_state.adversarial_running = False
-                elif not st.session_state.get("blue_team_models", []):
-                    st.error("❌ Please select at least one model for the blue team.")
-                    st.session_state.adversarial_running = False
-                elif not st.session_state.protocol_text.strip():
-                    st.error("❌ Please enter content to test.")
-                    st.session_state.adversarial_running = False
-                else:
-                    st.info("🔄 Starting adversarial testing...")
-                    st.session_state.adversarial_running = True
-                    threading.Thread(target=run_adversarial_testing).start()
-                    st.success("✅ Adversarial testing started successfully!")
-                    st.rerun()
-            
-            if integrated_button:
-                # Validate inputs for integrated run
-                if not st.session_state.get("openrouter_key", "").strip():
-                    st.error("❌ OpenRouter API key is required to start integrated testing.")
-                    st.session_state.adversarial_running = False
-                elif not st.session_state.get("red_team_models", []):
-                    st.error("❌ Please select at least one model for the red team.")
-                    st.session_state.adversarial_running = False
-                elif not st.session_state.get("blue_team_models", []):
-                    st.error("❌ Please select at least one model for the blue team.")
-                    st.session_state.adversarial_running = False
-                elif not st.session_state.get("evaluator_models", []):
-                    st.error("❌ Please select at least one model for the evaluator team.")
-                    st.session_state.adversarial_running = False
-                elif not st.session_state.protocol_text.strip():
-                    st.error("❌ Please enter content to test.")
-                    st.session_state.adversarial_running = False
-                else:
-                    st.info("🔄 Starting enhanced integrated adversarial-evolution-evaluation process...")
-                    st.session_state.adversarial_running = True
-                    # Run enhanced integrated function in a thread
-                    def run_enhanced_integrated():
-                        try:
-                            from adversarial import run_enhanced_integrated_adversarial_evolution
-                            result = run_enhanced_integrated_adversarial_evolution(
-                                current_content=st.session_state.protocol_text,
-                                content_type=st.session_state.get("adversarial_content_type", "general"),  # Use selected content type
-                                api_key=st.session_state.openrouter_key,
-                                base_url=st.session_state.get("openrouter_base_url", "https://openrouter.ai/api/v1"),
-                                red_team_models=st.session_state.red_team_models,
-                                blue_team_models=st.session_state.blue_team_models,
-                                evaluator_models=st.session_state.evaluator_models,
-                                adversarial_iterations=st.session_state.get("adversarial_iterations", 3),
-                                evolution_iterations=st.session_state.get("evolution_iterations", 3),
-                                evaluation_iterations=st.session_state.get("evaluation_iterations", 2),
-                                system_prompt=st.session_state.get("system_prompt", "You are an expert content generator. Create high-quality, optimized content based on the user's requirements."),
-                                evaluator_system_prompt=st.session_state.get("evaluator_system_prompt", "Evaluate the quality, clarity, and effectiveness of this content. Provide a score from 0 to 100."),
-                                temperature=st.session_state.get("temperature", 0.7),
-                                top_p=st.session_state.get("top_p", 1.0),
-                                frequency_penalty=st.session_state.get("frequency_penalty", 0.0),
-                                presence_penalty=st.session_state.get("presence_penalty", 0.0),
-                                max_tokens=st.session_state.adversarial_max_tokens,
-                                seed=st.session_state.get("adversarial_seed"),
-                                rotation_strategy=st.session_state.adversarial_rotation_strategy,
-                                red_team_sample_size=st.session_state.adversarial_red_team_sample_size,
-                                blue_team_sample_size=st.session_state.adversarial_blue_team_sample_size,
-                                evaluator_sample_size=st.session_state.get("evaluator_sample_size", 3),
-                                confidence_threshold=st.session_state.adversarial_confidence,
-                                evaluator_threshold=st.session_state.get("evaluator_threshold", 90.0),
-                                evaluator_consecutive_rounds=st.session_state.get("evaluator_consecutive_rounds", 1),
-                                compliance_requirements=st.session_state.get("adversarial_compliance_requirements", ""),
-                                enable_data_augmentation=st.session_state.get("enable_data_augmentation", False),
-                                augmentation_model_id=st.session_state.get("augmentation_model_id"),
-                                augmentation_temperature=st.session_state.get("augmentation_temperature", 0.7),
-                                enable_human_feedback=st.session_state.get("enable_human_feedback", False),
-                                multi_objective_optimization=st.session_state.get("multi_objective_optimization", True),
-                                feature_dimensions=st.session_state.get("feature_dimensions", ['complexity', 'diversity', 'quality']),
-                                feature_bins=st.session_state.get("feature_bins", 10),
-                                elite_ratio=st.session_state.get("evolution_elite_ratio", 0.1),
-                                exploration_ratio=st.session_state.get("evolution_exploration_ratio", 0.2),
-                                exploitation_ratio=st.session_state.get("exploitation_ratio", 0.7),
-                                archive_size=st.session_state.get("evolution_archive_size", 100),
-                                checkpoint_interval=st.session_state.get("evolution_checkpoint_interval", 10),
-                                keyword_analysis_enabled=st.session_state.get("keyword_analysis_enabled", True),
-                                keywords_to_target=st.session_state.get("keywords_to_target", []),
-                                keyword_penalty_weight=st.session_state.get("keyword_penalty_weight", 0.5)
-                            )
-                            if result.get("success"):
-                                # Update the protocol text with the evolved content
-                                st.session_state.protocol_text = result.get("final_content", st.session_state.protocol_text)
-                                st.success("✅ Enhanced integrated adversarial-evolution-evaluation completed successfully!")
-                                
-                                # Update session state with integrated results for reporting
-                                try:
-                                    from integrated_reporting import update_integrated_session_state
-                                    update_integrated_session_state(result)
-                                except ImportError:
-                                    st.session_state.integrated_results = result
-                                
-                                # Show integrated metrics
-                                with st.expander("📊 Integrated Process Metrics", expanded=True):
-                                    col1, col2, col3 = st.columns(3)
-                                    col1.metric("Integrated Score", f"{result.get('integrated_score', 0):.2f}")
-                                    col2.metric("Total Cost (USD)", f"${result.get('total_cost_usd', 0):.4f}")
-                                    col3.metric("Total Tokens", f"{result.get('total_tokens', {}).get('prompt', 0) + result.get('total_tokens', {}).get('completion', 0):,}")
-                                
-                                # Add export options for the integrated report
-                                st.subheader("Export Integrated Report")
-                                from integrated_reporting import generate_integrated_report, calculate_detailed_metrics
-                                
-                                # Calculate detailed metrics
-                                detailed_metrics = calculate_detailed_metrics(result)
-                                
-                                with st.expander("📈 Detailed Metrics"):
-                                    st.json(detailed_metrics)
-                                
-                                # Export options
-                                col1, col2, col3 = st.columns(3)
-                                
-                                # Generate HTML report
-                                html_report = generate_integrated_report(result)
-                                col1.download_button(
-                                    label="📄 Export HTML Report",
-                                    data=html_report,
-                                    file_name=f"integrated_report_{datetime.now().strftime('%Y%m%d_%H%M%S')}.html",
-                                    mime="text/html",
-                                    use_container_width=True
-                                )
-                                
-                                # Export as JSON
-                                json_str = json.dumps(result, indent=2, default=str)
-                                col2.download_button(
-                                    label="📋 Export JSON Results",
-                                    data=json_str,
-                                    file_name=f"integrated_results_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-                                    mime="application/json",
-                                    use_container_width=True
-                                )
-                                
-                                # Export detailed metrics
-                                metrics_json = json.dumps(detailed_metrics, indent=2, default=str)
-                                col3.download_button(
-                                    label="📊 Export Metrics JSON",
-                                    data=metrics_json,
-                                    file_name=f"integrated_metrics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
-                                    mime="application/json",
-                                    use_container_width=True
-                                )
-                                
-                                # Add GitHub sync button
-                                with st.expander("🔄 GitHub Sync", expanded=False):
-                                    st.write("Approve and sync the final content to GitHub")
-                                    if st.button("✅ Approve & Sync to GitHub", type="primary", use_container_width=True):
-                                        try:
-                                            from integrations import commit_to_github
-                                            if st.session_state.get("github_token") and st.session_state.get("selected_github_repo"):
-                                                file_path = st.session_state.get("github_file_path", "final_content.md")
-                                                commit_message = st.session_state.get("github_commit_message", f"Update content after integrated evolution - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-                                                branch_name = st.session_state.get("github_branch", "main")
-                                                
-                                                if commit_to_github(
-                                                    st.session_state.github_token,
-                                                    st.session_state.selected_github_repo,
-                                                    file_path,
-                                                    result.get("final_content", ""),
-                                                    commit_message,
-                                                    branch_name
-                                                ):
-                                                    st.success("✅ Content successfully synced to GitHub!")
-                                                else:
-                                                    st.error("❌ Failed to sync content to GitHub")
-                                            else:
-                                                st.error("❌ GitHub token or repository not configured")
-                                        except Exception as e:
-                                            st.error(f"❌ Error syncing to GitHub: {e}")
-                                
-                            else:
-                                st.error(f"❌ Enhanced integrated process failed: {result.get('error', 'Unknown error')}")
-                        except Exception as e:
-                            st.error(f"❌ Error running enhanced integrated process: {e}")
-                            import traceback
-                            traceback.print_exc()
-                        finally:
-                            st.session_state.adversarial_running = False
-                            
-                    threading.Thread(target=run_enhanced_integrated).start()
-                    st.success("✅ Enhanced integrated process started successfully!")
-                    st.rerun()
-                    
-            if stop_button:
-                st.session_state.adversarial_stop_flag = True
-                st.success("✅ Adversarial testing stop requested.")
-
-            if st.session_state.adversarial_running or st.session_state.adversarial_status_message:
-                if st.session_state.adversarial_status_message:
-                    st.info(st.session_state.adversarial_status_message)
-                if st.session_state.adversarial_running:
-                    current_iter = len(st.session_state.get("adversarial_confidence_history", []))
-                    max_iter = st.session_state.adversarial_max_iter
-                    progress = min(current_iter / max(1, max_iter), 1.0)
-                    st.progress(progress, text=f"Iteration {current_iter}/{max_iter} ({int(progress * 100)}%)")
-                    if st.session_state.get("adversarial_confidence_history"):
-                        current_confidence = st.session_state.adversarial_confidence_history[-1]
-                        col1, col2, col3, col4 = st.columns(4)
-                        col1.metric("📊 Current Confidence", f"{current_confidence:.1f}%")
-                        col2.metric("💰 Est. Cost (USD)", f"${st.session_state.adversarial_cost_estimate_usd:.4f}")
-                        col3.metric("🔤 Prompt Tokens", f"{st.session_state.adversarial_total_tokens_prompt:,}")
-                        col4.metric("📝 Completion Tokens", f"{st.session_state.adversarial_total_tokens_completion:,}")
-                    with st.expander("🔍 Real-time Logs", expanded=True):
-                        # Only show log when actively running to prevent performance issues
-                        if st.session_state.get("adversarial_running", False) and st.session_state.adversarial_log:
-                            log_entries = st.session_state.adversarial_log[-50:]
-                            if _should_update_log_display("adversarial_log", log_entries):
-                                log_content = "\n".join(log_entries)
-                                st.text_area("Activity Log", value=log_content, height=300, key="adversarial_log_display", disabled=True)
-                        else:
-                            st.info("Logs will appear here when adversarial testing is running.")
-
-        # --- Step 5: Results & Export ---
-        if st.session_state.adversarial_results and not st.session_state.adversarial_running:
-            with st.container(border=True):
-                st.header("🏆 Adversarial Testing Results")
-                results = st.session_state.adversarial_results
-                st.markdown("### 📊 Performance Summary")
-                col1, col2, col3, col4 = st.columns(4)
-                col1.metric("✅ Final Approval Rate", f"{results.get('final_approval_rate', 0):.1f}%")
-                col2.metric("🔄 Iterations", len(results.get('iterations', [])))
-                col3.metric("💰 Total Cost (USD)", f"${results.get('cost_estimate_usd', 0):.4f}")
-                col4.metric(" Tokens", f"{results.get('tokens', {}).get('prompt', 0) + results.get('tokens', {}).get('completion', 0):,}")
-
-                metrics_tab1, metrics_tab2, metrics_tab3 = st.tabs(["📈 Confidence Trend", "🏆 Model Performance", "🧮 Issue Analysis"])
-                with metrics_tab1:
-                    if results.get('iterations'):
-                        confidence_history = [iter.get("approval_check", {}).get("approval_rate", 0) for iter in results.get('iterations', [])]
-                        if confidence_history:
-                            df = pd.DataFrame({'Confidence': confidence_history})
-                            st.line_chart(df)
-                with metrics_tab2:
-                    if st.session_state.get("adversarial_model_performance"):
-                        st.bar_chart({k: v.get("score", 0) for k, v in st.session_state.adversarial_model_performance.items()})
-                    else:
-                        st.info("No model performance data available.")
-                with metrics_tab3:
-                    severity_counts = {}
-                    for iteration in results.get('iterations', []):
-                        for critique in iteration.get("critiques", []):
-                            if critique.get("critique_json"):
-                                for issue in _safe_list(critique["critique_json"], "issues"):
-                                    severity = issue.get("severity", "low").lower()
-                                    severity_counts[severity] = severity_counts.get(severity, 0) + 1
-                    if severity_counts:
-                        st.bar_chart(severity_counts)
-                    else:
-                        st.info("No issue data to display.")
-
-                st.markdown("### 📄 Final Hardened Protocol")
-                st.code(results.get('final_sop', ''), language="markdown")
-
-                st.markdown("### 📁 Export & Integrations")
-                export_col, integration_col = st.columns(2)
-                with export_col:
-                    st.subheader("Export Results")
-                    export_c1, export_c2, export_c3 = st.columns(3)
-                    pdf_bytes = generate_pdf_report(results, st.session_state.pdf_watermark)
-                    export_c1.download_button("📄 PDF", pdf_bytes, f"report_{datetime.now().strftime('%Y%m%d')}.pdf", "application/pdf", use_container_width=True, type="secondary")
-                    docx_bytes = generate_docx_report(results)
-                    export_c2.download_button("📝 DOCX", docx_bytes, f"report_{datetime.now().strftime('%Y%m%d')}.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", use_container_width=True, type="secondary")
-                    html_content = generate_integrated_report(results)
-                    export_c3.download_button("📊 HTML", html_content, f"report_{datetime.now().strftime('%Y%m%d')}.html", "text/html", use_container_width=True, type="secondary")
-
-                    export_c4, export_c5, export_c6 = st.columns(3)
-                    json_str = json.dumps(results, indent=2, default=str)
-                    export_c4.download_button("📋 JSON", json_str, f"report_{datetime.now().strftime('%Y%m%d')}.json", "application/json", use_container_width=True, type="secondary")
-                    latex_str = generate_latex_report(results)
-                    export_c5.download_button("📄 LaTeX", latex_str, f"report_{datetime.now().strftime('%Y%m%d')}.tex", "application/x-latex", use_container_width=True, type="secondary")
-                    if st.session_state.compliance_requirements:
-                        compliance_report = generate_compliance_report(results, st.session_state.compliance_requirements)
-                        export_c6.download_button("📋 Compliance", compliance_report, f"compliance_report_{datetime.now().strftime('%Y%m%d')}.md", "text/markdown", use_container_width=True, type="secondary")
-
-                with integration_col:
-                    st.subheader("Send Notifications")
-                    int_col1, int_col2, int_col3 = st.columns(3)
-                    if int_col1.button("💬 Discord", use_container_width=True, type="secondary"):
-                        if st.session_state.discord_webhook_url:
-                            send_discord_notification(st.session_state.discord_webhook_url, f"Adversarial testing complete! Final approval: {results.get('final_approval_rate', 0.0):.1f}%")
-                            st.success("Discord notification sent!")
-                        else:
-                            st.warning("Discord webhook URL not configured.")
-                    if int_col2.button("💬 Teams", use_container_width=True, type="secondary"):
-                        if st.session_state.msteams_webhook_url:
-                            send_msteams_notification(st.session_state.msteams_webhook_url, f"Adversarial testing complete! Final approval: {results.get('final_approval_rate', 0.0):.1f}%")
-                            st.success("Microsoft Teams notification sent!")
-                        else:
-                            st.warning("Microsoft Teams webhook URL not configured.")
-                    if int_col3.button("🚀 Webhook", use_container_width=True, type="secondary"):
-                        if st.session_state.generic_webhook_url:
-                            send_generic_webhook(st.session_state.generic_webhook_url, {"text": f"Adversarial testing complete! Final approval: {results.get('final_approval_rate', 0.0):.1f}%"})
-                            st.success("Generic webhook notification sent!")
-                        else:
-                            st.warning("Generic webhook URL not configured.")
-
-
-    with tabs[2]: # GitHub tab  # noqa: F821
-        render_github_tab()
-
-    with tabs[3]: # Activity Feed tab  # noqa: F821
-        render_activity_feed_tab()
-
-    with tabs[4]: # Report Templates tab  # noqa: F821
-        render_report_templates_tab()
-
-    with tabs[5]: # Model Dashboard tab  # noqa: F821
-        render_model_dashboard_tab()
-
-    with tabs[6]: # Tasks tab  # noqa: F821
-        render_tasks_tab()
-
-    with tabs[7]: # Admin tab  # noqa: F821
-        render_admin_tab()
-
-    with tabs[8]: # Analytics Dashboard tab  # noqa: F821
-        st.header("📊 Analytics Dashboard")
-        st.write("Welcome to your Analytics Dashboard!")
-
-        # Create tabs for different analytics views
-        analytics_tabs = st.tabs(["📈 Standard Analytics", "🧬 OpenEvolve Features"])
-
-        with analytics_tabs[0]:
-            # Derive metrics from session state
-            total_evolutions = len(st.session_state.evolution_history) if st.session_state.evolution_history else 0
-            avg_confidence_score = np.mean(st.session_state.adversarial_confidence_history) if st.session_state.adversarial_confidence_history else 0.0
-            total_cost_usd = st.session_state.adversarial_cost_estimate_usd
-
-            st.markdown("---")
-            st.subheader("Key Metrics")
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Total Evolutions", f"{total_evolutions:,}")
-            col2.metric("Avg. Confidence Score", f"{avg_confidence_score:.1f}%")
-            col3.metric("Total Cost (USD)", f"${total_cost_usd:.2f}")
-
-            st.markdown("---")
-            st.subheader("Evolution History")
-            if st.session_state.evolution_history:
-                evolution_data = []
-                for gen_idx, generation in enumerate(st.session_state.evolution_history):
-                    for individual in generation.get('population', []):
-                        evolution_data.append({
-                            'Generation': gen_idx,
-                            'Fitness': individual.get('fitness', 0),
-                            'Complexity': individual.get('complexity', 0),
-                            'Diversity': individual.get('diversity', 0)
-                        })
-                if evolution_data:
-                    chart_data = pd.DataFrame(evolution_data)
-                    st.line_chart(chart_data.set_index('Generation'))
-                else:
-                    st.info("No evolution history data available.")
-            else:
-                st.info("Run an evolution to see history here.")
-
-            st.markdown("---")
-            st.subheader("Model Performance Overview")
-            if st.session_state.get("adversarial_model_performance"):
-                model_perf_data = pd.DataFrame([
-                    {'Model': k, 'Score': v.get('score', 0)}
-                    for k, v in st.session_state.adversarial_model_performance.items()
-                ])
-                st.bar_chart(model_perf_data.set_index('Model'))
-            else:
-                st.info("No model performance data available.")
-
-            st.markdown("---")
-            st.subheader("Issue Severity Distribution")
-            if st.session_state.adversarial_results and st.session_state.adversarial_results.get('iterations'):
-                severity_counts = {}
-                for iteration in st.session_state.adversarial_results['iterations']:
-                    for critique in iteration.get('critiques', []):
-                        if critique.get('critique_json'):
-                            for issue in _safe_list(critique['critique_json'], 'issues'):
-                                severity = issue.get('severity', 'low').lower()
-                                severity_counts[severity] = severity_counts.get(severity, 0) + 1
-                if severity_counts:
-                    severity_data = pd.DataFrame({
-                        'Severity': list(severity_counts.keys()),
-                        'Count': list(severity_counts.values())
-                    })
-                    st.pie_chart(severity_data.set_index('Severity'))
-                else:
-                    st.info("No issue data to display.")
-            else:
-                st.info("Run adversarial testing to see issue distribution here.")
-
-    with tabs[9]: # OpenEvolve Dashboard tab  # noqa: F821
-        st.header("🧬 OpenEvolve Dashboard")
-        st.write("Welcome to your comprehensive OpenEvolve dashboard!")
-
-        # Create tabs for different OpenEvolve features
-        openevolve_tabs = st.tabs(["📊 Evolution Visualizations", "🔍 Advanced Analytics", "📈 Performance Metrics", "🔬 Algorithm Discovery"])
-
-        with openevolve_tabs[0]:  # Evolution Visualizations
-            render_openevolve_visualization_ui()
-
-    with tabs[10]: # OpenEvolve Orchestrator tab  # noqa: F821
-        render_openevolve_orchestrator_tab()
-                    # For now, just store the token since authenticate_github is not available in imports
-                    st.session_state.github_token = github_token
-                    st.success("GitHub token stored! Note: Full authentication requires backend implementation.")
-                    st.rerun()
-                else:
-                    st.warning("Please enter a GitHub Personal Access Token")
-            
-            if st.session_state.get("github_token"):
-                st.success("✅ GitHub token is set")
-                
-                # GitHub integration tabs
-                github_tabs = st.tabs(["📋 Repositories", "🌿 Branches", "💾 Commits", "🔄 Sync", "⚙️ Settings"])
-                
-                with github_tabs[0]:  # Repositories
-                    st.subheader("Repository Management")
-                    
-                    st.info("Repository listing and linking requires backend integration not currently available.")
-                    
-                    # Show linked repositories using the available function
-                    try:
-                        linked_repos = list_linked_github_repositories(st.session_state.github_token)  # Using available function
-                        if linked_repos:
-                            st.subheader("🔗 Linked Repositories")
-                            for repo in linked_repos:
-                                col1, col2 = st.columns([4, 1])
-                                with col1:
-                                    st.write(f"📂 {repo}")
-                                # Note: unlink_github_repository is not available in imports, so we'll skip unlinking
-                                with col2:
-                                    st.write("")  # Placeholder since unlink functionality is not available
-                    except Exception as e:
-                        st.info("No repositories linked yet or error accessing repositories")
-                    
-                    # Manual repo addition for demo purposes
-                    st.subheader("Add Repository (Demo)")
-                    new_repo = st.text_input("Repository name (e.g., username/repo-name)", key="manual_repo_add")
-                    if st.button("Add Repository", key="add_repo_demo") and new_repo:
-                        st.success(f"Repository {new_repo} would be linked in a full implementation.")
-                
-                # Repository selection for operations
-                selected_repo = st.selectbox("Select Repository for Operations", linked_repos)
-                
-                if selected_repo:
-                    st.divider()
-                    
-                    # Branch Management
-                    st.subheader("🌿 Branch Management")
-                    with st.expander("Create New Branch"):
-                        new_branch_name = st.text_input("New Branch Name", placeholder="e.g., protocol-v1", key="new_branch_name")
-                        base_branch = st.text_input("Base Branch", "main", key="base_branch")
-                        if st.button("Create Branch", type="secondary") and new_branch_name:
-                            try:
-                                if create_github_branch(st.session_state.github_token, selected_repo, new_branch_name, base_branch):
-                                    st.success(f"Created branch '{new_branch_name}' from '{base_branch}')")
-                                else:
-                                    st.error(f"Failed to create branch '{new_branch_name}'.")
-                            except Exception as e:
-                                st.error(f"Error creating branch: {e}")
-                    
-                    # Commit and Push
-                    st.subheader("💾 Commit and Push")
-                    branch_name = st.text_input("Target Branch", "main", key="target_branch")
-                    file_path = st.text_input("File Path", "protocols/evolved_protocol.md", key="file_path")
-                    commit_message = st.text_input("Commit Message", "Update evolved protocol", key="commit_message")
-                    if st.button("Commit to GitHub", type="primary"):
-                        if not st.session_state.protocol_text.strip():
-                            st.error("Cannot commit empty content.")
-                        elif commit_to_github(st.session_state.github_token, selected_repo, file_path, st.session_state.protocol_text, commit_message, branch_name):
-                            st.success("✅ Committed to GitHub successfully!")
-                        else:
-                            st.error("❌ Failed to commit to GitHub. Check your token and permissions.")
-                
-                # GitHub User Info
-                if st.session_state.get("github_user"):
-                    with st.expander("👤 GitHub User Information"):
-                        user = st.session_state.github_user
-                        st.write(f"**Username:** {user.get('login', 'Unknown')}")
-                        st.write(f"**Name:** {user.get('name', 'Not provided')}")
-                        st.write(f"**Email:** {user.get('email', 'Not provided')}")
-                        st.write(f"**Public Repos:** {user.get('public_repos', 'N/A')}")
-                        st.write(f"**Public Gists:** {user.get('public_gists', 'N/A')}")
-                        if st.button("🔌 Disconnect from GitHub", key="disconnect_github"):
-                            st.session_state.github_token = ""
-                            st.session_state.github_user = None
-                            if "github_repos" in st.session_state:
-                                st.session_state.github_repos = {}
-                            st.rerun()
-            else:
-                st.info("Please authenticate with GitHub to access repositories and commit functionality.")
+        with tabs[10]: # OpenEvolve Orchestrator tab
+            render_openevolve_orchestrator_tab()
 
     with tabs[3]: # Activity Feed tab  # noqa: F821
         with st.container(border=True):
