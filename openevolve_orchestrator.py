@@ -750,6 +750,7 @@ if __name__ == "__main__":
 
 
 def start_openevolve_services():
+    print("start_openevolve_services called")
     """Start all OpenEvolve services."""
     # Check if LLM backend is already running on port 8000
     try:

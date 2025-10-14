@@ -1,18 +1,28 @@
 @echo off
 
-echo Installing required packages...
-pip install -r requirements.txt
+set VENV_DIR=env
+set PYTHON_EXE=%VENV_DIR%\Scripts\python.exe
+set PIP_EXE=%VENV_DIR%\Scripts\pip.exe
 
-set SCRIPT_PATH=%~dp0
-set TARGET_URL=http://localhost:8501
+:: Check if virtual environment exists
+if not exist %VENV_DIR% (
+    echo Creating virtual environment...
+    python -m venv %VENV_DIR%
+)
+
+echo Activating virtual environment...
+call %VENV_DIR%\Scripts\activate.bat
+
+echo Installing required Python packages...
+%PIP_EXE% install -r requirements.txt
+
+echo Installing OpenEvolve in editable mode...
+%PIP_EXE% install -e .\openevolve
 
 echo Creating desktop shortcut for OpenEvolve...
-
+set TARGET_URL=http://localhost:8501
 powershell -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut(\"%USERPROFILE%\Desktop\OpenEvolve.url\"); $s.TargetPath = \"%TARGET_URL%\"; $s.Save()"
-
 echo Shortcut created on your desktop.
-
-start "" %TARGET_URL%
 
 :: --- Configure Streamlit config.toml ---
 :: Create .streamlit directory if it doesn't exist
@@ -32,4 +42,6 @@ if not exist ".streamlit" mkdir ".streamlit"
 
 echo Streamlit config.toml configured.
 
-streamlit run main.py
+echo Launching Streamlit application...
+start "" %TARGET_URL%
+%PYTHON_EXE% -m streamlit run main.py

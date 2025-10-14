@@ -10,6 +10,7 @@ PyYAML>=6.0.0
 Jinja2>=3.1.0
 requests>=2.32.0
 openai>=1.0.0
+optillm>=0.1.0
 
 # Data processing
 pandas>=2.2.0

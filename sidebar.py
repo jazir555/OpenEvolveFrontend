@@ -3,7 +3,16 @@ from providercatalogue import get_providers
 from session_utils import reset_defaults, save_user_preferences
 from openevolve_integration import OpenEvolveAPI
 import json
+import os
+import sys
+import subprocess
+import threading
+import requests
+import time
+import logging
 
+# Configure logging for this module
+logger = logging.getLogger(__name__)
 
 # It's good practice to define default parameter functions
 def get_default_generation_params():
@@ -38,6 +47,80 @@ def get_default_evolution_params():
         "feature_bins": 10,
         "diversity_metric": "edit_distance",
     }
+
+def get_project_root():
+    """
+    Returns the absolute path to the project's root directory.
+    This is a local copy to avoid import issues in threaded contexts.
+    """
+    try:
+        # Get the directory of this file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # Go up one level to get the project root
+        return os.path.abspath(os.path.join(current_dir, os.pardir))
+    except Exception as e:
+        logger.error(f"Error getting project root: {e}")
+        # Fallback to current working directory
+        return os.getcwd()
+
+def start_optillm_server():
+    """
+    Starts the OptiLLM server in a separate thread.
+    """
+    logger.info("Attempting to start OptiLLM server...")
+    
+    # Check if OptiLLM is already running
+    try:
+        response = requests.get("http://localhost:8000/health", timeout=1)
+        if response.status_code == 200:
+            st.success("OptiLLM server is already running on http://localhost:8000.")
+            return
+    except requests.exceptions.ConnectionError:
+        pass # Not running, proceed to start
+    except Exception as e:
+        st.warning(f"Could not check OptiLLM status: {e}")
+
+    # Determine virtual environment path
+    venv_dir = os.path.join(get_project_root(), "openevolve", "env")
+    optillm_executable = os.path.join(venv_dir, "Scripts", "optillm.exe") if sys.platform == "win32" else os.path.join(venv_dir, "bin", "optillm")
+
+    if not os.path.exists(optillm_executable):
+        st.error(f"OptiLLM executable not found at {optillm_executable}. Please ensure OptiLLM is installed in the virtual environment (run `make install-dev` in the `openevolve` directory).")
+        return
+
+    command = [
+        optillm_executable,
+        "--model", "google/gemma-3-270m-it", # Default model, can be made configurable
+        "--port", "8000"
+    ]
+
+    try:
+        # Start OptiLLM in a new process group to ensure it's independent
+        process = subprocess.Popen(
+            command,
+            env={"OPTILLM_API_KEY": "optillm", **os.environ}, # Pass API key as env var
+            stdout=subprocess.DEVNULL, # Redirect stdout to /dev/null
+            stderr=subprocess.DEVNULL, # Redirect stderr to /dev/null
+            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+        )
+        st.session_state.optillm_process = process
+        st.success(f"OptiLLM server started with PID: {process.pid}. Waiting for it to become ready...")
+
+        # Wait for OptiLLM to become ready
+        time.sleep(5) # Give it some time to start
+        for _ in range(10): # Retry health check a few times
+            try:
+                response = requests.get("http://localhost:8000/health", timeout=1)
+                if response.status_code == 200:
+                    st.success("OptiLLM server is now ready!")
+                    return
+            except requests.exceptions.ConnectionError:
+                time.sleep(1)
+        st.warning("OptiLLM server started, but health check timed out. It might still be starting up.")
+
+    except Exception as e:
+        st.error(f"Failed to start OptiLLM server: {e}")
+        logger.exception("Error starting OptiLLM server")
 
 
 def load_settings_for_scope():
@@ -266,6 +349,34 @@ def display_sidebar():
         st.caption(
             "Controls the 'Evolution' tab. Adversarial Testing always uses OpenRouter."
         )
+
+        # OptiLLM Server Status and Start Button
+        st.markdown("**OptiLLM Server**")
+        optillm_running = False
+        try:
+            response = requests.get("http://localhost:8000/health", timeout=0.5)
+            if response.status_code == 200:
+                optillm_running = True
+        except requests.exceptions.ConnectionError:
+            pass
+        except Exception as e:
+            logger.debug(f"Error checking OptiLLM status: {e}")
+
+        if optillm_running:
+            st.success("OptiLLM server is running on http://localhost:8000")
+            if st.button("Restart OptiLLM Server", key="restart_optillm_server"):
+                if "optillm_process" in st.session_state and st.session_state.optillm_process:
+                    st.session_state.optillm_process.terminate()
+                    st.session_state.optillm_process = None
+                    st.info("OptiLLM server terminated. Restarting...")
+                    time.sleep(1)
+                start_optillm_server()
+                st.rerun()
+        else:
+            st.warning("OptiLLM server is not running on http://localhost:8000")
+            if st.button("Start OptiLLM Server", key="start_optillm_server_button"):
+                start_optillm_server()
+                st.rerun()
 
         st.markdown("---")
         if (
