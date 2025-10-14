@@ -16,7 +16,8 @@ import time
 import requests # For health check
 import subprocess
 import yaml # Added import for yaml
-# main.py
+from openevolve_orchestrator import start_openevolve_services
+
 
 st.set_page_config(page_title="OpenEvolve", layout="wide")
 # Custom CSS to style the knob and remove the focus "glow"
@@ -87,88 +88,6 @@ def get_project_root():
         # Fallback to current working directory
         return os.getcwd()
 
-def start_openevolve_backend():
-    try:
-        backend_path = os.path.join(get_project_root(), "openevolve")
-        backend_script = os.path.join(backend_path, "openevolve-run.py")
-        
-        # Verify backend script exists
-        if not os.path.exists(backend_script):
-            logging.warning(f"OpenEvolve backend script not found at {backend_script}")
-            # Check if there's an alternative backend script location
-            alternative_script = os.path.join(backend_path, "__init__.py")
-            if os.path.exists(alternative_script):
-                backend_script = alternative_script
-                logging.info(f"Using alternative backend script at {backend_script}")
-            else:
-                logging.error(f"OpenEvolve backend script not found at {backend_script} or alternative location")
-                return
-    except Exception as e:
-        logging.error(f"Error constructing backend paths: {e}")
-        return
-    
-    # Check if backend is already running
-    try:
-        response = requests.get("http://localhost:8000/health", timeout=5) # Increased timeout
-        if response.status_code == 200:
-            logging.info("OpenEvolve backend is already running.")
-            return
-    except requests.exceptions.ConnectionError:
-        logging.info("OpenEvolve backend not running, starting it now...")
-    except requests.exceptions.Timeout:
-        logging.warning("Health check timed out, assuming backend is not fully ready or not running.")
-    except Exception as e:
-        logging.error(f"Error during backend health check: {e}")
-
-    command = [sys.executable, backend_script]
-    
-    try:
-        # Use Popen to start the backend without blocking the main thread
-        # Create log files in frontend directory to capture backend output for debugging
-        backend_out_log = os.path.join(os.path.dirname(__file__), "backend_stdout.log")
-        backend_err_log = os.path.join(os.path.dirname(__file__), "backend_stderr.log")
-        
-        with open(backend_out_log, "w") as stdout_file, open(backend_err_log, "w") as stderr_file:
-            # We use a separate thread to run this to ensure it doesn't interfere with Streamlit's main loop
-            process = subprocess.Popen(
-                command,
-                cwd=backend_path,
-                stdout=stdout_file,
-                stderr=stderr_file,
-                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
-            )
-        
-        logging.info(f"OpenEvolve backend started with PID: {process.pid}")
-        
-        # Wait a bit for the backend to start
-        time.sleep(2)
-        
-        # Double-check if backend is running after starting
-        max_retries = 15  # Increased retry attempts
-        retry_count = 0
-        backend_started = False
-        
-        while retry_count < max_retries and not backend_started:
-            try:
-                response = requests.get("http://localhost:8000/health", timeout=5)  # Increased timeout
-                if response.status_code == 200:
-                    logging.info("OpenEvolve backend confirmed running.")
-                    backend_started = True
-                    break
-            except requests.exceptions.RequestException:
-                pass
-            time.sleep(2)  # Wait 2 seconds before retrying
-            retry_count += 1
-            
-        if not backend_started:
-            logging.warning("OpenEvolve backend may not have started properly. Please check backend logs.")
-            logging.info("Backend logs are available at backend_stdout.log and backend_stderr.log")
-            
-    except Exception as e:
-        logging.error(f"Failed to start OpenEvolve backend: {e}")
-        import traceback
-        logging.error(f"Full traceback: {traceback.format_exc()}")
-
 # Import statements moved here to avoid issues with threading
 # Import with error handling for missing modules
 try:
@@ -203,7 +122,7 @@ if "backend_started" not in st.session_state:
 
 # Start the backend in a separate thread to avoid blocking Streamlit's startup
 if not st.session_state["backend_started"]:
-    backend_thread = threading.Thread(target=start_openevolve_backend)
+    backend_thread = threading.Thread(target=start_openevolve_services)
     backend_thread.daemon = True  # Allow the main program to exit even if the thread is still running
     backend_thread.start()
     st.session_state["backend_started"] = True
@@ -216,9 +135,9 @@ def show_welcome_screen():
 
         st.markdown(
             """
-        <div style="text-align: center; padding: 20px; background: linear-gradient(135deg, #4a6fa5, #6b8cbc); color: white; border-radius: 10px; margin-bottom: 20px;">
-            <h1 style="color: white;">🧬 Welcome to OpenEvolve!</h1>
-            <p style="font-size: 1.2em; color: #e0e0e0;">AI-Powered Content Evolution & Testing Platform</p>
+        <div style=\"text-align: center; padding: 20px; background: linear-gradient(135deg, #4a6fa5, #6b8cbc); color: white; border-radius: 10px; margin-bottom: 20px;">
+            <h1 style=\"color: white;">🧬 Welcome to OpenEvolve!</h1>
+            <p style=\"font-size: 1.2em; color: #e0e0e0;">AI-Powered Content Evolution & Testing Platform</p>
         </div>
         """,
             unsafe_allow_html=True,

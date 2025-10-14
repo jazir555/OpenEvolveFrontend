@@ -746,3 +746,97 @@ def initialize_orchestrator_session():
 if __name__ == "__main__":
     initialize_orchestrator_session()
     render_openevolve_orchestrator_ui()
+
+
+
+def start_openevolve_services():
+    """Start all OpenEvolve services."""
+    # Check if LLM backend is already running on port 8000
+    try:
+        # Try to connect to the LLM server health endpoint
+        response = requests.get("http://localhost:8000/v1/models", timeout=5)
+        if response.status_code == 200:
+            logging.info("LLM backend is already running on port 8000.")
+            return
+    except requests.exceptions.ConnectionError:
+        logging.warning("LLM backend not running on port 8000.")
+        logging.info("OpenEvolve requires an LLM server (like OptiLLM) to be available.")
+        logging.info("Please start your LLM server on port 8000 or configure a different endpoint.")
+    except requests.exceptions.Timeout:
+        logging.warning("LLM backend health check timed out.")
+    except Exception as e:
+        logging.error(f"Error during LLM backend health check: {e}")
+    
+    try:
+        # Define backend path and command
+        backend_path = os.path.join(get_project_root(), "openevolve")
+        command = [
+            sys.executable,  # Use the same python that runs the frontend
+            os.path.join(backend_path, "scripts", "visualizer.py"),
+            "--port",
+            "8080"
+        ]
+        
+        # Get the current environment and add the project root to PYTHONPATH
+        env = os.environ.copy()
+        env["PYTHONPATH"] = get_project_root()
+
+        # Use Popen to start the backend without blocking the main thread
+        # Create log files in frontend directory to capture backend output for debugging
+        backend_out_log = os.path.join(os.path.dirname(__file__), "backend_stdout.log")
+        backend_err_log = os.path.join(os.path.dirname(__file__), "backend_stderr.log")
+        
+        with open(backend_out_log, "w") as stdout_file, open(backend_err_log, "w") as stderr_file:
+            # We use a separate thread to run this to ensure it doesn't interfere with Streamlit's main loop
+            process = subprocess.Popen(
+                command,
+                stdout=stdout_file,
+                stderr=stderr_file,
+                env=env,
+                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+            )
+        
+        st.session_state.openevolve_backend_process = process
+        logging.info(f"OpenEvolve backend started with PID: {process.pid}")
+        
+        # Wait a bit for the backend to start
+        time.sleep(2)
+        
+        # Double-check if backend is running after starting
+        max_retries = 15  # Increased retry attempts
+        retry_count = 0
+        backend_started = False
+        
+        while retry_count < max_retries and not backend_started:
+            try:
+                response = requests.get("http://localhost:8080/", timeout=5)  # Check visualizer server
+                if response.status_code == 200:
+                    logging.info("OpenEvolve backend confirmed running.")
+                    backend_started = True
+                    break
+            except requests.exceptions.RequestException:
+                pass
+            time.sleep(2)  # Wait 2 seconds before retrying
+            retry_count += 1
+            
+        if not backend_started:
+            logging.warning("OpenEvolve backend may not have started properly. Please check backend logs.")
+            logging.info("Backend logs are available at backend_stdout.log and backend_stderr.log")
+            
+    except Exception as e:
+        logging.error(f"Failed to start OpenEvolve backend: {e}")
+        import traceback
+        logging.error(f"Full traceback: {traceback.format_exc()}")
+
+def stop_openevolve_services():
+    """Stop all OpenEvolve services."""
+    if "openevolve_backend_process" in st.session_state and st.session_state.openevolve_backend_process:
+        st.session_state.openevolve_backend_process.terminate()
+        st.session_state.openevolve_backend_process = None
+        logging.info("OpenEvolve backend process terminated.")
+
+def restart_openevolve_services():
+    """Restart all OpenEvolve services."""
+    stop_openevolve_services()
+    time.sleep(2)
+    start_openevolve_services()
