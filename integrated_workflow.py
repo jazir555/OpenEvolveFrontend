@@ -20,15 +20,17 @@ from evolution import (
 )
 from logging_util import _update_adv_log_and_status
 
-from session_utils import _compose_messages, _safe_list
+from session_utils import _compose_messages, _safe_list, _update_evolution_log_and_status
 from openevolve_integration import (
     create_language_specific_evaluator,
     create_specialized_evaluator
 )
+from evolution import _request_openai_compatible_chat
 
 # Check if OpenEvolve is available for deeper integration
 try:
-
+    from openevolve.config import Config, LLMModelConfig
+    from openevolve.api import run_evolution
     OPENEVOLVE_AVAILABLE = True
 except ImportError:
     OPENEVOLVE_AVAILABLE = False
@@ -724,7 +726,7 @@ Patch Quality: {patch_quality}""",
             new_content_text,
             model_configs,
             seed,
-            population_size,
+            extra_headers,
             approval_prompt,
         )
         total_prompt_tokens += approval_check["prompt_tokens"]
@@ -811,105 +813,109 @@ def run_enhanced_evolution_loop(
         if OPENEVOLVE_AVAILABLE:
             _update_evolution_log_and_status("🔄 Using OpenEvolve backend for enhanced evolution...")
             
-            # Create OpenEvolve configuration
-            from openevolve.config import Config, LLMModelConfig
-            from openevolve.api import run_evolution
-            
-            config = Config()
-            
-            # Configure LLM model
-            llm_config = LLMModelConfig(
-                name=model,
-                api_key=api_key,
-                api_base=base_url if base_url else "https://api.openai.com/v1",
-                temperature=temperature,
-                top_p=top_p,
-                frequency_penalty=frequency_penalty,
-                presence_penalty=presence_penalty,
-                max_tokens=max_tokens,
-                seed=seed,
-            )
-            
-            config.llm.models = [llm_config]
-            config.max_iterations = max_iterations
-            config.database.population_size = population_size
-            config.database.archive_size = archive_size
-            config.checkpoint_interval = checkpoint_interval
-            config.database.num_islands = st.session_state.get("num_islands", 1)  # Add island model for better exploration
-            
-            # Configure database settings for multi-objective evolution if needed
-            if feature_dimensions is not None:
-                config.database.feature_dimensions = feature_dimensions
-            if feature_bins is not None:
-                config.database.feature_bins = feature_bins
-            else:
-                # Set default feature bins if none provided
-                config.database.feature_bins = 10
-            
-            # Configure ratios
-            config.database.elite_selection_ratio = elite_ratio
-            config.database.exploration_ratio = exploration_ratio
-            config.database.exploitation_ratio = exploitation_ratio
-            
-            # Configure evaluator settings for better integration
-            config.evaluator.timeout = 300
-            config.evaluator.max_retries = 3
-            config.evaluator.cascade_evaluation = True
-            config.evaluator.cascade_thresholds = [0.5, 0.75, 0.9]
-            config.evaluator.parallel_evaluations = os.cpu_count() or 4
-            
-            # Use adversarial diagnostics to inform the evolution process
-            adversarial_history = st.session_state.get("integrated_adversarial_history", [])
-            if adversarial_history and multi_objective_optimization:
-                # If using multi-objective optimization and have adversarial history, 
-                # add relevant feature dimensions
-                if config.database.feature_dimensions is not None:
-                    # Add adversarial-relevant dimensions if they're not already present
-                    if "issues_resolved" not in config.database.feature_dimensions:
-                        config.database.feature_dimensions.append("issues_resolved")
-                    if "mitigation_effectiveness" not in config.database.feature_dimensions:
-                        config.database.feature_dimensions.append("mitigation_effectiveness")
-
-            # Create a temporary file for the content
-            import tempfile
-            
-            with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as temp_file:
-                temp_file.write(current_content)
-                temp_file_path = temp_file.name
-            
             try:
-                # Use OpenEvolve API with the evaluator
-                result = run_evolution(
-                    initial_program=temp_file_path,
-                    evaluator=evaluator.evaluate,
-                    config=config,
-                    iterations=max_iterations,
-                    output_dir=None,  # Use temporary directory
-                    cleanup=True,
+                # Only proceed if imports succeeded
+                config = Config()
+            
+                # Configure LLM model
+                llm_config = LLMModelConfig(
+                    name=model,
+                    api_key=api_key,
+                    api_base=base_url if base_url else "https://api.openai.com/v1",
+                    temperature=temperature,
+                    top_p=top_p,
+                    frequency_penalty=frequency_penalty,
+                    presence_penalty=presence_penalty,
+                    max_tokens=max_tokens,
+                    seed=seed,
                 )
                 
-                if result.best_program and result.best_code:
-                    final_content = result.best_code
-                    with st.session_state.thread_lock:
-                        st.session_state.evolution_current_best = final_content
-                    _update_evolution_log_and_status(
-                        f"🏆 OpenEvolve enhanced evolution completed. Best score: {result.best_score:.4f}"
-                    )
-                    return final_content
+                config.llm.models = [llm_config]
+                config.max_iterations = max_iterations
+                config.database.population_size = population_size
+                config.database.archive_size = archive_size
+                config.checkpoint_interval = checkpoint_interval
+                config.database.num_islands = st.session_state.get("num_islands", 1)  # Add island model for better exploration
+                
+                # Configure database settings for multi-objective evolution if needed
+                if feature_dimensions is not None:
+                    config.database.feature_dimensions = feature_dimensions
+                if feature_bins is not None:
+                    config.database.feature_bins = feature_bins
                 else:
-                    _update_evolution_log_and_status(
-                        "🤔 OpenEvolve enhanced evolution completed with no improvement."
+                    # Set default feature bins if none provided
+                    config.database.feature_bins = 10
+                
+                # Configure ratios
+                config.database.elite_selection_ratio = elite_ratio
+                config.database.exploration_ratio = exploration_ratio
+                config.database.exploitation_ratio = exploitation_ratio
+                
+                # Configure evaluator settings for better integration
+                config.evaluator.timeout = 300
+                config.evaluator.max_retries = 3
+                config.evaluator.cascade_evaluation = True
+                config.evaluator.cascade_thresholds = [0.5, 0.75, 0.9]
+                config.evaluator.parallel_evaluations = os.cpu_count() or 4
+                
+                # Use adversarial diagnostics to inform the evolution process
+                adversarial_history = st.session_state.get("integrated_adversarial_history", [])
+                if adversarial_history and multi_objective_optimization:
+                    # If using multi-objective optimization and have adversarial history,
+                    # add relevant feature dimensions
+                    if config.database.feature_dimensions is not None:
+                        # Add adversarial-relevant dimensions if they're not already present
+                        if "issues_resolved" not in config.database.feature_dimensions:
+                            config.database.feature_dimensions.append("issues_resolved")
+                        if "mitigation_effectiveness" not in config.database.feature_dimensions:
+                            config.database.feature_dimensions.append("mitigation_effectiveness")
+
+                # Create a temporary file for the content
+                import tempfile
+                
+                with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False) as temp_file:
+                    temp_file.write(current_content)
+                    temp_file_path = temp_file.name
+                
+                try:
+                    # Use OpenEvolve API with the evaluator
+                    result = run_evolution(
+                        initial_program=temp_file_path,
+                        evaluator=evaluator.evaluate,
+                        config=config,
+                        iterations=max_iterations,
+                        output_dir=None,  # Use temporary directory
+                        cleanup=True,
                     )
-                    return current_content
                     
-            finally:
-                # Clean up the temporary file
-                if os.path.exists(temp_file_path):
-                    os.unlink(temp_file_path)
-        else:
-            # Fallback to the custom evolution loop when OpenEvolve is not available
-            _update_evolution_log_and_status("⚠️ OpenEvolve not available, using API-based enhanced evolution as fallback...")
-            for i in range(max_iterations):
+                    if result.best_program and result.best_code:
+                        final_content = result.best_code
+                        with st.session_state.thread_lock:
+                            st.session_state.evolution_current_best = final_content
+                        _update_evolution_log_and_status(
+                            f"🏆 OpenEvolve enhanced evolution completed. Best score: {result.best_score:.4f}"
+                        )
+                        return final_content
+                    else:
+                        _update_evolution_log_and_status(
+                            "🤔 OpenEvolve enhanced evolution completed with no improvement."
+                        )
+                        return current_content
+                        
+                finally:
+                    # Clean up the temporary file
+                    if os.path.exists(temp_file_path):
+                        os.unlink(temp_file_path)
+            except ImportError:
+                _update_evolution_log_and_status("⚠️ OpenEvolve imports failed, falling back to API-based evolution...")
+                # Fall through to the API-based implementation
+            except Exception as e:
+                _update_evolution_log_and_status(f"⚠️ OpenEvolve execution failed: {e}, falling back to API-based evolution...")
+                # Fall through to the API-based implementation
+        
+        # Fallback to the custom evolution loop when OpenEvolve is not available or failed
+        _update_evolution_log_and_status("⚠️ OpenEvolve not available, using API-based enhanced evolution as fallback...")
+        for i in range(max_iterations):
                 # Check if we have adversarial stop flag
                 if st.session_state.get("adversarial_stop_flag", False):
                     _update_evolution_log_and_status("⏹️ Evolution stopped due to adversarial stop flag.")
@@ -1037,8 +1043,8 @@ def run_enhanced_evolution_loop(
                 else:
                     _update_evolution_log_and_status("🤔 No improvement in this iteration.")
 
-            _update_evolution_log_and_status("🏁 Enhanced evolution finished.")
-            return current_content
+        _update_evolution_log_and_status("🏁 Enhanced evolution finished.")
+        return current_content
     except Exception as e:
         _update_evolution_log_and_status(f"💥 Enhanced evolution loop failed: {e}")
         import traceback
@@ -1217,69 +1223,7 @@ def _hash_text(text: str) -> str:
 
 
 @st.cache_data(ttl=3600) # Cache for 1 hour
-def _request_openai_compatible_chat(
-    api_key: str,
-    base_url: str,
-    model: str,
-    messages: List,
-    extra_headers: Dict,
-    temperature: float,
-    top_p: float,
-    frequency_penalty: float,
-    presence_penalty: float,
-    max_tokens: int,
-    seed: Optional[int],
-    req_timeout: int = 60,
-    max_retries: int = 5,
-    provider: str = "OpenAI",
-) -> str:
-    """Make a request to an OpenAI-compatible API."""
-    import requests
-    url = base_url.rstrip("/") + "/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Content-Type": "application/json",
-        **extra_headers,
-    }
-
-    payload: Dict[str, Any] = {
-        "model": model,
-        "messages": messages,
-        "temperature": min(max(temperature, 0.0), 2.0),
-        "max_tokens": max_tokens,
-        "top_p": min(max(top_p, 0.0), 1.0),
-        "frequency_penalty": min(max(frequency_penalty, -2.0), 2.0),
-        "presence_penalty": min(max(presence_penalty, -2.0), 2.0),
-    }
-    if seed is not None:
-        payload["seed"] = int(seed)
-
-    last_err = None
-    for attempt in range(max_retries):
-        try:
-            r = requests.post(url, headers=headers, json=payload, timeout=req_timeout)
-            if r.status_code in {429, 500, 502, 503, 504}:
-                import time
-                sleep_s = (2**attempt) + (time.time() % 0.1)  # Add jitter
-                time.sleep(sleep_s)
-                last_err = Exception(f"Transient error {r.status_code}: Retrying...")
-                continue
-            r.raise_for_status()
-            data = r.json()
-            choices = data.get("choices", [])
-            if choices:
-                choice = choices[0]
-                content = choice.get("message", {}).get("content", "")
-            else:
-                content = ""
-            return content or ""
-        except Exception as e:
-            last_err = e
-            sleep_s = (2**attempt) + (time.time() % 0.1)  # Add jitter
-            time.sleep(sleep_s)
-    raise RuntimeError(
-        f"Request failed for {model} after {max_retries} attempts: {last_err}"
-    )
+# Remove the duplicate _request_openai_compatible_chat function since we're importing it from evolution.py
 
 
 def _evaluate_candidate(
@@ -1331,7 +1275,10 @@ def analyze_with_model(
     system_prompt: str,
     force_json: bool = False,
     seed: Optional[int] = None,
-    extra_headers: Optional[Dict] = None
+    extra_headers: Optional[Dict] = None,
+    user_suffix: str = "",
+    compliance_requirements: str = "",
+    prompt_enhancement: str = ""
 ) -> Dict[str, Any]:
     """
     Analyze content using the specified model.
@@ -1339,11 +1286,22 @@ def analyze_with_model(
     if extra_headers is None:
         extra_headers = {}
     
-    messages = _compose_messages(system_prompt, content)
+    # Enhance the system prompt with additional parameters
+    enhanced_system_prompt = system_prompt
+    if prompt_enhancement:
+        enhanced_system_prompt += f"\n\n{prompt_enhancement}"
+    if compliance_requirements:
+        enhanced_system_prompt += f"\n\nCompliance Requirements: {compliance_requirements}"
+    
+    messages = _compose_messages(enhanced_system_prompt, content)
+    
+    # Add user suffix if provided
+    if user_suffix:
+        messages[-1]["content"] += f"\n\n{user_suffix}"
     
     if force_json:
         messages.append({
-            "role": "system", 
+            "role": "system",
             "content": "Always respond in valid JSON format."
         })
     
@@ -1396,7 +1354,9 @@ def check_approval_rate(
     red_team_models: List[str],
     content_to_check: str,
     model_configs: Dict,
-    extra_headers: Optional[Dict] = None
+    seed: Optional[int] = None,
+    extra_headers: Optional[Dict] = None,
+    approval_prompt: str = ""
 ) -> Dict[str, Any]:
     """
     Check approval rate of content with red team models.

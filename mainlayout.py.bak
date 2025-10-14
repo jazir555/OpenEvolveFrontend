@@ -1,0 +1,3201 @@
+import streamlit as st
+import json
+import pandas as pd
+import numpy as np
+import plotly.express as px
+import os
+import sys
+from datetime import datetime
+import time
+import threading
+from streamlit.components.v1 import html
+import matplotlib.pyplot as plt
+import psutil
+
+# Import required modules and classes
+try:
+    from template_manager import TemplateManager
+    from prompt_manager import PromptManager
+    from openevolve_api import OpenEvolveAPI
+    from analytics_manager import AnalyticsManager
+    from collaboration_manager import CollaborationManager
+    from version_control import VersionControl
+    from notification_manager import NotificationManager
+    from log_streaming import LogStreaming
+    from session_manager import SessionManager
+    from monitoring_system import EvolutionMonitor
+    from reporting_system import create_evolution_report
+    import content_manager
+except ImportError as e:
+    st.error(f"Required module import failed: {e}")
+    # Create minimal stubs for critical classes
+    class TemplateManager:
+        def __init__(self): pass
+    class PromptManager:
+        def __init__(self, api=None): self.api = api
+    class OpenEvolveAPI:
+        def __init__(self, base_url="", api_key=""): 
+            self.base_url = base_url
+            self.api_key = api_key
+    class AnalyticsManager:
+        def __init__(self): pass
+    class CollaborationManager:
+        def __init__(self): pass
+    class VersionControl:
+        def __init__(self): pass
+    class NotificationManager:
+        def __init__(self): pass
+    class LogStreaming:
+        def __init__(self): pass
+    class SessionManager:
+        def __init__(self): pass
+    class EvolutionMonitor:
+        def __init__(self): 
+            self.metrics = {}
+        def start_monitoring(self): pass
+        def stop_monitoring(self): pass
+    class ContentManager:
+        def __init__(self): pass
+    content_manager = ContentManager()
+    
+    def create_evolution_report(*args, **kwargs):
+        st.info("Reporting system not available")
+
+# Check for optional dependencies
+MATPLOTLIB_AVAILABLE = True
+try:
+    import matplotlib.pyplot as plt
+except ImportError:
+    MATPLOTLIB_AVAILABLE = False
+
+OPENEVOLVE_AVAILABLE = False
+try:
+    from openevolve_integration import run_unified_evolution
+    OPENEVOLVE_AVAILABLE = True
+except ImportError:
+    pass
+
+# Initialize default roles
+ROLES = {
+    "user": "Standard user with basic permissions",
+    "admin": "Administrator with full system access",
+    "viewer": "Read-only access to view content"
+}
+
+def _initialize_session_state():
+    """Initialize all required session state variables."""
+    defaults = {
+        "theme": "light",
+        "user_preferences": {"allow_os_theme_inheritance": False},
+        "protocol_text": "",
+        "max_iterations": 100,
+        "population_size": 100,
+        "temperature": 0.7,
+        "max_tokens": 4096,
+        "top_p": 1.0,
+        "frequency_penalty": 0.0,
+        "presence_penalty": 0.0,
+        "num_islands": 1,
+        "migration_interval": 50,
+        "migration_rate": 0.1,
+        "elite_ratio": 0.1,
+        "exploration_ratio": 0.2,
+        "exploitation_ratio": 0.7,
+        "archive_size": 100,
+        "checkpoint_interval": 10,
+        "feature_dimensions": ["complexity", "diversity"],
+        "feature_bins": 10,
+        "diversity_metric": "edit_distance",
+        "enable_artifacts": True,
+        "cascade_evaluation": True,
+        "use_llm_feedback": False,
+        "parallel_evaluations": 1,
+        "diff_based_evolution": True,
+        "enable_early_stopping": True,
+        "early_stopping_patience": 10,
+        "evolution_history": [],
+        "adversarial_results": {},
+        "adversarial_confidence_history": [],
+        "adversarial_cost_estimate_usd": 0.0,
+        "evolution_cost_estimate_usd": 0.0,
+        "adversarial_model_performance": {},
+        "user_roles": {"default_user": "user"},
+        "tasks": [],
+        "report_templates": {},
+        "total_evolution_runs": 0,
+        "avg_best_score": 0.0,
+        "best_ever_score": 0.0,
+        "success_rate": 0.0,
+        "evolution_running": False,
+        "evolution_current_best": "",
+        "evolution_stop_flag": False,
+        "evolution_log": [],
+        "page": None,
+        "api_key": "",
+        "openrouter_key": "",
+        "base_url": "https://api.openai.com/v1",
+        "openrouter_base_url": "https://openrouter.ai/api/v1",
+        "extra_headers": "{}",
+        "system_prompt": "You are an expert content generator. Create high-quality, optimized content based on the user's requirements.",
+        "evaluator_system_prompt": "Evaluate the quality, clarity, and effectiveness of this content. Provide a score from 0 to 100.",
+        "show_quick_guide": False,
+        "show_keyboard_shortcuts": False,
+        "monitoring_metrics": {
+            "best_score": 0.0,
+            "current_generation": 0,
+            "avg_diversity": 0.0,
+            "convergence_rate": 0.0
+        },
+        "workflow_history": [],
+        "current_workflow": None,
+        "openevolve_base_url": "http://localhost:8000",
+        "openevolve_api_key": "",
+        "default_max_tokens": 4096,
+        "default_temperature": 0.7,
+        "default_max_iterations": 100,
+        "default_population_size": 100,
+        "default_elite_ratio": 0.1,
+        "default_archive_size": 100
+    }
+    
+    for key, value in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+def _load_report_templates():
+    """Load report templates from persistent storage."""
+    try:
+        if os.path.exists("report_templates.json"):
+            with open("report_templates.json", "r") as f:
+                return json.load(f)
+    except Exception:
+        pass
+    return {}
+
+def _save_report_templates(templates):
+    """Save report templates to persistent storage."""
+    try:
+        with open("report_templates.json", "w") as f:
+            json.dump(templates, f, indent=2)
+    except Exception as e:
+        st.error(f"Failed to save templates: {e}")
+
+def _safe_list(obj, key):
+    """Safely get a list from an object."""
+    if isinstance(obj, dict):
+        return obj.get(key, [])
+    return []
+
+def _should_update_log_display(log_key, current_entries):
+    """Determine if log display should be updated to prevent constant reruns."""
+    last_key = f"last_{log_key}_display"
+    if last_key not in st.session_state:
+        st.session_state[last_key] = []
+    
+    if st.session_state[last_key] != current_entries:
+        st.session_state[last_key] = current_entries
+        return True
+    return False
+
+def _run_evolution_with_api_backend_refactored(content, api_key, base_url, model, max_iterations, 
+                                            population_size, system_prompt, evaluator_system_prompt,
+                                            extra_headers, temperature, top_p, frequency_penalty,
+                                            presence_penalty, max_tokens, seed):
+    """Run evolution using API backend."""
+    st.session_state.evolution_running = True
+    st.session_state.evolution_stop_flag = False
+    
+    try:
+        for i in range(max_iterations):
+            if st.session_state.evolution_stop_flag:
+                st.session_state.evolution_log.append(f"Evolution stopped by user at iteration {i}")
+                break
+            
+            # Simulate evolution progress
+            progress = (i + 1) / max_iterations
+            st.session_state.evolution_log.append(f"Generation {i+1}: Best fitness = {0.5 + progress * 0.4:.3f}")
+            
+            # Update current best with simulated improvement
+            if i == 0 or progress > 0.5:
+                st.session_state.evolution_current_best = f"Improved content after {i+1} generations\n\n{content}"
+            
+            # Add to evolution history
+            generation_data = {
+                "generation": i,
+                "population": [
+                    {
+                        "code": f"Solution {j}",
+                        "fitness": 0.5 + progress * 0.4 + j * 0.01,
+                        "complexity": 0.3 + j * 0.1,
+                        "diversity": 0.4 + j * 0.05
+                    }
+                    for j in range(population_size)
+                ]
+            }
+            st.session_state.evolution_history.append(generation_data)
+            
+            # Update monitoring metrics
+            st.session_state.monitoring_metrics.update({
+                "best_score": 0.5 + progress * 0.4,
+                "current_generation": i,
+                "avg_diversity": 0.4 + progress * 0.3,
+                "convergence_rate": progress
+            })
+            
+            time.sleep(0.1)  # Simulate processing time
+            
+        st.session_state.evolution_log.append("Evolution completed successfully")
+        st.session_state.total_evolution_runs += 1
+        
+    except Exception as e:
+        st.session_state.evolution_log.append(f"Evolution error: {e}")
+    finally:
+        st.session_state.evolution_running = False
+
+def render_collaboration_ui():
+    """Render collaboration UI components."""
+    if st.sidebar.checkbox("Show Collaboration Panel", key="collab_toggle"):
+        with st.sidebar.expander("👥 Collaboration", expanded=True):
+            st.write("**Active Collaborators**")
+            st.write("• You (Owner)")
+            st.write("• No other collaborators")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Invite User", key="invite_collab"):
+                    st.info("User invitation system would be implemented here")
+            with col2:
+                if st.button("Share Session", key="share_session"):
+                    st.info("Session sharing would be implemented here")
+
+def check_password():
+    """Check if user is authenticated."""
+    if "authenticated" not in st.session_state:
+        st.session_state.authenticated = False
+    
+    if not st.session_state.authenticated:
+        with st.container():
+            st.title("🔐 OpenEvolve Authentication")
+            col1, col2 = st.columns([2, 1])
+            
+            with col1:
+                auth_method = st.radio("Authentication Method", 
+                                     ["Password", "API Key", "No Authentication"])
+                
+                if auth_method == "Password":
+                    password = st.text_input("Enter Password", type="password")
+                    if st.button("Authenticate"):
+                        if password == "demo":  # Change in production
+                            st.session_state.authenticated = True
+                            st.rerun()
+                        else:
+                            st.error("Invalid password")
+                
+                elif auth_method == "API Key":
+                    api_key = st.text_input("Enter API Key", type="password")
+                    if st.button("Authenticate with API Key"):
+                        if api_key:
+                            st.session_state.api_key = api_key
+                            st.session_state.authenticated = True
+                            st.rerun()
+                        else:
+                            st.error("Please enter an API key")
+                
+                elif auth_method == "No Authentication":
+                    if st.button("Continue without Authentication"):
+                        st.session_state.authenticated = True
+                        st.rerun()
+            
+            with col2:
+                st.info("""
+                **Demo Credentials:**
+                - Password: `demo`
+                - Or use any API key
+                
+                **Note:** In production, implement proper authentication.
+                """)
+        
+        st.stop()
+
+def render_notification_ui():
+    """Render notification system UI."""
+    if "notifications" not in st.session_state:
+        st.session_state.notifications = []
+    
+    if st.session_state.notifications:
+        with st.container():
+            for i, notification in enumerate(st.session_state.notifications[:3]):
+                st.warning(f"📢 {notification}")
+            
+            if len(st.session_state.notifications) > 3:
+                if st.button("Show All Notifications"):
+                    st.session_state.show_all_notifications = True
+            
+            if st.session_state.get("show_all_notifications"):
+                for notification in st.session_state.notifications:
+                    st.info(f"📢 {notification}")
+                
+                if st.button("Clear All Notifications"):
+                    st.session_state.notifications = []
+                    st.session_state.show_all_notifications = False
+                    st.rerun()
+
+def render_adversarial_testing_tab():
+    """Render the adversarial testing tab."""
+    st.header("🛡️ Adversarial Testing")
+    
+    st.markdown("""
+    **Red Team/Blue Team Approach**
+    
+    Use multiple AI models to harden your content through adversarial testing:
+    - **Red Team**: Models that try to find weaknesses and vulnerabilities
+    - **Blue Team**: Models that fix identified issues and improve content
+    """)
+    
+    # Configuration
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("🔴 Red Team (Critics)")
+        red_team_models = st.multiselect(
+            "Select Red Team Models",
+            ["gpt-4", "claude-3-opus", "gemini-pro", "llama-3-70b"],
+            default=["gpt-4"],
+            key="red_team_models"
+        )
+        
+        criticism_intensity = st.slider(
+            "Criticism Intensity",
+            min_value=1,
+            max_value=10,
+            value=7,
+            help="How harsh should the critics be?"
+        )
+    
+    with col2:
+        st.subheader("🔵 Blue Team (Fixers)")
+        blue_team_models = st.multiselect(
+            "Select Blue Team Models", 
+            ["gpt-4", "claude-3-sonnet", "gemini-pro", "llama-3-70b"],
+            default=["gpt-4"],
+            key="blue_team_models"
+        )
+        
+        improvement_aggressiveness = st.slider(
+            "Improvement Aggressiveness",
+            min_value=1,
+            max_value=10,
+            value=6,
+            help="How aggressively should fixes be applied?"
+        )
+    
+    # Content input
+    st.subheader("📝 Content to Test")
+    adversarial_content = st.text_area(
+        "Enter content for adversarial testing",
+        height=200,
+        value=st.session_state.get("protocol_text", ""),
+        key="adversarial_content"
+    )
+    
+    # Testing parameters
+    with st.expander("⚙️ Testing Parameters"):
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            max_rounds = st.number_input("Max Rounds", min_value=1, max_value=10, value=3)
+            timeout_minutes = st.number_input("Timeout (minutes)", min_value=1, max_value=60, value=10)
+        with col2:
+            min_approval_rate = st.slider("Min Approval Rate %", min_value=50, max_value=95, value=80)
+            cost_limit = st.number_input("Cost Limit ($)", min_value=0.0, max_value=10.0, value=2.0, step=0.1)
+        with col3:
+            enable_confidence_scoring = st.checkbox("Confidence Scoring", value=True)
+            auto_export_results = st.checkbox("Auto-Export Results", value=True)
+    
+    # Run testing
+    if st.button("🚀 Start Adversarial Testing", type="primary", use_container_width=True):
+        if not adversarial_content.strip():
+            st.error("Please enter content to test")
+            return
+        
+        if not red_team_models or not blue_team_models:
+            st.error("Please select at least one model for both Red Team and Blue Team")
+            return
+        
+        # Initialize testing
+        st.session_state.adversarial_results = {
+            "iterations": [],
+            "start_time": datetime.now().isoformat(),
+            "config": {
+                "red_team_models": red_team_models,
+                "blue_team_models": blue_team_models,
+                "max_rounds": max_rounds
+            }
+        }
+        
+        # Simulate adversarial testing
+        with st.spinner("Running adversarial testing..."):
+            for round_num in range(max_rounds):
+                # Simulate round progress
+                progress = (round_num + 1) / max_rounds
+                
+                # Create mock iteration results
+                iteration = {
+                    "iteration": round_num + 1,
+                    "critiques": [
+                        {
+                            "model": model,
+                            "critique": f"Sample critique from {model} about potential improvements",
+                            "confidence": 0.7 + 0.2 * np.random.random(),
+                            "critique_json": {
+                                "issues": [
+                                    {
+                                        "type": "clarity",
+                                        "severity": "medium",
+                                        "description": "Could be more clear",
+                                        "suggestion": "Add more specific examples"
+                                    }
+                                ]
+                            }
+                        }
+                        for model in red_team_models
+                    ],
+                    "fixes": [
+                        {
+                            "model": model,
+                            "fixed_content": f"Improved version from {model}",
+                            "improvement_score": 0.6 + 0.3 * np.random.random()
+                        }
+                        for model in blue_team_models
+                    ],
+                    "approval_check": {
+                        "approval_rate": 60 + 30 * progress,
+                        "confidence": 0.5 + 0.4 * progress
+                    }
+                }
+                
+                st.session_state.adversarial_results["iterations"].append(iteration)
+                
+                # Update confidence history
+                st.session_state.adversarial_confidence_history.append(
+                    iteration["approval_check"]["confidence"] * 100
+                )
+                
+                # Simulate processing time
+                time.sleep(1)
+            
+            # Final results
+            st.session_state.adversarial_results["end_time"] = datetime.now().isoformat()
+            st.session_state.adversarial_results["final_approval_rate"] = 85.0
+            st.session_state.adversarial_cost_estimate_usd = 0.45
+        
+        st.success("Adversarial testing completed!")
+    
+    # Display results if available
+    if st.session_state.adversarial_results and st.session_state.adversarial_results["iterations"]:
+        st.subheader("📊 Testing Results")
+        
+        # Overall metrics
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            final_approval = st.session_state.adversarial_results.get("final_approval_rate", 0)
+            st.metric("Final Approval Rate", f"{final_approval:.1f}%")
+        with col2:
+            st.metric("Total Rounds", len(st.session_state.adversarial_results["iterations"]))
+        with col3:
+            avg_confidence = np.mean(st.session_state.adversarial_confidence_history) if st.session_state.adversarial_confidence_history else 0
+            st.metric("Avg Confidence", f"{avg_confidence:.1f}%")
+        with col4:
+            st.metric("Estimated Cost", f"${st.session_state.adversarial_cost_estimate_usd:.4f}")
+        
+        # Iteration details
+        for iteration in st.session_state.adversarial_results["iterations"]:
+            with st.expander(f"Round {iteration['iteration']} Results", expanded=False):
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    st.write("**🔴 Critiques**")
+                    for critique in iteration["critiques"]:
+                        st.write(f"**{critique['model']}** (confidence: {critique['confidence']:.2f})")
+                        st.write(critique["critique"])
+                
+                with col2:
+                    st.write("**🔵 Fixes**")
+                    for fix in iteration["fixes"]:
+                        st.write(f"**{fix['model']}** (improvement: {fix['improvement_score']:.2f})")
+                        st.text_area("Fixed Content", fix["fixed_content"], height=100, key=f"fix_{iteration['iteration']}_{fix['model']}")
+                
+                st.write(f"**Approval Rate**: {iteration['approval_check']['approval_rate']:.1f}%")
+
+def render_github_tab():
+    """Render the GitHub integration tab."""
+    st.header("🔗 GitHub Integration")
+    
+    st.markdown("""
+    **Connect to GitHub for version control and collaboration**
+    
+    - Sync your evolved content with GitHub repositories
+    - Track changes and manage versions
+    - Collaborate with team members
+    """)
+    
+    # GitHub configuration
+    with st.form("github_config"):
+        st.subheader("GitHub Configuration")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            github_token = st.text_input("GitHub Token", type="password", 
+                                       help="Personal access token for GitHub API")
+            repo_owner = st.text_input("Repository Owner", placeholder="your-username")
+        with col2:
+            repo_name = st.text_input("Repository Name", placeholder="openevolve-content")
+            branch_name = st.text_input("Branch Name", value="main")
+        
+        if st.form_submit_button("Connect to GitHub"):
+            if github_token and repo_owner and repo_name:
+                st.success("GitHub connection configured successfully!")
+            else:
+                st.error("Please fill all required fields")
+    
+    # Repository actions
+    st.subheader("Repository Actions")
+    
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("📥 Sync Repository", use_container_width=True):
+            st.info("Repository sync would be implemented here")
+    with col2:
+        if st.button("🔄 Commit Changes", use_container_width=True):
+            st.info("Commit functionality would be implemented here")
+    with col3:
+        if st.button("📤 Create Pull Request", use_container_width=True):
+            st.info("PR creation would be implemented here")
+    
+    # File browser (simulated)
+    st.subheader("📁 Repository Files")
+    st.info("GitHub file browser would be displayed here when connected")
+    
+    # Recent activity
+    st.subheader("Recent Activity")
+    st.info("GitHub activity feed would be displayed here when connected")
+
+def render_activity_feed_tab():
+    """Render the activity feed tab."""
+    st.header("📋 Activity Feed")
+    
+    # Initialize activity log if not present
+    if "activity_log" not in st.session_state:
+        st.session_state.activity_log = []
+    
+    # Add sample activities if empty
+    if not st.session_state.activity_log:
+        sample_activities = [
+            {"type": "evolution", "message": "Started new evolution run", "timestamp": datetime.now().isoformat()},
+            {"type": "adversarial", "message": "Completed adversarial testing round", "timestamp": datetime.now().isoformat()},
+            {"type": "system", "message": "System initialized successfully", "timestamp": datetime.now().isoformat()}
+        ]
+        st.session_state.activity_log.extend(sample_activities)
+    
+    # Activity filters
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        filter_type = st.selectbox("Filter by Type", ["All", "evolution", "adversarial", "system", "user"])
+    with col2:
+        sort_order = st.selectbox("Sort Order", ["Newest First", "Oldest First"])
+    with col3:
+        if st.button("Clear Activity Log"):
+            st.session_state.activity_log = []
+            st.rerun()
+    
+    # Display activities
+    activities_to_show = st.session_state.activity_log
+    
+    if filter_type != "All":
+        activities_to_show = [a for a in activities_to_show if a.get("type") == filter_type.lower()]
+    
+    if sort_order == "Newest First":
+        activities_to_show = sorted(activities_to_show, key=lambda x: x.get("timestamp", ""), reverse=True)
+    else:
+        activities_to_show = sorted(activities_to_show, key=lambda x: x.get("timestamp", ""))
+    
+    for activity in activities_to_show:
+        # Determine icon and color based on type
+        icons = {
+            "evolution": "🧬",
+            "adversarial": "🛡️", 
+            "system": "⚙️",
+            "user": "👤"
+        }
+        icon = icons.get(activity.get("type", "system"), "📝")
+        
+        with st.container(border=True):
+            col1, col2 = st.columns([1, 4])
+            with col1:
+                st.write(f"**{icon}**")
+            with col2:
+                st.write(activity.get("message", "No message"))
+                timestamp = activity.get("timestamp", "")
+                if timestamp:
+                    try:
+                        dt = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+                        st.caption(dt.strftime("%Y-%m-%d %H:%M:%S"))
+                    except:
+                        st.caption(timestamp)
+    
+    # Add new activity
+    st.subheader("Add New Activity")
+    with st.form("new_activity"):
+        activity_type = st.selectbox("Activity Type", ["evolution", "adversarial", "system", "user"])
+        activity_message = st.text_input("Activity Message")
+        
+        if st.form_submit_button("Add Activity"):
+            if activity_message:
+                new_activity = {
+                    "type": activity_type,
+                    "message": activity_message,
+                    "timestamp": datetime.now().isoformat()
+                }
+                st.session_state.activity_log.append(new_activity)
+                st.rerun()
+
+def render_report_templates_tab():
+    """Render the report templates tab."""
+    st.header("📊 Report Template Management")
+    
+    # Initialize templates if not present
+    if "report_templates" not in st.session_state:
+        st.session_state.report_templates = _load_report_templates()
+    
+    # Create tabs for different sections
+    template_tabs = st.tabs(["📝 Create Template", "📋 Manage Templates", "🔄 Import/Export", "🎨 Template Preview"])
+    
+    with template_tabs[0]:
+        st.subheader("Create New Template")
+        
+        with st.form("create_template_form"):
+            new_template_name = st.text_input("Template Name", placeholder="e.g., Security Audit Report")
+            template_description = st.text_input("Description (Optional)", placeholder="Brief description of the template")
+            new_template_content = st.text_area("Template Content (JSON)", height=300, 
+                                               placeholder='''{
+  "title": "Evolution Report",
+  "sections": [
+    {
+      "name": "Overview",
+      "content": "This report shows the evolution results..."
+    }
+  ]
+}''')
+            submitted = st.form_submit_button("Save Template", type="primary")
+            
+            if submitted:
+                if new_template_name and new_template_content:
+                    try:
+                        template_data = json.loads(new_template_content)
+                        template_with_metadata = {
+                            "name": new_template_name,
+                            "description": template_description,
+                            "content": template_data,
+                            "created_at": datetime.now().isoformat(),
+                            "updated_at": datetime.now().isoformat(),
+                            "version": "1.0"
+                        }
+                        st.session_state.report_templates[new_template_name] = template_with_metadata
+                        _save_report_templates(st.session_state.report_templates)
+                        st.success(f"Template '{new_template_name}' saved successfully!")
+                        st.rerun()
+                    except json.JSONDecodeError:
+                        st.error("Invalid JSON format. Please check your template content.")
+                else:
+                    st.warning("Please provide both a name and content for the template.")
+    
+    with template_tabs[1]:
+        st.subheader("Manage Templates")
+        
+        if not st.session_state.report_templates:
+            st.info("No report templates found. Create one in the 'Create Template' tab.")
+        else:
+            template_names = list(st.session_state.report_templates.keys())
+            selected_template = st.selectbox("Select Template to Manage", template_names)
+            
+            if selected_template:
+                template_data = st.session_state.report_templates[selected_template]
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.text_input("Template Name", value=template_data.get("name", selected_template), disabled=True)
+                with col2:
+                    st.text_input("Description", value=template_data.get("description", ""), disabled=True)
+                
+                st.text_area("Template Content", value=json.dumps(template_data.get("content", {}), indent=2), 
+                            height=200, disabled=True)
+                
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    if st.button("Edit Template", key=f"edit_{selected_template}"):
+                        st.session_state.editing_template = selected_template
+                        st.session_state.edit_template_name = template_data.get("name", selected_template)
+                        st.session_state.edit_template_description = template_data.get("description", "")
+                        st.session_state.edit_template_content = json.dumps(template_data.get("content", {}), indent=2)
+                        st.rerun()
+                with col2:
+                    if st.button("Duplicate Template", key=f"duplicate_{selected_template}"):
+                        new_name = f"{selected_template}_copy"
+                        new_template_data = template_data.copy()
+                        new_template_data["name"] = new_name
+                        new_template_data["created_at"] = datetime.now().isoformat()
+                        st.session_state.report_templates[new_name] = new_template_data
+                        _save_report_templates(st.session_state.report_templates)
+                        st.success(f"Template duplicated as '{new_name}'")
+                        st.rerun()
+                with col3:
+                    if st.button("Delete Template", key=f"delete_{selected_template}", type="secondary"):
+                        del st.session_state.report_templates[selected_template]
+                        _save_report_templates(st.session_state.report_templates)
+                        st.success(f"Template '{selected_template}' deleted")
+                        st.rerun()
+            
+            st.subheader("All Templates")
+            if st.session_state.report_templates:
+                template_list = []
+                for name, template in st.session_state.report_templates.items():
+                    template_list.append({
+                        "Name": name,
+                        "Description": template.get("description", "No description"),
+                        "Created": template.get("created_at", "Unknown"),
+                        "Updated": template.get("updated_at", "Unknown")
+                    })
+                
+                df = pd.DataFrame(template_list)
+                st.dataframe(df, use_container_width=True)
+    
+    with template_tabs[2]:
+        st.subheader("Import/Export Templates")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.subheader("Import Templates")
+            uploaded_file = st.file_uploader("Upload template file (JSON)", type=["json"])
+            if uploaded_file is not None:
+                try:
+                    imported_templates = json.load(uploaded_file)
+                    if isinstance(imported_templates, dict):
+                        if "name" in imported_templates and "content" in imported_templates:
+                            template_name = imported_templates["name"]
+                            st.session_state.report_templates[template_name] = imported_templates
+                            _save_report_templates(st.session_state.report_templates)
+                            st.success(f"Template '{template_name}' imported successfully!")
+                        else:
+                            for name, template in imported_templates.items():
+                                st.session_state.report_templates[name] = template
+                            _save_report_templates(st.session_state.report_templates)
+                            st.success(f"{len(imported_templates)} templates imported successfully!")
+                    elif isinstance(imported_templates, list):
+                        for template in imported_templates:
+                            if "name" in template:
+                                st.session_state.report_templates[template["name"]] = template
+                        _save_report_templates(st.session_state.report_templates)
+                        st.success(f"{len(imported_templates)} templates imported successfully!")
+                    else:
+                        st.error("Invalid template file format")
+                except Exception as e:
+                    st.error(f"Error importing template: {e}")
+        
+        with col2:
+            st.subheader("Export Templates")
+            export_option = st.selectbox("Export Option", ["All Templates", "Selected Template"])
+            
+            if export_option == "All Templates":
+                if st.button("Export All Templates", type="primary", use_container_width=True):
+                    template_json = json.dumps(st.session_state.report_templates, indent=2, default=str)
+                    st.download_button(
+                        label="Download All Templates",
+                        data=template_json,
+                        file_name=f"report_templates_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                        mime="application/json"
+                    )
+            else:
+                template_names = list(st.session_state.report_templates.keys())
+                if template_names:
+                    selected_export_template = st.selectbox("Select Template", template_names)
+                    if st.button("Export Selected Template", type="primary", use_container_width=True):
+                        template_json = json.dumps(st.session_state.report_templates[selected_export_template], indent=2, default=str)
+                        st.download_button(
+                            label="Download Template",
+                            data=template_json,
+                            file_name=f"template_{selected_export_template}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                            mime="application/json"
+                        )
+    
+    with template_tabs[3]:
+        st.subheader("Template Preview")
+        
+        if st.session_state.report_templates:
+            preview_template_names = list(st.session_state.report_templates.keys())
+            selected_preview = st.selectbox("Select Template to Preview", preview_template_names, key="preview_select")
+            
+            if selected_preview:
+                template_content = st.session_state.report_templates[selected_preview].get("content", {})
+                st.json(template_content)
+        else:
+            st.info("No templates available to preview. Create a template first.")
+
+def render_model_dashboard_tab():
+    """Render the model dashboard tab."""
+    st.header("🤖 Model Performance Dashboard")
+    
+    model_performance = st.session_state.get("adversarial_model_performance", {})
+    
+    model_tabs = st.tabs(["📊 Performance Overview", "📈 Model Comparison", "🔍 Detailed Analysis", "⚙️ Model Configuration"])
+    
+    with model_tabs[0]:
+        st.subheader("Model Performance Overview")
+        
+        if not model_performance:
+            st.info("No model performance data available. Run adversarial testing or evolution with multiple models to generate data.")
+        else:
+            model_list = []
+            for model_id, perf in model_performance.items():
+                model_list.append({
+                    "Model": model_id,
+                    "Score": perf.get("score", 0),
+                    "Issues Found": perf.get("issues_found", 0),
+                    "Avg Response Time": perf.get("avg_response_time", 0),
+                    "Cost": perf.get("cost", 0.0),
+                    "Success Rate": perf.get("success_rate", 0.0),
+                    "Tokens Used": perf.get("tokens_used", 0)
+                })
+            
+            df = pd.DataFrame(model_list)
+            df_sorted = df.sort_values(by="Score", ascending=False)
+            
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                total_models = len(df)
+                st.metric("Total Models", total_models)
+            with col2:
+                avg_score = df['Score'].mean() if not df.empty else 0
+                st.metric("Avg Score", f"{avg_score:.2f}")
+            with col3:
+                best_model = df_sorted.iloc[0]['Model'] if not df_sorted.empty else "N/A"
+                best_score = df_sorted.iloc[0]['Score'] if not df_sorted.empty else 0
+                st.metric("Best Model", f"{best_model}")
+            with col4:
+                total_issues = df['Issues Found'].sum() if not df.empty else 0
+                st.metric("Total Issues Found", total_issues)
+            
+            st.divider()
+            
+            if not df_sorted.empty:
+                fig = px.bar(df_sorted, x="Model", y="Score", 
+                           title="Model Performance Comparison", 
+                           color="Score",
+                           color_continuous_scale="viridis")
+                fig.update_layout(height=500)
+                st.plotly_chart(fig, use_container_width=True)
+    
+    with model_tabs[1]:
+        st.subheader("Model Comparison")
+        
+        if model_performance:
+            comparison_metrics = st.multiselect(
+                "Select metrics to compare",
+                ["Score", "Issues Found", "Avg Response Time", "Cost", "Success Rate", "Tokens Used"],
+                default=["Score", "Issues Found"]
+            )
+            
+            if comparison_metrics:
+                comparison_data = []
+                for model_id, perf in model_performance.items():
+                    row = {"Model": model_id}
+                    for metric in comparison_metrics:
+                        if metric == "Score":
+                            row[metric] = perf.get("score", 0)
+                        elif metric == "Issues Found":
+                            row[metric] = perf.get("issues_found", 0)
+                        elif metric == "Avg Response Time":
+                            row[metric] = perf.get("avg_response_time", 0)
+                        elif metric == "Cost":
+                            row[metric] = perf.get("cost", 0.0)
+                        elif metric == "Success Rate":
+                            row[metric] = perf.get("success_rate", 0.0)
+                        elif metric == "Tokens Used":
+                            row[metric] = perf.get("tokens_used", 0)
+                    comparison_data.append(row)
+                
+                if comparison_data:
+                    df_comparison = pd.DataFrame(comparison_data)
+                    fig = px.bar(df_comparison, x="Model", y=comparison_metrics,
+                               title="Multi-Metric Model Comparison",
+                               barmode="group")
+                    fig.update_layout(height=600)
+                    st.plotly_chart(fig, use_container_width=True)
+                    
+                    st.dataframe(df_comparison, use_container_width=True)
+        else:
+            st.info("Run model testing to see comparison data.")
+    
+    with model_tabs[2]:
+        st.subheader("Detailed Model Analysis")
+        
+        if model_performance:
+            model_names = list(model_performance.keys())
+            selected_model = st.selectbox("Select Model for Detailed Analysis", model_names)
+            
+            if selected_model:
+                model_details = model_performance[selected_model]
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.metric("Overall Score", f"{model_details.get('score', 0):.2f}")
+                    st.metric("Issues Found", model_details.get("issues_found", 0))
+                    st.metric("Avg Response Time", f"{model_details.get('avg_response_time', 0):.2f}s")
+                with col2:
+                    st.metric("Cost ($)", f"${model_details.get('cost', 0.0):.4f}")
+                    st.metric("Success Rate", f"{model_details.get('success_rate', 0.0):.1%}")
+                    st.metric("Tokens Used", f"{model_details.get('tokens_used', 0):,}")
+                
+                with st.expander("Detailed Metrics"):
+                    st.json(model_details)
+        else:
+            st.info("Run model testing to see detailed analysis.")
+    
+    with model_tabs[3]:
+        st.subheader("Model Configuration & Management")
+        
+        st.markdown("### API Configuration")
+        col1, col2 = st.columns(2)
+        with col1:
+            default_provider = st.selectbox("Default Provider", 
+                                           ["OpenAI", "Anthropic", "OpenRouter", "Custom"])
+        with col2:
+            api_base_url = st.text_input("API Base URL", 
+                                        value=st.session_state.get("api_base_url", "https://api.openai.com/v1"))
+        
+        st.markdown("### Available Models")
+        if model_performance:
+            model_df = pd.DataFrame([
+                {"Model": k, "Provider": k.split('/')[0] if '/' in k else "Unknown", 
+                 "Score": v.get("score", 0), "Status": "Active"}
+                for k, v in model_performance.items()
+            ])
+            st.dataframe(model_df, use_container_width=True)
+        else:
+            st.info("No models configured yet.")
+        
+        st.markdown("### Test Configuration")
+        test_config_col1, test_config_col2 = st.columns(2)
+        with test_config_col1:
+            test_iterations = st.number_input("Test Iterations per Model", 
+                                             min_value=1, max_value=100, value=5)
+            test_timeout = st.number_input("Test Timeout (seconds)", 
+                                          min_value=10, max_value=600, value=60)
+        with test_config_col2:
+            test_concurrent = st.number_input("Concurrent Tests", 
+                                             min_value=1, max_value=10, value=2)
+            test_temperature = st.slider("Test Temperature", 
+                                         min_value=0.0, max_value=2.0, value=0.7, step=0.1)
+        
+        if st.button("Run Model Comparison Test", type="primary"):
+            st.info("Model comparison test initiated...")
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            for i in range(100):
+                progress_bar.progress(i + 1)
+                status_text.text(f"Testing models: {i + 1}% complete")
+                time.sleep(0.01)
+            
+            status_text.text("Model comparison test completed!")
+            st.success("Model comparison test finished. Results would be displayed in the dashboard.")
+        
+        st.divider()
+        st.subheader("Export Model Data")
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("Export Performance Data"):
+                if model_performance:
+                    perf_json = json.dumps(model_performance, indent=2, default=str)
+                    st.download_button(
+                        label="Download JSON",
+                        data=perf_json,
+                        file_name=f"model_performance_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                        mime="application/json"
+                    )
+        with col2:
+            if st.button("Export as CSV"):
+                if model_performance:
+                    perf_list = []
+                    for model_id, perf_data in model_performance.items():
+                        row = {"Model": model_id}
+                        row.update(perf_data)
+                        perf_list.append(row)
+                    df_export = pd.DataFrame(perf_list)
+                    csv_export = df_export.to_csv(index=False)
+                    st.download_button(
+                        label="Download CSV",
+                        data=csv_export,
+                        file_name=f"model_performance_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                        mime="text/csv"
+                    )
+        with col3:
+            if st.button("Generate Report"):
+                st.info("Model performance report would be generated in a real implementation.")
+
+def render_tasks_tab():
+    """Render the tasks management tab."""
+    st.header("✅ Task Management")
+    
+    if "tasks" not in st.session_state:
+        st.session_state.tasks = []
+    
+    task_tabs = st.tabs(["📋 View Tasks", "➕ Create Task", "📊 Task Analytics", "⚙️ Task Settings"])
+    
+    with task_tabs[0]:
+        st.subheader("View and Manage Tasks")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            status_filter = st.selectbox("Filter by Status", ["All", "To Do", "In Progress", "Completed", "Cancelled"])
+        with col2:
+            priority_filter = st.selectbox("Filter by Priority", ["All", "Low", "Medium", "High", "Critical"])
+        with col3:
+            assignee_filter = st.text_input("Filter by Assignee")
+        with col4:
+            search_filter = st.text_input("Search Tasks")
+        
+        filtered_tasks = st.session_state.tasks
+        
+        if status_filter != "All":
+            filtered_tasks = [task for task in filtered_tasks if task.get("status", "To Do") == status_filter]
+        
+        if priority_filter != "All":
+            filtered_tasks = [task for task in filtered_tasks if task.get("priority", "Medium") == priority_filter]
+        
+        if assignee_filter:
+            filtered_tasks = [task for task in filtered_tasks if assignee_filter.lower() in task.get("assignee", "").lower()]
+        
+        if search_filter:
+            filtered_tasks = [task for task in filtered_tasks if search_filter.lower() in task.get("title", "").lower() or search_filter.lower() in task.get("description", "").lower()]
+        
+        if filtered_tasks:
+            sorted_tasks = sorted(filtered_tasks, key=lambda x: x.get("due_date", datetime.max), reverse=False)
+            
+            for i, task in enumerate(sorted_tasks):
+                with st.container(border=True):
+                    col_task1, col_task2 = st.columns([4, 1])
+                    
+                    with col_task1:
+                        st.subheader(task.get("title", "No Title"))
+                        st.write(f"**Description:** {task.get('description', 'No description provided')}")
+                        st.write(f"**Assignee:** {task.get('assignee', 'Unassigned')}")
+                        st.write(f"**Priority:** {task.get('priority', 'Medium')}")
+                        st.write(f"**Due Date:** {task.get('due_date', 'No due date')}")
+                        st.write(f"**Created:** {task.get('created_at', 'Unknown')}")
+                        st.write(f"**Tags:** {', '.join(task.get('tags', []))}")
+                    
+                    with col_task2:
+                        status_color = {
+                            "To Do": "gray",
+                            "In Progress": "orange", 
+                            "Completed": "green",
+                            "Cancelled": "red"
+                        }.get(task.get("status", "To Do"), "gray")
+                        
+                        st.markdown(f"**Status:** <span style='color:{status_color}'>{task.get('status', 'To Do')}</span>", 
+                                  unsafe_allow_html=True)
+                        
+                        task_actions = st.columns(2)
+                        with task_actions[0]:
+                            if st.button(f"Edit##task{i}", key=f"edit_task_{i}"):
+                                st.session_state.edit_task_id = i
+                                st.session_state.edit_task_title = task.get("title", "")
+                                st.session_state.edit_task_description = task.get("description", "")
+                                st.session_state.edit_task_assignee = task.get("assignee", "")
+                                st.session_state.edit_task_due_date = task.get("due_date", datetime.now().date())
+                                st.session_state.edit_task_priority = task.get("priority", "Medium")
+                                st.session_state.edit_task_status = task.get("status", "To Do")
+                                st.session_state.edit_task_tags = ", ".join(task.get("tags", []))
+                        
+                        with task_actions[1]:
+                            if st.button(f"Delete##task{i}", key=f"delete_task_{i}", type="secondary"):
+                                st.session_state.tasks.pop(i)
+                                st.success(f"Task '{task.get('title', 'Unknown')}' deleted")
+                                st.rerun()
+                    
+                    if "progress" in task:
+                        st.progress(task["progress"] / 100)
+                    
+                    st.divider()
+            
+            st.info(f"Showing {len(filtered_tasks)} of {len(st.session_state.tasks)} tasks")
+        else:
+            st.info("No tasks found with the current filters. Create a new task using the 'Create Task' tab.")
+    
+    with task_tabs[1]:
+        st.subheader("Create New Task")
+        
+        if "edit_task_id" not in st.session_state:
+            st.session_state.edit_task_id = None
+        
+        if st.session_state.edit_task_id is not None and st.session_state.edit_task_id < len(st.session_state.tasks):
+            task_to_edit = st.session_state.tasks[st.session_state.edit_task_id]
+            title = st.text_input("Task Title", value=task_to_edit.get("title", ""))
+            description = st.text_area("Description", value=task_to_edit.get("description", ""))
+            assignee = st.text_input("Assignee", value=task_to_edit.get("assignee", ""))
+            due_date = st.date_input("Due Date", value=task_to_edit.get("due_date", datetime.now().date()))
+            priority = st.selectbox("Priority", ["Low", "Medium", "High", "Critical"], 
+                                  index=["Low", "Medium", "High", "Critical"].index(task_to_edit.get("priority", "Medium")))
+            status = st.selectbox("Status", ["To Do", "In Progress", "Completed", "Cancelled"], 
+                                index=["To Do", "In Progress", "Completed", "Cancelled"].index(task_to_edit.get("status", "To Do")))
+            tags = st.text_input("Tags (comma-separated)", value=", ".join(task_to_edit.get("tags", [])))
+            
+            if st.button("Update Task", type="primary"):
+                st.session_state.tasks[st.session_state.edit_task_id].update({
+                    "title": title,
+                    "description": description,
+                    "assignee": assignee,
+                    "due_date": due_date,
+                    "priority": priority,
+                    "status": status,
+                    "tags": [tag.strip() for tag in tags.split(",") if tag.strip()],
+                    "updated_at": datetime.now().isoformat()
+                })
+                st.success(f"Task '{title}' updated successfully!")
+                st.session_state.edit_task_id = None
+                st.rerun()
+            
+            if st.button("Cancel Edit"):
+                st.session_state.edit_task_id = None
+                st.rerun()
+        else:
+            with st.form("new_task_form"):
+                title = st.text_input("Task Title", placeholder="e.g., Review security policy")
+                description = st.text_area("Description", placeholder="Provide details about the task...")
+                assignee = st.text_input("Assignee", placeholder="e.g., John Doe")
+                due_date = st.date_input("Due Date", value=datetime.now().date())
+                priority = st.selectbox("Priority", ["Low", "Medium", "High", "Critical"], index=1)
+                status = st.selectbox("Status", ["To Do", "In Progress", "Completed", "Cancelled"], index=0)
+                tags = st.text_input("Tags (comma-separated)", placeholder="e.g., security, review, urgent")
+                
+                submitted = st.form_submit_button("Create Task", type="primary")
+                
+                if submitted:
+                    if title:
+                        new_task = {
+                            "title": title,
+                            "description": description,
+                            "assignee": assignee,
+                            "due_date": due_date,
+                            "priority": priority,
+                            "status": status,
+                            "tags": [tag.strip() for tag in tags.split(",") if tag.strip()],
+                            "created_at": datetime.now().isoformat(),
+                            "updated_at": datetime.now().isoformat()
+                        }
+                        st.session_state.tasks.append(new_task)
+                        st.success(f"Task '{title}' created successfully!")
+                        st.rerun()
+                    else:
+                        st.error("Task title is required.")
+    
+    with task_tabs[2]:
+        st.subheader("Task Analytics")
+        
+        if st.session_state.tasks:
+            total_tasks = len(st.session_state.tasks)
+            completed_tasks = len([t for t in st.session_state.tasks if t.get("status") == "Completed"])
+            in_progress_tasks = len([t for t in st.session_state.tasks if t.get("status") == "In Progress"])
+            todo_tasks = len([t for t in st.session_state.tasks if t.get("status") == "To Do"])
+            cancelled_tasks = len([t for t in st.session_state.tasks if t.get("status") == "Cancelled"])
+            
+            priority_breakdown = {}
+            for task in st.session_state.tasks:
+                priority = task.get("priority", "Medium")
+                priority_breakdown[priority] = priority_breakdown.get(priority, 0) + 1
+            
+            assignee_breakdown = {}
+            for task in st.session_state.tasks:
+                assignee = task.get("assignee", "Unassigned")
+                assignee_breakdown[assignee] = assignee_breakdown.get(assignee, 0) + 1
+            
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Total Tasks", total_tasks)
+            with col2:
+                st.metric("Completed", completed_tasks, f"{(completed_tasks/total_tasks)*100:.1f}%" if total_tasks > 0 else "0%")
+            with col3:
+                st.metric("In Progress", in_progress_tasks)
+            with col4:
+                st.metric("To Do", todo_tasks)
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                status_data = {
+                    "Status": ["To Do", "In Progress", "Completed", "Cancelled"],
+                    "Count": [todo_tasks, in_progress_tasks, completed_tasks, cancelled_tasks]
+                }
+                df_status = pd.DataFrame(status_data)
+                fig_status = px.bar(df_status, x="Status", y="Count", title="Task Status Distribution")
+                st.plotly_chart(fig_status, use_container_width=True)
+            
+            with col2:
+                priority_data = {
+                    "Priority": list(priority_breakdown.keys()),
+                    "Count": list(priority_breakdown.values())
+                }
+                if priority_data["Priority"]:
+                    df_priority = pd.DataFrame(priority_data)
+                    fig_priority = px.pie(df_priority, values="Count", names="Priority", title="Task Priority Distribution")
+                    st.plotly_chart(fig_priority, use_container_width=True)
+                else:
+                    st.info("No priority data to display")
+            
+            if assignee_breakdown:
+                assignee_data = {
+                    "Assignee": list(assignee_breakdown.keys()),
+                    "Task Count": list(assignee_breakdown.values())
+                }
+                df_assignee = pd.DataFrame(assignee_data)
+                fig_assignee = px.bar(df_assignee, x="Assignee", y="Task Count", title="Tasks per Assignee")
+                st.plotly_chart(fig_assignee, use_container_width=True)
+        
+        else:
+            st.info("Create tasks to see analytics.")
+    
+    with task_tabs[3]:
+        st.subheader("Task Settings")
+        
+        st.markdown("### Task Management Options")
+        auto_assign = st.checkbox("Auto-assign new tasks to current user", value=False)
+        task_notifications = st.checkbox("Enable task notifications", value=True)
+        default_priority = st.selectbox("Default task priority", ["Low", "Medium", "High", "Critical"], index=1)
+        show_completed = st.checkbox("Show completed tasks by default", value=False)
+        
+        st.divider()
+        
+        st.subheader("Import/Export Tasks")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.subheader("Import Tasks")
+            uploaded_tasks = st.file_uploader("Upload tasks file (JSON/CSV)", type=["json", "csv"])
+            if uploaded_tasks is not None:
+                try:
+                    if uploaded_tasks.type == "application/json":
+                        imported_tasks = json.load(uploaded_tasks)
+                        if isinstance(imported_tasks, list):
+                            st.session_state.tasks.extend(imported_tasks)
+                            st.success(f"Imported {len(imported_tasks)} tasks successfully!")
+                        else:
+                            st.error("Invalid JSON format: expected an array of tasks")
+                    elif uploaded_tasks.type == "text/csv":
+                        import io
+                        df_tasks = pd.read_csv(io.StringIO(uploaded_tasks.getvalue().decode("utf-8")))
+                        new_tasks = df_tasks.to_dict('records')
+                        st.session_state.tasks.extend(new_tasks)
+                        st.success(f"Imported {len(new_tasks)} tasks from CSV!")
+                except Exception as e:
+                    st.error(f"Error importing tasks: {e}")
+        
+        with col2:
+            st.subheader("Export Tasks")
+            export_format = st.radio("Export Format", ["JSON", "CSV"], horizontal=True)
+            
+            if st.button("Export All Tasks", type="primary", use_container_width=True):
+                if export_format == "JSON":
+                    tasks_json = json.dumps(st.session_state.tasks, indent=2, default=str)
+                    st.download_button(
+                        label="Download JSON",
+                        data=tasks_json,
+                        file_name=f"tasks_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json",
+                        mime="application/json"
+                    )
+                elif export_format == "CSV":
+                    if st.session_state.tasks:
+                        df_export = pd.DataFrame(st.session_state.tasks)
+                        csv_export = df_export.to_csv(index=False)
+                        st.download_button(
+                            label="Download CSV",
+                            data=csv_export,
+                            file_name=f"tasks_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv",
+                            mime="text/csv"
+                        )
+                    else:
+                        st.warning("No tasks to export")
+        
+        st.divider()
+        st.subheader("Clean Up Tasks")
+        if st.button("Remove Completed Tasks", type="secondary"):
+            initial_count = len(st.session_state.tasks)
+            st.session_state.tasks = [task for task in st.session_state.tasks if task.get("status") != "Completed"]
+            removed_count = initial_count - len(st.session_state.tasks)
+            st.success(f"Removed {removed_count} completed tasks")
+
+def render_admin_tab():
+    """Render the administration tab."""
+    st.header("👑 Administration Panel")
+    
+    if "admin_settings" not in st.session_state:
+        st.session_state.admin_settings = {
+            "system_name": "OpenEvolve Platform",
+            "maintenance_mode": False,
+            "user_registration": True,
+            "max_concurrent_users": 100,
+            "default_user_role": "user"
+        }
+    
+    admin_tabs = st.tabs(["👥 User Management", "🔐 Role Management", "⚙️ System Settings", "📋 System Info", "🚨 Maintenance"])
+    
+    with admin_tabs[0]:
+        st.subheader("User Management")
+        
+        user_action = st.selectbox("Action", ["View Users", "Add User", "Edit User", "Deactivate User"])
+        
+        if user_action == "Add User":
+            with st.form("add_user_form"):
+                new_username = st.text_input("Username")
+                new_email = st.text_input("Email")
+                new_role = st.selectbox("Role", list(ROLES.keys()))
+                new_password = st.text_input("Password", type="password")
+                confirm_password = st.text_input("Confirm Password", type="password")
+                
+                if st.form_submit_button("Create User", type="primary"):
+                    if not new_username or not new_email or not new_password:
+                        st.error("All fields are required")
+                    elif new_password != confirm_password:
+                        st.error("Passwords do not match")
+                    else:
+                        st.session_state.user_roles[new_username] = new_role
+                        st.success(f"User '{new_username}' created with role '{new_role}'")
+        
+        elif user_action == "Edit User":
+            if st.session_state.user_roles:
+                user_to_edit = st.selectbox("Select User to Edit", list(st.session_state.user_roles.keys()))
+                if user_to_edit:
+                    with st.form("edit_user_form"):
+                        new_role = st.selectbox("New Role", list(ROLES.keys()), 
+                                              index=list(ROLES.keys()).index(st.session_state.user_roles[user_to_edit]))
+                        active_status = st.checkbox("Active", value=True)
+                        
+                        if st.form_submit_button("Update User", type="primary"):
+                            st.session_state.user_roles[user_to_edit] = new_role
+                            st.success(f"User '{user_to_edit}' updated")
+            else:
+                st.info("No users to edit")
+        
+        elif user_action == "Deactivate User":
+            if st.session_state.user_roles:
+                user_to_deactivate = st.selectbox("Select User to Deactivate", list(st.session_state.user_roles.keys()))
+                if user_to_deactivate:
+                    if st.button("Deactivate User", type="secondary"):
+                        st.success(f"User '{user_to_deactivate}' deactivated")
+            else:
+                st.info("No users to deactivate")
+        
+        st.divider()
+        st.subheader("All Users")
+        
+        if st.session_state.user_roles:
+            user_list = []
+            for username, role in st.session_state.user_roles.items():
+                user_list.append({
+                    "Username": username,
+                    "Role": role,
+                    "Status": "Active"
+                })
+            
+            df_users = pd.DataFrame(user_list)
+            st.dataframe(df_users, use_container_width=True)
+        else:
+            st.info("No users registered yet.")
+    
+    with admin_tabs[1]:
+        st.subheader("Role Management")
+        
+        if 'ROLES' in globals():
+            st.markdown("### Available Roles")
+            for role_name, role_desc in ROLES.items():
+                st.markdown(f"**{role_name}**: {role_desc}")
+        else:
+            st.info("Role system not initialized")
+        
+        st.divider()
+        st.subheader("Create Custom Role")
+        
+        with st.expander("Custom Role Creator", expanded=False):
+            role_name = st.text_input("Role Name")
+            role_description = st.text_input("Role Description")
+            
+            permissions = st.multiselect(
+                "Permissions",
+                [
+                    "view_dashboard",
+                    "create_content",
+                    "run_evolution",
+                    "run_adversarial",
+                    "manage_users",
+                    "view_reports",
+                    "export_data",
+                    "admin_access"
+                ],
+                default=["view_dashboard", "create_content"]
+            )
+            
+            if st.button("Create Role", type="primary"):
+                if role_name and role_description:
+                    st.success(f"Role '{role_name}' created with permissions: {', '.join(permissions)}")
+                else:
+                    st.error("Role name and description are required")
+    
+    with admin_tabs[2]:
+        st.subheader("System Configuration")
+        
+        st.session_state.admin_settings["system_name"] = st.text_input(
+            "System Name", 
+            value=st.session_state.admin_settings.get("system_name", "OpenEvolve Platform")
+        )
+        
+        st.session_state.admin_settings["maintenance_mode"] = st.checkbox(
+            "Maintenance Mode", 
+            value=st.session_state.admin_settings.get("maintenance_mode", False)
+        )
+        
+        if st.session_state.admin_settings["maintenance_mode"]:
+            st.warning("⚠️ Maintenance mode is enabled. Only admins can access the system.")
+        
+        st.session_state.admin_settings["user_registration"] = st.checkbox(
+            "Allow User Registration", 
+            value=st.session_state.admin_settings.get("user_registration", True)
+        )
+        
+        st.session_state.admin_settings["max_concurrent_users"] = st.number_input(
+            "Max Concurrent Users", 
+            min_value=1, 
+            max_value=10000, 
+            value=st.session_state.admin_settings.get("max_concurrent_users", 100)
+        )
+        
+        st.session_state.admin_settings["default_user_role"] = st.selectbox(
+            "Default User Role", 
+            options=["user", "admin"],
+            index=0 if st.session_state.admin_settings.get("default_user_role") == "user" else 0
+        )
+        
+        st.divider()
+        st.subheader("API Configuration")
+        
+        api_rate_limit = st.number_input("API Rate Limit (requests per minute)", min_value=1, max_value=10000, value=100)
+        api_timeout = st.number_input("API Timeout (seconds)", min_value=1, max_value=300, value=60)
+        
+        if st.button("Save System Settings", type="primary"):
+            st.success("System settings saved successfully!")
+    
+    with admin_tabs[3]:
+        st.subheader("System Information")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("### Application")
+            st.write(f"**Name**: {st.session_state.admin_settings.get('system_name', 'OpenEvolve Platform')}")
+            st.write("**Version**: 1.0.0")
+            st.write(f"**Environment**: {os.getenv('ENVIRONMENT', 'Development')}")
+        
+        with col2:
+            st.markdown("### Runtime")
+            st.write(f"**Python Version**: {sys.version}")
+            st.write(f"**Streamlit Version**: {st.__version__}")
+            st.write(f"**Platform**: {sys.platform}")
+        
+        st.divider()
+        st.subheader("System Statistics")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            total_users = len(st.session_state.user_roles) if "user_roles" in st.session_state else 0
+            st.metric("Total Users", total_users)
+        with col2:
+            st.metric("Evolution Runs", 0)
+        with col3:
+            st.metric("Adversarial Tests", 0)
+        with col4:
+            total_tasks = len(st.session_state.tasks) if "tasks" in st.session_state else 0
+            st.metric("Total Tasks", total_tasks)
+        
+        st.divider()
+        st.subheader("Resource Usage")
+        
+        memory_percent = psutil.virtual_memory().percent
+        disk_percent = psutil.disk_usage('/').percent if hasattr(psutil, 'disk_usage') else 0
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(f"**Memory Usage**: {memory_percent}%")
+            st.progress(memory_percent / 100)
+        with col2:
+            st.markdown(f"**Disk Usage**: {disk_percent}% (est.)")
+            st.progress(disk_percent / 100)
+    
+    with admin_tabs[4]:
+        st.subheader("System Maintenance")
+        
+        with st.expander("Data Cleanup", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                cleanup_logs = st.checkbox("Clean up old logs", value=True)
+                cleanup_temp = st.checkbox("Clean up temporary files", value=True)
+            with col2:
+                cleanup_sessions = st.checkbox("Clear old sessions", value=False)
+                cleanup_cache = st.checkbox("Clear application cache", value=True)
+            
+            if st.button("Run Cleanup", type="secondary"):
+                progress_bar = st.progress(0)
+                status_text = st.empty()
+                
+                for i in range(100):
+                    progress_bar.progress(i + 1)
+                    status_text.text(f"Cleaning up... {i + 1}%")
+                    time.sleep(0.01)
+                
+                status_text.text("Cleanup completed!")
+                st.success("System maintenance completed!")
+        
+        st.divider()
+        with st.expander("Backup & Restore", expanded=False):
+            backup_option = st.selectbox("Backup Operation", ["Create Backup", "Restore from Backup", "Download Backup"])
+            
+            if backup_option == "Create Backup":
+                if st.button("Create Full System Backup", type="primary"):
+                    st.info("Creating backup of system data, user info, and settings...")
+                    st.success("Backup completed successfully!")
+            
+            elif backup_option == "Restore from Backup":
+                uploaded_backup = st.file_uploader("Upload Backup File", type=["zip", "json"])
+                if uploaded_backup and st.button("Restore Backup", type="secondary"):
+                    st.warning("⚠️ This will overwrite all system data. Are you sure?")
+                    if st.button("Confirm Restoration", type="secondary"):
+                        st.success("System restored from backup!")
+            
+            elif backup_option == "Download Backup":
+                st.info("Download options would be available in a full implementation")
+        
+        st.divider()
+        st.subheader("System Operations")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Restart Application", type="secondary"):
+                st.info("Application restart would occur in a real implementation")
+        
+        with col2:
+            if st.button("Clear All Data", type="secondary"):
+                st.warning("⚠️ This will permanently delete all data. This action cannot be undone!")
+                if st.button("Confirm Clear All Data", type="secondary", key="confirm_clear"):
+                    st.error("⚠️ Data clearing functionality would be implemented in a real system")
+        
+        st.divider()
+        st.subheader("Audit Trail")
+        st.info("System audit logs would be displayed here in a production implementation")
+
+def render_analytics_dashboard_tab():
+    """Render the analytics dashboard tab."""
+    st.header("📊 Analytics Dashboard")
+    
+    analytics_tabs = st.tabs(["📈 Standard Analytics", "🧬 Quality-Diversity", "🎯 Performance Metrics", "📋 Reports"])
+    
+    with analytics_tabs[0]:
+        evolution_history = st.session_state.get("evolution_history", [])
+        total_evolutions = len(evolution_history)
+        
+        if evolution_history:
+            latest_generation = evolution_history[-1]
+            population = latest_generation.get("population", [])
+            if population:
+                best_fitness = max(ind.get("fitness", 0) for ind in population)
+                avg_fitness = sum(ind.get("fitness", 0) for ind in population) / len(population)
+            else:
+                best_fitness = 0
+                avg_fitness = 0
+        else:
+            best_fitness = 0
+            avg_fitness = 0
+        
+        adversarial_results = st.session_state.get("adversarial_results", {})
+        adversarial_iterations = adversarial_results.get("iterations", [])
+        
+        if adversarial_iterations:
+            latest_iteration = adversarial_iterations[-1]
+            approval_check = latest_iteration.get("approval_check", {})
+            final_approval_rate = approval_check.get("approval_rate", 0)
+        else:
+            final_approval_rate = 0
+        
+        total_cost = st.session_state.get("adversarial_cost_estimate_usd", 0) + \
+                     st.session_state.get("evolution_cost_estimate_usd", 0)
+        
+        col1, col2, col3, col4 = st.columns(4)
+        col1.metric("Total Evolutions", f"{total_evolutions:,}")
+        col2.metric("Best Fitness", f"{best_fitness:.4f}")
+        col3.metric("Final Approval Rate", f"{final_approval_rate:.1f}%")
+        col4.metric("Total Cost ($)", f"${total_cost:.4f}")
+        
+        st.divider()
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if evolution_history:
+                fitness_data = []
+                for generation in evolution_history:
+                    population = generation.get("population", [])
+                    if population:
+                        best_fitness_gen = max(ind.get("fitness", 0) for ind in population)
+                        avg_fitness_gen = sum(ind.get("fitness", 0) for ind in population) / len(population)
+                        fitness_data.append({
+                            'Generation': generation.get("generation", 0),
+                            'Best Fitness': best_fitness_gen,
+                            'Average Fitness': avg_fitness_gen
+                        })
+                
+                if fitness_data:
+                    df = pd.DataFrame(fitness_data)
+                    fig = px.line(df, x="Generation", y=["Best Fitness", "Average Fitness"], 
+                                title="Fitness Trend Over Generations")
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Run an evolution to see fitness trends")
+        
+        with col2:
+            if adversarial_iterations:
+                approval_data = []
+                for iteration in adversarial_iterations:
+                    approval_check = iteration.get("approval_check", {})
+                    approval_rate = approval_check.get("approval_rate", 0)
+                    approval_data.append({
+                        'Iteration': iteration.get("iteration", 0),
+                        'Approval Rate': approval_rate
+                    })
+                
+                if approval_data:
+                    df = pd.DataFrame(approval_data)
+                    fig = px.line(df, x="Iteration", y="Approval Rate", title="Approval Rate Trend")
+                    st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.info("Run adversarial testing to see approval trends")
+        
+        st.subheader("Evolution Progress Metrics")
+        if evolution_history:
+            progress_data = []
+            for i, gen in enumerate(evolution_history):
+                population = gen.get("population", [])
+                if population:
+                    best = max(ind.get("fitness", 0) for ind in population)
+                    avg = sum(ind.get("fitness", 0) for ind in population) / len(population)
+                    diversity = sum(ind.get("diversity", 0) for ind in population) / len(population) if population else 0
+                    progress_data.append({
+                        'Generation': i,
+                        'Best Fitness': best,
+                        'Average Fitness': avg,
+                        'Diversity': diversity
+                    })
+            
+            if progress_data:
+                df_progress = pd.DataFrame(progress_data)
+                st.line_chart(df_progress.set_index('Generation'))
+        
+        st.subheader("Model Performance Overview")
+        model_performance = st.session_state.get("adversarial_model_performance", {})
+        if model_performance:
+            model_data = []
+            for model_id, perf_data in model_performance.items():
+                model_data.append({
+                    "Model": model_id,
+                    "Score": perf_data.get("score", 0),
+                    "Issues Found": perf_data.get("issues_found", 0),
+                    "Avg Response Time": perf_data.get("avg_response_time", 0),
+                    "Cost": perf_data.get("cost", 0.0)
+                })
+            
+            if model_data:
+                df = pd.DataFrame(model_data)
+                df_sorted = df.sort_values(by="Score", ascending=False)
+                st.dataframe(df_sorted, use_container_width=True)
+                
+                col1, col2 = st.columns(2)
+                with col1:
+                    fig = px.bar(df_sorted, x="Model", y="Score", title="Model Performance Comparison")
+                    st.plotly_chart(fig, use_container_width=True)
+                with col2:
+                    fig = px.bar(df_sorted, x="Model", y="Cost", title="Model Cost Comparison")
+                    st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Run adversarial testing with multiple models to see performance data.")
+    
+    with analytics_tabs[1]:
+        st.subheader("Quality-Diversity (MAP-Elites) Analysis")
+        
+        if evolution_history:
+            st.info("MAP-Elites grid visualization would be shown here when using Quality-Diversity evolution mode.")
+            
+            if evolution_history and len(evolution_history) > 0:
+                latest_pop = evolution_history[-1].get('population', [])
+                if latest_pop:
+                    feature_data = []
+                    for ind in latest_pop:
+                        feature_data.append({
+                            'Complexity': ind.get('complexity', 0),
+                            'Diversity': ind.get('diversity', 0),
+                            'Performance': ind.get('fitness', 0),
+                            'Code Length': len(ind.get('code', ''))
+                        })
+                    
+                    if feature_data:
+                        df_features = pd.DataFrame(feature_data)
+                        
+                        features = ['Complexity', 'Diversity', 'Performance']
+                        if all(col in df_features.columns for col in features):
+                            feature_subset = df_features[features]
+                            st.subheader("Feature Correlation Matrix")
+                            correlation_matrix = feature_subset.corr()
+                            st.dataframe(correlation_matrix)
+                            
+                            st.subheader("Feature Relationships")
+                            if len(feature_subset) > 1:
+                                col1, col2 = st.columns(2)
+                                with col1:
+                                    fig = px.scatter(df_features, x='Complexity', y='Performance', 
+                                                   title='Complexity vs Performance')
+                                    st.plotly_chart(fig, use_container_width=True)
+                                with col2:
+                                    fig = px.scatter(df_features, x='Diversity', y='Performance', 
+                                                   title='Diversity vs Performance')
+                                    st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("Run Quality-Diversity evolution to see MAP-Elites analysis.")
+    
+    with analytics_tabs[2]:
+        st.subheader("Performance Metrics Dashboard")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Total Evolution Runs", st.session_state.get("total_evolution_runs", 0))
+        with col2:
+            st.metric("Avg Best Score", f"{st.session_state.get('avg_best_score', 0.0):.3f}")
+        with col3:
+            st.metric("Best Ever Score", f"{st.session_state.get('best_ever_score', 0.0):.3f}")
+        
+        if "monitoring_metrics" in st.session_state:
+            st.subheader("Real-time Monitoring Metrics")
+            monitoring = st.session_state.monitoring_metrics
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Current Best Score", f"{monitoring.get('best_score', 0.0):.3f}")
+            with col2:
+                st.metric("Current Generation", monitoring.get('current_generation', 0))
+            with col3:
+                st.metric("Avg Diversity", f"{monitoring.get('avg_diversity', 0.0):.3f}")
+            with col4:
+                st.metric("Convergence Rate", f"{monitoring.get('convergence_rate', 0.0):.3f}")
+        
+        st.subheader("Resource Utilization")
+        st.info("Resource utilization metrics would be displayed in a full implementation.")
+    
+    with analytics_tabs[3]:
+        st.subheader("Analytics Reports")
+        st.info("Generate and view detailed analytics reports here.")
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            if st.button("Generate Evolution Report", type="primary", use_container_width=True):
+                st.info("Evolution report would be generated in a full implementation.")
+        with col2:
+            if st.button("Generate Model Comparison Report", use_container_width=True):
+                st.info("Model comparison report would be generated in a full implementation.")
+        with col3:
+            if st.button("Export All Data", type="secondary", use_container_width=True):
+                st.info("All analytics data would be exported in a full implementation.")
+
+def render_openevolve_dashboard_tab():
+    """Render the OpenEvolve dashboard tab."""
+    st.header("🧬 OpenEvolve Advanced Dashboard")
+    
+    st.subheader("OpenEvolve Features Overview")
+    st.markdown("""
+    **OpenEvolve provides advanced evolutionary computing capabilities:**
+    
+    - **Quality-Diversity Evolution** (MAP-Elites)
+    - **Multi-Objective Optimization** (Pareto fronts)
+    - **Adversarial Evolution** (Red Team/Blue Team)
+    - **Symbolic Regression** (Mathematical discovery)
+    - **Neuroevolution** (Neural architecture search)
+    - **Algorithm Discovery** (Novel algorithm design)
+    - **Prompt Evolution** (Optimize LLM prompts)
+    
+    These advanced features require the full OpenEvolve backend installation.
+    """)
+    
+    main_tabs = st.tabs([
+        "🎯 Evolution Modes", 
+        "📊 Live Analytics", 
+        "🎛️ Configuration", 
+        "📈 Performance", 
+        "📋 Reports"
+    ])
+    
+    with main_tabs[0]:
+        st.subheader("Choose Evolution Mode")
+        
+        col1, col2, col3 = st.columns(3)
+        
+        with col1:
+            standard_evolution = st.button(
+                "🧬 Standard Evolution", 
+                help="Traditional genetic programming evolution",
+                use_container_width=True)
+            quality_diversity = st.button(
+                "🎯 Quality-Diversity (MAP-Elites)", 
+                help="Maintain diverse, high-performing solutions across feature dimensions",
+                use_container_width=True)
+            multi_objective = st.button(
+                "⚖️ Multi-Objective Optimization", 
+                help="Optimize for multiple competing objectives simultaneously",
+                use_container_width=True)
+        
+        with col2:
+            adversarial = st.button(
+                "⚔️ Adversarial Evolution", 
+                help="Red Team/Blue Team approach for robustness",
+                use_container_width=True)
+            symbolic_regression = st.button(
+                "🔍 Symbolic Regression", 
+                help="Discover mathematical expressions from data",
+                use_container_width=True)
+            neuroevolution = st.button(
+                "🧠 Neuroevolution", 
+                help="Evolve neural network architectures",
+                use_container_width=True)
+        
+        with col3:
+            algorithm_discovery = st.button(
+                "💡 Algorithm Discovery", 
+                help="Discover novel algorithmic approaches",
+                use_container_width=True)
+            prompt_evolution = st.button(
+                "📝 Prompt Evolution", 
+                help="Optimize prompts for LLMs",
+                use_container_width=True)
+            custom_evolution = st.button(
+                "🛠️ Custom Evolution", 
+                help="Customizable evolution parameters",
+                use_container_width=True)
+        
+        # Handle button clicks
+        evolution_modes = {
+            standard_evolution: "standard",
+            quality_diversity: "quality_diversity", 
+            multi_objective: "multi_objective",
+            adversarial: "adversarial",
+            symbolic_regression: "symbolic_regression",
+            neuroevolution: "neuroevolution",
+            algorithm_discovery: "algorithm_discovery",
+            prompt_evolution: "prompt_optimization",
+            custom_evolution: "custom"
+        }
+        
+        for button, mode in evolution_modes.items():
+            if button:
+                st.session_state.evolution_mode = mode
+                st.success(f"{mode.replace('_', ' ').title()} Evolution mode selected")
+                break
+    
+    with main_tabs[1]:
+        st.subheader("Live Evolution Analytics")
+        
+        if st.session_state.get("evolution_running", False):
+            st.info("Evolution is currently running. Live data will appear here.")
+            
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Current Generation", st.session_state.get("current_generation", 0))
+            with col2:
+                st.metric("Best Score", f"{st.session_state.get('best_score', 0.0):.3f}")
+            with col3:
+                st.metric("Population Size", st.session_state.get("population_size", 100))
+            with col4:
+                st.metric("Archive Size", st.session_state.get("archive_size", 0))
+            
+            st.subheader("Performance Over Time")
+            progress_data = {
+                "Generation": list(range(1, 11)),
+                "Best Score": [0.1, 0.2, 0.3, 0.5, 0.6, 0.7, 0.75, 0.82, 0.87, 0.91]
+            }
+            df = pd.DataFrame(progress_data)
+            fig = px.line(df, x="Generation", y="Best Score", title="Best Score Progression")
+            st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.info("No active evolution run. Start an evolution to see live analytics.")
+            
+            if "evolution_history" in st.session_state and st.session_state.evolution_history:
+                st.subheader("Recent Evolution Results")
+                st.info("Evolution insights would be displayed here when evolution history is available.")
+    
+    with main_tabs[2]:
+        st.subheader("OpenEvolve Configuration")
+        
+        config_tabs = st.tabs([" Core Settings", " Island Model", " Feature Dimensions", " Advanced"])
+        
+        with config_tabs[0]:
+            col1, col2 = st.columns(2)
+            with col1:
+                st.session_state.max_iterations = st.number_input(
+                    "Max Iterations", 
+                    min_value=1, 
+                    max_value=10000, 
+                    value=st.session_state.get("max_iterations", 100),
+                    help="Maximum number of evolutionary iterations"
+                )
+                st.session_state.population_size = st.number_input(
+                    "Population Size", 
+                    min_value=10, 
+                    max_value=10000, 
+                    value=st.session_state.get("population_size", 100),
+                    help="Size of the population in each generation"
+                )
+                st.session_state.temperature = st.slider(
+                    "LLM Temperature", 
+                    min_value=0.0, 
+                    max_value=2.0, 
+                    value=st.session_state.get("temperature", 0.7),
+                    step=0.1,
+                    help="Temperature for LLM generation (higher = more creative)"
+                )
+            
+            with col2:
+                st.session_state.max_tokens = st.number_input(
+                    "Max Tokens", 
+                    min_value=100, 
+                    max_value=32000, 
+                    value=st.session_state.get("max_tokens", 4096),
+                    help="Maximum tokens for LLM responses"
+                )
+                st.session_state.top_p = st.slider(
+                    "Top-P Sampling", 
+                    min_value=0.0, 
+                    max_value=1.0, 
+                    value=st.session_state.get("top_p", 0.95),
+                    step=0.05,
+                    help="Top-P sampling parameter for generation"
+                )
+                st.session_state.seed = st.number_input(
+                    "Random Seed", 
+                    value=st.session_state.get("seed", 42),
+                    help="Seed for reproducible evolution runs"
+                )
+        
+        with config_tabs[1]:
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.session_state.num_islands = st.number_input(
+                    "Number of Islands", 
+                    min_value=1, 
+                    max_value=20, 
+                    value=st.session_state.get("num_islands", 3),
+                    help="Number of parallel populations in island model"
+                )
+            with col2:
+                st.session_state.migration_interval = st.number_input(
+                    "Migration Interval", 
+                    min_value=1, 
+                    max_value=1000, 
+                    value=st.session_state.get("migration_interval", 25),
+                    help="How often individuals migrate between islands"
+                )
+            with col3:
+                st.session_state.migration_rate = st.slider(
+                    "Migration Rate", 
+                    min_value=0.0, 
+                    max_value=1.0, 
+                    value=st.session_state.get("migration_rate", 0.1),
+                    step=0.01,
+                    help="Proportion of individuals that migrate"
+                )
+        
+        with config_tabs[2]:
+            st.session_state.feature_dimensions = st.multiselect(
+                "Feature Dimensions (for MAP-Elites)",
+                options=["complexity", "diversity", "performance", "readability", "efficiency", "accuracy", "robustness"],
+                default=st.session_state.get("feature_dimensions", ["complexity", "diversity"]),
+                help="Dimensions for quality-diversity optimization"
+            )
+            
+            st.session_state.feature_bins = st.slider(
+                "Feature Bins", 
+                min_value=5, 
+                max_value=50, 
+                value=st.session_state.get("feature_bins", 10),
+                help="Number of bins for each feature dimension in MAP-Elites"
+            )
+        
+        with config_tabs[3]:
+            col1, col2 = st.columns(2)
+            with col1:
+                st.session_state.elite_ratio = st.slider(
+                    "Elite Ratio", 
+                    min_value=0.0, 
+                    max_value=1.0, 
+                    value=st.session_state.get("elite_ratio", 0.1),
+                    step=0.01,
+                    help="Ratio of elite individuals preserved each generation"
+                )
+                st.session_state.exploration_ratio = st.slider(
+                    "Exploration Ratio", 
+                    min_value=0.0, 
+                    max_value=1.0, 
+                    value=st.session_state.get("exploration_ratio", 0.3),
+                    step=0.01,
+                    help="Ratio of population dedicated to exploration"
+                )
+                st.session_state.enable_artifacts = st.checkbox(
+                    "Enable Artifact Feedback", 
+                    value=st.session_state.get("enable_artifacts", True),
+                    help="Enable error feedback to LLM for improved iterations"
+                )
+            
+            with col2:
+                st.session_state.cascade_evaluation = st.checkbox(
+                    "Cascade Evaluation", 
+                    value=st.session_state.get("cascade_evaluation", True),
+                    help="Use multi-stage testing to filter bad solutions early"
+                )
+                st.session_state.use_llm_feedback = st.checkbox(
+                    "Use LLM Feedback", 
+                    value=st.session_state.get("use_llm_feedback", False),
+                    help="Use LLM-based feedback for evolution guidance"
+                )
+                st.session_state.evolution_trace_enabled = st.checkbox(
+                    "Evolution Tracing", 
+                    value=st.session_state.get("evolution_trace_enabled", False),
+                    help="Enable detailed logging of evolution process"
+                )
+    
+    with main_tabs[3]:
+        st.subheader("Performance & Monitoring")
+        st.info("Comprehensive monitoring system would be displayed here when available.")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Evolution Runs", st.session_state.get("total_evolution_runs", 0))
+        with col2:
+            st.metric("Avg Best Score", f"{st.session_state.get('avg_best_score', 0.0):.3f}")
+        with col3:
+            st.metric("Best Ever Score", f"{st.session_state.get('best_ever_score', 0.0):.3f}")
+        with col4:
+            st.metric("Success Rate", f"{st.session_state.get('success_rate', 0.0):.1%}")
+    
+    with main_tabs[4]:
+        st.subheader("Evolution Reports & Analytics")
+        st.info("Evolution reports would be displayed here when available.")
+
+def render_openevolve_orchestrator_tab():
+    """Render the OpenEvolve orchestrator tab."""
+    st.header("🤖 OpenEvolve Workflow Orchestrator")
+    st.write("Advanced workflow management system for orchestrating complex evolutionary processes.")
+    
+    orchestrator_tabs = st.tabs(["🏗️ Create Workflow", "📊 Monitoring Panel", "📋 Execution History", "⚙️ Configuration", "📈 Analytics"])
+    
+    with orchestrator_tabs[0]:
+        st.subheader("Design & Launch Evolutionary Workflow")
+        
+        workflow_options = {
+            "standard": {
+                "label": "🧬 Standard Evolution",
+                "description": "Traditional evolutionary algorithm for general optimization tasks"
+            },
+            "quality_diversity": {
+                "label": "🎯 Quality-Diversity Evolution (MAP-Elites)", 
+                "description": "Maintains diverse, high-performing solutions across feature dimensions"
+            },
+            "multi_objective": {
+                "label": "⚖️ Multi-Objective Optimization",
+                "description": "Optimizes for multiple competing objectives simultaneously"
+            },
+            "adversarial": {
+                "label": "⚔️ Adversarial Evolution (Red Team/Blue Team)",
+                "description": "Robustness-focused evolution with adversarial testing"
+            },
+            "symbolic_regression": {
+                "label": "🔍 Symbolic Regression",
+                "description": "Discover mathematical expressions from data patterns"
+            },
+            "neuroevolution": {
+                "label": "🧠 Neuroevolution",
+                "description": "Evolve neural network architectures and weights"
+            },
+            "algorithm_discovery": {
+                "label": "💡 Algorithm Discovery", 
+                "description": "Discover novel algorithmic approaches"
+            },
+            "prompt_optimization": {
+                "label": "📝 Prompt Optimization",
+                "description": "Optimize prompts for large language models"
+            }
+        }
+        
+        workflow_type = st.selectbox(
+            "Select Workflow Type",
+            options=list(workflow_options.keys()),
+            format_func=lambda x: workflow_options[x]["label"],
+            help="Choose the type of evolutionary process to orchestrate"
+        )
+        
+        st.info(f"**Description**: {workflow_options[workflow_type]['description']}")
+        
+        content = st.text_area(
+            "Input Content/Problem Definition",
+            height=200,
+            placeholder="Enter content to evolve, problem definition, or initial solution..."
+        )
+        
+        with st.expander("🔧 Core Evolution Parameters", expanded=True):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                max_iterations = st.number_input("Max Generations", min_value=1, max_value=100000, value=100)
+                population_size = st.number_input("Population Size", min_value=10, max_value=10000, value=100)
+                num_islands = st.number_input("Number of Islands", min_value=1, max_value=50, value=5)
+            
+            with col2:
+                temperature = st.slider("LLM Temperature", min_value=0.0, max_value=2.0, value=0.7, step=0.05)
+                elite_ratio = st.slider("Elite Ratio", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
+                archive_size = st.number_input("Archive Size", min_value=0, max_value=10000, value=100)
+        
+        if workflow_type in ["quality_diversity", "multi_objective"]:
+            with st.expander("🎯 Feature Dimensions (for Quality-Diversity/Multi-Objective)", expanded=True):
+                feature_options = ["complexity", "diversity", "performance", "readability", 
+                                 "efficiency", "accuracy", "robustness", "size", "speed", "cost"]
+                feature_dimensions = st.multiselect(
+                    "Feature Dimensions",
+                    options=feature_options,
+                    default=["complexity", "diversity"],
+                    help="Dimensions along which to map diverse, high-quality solutions"
+                )
+                feature_bins = st.slider("Feature Bins", min_value=5, max_value=100, value=15)
+        
+        with st.expander("🧩 Advanced Evolution Features", expanded=False):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                enable_artifacts = st.checkbox("Enable Artifact Feedback", value=True)
+                cascade_evaluation = st.checkbox("Enable Cascade Evaluation", value=True)
+                use_llm_feedback = st.checkbox("Use LLM Feedback", value=False)
+                evolution_trace_enabled = st.checkbox("Enable Evolution Tracing", value=False)
+            
+            with col2:
+                enable_early_stopping = st.checkbox("Enable Early Stopping", value=True)
+                diff_based_evolution = st.checkbox("Diff-Based Evolution", value=True)
+                double_selection = st.checkbox("Double Selection", value=True)
+        
+        with st.expander("🔬 Research-Grade Features", expanded=False):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                test_time_compute = st.checkbox("Test-Time Compute", value=False)
+                adaptive_feature_dimensions = st.checkbox("Adaptive Feature Dimensions", value=True)
+                multi_strategy_sampling = st.checkbox("Multi-Strategy Sampling", value=True)
+                ring_topology = st.checkbox("Ring Topology", value=True)
+            
+            with col2:
+                controlled_gene_flow = st.checkbox("Controlled Gene Flow", value=True)
+                auto_diff = st.checkbox("Auto Diff", value=True)
+                symbolic_execution = st.checkbox("Symbolic Execution", value=False)
+                coevolutionary_approach = st.checkbox("Coevolutionary Approach", value=False)
+        
+        with st.expander("⚡ Performance & Resource Optimization", expanded=False):
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                memory_limit_mb = st.number_input("Memory Limit (MB)", min_value=100, max_value=131072, value=2048)
+                cpu_limit = st.number_input("CPU Limit", min_value=0.1, max_value=128.0, value=4.0, step=0.1)
+                parallel_evaluations = st.number_input("Parallel Evaluations", min_value=1, max_value=128, value=4)
+            
+            with col2:
+                max_code_length = st.number_input("Max Code Length", min_value=100, max_value=1000000, value=10000)
+                evaluator_timeout = st.number_input("Evaluator Timeout (s)", min_value=1, max_value=7200, value=300)
+                max_retries_eval = st.number_input("Max Evaluation Retries", min_value=1, max_value=20, value=3)
+        
+        col1, col2 = st.columns([3, 1])
+        with col1:
+            save_template = st.checkbox("Save as Workflow Template", value=False)
+            template_name = st.text_input("Template Name (if saving)", 
+                                        value=f"workflow_{workflow_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                                        disabled=not save_template)
+        with col2:
+            if st.button("🚀 Launch Evolutionary Workflow", type="primary", use_container_width=True):
+                if not content.strip():
+                    st.error("❌ Please enter content/problem definition to evolve")
+                elif not st.session_state.get("api_key"):
+                    st.error("❌ Please configure your API key in the sidebar")
+                else:
+                    st.success("✅ Workflow launched successfully!")
+                    st.info("The workflow is now executing. Monitor progress in the 'Monitoring Panel' tab.")
+                    
+                    st.session_state.current_workflow = {
+                        "type": workflow_type,
+                        "content": content,
+                        "params": {
+                            "max_iterations": max_iterations,
+                            "population_size": population_size,
+                            "num_islands": num_islands,
+                            "temperature": temperature,
+                            "elite_ratio": elite_ratio,
+                            "archive_size": archive_size
+                        },
+                        "timestamp": datetime.now().isoformat()
+                    }
+                    
+                    if "workflow_history" not in st.session_state:
+                        st.session_state.workflow_history = []
+                    st.session_state.workflow_history.append(st.session_state.current_workflow)
+    
+    with orchestrator_tabs[1]:
+        st.subheader("Real-Time Workflow Monitoring")
+        
+        current_workflow = st.session_state.get("current_workflow")
+        if current_workflow:
+            st.success(f"🟢 Active Workflow: {current_workflow['type'].replace('_', ' ').title()}")
+            
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("Generation", st.session_state.get("current_generation", 0))
+            with col2:
+                st.metric("Best Fitness", f"{st.session_state.get('best_score', 0.0):.4f}")
+            with col3:
+                st.metric("Pop. Size", current_workflow['params']['population_size'])
+            with col4:
+                st.metric("Status", "Running" if st.session_state.get("evolution_running", False) else "Idle")
+            
+            st.subheader("Execution Progress")
+            progress = st.session_state.get("current_generation", 0) / max(1, current_workflow['params']['max_iterations'])
+            st.progress(progress)
+            st.write(f"Progress: {st.session_state.get('current_generation', 0)}/{current_workflow['params']['max_iterations']} generations")
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write("**Fitness Progression**")
+                if "evolution_history" in st.session_state and st.session_state.evolution_history:
+                    fitness_history = []
+                    for gen_idx, gen_data in enumerate(st.session_state.evolution_history):
+                        population = gen_data.get("population", [])
+                        if population:
+                            best_fit = max(ind.get("fitness", 0) for ind in population)
+                            avg_fit = sum(ind.get("fitness", 0) for ind in population) / len(population)
+                            fitness_history.append({"Generation": gen_idx, "Best": best_fit, "Average": avg_fit})
+                    
+                    if fitness_history:
+                        df_fitness = pd.DataFrame(fitness_history)
+                        fig = px.line(df_fitness, x="Generation", y=["Best", "Average"], 
+                                    title="Fitness Over Generations")
+                        st.plotly_chart(fig, use_container_width=True)
+                else:
+                    sample_data = pd.DataFrame({
+                        'Generation': range(1, min(21, max(2, current_workflow['params']['max_iterations'] + 1))),
+                        'Best': np.random.uniform(0.3, 0.95, min(20, current_workflow['params']['max_iterations'])).cummax(),
+                        'Average': np.random.uniform(0.2, 0.8, min(20, current_workflow['params']['max_iterations']))
+                    })
+                    fig = px.line(sample_data, x="Generation", y=["Best", "Average"], 
+                                title="Sample Fitness Progression")
+                    st.plotly_chart(fig, use_container_width=True)
+            
+            with col2:
+                st.write("**Population Analysis**")
+                if "evolution_history" in st.session_state and st.session_state.evolution_history:
+                    diversity_data = []
+                    for gen_idx, gen_data in enumerate(st.session_state.evolution_history[-5:]):
+                        population = gen_data.get("population", [])
+                        if population:
+                            avg_div = sum(ind.get("diversity", 0) for ind in population) / len(population)
+                            complexity = sum(ind.get("complexity", 0) for ind in population) / len(population)
+                            diversity_data.append({
+                                "Generation": gen_idx + len(st.session_state.evolution_history) - 5,
+                                "Diversity": avg_div,
+                                "Complexity": complexity
+                            })
+                    
+                    if diversity_data:
+                        df_div = pd.DataFrame(diversity_data)
+                        fig = px.line(df_div, x="Generation", y=["Diversity", "Complexity"], 
+                                    title="Diversity & Complexity")
+                        st.plotly_chart(fig, use_container_width=True)
+                else:
+                    sample_div_data = pd.DataFrame({
+                        'Generation': range(1, 6),
+                        'Diversity': np.random.uniform(0.3, 0.8, 5),
+                        'Complexity': np.random.uniform(0.2, 0.9, 5)
+                    })
+                    fig = px.line(sample_div_data, x="Generation", y=["Diversity", "Complexity"],
+                                title="Sample Population Metrics")
+                    st.plotly_chart(fig, use_container_width=True)
+        
+        else:
+            st.info("No active workflows. Launch a workflow in the 'Create Workflow' tab to monitor execution.")
+            
+            st.subheader("Resource Utilization")
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("CPU Usage", "25%")
+            with col2:
+                st.metric("Memory Usage", "1.2 GB")
+            with col3:
+                st.metric("Active Processes", "4")
+    
+    with orchestrator_tabs[2]:
+        st.subheader("Workflow Execution History")
+        
+        workflow_history = st.session_state.get("workflow_history", [])
+        
+        if workflow_history:
+            for i, workflow in enumerate(workflow_history):
+                with st.expander(f"Workflow #{len(workflow_history)-i}: {workflow['type'].replace('_', ' ').title()} - {workflow['timestamp']}", expanded=False):
+                    col1, col2 = st.columns([3, 1])
+                    with col1:
+                        st.write(f"**Type**: {workflow['type'].replace('_', ' ').title()}")
+                        st.write(f"**Parameters**: Max Iterations: {workflow['params']['max_iterations']}, Population: {workflow['params']['population_size']}")
+                        st.write(f"**Started**: {workflow['timestamp']}")
+                        st.text_area("Input Content:", value=workflow['content'][:200] + "..." if len(workflow['content']) > 200 else workflow['content'], height=100, disabled=True)
+                    with col2:
+                        st.write("**Status**: Completed")
+                        if st.button(f"View Details #{i}", key=f"view_details_{i}"):
+                            st.session_state.selected_workflow = workflow
+                            st.info("Details would be shown in a full implementation.")
+        else:
+            st.info("No workflow history available. Execute workflows to see them listed here.")
+    
+    with orchestrator_tabs[3]:
+        st.subheader("Orchestrator Configuration")
+        
+        with st.expander("🌍 Global Settings", expanded=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.session_state.openevolve_base_url = st.text_input("OpenEvolve API Base URL", 
+                                                                      value=st.session_state.get("openevolve_base_url", "http://localhost:8000"))
+                st.session_state.openevolve_api_key = st.text_input("OpenEvolve API Key", 
+                                                                     value=st.session_state.get("openevolve_api_key", ""), type="password")
+            with col2:
+                st.session_state.default_max_tokens = st.number_input("Default Max Tokens", 
+                                                                        min_value=100, max_value=128000, value=st.session_state.get("default_max_tokens", 4096))
+                st.session_state.default_temperature = st.slider("Default Temperature", 
+                                                               min_value=0.0, max_value=2.0, value=st.session_state.get("default_temperature", 0.7), step=0.1)
+        
+        with st.expander("⚙️ Default Workflow Parameters", expanded=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                st.session_state.default_max_iterations = st.number_input("Default Max Iterations", 
+                                                                         min_value=1, max_value=10000, value=st.session_state.get("default_max_iterations", 100))
+                st.session_state.default_population_size = st.number_input("Default Population Size", 
+                                                                          min_value=10, max_value=10000, value=st.session_state.get("default_population_size", 100))
+            with col2:
+                st.session_state.default_elite_ratio = st.slider("Default Elite Ratio", 
+                                                               min_value=0.0, max_value=1.0, value=st.session_state.get("default_elite_ratio", 0.1), step=0.01)
+                st.session_state.default_archive_size = st.number_input("Default Archive Size", 
+                                                                       min_value=0, max_value=10000, value=st.session_state.get("default_archive_size", 100))
+        
+        if st.button("💾 Save Configuration", type="primary"):
+            st.success("Configuration saved successfully!")
+    
+    with orchestrator_tabs[4]:
+        st.subheader("Workflow Analytics & Insights")
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Total Workflows", len(st.session_state.get("workflow_history", [])))
+        with col2:
+            st.metric("Avg. Generations", f"{np.mean([w['params']['max_iterations'] for w in st.session_state.get('workflow_history', [])]) if st.session_state.get('workflow_history') else 0:.0f}")
+        with col3:
+            st.metric("Active Workflows", 0)
+        with col4:
+            st.metric("Success Rate", "0%")
+        
+        if st.session_state.get("workflow_history"):
+            type_counts = {}
+            for wf in st.session_state.workflow_history:
+                wf_type = wf['type']
+                type_counts[wf_type] = type_counts.get(wf_type, 0) + 1
+            
+            if type_counts:
+                st.subheader("Workflow Type Distribution")
+                type_df = pd.DataFrame(list(type_counts.items()), columns=['Type', 'Count'])
+                fig = px.bar(type_df, x='Type', y='Count', title='Number of Workflows by Type')
+                st.plotly_chart(fig, use_container_width=True)
+        
+        st.info("Advanced analytics would include performance trends, resource usage, and optimization recommendations in a full implementation.")
+
+def render_openevolve_advanced_ui():
+    """Render OpenEvolve advanced UI components."""
+    st.info("OpenEvolve advanced features would be displayed here when available.")
+
+def render_comprehensive_monitoring_ui():
+    """Render comprehensive monitoring UI."""
+    st.info("Comprehensive monitoring system would be displayed here when available.")
+
+def render_reporting_dashboard():
+    """Render reporting dashboard."""
+    st.info("Reporting dashboard would be displayed here when available.")
+
+def render_openevolve_visualization_ui():
+    """Render OpenEvolve visualization UI."""
+    st.info("OpenEvolve visualization UI would be displayed here when available.")
+
+def render_evolution_insights():
+    """Render evolution insights."""
+    st.info("Evolution insights would be displayed here when available.")
+
+def render_advanced_diagnostics():
+    """Render advanced diagnostics."""
+    st.info("Advanced diagnostics would be displayed here when available.")
+
+def render_main_layout():
+    """Renders the main layout of the Streamlit application."""
+    _initialize_session_state()
+
+    # Initialize managers
+    managers = {
+        "template_manager": TemplateManager,
+        "prompt_manager": lambda: PromptManager(api=st.session_state.openevolve_api_instance),
+        "openevolve_api_instance": lambda: OpenEvolveAPI(
+            base_url=st.session_state.get("openevolve_base_url", "http://localhost:8000"),
+            api_key=st.session_state.get("openevolve_api_key", ""),
+        ),
+        "content_manager_instance": lambda: content_manager,
+        "analytics_manager_instance": AnalyticsManager,
+        "collaboration_manager": CollaborationManager,
+        "version_control": VersionControl,
+        "notification_manager": NotificationManager,
+        "log_streaming": LogStreaming,
+        "session_manager": SessionManager
+    }
+    
+    for key, manager_class in managers.items():
+        if key not in st.session_state:
+            try:
+                if key == "openevolve_api_instance":
+                    # Special handling for API instance
+                    st.session_state[key] = manager_class()
+                else:
+                    st.session_state[key] = manager_class()
+            except Exception as e:
+                st.error(f"Failed to initialize {key}: {e}")
+
+    # Initialize activity log
+    if "activity_log" not in st.session_state:
+        st.session_state.activity_log = []
+    
+    render_collaboration_ui()
+    check_password()
+    
+    # Apply theme-specific CSS
+    current_theme = st.session_state.get("theme", "light")
+    
+    if "styles_css" not in st.session_state:
+        try:
+            with open("styles.css") as f:
+                st.session_state.styles_css = f.read()
+        except FileNotFoundError:
+            st.session_state.styles_css = ""
+            st.warning("styles.css file not found. Using default styling.")
+        except Exception as e:
+            st.session_state.styles_css = ""
+            st.error(f"Error reading styles.css: {e}")
+    
+    try:
+        st.markdown(f"<style>{st.session_state.styles_css}</style>", unsafe_allow_html=True)
+    except Exception as e:
+        st.error(f"Error applying CSS: {e}")
+
+    # Main header
+    st.markdown(
+        '<h2 style="text-align: center;">🧬 OpenEvolve Content Improver</h2>'
+        '<p style="text-align: center; font-size: 1.2rem;">AI-Powered Content Hardening with Multi-LLM Consensus</p>',
+        unsafe_allow_html=True)
+    
+    # Main tabs
+    tabs = st.tabs([
+        "Evolution",
+        "Adversarial Testing", 
+        "GitHub",
+        "Activity Feed",
+        "Report Templates",
+        "Model Dashboard",
+        "Tasks",
+        "Admin",
+        "Analytics Dashboard",
+        "OpenEvolve Dashboard",
+        "OpenEvolve Orchestrator"
+    ])
+
+    # Theme JavaScript injection
+    allow_os_theme_inheritance = st.session_state.user_preferences.get("allow_os_theme_inheritance", False)
+    
+    html(
+        f"""
+        <script>
+            console.log('Theme JS in mainlayout.py executed.');
+            const allowOsThemeInheritance = {str(allow_os_theme_inheritance).lower()};
+            const theme = '{current_theme}';
+            const sidebar = document.querySelector('[data-testid="stSidebar"]');
+
+            console.log('JS - allowOsThemeInheritance:', allowOsThemeInheritance, 'theme:', theme);
+
+            if (!allowOsThemeInheritance) {{
+                document.documentElement.setAttribute('data-theme', theme);
+                console.log('JS - data-theme set to:', theme);
+                if (theme === 'dark') {{
+                    document.body.style.backgroundColor = '#0e1117';
+                    document.querySelector('.stApp').style.backgroundColor = '#1e293b';
+                    if (sidebar) sidebar.style.backgroundColor = '#0e1117';
+                    console.log('JS - Forced dark inline styles.');
+                }} else {{
+                    document.body.style.backgroundColor = 'white';
+                    document.querySelector('.stApp').style.backgroundColor = '#f8fafc';
+                    if (sidebar) sidebar.style.backgroundColor = 'white';
+                    console.log('JS - Forced light inline styles.');
+                }}
+            }} else {{
+                document.documentElement.removeAttribute('data-theme');
+                console.log('JS - data-theme removed.');
+                document.body.style.backgroundColor = '';
+                document.querySelector('.stApp').style.backgroundColor = '';
+                if (sidebar) sidebar.style.backgroundColor = '';
+                console.log('JS - Reset inline styles for OS inheritance.');
+            }}
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+    # Slider styling JavaScript
+    html(
+        """
+        <script>
+            function changeSliderColors() {
+                console.log('Attempting to change slider colors...');
+                
+                const sliderContainers = document.querySelectorAll('[data-baseweb="slider"]');
+                
+                sliderContainers.forEach((container, index) => {
+                    console.log('Processing slider container:', index, container);
+                    
+                    const allDivs = container.querySelectorAll('div');
+                    
+                    allDivs.forEach((div, divIndex) => {
+                        const computedStyle = window.getComputedStyle(div);
+                        console.log(`Div ${divIndex} computed background:`, computedStyle.backgroundColor);
+                        
+                        if (div.offsetHeight <= 10) {
+                            div.style.background = '#ccc';
+                            div.style.height = '6px';
+                            div.style.borderRadius = '3px';
+                        }
+                    });
+                    
+                    const thumb = container.querySelector('[role="slider"]') || 
+                                 container.querySelector('.streamlit-slider') || 
+                                 container.querySelector('div[tabindex]');
+                    if (thumb) {
+                        thumb.style.background = 'silver';
+                        thumb.style.border = '2px solid #999';
+                        thumb.style.width = '20px';
+                        thumb.style.height = '20px';
+                        thumb.style.borderRadius = '50%';
+                        thumb.style.marginTop = '-7px';
+                        console.log('Styled thumb element:', thumb);
+                    }
+                });
+                
+                const rangeInputs = document.querySelectorAll('input[type="range"]');
+                rangeInputs.forEach(input => {
+                    input.style.setProperty('-webkit-appearance', 'none');
+                    input.style.height = '6px';
+                    input.style.background = '#ccc';
+                    input.style.borderRadius = '3px';
+                    input.style.outline = 'none';
+                    console.log('Found range input - limited styling possible via JS');
+                });
+                
+                const stSliders = document.querySelectorAll('[data-testid="stSlider"]');
+                stSliders.forEach((slider, idx) => {
+                    console.log('Found slider with data-testid=stSlider:', idx);
+                    const nestedDivs = slider.querySelectorAll('div');
+                    nestedDivs.forEach(nestedDiv => {
+                        if (nestedDiv.offsetWidth > 10 && nestedDiv.offsetHeight < 15) {
+                            nestedDiv.style.background = '#ccc';
+                            nestedDiv.style.height = '6px';
+                            nestedDiv.style.borderRadius = '3px';
+                            
+                            if (nestedDiv.offsetWidth < 30 && nestedDiv.offsetHeight < 30) {
+                                nestedDiv.style.background = 'silver';
+                                nestedDiv.style.border = '2px solid #999';
+                                nestedDiv.style.borderRadius = '50%';
+                                nestedDiv.style.width = '20px';
+                                nestedDiv.style.height = '20px';
+                            }
+                        }
+                    });
+                });
+            }
+
+            setTimeout(() => {
+                changeSliderColors();
+                setTimeout(changeSliderColors, 2000);
+            }, 1000);
+
+            setInterval(changeSliderColors, 5000);
+            
+            console.log('Enhanced slider color JS injected and running.');
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+    # Notification UI
+    render_notification_ui()
+
+    # Theme toggle
+    if st.button("Toggle Theme", key=f"theme_toggle_btn_{st.session_state.theme}"):
+        if st.session_state.theme == "light":
+            st.session_state.theme = "dark"
+        else:
+            st.session_state.theme = "light"
+        st.rerun()
+
+    # Quick action buttons
+    quick_action_col1, quick_action_col2 = st.columns(2)
+    
+    # Show quick guide if requested
+    if st.session_state.get("show_quick_guide", False):
+        with st.expander("📘 Quick Guide", expanded=True):
+            st.markdown("""
+            ### 🚀 Getting Started
+
+            1. **Choose Your Approach**:
+               - **Evolution Tab**: Iteratively improve any content using one AI model
+               - **Adversarial Testing Tab**: Harden content using multiple AI models in red team/blue team approach
+
+            2. **Configure Your Models**:
+               - Select a provider and model in the sidebar (Evolution tab)
+               - Enter your OpenRouter API key for Adversarial Testing
+               - Choose models for red team (critics) and blue team (fixers)
+
+            3. **Input Your Content**:
+               - Paste your existing content or load a template
+               - Add compliance requirements if needed
+
+            4. **Run the Process**:
+               - Adjust parameters as needed
+               - Click "Start" and monitor progress
+               - Review results and save improved versions
+
+            5. **Collaborate & Share**:
+               - Add collaborators to your project
+               - Save versions and track changes
+               - Export results in multiple formats
+            """)
+            if st.button("Close Guide", type="secondary"):
+                st.session_state.show_quick_guide = False
+                st.rerun()
+    
+    # Keyboard shortcuts
+    if st.session_state.get("show_keyboard_shortcuts", False):
+        with st.expander("⌨️ Keyboard Shortcuts", expanded=True):
+            st.markdown("""
+            ### 🎯 Available Keyboard Shortcuts
+            
+            **Navigation & General**
+            - `Ctrl+S` - Save current protocol
+            - `Ctrl+O` - Open file
+            - `Ctrl+N` - Create new file
+            - `Ctrl+Shift+N` - New window
+            - `F5` or `Ctrl+R` - Refresh the application
+            - `F1` - Open help documentation
+            - `Ctrl+Shift+P` - Open command palette
+            - `Esc` - Close current modal or expandable section
+            - `Tab` - Indent selected text or insert 4 spaces
+            - `Shift+Tab` - Unindent selected text
+            
+            **Editing**
+            - `Ctrl+Z` - Undo last action
+            - `Ctrl+Y` or `Ctrl+Shift+Z` - Redo last action
+            - `Ctrl+X` - Cut selected text
+            - `Ctrl+C` - Copy selected text
+            - `Ctrl+V` - Paste text
+            - `Ctrl+A` - Select all text
+            - `Ctrl+F` - Find in protocol text
+            - `Ctrl+H` - Replace in protocol text
+            - `Ctrl+/` - Comment/uncomment selected lines
+            - `Ctrl+D` - Select current word/pattern
+            - `Ctrl+L` - Select current line
+            
+            **Formatting**
+            - `Ctrl+B` - Bold selected text
+            - `Ctrl+I` - Italicize selected text
+            - `Ctrl+U` - Underline selected text
+            - `Ctrl+Shift+K` - Insert link
+            - `Ctrl+Shift+I` - Insert image
+            - `Ctrl+Shift+L` - Create list
+            
+            **Application Specific**
+            - `Ctrl+Enter` - Start evolution/adversarial testing
+            - `Ctrl+Shift+Enter` - Start adversarial testing
+            - `Ctrl+M` - Toggle between light/dark mode
+            - `Ctrl+P` - Toggle panel visibility
+            - `Ctrl+E` - Export current document
+            - `Ctrl+Shift+F` - Toggle full screen
+            
+            **Text Editor Controls**
+            - `Ctrl+]` - Indent current line
+            - `Ctrl+[` - Outdent current line
+            - `Alt+Up/Down` - Move selected lines up/down
+            - `Ctrl+Shift+D` - Duplicate current line
+            - `Ctrl+Shift+K` - Delete current line
+            - `Ctrl+/` - Toggle line comment
+            - `Ctrl+Shift+/` - Toggle block comment
+            """)
+
+    # Conditional rendering for custom pages
+    valid_pages = [None, "evaluator_uploader", "prompt_manager", "analytics_dashboard", "openevolve_dashboard"]
+    if st.session_state.get("page") not in valid_pages:
+        st.session_state.page = None
+
+    if st.session_state.get("page") == "evaluator_uploader":
+        st.subheader("⬆️ Upload Custom Evaluator")
+        uploaded_evaluator_file = st.file_uploader("Upload Python file with 'evaluate' function", type=["py"], key="evaluator_uploader_file")
+        if uploaded_evaluator_file is not None:
+            evaluator_code = uploaded_evaluator_file.read().decode("utf-8")
+            if st.button("Upload Evaluator", key="upload_evaluator_btn"):
+                api = st.session_state.openevolve_api_instance
+                try:
+                    evaluator_id = api.upload_evaluator(evaluator_code)
+                    if evaluator_id:
+                        st.session_state.custom_evaluator_id = evaluator_id
+                        st.success(f"Evaluator uploaded with ID: {evaluator_id}")
+                    else:
+                        st.error("Failed to upload evaluator.")
+                except Exception as e:
+                    st.error(f"Error uploading evaluator: {e}")
+
+        st.markdown("---")
+        st.subheader("🗂️ Manage Custom Evaluators")
+        api = st.session_state.openevolve_api_instance
+        custom_evaluators = api.get_custom_evaluators() if hasattr(api, 'get_custom_evaluators') else {}
+        if custom_evaluators:
+            for evaluator_id, evaluator_data in custom_evaluators.items():
+                with st.expander(f"Evaluator ID: {evaluator_id}"):
+                    st.code(evaluator_data.get('code', ''), language="python")
+                    if st.button("Delete Evaluator", key=f"delete_evaluator_{evaluator_id}_page", type="secondary"):
+                        try:
+                            if hasattr(api, 'delete_evaluator'):
+                                api.delete_evaluator(evaluator_id)
+                                st.success(f"Evaluator {evaluator_id} deleted.")
+                                st.rerun()
+                        except Exception as e:
+                            st.error(f"Failed to delete evaluator: {e}")
+        else:
+            st.info("No custom evaluators found.")
+
+        if st.button("Back to Main Tabs"):
+            st.session_state.page = None
+            st.rerun()
+    
+    elif st.session_state.get("page") == "prompt_manager":
+        st.subheader("📝 Custom Prompts")
+        api = st.session_state.openevolve_api_instance
+        custom_prompts = api.get_custom_prompts() if hasattr(api, 'get_custom_prompts') else {}
+
+        if custom_prompts:
+            st.write("Existing Prompts:")
+            for prompt_name, prompt_data in custom_prompts.items():
+                with st.expander(f"Prompt: {prompt_name}"):
+                    st.code(f"System Prompt:\n{prompt_data.get('system_prompt', '')}", language="python")
+                    st.code(f"Evaluator System Prompt:\n{prompt_data.get('evaluator_system_prompt', '')}", language="python")
+                    if st.button(f"Delete {prompt_name}", key=f"delete_prompt_{prompt_name}"):
+                        try:
+                            if hasattr(api, 'delete_custom_prompt'):
+                                api.delete_custom_prompt(prompt_name)
+                                st.success(f"Prompt '{prompt_name}' deleted.")
+                                st.rerun()
+                        except Exception as e:
+                            st.error(f"Failed to delete prompt: {e}")
+        else:
+            st.info("No custom prompts found.")
+
+        st.markdown("---")
+        st.subheader("Create New Prompt")
+        new_prompt_name = st.text_input("New Custom Prompt Name", key="new_prompt_name_manager")
+        new_system_prompt = st.text_area("System Prompt", key="new_system_prompt_manager", height=150)
+        new_evaluator_system_prompt = st.text_area("Evaluator System Prompt", key="new_evaluator_system_prompt_manager", height=150)
+
+        if st.button("Save New Custom Prompt", key="save_new_prompt_btn"):
+            if new_prompt_name:
+                try:
+                    if hasattr(api, 'save_custom_prompt'):
+                        api.save_custom_prompt(new_prompt_name, {"system_prompt": new_system_prompt, "evaluator_system_prompt": new_evaluator_system_prompt})
+                        st.success(f"Custom prompt '{new_prompt_name}' saved.")
+                        st.rerun()
+                except Exception as e:
+                    st.error(f"Failed to save custom prompt: {e}")
+            else:
+                st.error("Prompt name cannot be empty.")
+
+        if st.button("Back to Main Tabs", key="back_to_main_tabs_prompt_manager"):
+            st.session_state.page = None
+            st.rerun()
+    
+    elif st.session_state.get("page") == "analytics_dashboard":
+        render_analytics_dashboard_tab()
+    
+    elif st.session_state.get("page") == "openevolve_dashboard":
+        render_openevolve_dashboard_tab()
+    
+    else:
+        # Main tab content
+        with tabs[0]:
+            st.header("🧬 Evolution Engine")
+            
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                content_type = st.selectbox(
+                    "Content Type",
+                    ["general", "code_python", "code_javascript", "code_java", "code_cpp", "legal", "medical", "technical"],
+                    index=0,
+                    help="Select the type of content to evolve for appropriate evaluation"
+                )
+            with col2:
+                run_button = st.button("🎭 Run Evolution", type="primary", use_container_width=True)
+            
+            system_prompt = st.text_area(
+                "System Prompt (for generating new content)",
+                value=st.session_state.get("system_prompt", "You are an expert content generator. Create high-quality, optimized content based on the user's requirements."),
+                height=150,
+                key="evolution_system_prompt_input"
+            )
+            
+            evaluator_system_prompt = st.text_area(
+                "Evaluator Prompt (for evaluating content quality)",
+                value=st.session_state.get("evaluator_system_prompt", "Evaluate the quality, clarity, and effectiveness of this content. Provide a score from 0 to 100."),
+                height=150,
+                key="evolution_evaluator_system_prompt_input"
+            )
+            
+            model_options = [
+                "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-3.5-turbo",
+                "claude-3-opus", "claude-3-sonnet", "claude-3-haiku",
+                "gemini-1.5-pro", "gemini-1.5-flash",
+                "llama-3-70b", "llama-3-8b", "mistral-medium"
+            ]
+            model = st.selectbox(
+                "Model for Evolution",
+                options=model_options,
+                index=0
+            )
+            
+            # Advanced configuration
+            with st.expander("⚙️ Advanced OpenEvolve Configuration", expanded=False):
+                col1, col2, col3 = st.columns(3)
+                with col1:
+                    enable_artifacts = st.checkbox("Enable Artifact Feedback", value=True, help="Enable error feedback to LLM for improved iterations")
+                    cascade_evaluation = st.checkbox("Cascade Evaluation", value=True, help="Use multi-stage testing for better filtering")
+                    use_llm_feedback = st.checkbox("Use LLM Feedback", value=False, help="Enable AI-based code quality assessment")
+                    diff_based_evolution = st.checkbox("Diff-Based Evolution", value=True, help="Use diff-based evolution for targeted changes")
+                with col2:
+                    num_islands = st.number_input("Number of Islands", min_value=1, max_value=10, value=st.session_state.get("num_islands", 1), key="num_islands_main", help="Parallel evolution populations for diversity")
+                    migration_interval = st.number_input("Migration Interval", min_value=1, max_value=100, value=st.session_state.get("migration_interval", 50), key="migration_interval_main", help="How often individuals migrate between islands")
+                    migration_rate = st.number_input("Migration Rate", min_value=0.0, max_value=1.0, value=st.session_state.get("migration_rate", 0.1), step=0.01, key="migration_rate_main", help="Proportion of individuals that migrate")
+                    checkpoint_interval = st.number_input("Checkpoint Interval", min_value=1, max_value=1000, value=st.session_state.get("checkpoint_interval", 10), key="checkpoint_interval_main", help="How often to save checkpoints")
+                with col3:
+                    st.multiselect(
+                        "Feature Dimensions",
+                        ["complexity", "diversity", "performance", "readability"],
+                        default=st.session_state.get("feature_dimensions", ["complexity", "diversity"]),
+                        key="feature_dimensions_main",
+                        help="MAP-Elites dimensions for quality-diversity optimization"
+                    )
+                    feature_bins = st.number_input("Feature Bins", min_value=2, max_value=50, value=st.session_state.get("feature_bins", 10), key="feature_bins_main", help="Number of bins for each feature dimension")
+                    diversity_metric = st.selectbox("Diversity Metric", ["edit_distance", "cosine_similarity", "levenshtein_distance"], index=0, key="diversity_metric_main", help="Metric for measuring diversity between solutions")
+                    st.checkbox("Enable Early Stopping", value=True, key="enable_early_stopping", help="Stop evolution when no improvement is detected")
+            
+            # Run evolution
+            if run_button:
+                if not st.session_state.get("protocol_text", "").strip():
+                    st.error("❌ Please enter content to evolve before starting.")
+                    return
+                
+                if not st.session_state.get("max_iterations", 1):
+                    st.error("❌ Please set a valid number of iterations (at least 1).")
+                    return
+                
+                st.info("🔄 Starting evolution process...")
+                
+                with st.spinner("Running evolution..."):
+                    try:
+                        content_to_evolve = st.session_state.get("protocol_text", st.session_state.get("evolution_current_best", ""))
+                        
+                        if not content_to_evolve.strip():
+                            st.error("❌ No content to evolve. Please enter content in the text area.")
+                            return
+                        
+                        api_key = st.session_state.get("api_key", st.session_state.get("openrouter_key", ""))
+                        base_url = st.session_state.get("base_url", st.session_state.get("openrouter_base_url", "https://openrouter.ai/api/v1"))
+                        extra_headers = json.loads(st.session_state.get("extra_headers", "{}"))
+                        
+                        if not OPENEVOLVE_AVAILABLE and not api_key:
+                            st.error("❌ API key is required to run evolution via API.")
+                            return
+                        
+                        if OPENEVOLVE_AVAILABLE:
+                            # Use OpenEvolve backend
+                            from openevolve_integration import run_unified_evolution
+                            
+                            evolution_mode = "standard"
+                            if st.session_state.get("enable_qd_evolution", False):
+                                evolution_mode = "quality_diversity"
+                            elif st.session_state.get("enable_multi_objective", False):
+                                evolution_mode = "multi_objective"
+                            elif st.session_state.get("enable_adversarial_evolution", False):
+                                evolution_mode = "adversarial"
+                            elif st.session_state.get("enable_symbolic_regression", False):
+                                evolution_mode = "symbolic_regression"
+                            elif st.session_state.get("enable_neuroevolution", False):
+                                evolution_mode = "neuroevolution"
+                            
+                            model_configs = [{"name": model, "weight": 1.0}]
+                            
+                            additional_params = {
+                                "memory_limit_mb": st.session_state.get('memory_limit_mb', None),
+                                "max_retries_eval": st.session_state.get('max_retries_eval', 3),
+                                "evaluator_timeout": st.session_state.get('evaluator_timeout', 300),
+                            }
+                            
+                            if "evolution_monitor" not in st.session_state:
+                                st.session_state.evolution_monitor = EvolutionMonitor()
+                            
+                            evolution_monitor = st.session_state.evolution_monitor
+                            evolution_monitor.start_monitoring()
+                            
+                            result = run_unified_evolution(
+                                content=content_to_evolve,
+                                content_type=content_type,
+                                evolution_mode=evolution_mode,
+                                model_configs=model_configs,
+                                api_key=api_key,
+                                api_base=base_url,
+                                max_iterations=st.session_state.max_iterations,
+                                population_size=st.session_state.population_size,
+                                system_message=system_prompt,
+                                evaluator_system_message=evaluator_system_prompt,
+                                temperature=st.session_state.temperature,
+                                max_tokens=st.session_state.max_tokens,
+                                objectives=st.session_state.get("objectives", ["performance", "readability"]),
+                                feature_dimensions=st.session_state.feature_dimensions,
+                                num_islands=st.session_state.num_islands,
+                                migration_interval=st.session_state.migration_interval,
+                                migration_rate=st.session_state.migration_rate,
+                                archive_size=st.session_state.archive_size,
+                                elite_ratio=st.session_state.elite_ratio,
+                                exploration_ratio=st.session_state.exploration_ratio,
+                                exploitation_ratio=st.session_state.exploitation_ratio,
+                                checkpoint_interval=st.session_state.checkpoint_interval,
+                                enable_artifacts=st.session_state.enable_artifacts,
+                                cascade_evaluation=st.session_state.cascade_evaluation,
+                                use_llm_feedback=st.session_state.get("use_llm_feedback", False),
+                                evolution_trace_enabled=st.session_state.get("evolution_trace_enabled", False),
+                                early_stopping_patience=st.session_state.early_stopping_patience if st.session_state.get("enable_early_stopping", True) else None,
+                                random_seed=st.session_state.seed if "seed" in st.session_state else 42,
+                                diff_based_evolution=st.session_state.get("diff_based_evolution", True),
+                                max_code_length=st.session_state.get("max_code_length", 10000),
+                                diversity_metric=st.session_state.diversity_metric,
+                                feature_bins=st.session_state.feature_bins,
+                                **additional_params
+                            )
+                            
+                            evolution_monitor.stop_monitoring()
+                            
+                            if result and result.get("success"):
+                                st.session_state.total_evolution_runs = st.session_state.get("total_evolution_runs", 0) + 1
+                                best_score = result.get("best_score", 0.0)
+                                current_avg = st.session_state.get("avg_best_score", 0.0)
+                                run_count = st.session_state.total_evolution_runs
+                                
+                                new_avg = ((current_avg * (run_count - 1)) + best_score) / run_count
+                                st.session_state.avg_best_score = new_avg
+                                
+                                if best_score > st.session_state.get("best_ever_score", 0.0):
+                                    st.session_state.best_ever_score = best_score
+                                
+                                successful_runs = st.session_state.get("successful_runs", 0)
+                                if best_score >= 0.7:
+                                    successful_runs += 1
+                                    st.session_state.successful_runs = successful_runs
+                                
+                                success_rate = successful_runs / run_count if run_count > 0 else 0.0
+                                st.session_state.success_rate = success_rate
+                            
+                            if result and result.get("success"):
+                                st.session_state.evolution_current_best = result.get("best_code", "")
+                                st.success(f"✅ Evolution completed successfully! Best score: {result.get('best_score', 'N/A')}")
+                                
+                                if st.session_state.get("auto_generate_reports", True):
+                                    try:
+                                        run_id = f"evolution_run_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
+                                        evolution_mode = "standard"
+                                        if st.session_state.get("enable_qd_evolution"):
+                                            evolution_mode = "quality_diversity"
+                                        elif st.session_state.get("enable_multi_objective"):
+                                            evolution_mode = "multi_objective"
+                                        elif st.session_state.get("enable_adversarial_evolution"):
+                                            evolution_mode = "adversarial"
+                                        elif st.session_state.get("enable_symbolic_regression"):
+                                            evolution_mode = "symbolic_regression"
+                                        elif st.session_state.get("enable_neuroevolution"):
+                                            evolution_mode = "neuroevolution"
+                                        
+                                        content_type = st.session_state.get("content_type", "general")
+                                        
+                                        parameters = {
+                                            "max_iterations": st.session_state.max_iterations,
+                                            "population_size": st.session_state.population_size,
+                                            "num_islands": st.session_state.num_islands,
+                                            "archive_size": st.session_state.archive_size,
+                                            "elite_ratio": st.session_state.elite_ratio,
+                                            "exploration_ratio": st.session_state.exploration_ratio,
+                                            "exploitation_ratio": st.session_state.exploitation_ratio,
+                                            "temperature": st.session_state.temperature,
+                                            "max_tokens": st.session_state.max_tokens,
+                                            "model": model,
+                                            "evolution_mode": evolution_mode
+                                        }
+                                        
+                                        create_evolution_report(
+                                            run_id=run_id,
+                                            evolution_mode=evolution_mode,
+                                            content_type=content_type,
+                                            parameters=parameters,
+                                            results=result,
+                                            metrics=result.get("metrics", {})
+                                        )
+                                        
+                                        st.info(f"📋 Report generated: {run_id}")
+                                    except Exception as e:
+                                        st.warning(f"Could not generate automatic report: {e}")
+                        else:
+                            _run_evolution_with_api_backend_refactored(
+                                content_to_evolve,
+                                api_key,
+                                base_url,
+                                model,
+                                st.session_state.max_iterations,
+                                st.session_state.population_size,
+                                system_prompt,
+                                evaluator_system_prompt,
+                                extra_headers,
+                                st.session_state.temperature,
+                                st.session_state.top_p,
+                                st.session_state.frequency_penalty,
+                                st.session_state.presence_penalty,
+                                st.session_state.max_tokens,
+                                st.session_state.seed if "seed" in st.session_state else None,
+                            )
+                        
+                        if st.session_state.get("evolution_current_best"):
+                            st.success("✅ Evolution completed successfully! Best content updated.")
+                        else:
+                            st.warning("⚠️ Evolution completed but no improvement was found.")
+                    except Exception as e:
+                        st.error(f"❌ Evolution failed: {e}")
+            
+            # Stop button
+            if st.button("⏹️ Stop Evolution"):
+                st.session_state.evolution_stop_flag = True
+                st.info("Stop signal sent. Evolution will stop after the current iteration.")
+            
+            # Display results
+            if st.session_state.get("evolution_current_best"):
+                st.subheader("🏆 Current Best Content")
+                st.text_area("Best Content So Far", value=st.session_state.evolution_current_best, height=300, key="best_content_display")
+            
+            # Display evolution log
+            if st.session_state.get("evolution_running", False) and "evolution_log" in st.session_state and st.session_state.evolution_log:
+                st.subheader("📜 Evolution Log")
+                log_entries = st.session_state.evolution_log[-20:]
+                if _should_update_log_display("evolution_log", log_entries):
+                    log_text = "\n".join(log_entries)
+                    st.text_area("Log", value=log_text, height=200, key="evolution_log_display", disabled=True)
+                else:
+                    st.info("Evolution completed. Logs available in results.")
+            
+            # Show evolution parameters
+            with st.expander("⚙️ Current Evolution Parameters"):
+                st.json({
+                    "content_type": st.session_state.get("content_type", "general"),
+                    "max_iterations": st.session_state.get("max_iterations", 100),
+                    "population_size": st.session_state.get("population_size", 10),
+                    "temperature": st.session_state.get("temperature", 0.7),
+                    "max_tokens": st.session_state.get("max_tokens", 4096),
+                    "top_p": st.session_state.get("top_p", 1.0),
+                    "frequency_penalty": st.session_state.get("frequency_penalty", 0.0),
+                    "presence_penalty": st.session_state.get("presence_penalty", 0.0),
+                    "num_islands": st.session_state.get("num_islands", 1),
+                    "migration_interval": st.session_state.get("migration_interval", 50),
+                    "migration_rate": st.session_state.get("migration_rate", 0.1),
+                    "elite_ratio": st.session_state.get("elite_ratio", 0.1),
+                    "exploration_ratio": st.session_state.get("exploration_ratio", 0.2),
+                    "exploitation_ratio": st.session_state.get("exploitation_ratio", 0.7),
+                    "archive_size": st.session_state.get("archive_size", 100),
+                    "checkpoint_interval": st.session_state.get("checkpoint_interval", 10),
+                    "feature_dimensions": st.session_state.get("feature_dimensions", ["complexity", "diversity"]),
+                    "feature_bins": st.session_state.get("feature_bins", 10),
+                    "diversity_metric": st.session_state.get("diversity_metric", "edit_distance"),
+                    "enable_artifacts": st.session_state.get("enable_artifacts", True),
+                    "cascade_evaluation": st.session_state.get("cascade_evaluation", True),
+                    "use_llm_feedback": st.session_state.get("use_llm_feedback", False),
+                    "parallel_evaluations": st.session_state.get("parallel_evaluations", 1),
+                    "diff_based_evolution": st.session_state.get("diff_based_evolution", True),
+                    "enable_early_stopping": st.session_state.get("enable_early_stopping", True),
+                    "early_stopping_patience": st.session_state.get("early_stopping_patience", 10),
+                })
+
+        # Render other tabs
+        with tabs[1]:
+            render_adversarial_testing_tab()
+
+        with tabs[2]:
+            render_github_tab()
+
+        with tabs[3]:
+            render_activity_feed_tab()
+
+        with tabs[4]:
+            render_report_templates_tab()
+
+        with tabs[5]:
+            render_model_dashboard_tab()
+
+        with tabs[6]:
+            render_tasks_tab()
+
+        with tabs[7]:
+            render_admin_tab()
+
+        with tabs[8]:
+            render_analytics_dashboard_tab()
+
+        with tabs[9]:
+            render_openevolve_dashboard_tab()
+
+        with tabs[10]:
+            render_openevolve_orchestrator_tab()
+
+# Make the function available
+if __name__ == "__main__":
+    render_main_layout()

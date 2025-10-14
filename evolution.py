@@ -471,11 +471,13 @@ def _evaluate_candidate(
     Evaluate a single candidate.
     """
     try:
+        # Use the evaluator's system prompt if available, otherwise use a default
+        system_prompt = getattr(evaluator, 'evaluator_system_prompt', "You are an evaluator assessing the quality of content. Please provide a score from 0 to 100.")
         evaluation = _request_openai_compatible_chat(
             api_key,
             base_url,
             model,
-            _compose_messages(evaluator.evaluator_system_prompt, candidate),
+            _compose_messages(system_prompt, candidate),
             extra_headers,
             temperature,
             top_p,

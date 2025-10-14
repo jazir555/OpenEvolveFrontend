@@ -1028,6 +1028,7 @@ def render_adversarial_testing_tab():
                     finally:
                         st.session_state.adversarial_running = False
                         st.session_state.adversarial_status_message = "Ultimate testing finished."
+                        # Don't trigger rerun here, let the normal Streamlit flow continue
 
     with col3:
         if st.session_state.adversarial_running and st.button("⏹️ Stop Testing", use_container_width=True):
@@ -1208,7 +1209,6 @@ def render_report_templates_tab():
                     del st.session_state.report_templates[template_name]
                     _save_report_templates(st.session_state.report_templates)
                     st.success(f"Template '{template_name}' deleted.")
-                    st.rerun()
 
     st.subheader("Create New Report Template")
     new_template_name = st.text_input("New Template Name", key="new_report_template_name")
@@ -1221,7 +1221,6 @@ def render_report_templates_tab():
                 st.session_state.report_templates[new_template_name] = new_template_content
                 _save_report_templates(st.session_state.report_templates)
                 st.success(f"Template '{new_template_name}' saved.")
-                st.rerun()
             except json.JSONDecodeError:
                 st.error("Invalid JSON content.")
         else:
@@ -1803,14 +1802,12 @@ def render_main_layout():
         "Analytics Dashboard", "OpenEvolve Dashboard", "Orchestrator"
     ]
     
-    # Initialize active tab in session state if not exists
-    if "active_tab" not in st.session_state:
-        st.session_state.active_tab = 0
-    
-    # Create tabs with unique key
+    # Simple approach: Use traditional tabs without complex state management
+    # Streamlit's tabs should work correctly if we avoid interfering with their state
     tabs = st.tabs(tab_titles)
-
-    # --- Tab Content Rendering ---
+    
+    # Render all tab content using the traditional approach
+    # This is the most reliable method that works in most Streamlit applications
     with tabs[0]:
         render_evolution_tab()
 
@@ -1843,6 +1840,8 @@ def render_main_layout():
 
     with tabs[10]:
         render_openevolve_orchestrator_tab()
+
+    # Tab content is now rendered based on the active tab selection above
 
 
 if __name__ == "__main__":
