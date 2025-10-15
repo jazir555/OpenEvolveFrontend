@@ -63,17 +63,17 @@ def get_project_root():
         # Fallback to current working directory
         return os.getcwd()
 
-def start_optillm_server():
+def start_optillm_server(model: str = "google/gemma-3-270m-it", port: int = 8000):
     """
-    Starts the OptiLLM server in a separate thread.
+    Starts the OptiLLM server in a separate thread with specified model and port.
     """
-    logger.info("Attempting to start OptiLLM server...")
+    logger.info(f"Attempting to start OptiLLM server with model {model} on port {port}...")
     
-    # Check if OptiLLM is already running
+    # Check if OptiLLM is already running on the target port
     try:
-        response = requests.get("http://localhost:8000/health", timeout=1)
+        response = requests.get(f"http://localhost:{port}/health", timeout=1)
         if response.status_code == 200:
-            st.success("OptiLLM server is already running on http://localhost:8000.")
+            st.success(f"OptiLLM server is already running on http://localhost:{port} with model {model}.")
             return
     except requests.exceptions.ConnectionError:
         pass # Not running, proceed to start
@@ -90,11 +90,18 @@ def start_optillm_server():
 
     command = [
         optillm_executable,
-        "--model", "google/gemma-3-270m-it", # Default model, can be made configurable
-        "--port", "8000"
+        "--model", model,
+        "--port", str(port)
     ]
 
     try:
+        # Terminate existing OptiLLM process if any
+        if "optillm_process" in st.session_state and st.session_state.optillm_process:
+            st.session_state.optillm_process.terminate()
+            st.session_state.optillm_process = None
+            logger.info("Existing OptiLLM server terminated.")
+            time.sleep(1) # Give it a moment to shut down
+
         # Start OptiLLM in a new process group to ensure it's independent
         process = subprocess.Popen(
             command,
@@ -110,13 +117,13 @@ def start_optillm_server():
         time.sleep(5) # Give it some time to start
         for _ in range(10): # Retry health check a few times
             try:
-                response = requests.get("http://localhost:8000/health", timeout=1)
+                response = requests.get(f"http://localhost:{port}/health", timeout=1)
                 if response.status_code == 200:
-                    st.success("OptiLLM server is now ready!")
+                    st.success(f"OptiLLM server is now ready on http://localhost:{port}!")
                     return
             except requests.exceptions.ConnectionError:
                 time.sleep(1)
-        st.warning("OptiLLM server started, but health check timed out. It might still be starting up.")
+        st.warning(f"OptiLLM server started, but health check timed out on http://localhost:{port}. It might still be starting up.")
 
     except Exception as e:
         st.error(f"Failed to start OptiLLM server: {e}")
@@ -352,9 +359,15 @@ def display_sidebar():
 
         # OptiLLM Server Status and Start Button
         st.markdown("**OptiLLM Server**")
+
+        # OptiLLM Configuration Inputs
+        st.text_input("OptiLLM Model", value=st.session_state.get("optillm_model", "google/gemma-3-270m-it"), key="optillm_model")
+        st.number_input("OptiLLM Port", value=st.session_state.get("optillm_port", 8000), key="optillm_port", min_value=1024, max_value=65535)
+
         optillm_running = False
         try:
-            response = requests.get("http://localhost:8000/health", timeout=0.5)
+            # Use the configured port for health check
+            response = requests.get(f"http://localhost:{st.session_state.optillm_port}/health", timeout=0.5)
             if response.status_code == 200:
                 optillm_running = True
         except requests.exceptions.ConnectionError:
@@ -363,19 +376,21 @@ def display_sidebar():
             logger.debug(f"Error checking OptiLLM status: {e}")
 
         if optillm_running:
-            st.success("OptiLLM server is running on http://localhost:8000")
+            st.success(f"OptiLLM server is running on http://localhost:{st.session_state.optillm_port}")
             if st.button("Restart OptiLLM Server", key="restart_optillm_server"):
                 if "optillm_process" in st.session_state and st.session_state.optillm_process:
                     st.session_state.optillm_process.terminate()
                     st.session_state.optillm_process = None
                     st.info("OptiLLM server terminated. Restarting...")
                     time.sleep(1)
-                start_optillm_server()
+                # Pass configured model and port to start_optillm_server
+                start_optillm_server(model=st.session_state.optillm_model, port=st.session_state.optillm_port)
                 st.rerun()
         else:
-            st.warning("OptiLLM server is not running on http://localhost:8000")
+            st.warning(f"OptiLLM server is not running on http://localhost:{st.session_state.optillm_port}")
             if st.button("Start OptiLLM Server", key="start_optillm_server_button"):
-                start_optillm_server()
+                # Pass configured model and port to start_optillm_server
+                start_optillm_server(model=st.session_state.optillm_model, port=st.session_state.optillm_port)
                 st.rerun()
 
         st.markdown("---")
@@ -412,6 +427,9 @@ def display_sidebar():
                 if fetched_providers:
                     providers = fetched_providers
                     provider_keys = list(providers.keys())
+                    # Remove 'optillm_local' from the list of selectable providers
+                    if "optillm_local" in provider_keys:
+                        provider_keys.remove("optillm_local")
                     providers_available = True
                 else:
                     st.warning("No LLM providers configured. Please add providers to proceed.")

@@ -1,11 +1,335 @@
+import streamlit as st
 """
 Provider Catalogue for OpenEvolve
 """
 
+import requests
+from typing import List, Dict, Any, Optional
+from openevolve_integration import OpenEvolveAPI
+import boto3
+import google.cloud.aiplatform as aiplatform
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
+import replicate
+from aleph_alpha_client import Client
+import runpod
+import subprocess
+import json
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _bedrock_loader(api_key: Optional[str] = None) -> List[str]:
+    """Loader for Amazon Bedrock models, attempting to use boto3 with a static fallback."""
+    try:
+        # Bedrock API key is typically managed via AWS credentials, not passed directly.
+        # The api_key parameter here might be used for region or other config if needed.
+        bedrock_runtime = boto3.client(
+            service_name="bedrock",
+            region_name="us-east-1", # Default region, can be made configurable
+            # aws_access_key_id=...,
+            # aws_secret_access_key=...,
+        )
+        response = bedrock_runtime.list_foundation_models()
+        models = [
+            model["modelId"]
+            for model in response["modelSummaries"]
+            if "modelId" in model
+        ]
+        if models:
+            return models
+    except Exception as e:
+        st.warning(f"Could not fetch models from Amazon Bedrock using boto3: {e}. Falling back to static list.")
+    # Fallback to a static list if boto3 fails or is not configured
+    return [
+        "anthropic.claude-3-sonnet-20240229-v1:0",
+        "anthropic.claude-3-opus-20240229-v1:0",
+        "anthropic.claude-3-haiku-20240307-v1:0",
+        "amazon.titan-text-express-v1",
+        "amazon.titan-text-lite-v1",
+        "amazon.titan-embed-text-v1",
+        "cohere.command-text-v14",
+        "cohere.command-light-text-v14",
+        "cohere.embed-english-v3",
+        "cohere.embed-multilingual-v3",
+        "meta.llama2-13b-chat-v1",
+        "meta.llama2-70b-chat-v1",
+        "stability.stable-diffusion-xl-v1",
+    ]
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _vertex_ai_loader(api_key: Optional[str] = None) -> List[str]:
+    """Loader for Google Vertex AI models, attempting to use the SDK with a static fallback."""
+    try:
+        # Assuming project_id and location are configured elsewhere or can be passed.
+        # For simplicity, using hardcoded defaults or environment variables.
+        project_id = os.environ.get("GCP_PROJECT_ID", "your-gcp-project-id")
+        location = os.environ.get("GCP_LOCATION", "us-central1")
+
+        aiplatform.init(project=project_id, location=location)
+        models = aiplatform.Model.list()
+        model_ids = [model.display_name for model in models if model.display_name]
+        if model_ids:
+            return model_ids
+    except Exception as e:
+        st.warning(f"Could not fetch models from Google Vertex AI using SDK: {e}. Falling back to static list.")
+    # Fallback to a static list if SDK fails or is not configured
+    return [
+        "gemini-pro",
+        "gemini-pro-vision",
+        "text-bison",
+        "chat-bison",
+        "code-bison",
+        "codechat-bison",
+    ]
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _nvidia_loader(api_key: Optional[str] = None) -> List[str]:
+    """Loader for NVIDIA AI Foundation Models, attempting to use the SDK with a static fallback."""
+    try:
+        # API key can be passed directly or set as an environment variable NVIDIA_API_KEY
+        chat_nvidia = ChatNVIDIA(nvidia_api_key=api_key) if api_key else ChatNVIDIA()
+        available_models = chat_nvidia.available_models
+        model_ids = [model.id for model in available_models if model.id]
+        if model_ids:
+            return model_ids
+    except Exception as e:
+        st.warning(f"Could not fetch models from NVIDIA AI Foundation Models using SDK: {e}. Falling back to static list.")
+    # Fallback to a static list if SDK fails or is not configured
+    return [
+        "nv-llama2-70b",
+        "nv-mistral-7b",
+        "nv-gemma-7b",
+        "nv-mixtral-8x7b",
+    ]
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _replicate_loader(api_key: Optional[str] = None) -> List[str]:
+    """Loader for Replicate models, attempting to use the SDK with a static fallback."""
+    try:
+        # API key can be passed directly or set as an environment variable REPLICATE_API_TOKEN
+        if api_key:
+            os.environ["REPLICATE_API_TOKEN"] = api_key
+        
+        all_models = []
+        for page in replicate.paginate(replicate.models.list):
+            for model in page:
+                all_models.append(f"{model.owner}/{model.name}") # Replicate models are typically owner/name
+        
+        if all_models:
+            return all_models
+    except Exception as e:
+        st.warning(f"Could not fetch models from Replicate using SDK: {e}. Falling back to static list.")
+    # Fallback to a static list if SDK fails or is not configured
+    return [
+        "meta/llama-2-70b-chat",
+        "stability-ai/stable-diffusion",
+        "andreasjansson/blip-2",
+    ]
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _aleph_alpha_loader(api_key: Optional[str] = None) -> List[str]:
+    """Loader for Aleph Alpha models, attempting to use the SDK with a static fallback."""
+    try:
+        # API key can be passed directly or set as an environment variable AA_TOKEN or ALEPH_ALPHA_API_KEY
+        client = Client(token=api_key) if api_key else Client(token=os.environ.get("AA_TOKEN") or os.environ.get("ALEPH_ALPHA_API_KEY"))
+        model_settings = client.get_model_settings()
+        model_ids = list(model_settings.keys())
+        if model_ids:
+            return model_ids
+    except Exception as e:
+        st.warning(f"Could not fetch models from Aleph Alpha using SDK: {e}. Falling back to static list.")
+    # Fallback to a static list if SDK fails or is not configured
+    return [
+        "luminous-extended",
+        "luminous-base",
+        "luminous-supreme",
+    ]
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _ai21_static_loader(api_key: Optional[str] = None) -> List[str]:
+    """Static loader for AI21 Labs models, as no dynamic models endpoint is available.
+    Models are based on available documentation.
+    """
+    return [
+        "jamba-mini",
+        "jamba-large",
+        "j2-mid",
+        "j2-ultra",
+    ]
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _baseten_static_loader(api_key: Optional[str] = None) -> List[str]:
+    """Static loader for Baseten models, as no dynamic models endpoint is available.
+    Models are based on common deployments.
+    """
+    return [
+        "llama-2-7b-chat",
+        "stable-diffusion-v1-5",
+        "whisper",
+    ]
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _runpod_loader(api_key: Optional[str] = None) -> List[str]:
+    """Loader for RunPod models, attempting to use the SDK with a static fallback."""
+    try:
+        # API key can be passed directly or set as an environment variable RUNPOD_API_KEY
+        if api_key:
+            runpod.api_key = api_key
+        else:
+            runpod.api_key = os.getenv("RUNPOD_API_KEY")
+
+        if not runpod.api_key:
+            raise ValueError("RunPod API key not found. Please set the RUNPOD_API_KEY environment variable or pass it directly.")
+
+        endpoints = runpod.get_endpoints()
+        model_ids = []
+        for endpoint in endpoints:
+            if "modelName" in endpoint:
+                model_ids.append(endpoint["modelName"])
+            elif "name" in endpoint:
+                model_ids.append(endpoint["name"])
+        
+        if model_ids:
+            return model_ids
+    except Exception as e:
+        st.warning(f"Could not fetch models from RunPod using SDK: {e}. Falling back to static list.")
+    # Fallback to a static list if SDK fails or is not configured
+    return [
+        "llama2-70b-chat",
+        "stable-diffusion-v1-5",
+        "whisper",
+    ]
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _ollama_loader(api_key: Optional[str] = None) -> List[str]:
+    """Loader for Ollama models, making an HTTP GET request to its API to list models."""
+    try:
+        response = requests.get("http://localhost:11434/api/tags", timeout=5)
+        response.raise_for_status()
+        data = response.json()
+        models = [
+            model["name"]
+            for model in data.get("models", [])
+            if isinstance(model, dict) and "name" in model
+        ]
+        if models:
+            return models
+    except Exception as e:
+        st.warning(f"Could not fetch models from Ollama: {e}. Falling back to static list.")
+    # Fallback to a static list if API fails or is not running
+    return [
+        "llama2",
+        "mistral",
+        "gemma",
+    ]
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _llama_cpp_static_loader(api_key: Optional[str] = None) -> List[str]:
+    """Static loader for llama.cpp models, as its /models endpoint typically returns only the currently loaded model.
+    Models are based on common llama.cpp deployments.
+    """
+    return [
+        "llama-2-7b-chat.Q4_0.gguf",
+        "mistral-7b-instruct-v0.2.Q4_K_M.gguf",
+        "gemma-7b-it.Q4_K_M.gguf",
+    ]
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _vllm_static_loader(api_key: Optional[str] = None) -> List[str]:
+    """Static loader for vLLM models, as no dynamic models endpoint is available.
+    Models are based on common vLLM deployments.
+    """
+    return [
+        "llama-2-7b-chat",
+        "mistral-7b-instruct",
+        "gemma-7b-it",
+    ]
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _modal_loader(api_key: Optional[str] = None) -> List[str]:
+    """Loader for Modal Labs models, attempting to use the CLI with a static fallback."""
+    try:
+        # Modal CLI requires authentication, typically via `modal token new`
+        # We're not passing API key directly here, assuming CLI is configured.
+        result = subprocess.run(
+            ["modal", "app", "list", "--json"],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        apps_data = json.loads(result.stdout)
+        model_ids = [app.get("name") for app in apps_data if app.get("name")]
+        if model_ids:
+            return model_ids
+    except (subprocess.CalledProcessError, FileNotFoundError, json.JSONDecodeError) as e:
+        st.warning(f"Could not fetch models from Modal Labs using CLI: {e}. Falling back to static list.")
+    # Fallback to a static list if CLI fails or is not configured
+    return [
+        "modal-llama-2-70b-chat",
+        "modal-stable-diffusion",
+    ]
+
+
+@st.cache_data(ttl=3600) # Cache the result for 1 hour
+def _bedrock_loader(api_key: Optional[str] = None) -> List[str]:
+    """Loader for Amazon Bedrock models, attempting to use boto3 with a static fallback."""
+    try:
+        # Bedrock API key is typically managed via AWS credentials, not passed directly.
+        # The api_key parameter here might be used for region or other config if needed.
+        bedrock_runtime = boto3.client(
+            service_name="bedrock",
+            region_name="us-east-1", # Default region, can be made configurable
+            # aws_access_key_id=...,
+            # aws_secret_access_key=...,
+        )
+        response = bedrock_runtime.list_foundation_models()
+        models = [
+            model["modelId"]
+            for model in response["modelSummaries"]
+            if "modelId" in model
+        ]
+        if models:
+            return models
+    except Exception as e:
+        st.warning(f"Could not fetch models from Amazon Bedrock using boto3: {e}. Falling back to static list.")
+    # Fallback to a static list if boto3 fails or is not configured
+    return [
+        "anthropic.claude-3-sonnet-20240229-v1:0",
+        "anthropic.claude-3-opus-20240229-v1:0",
+        "anthropic.claude-3-haiku-20240307-v1:0",
+        "amazon.titan-text-express-v1",
+        "amazon.titan-text-lite-v1",
+        "amazon.titan-embed-text-v1",
+        "cohere.command-text-v14",
+        "cohere.command-light-text-v14",
+        "cohere.embed-english-v3",
+        "cohere.embed-multilingual-v3",
+        "meta.llama2-13b-chat-v1",
+        "meta.llama2-70b-chat-v1",
+        "stability.stable-diffusion-xl-v1",
+    ]
 import streamlit as st
 import requests
 from typing import List, Dict, Any, Optional
 from openevolve_integration import OpenEvolveAPI
+import boto3
+import google.cloud.aiplatform as aiplatform
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
+import replicate
+from aleph_alpha_client import Client
+import runpod
+import subprocess
+import json
 
 
 @st.cache_data(ttl=3600) # Cache the result for 1 hour
@@ -65,21 +389,6 @@ def _openai_style_loader(url: str, api_key: Optional[str] = None) -> List[str]:
 
 
 # Specific loaders for providers that don't follow OpenAI-style APIs
-def _groq_loader(api_key: Optional[str] = None) -> List[str]:
-    """Loader for Groq models."""
-    # Groq doesn't have a models endpoint, so we'll return a predefined list
-    return [
-        "llama-3.1-8b-instant",
-        "llama-3.1-70b-versatile",
-        "llama-3.1-405b-reasoning",
-        "llama3-groq-8b-8192-tool-use-preview",
-        "llama3-groq-70b-8192-tool-use-preview",
-        "llama-guard-3-8b",
-        "mixtral-8x7b-32768",
-        "gemma-7b-it",
-        "gemma2-9b-it",
-    ]
-
 
 @st.cache_data(ttl=3600) # Cache the result for 1 hour
 def _together_loader(api_key: Optional[str] = None) -> List[str]:
@@ -146,69 +455,37 @@ def _fireworks_loader(api_key: Optional[str] = None) -> List[str]:
         ]
 
 
-def _moonshot_loader(api_key: Optional[str] = None) -> List[str]:
-    """Loader for Moonshot models."""
-    # Moonshot doesn't have a public models endpoint, so we'll return a predefined list
-    return ["moonshot-v1-8k", "moonshot-v1-32k", "moonshot-v1-128k"]
 
 
-def _baichuan_loader(api_key: Optional[str] = None) -> List[str]:
-    """Loader for Baichuan models."""
-    # Baichuan doesn't have a public models endpoint, so we'll return a predefined list
-    return [
-        "Baichuan2-Turbo",
-        "Baichuan2-Turbo-192k",
-        "Baichuan3-Turbo",
-        "Baichuan3-Turbo-128k",
-        "Baichuan4",
-    ]
 
 
-def _zhipu_loader(api_key: Optional[str] = None) -> List[str]:
-    """Loader for Zhipu models."""
-    # Zhipu doesn't have a public models endpoint, so we'll return a predefined list
-    return [
-        "glm-4-plus",
-        "glm-4-0520",
-        "glm-4",
-        "glm-4-air",
-        "glm-4-airx",
-        "glm-4-long",
-        "glm-4-flash",
-        "glm-4v",
-        "glm-4v-plus",
-    ]
 
-
-def _minimax_loader(api_key: Optional[str] = None) -> List[str]:
-    """Loader for Minimax models."""
-    # Minimax doesn't have a public models endpoint, so we'll return a predefined list
+def _minimax_static_loader(api_key: Optional[str] = None) -> List[str]:
+    """Static loader for Minimax models, as no dynamic models endpoint is available.
+    Models are based on available documentation.
+    """
     return ["abab6.5s-chat", "abab6.5-chat", "abab6-chat"]
 
 
-def _yi_loader(api_key: Optional[str] = None) -> List[str]:
-    """Loader for Yi models."""
-    # Yi doesn't have a public models endpoint, so we'll return a predefined list
+def _baichuan_static_loader(api_key: Optional[str] = None) -> List[str]:
+    """Static loader for Baichuan models, as no dynamic models endpoint is available.
+    Models are based on Baichuan Intelligent documentation.
+    """
     return [
-        "yi-lightning",
-        "yi-large",
-        "yi-medium",
-        "yi-medium-200k",
-        "yi-spark",
-        "yi-large-rag",
-        "yi-large-turbo",
-        "yi-large-preview",
+        "Baichuan-M2",
+        "Baichuan4-Turbo",
+        "Baichuan4-Air",
+        "Baichuan4",
+        "Baichuan3-Turbo",
+        "Baichuan3-Turbo-128k",
+        "Baichuan2-Turbo",
+        # "Baichuan2-Turbo-192k" is currently offline according to documentation
     ]
-
-
-def _deepseek_loader(api_key: Optional[str] = None) -> List[str]:
-    """Loader for DeepSeek models."""
-    # DeepSeek doesn't have a public models endpoint, so we'll return a predefined list
-    return ["deepseek-chat", "deepseek-coder"]
 
 def _generic_loader(api_key: Optional[str] = None) -> List[str]:
     """Generic loader for models without a public models endpoint."""
     return ["default-model-1", "default-model-2", "default-model-3"]
+
 
 
 def fetch_providers_from_backend(api: OpenEvolveAPI) -> Dict[str, Any]:
@@ -254,8 +531,8 @@ PROVIDERS = {
     "groq": {
         "name": "Groq",
         "api_base": "https://api.groq.com/openai/v1",
-        "models_endpoint": None,  # Groq doesn't have a models endpoint
-        "loader": _groq_loader,
+        "models_endpoint": "https://api.groq.com/openai/v1/models",
+        "loader": _openai_style_loader,
         "default_model": "llama3-8b-8192",
     },
     "together": {
@@ -275,43 +552,43 @@ PROVIDERS = {
     "moonshot": {
         "name": "Moonshot AI",
         "api_base": "https://api.moonshot.cn/v1",
-        "models_endpoint": None,
-        "loader": _moonshot_loader,
+        "models_endpoint": "https://api.moonshot.cn/v1/models",
+        "loader": _openai_style_loader,
         "default_model": "moonshot-v1-8k",
     },
     "baichuan": {
         "name": "Baichuan AI",
         "api_base": "https://api.baichuan-ai.com/v1",
-        "models_endpoint": None,
-        "loader": _baichuan_loader,
+        "models_endpoint": None, # No standard models endpoint found, using static list.
+        "loader": _baichuan_static_loader,
         "default_model": "Baichuan2-Turbo",
     },
     "zhipu": {
         "name": "Zhipu AI",
         "api_base": "https://open.bigmodel.cn/api/paas/v4",
-        "models_endpoint": None,
-        "loader": _zhipu_loader,
+        "models_endpoint": "https://open.bigmodel.cn/api/paas/v4/models",
+        "loader": _openai_style_loader,
         "default_model": "glm-4",
     },
     "minimax": {
         "name": "Minimax",
         "api_base": "https://api.minimax.chat/v1",
-        "models_endpoint": None,
-        "loader": _minimax_loader,
+        "models_endpoint": None, # No standard models endpoint found, using static list.
+        "loader": _minimax_static_loader,
         "default_model": "abab6.5s-chat",
     },
     "yi": {
         "name": "01.AI (Yi)",
         "api_base": "https://api.01.ai/v1",
-        "models_endpoint": None,
-        "loader": _yi_loader,
+        "models_endpoint": "https://api.01.ai/v1/models",
+        "loader": _openai_style_loader,
         "default_model": "yi-large",
     },
     "deepseek": {
         "name": "DeepSeek",
         "api_base": "https://api.deepseek.com/v1",
-        "models_endpoint": None,
-        "loader": _deepseek_loader,
+        "models_endpoint": "https://api.deepseek.com/v1/models",
+        "loader": _openai_style_loader,
         "default_model": "deepseek-chat",
     },
     "azure_openai": {
@@ -387,95 +664,95 @@ PROVIDERS = {
     "amazon_bedrock": {
         "name": "Amazon Bedrock",
         "api_base": "https://bedrock.us-east-1.amazonaws.com",
-        "models_endpoint": None,
-        "loader": _generic_loader,
+        "models_endpoint": None,  # Bedrock requires a more complex API for model listing (e.g., boto3), not a simple /models endpoint.
+        "loader": _bedrock_loader,
         "default_model": "anthropic.claude-3-sonnet-20240229-v1:0",
     },
     "google_vertex_ai": {
         "name": "Google Vertex AI",
         "api_base": "https://us-central1-aiplatform.googleapis.com",
-        "models_endpoint": None,
-        "loader": _generic_loader,
+        "models_endpoint": None,  # Vertex AI requires a more complex API for model listing, using SDK.
+        "loader": _vertex_ai_loader,
         "default_model": "gemini-pro",
     },
     "nvidia": {
         "name": "NVIDIA AI Foundation Models",
         "api_base": "https://api.nvcf.nvidia.com/v2/nvcf/infer",
-        "models_endpoint": None,
-        "loader": _generic_loader,
+        "models_endpoint": None,  # NVIDIA AI Foundation Models require a specific API for model listing, using SDK.
+        "loader": _nvidia_loader,
         "default_model": "nv-llama2-70b",
     },
     "replicate": {
         "name": "Replicate",
         "api_base": "https://api.replicate.com/v1",
-        "models_endpoint": None,
-        "loader": _generic_loader,
+        "models_endpoint": None,  # Replicate API requires listing models by owner/name, using SDK.
+        "loader": _replicate_loader,
         "default_model": "meta/llama-2-70b-chat",
     },
     "aleph_alpha": {
         "name": "Aleph Alpha",
         "api_base": "https://api.aleph-alpha.com",
-        "models_endpoint": None,
-        "loader": _generic_loader,
+        "models_endpoint": None,  # Aleph Alpha API does not have a simple /models endpoint, using SDK.
+        "loader": _aleph_alpha_loader,
         "default_model": "luminous-extended",
     },
     "ai21": {
         "name": "AI21 Labs",
         "api_base": "https://api.ai21.com/studio/v1",
-        "models_endpoint": None,
-        "loader": _generic_loader,
+        "models_endpoint": None,  # AI21 Labs API does not have a simple /models endpoint, using static list.
+        "loader": _ai21_static_loader,
         "default_model": "j2-ultra",
     },
     "baseten": {
         "name": "Baseten",
         "api_base": "https://model.baseten.co",
-        "models_endpoint": None,
-        "loader": _generic_loader,
+        "models_endpoint": None,  # Baseten API does not have a simple /models endpoint, using static list.
+        "loader": _baseten_static_loader,
         "default_model": "llama-2-7b-chat",
     },
     "runpod": {
         "name": "RunPod",
         "api_base": "https://api.runpod.ai/v2",
-        "models_endpoint": None,
-        "loader": _generic_loader,
+        "models_endpoint": None,  # RunPod API requires SDK for model listing.
+        "loader": _runpod_loader,
         "default_model": "llama2-70b-chat",
     },
     "modal": {
         "name": "Modal Labs",
         "api_base": "https://api.modal.com/v1",
-        "models_endpoint": None,
-        "loader": _generic_loader,
+        "models_endpoint": None,  # Modal Labs API requires CLI for model listing.
+        "loader": _modal_loader,
         "default_model": "modal-llama-2-70b-chat",
     },
     "vllm": {
         "name": "vLLM",
         "api_base": "http://localhost:8000/v1", # Assuming local vLLM instance
-        "models_endpoint": None,
-        "loader": _generic_loader,
+        "models_endpoint": None,  # vLLM typically runs locally and model listing depends on its setup, using static list.
+        "loader": _vllm_static_loader,
         "default_model": "llama-2-7b-chat",
     },
     "llama_cpp": {
         "name": "llama.cpp",
         "api_base": "http://localhost:8080/v1", # Assuming local llama.cpp instance
-        "models_endpoint": None,
-        "loader": _generic_loader,
+        "models_endpoint": None,  # llama.cpp typically runs locally and model listing depends on its setup, using static list.
+        "loader": _llama_cpp_static_loader,
         "default_model": "llama-2-7b-chat.Q4_0.gguf",
     },
     "ollama": {
         "name": "Ollama",
         "api_base": "http://localhost:11434/api",
-        "models_endpoint": None,
-        "loader": _generic_loader,
+        "models_endpoint": "http://localhost:11434/api/tags",  # Ollama API endpoint for listing models.
+        "loader": _ollama_loader,
         "default_model": "llama2",
     },
-    "local_llm": {
-        "name": "Local LLM (Generic)",
-        "api_base": "http://localhost:8000/v1",
-        "models_endpoint": None,
-        "loader": _generic_loader,
-        "default_model": "local-model",
-    },
-}
+        "local_llm": {
+            "name": "Local LLM (Generic)",
+            "api_base": "http://localhost:8000/v1",
+            "models_endpoint": None,  # Local LLM model listing is highly dependent on the specific local setup and cannot be dynamically fetched generically.
+            "loader": _generic_loader,
+            "default_model": "local-model",
+        },
+    }
 
 PROVIDERS_CACHE = {}
 

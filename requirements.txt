@@ -1,41 +1,42 @@
 # OpenEvolve Requirements
 
 # Core dependencies
-nltk>=3.9.0
-textstat>=0.7.10
-scikit-learn>=1.7.0
-scipy>=1.16.0
-numpy>=2.3.0
-PyYAML>=6.0.0
-Jinja2>=3.1.0
-requests>=2.32.0
-openai>=1.0.0
-optillm>=0.1.0
+nltk==3.9.2
+textstat==0.7.10
+scipy==1.16.2
+numpy==2.3.3
+PyYAML==6.0.1
+Jinja2==3.1.4
+requests==2.32.3
+openai==1.35.11
+optillm==0.1.0
 
 # Data processing
-pandas>=2.2.0
-matplotlib>=3.9.0
-seaborn>=0.13.0
+pandas==2.2.2
+matplotlib==3.9.1
+seaborn==0.13.2
 
 # Web framework
-streamlit>=1.38.0
-plotly>=5.24.0
-
-# Database (optional)
-sqlite3
+streamlit==1.36.0
+plotly==5.22.0
 
 # OpenEvolve package
-openevolve>=0.1.0
+openevolve==0.1.0
+
+# Provider SDKs
+boto3==1.34.140
+google-cloud-aiplatform==1.59.0
+langchain-nvidia-ai-endpoints==0.0.10
+replicate==0.30.0
+aleph-alpha-client==3.1.0
+runpod==1.6.2
 
 # Development tools
-pytest>=8.3.0
-black>=24.8.0
-flake8>=7.1.0
-mypy>=1.11.0
+pytest==8.2.2
+black==24.4.2
+flake8==7.1.0
+mypy==1.10.0
 
 # Documentation
-mkdocs>=1.6.0
-mkdocs-material>=9.5.0
-
-# Performance optimization
-asyncio-multiprocessing>=0.1.0
+mkdocs==1.6.0
+mkdocs-material==9.5.28

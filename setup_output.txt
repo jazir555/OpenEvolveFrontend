@@ -1,0 +1,42 @@
+Script started.
+Delayed expansion enabled.
+Press any key to continue . . . 
+'VENV_DIR' is not recognized as an internal or external command,
+operable program or batch file.
+Variables VENV_DIR, PYTHON_EXE, PIP_EXE defined.
+Using Python command: python
+Activating virtual environment...
+Installing required Python packages...
+Collecting nltk>=3.9.0
+  Using cached nltk-3.9.2-py3-none-any.whl (1.5 MB)
+Collecting textstat>=0.7.10
+  Using cached textstat-0.7.10-py3-none-any.whl (239 kB)
+Collecting scikit-learn>=1.7.0
+  Using cached scikit_learn-1.7.2-cp311-cp311-win_amd64.whl (8.9 MB)
+Collecting scipy>=1.16.0
+  Using cached scipy-1.16.2-cp311-cp311-win_amd64.whl (38.7 MB)
+Collecting numpy>=2.3.0
+  Using cached numpy-2.3.3-cp311-cp311-win_amd64.whl (13.1 MB)
+Collecting PyYAML>=6.0.0
+  Using cached pyyaml-6.0.3-cp311-cp311-win_amd64.whl (158 kB)
+Collecting Jinja2>=3.1.0
+  Using cached jinja2-3.1.6-py3-none-any.whl (134 kB)
+Collecting requests>=2.32.0
+  Using cached requests-2.32.5-py3-none-any.whl (64 kB)
+Collecting openai>=1.0.0
+  Using cached openai-2.3.0-py3-none-any.whl (999 kB)
+Collecting optillm>=0.1.0
+  Using cached optillm-0.3.3-py3-none-any.whl (300 kB)
+Collecting pandas>=2.2.0
+  Using cached pandas-2.3.3-cp311-cp311-win_amd64.whl (11.3 MB)
+Collecting matplotlib>=3.9.0
+  Using cached matplotlib-3.10.7-cp311-cp311-win_amd64.whl (8.1 MB)
+Collecting seaborn>=0.13.0
+  Using cached seaborn-0.13.2-py3-none-any.whl (294 kB)
+Collecting streamlit>=1.38.0
+  Using cached streamlit-1.50.0-py3-none-any.whl (10.1 MB)
+Collecting plotly>=5.24.0
+  Using cached plotly-6.3.1-py3-none-any.whl (9.8 MB)
+Collecting openevolve>=0.1.0
+  Using cached openevolve-0.2.18-py3-none-any.whl (107 kB)
+^C
