@@ -194,26 +194,30 @@ def start_collaboration_server():
 
     # Only attempt to start if not already started and no previous error
     if not st.session_state.collaboration_server_started and not st.session_state.collaboration_server_error:
-        port = 8765  # Default collaboration port
+        # Try default collaboration port first, then fallback to alternatives
+        ports_to_try = [8765, 8766, 8767, 8768, 8769, 9000, 9001, 9002]
         
-        # Test if port is available
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            try:
-                sock.bind(('localhost', port))
-                port_available = True
-            except OSError:
-                port_available = False
+        selected_port = None
+        for port in ports_to_try:
+            # Test if port is available
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+                try:
+                    sock.bind(('localhost', port))
+                    selected_port = port
+                    break  # Found an available port
+                except OSError:
+                    continue  # Try next port
         
-        if not port_available:
-            st.warning(f"Port {port} is already in use. Collaboration server cannot start.")
+        if selected_port is None:
+            st.warning(f"No available ports found for collaboration server (tried {ports_to_try}).")
             st.session_state.collaboration_server_error = True
             return
 
         try:
-            st.session_state.collaboration_server_instance = CollaborationServer(host="localhost", port=port)
+            st.session_state.collaboration_server_instance = CollaborationServer(host="localhost", port=selected_port)
             st.session_state.collaboration_server_instance.start()
             st.session_state.collaboration_server_started = True
-            print(f"Collaboration server started successfully on ws://localhost:{port}")
+            print(f"Collaboration server started successfully on ws://localhost:{selected_port}")
         except Exception as e:
             st.error(f"Failed to start collaboration server: {e}")
             st.session_state.collaboration_server_error = True
