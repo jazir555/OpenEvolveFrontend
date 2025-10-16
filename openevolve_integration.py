@@ -7,7 +7,7 @@ import tempfile
 import os
 import json as json_module
 import time
-from typing import Dict, Any, Optional, List, Callable, Iterator
+from typing import Dict, Any, Optional, List, Callable, Iterator, Union
 from dataclasses import asdict
 import requests
 
@@ -15,6 +15,9 @@ import requests
 try:
     from openevolve.api import (
         run_evolution as openevolve_run_evolution,
+        evolve_function as openevolve_evolve_function,
+        evolve_algorithm as openevolve_evolve_algorithm,
+        evolve_code as openevolve_evolve_code,
         EvolutionResult,
     )
     from openevolve.config import (
@@ -30,6 +33,11 @@ try:
     OPENEVOLVE_AVAILABLE = True
 except ImportError:
     OPENEVOLVE_AVAILABLE = False
+    # Define fallback types when OpenEvolve is not available
+    class Config:
+        """Fallback Config class when OpenEvolve is not available"""
+        pass
+    
     st.warning("OpenEvolve backend not available - using API-based evolution only")
 
 

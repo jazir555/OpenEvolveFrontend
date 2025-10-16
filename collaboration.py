@@ -1,20 +1,38 @@
 import asyncio
 import streamlit as st
-import websockets
-import json
-import threading
 from typing import Set, Dict, Any
+import socket  # Added this import
+
+# Optional imports with fallbacks
+try:
+    import websockets
+    WEBSOCKETS_AVAILABLE = True
+except ImportError:
+    websockets = None
+    WEBSOCKETS_AVAILABLE = False
+
+import json
 
 
 class CollaborationServer:
     def __init__(self, host="localhost", port=8765):
+        if not WEBSOCKETS_AVAILABLE:
+            self.host = host
+            self.port = port
+            self.server = None
+            print("WebSockets not available - collaboration features disabled")
+            return
+            
         self.host = host
         self.port = port
         self.server = None
         self.users: Set[websockets.WebSocketServerProtocol] = set()
         self.user_info: Dict[websockets.WebSocketServerProtocol, Dict[str, Any]] = {}
 
-    async def handler(self, websocket: websockets.WebSocketServerProtocol, path: str):
+    async def handler(self, websocket, path: str):
+        if not WEBSOCKETS_AVAILABLE:
+            return
+            
         """
         Handle incoming websocket connections.
         """
@@ -41,6 +59,9 @@ class CollaborationServer:
             await self.broadcast_presence()
 
     async def broadcast_presence(self):
+        if not WEBSOCKETS_AVAILABLE:
+            return
+            
         """
         Broadcast presence information to all connected users.
         """
@@ -53,6 +74,9 @@ class CollaborationServer:
             await asyncio.wait([user.send(message) for user in self.users])
 
     async def broadcast_notification(self, payload: Dict[str, Any]):
+        if not WEBSOCKETS_AVAILABLE:
+            return
+            
         """
         Broadcast a notification to all connected users.
         """
@@ -62,6 +86,9 @@ class CollaborationServer:
             await asyncio.wait([user.send(message) for user in self.users])
 
     async def broadcast_config(self, payload: Dict[str, Any]):
+        if not WEBSOCKETS_AVAILABLE:
+            return
+            
         """
         Broadcast the evolution configuration to all connected users.
         """
@@ -71,6 +98,9 @@ class CollaborationServer:
             await asyncio.wait([user.send(message) for user in self.users])
 
     async def broadcast_results(self, payload: Dict[str, Any]):
+        if not WEBSOCKETS_AVAILABLE:
+            return
+            
         """
         Broadcast the evolution results to all connected users.
         """
@@ -80,6 +110,9 @@ class CollaborationServer:
             await asyncio.wait([user.send(message) for user in self.users])
 
     async def broadcast_comment(self, payload: Dict[str, Any]):
+        if not WEBSOCKETS_AVAILABLE:
+            return
+            
         """
         Broadcast a new comment to all connected users.
         """
@@ -89,8 +122,11 @@ class CollaborationServer:
             await asyncio.wait([user.send(message) for user in self.users])
 
     async def broadcast_cursor(
-        self, sender: websockets.WebSocketServerProtocol, payload: Dict[str, Any]
+        self, sender, payload: Dict[str, Any]
     ):
+        if not WEBSOCKETS_AVAILABLE:
+            return
+            
         """
         Broadcast cursor position to other users.
         """
@@ -105,8 +141,11 @@ class CollaborationServer:
                 await user.send(message)
 
     async def broadcast_text(
-        self, sender: websockets.WebSocketServerProtocol, payload: Dict[str, Any]
+        self, sender, payload: Dict[str, Any]
     ):
+        if not WEBSOCKETS_AVAILABLE:
+            return
+            
         """
         Broadcast text updates to other users.
         """
@@ -121,6 +160,10 @@ class CollaborationServer:
                 await user.send(message)
 
     def start(self):
+        if not WEBSOCKETS_AVAILABLE:
+            print("Collaboration server cannot start - websockets module not available")
+            return
+            
         """
         Start the websocket server in a separate thread.
         """
@@ -139,25 +182,37 @@ class CollaborationServer:
 
 
 def start_collaboration_server():
+    if not WEBSOCKETS_AVAILABLE:
+        print("Collaboration server cannot start - websockets module not available")
+        return
+
     if "collaboration_server_instance" not in st.session_state:
-        # Check if the port is available before creating the server
-        import socket
+        st.session_state.collaboration_server_instance = None
+        st.session_state.collaboration_server_started = False
+        st.session_state.collaboration_server_error = False
+
+    # Only attempt to start if not already started and no previous error
+    if not st.session_state.collaboration_server_started and not st.session_state.collaboration_server_error:
         port = 8765  # Default collaboration port
         
         # Test if port is available
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-            result = sock.connect_ex(('localhost', port))
-            if result == 0:  # Port is in use
-                st.warning(f"Port {port} is already in use. Collaboration server may not start properly.")
+            try:
+                sock.bind(('localhost', port))
+                port_available = True
+            except OSError:
+                port_available = False
         
-        st.session_state.collaboration_server_instance = CollaborationServer(host="localhost", port=port)
-        st.session_state.collaboration_server_started = False
+        if not port_available:
+            st.warning(f"Port {port} is already in use. Collaboration server cannot start.")
+            st.session_state.collaboration_server_error = True
+            return
 
-    if not st.session_state.collaboration_server_started:
         try:
+            st.session_state.collaboration_server_instance = CollaborationServer(host="localhost", port=port)
             st.session_state.collaboration_server_instance.start()
             st.session_state.collaboration_server_started = True
-            print(f"Collaboration server started successfully on ws://localhost:{8765}")
+            print(f"Collaboration server started successfully on ws://localhost:{port}")
         except Exception as e:
             st.error(f"Failed to start collaboration server: {e}")
-            st.session_state.collaboration_server_started = False
+            st.session_state.collaboration_server_error = True

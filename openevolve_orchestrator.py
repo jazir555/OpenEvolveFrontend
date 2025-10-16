@@ -5,9 +5,14 @@ Advanced workflow orchestration for ALL OpenEvolve features
 import streamlit as st
 import time
 import threading
+import os
+import sys
+import subprocess
 from typing import Dict, Any, List, Optional, Callable
 from dataclasses import dataclass
 from enum import Enum
+import requests # Added this line
+import logging # Added this line
 
 # Import OpenEvolve components
 try:

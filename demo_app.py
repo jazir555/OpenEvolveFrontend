@@ -26,13 +26,7 @@ from performance_optimization import (
     MemoryManagementOptimizer
 )
 
-# Configure Streamlit page
-st.set_page_config(
-    page_title="OpenEvolve Demo",
-    page_icon="🧬",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+
 
 # Custom CSS
 st.markdown("""

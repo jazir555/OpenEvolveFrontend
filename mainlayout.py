@@ -19,9 +19,29 @@ import io
 import altair as alt
 import numpy as np
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 from streamlit.components.v1 import html
+
+# --- Optional Imports with Fallbacks ---
+try:
+    import plotly.express as px
+    PLOTLY_AVAILABLE = True
+except ImportError:
+    px = None
+    PLOTLY_AVAILABLE = False
+
+try:
+    import matplotlib.pyplot as plt
+    MATPLOTLIB_AVAILABLE = True
+except ImportError:
+    MATPLOTLIB_AVAILABLE = False
+
+try:
+    from log_streaming import LogStreaming
+    LOG_STREAMING_AVAILABLE = True
+except ImportError:
+    LogStreaming = None
+    LOG_STREAMING_AVAILABLE = False
 
 # --- Optional Imports with Fallbacks ---
 try:
@@ -1711,8 +1731,11 @@ def render_analytics_dashboard_tab():
                     })
             if fitness_data:
                 df = pd.DataFrame(fitness_data)
-                fig = px.line(df, x="Generation", y=["Best Fitness", "Average Fitness"], title="Fitness Trend")
-                st.plotly_chart(fig, use_container_width=True)
+                if PLOTLY_AVAILABLE:
+                    fig = px.line(df, x="Generation", y=["Best Fitness", "Average Fitness"], title="Fitness Trend")
+                    st.plotly_chart(fig, use_container_width=True)
+                else:
+                    st.warning("Plotly is not available. Install it using: pip install plotly")
         else:
             st.info("Run an evolution to see fitness trends.")
 
@@ -1722,8 +1745,11 @@ def render_analytics_dashboard_tab():
         if model_performance:
             model_data = [{"Model": k, "Score": v.get("score", 0), "Cost": v.get("cost", 0.0)} for k, v in model_performance.items()]
             df = pd.DataFrame(model_data).sort_values(by="Score", ascending=False)
-            fig = px.bar(df, x="Model", y="Score", title="Model Performance Comparison")
-            st.plotly_chart(fig, use_container_width=True)
+            if PLOTLY_AVAILABLE:
+                fig = px.bar(df, x="Model", y="Score", title="Model Performance Comparison")
+                st.plotly_chart(fig, use_container_width=True)
+            else:
+                st.warning("Plotly is not available. Install it using: pip install plotly")
         else:
             st.info("Run adversarial testing to see model performance data.")
 
@@ -1845,5 +1871,7 @@ def render_main_layout():
 
 
 if __name__ == "__main__":
-    st.set_page_config(layout="wide")
+    # When running this file directly, we need to set page config
+    # But when imported by main.py, it's already set there
+    import streamlit as st
     render_main_layout()

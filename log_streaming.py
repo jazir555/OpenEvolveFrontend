@@ -1,5 +1,15 @@
 import streamlit as st
-from flask import Flask, Response, jsonify
+
+# Optional imports with fallbacks
+try:
+    from flask import Flask, Response, jsonify
+    FLASK_AVAILABLE = True
+except ImportError:
+    Flask = None
+    Response = None
+    jsonify = None
+    FLASK_AVAILABLE = False
+
 import queue
 import threading
 from datetime import datetime
@@ -11,6 +21,11 @@ import pandas as pd
 
 class LogStreaming:
     def __init__(self):
+        if not FLASK_AVAILABLE:
+            print("Flask not available. Log streaming features will be disabled.")
+            self.app = None
+            return
+            
         self.log_queue = queue.Queue()
         self.app = Flask(__name__)
         self._setup_routes()
@@ -30,6 +45,9 @@ class LogStreaming:
         self.logger = logging.getLogger(__name__)
 
     def _setup_routes(self):
+        if not FLASK_AVAILABLE:
+            return
+            
         @self.app.route("/logs")
         def stream_logs():
             def generate():
@@ -61,6 +79,14 @@ class LogStreaming:
             return jsonify(metrics)
 
     def run_flask_app_in_thread(self):
+        if not FLASK_AVAILABLE:
+            print("Flask not available. Cannot start log streaming service.")
+            return
+            
+        if not FLASK_AVAILABLE:
+            print("Flask not available. Cannot start log streaming service.")
+            return
+            
         if self.flask_thread is None or not self.flask_thread.is_alive():
             self.flask_thread = threading.Thread(
                 target=self.app.run, 
@@ -127,10 +153,27 @@ class LogStreaming:
     def render_log_streaming_ui(self):
         st.header("📄 Log Streaming & Monitoring")
         
-        # Start Flask app if not already running
-        if not st.session_state.get("log_streaming_flask_running", False):
-            self.run_flask_app_in_thread()
-            st.success("Log streaming service started!")
+        if not FLASK_AVAILABLE:
+            st.warning("Flask not available. Log streaming features are disabled. Install Flask to enable real-time log streaming.")
+            # Basic log functionality without Flask
+            st.subheader("Recent Logs")
+            if self.log_history:
+                # Create a dataframe for display
+                recent_logs = self.log_history[-20:]  # Show last 20 logs
+                log_df = []
+                for log in recent_logs:
+                    log_df.append({
+                        "Timestamp": log["timestamp"],
+                        "Level": log["level"],
+                        "Message": log["message"]
+                    })
+                
+                if log_df:
+                    df = pd.DataFrame(log_df)
+                    st.dataframe(df, use_container_width=True)
+            else:
+                st.info("No recent logs to display.")
+            return
         
         # Interactive log streaming controls
         col1, col2, col3 = st.columns(3)

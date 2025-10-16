@@ -310,92 +310,171 @@ if __name__ == "__main__":
 def start_openevolve_services():
     print("start_openevolve_services called")
     """Start all OpenEvolve services."""
-    # Check if LLM backend is already running on port 8000
-    try:
-        # Try to connect to the LLM server health endpoint
-        response = requests.get("http://localhost:8000/v1/models", timeout=5)
-        if response.status_code == 200:
-            logging.info("LLM backend is already running on port 8000.")
-            return
-    except requests.exceptions.ConnectionError:
-        logging.warning("LLM backend not running on port 8000.")
-        logging.info("OpenEvolve requires an LLM server (like OptiLLM) to be available.")
-        logging.info("Please start your LLM server on port 8000 or configure a different endpoint.")
-    except requests.exceptions.Timeout:
-        logging.warning("LLM backend health check timed out.")
-    except Exception as e:
-        logging.error(f"Error during LLM backend health check: {e}")
     
+    # The OpenEvolve project may require an LLM proxy service (like OptiLLM) on port 8000
+    # and a visualizer service on port 8080. This function starts both if available.
+    
+    # Check if visualizer is already running on port 8080
     try:
-        # Define backend path and command
-        backend_path = os.path.join(get_project_root(), "openevolve")
-        command = [
-            sys.executable,  # Use the same python that runs the frontend
-            os.path.join(backend_path, "scripts", "visualizer.py"),
-            "--port",
-            "8080"
-        ]
-        
-        # Get the current environment and add the project root to PYTHONPATH
-        env = os.environ.copy()
-        env["PYTHONPATH"] = get_project_root()
+        viz_response = requests.get("http://localhost:8080/", timeout=5)
+        if viz_response.status_code == 200:
+            logging.info("OpenEvolve visualizer is already running on port 8080.")
+    except requests.exceptions.ConnectionError:
+        logging.info("OpenEvolve visualizer not running on port 8080. Attempting to start...")
+        # Start the visualizer on port 8080
+        try:
+            backend_path = os.path.join(get_project_root(), "openevolve")
+            viz_script_path = os.path.join(backend_path, "scripts", "visualizer.py")
+            
+            if os.path.exists(viz_script_path):
+                viz_command = [
+                    sys.executable,  # Use the same python that runs the frontend
+                    viz_script_path,
+                    "--port",
+                    "8080"
+                ]
+                
+                # Get the current environment and add the project root to PYTHONPATH
+                env = os.environ.copy()
+                env["PYTHONPATH"] = get_project_root()
 
-        # Use Popen to start the backend without blocking the main thread
-        # Create log files in frontend directory to capture backend output for debugging
-        backend_out_log = os.path.join(os.path.dirname(__file__), "backend_stdout.log")
-        backend_err_log = os.path.join(os.path.dirname(__file__), "backend_stderr.log")
-        
-        with open(backend_out_log, "w") as stdout_file, open(backend_err_log, "w") as stderr_file:
-            # We use a separate thread to run this to ensure it doesn't interfere with Streamlit's main loop
-            process = subprocess.Popen(
-                command,
-                stdout=stdout_file,
-                stderr=stderr_file,
-                env=env,
-                creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
-            )
-        
-        st.session_state.openevolve_backend_process = process
-        logging.info(f"OpenEvolve backend started with PID: {process.pid}")
-        
-        # Wait a bit for the backend to start
-        time.sleep(2)
-        
-        # Double-check if backend is running after starting
-        max_retries = 15  # Increased retry attempts
-        retry_count = 0
-        backend_started = False
-        
-        while retry_count < max_retries and not backend_started:
-            try:
-                response = requests.get("http://localhost:8080/", timeout=5)  # Check visualizer server
-                if response.status_code == 200:
-                    logging.info("OpenEvolve backend confirmed running.")
-                    backend_started = True
-                    break
-            except requests.exceptions.RequestException:
-                pass
-            time.sleep(2)  # Wait 2 seconds before retrying
-            retry_count += 1
+                # Use Popen to start the visualizer without blocking the main thread
+                # Create log files in frontend directory to capture backend output for debugging
+                backend_out_log = os.path.join(os.path.dirname(__file__), "backend_stdout.log")
+                backend_err_log = os.path.join(os.path.dirname(__file__), "backend_stderr.log")
+                
+                with open(backend_out_log, "a") as stdout_file, open(backend_err_log, "a") as stderr_file:
+                    # Start visualizer process
+                    viz_process = subprocess.Popen(
+                        viz_command,
+                        stdout=stdout_file,
+                        stderr=stderr_file,
+                        env=env,
+                        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+                    )
+                
+                if not hasattr(st.session_state, 'openevolve_backend_processes'):
+                    st.session_state.openevolve_backend_processes = {}
+                st.session_state.openevolve_backend_processes['visualizer'] = viz_process
+                logging.info(f"OpenEvolve visualizer started with PID: {viz_process.pid}")
+                
+                # Wait a bit for the visualizer to start
+                time.sleep(2)
+                
+                # Double-check if visualizer is running after starting
+                max_retries = 15  # Increased retry attempts
+                retry_count = 0
+                viz_started = False
+                
+                while retry_count < max_retries and not viz_started:
+                    try:
+                        response = requests.get("http://localhost:8080/", timeout=5)  # Check visualizer server
+                        if response.status_code == 200:
+                            logging.info("OpenEvolve visualizer confirmed running on port 8080.")
+                            viz_started = True
+                            break
+                    except requests.exceptions.RequestException:
+                        pass
+                    time.sleep(2)  # Wait 2 seconds before retrying
+                    retry_count += 1
+                    
+                if not viz_started:
+                    logging.warning("OpenEvolve visualizer may not have started properly. Please check backend logs.")
+                    logging.info("Backend logs are available at backend_stdout.log and backend_stderr.log")
+            else:
+                logging.info(f"OpenEvolve visualizer script not found at {viz_script_path}. Visualizer will not be started automatically.")
+                
+        except Exception as e:
+            logging.error(f"Failed to start OpenEvolve visualizer: {e}")
+            import traceback
+            logging.error(f"Full traceback: {traceback.format_exc()}")
+    
+    # Check if LLM proxy (OptiLLM) is already running on port 8000
+    try:
+        llm_proxy_response = requests.get("http://localhost:8000/v1/models", timeout=5)
+        if llm_proxy_response.status_code == 200:
+            logging.info("LLM proxy (OptiLLM) is already running on port 8000.")
+    except requests.exceptions.ConnectionError:
+        logging.info("LLM proxy (OptiLLM) not running on port 8000. Attempting to start...")
+        # Start OptiLLM on port 8000
+        try:
+            optillm_command = [
+                sys.executable,  # Use the same python that runs the frontend
+                "-m",
+                "optillm",
+                "--port",
+                "8000"
+            ]
             
-        if not backend_started:
-            logging.warning("OpenEvolve backend may not have started properly. Please check backend logs.")
-            logging.info("Backend logs are available at backend_stdout.log and backend_stderr.log")
+            # Create log files in frontend directory to capture backend output for debugging
+            backend_out_log = os.path.join(os.path.dirname(__file__), "backend_stdout.log")
+            backend_err_log = os.path.join(os.path.dirname(__file__), "backend_stderr.log")
             
-    except Exception as e:
-        logging.error(f"Failed to start OpenEvolve backend: {e}")
-        import traceback
-        logging.error(f"Full traceback: {traceback.format_exc()}")
+            with open(backend_out_log, "a") as stdout_file, open(backend_err_log, "a") as stderr_file:
+                optillm_process = subprocess.Popen(
+                    optillm_command,
+                    stdout=stdout_file,
+                    stderr=stderr_file,
+                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
+                )
+            
+            if not hasattr(st.session_state, 'openevolve_backend_processes'):
+                st.session_state.openevolve_backend_processes = {}
+            st.session_state.openevolve_backend_processes['optillm'] = optillm_process
+            logging.info(f"OptiLLM proxy started with PID: {optillm_process.pid}")
+            
+            # Wait a bit for OptiLLM to start
+            time.sleep(2)
+            
+            # Double-check if OptiLLM is running after starting
+            max_retries = 15  # Increased retry attempts
+            retry_count = 0
+            optillm_started = False
+            
+            while retry_count < max_retries and not optillm_started:
+                try:
+                    response = requests.get("http://localhost:8000/v1/models", timeout=5)
+                    if response.status_code == 200:
+                        logging.info("OptiLLM proxy confirmed running on port 8000.")
+                        optillm_started = True
+                        break
+                except requests.exceptions.RequestException:
+                    pass
+                time.sleep(2)  # Wait 2 seconds before retrying
+                retry_count += 1
+                
+            if not optillm_started:
+                logging.warning("OptiLLM proxy may not have started properly. Please check backend logs.")
+                logging.info("Backend logs are available at backend_stdout.log and backend_stderr.log")
+                
+        except Exception as e:
+            logging.error(f"Failed to start OptiLLM proxy: {e}")
+            import traceback
+            logging.error(f"Full traceback: {traceback.format_exc()}")
 
 def stop_openevolve_services():
     """Stop all OpenEvolve services."""
-    if "openevolve_backend_process" in st.session_state and st.session_state.openevolve_backend_process:
-        st.session_state.openevolve_backend_process.terminate()
-        st.session_state.openevolve_backend_process = None
-        logging.info("OpenEvolve backend process terminated.")
+    # Stop all OpenEvolve backend processes if running
+    if "openevolve_backend_processes" in st.session_state and st.session_state.openevolve_backend_processes:
+        for service_name, process in st.session_state.openevolve_backend_processes.items():
+            try:
+                if process and process.poll() is None:  # Check if process is still running
+                    process.terminate()
+                    logging.info(f"OpenEvolve {service_name} process terminated.")
+            except Exception as e:
+                logging.error(f"Error terminating OpenEvolve {service_name} process: {e}")
+        st.session_state.openevolve_backend_processes = {}
+    # Also handle the old single process variable for backward compatibility
+    elif "openevolve_backend_process" in st.session_state and st.session_state.openevolve_backend_process:
+        try:
+            st.session_state.openevolve_backend_process.terminate()
+            st.session_state.openevolve_backend_process = None
+            logging.info("OpenEvolve backend process terminated.")
+        except Exception as e:
+            logging.error(f"Error terminating OpenEvolve backend process: {e}")
 
 def restart_openevolve_services():
     """Restart all OpenEvolve services."""
     stop_openevolve_services()
-    time.sleep(2)
+    time.sleep(3)  # Increased wait time to ensure processes are fully terminated
     start_openevolve_services()

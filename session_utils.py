@@ -1585,7 +1585,7 @@ DEFAULTS = {
     "adversarial_keyword_penalty_weight": 0.5,  # New: Keyword penalty weight
     "adversarial_evaluator_threshold": 90.0,  # New: Evaluator team threshold (e.g., 90%)
     "adversarial_evaluator_consecutive_rounds": 1,  # New: Consecutive rounds required
-    "adversarial_content_type": "general",  # New: Content type for processing
+    "adversarial_content_type": "document_general",  # New: Content type for processing
     # Collaborative features
     "project_name": "Untitled Project",
     "collaborators": [],

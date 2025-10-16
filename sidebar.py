@@ -63,73 +63,6 @@ def get_project_root():
         # Fallback to current working directory
         return os.getcwd()
 
-def start_optillm_server(model: str = "google/gemma-3-270m-it", port: int = 8000):
-    """
-    Starts the OptiLLM server in a separate thread with specified model and port.
-    """
-    logger.info(f"Attempting to start OptiLLM server with model {model} on port {port}...")
-    
-    # Check if OptiLLM is already running on the target port
-    try:
-        response = requests.get(f"http://localhost:{port}/health", timeout=1)
-        if response.status_code == 200:
-            st.success(f"OptiLLM server is already running on http://localhost:{port} with model {model}.")
-            return
-    except requests.exceptions.ConnectionError:
-        pass # Not running, proceed to start
-    except Exception as e:
-        st.warning(f"Could not check OptiLLM status: {e}")
-
-    # Determine virtual environment path
-    venv_dir = os.path.join(get_project_root(), "openevolve", "env")
-    optillm_executable = os.path.join(venv_dir, "Scripts", "optillm.exe") if sys.platform == "win32" else os.path.join(venv_dir, "bin", "optillm")
-
-    if not os.path.exists(optillm_executable):
-        st.error(f"OptiLLM executable not found at {optillm_executable}. Please ensure OptiLLM is installed in the virtual environment (run `make install-dev` in the `openevolve` directory).")
-        return
-
-    command = [
-        optillm_executable,
-        "--model", model,
-        "--port", str(port)
-    ]
-
-    try:
-        # Terminate existing OptiLLM process if any
-        if "optillm_process" in st.session_state and st.session_state.optillm_process:
-            st.session_state.optillm_process.terminate()
-            st.session_state.optillm_process = None
-            logger.info("Existing OptiLLM server terminated.")
-            time.sleep(1) # Give it a moment to shut down
-
-        # Start OptiLLM in a new process group to ensure it's independent
-        process = subprocess.Popen(
-            command,
-            env={"OPTILLM_API_KEY": "optillm", **os.environ}, # Pass API key as env var
-            stdout=subprocess.DEVNULL, # Redirect stdout to /dev/null
-            stderr=subprocess.DEVNULL, # Redirect stderr to /dev/null
-            creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
-        )
-        st.session_state.optillm_process = process
-        st.success(f"OptiLLM server started with PID: {process.pid}. Waiting for it to become ready...")
-
-        # Wait for OptiLLM to become ready
-        time.sleep(5) # Give it some time to start
-        for _ in range(10): # Retry health check a few times
-            try:
-                response = requests.get(f"http://localhost:{port}/health", timeout=1)
-                if response.status_code == 200:
-                    st.success(f"OptiLLM server is now ready on http://localhost:{port}!")
-                    return
-            except requests.exceptions.ConnectionError:
-                time.sleep(1)
-        st.warning(f"OptiLLM server started, but health check timed out on http://localhost:{port}. It might still be starting up.")
-
-    except Exception as e:
-        st.error(f"Failed to start OptiLLM server: {e}")
-        logger.exception("Error starting OptiLLM server")
-
-
 def load_settings_for_scope():
     """
     Loads parameters into session_state for the UI based on the selected scope.
@@ -357,43 +290,9 @@ def display_sidebar():
             "Controls the 'Evolution' tab. Adversarial Testing always uses OpenRouter."
         )
 
-        # OptiLLM Server Status and Start Button
-        st.markdown("**OptiLLM Server**")
-
-        # OptiLLM Configuration Inputs
-        st.text_input("OptiLLM Model", value=st.session_state.get("optillm_model", "google/gemma-3-270m-it"), key="optillm_model")
-        st.number_input("OptiLLM Port", value=st.session_state.get("optillm_port", 8000), key="optillm_port", min_value=1024, max_value=65535)
-
-        optillm_running = False
-        try:
-            # Use the configured port for health check
-            response = requests.get(f"http://localhost:{st.session_state.optillm_port}/health", timeout=0.5)
-            if response.status_code == 200:
-                optillm_running = True
-        except requests.exceptions.ConnectionError:
-            pass
-        except Exception as e:
-            logger.debug(f"Error checking OptiLLM status: {e}")
-
-        if optillm_running:
-            st.success(f"OptiLLM server is running on http://localhost:{st.session_state.optillm_port}")
-            if st.button("Restart OptiLLM Server", key="restart_optillm_server"):
-                if "optillm_process" in st.session_state and st.session_state.optillm_process:
-                    st.session_state.optillm_process.terminate()
-                    st.session_state.optillm_process = None
-                    st.info("OptiLLM server terminated. Restarting...")
-                    time.sleep(1)
-                # Pass configured model and port to start_optillm_server
-                start_optillm_server(model=st.session_state.optillm_model, port=st.session_state.optillm_port)
-                st.rerun()
-        else:
-            st.warning(f"OptiLLM server is not running on http://localhost:{st.session_state.optillm_port}")
-            if st.button("Start OptiLLM Server", key="start_optillm_server_button"):
-                # Pass configured model and port to start_optillm_server
-                start_optillm_server(model=st.session_state.optillm_model, port=st.session_state.optillm_port)
-                st.rerun()
-
         st.markdown("---")
+        # Initialize OpenEvolve API instance
+        # Connects to the OpenEvolve backend service which should be running at localhost:8000
         if (
             "openevolve_api_instance" not in st.session_state
             or st.session_state.openevolve_api_instance.base_url
@@ -401,13 +300,15 @@ def display_sidebar():
             or st.session_state.openevolve_api_instance.api_key
             != st.session_state.openevolve_api_key
         ):
-            # Ensure the OpenEvolve API instance is properly initialized
+            # Initialize the OpenEvolve API instance
+            # This connects to the OpenEvolve backend service
             api_base_url = st.session_state.get("openevolve_base_url", "http://localhost:8000")
             api_key = st.session_state.get("openevolve_api_key", "")
             st.session_state.openevolve_api_instance = OpenEvolveAPI(
                 base_url=api_base_url,
                 api_key=api_key,
             )
+        
         @st.cache_resource(ttl=3600, show_spinner=False) # Cache for 1 hour, disable default spinner message
         def _get_cached_providers(_api_instance): # Added underscore
             return get_providers(_api_instance)
@@ -418,24 +319,13 @@ def display_sidebar():
         providers_available = False
 
         with st.spinner("Fetching LLM providers..."):
-            try:
-                # Verify API instance is available before attempting to fetch providers
-                if not hasattr(api, 'get') or not api.base_url:
-                    st.error("OpenEvolve API instance not properly initialized. Please check backend connection.")
-                    return  # Early return to avoid further errors
-                fetched_providers = _get_cached_providers(api)
-                if fetched_providers:
-                    providers = fetched_providers
-                    provider_keys = list(providers.keys())
-                    # Remove 'optillm_local' from the list of selectable providers
-                    if "optillm_local" in provider_keys:
-                        provider_keys.remove("optillm_local")
-                    providers_available = True
-                else:
-                    st.warning("No LLM providers configured. Please add providers to proceed.")
-            except Exception as e:
-                st.error(f"Failed to get LLM providers: {e}")
-                st.info("Please ensure the OpenEvolve backend is running on http://localhost:8000")
+            fetched_providers = _get_cached_providers(api)
+            if fetched_providers:
+                providers = fetched_providers
+                provider_keys = list(providers.keys())
+                providers_available = True
+            else:
+                st.warning("No LLM providers configured. Please add providers to proceed.")
 
         if providers_available:
             # Ensure st.session_state.provider is initialized and valid
@@ -771,11 +661,14 @@ def display_sidebar():
             )
 
             checkpoints = []
-            with st.spinner("Fetching checkpoints..."):
-                try:
-                    checkpoints = api.get_checkpoints()
-                except Exception as e:
-                    st.error(f"Failed to retrieve checkpoints: {e}")
+            if api.base_url == "http://localhost:8000":
+                st.info("Checkpointing is not available when using OptiLLM as the backend.")
+            else:
+                with st.spinner("Fetching checkpoints..."):
+                    try:
+                        checkpoints = api.get_checkpoints()
+                    except Exception as e:
+                        st.error(f"Failed to retrieve checkpoints: {e}")
             if checkpoints:
                 st.markdown(create_tooltip_html("Load Checkpoint", "Select a checkpoint to load."), unsafe_allow_html=True)
                 st.selectbox(
