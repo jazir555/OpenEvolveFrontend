@@ -14,6 +14,22 @@ from enum import Enum
 import requests # Added this line
 import logging # Added this line
 
+
+def get_project_root():
+    """
+    Returns the absolute path to the project's root directory.
+    This is a local copy to avoid import issues in threaded contexts.
+    """
+    try:
+        # Get the directory of this file
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # Go up one level to get the project root
+        return os.path.abspath(os.path.join(current_dir, os.pardir))
+    except Exception as e:
+        logging.error(f"Error getting project root: {e}")
+        # Fallback to current working directory
+        return os.getcwd()
+
 # Import OpenEvolve components
 try:
     from openevolve_integration import (
@@ -516,6 +532,20 @@ def render_openevolve_orchestrator_ui():
     """Render the OpenEvolve orchestrator UI"""
     st.header("🤖 OpenEvolve Workflow Orchestrator")
     
+    # Add description and usage information
+    st.markdown("""
+    **Purpose**: The OpenEvolve Workflow Orchestrator enables you to create, manage, and monitor complex evolution workflows with granular control over all parameters.
+    
+    **How to Use**:
+    1. Navigate to the "Create Workflow" tab to define your evolution task
+    2. Select a workflow type and configure parameters
+    3. Monitor active workflows in the "Monitoring Panel" 
+    4. View historical runs in the "History" tab
+    5. Manage templates and configurations in the "Configuration" tab
+    
+    **Why This Matters**: Advanced evolution workflows often require fine-tuned parameters to achieve optimal results. The orchestrator provides a unified interface to control all aspects of the evolution process.
+    """)
+    
     if not ORCHESTRATOR_AVAILABLE:
         st.warning("OpenEvolve orchestrator components are not available. Please install the required packages.")
         return
@@ -546,7 +576,20 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
     """Render the create workflow tab"""
     st.subheader("Create Workflow")
     
-    # Workflow type selection
+    # Add usage information
+    st.info("""
+    **Purpose**: Create a new evolution workflow with detailed parameter configuration.
+    
+    **How to Use**:
+    1. Select a workflow type from the dropdown (each type optimizes for different objectives)
+    2. Enter the content you want to evolve
+    3. Configure parameters using the expandable sections below
+    4. Click 'Start Workflow' to begin the evolution process
+    
+    **Why This Matters**: Different evolution tasks require different configurations. The orchestrator allows you to fine-tune every aspect of the evolution process to match your specific needs.
+    """)
+    
+    # Workflow type selection with tooltips and dynamic description
     workflow_type = st.selectbox(
         "Select Workflow Type",
         options=[wt.value for wt in EvolutionWorkflow],
@@ -559,275 +602,934 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
             "neuroevolution": "🧠 Neuroevolution",
             "algorithm_discovery": "💡 Algorithm Discovery",
             "prompt_optimization": "📝 Prompt Optimization"
-        }.get(x, x)
+        }.get(x, x),
+        help="Workflow types define the optimization strategy: Standard (single objective), Quality-Diversity (diverse high-quality solutions), Multi-Objective (multiple competing goals), Adversarial (red team/blue team approach), etc."
     )
     
-    # Content input
+    # Add description for the selected workflow type
+    workflow_descriptions = {
+        "standard": "**Standard Evolution** - Optimizes a single objective function to find the best solution. Best for problems with a clear, quantifiable goal.",
+        "quality_diversity": "**Quality-Diversity Evolution** - Creates a diverse set of high-quality solutions across multiple dimensions. Best for exploring solution spaces and finding multiple viable approaches.",
+        "multi_objective": "**Multi-Objective Optimization** - Balances multiple competing objectives simultaneously to find the Pareto frontier of solutions. Best for problems with trade-offs between different goals.",
+        "adversarial": "**Adversarial Evolution** - Uses red team/blue team approach where models compete against each other to create more robust solutions. Best for security testing and hardening.",
+        "symbolic_regression": "**Symbolic Regression** - Evolves mathematical expressions to fit data or solve problems. Best for discovering mathematical relationships and formulas.",
+        "neuroevolution": "**Neuroevolution** - Evolves neural network architectures and parameters. Best for machine learning model optimization.",
+        "algorithm_discovery": "**Algorithm Discovery** - Discovers novel algorithms and computational approaches. Best for finding innovative problem-solving strategies.",
+        "prompt_optimization": "**Prompt Optimization** - Evolves text prompts to optimize AI model performance. Best for improving LLM outputs and interactions."
+    }
+    
+    st.markdown(f"*{workflow_descriptions.get(workflow_type, 'Select a workflow type to see its description')}*")
+    
+    # Content input with detailed information
     content = st.text_area(
         "Input Content",
         height=200,
-        placeholder="Enter content to evolve here..."
+        placeholder="Enter content to evolve here...",
+        help="Enter the content that you want to evolve. This could be code, text, configurations, or any text-based content that can be improved through evolution."
     )
     
-    # Advanced configuration
-    with st.expander("Core Configuration", expanded=False):
+    # Content type selection
+    content_type = st.selectbox(
+        "Content Type",
+        options=["code_python", "code_javascript", "code_java", "code_csharp", "code_cpp", "text_general", "protocol", "documentation"],
+        format_func=lambda x: {
+            "code_python": "🐍 Python Code",
+            "code_javascript": "🌐 JavaScript Code",
+            "code_java": "☕ Java Code", 
+            "code_csharp": "sharp C# Code",
+            "code_cpp": "++ C++ Code",
+            "text_general": "📝 General Text",
+            "protocol": "📋 Protocol",
+            "documentation": "📚 Documentation"
+        }.get(x, x),
+        help="Select the type of content being evolved. This helps the system apply appropriate evaluation and evolution strategies."
+    )
+    
+    # Core Configuration with more detailed options and tooltips
+    with st.expander("🎯 Core Evolution Parameters", expanded=True):
+        st.markdown("**Purpose**: These parameters control the fundamental behavior of the evolution process.")
+        
         col1, col2 = st.columns(2)
         
         with col1:
-            max_iterations = st.number_input("Max Iterations", min_value=1, max_value=10000, value=100)
-            population_size = st.number_input("Population Size", min_value=10, max_value=10000, value=100)
-            num_islands = st.number_input("Number of Islands", min_value=1, max_value=20, value=5)
-            archive_size = st.number_input("Archive Size", min_value=10, max_value=10000, value=100)
+            max_iterations = st.number_input(
+                "Max Iterations", 
+                min_value=1, 
+                max_value=10000, 
+                value=100,
+                help="Maximum number of evolution iterations to run. Higher values allow more thorough exploration but take longer."
+            )
+            population_size = st.number_input(
+                "Population Size", 
+                min_value=10, 
+                max_value=10000, 
+                value=100,
+                help="Number of individuals in each generation. Larger populations provide more diversity but require more computation."
+            )
+            num_islands = st.number_input(
+                "Number of Islands", 
+                min_value=1, 
+                max_value=20, 
+                value=5,
+                help="Number of isolated populations (islands) that evolve separately with occasional migration. This maintains diversity."
+            )
+            archive_size = st.number_input(
+                "Archive Size", 
+                min_value=10, 
+                max_value=10000, 
+                value=100,
+                help="Size of the archive that stores high-quality solutions found during evolution. Important for Quality-Diversity algorithms."
+            )
         
         with col2:
-            temperature = st.slider("Temperature", min_value=0.0, max_value=2.0, value=0.7, step=0.1)
-            elite_ratio = st.slider("Elite Ratio", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
-            exploration_ratio = st.slider("Exploration Ratio", min_value=0.0, max_value=1.0, value=0.2, step=0.01)
-            exploitation_ratio = st.slider("Exploitation Ratio", min_value=0.0, max_value=1.0, value=0.7, step=0.01)
+            temperature = st.slider(
+                "Temperature", 
+                min_value=0.0, 
+                max_value=2.0, 
+                value=0.7, 
+                step=0.1,
+                help="Controls randomness in selection. Lower values favor exploitation of high-performing solutions, higher values encourage exploration."
+            )
+            elite_ratio = st.slider(
+                "Elite Ratio", 
+                min_value=0.0, 
+                max_value=1.0, 
+                value=0.1, 
+                step=0.01,
+                help="Proportion of top-performing individuals that automatically survive to the next generation without modification."
+            )
+            exploration_ratio = st.slider(
+                "Exploration Ratio", 
+                min_value=0.0, 
+                max_value=1.0, 
+                value=0.2, 
+                step=0.01,
+                help="Proportion of mutations that focus on exploring new areas of the solution space."
+            )
+            exploitation_ratio = st.slider(
+                "Exploitation Ratio", 
+                min_value=0.0, 
+                max_value=1.0, 
+                value=0.7, 
+                step=0.01,
+                help="Proportion of mutations that focus on improving existing good solutions."
+            )
     
-    # Feature dimensions for QD and multi-objective
-    if workflow_type in ["quality_diversity", "multi_objective"]:
-        feature_dimensions = st.multiselect(
-            "Feature Dimensions",
-            options=["complexity", "diversity", "performance", "readability", "efficiency", "accuracy", "robustness"],
-            default=["complexity", "diversity"]
-        )
-    else:
-        feature_dimensions = ["complexity", "diversity"]
-    
-    # Advanced features
-    with st.expander("Advanced Features", expanded=False):
-        col1, col2 = st.columns(2)
+    # Feature dimensions for QD and multi-objective with explanations
+    with st.expander("📏 Feature Dimensions (for Quality-Diversity & Multi-Objective)", expanded=False):
+        st.markdown("""
+        **Purpose**: Define the dimensions used to measure diversity in Quality-Diversity algorithms.
         
-        with col1:
-            enable_artifacts = st.checkbox("Enable Artifact Feedback", value=True)
-            cascade_evaluation = st.checkbox("Enable Cascade Evaluation", value=True)
-            use_llm_feedback = st.checkbox("Use LLM Feedback", value=False)
-            evolution_trace_enabled = st.checkbox("Enable Evolution Tracing", value=False)
+        **How to Use**: Select the characteristics that define diversity in your domain. For example, for code evolution: complexity and efficiency; for text: readability and creativity.
+        """)
         
-        with col2:
-            double_selection = st.checkbox("Double Selection", value=True)
-            adaptive_feature_dimensions = st.checkbox("Adaptive Feature Dimensions", value=True)
-            multi_strategy_sampling = st.checkbox("Multi-Strategy Sampling", value=True)
-            ring_topology = st.checkbox("Ring Topology", value=True)
-    
-    # Research-grade features
-    with st.expander("Research-Grade Features", expanded=False):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            test_time_compute = st.checkbox("Test-Time Compute", value=False)
-            optillm_integration = st.checkbox("OptiLLM Integration", value=False)
-            plugin_system = st.checkbox("Plugin System", value=False)
-            hardware_optimization = st.checkbox("Hardware Optimization", value=False)
-        
-        with col2:
-            controlled_gene_flow = st.checkbox("Controlled Gene Flow", value=True)
-            auto_diff = st.checkbox("Auto Diff", value=True)
-            symbolic_execution = st.checkbox("Symbolic Execution", value=False)
-            coevolutionary_approach = st.checkbox("Coevolutionary Approach", value=False)
-    
-    # Performance optimization
-    with st.expander("Performance Optimization", expanded=False):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            memory_limit_mb = st.number_input("Memory Limit (MB)", min_value=100, max_value=32768, value=2048)
-            cpu_limit = st.number_input("CPU Limit", min_value=0.1, max_value=32.0, value=4.0, step=0.1)
-            parallel_evaluations = st.number_input("Parallel Evaluations", min_value=1, max_value=32, value=4)
-        
-        with col2:
-            max_code_length = st.number_input("Max Code Length", min_value=100, max_value=100000, value=10000)
-            evaluator_timeout = st.number_input("Evaluator Timeout (s)", min_value=10, max_value=3600, value=300)
-            max_retries_eval = st.number_input("Max Evaluation Retries", min_value=1, max_value=10, value=3)
-    
-    # Advanced evolution trace settings
-    with st.expander("Evolution Trace Settings", expanded=False):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            evolution_trace_format = st.selectbox("Trace Format", options=["jsonl", "csv", "parquet"], index=0)
-            evolution_trace_include_code = st.checkbox("Include Code in Traces", value=False)
-            evolution_trace_include_prompts = st.checkbox("Include Prompts in Traces", value=True)
-        
-        with col2:
-            evolution_trace_buffer_size = st.number_input("Trace Buffer Size", min_value=1, max_value=100, value=10)
-            evolution_trace_compress = st.checkbox("Compress Traces", value=False)
-    
-    # Start workflow button
-    if st.button("🚀 Start Workflow", type="primary", use_container_width=True):
-        if not content.strip():
-            st.error("Please enter content to evolve")
-            return
-            
-        if not st.session_state.get("api_key"):
-            st.error("Please configure your API key in the sidebar")
-            return
-        
-        # Create workflow parameters with ALL OpenEvolve parameters
-        parameters = {
-            # Core parameters
-            "content": content,
-            "content_type": "code_python",  # Default for now
-            "model_configs": [{"name": st.session_state.get("model", "gpt-4o"), "weight": 1.0}],
-            "api_key": st.session_state.get("api_key", ""),
-            "api_base": st.session_state.get("base_url", "https://api.openai.com/v1"),
-            "max_iterations": max_iterations,
-            "population_size": population_size,
-            "num_islands": num_islands,
-            "archive_size": archive_size,
-            "feature_dimensions": feature_dimensions,
-            "feature_bins": 10,
-            "diversity_metric": "edit_distance",
-            "system_message": st.session_state.get("system_prompt", ""),
-            "evaluator_system_message": st.session_state.get("evaluator_system_prompt", ""),
-            "temperature": temperature,
-            "top_p": 0.95,
-            "max_tokens": st.session_state.get("max_tokens", 4096),
-            "elite_ratio": elite_ratio,
-            "exploration_ratio": exploration_ratio,
-            "exploitation_ratio": exploitation_ratio,
-            "checkpoint_interval": 100,
-            "migration_interval": 50,
-            "migration_rate": 0.1,
-            "seed": st.session_state.get("seed", 42),
-            
-            # Advanced evaluation parameters
-            "enable_artifacts": enable_artifacts,
-            "cascade_evaluation": cascade_evaluation,
-            "cascade_thresholds": [0.5, 0.75, 0.9],
-            "use_llm_feedback": use_llm_feedback,
-            "llm_feedback_weight": 0.1,
-            "parallel_evaluations": parallel_evaluations,
-            "distributed": False,
-            "template_dir": None,
-            "num_top_programs": 3,
-            "num_diverse_programs": 2,
-            "use_template_stochasticity": True,
-            "template_variations": {},
-            "use_meta_prompting": False,
-            "meta_prompt_weight": 0.1,
-            "include_artifacts": True,
-            "max_artifact_bytes": 20 * 1024,
-            "artifact_security_filter": True,
-            "early_stopping_patience": None,
-            "convergence_threshold": 0.001,
-            "early_stopping_metric": "combined_score",
-            "memory_limit_mb": memory_limit_mb,
-            "cpu_limit": cpu_limit,
-            "random_seed": st.session_state.get("seed", 42),
-            "db_path": None,
-            "in_memory": True,
-            
-            # Advanced OpenEvolve parameters
-            "diff_based_evolution": True,
-            "max_code_length": max_code_length,
-            "evolution_trace_enabled": evolution_trace_enabled,
-            "evolution_trace_format": evolution_trace_format,
-            "evolution_trace_include_code": evolution_trace_include_code,
-            "evolution_trace_include_prompts": evolution_trace_include_prompts,
-            "evolution_trace_output_path": None,
-            "evolution_trace_buffer_size": evolution_trace_buffer_size,
-            "evolution_trace_compress": evolution_trace_compress,
-            "log_level": "INFO",
-            "log_dir": None,
-            "api_timeout": 60,
-            "api_retries": 3,
-            "api_retry_delay": 5,
-            "artifact_size_threshold": 32 * 1024,
-            "cleanup_old_artifacts": True,
-            "artifact_retention_days": 30,
-            "diversity_reference_size": 20,
-            "max_retries_eval": max_retries_eval,
-            "evaluator_timeout": evaluator_timeout,
-            "evaluator_models": None,
-            
-            # Advanced research-grade features
-            "double_selection": double_selection,
-            "adaptive_feature_dimensions": adaptive_feature_dimensions,
-            "test_time_compute": test_time_compute,
-            "optillm_integration": optillm_integration,
-            "plugin_system": plugin_system,
-            "hardware_optimization": hardware_optimization,
-            "multi_strategy_sampling": multi_strategy_sampling,
-            "ring_topology": ring_topology,
-            "controlled_gene_flow": controlled_gene_flow,
-            "auto_diff": auto_diff,
-            "symbolic_execution": symbolic_execution,
-            "coevolutionary_approach": coevolutionary_approach,
-        }
-        
-        # Create and start workflow
-        workflow_id = orchestrator.create_workflow(
-            workflow_type=EvolutionWorkflow(workflow_type),
-            parameters=parameters
-        )
-        
-        if orchestrator.start_workflow(workflow_id):
-            st.success(f"Workflow started: {workflow_id}")
-            st.session_state.current_workflow = workflow_id
+        if workflow_type in ["quality_diversity", "multi_objective"]:
+            feature_dimensions = st.multiselect(
+                "Feature Dimensions",
+                options=["complexity", "diversity", "performance", "readability", "efficiency", "accuracy", "robustness", "maintainability", "scalability", "resource_usage"],
+                default=["complexity", "diversity"],
+                help="Select dimensions that define diverse, high-quality solutions. These metrics will be used to measure and preserve diversity in the population."
+            )
         else:
-            st.error("Failed to start workflow")
+            feature_dimensions = ["complexity", "diversity"]
+            st.write(f"Feature dimensions will be used based on selected workflow type: {feature_dimensions}")
+    
+    # Advanced features with detailed explanations
+    with st.expander("⚙️ Advanced Evolution Features", expanded=False):
+        st.markdown("""
+        **Purpose**: Fine-tune advanced evolution strategies for complex optimization scenarios.
+        
+        **How to Use**: Enable features based on your specific requirements. For example, enable artifact feedback for code generation tasks, cascade evaluation for faster processing, or LLM feedback for complex evaluation criteria.
+        """)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            enable_artifacts = st.checkbox(
+                "Enable Artifact Feedback", 
+                value=True,
+                help="Enables analysis of generated artifacts (like test outputs, execution results) to guide evolution."
+            )
+            cascade_evaluation = st.checkbox(
+                "Enable Cascade Evaluation", 
+                value=True,
+                help="Uses multiple evaluation stages to quickly filter out poor solutions and reduce computational cost."
+            )
+            use_llm_feedback = st.checkbox(
+                "Use LLM Feedback", 
+                value=False,
+                help="Incorporates feedback from Large Language Models for complex evaluation criteria that are hard to quantify."
+            )
+            evolution_trace_enabled = st.checkbox(
+                "Enable Evolution Tracing", 
+                value=False,
+                help="Records the complete evolution process for analysis, debugging, and replay capabilities."
+            )
+        
+        with col2:
+            double_selection = st.checkbox(
+                "Double Selection", 
+                value=True,
+                help="Applies selection pressure in both parent selection and survival selection phases."
+            )
+            adaptive_feature_dimensions = st.checkbox(
+                "Adaptive Feature Dimensions", 
+                value=True,
+                help="Dynamically adjusts feature dimensions during evolution based on the current population state."
+            )
+            multi_strategy_sampling = st.checkbox(
+                "Multi-Strategy Sampling", 
+                value=True,
+                help="Uses multiple mutation strategies simultaneously, selecting the most effective ones based on performance."
+            )
+            ring_topology = st.checkbox(
+                "Ring Topology", 
+                value=True,
+                help="Organizes islands in a ring structure where each island only exchanges individuals with its neighbors."
+            )
+    
+    # Research-grade features with explanations
+    with st.expander("🔬 Research-Grade Features", expanded=False):
+        st.markdown("""
+        **Purpose**: Enable cutting-edge evolution techniques for advanced research and experimentation.
+        
+        **How to Use**: These features provide access to state-of-the-art evolution techniques. They may require more computational resources but can significantly improve results in complex domains.
+        """)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            test_time_compute = st.checkbox(
+                "Test-Time Compute", 
+                value=False,
+                help="Allows computation during evaluation that's not part of the final solution (useful for testing complex behaviors)."
+            )
+            optillm_integration = st.checkbox(
+                "OptiLLM Integration", 
+                value=False,
+                help="Integrates with OptiLLM for optimized LLM usage and cost management."
+            )
+            plugin_system = st.checkbox(
+                "Plugin System", 
+                value=False,
+                help="Enables loading external plugins for custom evolution strategies and evaluation functions."
+            )
+            hardware_optimization = st.checkbox(
+                "Hardware Optimization", 
+                value=False,
+                help="Optimizes computation for specific hardware configurations to maximize performance."
+            )
+        
+        with col2:
+            controlled_gene_flow = st.checkbox(
+                "Controlled Gene Flow", 
+                value=True,
+                help="Controls the flow of genetic information between populations to maintain diversity while allowing beneficial traits to spread."
+            )
+            auto_diff = st.checkbox(
+                "Auto Diff", 
+                value=True,
+                help="Automatically computes differences between solutions to guide targeted mutations."
+            )
+            symbolic_execution = st.checkbox(
+                "Symbolic Execution", 
+                value=False,
+                help="Uses symbolic execution to analyze program behavior without running it on concrete inputs."
+            )
+            coevolutionary_approach = st.checkbox(
+                "Coevolutionary Approach", 
+                value=False,
+                help="Evolves multiple populations that influence each other's fitness, useful for competitive or collaborative scenarios."
+            )
+    
+    # Performance optimization with explanations
+    with st.expander("⚡ Performance Optimization", expanded=False):
+        st.markdown("""
+        **Purpose**: Configure performance parameters to optimize resource usage and processing speed.
+        
+        **How to Use**: Adjust these settings based on your available computational resources to maintain optimal performance without resource exhaustion.
+        """)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            memory_limit_mb = st.number_input(
+                "Memory Limit (MB)", 
+                min_value=100, 
+                max_value=32768, 
+                value=2048,
+                help="Maximum memory usage for the evolution process. Exceeding this limit may cause performance issues."
+            )
+            cpu_limit = st.number_input(
+                "CPU Limit", 
+                min_value=0.1, 
+                max_value=32.0, 
+                value=4.0, 
+                step=0.1,
+                help="Maximum CPU cores to use for evolution. Higher values speed up parallel operations."
+            )
+            parallel_evaluations = st.number_input(
+                "Parallel Evaluations", 
+                min_value=1, 
+                max_value=32, 
+                value=4,
+                help="Number of solutions to evaluate simultaneously. Higher values speed up evaluation but require more resources."
+            )
+        
+        with col2:
+            max_code_length = st.number_input(
+                "Max Code Length", 
+                min_value=100, 
+                max_value=100000, 
+                value=10000,
+                help="Maximum length of generated code before it's truncated. Prevents generation of excessively long solutions."
+            )
+            evaluator_timeout = st.number_input(
+                "Evaluator Timeout (s)", 
+                min_value=10, 
+                max_value=3600, 
+                value=300,
+                help="Maximum time allowed for a single evaluation before it's considered failed."
+            )
+            max_retries_eval = st.number_input(
+                "Max Evaluation Retries", 
+                min_value=1, 
+                max_value=10, 
+                value=3,
+                help="Number of times to retry failed evaluations before giving up on that solution."
+            )
+    
+    # Advanced evolution trace settings with explanations
+    with st.expander("📝 Evolution Trace Settings", expanded=False):
+        st.markdown("""
+        **Purpose**: Configure detailed logging and tracing of the evolution process for analysis and debugging.
+        
+        **How to Use**: Enable tracing if you need to analyze the evolution process in detail, reproduce results, or debug evolution behavior.
+        """)
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            evolution_trace_format = st.selectbox(
+                "Trace Format", 
+                options=["jsonl", "csv", "parquet"], 
+                index=0,
+                help="Format to store evolution traces. JSONL offers flexibility, CSV offers compatibility, Parquet offers efficiency."
+            )
+            evolution_trace_include_code = st.checkbox(
+                "Include Code in Traces", 
+                value=False,
+                help="Store the actual code/text of solutions in the trace (increases file size)."
+            )
+            evolution_trace_include_prompts = st.checkbox(
+                "Include Prompts in Traces", 
+                value=True,
+                help="Store the prompts used in each generation in the trace."
+            )
+        
+        with col2:
+            evolution_trace_buffer_size = st.number_input(
+                "Trace Buffer Size", 
+                min_value=1, 
+                max_value=100, 
+                value=10,
+                help="Number of trace entries to buffer before writing to disk."
+            )
+            evolution_trace_compress = st.checkbox(
+                "Compress Traces", 
+                value=False,
+                help="Compress trace files to save disk space."
+            )
+    
+    # Start workflow button with enhanced feedback
+    start_col, info_col = st.columns([1, 3])
+    with start_col:
+        if st.button("🚀 Start Workflow", type="primary", use_container_width=True):
+            if not content.strip():
+                st.error("❌ Please enter content to evolve")
+                return
+                
+            if not st.session_state.get("api_key"):
+                st.error("❌ Please configure your API key in the sidebar")
+                return
+            
+            # Create workflow parameters with ALL OpenEvolve parameters
+            parameters = {
+                # Core parameters
+                "content": content,
+                "content_type": content_type,  # Use the selected content type
+                "model_configs": [{"name": st.session_state.get("model", "gpt-4o"), "weight": 1.0}],
+                "api_key": st.session_state.get("api_key", ""),
+                "api_base": st.session_state.get("base_url", "https://api.openai.com/v1"),
+                "max_iterations": max_iterations,
+                "population_size": population_size,
+                "num_islands": num_islands,
+                "archive_size": archive_size,
+                "feature_dimensions": feature_dimensions,
+                "feature_bins": 10,
+                "diversity_metric": "edit_distance",
+                "system_message": st.session_state.get("system_prompt", ""),
+                "evaluator_system_message": st.session_state.get("evaluator_system_prompt", ""),
+                "temperature": temperature,
+                "top_p": 0.95,
+                "max_tokens": st.session_state.get("max_tokens", 4096),
+                "elite_ratio": elite_ratio,
+                "exploration_ratio": exploration_ratio,
+                "exploitation_ratio": exploitation_ratio,
+                "checkpoint_interval": 100,
+                "migration_interval": 50,
+                "migration_rate": 0.1,
+                "seed": st.session_state.get("seed", 42),
+                
+                # Advanced evaluation parameters
+                "enable_artifacts": enable_artifacts,
+                "cascade_evaluation": cascade_evaluation,
+                "cascade_thresholds": [0.5, 0.75, 0.9],
+                "use_llm_feedback": use_llm_feedback,
+                "llm_feedback_weight": 0.1,
+                "parallel_evaluations": parallel_evaluations,
+                "distributed": False,
+                "template_dir": None,
+                "num_top_programs": 3,
+                "num_diverse_programs": 2,
+                "use_template_stochasticity": True,
+                "template_variations": {},
+                "use_meta_prompting": False,
+                "meta_prompt_weight": 0.1,
+                "include_artifacts": True,
+                "max_artifact_bytes": 20 * 1024,
+                "artifact_security_filter": True,
+                "early_stopping_patience": None,
+                "convergence_threshold": 0.001,
+                "early_stopping_metric": "combined_score",
+                "memory_limit_mb": memory_limit_mb,
+                "cpu_limit": cpu_limit,
+                "random_seed": st.session_state.get("seed", 42),
+                "db_path": None,
+                "in_memory": True,
+                
+                # Advanced OpenEvolve parameters
+                "diff_based_evolution": True,
+                "max_code_length": max_code_length,
+                "evolution_trace_enabled": evolution_trace_enabled,
+                "evolution_trace_format": evolution_trace_format,
+                "evolution_trace_include_code": evolution_trace_include_code,
+                "evolution_trace_include_prompts": evolution_trace_include_prompts,
+                "evolution_trace_output_path": None,
+                "evolution_trace_buffer_size": evolution_trace_buffer_size,
+                "evolution_trace_compress": evolution_trace_compress,
+                "log_level": "INFO",
+                "log_dir": None,
+                "api_timeout": 60,
+                "api_retries": 3,
+                "api_retry_delay": 5,
+                "artifact_size_threshold": 32 * 1024,
+                "cleanup_old_artifacts": True,
+                "artifact_retention_days": 30,
+                "diversity_reference_size": 20,
+                "max_retries_eval": max_retries_eval,
+                "evaluator_timeout": evaluator_timeout,
+                "evaluator_models": None,
+                
+                # Advanced research-grade features
+                "double_selection": double_selection,
+                "adaptive_feature_dimensions": adaptive_feature_dimensions,
+                "test_time_compute": test_time_compute,
+                "optillm_integration": optillm_integration,
+                "plugin_system": plugin_system,
+                "hardware_optimization": hardware_optimization,
+                "multi_strategy_sampling": multi_strategy_sampling,
+                "ring_topology": ring_topology,
+                "controlled_gene_flow": controlled_gene_flow,
+                "auto_diff": auto_diff,
+                "symbolic_execution": symbolic_execution,
+                "coevolutionary_approach": coevolutionary_approach,
+            }
+            
+            # Create and start workflow
+            workflow_id = orchestrator.create_workflow(
+                workflow_type=EvolutionWorkflow(workflow_type),
+                parameters=parameters
+            )
+            
+            if orchestrator.start_workflow(workflow_id):
+                st.success(f"✅ Workflow started: {workflow_id}")
+                st.session_state.current_workflow = workflow_id
+            else:
+                st.error("❌ Failed to start workflow")
+    
+    with info_col:
+        st.info("""
+        **💡 Tip**: 
+        - Start with default parameters for standard evolution
+        - For diverse solutions, enable Quality-Diversity workflow type
+        - For multiple objectives, use Multi-Objective workflow type
+        - Monitor resource usage in the Monitoring Panel
+        """)
 
 
 def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
     """Render the monitoring tab"""
     st.subheader("Real-time Monitoring")
     
+    # Add usage information
+    st.info("""
+    **Purpose**: Monitor active evolution workflows in real-time to track progress and performance.
+    
+    **How to Use**: 
+    - View all currently running workflows in the table below
+    - Monitor progress, stage, runtime, and status
+    - Stop workflows if needed using the stop button
+    - Check detailed metrics and performance indicators
+    
+    **Why This Matters**: Real-time monitoring allows you to track the evolution performance, identify bottlenecks, and make decisions about resource allocation and workflow continuation.
+    """)
+    
     # Active workflows
     active_workflows = orchestrator.get_active_workflows()
     
     if not active_workflows:
-        st.info("No active workflows running")
+        st.info("No active workflows running. Start a new workflow in the 'Create Workflow' tab.")
         return
     
-    # Display active workflows
+    # Display active workflows with more details
     for workflow_status in active_workflows:
         with st.container(border=True):
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
-                st.markdown(f"**{workflow_status['workflow_id']}**")
-                st.caption(f"Type: {workflow_status['workflow_type']}")
+                st.markdown(f"**Workflow ID**: {workflow_status['workflow_id']}")
+                st.caption(f"**Type**: {workflow_status['workflow_type'].replace('_', ' ').title()}")
             
             with col2:
-                st.metric("Progress", f"{workflow_status['progress']*100:.1f}%")
-                st.caption(f"Stage: {workflow_status['current_stage']}")
+                progress_pct = workflow_status['progress'] * 100
+                st.metric(
+                    label="Progress", 
+                    value=f"{progress_pct:.1f}%", 
+                    delta=None
+                )
+                st.caption(f"**Stage**: {workflow_status['current_stage'].replace('_', ' ').title()}")
             
             with col3:
                 duration = workflow_status['duration']
-                st.metric("Runtime", f"{duration:.1f} seconds")
-                st.caption(f"Status: {workflow_status['status']}")
+                st.metric(
+                    label="Runtime", 
+                    value=f"{duration:.1f}s",
+                    help=f"Total runtime since workflow started"
+                )
+                st.caption(f"**Status**: {workflow_status['status'].title()}")
             
             with col4:
-                if st.button("⏹️ Stop", key=f"stop_{workflow_status['workflow_id']}"):
-                    orchestrator.stop_workflow(workflow_status['workflow_id'])
-                    st.rerun()
+                if st.button("⏹️ Stop Workflow", key=f"stop_{workflow_status['workflow_id']}", type="secondary"):
+                    if orchestrator.stop_workflow(workflow_status['workflow_id']):
+                        st.success(f"Workflow {workflow_status['workflow_id']} stopped successfully")
+                        time.sleep(1)  # Brief pause to allow state to update
+                        st.rerun()
+                    else:
+                        st.error(f"Failed to stop workflow {workflow_status['workflow_id']}")
             
-            # Progress bar
+            # Enhanced progress bar with status indicators
             st.progress(workflow_status['progress'])
+            
+            # Detailed status information
+            if workflow_status['current_stage'] in ['configuration', 'initialization']:
+                st.info(f"🔧 Initializing workflow components...")
+            elif workflow_status['current_stage'] == 'execution':
+                st.info(f"⚙️ Running evolution iterations...")
+            elif workflow_status['current_stage'] == 'monitoring':
+                st.info(f"📊 Monitoring ongoing evolution...")
+            elif workflow_status['current_stage'] == 'analysis':
+                st.info(f"🔍 Analyzing results...")
+            elif workflow_status['current_stage'] == 'reporting':
+                st.info(f"📝 Generating report...")
+            elif workflow_status['current_stage'] == 'completion':
+                st.info(f"✅ Finalizing workflow...")
+            
+            # Add additional metrics if available
+            if 'metrics' in workflow_status and workflow_status['metrics']:
+                with st.expander("📈 Detailed Metrics", expanded=False):
+                    for key, value in list(workflow_status['metrics'].items())[:5]:  # Show first 5 metrics
+                        st.write(f"{key}: {value}")
 
 
 def render_history_tab(orchestrator: OpenEvolveOrchestrator):
     """Render the history tab"""
     st.subheader("Workflow History")
     
-    # For now, we'll just show a message since we don't have persistent storage
-    st.info("Workflow history functionality will be implemented in future versions with persistent storage and replay capabilities.")
+    # Add usage information
+    st.info("""
+    **Purpose**: View and manage completed evolution workflows to analyze results and identify patterns.
+    
+    **How to Use**: 
+    - Browse completed workflows in the history table
+    - View details of specific workflows
+    - Access results, metrics, and reports
+    - Use historical data to improve future workflow configurations
+    
+    **Why This Matters**: Historical data provides insights into evolution patterns, parameter effectiveness, and helps with future workflow optimization.
+    """)
+    
+    # Simulated history data (in a real implementation, this would come from persistent storage)
+    completed_workflows = []
+    
+    # Get completed workflows from orchestrator (if any are already completed)
+    for wf_id, wf_state in orchestrator.workflows.items():
+        if wf_state.status in ['completed', 'failed', 'cancelled']:
+            completed_workflows.append({
+                'workflow_id': wf_id,
+                'workflow_type': wf_state.workflow_type.value,
+                'status': wf_state.status,
+                'start_time': wf_state.start_time,
+                'end_time': wf_state.end_time or time.time(),
+                'duration': (wf_state.end_time or time.time()) - wf_state.start_time,
+                'parameters': wf_state.parameters,
+                'results': wf_state.results,
+                'metrics': wf_state.metrics
+            })
+    
+    if not completed_workflows:
+        st.info("No completed workflows found. Run some workflows in the 'Create Workflow' tab to see history here.")
+        
+        # Show some example workflow types that could help guide users
+        st.markdown("### 📋 Example Workflow Types to Try:")
+        st.markdown("""
+        - **Standard Evolution**: Optimize a single objective (e.g., code efficiency, text quality)
+        - **Quality-Diversity**: Generate diverse high-quality solutions across multiple dimensions
+        - **Multi-Objective**: Optimize multiple competing objectives simultaneously
+        - **Adversarial**: Use red-team/blue-team approach to harden solutions
+        """)
+        return
+    
+    # Display completed workflows in a table format
+    for workflow in completed_workflows:
+        with st.container(border=True):
+            col1, col2, col3, col4 = st.columns(4)
+            
+            with col1:
+                st.markdown(f"**{workflow['workflow_id']}**")
+                st.caption(f"Type: {workflow['workflow_type'].replace('_', ' ').title()}")
+            
+            with col2:
+                status_emoji = "✅" if workflow['status'] == 'completed' else "❌" if workflow['status'] == 'failed' else "🛑"
+                st.metric("Status", f"{status_emoji} {workflow['status'].title()}")
+            
+            with col3:
+                duration = workflow['duration']
+                st.metric("Duration", f"{duration:.1f}s")
+            
+            with col4:
+                start_time = time.strftime('%H:%M:%S', time.localtime(workflow['start_time']))
+                st.metric("Start Time", start_time)
+            
+            # Expandable section for details
+            with st.expander("📊 View Details", expanded=False):
+                st.write(f"**Status**: {workflow['status'].title()}")
+                st.write(f"**Duration**: {workflow['duration']:.1f} seconds")
+                st.write(f"**Start Time**: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(workflow['start_time']))}")
+                
+                if workflow['end_time']:
+                    st.write(f"**End Time**: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(workflow['end_time']))}")
+                
+                if workflow['metrics']:
+                    st.write("**Key Metrics**: ")
+                    col1, col2 = st.columns(2)
+                    for i, (key, value) in enumerate(list(workflow['metrics'].items())[:10]):  # Show first 10 metrics
+                        if i % 2 == 0:
+                            col1.write(f"- {key}: {value}")
+                        else:
+                            col2.write(f"- {key}: {value}")
+                
+                if workflow['results'] and 'error' in workflow['results']:
+                    st.error(f"**Error**: {workflow['results']['error']}")
+                
+                # Option to view full parameters (in a real implementation, this would load from persistent storage)
+                with st.expander("🔧 View Parameters"):
+                    params = workflow['parameters']
+                    st.json({
+                        'content_type': params.get('content_type', 'Unknown'),
+                        'max_iterations': params.get('max_iterations', 'Unknown'),
+                        'population_size': params.get('population_size', 'Unknown'),
+                        'num_islands': params.get('num_islands', 'Unknown'),
+                        'temperature': params.get('temperature', 'Unknown'),
+                        'workflow_type_details': 'Full parameter set stored in workflow object'
+                    })
 
 
 def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
     """Render the configuration tab"""
     st.subheader("Configuration Management")
     
-    st.markdown("""
-    ### Workflow Template Configuration
+    st.info("""
+    **Purpose**: Manage workflow templates, presets, and global configuration settings to streamline workflow creation.
     
-    Here you can create and manage workflow templates for quickly starting common evolution tasks.
+    **How to Use**:
+    1. Create workflow templates for common evolution scenarios
+    2. Save and load parameter presets
+    3. Manage global orchestrator settings
+    4. Export/import configurations for sharing or backup
+    
+    **Why This Matters**: Configuration management allows you to standardize evolution processes, reuse effective parameter sets, and maintain consistency across multiple workflow runs.
     """)
     
-    # Template management would go here in a full implementation
-    st.info("Workflow template management will be implemented in future versions.")
+    # Tabs for different configuration aspects
+    config_tabs = st.tabs(["Workflow Templates", "Parameter Presets", "Global Settings", "Import/Export"])
+    
+    with config_tabs[0]:  # Workflow Templates
+        st.markdown("#### 📋 Workflow Templates")
+        st.write("Create and manage templates for common workflow configurations")
+        
+        # Create new template
+        with st.expander("Create New Template", expanded=True):
+            template_name = st.text_input("Template Name", placeholder="e.g., Python Code Optimization")
+            template_description = st.text_area("Description", placeholder="Describe what this template is for...")
+            
+            # Default parameters for the template
+            col1, col2 = st.columns(2)
+            with col1:
+                default_max_iterations = st.number_input("Default Max Iterations", value=100)
+                default_population_size = st.number_input("Default Population Size", value=100)
+                default_num_islands = st.number_input("Default Number of Islands", value=5)
+            with col2:
+                default_temperature = st.slider("Default Temperature", min_value=0.0, max_value=2.0, value=0.7, step=0.1)
+                default_elite_ratio = st.slider("Default Elite Ratio", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
+            
+            if st.button("💾 Save Template"):
+                # In a real implementation, this would save to persistent storage
+                template_data = {
+                    "name": template_name,
+                    "description": template_description,
+                    "parameters": {
+                        "max_iterations": default_max_iterations,
+                        "population_size": default_population_size,
+                        "num_islands": default_num_islands,
+                        "temperature": default_temperature,
+                        "elite_ratio": default_elite_ratio
+                    }
+                }
+                # Save template to session state (in real implementation, save to persistent storage)
+                if "workflow_templates" not in st.session_state:
+                    st.session_state.workflow_templates = {}
+                st.session_state.workflow_templates[template_name] = template_data
+                st.success(f"Template '{template_name}' saved successfully!")
+        
+        # Show existing templates
+        if "workflow_templates" in st.session_state and st.session_state.workflow_templates:
+            st.write("#### Existing Templates:")
+            for name, data in st.session_state.workflow_templates.items():
+                with st.container(border=True):
+                    st.write(f"**{name}**")
+                    st.caption(f"Description: {data.get('description', 'No description')}")
+                    if st.button(f"Use Template: {name}", key=f"use_{name}"):
+                        # Apply template parameters to session state
+                        params = data.get('parameters', {})
+                        st.session_state.setdefault('max_iterations', params.get('max_iterations', 100))
+                        st.session_state.setdefault('population_size', params.get('population_size', 100))
+                        st.session_state.setdefault('num_islands', params.get('num_islands', 5))
+                        st.session_state.setdefault('temperature', params.get('temperature', 0.7))
+                        st.session_state.setdefault('elite_ratio', params.get('elite_ratio', 0.1))
+                        st.success(f"Applied template '{name}' parameters!")
+                    
+                    if st.button(f"❌ Delete: {name}", key=f"del_{name}"):
+                        del st.session_state.workflow_templates[name]
+                        st.rerun()
+        else:
+            st.info("No templates saved yet. Create your first template above.")
+    
+    with config_tabs[1]:  # Parameter Presets
+        st.markdown("#### ⚙️ Parameter Presets")
+        st.write("Common parameter configurations for different evolution scenarios")
+        
+        preset_options = {
+            "Conservative": {
+                "max_iterations": 50,
+                "population_size": 50,
+                "temperature": 0.3,
+                "description": "Safe settings for initial experimentation"
+            },
+            "Standard": {
+                "max_iterations": 100,
+                "population_size": 100,
+                "temperature": 0.7,
+                "description": "Balanced performance and exploration"
+            },
+            "Aggressive": {
+                "max_iterations": 200,
+                "population_size": 200,
+                "temperature": 1.0,
+                "description": "High exploration for complex problems"
+            },
+            "Quality-Diversity Focus": {
+                "max_iterations": 150,
+                "population_size": 150,
+                "temperature": 0.5,
+                "num_islands": 8,
+                "archive_size": 200,
+                "description": "Optimized for diversity in solutions"
+            }
+        }
+        
+        for preset_name, preset_data in preset_options.items():
+            with st.container(border=True):
+                st.write(f"**{preset_name}**")
+                st.caption(f"{preset_data['description']}")
+                
+                preset_params = {k: v for k, v in preset_data.items() if k != 'description'}
+                param_str = ", ".join([f"{k}: {v}" for k, v in preset_params.items() if k != 'description'])
+                st.write(f"Parameters: {param_str}")
+                
+                if st.button(f"Apply {preset_name}", key=f"apply_{preset_name.lower().replace('-', '_')}"):
+                    # Apply preset parameters to session state
+                    for param, value in preset_params.items():
+                        st.session_state[param] = value
+                    st.success(f"Applied '{preset_name}' preset!")
+    
+    with config_tabs[2]:  # Global Settings
+        st.markdown("#### 🌐 Global Settings")
+        st.write("Configure global orchestrator behavior and defaults")
+        
+        with st.expander("Resource Management", expanded=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                default_memory_limit = st.number_input(
+                    "Default Memory Limit (MB)", 
+                    min_value=100, 
+                    max_value=32768, 
+                    value=2048,
+                    help="Default memory limit for new workflows"
+                )
+                default_cpu_limit = st.number_input(
+                    "Default CPU Limit", 
+                    min_value=0.1, 
+                    max_value=32.0, 
+                    value=4.0,
+                    step=0.1,
+                    help="Default CPU cores to allocate for new workflows"
+                )
+            with col2:
+                default_parallel_eval = st.number_input(
+                    "Default Parallel Evaluations", 
+                    min_value=1, 
+                    max_value=32, 
+                    value=4,
+                    help="Default number of parallel evaluations for new workflows"
+                )
+                auto_checkpoint = st.checkbox(
+                    "Auto Checkpoint Enabled", 
+                    value=True,
+                    help="Automatically save checkpoints during evolution"
+                )
+        
+        with st.expander("Logging & Debugging", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                default_log_level = st.selectbox(
+                    "Default Log Level", 
+                    options=["DEBUG", "INFO", "WARNING", "ERROR"],
+                    index=1
+                )
+                enable_tracing = st.checkbox(
+                    "Enable Evolution Tracing by Default", 
+                    value=False
+                )
+            with col2:
+                trace_format = st.selectbox(
+                    "Default Trace Format", 
+                    options=["jsonl", "csv", "parquet"],
+                    index=0
+                )
+                compress_traces = st.checkbox(
+                    "Compress Traces by Default", 
+                    value=False
+                )
+        
+        if st.button("💾 Save Global Settings"):
+            # Store global settings in session state
+            st.session_state.setdefault('global_settings', {})
+            st.session_state.global_settings.update({
+                'default_memory_limit': default_memory_limit,
+                'default_cpu_limit': default_cpu_limit,
+                'default_parallel_eval': default_parallel_eval,
+                'auto_checkpoint': auto_checkpoint,
+                'default_log_level': default_log_level,
+                'enable_tracing': enable_tracing,
+                'trace_format': trace_format,
+                'compress_traces': compress_traces
+            })
+            st.success("Global settings saved!")
+        
+        # Show current global settings
+        if 'global_settings' in st.session_state:
+            with st.expander("Current Global Settings", expanded=False):
+                settings = st.session_state.global_settings
+                for key, value in settings.items():
+                    st.write(f"- {key}: {value}")
+    
+    with config_tabs[3]:  # Import/Export
+        st.markdown("#### 📤 Import/Export Configurations")
+        st.write("Import or export workflow configurations for sharing or backup")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.write("Export Current Configuration")
+            export_format = st.selectbox("Export Format", ["JSON", "YAML"], index=0)
+            if st.button("📤 Export Configuration"):
+                # Create a configuration object
+                config_obj = {
+                    "workflow_templates": st.session_state.get("workflow_templates", {}),
+                    "global_settings": st.session_state.get("global_settings", {}),
+                    "export_timestamp": time.time(),
+                    "export_format": export_format.lower()
+                }
+                
+                import json
+                import yaml
+                import io
+                
+                if export_format == "JSON":
+                    config_str = json.dumps(config_obj, indent=2)
+                    st.download_button(
+                        label="Download JSON Configuration",
+                        data=config_str,
+                        file_name=f"openevolve_config_{int(time.time())}.json",
+                        mime="application/json"
+                    )
+                else:  # YAML
+                    config_str = yaml.dump(config_obj, default_flow_style=False)
+                    st.download_button(
+                        label="Download YAML Configuration",
+                        data=config_str,
+                        file_name=f"openevolve_config_{int(time.time())}.yaml",
+                        mime="text/yaml"
+                    )
+        
+        with col2:
+            st.write("Import Configuration")
+            uploaded_file = st.file_uploader("Choose a configuration file", type=["json", "yaml", "yml"])
+            if uploaded_file is not None:
+                import json
+                import yaml
+                
+                try:
+                    if uploaded_file.name.endswith('.json'):
+                        config_data = json.load(uploaded_file)
+                    else:  # YAML
+                        config_data = yaml.safe_load(uploaded_file)
+                    
+                    if st.button("📥 Import Configuration"):
+                        # Merge imported data with current session state
+                        if "workflow_templates" in config_data:
+                            st.session_state.setdefault("workflow_templates", {})
+                            st.session_state.workflow_templates.update(config_data["workflow_templates"])
+                        
+                        if "global_settings" in config_data:
+                            st.session_state.setdefault("global_settings", {})
+                            st.session_state.global_settings.update(config_data["global_settings"])
+                        
+                        st.success("Configuration imported successfully!")
+                        
+                except Exception as e:
+                    st.error(f"Error importing configuration: {e}")
 
 
 # Initialize session state
