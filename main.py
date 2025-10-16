@@ -18,6 +18,7 @@ import time
 import requests # For health check
 import subprocess
 import signal # Added for process termination
+import yaml
 from openevolve_orchestrator import start_openevolve_services, render_openevolve_orchestrator_ui
 
 import queue

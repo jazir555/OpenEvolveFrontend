@@ -1168,15 +1168,18 @@ def render_github_tab():
     st.header("🐙 GitHub Integration")
     st.write("Manage your GitHub integrations for version control and collaboration.")
 
-    # Note: github_token is automatically managed by the widget key
-    # No need to manually set st.session_state.github_token
-    st.text_input("GitHub Personal Access Token", type="password", value=st.session_state.github_token, key="github_token")
+    # Initialize session state key if not present and use default value
+    github_token_value = st.session_state.get("github_token", "")
+    
+    # Safe way: Use the retrieved value as the default
+    st.text_input("GitHub Personal Access Token", type="password", value=github_token_value, key="github_token")
 
-    if st.session_state.github_token:
+    # Use the safe get method again for the conditional check
+    if st.session_state.get("github_token", ""):
         st.subheader("Linked Repositories")
         try:
             with st.spinner("Fetching repositories..."):
-                repos = list_linked_github_repositories(st.session_state.github_token)
+                repos = list_linked_github_repositories(st.session_state.get("github_token", ""))
             if repos:
                 st.selectbox("Your Repositories", [repo['full_name'] for repo in repos])
             else:
@@ -1194,7 +1197,7 @@ def render_github_tab():
         if st.button("Commit to GitHub"):
             if all([repo_name, branch, file_path, file_content, commit_message]):
                 try:
-                    commit_to_github(st.session_state.github_token, repo_name, branch, file_path, file_content, commit_message)
+                    commit_to_github(st.session_state.get("github_token", ""), repo_name, branch, file_path, file_content, commit_message)
                     st.success(f"Changes committed to '{branch}' in '{repo_name}'.")
                 except Exception as e:
                     st.error(f"Error committing changes: {e}")
