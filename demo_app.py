@@ -40,7 +40,7 @@ st.markdown("""
         margin-bottom: 20px;
     }
     .section-header {
-        background-color: #f0f2f6;
+        background-color: #e0f2fe;
         padding: 10px;
         border-radius: 5px;
         margin-bottom: 10px;

@@ -530,6 +530,57 @@ class OpenEvolveOrchestrator:
 
 def render_openevolve_orchestrator_ui():
     """Render the OpenEvolve orchestrator UI"""
+    
+    # Add custom CSS to maintain consistent styling and prevent UI breaking
+    st.markdown("""
+    <style>
+    /* Ensure buttons maintain consistent styling */
+    div[data-testid="stForm"] button[kind="secondary"],
+    button[kind="secondary"] {
+        background-color: #e0f2fe !important;
+        border: 1px solid #808495 !important;
+        color: var(--text-primary) !important;
+    }
+    
+    div[data-testid="stForm"] button[kind="secondary"]:hover,
+    button[kind="secondary"]:hover {
+        background-color: #e0e2e6 !important;
+        border: 1px solid #808495 !important;
+    }
+    
+    div[data-testid="stForm"] button[kind="secondary"]:active,
+    button[kind="secondary"]:active {
+        background-color: #d0d2d6 !important;
+    }
+    
+    /* Ensure text stays readable */
+    div[data-testid="stMarkdownContainer"],
+    div[data-testid="stText"],
+    p, span, div {
+        color: var(--text-primary) !important;
+    }
+    
+    /* Maintain consistent container styling */
+    [data-testid="stVerticalBlock"] > [data-testid="stVerticalBlockBorderWrapper"],
+    .stContainer {
+        border: 1px solid var(--border) !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+    }
+    
+    /* Ensure form elements maintain consistent size */
+    [data-testid="stForm"] {
+        margin-bottom: 10px !important;
+    }
+    
+    /* Override potential conflicting styles */
+    [data-testid="stColumn"] button {
+        min-width: unset !important;
+        flex: unset !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     st.header("🤖 OpenEvolve Workflow Orchestrator")
     
     # Add description and usage information
@@ -631,14 +682,117 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
     # Content type selection
     content_type = st.selectbox(
         "Content Type",
-        options=["code_python", "code_javascript", "code_java", "code_csharp", "code_cpp", "text_general", "protocol", "documentation"],
+        options=[
+            "code_python", "code_javascript", "code_java", "code_csharp", "code_cpp", "code_go", "code_rust", "code_ruby", "code_php", "code_swift", "code_kotlin", "code_typescript", "code_sql", "code_shell", "code_assembly", "code_c", "code_clojure", "code_cobol", "code_d", "code_dart", "code_elixir", "code_erlang", "code_fsharp", "code_fortran", "code_groovy", "code_haskell", "code_julia", "code_lisp", "code_lua", "code_matlab", "code_objective_c", "code_ocaml", "code_pascal", "code_perl", "code_powershell", "code_prolog", "code_r", "code_scala", "code_scheme", "code_vbnet",
+            "web_html", "web_css", "web_javascript", "web_typescript", "web_json", "web_xml", "web_graphql",
+            "devops_dockerfile", "devops_kubernetes", "devops_terraform", "devops_ansible", "devops_chef", "devops_puppet", "devops_jenkinsfile", "devops_gitlab_ci", "devops_github_actions",
+            "ml_jupyter_notebook", "ml_python_script", "ml_r_script", "ml_sql_query", "ml_tensorboard_log",
+            "doc_plaintext", "doc_markdown", "doc_latex", "doc_rst", "doc_asciidoc", "doc_word", "doc_pdf", "doc_powerpoint", "doc_excel",
+            "other_shader", "other_game_script", "other_smart_contract",
+            "text_general", "text_markdown", "text_json", "text_yaml", "text_xml", "text_html", "text_css",
+            "document_legal", "document_medical", "document_financial", "document_technical", "document_scientific", "document_creative", "document_business", "document_marketing", "document_educational", "document_conversational",
+            "data_csv", "data_json", "data_xml", "data_parquet",
+            "config_yaml", "config_json", "config_toml", "config_ini",
+            "prompt", "sop", "policy", "procedure", "plan", "protocol", "documentation"
+        ],
         format_func=lambda x: {
             "code_python": "🐍 Python Code",
             "code_javascript": "🌐 JavaScript Code",
             "code_java": "☕ Java Code", 
-            "code_csharp": "sharp C# Code",
+            "code_csharp": "# C# Code",
             "code_cpp": "++ C++ Code",
+            "code_go": "🐹 Go Code",
+            "code_rust": "🦀 Rust Code",
+            "code_ruby": "💎 Ruby Code",
+            "code_php": "🐘 PHP Code",
+            "code_swift": "🐦 Swift Code",
+            "code_kotlin": "🤖 Kotlin Code",
+            "code_typescript": "📜 TypeScript Code",
+            "code_sql": "💾 SQL Query",
+            "code_shell": "💲 Shell Script",
+            "code_assembly": "🔧 Assembly Code",
+            "code_c": "🔧 C Code",
+            "code_clojure": "🌀 Clojure Code",
+            "code_cobol": "💼 COBOL Code",
+            "code_d": " D Code",
+            "code_dart": "🎯 Dart Code",
+            "code_elixir": "💧 Elixir Code",
+            "code_erlang": "📞 Erlang Code",
+            "code_fsharp": "# F# Code",
+            "code_fortran": "🔢 Fortran Code",
+            "code_groovy": "🎶 Groovy Code",
+            "code_haskell": "🧮 Haskell Code",
+            "code_julia": "📈 Julia Code",
+            "code_lisp": "🧠 Lisp Code",
+            "code_lua": "🌙 Lua Code",
+            "code_matlab": "🔢 MATLAB Code",
+            "code_objective_c": "🍏 Objective-C Code",
+            "code_ocaml": "🐫 OCaml Code",
+            "code_pascal": "📝 Pascal Code",
+            "code_perl": "🐪 Perl Code",
+            "code_powershell": "💲 PowerShell Script",
+            "code_prolog": "🧠 Prolog Code",
+            "code_r": "📊 R Code",
+            "code_scala": " Scala Code",
+            "code_scheme": "🌀 Scheme Code",
+            "code_vbnet": " VB.NET Code",
+            "web_html": "🌐 HTML",
+            "web_css": "🎨 CSS",
+            "web_javascript": "🌐 JavaScript",
+            "web_typescript": "📜 TypeScript",
+            "web_json": "🕸️ JSON",
+            "web_xml": "🔖 XML",
+            "web_graphql": "🕸️ GraphQL",
+            "devops_dockerfile": "🐳 Dockerfile",
+            "devops_kubernetes": "☸️ Kubernetes YAML",
+            "devops_terraform": "🏗️ Terraform",
+            "devops_ansible": "📜 Ansible",
+            "devops_chef": "📜 Chef",
+            "devops_puppet": "📜 Puppet",
+            "devops_jenkinsfile": "📜 Jenkinsfile",
+            "devops_gitlab_ci": "🦊 GitLab CI",
+            "devops_github_actions": "🐙 GitHub Actions",
+            "ml_jupyter_notebook": "📓 Jupyter Notebook",
+            "ml_python_script": "🐍 Python Script",
+            "ml_r_script": "📊 R Script",
+            "ml_sql_query": "💾 SQL Query",
+            "ml_tensorboard_log": "📈 TensorBoard Log",
+            "doc_plaintext": "📝 Plain Text",
+            "doc_markdown": "📄 Markdown",
+            "doc_latex": "📜 LaTeX",
+            "doc_rst": "📄 reStructuredText",
+            "doc_asciidoc": "📄 AsciiDoc",
+            "doc_word": "📄 Word Document",
+            "doc_pdf": "📄 PDF Document",
+            "doc_powerpoint": "📊 PowerPoint",
+            "doc_excel": "📊 Excel Spreadsheet",
+            "other_shader": "🎨 Shader Code",
+            "other_game_script": "🎮 Game Script",
+            "other_smart_contract": "🔗 Smart Contract",
             "text_general": "📝 General Text",
+            "document_legal": "⚖️ Legal Document",
+            "document_medical": "⚕️ Medical Document",
+            "document_financial": "💰 Financial Document",
+            "document_technical": "🔧 Technical Document",
+            "document_scientific": "🔬 Scientific Paper",
+            "document_creative": "🎨 Creative Writing",
+            "document_business": "📈 Business Plan",
+            "document_marketing": "📢 Marketing Copy",
+            "document_educational": "🎓 Educational Material",
+            "document_conversational": "💬 Conversational AI",
+            "data_csv": "📊 CSV Data",
+            "data_json": "📊 JSON Data",
+            "data_xml": "📊 XML Data",
+            "data_parquet": "📊 Parquet Data",
+            "config_yaml": "⚙️ YAML Config",
+            "config_json": "⚙️ JSON Config",
+            "config_toml": "⚙️ TOML Config",
+            "config_ini": "⚙️ INI Config",
+            "prompt": "💡 LLM Prompt",
+            "sop": "📋 Standard Operating Procedure",
+            "policy": "📜 Policy Document",
+            "procedure": "📄 Procedure Document",
+            "plan": "📝 Plan Document",
             "protocol": "📋 Protocol",
             "documentation": "📚 Documentation"
         }.get(x, x),
@@ -1123,8 +1277,7 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
                 if st.button("⏹️ Stop Workflow", key=f"stop_{workflow_status['workflow_id']}", type="secondary"):
                     if orchestrator.stop_workflow(workflow_status['workflow_id']):
                         st.success(f"Workflow {workflow_status['workflow_id']} stopped successfully")
-                        time.sleep(1)  # Brief pause to allow state to update
-                        st.rerun()
+                        # Instead of st.rerun(), we let the next refresh update the UI
                     else:
                         st.error(f"Failed to stop workflow {workflow_status['workflow_id']}")
             

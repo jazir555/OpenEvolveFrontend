@@ -101,7 +101,7 @@ def generate_integrated_report(integrated_results: Dict[str, Any]) -> str:
                 color: white; 
             }}
             .content-diff {{
-                background-color: #f5f5f5;
+                background-color: var(--bg-tertiary);
                 padding: 10px;
                 border-radius: 4px;
                 font-family: monospace;

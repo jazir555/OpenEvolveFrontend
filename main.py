@@ -19,44 +19,92 @@ import requests # For health check
 import subprocess
 import signal # Added for process termination
 import yaml
-from openevolve_orchestrator import start_openevolve_services, render_openevolve_orchestrator_ui
+from openevolve_orchestrator import start_openevolve_services, stop_openevolve_services, restart_openevolve_services
+from openevolve_dashboard import render_openevolve_dashboard
 
 import queue
 
 # Global queue for messages from background threads
 backend_message_queue = queue.Queue()
-# Custom CSS to style the knob and remove the focus "glow"
+# Custom CSS to style the knob and remove the focus "glow" with more stable selectors
 custom_css = """
 <style>
-    /* Target the slider thumb (knob) */
-    div[role="slider"] {
-        background: linear-gradient(to bottom, #f5f5f5 0%, #cccccc 100%) !important;
-        border: 1px solid #999999 !important;
+    /* Target the slider thumb (knob) with more stable selectors */
+    [data-testid="stSlider"] div[role="slider"] {
+        background: silver !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
         /* The glow is often a box-shadow, which we'll disable on focus */
     }
 
-    /* Style the value text inside the thumb */
-    .st-emotion-cache-muukut.ezks3vl2 {
-        color: #333 !important;
+    /* Style the value text inside the slider thumb */
+    [data-testid="stSlider"] [data-baseweb="slider"] {
+        color: var(--text-primary) !important;
     }
 
     /* NEW RULE: This specifically targets and removes the "glow" */
-    div[role="slider"]:focus {
+    [data-testid="stSlider"] div[role="slider"]:focus {
         box-shadow: none !important;
         outline: none !important;
+        border: none !important;
+    }
+    
+    /* Remove any focus styling on the slider container */
+    [data-testid="stSlider"] [data-baseweb="slider"]:focus {
+        box-shadow: none !important;
+        outline: none !important;
+        border: none !important;
+    }
+    
+    /* Remove any focus styling on the slider track */
+    [data-testid="stSlider"] [data-baseweb="slider"] > div:first-child:focus {
+        box-shadow: none !important;
+        outline: none !important;
+        border: none !important;
     }
 
-    /* --- We'll keep the bar styles for our next attempt --- */
+    /* --- Updated bar styles with stable selectors --- */
 
     /* Target the main slider track (the full bar) */
-    .st-am .st-gu {
-        background: linear-gradient(to right, #a9a9a9, #d3d3d3) !important;
-        border: 1px solid #aaa !important;
+    [data-testid="stSlider"] [data-baseweb="slider"] > div:first-child {
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
     }
 
     /* Target the "filled" portion of the slider track */
-    .st-am .st-gu > div {
-        background: linear-gradient(to right, #cccccc, #f5f5f5) !important;
+    [data-testid="stSlider"] [data-baseweb="slider"] > div:last-child {
+        background: transparent !important;
+        border: none !important;
+        outline: none !important;
+        box-shadow: none !important;
+    }
+    
+    /* General UI stability rules to prevent refresh-related styling issues */
+    /* Prevent buttons from changing size on refresh */
+    .stButton > button {
+        min-width: auto !important;
+        flex: none !important;
+        padding: 0.275rem 0.6rem !important;
+    }
+    
+    /* Ensure text elements maintain readability during refreshes */
+    .stMarkdown, .stText, div[data-testid="stMarkdownContainer"], p, span, div {
+        color: var(--text-primary) !important;
+    }
+    
+    /* Maintain consistent container styling */
+    [data-testid="stVerticalBlockBorderWrapper"], .stContainer {
+        border: 1px solid var(--border) !important;
+        border-radius: 8px !important;
+        padding: 10px !important;
+    }
+    
+    /* Ensure form elements maintain consistent sizing */
+    [data-testid="stForm"] {
+        margin-bottom: 10px !important;
     }
 </style>
 """
@@ -143,7 +191,7 @@ def show_welcome_screen():
             """
         <div style=\"text-align: center; padding: 20px; background: linear-gradient(135deg, #4a6fa5, #6b8cbc); color: white; border-radius: 10px; margin-bottom: 20px;">
             <h1 style=\"color: white;">🧬 Welcome to OpenEvolve!</h1>
-            <p style=\"font-size: 1.2em; color: #e0e0e0;">AI-Powered Content Evolution & Testing Platform</p>
+            <p style=\"font-size: 1.2em; color: #bae6fd;">AI-Powered Content Evolution & Testing Platform</p>
         </div>
         """,
             unsafe_allow_html=True,
@@ -310,8 +358,8 @@ def main():
         if "feature_dimensions" not in st.session_state:
             st.session_state["feature_dimensions"] = ["complexity", "diversity"]
 
-        # Render the OpenEvolve Orchestrator UI
-        render_openevolve_orchestrator_ui()
+        # Render the OpenEvolve Dashboard
+        render_openevolve_dashboard()
 
     except Exception as e:
         st.error(f"A critical application error occurred: {e}")
@@ -327,182 +375,3 @@ if __name__ == "__main__":
 
     main()
 
-
-def start_openevolve_services():
-    print("start_openevolve_services called")
-    """Start all OpenEvolve services."""
-    
-    # The OpenEvolve project may require an LLM proxy service (like OptiLLM) on port 8000
-    # and a visualizer service on port 8080. This function starts both if available.
-    
-    # Check if visualizer is already running on port 8080
-    try:
-        viz_response = requests.get("http://localhost:8080/", timeout=5)
-        if viz_response.status_code == 200:
-            backend_message_queue.put(("info", "OpenEvolve visualizer is already running on port 8080."))
-    except requests.exceptions.ConnectionError:
-        backend_message_queue.put(("info", "OpenEvolve visualizer not running on port 8080. Attempting to start..."))
-        # Start the visualizer on port 8080
-        try:
-            backend_path = os.path.join(get_project_root(), "openevolve")
-            viz_script_path = os.path.join(backend_path, "scripts", "visualizer.py")
-            
-            if os.path.exists(viz_script_path):
-                viz_command = [
-                    sys.executable,  # Use the same python that runs the frontend
-                    viz_script_path,
-                    "--port",
-                    "8080"
-                ]
-                
-                # Get the current environment and add the project root to PYTHONPATH
-                env = os.environ.copy()
-                env["PYTHONPATH"] = get_project_root()
-
-                # Use Popen to start the visualizer without blocking the main thread
-                # Create log files in frontend directory to capture backend output for debugging
-                backend_out_log = os.path.join(os.path.dirname(__file__), "backend_stdout.log")
-                backend_err_log = os.path.join(os.path.dirname(__file__), "backend_stderr.log")
-                
-                with open(backend_out_log, "a") as stdout_file, open(backend_err_log, "a") as stderr_file:
-                    # Start visualizer process
-                    viz_process = subprocess.Popen(
-                        viz_command,
-                        stdout=stdout_file,
-                        stderr=stderr_file,
-                        env=env,
-                        creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
-                    )
-                
-                # Store process in a thread-safe manner (e.g., a global dict protected by a lock)
-                # For now, we'll assume st.session_state is handled in the main thread
-                # and just log the PID. The main thread will update session_state.
-                backend_message_queue.put(("process_started", "visualizer", viz_process.pid))
-                backend_message_queue.put(("info", f"OpenEvolve visualizer started with PID: {viz_process.pid}"))
-                
-                # Wait a bit for the visualizer to start
-                time.sleep(2)
-                
-                # Double-check if visualizer is running after starting
-                max_retries = 15  # Increased retry attempts
-                retry_count = 0
-                viz_started = False
-                
-                while retry_count < max_retries and not viz_started:
-                    try:
-                        response = requests.get("http://localhost:8080/", timeout=5)  # Check visualizer server
-                        if response.status_code == 200:
-                            backend_message_queue.put(("info", "OpenEvolve visualizer confirmed running on port 8080."))
-                            viz_started = True
-                            break
-                    except requests.exceptions.RequestException:
-                        pass
-                    time.sleep(2)  # Wait 2 seconds before retrying
-                    retry_count += 1
-                    
-                if not viz_started:
-                    backend_message_queue.put(("warning", "OpenEvolve visualizer may not have started properly. Please check backend logs."))
-                    backend_message_queue.put(("info", "Backend logs are available at backend_stdout.log and backend_stderr.log"))
-            else:
-                backend_message_queue.put(("info", f"OpenEvolve visualizer script not found at {viz_script_path}. Visualizer will not be started automatically."))
-                
-        except Exception as e:
-            backend_message_queue.put(("error", f"Failed to start OpenEvolve visualizer: {e}"))
-            import traceback
-            backend_message_queue.put(("error", f"Full traceback: {traceback.format_exc()}"))
-    
-    # Check if LLM proxy (OptiLLM) is already running on port 8000
-    try:
-        llm_proxy_response = requests.get("http://localhost:8000/v1/models", timeout=5)
-        if llm_proxy_response.status_code == 200:
-            backend_message_queue.put(("info", "LLM proxy (OptiLLM) is already running on port 8000."))
-    except requests.exceptions.ConnectionError:
-        backend_message_queue.put(("info", "LLM proxy (OptiLLM) not running on port 8000. Attempting to start..."))
-        # Start OptiLLM on port 8000
-        try:
-            optillm_command = [
-                sys.executable,  # Use the same python that runs the frontend
-                "-m",
-                "optillm",
-                "--port",
-                "8000"
-            ]
-            
-            # Create log files in frontend directory to capture backend output for debugging
-            backend_out_log = os.path.join(os.path.dirname(__file__), "backend_stdout.log")
-            backend_err_log = os.path.join(os.path.dirname(__file__), "backend_stderr.log")
-            
-            with open(backend_out_log, "a") as stdout_file, open(backend_err_log, "a") as stderr_file:
-                optillm_process = subprocess.Popen(
-                    optillm_command,
-                    stdout=stdout_file,
-                    stderr=stderr_file,
-                    creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
-                )
-            
-            backend_message_queue.put(("process_started", "optillm", optillm_process.pid))
-            backend_message_queue.put(("info", f"OptiLLM proxy started with PID: {optillm_process.pid}"))
-            
-            # Wait a bit for OptiLLM to start
-            time.sleep(2)
-            
-            # Double-check if OptiLLM is running after starting
-            max_retries = 15  # Increased retry attempts
-            retry_count = 0
-            optillm_started = False
-            
-            while retry_count < max_retries and not optillm_started:
-                try:
-                    response = requests.get("http://localhost:8000/v1/models", timeout=5)
-                    if response.status_code == 200:
-                        backend_message_queue.put(("info", "OptiLLM proxy confirmed running on port 8000."))
-                        optillm_started = True
-                        break
-                except requests.exceptions.RequestException:
-                    pass
-                time.sleep(2)  # Wait 2 seconds before retrying
-                retry_count += 1
-                
-            if not optillm_started:
-                backend_message_queue.put(("warning", "OptiLLM proxy may not have started properly. Please check backend logs."))
-                backend_message_queue.put(("info", "Backend logs are available at backend_stdout.log and backend_stderr.log"))
-                
-        except Exception as e:
-            backend_message_queue.put(("error", f"Failed to start OptiLLM proxy: {e}"))
-            import traceback
-            backend_message_queue.put(("error", f"Full traceback: {traceback.format_exc()}"))
-
-def stop_openevolve_services():
-    """Stop all OpenEvolve services."""
-    # Stop all OpenEvolve backend processes if running
-    if "openevolve_backend_processes" in st.session_state and st.session_state.openevolve_backend_processes:
-        for service_name, pid in st.session_state.openevolve_backend_processes.items():
-            try:
-                # On Windows, taskkill is more reliable for terminating process groups
-                if sys.platform == "win32":
-                    subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)], check=True, capture_output=True)
-                else:
-                    os.killpg(os.getpgid(pid), signal.SIGTERM) # For Unix-like systems
-                backend_message_queue.put(("info", f"OpenEvolve {service_name} process (PID: {pid}) terminated."))
-            except Exception as e:
-                backend_message_queue.put(("error", f"Error terminating OpenEvolve {service_name} process (PID: {pid}): {e}"))
-        st.session_state.openevolve_backend_processes = {}
-    # Also handle the old single process variable for backward compatibility (if it was a Popen object)
-    elif "openevolve_backend_process" in st.session_state and st.session_state.openevolve_backend_process:
-        try:
-            process = st.session_state.openevolve_backend_process
-            if process.poll() is None: # Check if process is still running
-                if sys.platform == "win32":
-                    subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], check=True, capture_output=True)
-                else:
-                    os.killpg(os.getpgid(process.pid), signal.SIGTERM)
-                backend_message_queue.put(("info", "OpenEvolve backend process terminated."))
-            st.session_state.openevolve_backend_process = None
-        except Exception as e:
-            backend_message_queue.put(("error", f"Error terminating OpenEvolve backend process: {e}"))
-
-def restart_openevolve_services():
-    """Restart all OpenEvolve services."""
-    stop_openevolve_services()
-    time.sleep(3)  # Increased wait time to ensure processes are fully terminated
-    start_openevolve_services()

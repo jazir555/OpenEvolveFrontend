@@ -166,7 +166,7 @@ class TemplateManager:
                     </span>
                     <div style="text-align: right;">
                         <div style="color: #ffa000;">{"★" * int(details.get("rating", 0) // 2)} ({details.get("rating", 0)})</div>
-                        <div style="font-size: 0.8em; color: #999;">{details.get("downloads", 0):,} downloads</div>
+                        <div style="font-size: 0.8em; color: var(--text-light);">{details.get("downloads", 0):,} downloads</div>
                     </div>
                 </div>
                 <div style="margin-top: 10px;">

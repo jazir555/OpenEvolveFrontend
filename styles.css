@@ -207,3 +207,45 @@ input[type=text],input[type=password],input[type=email],input[type=number],texta
 @keyframes fadeInUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .fade-in{animation:fadeIn .3s ease forwards}
 .fade-in-up { animation: fadeInUp 0.3s ease forwards; }
+
+/* 17. Slider customization */
+div[class*="st-emotion-cache-"]:has(div[data-baseweb="slider"]) {
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+div[data-baseweb="slider"] > div {
+    background-color: transparent !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+div[data-baseweb="slider"] div[role="slider"] {
+    background: silver !important;
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Remove focus outlines and borders from slider elements */
+div[data-baseweb="slider"] * {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+}
+
+/* Specifically target the slider track and handle */
+div[data-baseweb="slider"] > div:first-child {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+}
+
+div[data-baseweb="slider"] > div:last-child {
+    background: transparent !important;
+    border: none !important;
+    outline: none !important;
+}
