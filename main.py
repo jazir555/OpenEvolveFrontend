@@ -7,6 +7,8 @@ This is the main entry point that ties together all the components of the OpenEv
 """
 
 import streamlit as st
+st.set_page_config(page_title="OpenEvolve", layout="wide")
+
 import os
 import sys
 import logging
@@ -15,11 +17,13 @@ import threading
 import time
 import requests # For health check
 import subprocess
-import yaml # Added import for yaml
+import signal # Added for process termination
 from openevolve_orchestrator import start_openevolve_services, render_openevolve_orchestrator_ui
 
+import queue
 
-st.set_page_config(page_title="OpenEvolve", layout="wide")
+# Global queue for messages from background threads
+backend_message_queue = queue.Queue()
 # Custom CSS to style the knob and remove the focus "glow"
 custom_css = """
 <style>
@@ -221,6 +225,21 @@ def load_app_config():
 def main():
     """Main application entry point."""
     try:
+        # Process messages from the backend queue
+        while not backend_message_queue.empty():
+            message_type, *message_args = backend_message_queue.get_nowait()
+            if message_type == "info":
+                st.info(message_args[0])
+            elif message_type == "warning":
+                st.warning(message_args[0])
+            elif message_type == "error":
+                st.error(message_args[0])
+            elif message_type == "process_started":
+                service_name, pid = message_args
+                if "openevolve_backend_processes" not in st.session_state:
+                    st.session_state.openevolve_backend_processes = {}
+                st.session_state.openevolve_backend_processes[service_name] = pid # Store PID, not process object
+
         # Start the Flask app for log streaming in a separate thread, but only once.
         if "log_streaming" not in st.session_state:
             try:
@@ -231,7 +250,7 @@ def main():
                 logging.info("Log streaming service started successfully")
             except ImportError as e:
                 logging.error(f"Failed to import log_streaming module: {e}")
-                st.error(f"Log streaming service not available: {e}")
+                st.error(f"Failed to load log_streaming module: {e}")
             except Exception as e:
                 logging.error(f"Failed to start log streaming service: {e}")
 
@@ -304,6 +323,7 @@ if __name__ == "__main__":
         from mainlayout import _initialize_session_state
         _initialize_session_state()
         st.session_state._session_state_initialized = True
+
     main()
 
 
@@ -318,9 +338,9 @@ def start_openevolve_services():
     try:
         viz_response = requests.get("http://localhost:8080/", timeout=5)
         if viz_response.status_code == 200:
-            logging.info("OpenEvolve visualizer is already running on port 8080.")
+            backend_message_queue.put(("info", "OpenEvolve visualizer is already running on port 8080."))
     except requests.exceptions.ConnectionError:
-        logging.info("OpenEvolve visualizer not running on port 8080. Attempting to start...")
+        backend_message_queue.put(("info", "OpenEvolve visualizer not running on port 8080. Attempting to start..."))
         # Start the visualizer on port 8080
         try:
             backend_path = os.path.join(get_project_root(), "openevolve")
@@ -353,10 +373,11 @@ def start_openevolve_services():
                         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
                     )
                 
-                if not hasattr(st.session_state, 'openevolve_backend_processes'):
-                    st.session_state.openevolve_backend_processes = {}
-                st.session_state.openevolve_backend_processes['visualizer'] = viz_process
-                logging.info(f"OpenEvolve visualizer started with PID: {viz_process.pid}")
+                # Store process in a thread-safe manner (e.g., a global dict protected by a lock)
+                # For now, we'll assume st.session_state is handled in the main thread
+                # and just log the PID. The main thread will update session_state.
+                backend_message_queue.put(("process_started", "visualizer", viz_process.pid))
+                backend_message_queue.put(("info", f"OpenEvolve visualizer started with PID: {viz_process.pid}"))
                 
                 # Wait a bit for the visualizer to start
                 time.sleep(2)
@@ -370,7 +391,7 @@ def start_openevolve_services():
                     try:
                         response = requests.get("http://localhost:8080/", timeout=5)  # Check visualizer server
                         if response.status_code == 200:
-                            logging.info("OpenEvolve visualizer confirmed running on port 8080.")
+                            backend_message_queue.put(("info", "OpenEvolve visualizer confirmed running on port 8080."))
                             viz_started = True
                             break
                     except requests.exceptions.RequestException:
@@ -379,23 +400,23 @@ def start_openevolve_services():
                     retry_count += 1
                     
                 if not viz_started:
-                    logging.warning("OpenEvolve visualizer may not have started properly. Please check backend logs.")
-                    logging.info("Backend logs are available at backend_stdout.log and backend_stderr.log")
+                    backend_message_queue.put(("warning", "OpenEvolve visualizer may not have started properly. Please check backend logs."))
+                    backend_message_queue.put(("info", "Backend logs are available at backend_stdout.log and backend_stderr.log"))
             else:
-                logging.info(f"OpenEvolve visualizer script not found at {viz_script_path}. Visualizer will not be started automatically.")
+                backend_message_queue.put(("info", f"OpenEvolve visualizer script not found at {viz_script_path}. Visualizer will not be started automatically."))
                 
         except Exception as e:
-            logging.error(f"Failed to start OpenEvolve visualizer: {e}")
+            backend_message_queue.put(("error", f"Failed to start OpenEvolve visualizer: {e}"))
             import traceback
-            logging.error(f"Full traceback: {traceback.format_exc()}")
+            backend_message_queue.put(("error", f"Full traceback: {traceback.format_exc()}"))
     
     # Check if LLM proxy (OptiLLM) is already running on port 8000
     try:
         llm_proxy_response = requests.get("http://localhost:8000/v1/models", timeout=5)
         if llm_proxy_response.status_code == 200:
-            logging.info("LLM proxy (OptiLLM) is already running on port 8000.")
+            backend_message_queue.put(("info", "LLM proxy (OptiLLM) is already running on port 8000."))
     except requests.exceptions.ConnectionError:
-        logging.info("LLM proxy (OptiLLM) not running on port 8000. Attempting to start...")
+        backend_message_queue.put(("info", "LLM proxy (OptiLLM) not running on port 8000. Attempting to start..."))
         # Start OptiLLM on port 8000
         try:
             optillm_command = [
@@ -418,10 +439,8 @@ def start_openevolve_services():
                     creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
                 )
             
-            if not hasattr(st.session_state, 'openevolve_backend_processes'):
-                st.session_state.openevolve_backend_processes = {}
-            st.session_state.openevolve_backend_processes['optillm'] = optillm_process
-            logging.info(f"OptiLLM proxy started with PID: {optillm_process.pid}")
+            backend_message_queue.put(("process_started", "optillm", optillm_process.pid))
+            backend_message_queue.put(("info", f"OptiLLM proxy started with PID: {optillm_process.pid}"))
             
             # Wait a bit for OptiLLM to start
             time.sleep(2)
@@ -435,7 +454,7 @@ def start_openevolve_services():
                 try:
                     response = requests.get("http://localhost:8000/v1/models", timeout=5)
                     if response.status_code == 200:
-                        logging.info("OptiLLM proxy confirmed running on port 8000.")
+                        backend_message_queue.put(("info", "OptiLLM proxy confirmed running on port 8000."))
                         optillm_started = True
                         break
                 except requests.exceptions.RequestException:
@@ -444,34 +463,42 @@ def start_openevolve_services():
                 retry_count += 1
                 
             if not optillm_started:
-                logging.warning("OptiLLM proxy may not have started properly. Please check backend logs.")
-                logging.info("Backend logs are available at backend_stdout.log and backend_stderr.log")
+                backend_message_queue.put(("warning", "OptiLLM proxy may not have started properly. Please check backend logs."))
+                backend_message_queue.put(("info", "Backend logs are available at backend_stdout.log and backend_stderr.log"))
                 
         except Exception as e:
-            logging.error(f"Failed to start OptiLLM proxy: {e}")
+            backend_message_queue.put(("error", f"Failed to start OptiLLM proxy: {e}"))
             import traceback
-            logging.error(f"Full traceback: {traceback.format_exc()}")
+            backend_message_queue.put(("error", f"Full traceback: {traceback.format_exc()}"))
 
 def stop_openevolve_services():
     """Stop all OpenEvolve services."""
     # Stop all OpenEvolve backend processes if running
     if "openevolve_backend_processes" in st.session_state and st.session_state.openevolve_backend_processes:
-        for service_name, process in st.session_state.openevolve_backend_processes.items():
+        for service_name, pid in st.session_state.openevolve_backend_processes.items():
             try:
-                if process and process.poll() is None:  # Check if process is still running
-                    process.terminate()
-                    logging.info(f"OpenEvolve {service_name} process terminated.")
+                # On Windows, taskkill is more reliable for terminating process groups
+                if sys.platform == "win32":
+                    subprocess.run(["taskkill", "/F", "/T", "/PID", str(pid)], check=True, capture_output=True)
+                else:
+                    os.killpg(os.getpgid(pid), signal.SIGTERM) # For Unix-like systems
+                backend_message_queue.put(("info", f"OpenEvolve {service_name} process (PID: {pid}) terminated."))
             except Exception as e:
-                logging.error(f"Error terminating OpenEvolve {service_name} process: {e}")
+                backend_message_queue.put(("error", f"Error terminating OpenEvolve {service_name} process (PID: {pid}): {e}"))
         st.session_state.openevolve_backend_processes = {}
-    # Also handle the old single process variable for backward compatibility
+    # Also handle the old single process variable for backward compatibility (if it was a Popen object)
     elif "openevolve_backend_process" in st.session_state and st.session_state.openevolve_backend_process:
         try:
-            st.session_state.openevolve_backend_process.terminate()
+            process = st.session_state.openevolve_backend_process
+            if process.poll() is None: # Check if process is still running
+                if sys.platform == "win32":
+                    subprocess.run(["taskkill", "/F", "/T", "/PID", str(process.pid)], check=True, capture_output=True)
+                else:
+                    os.killpg(os.getpgid(process.pid), signal.SIGTERM)
+                backend_message_queue.put(("info", "OpenEvolve backend process terminated."))
             st.session_state.openevolve_backend_process = None
-            logging.info("OpenEvolve backend process terminated.")
         except Exception as e:
-            logging.error(f"Error terminating OpenEvolve backend process: {e}")
+            backend_message_queue.put(("error", f"Error terminating OpenEvolve backend process: {e}"))
 
 def restart_openevolve_services():
     """Restart all OpenEvolve services."""

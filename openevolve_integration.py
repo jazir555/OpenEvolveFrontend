@@ -89,16 +89,17 @@ class OpenEvolveAPI:
 
     @st.cache_data(ttl=300) # Cache for 5 minutes
     def get_checkpoints(_self) -> List[str]:
-        try:
-            response = requests.get(f"{_self.base_url}/checkpoints", headers=_self.headers)
-            response.raise_for_status()
-            return response.json().get("checkpoints")
-        except requests.exceptions.ConnectionError:
-            st.error("Error: Could not connect to the OpenEvolve backend. Please ensure the backend is running on http://localhost:8000.")
-            return None
-        except requests.exceptions.RequestException as e:
-            st.error(f"Error getting checkpoints: {e}")
-            return None
+        # For local checkpointing, we list files in a predefined directory
+        checkpoint_dir = os.path.join(os.getcwd(), "openevolve_checkpoints")
+        if not os.path.exists(checkpoint_dir):
+            os.makedirs(checkpoint_dir)
+            return []
+        
+        checkpoints = []
+        for item in os.listdir(checkpoint_dir):
+            if os.path.isdir(os.path.join(checkpoint_dir, item)):
+                checkpoints.append(item)
+        return sorted(checkpoints, reverse=True)
 
     def get_evolution_status(self, evolution_id: str) -> Optional[Dict]:
         try:
@@ -255,24 +256,22 @@ class OpenEvolveAPI:
             return False
 
     def save_checkpoint(self, evolution_id: str) -> bool:
-        try:
-            url = f"{self.base_url}/evolutions/{evolution_id}/checkpoint"
-            response = requests.post(
-                url,
-                headers=self.headers,
-                timeout=30,
-            )
-            response.raise_for_status()
-            return True
-        except requests.exceptions.ConnectionError:
-            st.error(f"Connection error: Could not connect to OpenEvolve backend at {self.base_url}/evolutions/{evolution_id}/checkpoint")
-            return False
-        except requests.exceptions.Timeout:
-            st.error(f"Timeout error: Request to {self.base_url}/evolutions/{evolution_id}/checkpoint timed out")
-            return False
-        except requests.exceptions.RequestException as e:
-            st.error(f"Error saving checkpoint: {e}")
-            return False
+        st.info(f"Checkpointing is handled automatically by OpenEvolve. Evolution '{evolution_id}' state is saved periodically.")
+        return True
+
+    def load_checkpoint(self, checkpoint_name: str) -> Optional[Dict[str, Any]]:
+        """Loads an evolution from a specified checkpoint."""
+        checkpoint_dir = os.path.join(os.getcwd(), "openevolve_checkpoints", checkpoint_name)
+        if not os.path.exists(checkpoint_dir):
+            st.error(f"Checkpoint '{checkpoint_name}' not found.")
+            return None
+        
+        # When loading a checkpoint, we need to re-run the evolution from that checkpoint.
+        # This is a simplified approach. A more robust solution would involve
+        # re-initializing the entire evolution state from the checkpoint.
+        # For now, we'll just return the path to the checkpoint.
+        st.info(f"Loading evolution from checkpoint: {checkpoint_name}. This will restart the evolution from the saved state.")
+        return {"checkpoint_path": checkpoint_dir}
 
 
 def create_advanced_openevolve_config(
@@ -350,6 +349,7 @@ def create_advanced_openevolve_config(
     evaluator_timeout: int = 300,
     # Ensemble model configuration
     evaluator_models: Optional[List[Dict[str, any]]] = None,
+    output_dir: Optional[str] = None,
 ) -> Optional[Config]:
     """
     Create an advanced OpenEvolve configuration with enhanced settings.
@@ -514,7 +514,7 @@ def create_advanced_openevolve_config(
 
         # Configure database settings for enhanced evolution
         config.database = DatabaseConfig(
-            db_path=db_path,
+            db_path=output_dir,
             in_memory=in_memory,
             population_size=population_size,
             archive_size=archive_size,
@@ -532,7 +532,7 @@ def create_advanced_openevolve_config(
             random_seed=random_seed,
             log_prompts=True,
             diversity_reference_size=diversity_reference_size,
-            artifacts_base_path=os.path.join(db_path, "artifacts") if db_path else None,
+            artifacts_base_path=os.path.join(output_dir, "artifacts") if output_dir else None,
             artifact_size_threshold=artifact_size_threshold,
             cleanup_old_artifacts=cleanup_old_artifacts,
             artifact_retention_days=artifact_retention_days,
@@ -4334,21 +4334,81 @@ class NeuralNetwork:
 def run_unified_evolution(
     content: str,
     content_type: str,
-    evolution_mode: str,  # "standard", "quality_diversity", "multi_objective", "adversarial", "prompt_optimization", "algorithm_discovery", "symbolic_regression", "neuroevolution"
+    evolution_mode: str,
     model_configs: List[Dict[str, any]],
     api_key: str,
     api_base: str = None,
+    temperature: float = 0.7,
+    top_p: float = 0.95,
+    max_tokens: int = 4096,
     max_iterations: int = 100,
     population_size: int = 1000,
-    system_message: str = None,
-    evaluator_system_message: str = None,
-    temperature: float = 0.7,
-    max_tokens: int = 4096,
-    objectives: Optional[List[str]] = None,  # For multi-objective evolution
-    feature_dimensions: Optional[List[str]] = None,  # For QD and multi-objective
-    custom_requirements: str = "",
-    custom_evaluator: Optional[Callable] = None,
-    **kwargs  # Additional parameters
+    system_message: str = "",
+    evaluator_system_message: str = "",
+    feature_dimensions: Optional[List[str]] = None,
+    feature_bins: Optional[int] = None,
+    num_islands: int = 5,
+    migration_interval: int = 50,
+    migration_rate: float = 0.1,
+    archive_size: int = 100,
+    elite_ratio: float = 0.1,
+    exploration_ratio: float = 0.2,
+    exploitation_ratio: float = 0.7,
+    checkpoint_interval: int = 100,
+    enable_artifacts: bool = True,
+    cascade_evaluation: bool = True,
+    use_llm_feedback: bool = False,
+    llm_feedback_weight: float = 0.1,
+    evolution_trace_enabled: bool = False,
+    early_stopping_patience: Optional[int] = None,
+    convergence_threshold: float = 0.001,
+    random_seed: Optional[int] = 42,
+    diff_based_evolution: bool = True,
+    max_code_length: int = 10000,
+    diversity_metric: str = "edit_distance",
+    parallel_evaluations: int = 1,
+    distributed: bool = False,
+    template_dir: Optional[str] = None,
+    num_top_programs: int = 3,
+    num_diverse_programs: int = 2,
+    use_template_stochasticity: bool = True,
+    template_variations: Optional[Dict[str, List[str]]] = None,
+    use_meta_prompting: bool = False,
+    meta_prompt_weight: float = 0.1,
+    include_artifacts: bool = True,
+    max_artifact_bytes: int = 20 * 1024,
+    artifact_security_filter: bool = True,
+    memory_limit_mb: Optional[int] = None,
+    cpu_limit: Optional[float] = None,
+    db_path: Optional[str] = None,
+    in_memory: bool = True,
+    log_level: str = "INFO",
+    log_dir: Optional[str] = None,
+    api_timeout: int = 60,
+    api_retries: int = 3,
+    api_retry_delay: int = 5,
+    artifact_size_threshold: int = 32 * 1024,
+    cleanup_old_artifacts: bool = True,
+    artifact_retention_days: int = 30,
+    diversity_reference_size: int = 20,
+    max_retries_eval: int = 3,
+    evaluator_timeout: int = 300,
+    evaluator_models: Optional[List[Dict[str, any]]] = None,
+    output_dir: Optional[str] = None,
+    load_from_checkpoint: Optional[str] = None,
+    # Advanced research features
+    double_selection: bool = True,
+    adaptive_feature_dimensions: bool = True,
+    test_time_compute: bool = False,
+    optillm_integration: bool = False,
+    plugin_system: bool = False,
+    hardware_optimization: bool = False,
+    multi_strategy_sampling: bool = True,
+    ring_topology: bool = True,
+    controlled_gene_flow: bool = True,
+    auto_diff: bool = True,
+    symbolic_execution: bool = False,
+    coevolutionary_approach: bool = False,
 ) -> Optional[Dict[str, Any]]:
     """
     Unified function to run any type of evolution supported by OpenEvolve.
@@ -4576,7 +4636,7 @@ def run_unified_evolution(
                 evaluator=evaluator,
                 config=config,
                 iterations=max_iterations,
-                output_dir=None,  # Use temporary directory
+                output_dir=output_dir,
                 cleanup=True,
             )
 

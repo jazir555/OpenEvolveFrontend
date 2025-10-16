@@ -218,6 +218,7 @@ class OpenEvolveOrchestrator:
                 max_retries_eval=workflow.parameters.get("max_retries_eval", 3),
                 evaluator_timeout=workflow.parameters.get("evaluator_timeout", 300),
                 evaluator_models=workflow.parameters.get("evaluator_models", None),
+                output_dir=output_dir,
                 
                 # Advanced research-grade features
                 double_selection=workflow.parameters.get("double_selection", True),
@@ -248,91 +249,180 @@ class OpenEvolveOrchestrator:
             if self.monitor:
                 self.monitor.start_monitoring()
             
+            # Define output directory for checkpoints
+            checkpoint_base_dir = os.path.join(os.getcwd(), "openevolve_checkpoints")
+            output_dir = os.path.join(checkpoint_base_dir, workflow_id)
+            os.makedirs(output_dir, exist_ok=True)
+            
             # Run evolution with ALL parameters
             result = run_unified_evolution(
-                content=workflow.parameters.get("content", ""),
-                content_type=workflow.parameters.get("content_type", "code_python"),
-                evolution_mode=workflow.workflow_type.value,
-                model_configs=workflow.parameters.get("model_configs", [{"name": "gpt-4o", "weight": 1.0}]),
-                api_key=workflow.parameters.get("api_key", ""),
-                api_base=workflow.parameters.get("api_base", "https://api.openai.com/v1"),
-                max_iterations=workflow.parameters.get("max_iterations", 100),
-                population_size=workflow.parameters.get("population_size", 1000),
-                system_message=workflow.parameters.get("system_message", ""),
-                evaluator_system_message=workflow.parameters.get("evaluator_system_message", ""),
-                temperature=workflow.parameters.get("temperature", 0.7),
-                top_p=workflow.parameters.get("top_p", 0.95),
-                max_tokens=workflow.parameters.get("max_tokens", 4096),
-                feature_dimensions=workflow.parameters.get("feature_dimensions", ["complexity", "diversity"]),
-                feature_bins=workflow.parameters.get("feature_bins", 10),
-                num_islands=workflow.parameters.get("num_islands", 5),
-                migration_interval=workflow.parameters.get("migration_interval", 50),
-                migration_rate=workflow.parameters.get("migration_rate", 0.1),
-                archive_size=workflow.parameters.get("archive_size", 100),
-                elite_ratio=workflow.parameters.get("elite_ratio", 0.1),
-                exploration_ratio=workflow.parameters.get("exploration_ratio", 0.2),
-                exploitation_ratio=workflow.parameters.get("exploitation_ratio", 0.7),
-                checkpoint_interval=workflow.parameters.get("checkpoint_interval", 100),
-                enable_artifacts=workflow.parameters.get("enable_artifacts", True),
-                cascade_evaluation=workflow.parameters.get("cascade_evaluation", True),
-                use_llm_feedback=workflow.parameters.get("use_llm_feedback", False),
-                llm_feedback_weight=workflow.parameters.get("llm_feedback_weight", 0.1),
-                evolution_trace_enabled=workflow.parameters.get("evolution_trace_enabled", False),
-                early_stopping_patience=workflow.parameters.get("early_stopping_patience", None),
-                early_stopping_metric=workflow.parameters.get("early_stopping_metric", "combined_score"),
-                convergence_threshold=workflow.parameters.get("convergence_threshold", 0.001),
-                random_seed=workflow.parameters.get("random_seed", 42),
-                diff_based_evolution=workflow.parameters.get("diff_based_evolution", True),
-                max_code_length=workflow.parameters.get("max_code_length", 10000),
-                diversity_metric=workflow.parameters.get("diversity_metric", "edit_distance"),
-                parallel_evaluations=workflow.parameters.get("parallel_evaluations", 1),
-                distributed=workflow.parameters.get("distributed", False),
-                template_dir=workflow.parameters.get("template_dir", None),
-                num_top_programs=workflow.parameters.get("num_top_programs", 3),
-                num_diverse_programs=workflow.parameters.get("num_diverse_programs", 2),
-                use_template_stochasticity=workflow.parameters.get("use_template_stochasticity", True),
-                template_variations=workflow.parameters.get("template_variations", {}),
-                use_meta_prompting=workflow.parameters.get("use_meta_prompting", False),
-                meta_prompt_weight=workflow.parameters.get("meta_prompt_weight", 0.1),
-                include_artifacts=workflow.parameters.get("include_artifacts", True),
-                max_artifact_bytes=workflow.parameters.get("max_artifact_bytes", 20 * 1024),
-                artifact_security_filter=workflow.parameters.get("artifact_security_filter", True),
-                memory_limit_mb=workflow.parameters.get("memory_limit_mb", None),
-                cpu_limit=workflow.parameters.get("cpu_limit", None),
-                db_path=workflow.parameters.get("db_path", None),
-                in_memory=workflow.parameters.get("in_memory", True),
-                log_level=workflow.parameters.get("log_level", "INFO"),
-                log_dir=workflow.parameters.get("log_dir", None),
-                api_timeout=workflow.parameters.get("api_timeout", 60),
-                api_retries=workflow.parameters.get("api_retries", 3),
-                api_retry_delay=workflow.parameters.get("api_retry_delay", 5),
-                artifact_size_threshold=workflow.parameters.get("artifact_size_threshold", 32 * 1024),
-                cleanup_old_artifacts=workflow.parameters.get("cleanup_old_artifacts", True),
-                artifact_retention_days=workflow.parameters.get("artifact_retention_days", 30),
-                diversity_reference_size=workflow.parameters.get("diversity_reference_size", 20),
-                max_retries_eval=workflow.parameters.get("max_retries_eval", 3),
-                evaluator_timeout=workflow.parameters.get("evaluator_timeout", 300),
-                evaluator_models=workflow.parameters.get("evaluator_models", None),
-                
-                # Advanced research features
-                double_selection=workflow.parameters.get("double_selection", True),
-                adaptive_feature_dimensions=workflow.parameters.get("adaptive_feature_dimensions", True),
-                test_time_compute=workflow.parameters.get("test_time_compute", False),
-                optillm_integration=workflow.parameters.get("optillm_integration", False),
-                plugin_system=workflow.parameters.get("plugin_system", False),
-                hardware_optimization=workflow.parameters.get("hardware_optimization", False),
-                multi_strategy_sampling=workflow.parameters.get("multi_strategy_sampling", True),
-                ring_topology=workflow.parameters.get("ring_topology", True),
-                controlled_gene_flow=workflow.parameters.get("controlled_gene_flow", True),
-                auto_diff=workflow.parameters.get("auto_diff", True),
-                symbolic_execution=workflow.parameters.get("symbolic_execution", False),
-                coevolutionary_approach=workflow.parameters.get("coevolutionary_approach", False),
-            )
+            
+                            content=workflow.parameters.get("content", ""),
+            
+                            content_type=workflow.parameters.get("content_type", "code_python"),
+            
+                            evolution_mode=workflow.workflow_type.value,
+            
+                            model_configs=workflow.parameters.get("model_configs", [{"name": "gpt-4o", "weight": 1.0}]),
+            
+                            api_key=workflow.parameters.get("api_key", ""),
+            
+                            api_base=workflow.parameters.get("api_base", "https://api.openai.com/v1"),
+            
+                            max_iterations=workflow.parameters.get("max_iterations", 100),
+            
+                            population_size=workflow.parameters.get("population_size", 1000),
+            
+                            system_message=workflow.parameters.get("system_message", ""),
+            
+                            evaluator_system_message=workflow.parameters.get("evaluator_system_message", ""),
+            
+                            temperature=workflow.parameters.get("temperature", 0.7),
+            
+                            top_p=workflow.parameters.get("top_p", 0.95),
+            
+                            max_tokens=workflow.parameters.get("max_tokens", 4096),
+            
+                            feature_dimensions=workflow.parameters.get("feature_dimensions", ["complexity", "diversity"]),
+            
+                            feature_bins=workflow.parameters.get("feature_bins", 10),
+            
+                            num_islands=workflow.parameters.get("num_islands", 5),
+            
+                            migration_interval=workflow.parameters.get("migration_interval", 50),
+            
+                            migration_rate=workflow.parameters.get("migration_rate", 0.1),
+            
+                            archive_size=workflow.parameters.get("archive_size", 100),
+            
+                            elite_ratio=workflow.parameters.get("elite_ratio", 0.1),
+            
+                            exploration_ratio=workflow.parameters.get("exploration_ratio", 0.2),
+            
+                            exploitation_ratio=workflow.parameters.get("exploitation_ratio", 0.7),
+            
+                            checkpoint_interval=workflow.parameters.get("checkpoint_interval", 100),
+            
+                            enable_artifacts=workflow.parameters.get("enable_artifacts", True),
+            
+                            cascade_evaluation=workflow.parameters.get("cascade_evaluation", True),
+            
+                            use_llm_feedback=workflow.parameters.get("use_llm_feedback", False),
+            
+                            llm_feedback_weight=workflow.parameters.get("llm_feedback_weight", 0.1),
+            
+                            evolution_trace_enabled=workflow.parameters.get("evolution_trace_enabled", False),
+            
+                            early_stopping_patience=workflow.parameters.get("early_stopping_patience", None),
+            
+                            early_stopping_metric=workflow.parameters.get("early_stopping_metric", "combined_score"),
+            
+                            convergence_threshold=workflow.parameters.get("convergence_threshold", 0.001),
+            
+                            random_seed=workflow.parameters.get("random_seed", 42),
+            
+                            diff_based_evolution=workflow.parameters.get("diff_based_evolution", True),
+            
+                            max_code_length=workflow.parameters.get("max_code_length", 10000),
+            
+                            diversity_metric=workflow.parameters.get("diversity_metric", "edit_distance"),
+            
+                            parallel_evaluations=workflow.parameters.get("parallel_evaluations", 1),
+            
+                            distributed=workflow.parameters.get("distributed", False),
+            
+                            template_dir=workflow.parameters.get("template_dir", None),
+            
+                            num_top_programs=workflow.parameters.get("num_top_programs", 3),
+            
+                            num_diverse_programs=workflow.parameters.get("num_diverse_programs", 2),
+            
+                            use_template_stochasticity=workflow.parameters.get("use_template_stochasticity", True),
+            
+                            template_variations=workflow.parameters.get("template_variations", {}),
+            
+                            use_meta_prompting=workflow.parameters.get("use_meta_prompting", False),
+            
+                            meta_prompt_weight=workflow.parameters.get("meta_prompt_weight", 0.1),
+            
+                            include_artifacts=workflow.parameters.get("include_artifacts", True),
+            
+                            max_artifact_bytes=workflow.parameters.get("max_artifact_bytes", 20 * 1024),
+            
+                            artifact_security_filter=workflow.parameters.get("artifact_security_filter", True),
+            
+                            memory_limit_mb=workflow.parameters.get("memory_limit_mb", None),
+            
+                            cpu_limit=workflow.parameters.get("cpu_limit", None),
+            
+                            db_path=workflow.parameters.get("db_path", None),
+            
+                            in_memory=workflow.parameters.get("in_memory", True),
+            
+                            log_level=workflow.parameters.get("log_level", "INFO"),
+            
+                            log_dir=workflow.parameters.get("log_dir", None),
+            
+                            api_timeout=60,
+            
+                            api_retries=3,
+            
+                            api_retry_delay=5,
+            
+                            artifact_size_threshold=32 * 1024,
+            
+                            cleanup_old_artifacts=True,
+            
+                            artifact_retention_days=30,
+            
+                            diversity_reference_size=20,
+            
+                            max_retries_eval=3,
+            
+                            evaluator_timeout=300,
+            
+                            evaluator_models=workflow.parameters.get("evaluator_models", None),
+            
+                            output_dir=output_dir, # Pass the output_dir
+            
+                            load_from_checkpoint=st.session_state.get("load_from_checkpoint", None), # Pass load_from_checkpoint
+            
+                            # Advanced research features
+            
+                            double_selection=workflow.parameters.get("double_selection", True),
+            
+                            adaptive_feature_dimensions=workflow.parameters.get("adaptive_feature_dimensions", True),
+            
+                            test_time_compute=workflow.parameters.get("test_time_compute", False),
+            
+                            optillm_integration=workflow.parameters.get("optillm_integration", False),
+            
+                            plugin_system=workflow.parameters.get("plugin_system", False),
+            
+                            hardware_optimization=workflow.parameters.get("hardware_optimization", False),
+            
+                            multi_strategy_sampling=workflow.parameters.get("multi_strategy_sampling", True),
+            
+                            ring_topology=workflow.parameters.get("ring_topology", True),
+            
+                            controlled_gene_flow=workflow.parameters.get("controlled_gene_flow", True),
+            
+                            auto_diff=workflow.parameters.get("auto_diff", True),
+            
+                            symbolic_execution=workflow.parameters.get("symbolic_execution", False),
+            
+                            coevolutionary_approach=workflow.parameters.get("coevolutionary_approach", False),
+            
+                        )
             
             # Stop monitoring
             if self.monitor:
                 self.monitor.stop_monitoring()
             
+            # Clear the load_from_checkpoint flag after use
+            if "load_from_checkpoint" in st.session_state:
+                del st.session_state.load_from_checkpoint
+
             # Process results
             workflow.results = result or {}
             workflow.current_stage = WorkflowStage.ANALYSIS

@@ -2,6 +2,7 @@ import asyncio
 import streamlit as st
 from typing import Set, Dict, Any
 import socket  # Added this import
+import threading # Added this import
 
 # Optional imports with fallbacks
 try:

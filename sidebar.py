@@ -661,14 +661,11 @@ def display_sidebar():
             )
 
             checkpoints = []
-            if api.base_url == "http://localhost:8000":
-                st.info("Checkpointing is not available when using OptiLLM as the backend.")
-            else:
-                with st.spinner("Fetching checkpoints..."):
-                    try:
-                        checkpoints = api.get_checkpoints()
-                    except Exception as e:
-                        st.error(f"Failed to retrieve checkpoints: {e}")
+            with st.spinner("Fetching checkpoints..."):
+                try:
+                    checkpoints = api.get_checkpoints()
+                except Exception as e:
+                    st.error(f"Failed to retrieve checkpoints: {e}")
             if checkpoints:
                 st.markdown(create_tooltip_html("Load Checkpoint", "Select a checkpoint to load."), unsafe_allow_html=True)
                 st.selectbox(
@@ -686,16 +683,12 @@ def display_sidebar():
                         except Exception as e:
                             st.error(f"Failed to save checkpoint: {e}")
                 elif st.session_state.checkpoint_action == "Load Checkpoint":
-                    if checkpoints:
-                        with st.spinner(f"Loading checkpoint {st.session_state.selected_checkpoint}..."):
-                            try:
-                                api.load_checkpoint(st.session_state.selected_checkpoint)
-                                st.success(f"Checkpoint {st.session_state.selected_checkpoint} loaded successfully!")
-                                st.rerun() # Rerun to reflect loaded state
-                            except Exception as e:
-                                st.error(f"Failed to load checkpoint: {e}")
+                    if st.session_state.selected_checkpoint:
+                        st.session_state.load_from_checkpoint = st.session_state.selected_checkpoint
+                        st.success(f"Checkpoint '{st.session_state.selected_checkpoint}' selected for loading. Start a new evolution to load it.")
+                        st.rerun()
                     else:
-                        st.warning("No checkpoints available to load.")
+                        st.warning("No checkpoint selected to load.")
 
         st.markdown("---")
         with st.form("system_prompts_form"):
