@@ -171,6 +171,125 @@ class ContentEvaluator:
         return {"score": score, "length": len(content), "timestamp": time.time()}
 
 
+def _run_problem_decomposition(
+    current_content: str,
+    api_key: str,
+    base_url: str,
+    model: str,
+    max_iterations: int,
+    system_prompt: str,
+    **kwargs,
+):
+    _update_evolution_log_and_status("🧩 Decomposing problem...")
+
+    # 1. Decompose the problem
+    decomposition_prompt = f"""Decompose the following problem into a series of smaller, solvable sub-problems. The sub-problems should be self-contained and independent if possible. Present the sub-problems as a numbered list, with each item on a new line.
+
+Problem:
+---
+{current_content}
+---
+
+System Prompt:
+---
+{system_prompt}
+---
+"""
+    
+    sub_problems_str = _request_openai_compatible_chat(
+        api_key,
+        base_url,
+        model,
+        _compose_messages("You are a problem decomposition expert. Your task is to break down complex problems into manageable sub-problems.", decomposition_prompt),
+        kwargs.get('extra_headers'),
+        kwargs.get('temperature'),
+        kwargs.get('top_p'),
+        kwargs.get('frequency_penalty'),
+        kwargs.get('presence_penalty'),
+        kwargs.get('max_tokens'),
+        kwargs.get('seed'),
+    )
+
+    if not sub_problems_str:
+        _update_evolution_log_and_status("💥 Failed to decompose problem.")
+        return current_content
+
+    # Parse sub_problems_str into a list of strings
+    sub_problems = [line.strip() for line in sub_problems_str.split('\n') if line.strip() and re.match(r'^\d+\.', line.strip())]
+    if not sub_problems:
+        _update_evolution_log_and_status("💥 Could not parse sub-problems.")
+        return current_content
+        
+    _update_evolution_log_and_status(f"✅ Decomposed into {len(sub_problems)} sub-problems.")
+
+    # 2. Solve each sub-problem
+    solutions = []
+    for i, sub_problem_text in enumerate(sub_problems):
+        _update_evolution_log_and_status(f"🔄 Solving sub-problem {i+1}/{len(sub_problems)}: {sub_problem_text[:80]}...")
+        
+        sub_problem_iterations = max(1, max_iterations // len(sub_problems))
+        
+        sub_problem_system_prompt = f"""This is a sub-problem of a larger task.
+Original Problem: {current_content}
+This Sub-Problem: {sub_problem_text}
+{system_prompt}
+"""
+        
+        recursive_kwargs = kwargs.copy()
+        recursive_kwargs.update({
+            "current_content": sub_problem_text,
+            "max_iterations": sub_problem_iterations,
+            "system_prompt": sub_problem_system_prompt,
+            "evolution_mode": "standard",
+            "api_key": api_key,
+            "base_url": base_url,
+            "model": model,
+        })
+
+        solution = run_evolution_loop(**recursive_kwargs)
+        solutions.append(f"Solution for sub-problem '{sub_problem_text}':\n---\n{solution}\n---")
+        _update_evolution_log_and_status(f"✅ Solved sub-problem {i+1}/{len(sub_problems)}.")
+
+    # 3. Reassemble the solutions
+    _update_evolution_log_and_status("🧩 Reassembling solutions...")
+    
+    solutions_str = "\n\n".join(solutions)
+    reassembly_prompt = f"""Given the original problem and the solutions to its sub-components, assemble the final, complete solution.
+    
+Original Problem:
+---
+{current_content}
+---
+
+Sub-problem solutions:
+---
+{solutions_str}
+---
+
+Please provide the final, reassembled solution that addresses the original problem.
+"""
+    
+    final_solution = _request_openai_compatible_chat(
+        api_key,
+        base_url,
+        model,
+        _compose_messages("You are a solution synthesis expert. Your task is to combine several partial solutions into a single, coherent final solution.", reassembly_prompt),
+        kwargs.get('extra_headers'),
+        kwargs.get('temperature'),
+        kwargs.get('top_p'),
+        kwargs.get('frequency_penalty'),
+        kwargs.get('presence_penalty'),
+        kwargs.get('max_tokens'),
+        kwargs.get('seed'),
+    )
+
+    if not final_solution:
+        _update_evolution_log_and_status("💥 Failed to reassemble solution. Returning combined solutions.")
+        return "\n\n".join(solutions)
+
+    _update_evolution_log_and_status("✅ Reassembly complete.")
+    return final_solution
+
 def run_evolution_loop(
     current_content: str,
     api_key: str,
@@ -267,10 +386,9 @@ def run_evolution_loop(
     symbolic_execution: bool = False,  # Enable symbolic execution for verification
     coevolutionary_approach: bool = False,  # Use co-evolution between different populations
 ):
-    """
-    The main evolution loop with ALL OpenEvolve features integrated.
-    This function now supports all of OpenEvolve's advanced capabilities.
-    """
+    if evolution_mode == "problem_decomposition":
+        return _run_problem_decomposition(**locals())
+
     try:
         # Prefer OpenEvolve when available - this is the main implementation now
         if OPENEVOLVE_AVAILABLE:

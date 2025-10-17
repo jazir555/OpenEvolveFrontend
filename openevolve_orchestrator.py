@@ -13,6 +13,10 @@ from dataclasses import dataclass
 from enum import Enum
 import requests # Added this line
 import logging # Added this line
+from ui_components import render_team_manager, render_gauntlet_designer # NEW IMPORT
+from team_manager import TeamManager # NEW IMPORT
+from gauntlet_manager import GauntletManager # NEW IMPORT
+from workflow_engine import run_sovereign_workflow, WorkflowState # NEW IMPORT
 
 
 def get_project_root():
@@ -54,6 +58,8 @@ class EvolutionWorkflow(Enum):
     NEUROEVOLUTION = "neuroevolution"
     ALGORITHM_DISCOVERY = "algorithm_discovery"
     PROMPT_OPTIMIZATION = "prompt_optimization"
+    PROBLEM_DECOMPOSITION = "problem_decomposition"
+    SOVEREIGN_DECOMPOSITION = "sovereign_decomposition"
 
 
 class WorkflowStage(Enum):
@@ -627,6 +633,10 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
     """Render the create workflow tab"""
     st.subheader("Create Workflow")
     
+    # Initialize managers
+    team_manager = TeamManager()
+    gauntlet_manager = GauntletManager()
+    
     # Add usage information
     st.info("""
     **Purpose**: Create a new evolution workflow with detailed parameter configuration.
@@ -652,7 +662,9 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
             "symbolic_regression": "🔍 Symbolic Regression",
             "neuroevolution": "🧠 Neuroevolution",
             "algorithm_discovery": "💡 Algorithm Discovery",
-            "prompt_optimization": "📝 Prompt Optimization"
+            "prompt_optimization": "📝 Prompt Optimization",
+            "problem_decomposition": "🧩 Problem Decomposition",
+            "sovereign_decomposition": "👑 Sovereign-Grade Decomposition"
         }.get(x, x),
         help="Workflow types define the optimization strategy: Standard (single objective), Quality-Diversity (diverse high-quality solutions), Multi-Objective (multiple competing goals), Adversarial (red team/blue team approach), etc."
     )
@@ -666,7 +678,9 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
         "symbolic_regression": "**Symbolic Regression** - Evolves mathematical expressions to fit data or solve problems. Best for discovering mathematical relationships and formulas.",
         "neuroevolution": "**Neuroevolution** - Evolves neural network architectures and parameters. Best for machine learning model optimization.",
         "algorithm_discovery": "**Algorithm Discovery** - Discovers novel algorithms and computational approaches. Best for finding innovative problem-solving strategies.",
-        "prompt_optimization": "**Prompt Optimization** - Evolves text prompts to optimize AI model performance. Best for improving LLM outputs and interactions."
+        "prompt_optimization": "**Prompt Optimization** - Evolves text prompts to optimize AI model performance. Best for improving LLM outputs and interactions.",
+        "problem_decomposition": "**Problem Decomposition** - Breaks down a complex problem into smaller components, solves them individually, and then reassembles the solution. Best for intractable problems.",
+        "sovereign_decomposition": "**Sovereign-Grade Decomposition** - The ultimate workflow for intractable problems. Features AI-assisted decomposition, manual override, multi-team gauntlets (Blue, Red, Gold), and a self-healing loop for robust, verified solutions."
     }
     
     st.markdown(f"*{workflow_descriptions.get(workflow_type, 'Select a workflow type to see its description')}*")
@@ -1095,6 +1109,65 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                 help="Compress trace files to save disk space."
             )
     
+    # --- Sovereign-Grade Decomposition Workflow Configuration ---
+    if workflow_type == "sovereign_decomposition":
+        st.subheader("👑 Sovereign-Grade Workflow Configuration")
+        st.info("Configure the specialized Teams and Gauntlets for each stage of the Sovereign-Grade Decomposition Workflow.")
+
+        # Get available teams and gauntlets
+        all_teams = team_manager.get_all_teams()
+        all_gauntlets = gauntlet_manager.get_all_gauntlets()
+
+        blue_teams = [t.name for t in all_teams if t.role == "Blue"]
+        red_teams = [t.name for t in all_teams if t.role == "Red"]
+        gold_teams = [t.name for t in all_teams if t.role == "Gold"]
+
+        # Filter gauntlets by team role
+        # Note: This filtering is simplified. In a real app, you'd ensure the gauntlet's team_name actually exists and has the correct role.
+        blue_gauntlets = [g.name for g in all_gauntlets if gauntlet_manager.get_gauntlet(g.name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name).role == "Blue"]
+        red_gauntlets = [g.name for g in all_gauntlets if gauntlet_manager.get_gauntlet(g.name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name).role == "Red"]
+        gold_gauntlets = [g.name for g in all_gauntlets if gauntlet_manager.get_gauntlet(g.name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name).role == "Gold"]
+
+        # Stage 0: Content Analysis
+        st.markdown("#### Stage 0: Content Analysis")
+        content_analyzer_team_name = st.selectbox("Content Analyzer Team (Blue)", blue_teams, key="sg_content_analyzer_team")
+
+        # Stage 1: AI-Assisted Decomposition
+        st.markdown("#### Stage 1: AI-Assisted Decomposition")
+        planner_team_name = st.selectbox("Planner Team (Blue)", blue_teams, key="sg_planner_team")
+
+        # Stage 3: Sub-Problem Solving Loop
+        st.markdown("#### Stage 3: Sub-Problem Solving Loop")
+        solver_team_name = st.selectbox("Solver Team (Blue)", blue_teams, key="sg_solver_team")
+        patcher_team_name = st.selectbox("Patcher Team (Blue)", blue_teams, key="sg_patcher_team")
+        sub_problem_red_gauntlet_name = st.selectbox("Sub-Problem Red Team Gauntlet", red_gauntlets, key="sg_sub_red_gauntlet")
+        sub_problem_gold_gauntlet_name = st.selectbox("Sub-Problem Gold Team Gauntlet", gold_gauntlets, key="sg_sub_gold_gauntlet")
+
+        # Stage 4: Configurable Reassembly
+        st.markdown("#### Stage 4: Configurable Reassembly")
+        assembler_team_name = st.selectbox("Assembler Team (Blue)", blue_teams, key="sg_assembler_team")
+
+        # Stage 5: Final Verification & Self-Healing Loop
+        st.markdown("#### Stage 5: Final Verification & Self-Healing Loop")
+        final_red_gauntlet_name = st.selectbox("Final Red Team Gauntlet", red_gauntlets, key="sg_final_red_gauntlet")
+        final_gold_gauntlet_name = st.selectbox("Final Gold Team Gauntlet", gold_gauntlets, key="sg_final_gold_gauntlet")
+        max_refinement_loops = st.number_input("Max Refinement Loops", min_value=1, value=3, key="sg_max_refinement_loops")
+
+        # Store selected teams and gauntlets in session state for retrieval by orchestrator
+        st.session_state.sg_config = {
+            "content_analyzer_team_name": content_analyzer_team_name,
+            "planner_team_name": planner_team_name,
+            "solver_team_name": solver_team_name,
+            "patcher_team_name": patcher_team_name,
+            "sub_problem_red_gauntlet_name": sub_problem_red_gauntlet_name,
+            "sub_problem_gold_gauntlet_name": sub_problem_gold_gauntlet_name,
+            "assembler_team_name": assembler_team_name,
+            "final_red_gauntlet_name": final_red_gauntlet_name,
+            "final_gold_gauntlet_name": final_gold_gauntlet_name,
+            "max_refinement_loops": max_refinement_loops,
+        }
+    # --- End Sovereign-Grade Decomposition Workflow Configuration ---
+    
     # Start workflow button with enhanced feedback
     start_col, info_col = st.columns([1, 3])
     with start_col:
@@ -1107,110 +1180,167 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                 st.error("❌ Please configure your API key in the sidebar")
                 return
             
-            # Create workflow parameters with ALL OpenEvolve parameters
-            parameters = {
-                # Core parameters
-                "content": content,
-                "content_type": content_type,  # Use the selected content type
-                "model_configs": [{"name": st.session_state.get("model", "gpt-4o"), "weight": 1.0}],
-                "api_key": st.session_state.get("api_key", ""),
-                "api_base": st.session_state.get("base_url", "https://api.openai.com/v1"),
-                "max_iterations": max_iterations,
-                "population_size": population_size,
-                "num_islands": num_islands,
-                "archive_size": archive_size,
-                "feature_dimensions": feature_dimensions,
-                "feature_bins": 10,
-                "diversity_metric": "edit_distance",
-                "system_message": st.session_state.get("system_prompt", ""),
-                "evaluator_system_message": st.session_state.get("evaluator_system_prompt", ""),
-                "temperature": temperature,
-                "top_p": 0.95,
-                "max_tokens": st.session_state.get("max_tokens", 4096),
-                "elite_ratio": elite_ratio,
-                "exploration_ratio": exploration_ratio,
-                "exploitation_ratio": exploitation_ratio,
-                "checkpoint_interval": 100,
-                "migration_interval": 50,
-                "migration_rate": 0.1,
-                "seed": st.session_state.get("seed", 42),
+            if workflow_type == "sovereign_decomposition":
+                sg_config = st.session_state.get("sg_config")
+                if not sg_config:
+                    st.error("❌ Please configure the Sovereign-Grade Workflow settings.")
+                    return
                 
-                # Advanced evaluation parameters
-                "enable_artifacts": enable_artifacts,
-                "cascade_evaluation": cascade_evaluation,
-                "cascade_thresholds": [0.5, 0.75, 0.9],
-                "use_llm_feedback": use_llm_feedback,
-                "llm_feedback_weight": 0.1,
-                "parallel_evaluations": parallel_evaluations,
-                "distributed": False,
-                "template_dir": None,
-                "num_top_programs": 3,
-                "num_diverse_programs": 2,
-                "use_template_stochasticity": True,
-                "template_variations": {},
-                "use_meta_prompting": False,
-                "meta_prompt_weight": 0.1,
-                "include_artifacts": True,
-                "max_artifact_bytes": 20 * 1024,
-                "artifact_security_filter": True,
-                "early_stopping_patience": None,
-                "convergence_threshold": 0.001,
-                "early_stopping_metric": "combined_score",
-                "memory_limit_mb": memory_limit_mb,
-                "cpu_limit": cpu_limit,
-                "random_seed": st.session_state.get("seed", 42),
-                "db_path": None,
-                "in_memory": True,
+                # Retrieve Teams and Gauntlets
+                team_manager = TeamManager()
+                gauntlet_manager = GauntletManager()
+
+                content_analyzer_team = team_manager.get_team(sg_config["content_analyzer_team_name"])
+                planner_team = team_manager.get_team(sg_config["planner_team_name"])
+                solver_team = team_manager.get_team(sg_config["solver_team_name"])
+                patcher_team = team_manager.get_team(sg_config["patcher_team_name"])
+                assembler_team = team_manager.get_team(sg_config["assembler_team_name"])
+
+                sub_problem_red_gauntlet = gauntlet_manager.get_gauntlet(sg_config["sub_problem_red_gauntlet_name"])
+                sub_problem_gold_gauntlet = gauntlet_manager.get_gauntlet(sg_config["sub_problem_gold_gauntlet_name"])
+                final_red_gauntlet = gauntlet_manager.get_gauntlet(sg_config["final_red_gauntlet_name"])
+                final_gold_gauntlet = gauntlet_manager.get_gauntlet(sg_config["final_gold_gauntlet_name"])
                 
-                # Advanced OpenEvolve parameters
-                "diff_based_evolution": True,
-                "max_code_length": max_code_length,
-                "evolution_trace_enabled": evolution_trace_enabled,
-                "evolution_trace_format": evolution_trace_format,
-                "evolution_trace_include_code": evolution_trace_include_code,
-                "evolution_trace_include_prompts": evolution_trace_include_prompts,
-                "evolution_trace_output_path": None,
-                "evolution_trace_buffer_size": evolution_trace_buffer_size,
-                "evolution_trace_compress": evolution_trace_compress,
-                "log_level": "INFO",
-                "log_dir": None,
-                "api_timeout": 60,
-                "api_retries": 3,
-                "api_retry_delay": 5,
-                "artifact_size_threshold": 32 * 1024,
-                "cleanup_old_artifacts": True,
-                "artifact_retention_days": 30,
-                "diversity_reference_size": 20,
-                "max_retries_eval": max_retries_eval,
-                "evaluator_timeout": evaluator_timeout,
-                "evaluator_models": None,
+                # Basic validation for selected teams/gauntlets
+                if not all([content_analyzer_team, planner_team, solver_team, patcher_team, assembler_team,
+                            sub_problem_red_gauntlet, sub_problem_gold_gauntlet, final_red_gauntlet, final_gold_gauntlet]):
+                    st.error("❌ One or more selected Teams/Gauntlets are invalid. Please check your configuration.")
+                    return
+
+                # Create a new WorkflowState for the Sovereign-Grade workflow
+                workflow_id = f"sg_workflow_{int(time.time())}"
+                workflow_state = WorkflowState(
+                    workflow_id=workflow_id,
+                    current_stage="INITIALIZING",
+                    workflow_type=EvolutionWorkflow.SOVEREIGN_DECOMPOSITION,
+                    problem_statement=content,
+                    # Store all configured teams and gauntlets in the workflow_state for easy access
+                    content_analyzer_team=content_analyzer_team,
+                    planner_team=planner_team,
+                    solver_team=solver_team,
+                    patcher_team=patcher_team,
+                    assembler_team=assembler_team,
+                    sub_problem_red_gauntlet=sub_problem_red_gauntlet,
+                    sub_problem_gold_gauntlet=sub_problem_gold_gauntlet,
+                    final_red_gauntlet=final_red_gauntlet,
+                    final_gold_gauntlet=final_gold_gauntlet,
+                    max_refinement_loops=sg_config["max_refinement_loops"]
+                )
                 
-                # Advanced research-grade features
-                "double_selection": double_selection,
-                "adaptive_feature_dimensions": adaptive_feature_dimensions,
-                "test_time_compute": test_time_compute,
-                "optillm_integration": optillm_integration,
-                "plugin_system": plugin_system,
-                "hardware_optimization": hardware_optimization,
-                "multi_strategy_sampling": multi_strategy_sampling,
-                "ring_topology": ring_topology,
-                "controlled_gene_flow": controlled_gene_flow,
-                "auto_diff": auto_diff,
-                "symbolic_execution": symbolic_execution,
-                "coevolutionary_approach": coevolutionary_approach,
-            }
-            
-            # Create and start workflow
-            workflow_id = orchestrator.create_workflow(
-                workflow_type=EvolutionWorkflow(workflow_type),
-                parameters=parameters
-            )
-            
-            if orchestrator.start_workflow(workflow_id):
-                st.success(f"✅ Workflow started: {workflow_id}")
-                st.session_state.current_workflow = workflow_id
-            else:
-                st.error("❌ Failed to start workflow")
+                # Store the workflow_state in Streamlit's session state
+                st.session_state.active_sovereign_workflow = workflow_state
+                st.session_state.current_workflow_id = workflow_id # For monitoring
+                
+                st.success(f"✅ Sovereign-Grade Workflow '{workflow_id}' initialized. Starting execution...")
+                # The actual execution will be triggered by Streamlit's rerun mechanism
+                # when the UI renders the monitoring tab.
+                st.rerun() # Trigger rerun to start execution in monitoring tab
+                
+            else: # Existing evolution workflows
+                # Create workflow parameters with ALL OpenEvolve parameters
+                parameters = {
+                    # Core parameters
+                    "content": content,
+                    "content_type": content_type,  # Use the selected content type
+                    "model_configs": [{"name": st.session_state.get("model", "gpt-4o"), "weight": 1.0}],
+                    "api_key": st.session_state.get("api_key", ""),
+                    "api_base": st.session_state.get("base_url", "https://api.openai.com/v1"),
+                    "max_iterations": max_iterations,
+                    "population_size": population_size,
+                    "num_islands": num_islands,
+                    "archive_size": archive_size,
+                    "feature_dimensions": feature_dimensions,
+                    "feature_bins": 10,
+                    "diversity_metric": "edit_distance",
+                    "system_message": st.session_state.get("system_prompt", ""),
+                    "evaluator_system_message": st.session_state.get("evaluator_system_prompt", ""),
+                    "temperature": temperature,
+                    "top_p": 0.95,
+                    "max_tokens": st.session_state.get("max_tokens", 4096),
+                    "elite_ratio": elite_ratio,
+                    "exploration_ratio": exploration_ratio,
+                    "exploitation_ratio": exploitation_ratio,
+                    "checkpoint_interval": 100,
+                    "migration_interval": 50,
+                    "migration_rate": 0.1,
+                    "seed": st.session_state.get("seed", 42),
+                    
+                    # Advanced evaluation parameters
+                    "enable_artifacts": enable_artifacts,
+                    "cascade_evaluation": cascade_evaluation,
+                    "cascade_thresholds": [0.5, 0.75, 0.9],
+                    "use_llm_feedback": use_llm_feedback,
+                    "llm_feedback_weight": 0.1,
+                    "parallel_evaluations": parallel_evaluations,
+                    "distributed": False,
+                    "template_dir": None,
+                    "num_top_programs": 3,
+                    "num_diverse_programs": 2,
+                    "use_template_stochasticity": True,
+                    "template_variations": {},
+                    "use_meta_prompting": False,
+                    "meta_prompt_weight": 0.1,
+                    "include_artifacts": True,
+                    "max_artifact_bytes": 20 * 1024,
+                    "artifact_security_filter": True,
+                    "early_stopping_patience": None,
+                    "convergence_threshold": 0.001,
+                    "early_stopping_metric": "combined_score",
+                    "memory_limit_mb": memory_limit_mb,
+                    "cpu_limit": cpu_limit,
+                    "random_seed": st.session_state.get("seed", 42),
+                    "db_path": None,
+                    "in_memory": True,
+                    
+                    # Advanced OpenEvolve parameters
+                    "diff_based_evolution": True,
+                    "max_code_length": max_code_length,
+                    "evolution_trace_enabled": evolution_trace_enabled,
+                    "evolution_trace_format": evolution_trace_format,
+                    "evolution_trace_include_code": evolution_trace_include_code,
+                    "evolution_trace_include_prompts": evolution_trace_include_prompts,
+                    "evolution_trace_output_path": None,
+                    "evolution_trace_buffer_size": evolution_trace_buffer_size,
+                    "evolution_trace_compress": evolution_trace_compress,
+                    "log_level": "INFO",
+                    "log_dir": None,
+                    "api_timeout": 60,
+                    "api_retries": 3,
+                    "api_retry_delay": 5,
+                    "artifact_size_threshold": 32 * 1024,
+                    "cleanup_old_artifacts": True,
+                    "artifact_retention_days": 30,
+                    "diversity_reference_size": 20,
+                    "max_retries_eval": max_retries_eval,
+                    "evaluator_timeout": evaluator_timeout,
+                    "evaluator_models": None,
+                    
+                    # Advanced research-grade features
+                    "double_selection": double_selection,
+                    "adaptive_feature_dimensions": adaptive_feature_dimensions,
+                    "test_time_compute": test_time_compute,
+                    "optillm_integration": optillm_integration,
+                    "plugin_system": plugin_system,
+                    "hardware_optimization": hardware_optimization,
+                    "multi_strategy_sampling": multi_strategy_sampling,
+                    "ring_topology": ring_topology,
+                    "controlled_gene_flow": controlled_gene_flow,
+                    "auto_diff": auto_diff,
+                    "symbolic_execution": symbolic_execution,
+                    "coevolutionary_approach": coevolutionary_approach,
+                }
+                
+                # Create and start workflow
+                workflow_id = orchestrator.create_workflow(
+                    workflow_type=EvolutionWorkflow(workflow_type),
+                    parameters=parameters
+                )
+                
+                if orchestrator.start_workflow(workflow_id):
+                    st.success(f"✅ Workflow started: {workflow_id}")
+                    st.session_state.current_workflow = workflow_id
+                else:
+                    st.error("❌ Failed to start workflow")
     
     with info_col:
         st.info("""
@@ -1239,7 +1369,56 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
     **Why This Matters**: Real-time monitoring allows you to track the evolution performance, identify bottlenecks, and make decisions about resource allocation and workflow continuation.
     """)
     
-    # Active workflows
+    # Check for active Sovereign-Grade Workflow
+    if "active_sovereign_workflow" in st.session_state and st.session_state.active_sovereign_workflow.status == "running":
+        workflow_state: WorkflowState = st.session_state.active_sovereign_workflow
+        st.subheader(f"👑 Sovereign-Grade Workflow: {workflow_state.workflow_id}")
+        
+        # Call the workflow engine to continue execution
+        # This is where Streamlit's rerun mechanism is crucial.
+        # The run_sovereign_workflow function will update the workflow_state
+        # and then rerun the script, which will re-render this monitoring tab.
+        run_sovereign_workflow(
+            workflow_state=workflow_state,
+            problem_statement=workflow_state.problem_statement,
+            content_analyzer_team=workflow_state.content_analyzer_team,
+            planner_team=workflow_state.planner_team,
+            solver_team=workflow_state.solver_team,
+            patcher_team=workflow_state.patcher_team,
+            assembler_team=workflow_state.assembler_team,
+            sub_problem_red_gauntlet=workflow_state.sub_problem_red_gauntlet,
+            sub_problem_gold_gauntlet=workflow_state.sub_problem_gold_gauntlet,
+            final_red_gauntlet=workflow_state.final_red_gauntlet,
+            final_gold_gauntlet=workflow_state.final_gold_gauntlet,
+            max_refinement_loops=workflow_state.decomposition_plan.max_refinement_loops if workflow_state.decomposition_plan else 3
+        )
+        
+        # Display current status
+        st.markdown(f"**Current Stage**: `{workflow_state.current_stage}`")
+        if workflow_state.current_sub_problem_id:
+            st.markdown(f"**Working on Sub-Problem**: `{workflow_state.current_sub_problem_id}`")
+        if workflow_state.current_gauntlet_name:
+            st.markdown(f"**Running Gauntlet**: `{workflow_state.current_gauntlet_name}`")
+        
+        st.progress(workflow_state.progress)
+        st.info(f"Status: {workflow_state.status.capitalize()}")
+        
+        if workflow_state.status == "completed":
+            st.success("Workflow completed successfully!")
+            st.balloons()
+            del st.session_state.active_sovereign_workflow # Clear active workflow
+        elif workflow_state.status == "failed":
+            st.error("Workflow failed. Check logs for details.")
+            del st.session_state.active_sovereign_workflow # Clear active workflow
+        
+        # Auto-rerun to continue the workflow
+        if workflow_state.status == "running":
+            time.sleep(1) # Small delay to make progress visible
+            st.rerun()
+        
+        return # Exit to prevent rendering other active workflows for now
+
+    # Active workflows (for traditional evolution workflows)
     active_workflows = orchestrator.get_active_workflows()
     
     if not active_workflows:
@@ -1425,9 +1604,15 @@ def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
     """)
     
     # Tabs for different configuration aspects
-    config_tabs = st.tabs(["Workflow Templates", "Parameter Presets", "Global Settings", "Import/Export"])
+    config_tabs = st.tabs(["Team Manager", "Gauntlet Designer", "Workflow Templates", "Parameter Presets", "Global Settings", "Import/Export"])
     
-    with config_tabs[0]:  # Workflow Templates
+    with config_tabs[0]:  # Team Manager
+        render_team_manager()
+    
+    with config_tabs[1]:  # Gauntlet Designer
+        render_gauntlet_designer()
+
+    with config_tabs[2]:  # Workflow Templates
         st.markdown("#### 📋 Workflow Templates")
         st.write("Create and manage templates for common workflow configurations")
         
