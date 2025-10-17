@@ -4396,6 +4396,16 @@ def run_unified_evolution(
     evaluator_models: Optional[List[Dict[str, any]]] = None,
     output_dir: Optional[str] = None,
     load_from_checkpoint: Optional[str] = None,
+    custom_evaluator: Optional[Callable] = None,
+    custom_requirements: str = "",
+    objectives: Optional[List[str]] = None,
+    attack_model_config: Optional[Dict[str, any]] = None,
+    defense_model_config: Optional[Dict[str, any]] = None,
+    evaluation_function: Optional[Callable] = None,
+    data_points: Optional[List[tuple[float, float]]] = None,
+    variables: Optional[List[str]] = None,
+    operators: Optional[List[str]] = None,
+    fitness_function: Optional[Callable] = None,
     # Advanced research features
     double_selection: bool = True,
     adaptive_feature_dimensions: bool = True,
@@ -4471,8 +4481,8 @@ def run_unified_evolution(
         )
     
     elif evolution_mode == "adversarial":
-        attack_model_config = kwargs.get("attack_model_config", model_configs[0] if model_configs else {"name": "gpt-4", "weight": 1.0})
-        defense_model_config = kwargs.get("defense_model_config", model_configs[0] if model_configs else {"name": "gpt-4", "weight": 1.0})
+        attack_model_config = attack_model_config or (model_configs[0] if model_configs else {"name": "gpt-4", "weight": 1.0})
+        defense_model_config = defense_model_config or (model_configs[0] if model_configs else {"name": "gpt-4", "weight": 1.0})
         
         return run_adversarial_evolution(
             content=content,
@@ -4500,7 +4510,7 @@ def run_unified_evolution(
                 "combined_score": 0.7
             }
         
-        evaluation_func = kwargs.get("evaluation_function", default_prompt_evaluator)
+        evaluation_func = evaluation_function or default_prompt_evaluator
         
         return run_prompt_evolution(
             initial_prompt=content,
@@ -4524,7 +4534,7 @@ def run_unified_evolution(
                 "combined_score": 0.7
             }
         
-        evaluation_func = kwargs.get("evaluation_function", default_algorithm_evaluator)
+        evaluation_func = evaluation_function or default_algorithm_evaluator
         
         return run_algorithm_discovery_evolution(
             problem_description=content,
@@ -4541,9 +4551,9 @@ def run_unified_evolution(
     
     elif evolution_mode == "symbolic_regression":
         # Extract required parameters for symbolic regression
-        data_points = kwargs.get("data_points", [(x, x**2) for x in range(10)])  # Default quadratic
-        variables = kwargs.get("variables", ["x"])
-        operators = kwargs.get("operators", ["+", "-", "*", "/"])
+        data_points = data_points or [(x, x**2) for x in range(10)]  # Default quadratic
+        variables = variables or ["x"]
+        operators = operators or ["+", "-", "*", "/"]
         
         return run_symbolic_regression_evolution(
             data_points=data_points,
@@ -4568,7 +4578,7 @@ def run_unified_evolution(
                 "combined_score": 0.5
             }
         
-        fitness_function = kwargs.get("fitness_function", default_neural_evaluator)
+        fitness_function = fitness_function or default_neural_evaluator
         
         return run_neuroevolution(
             problem_description=content,

@@ -1383,7 +1383,6 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
         # and then rerun the script, which will re-render this monitoring tab.
         run_sovereign_workflow(
             workflow_state=workflow_state,
-            problem_statement=workflow_state.problem_statement,
             content_analyzer_team=workflow_state.content_analyzer_team,
             planner_team=workflow_state.planner_team,
             solver_team=workflow_state.solver_team,
@@ -1407,19 +1406,30 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
         st.info(f"Status: {workflow_state.status.capitalize()}")
 
         # Handle Manual Review & Override stage
-        if workflow_state.current_stage == "Manual Review & Override" and workflow_state.status == "awaiting_user_input":
-            st.warning("Please review and approve the decomposition plan below to continue the workflow.")
-            approved_plan = render_manual_review_panel(workflow_state.decomposition_plan)
-            if approved_plan:
-                workflow_state.decomposition_plan = approved_plan
-                workflow_state.current_stage = "Sub-Problem Solving Loop"
-                workflow_state.status = "running"
-                st.rerun()
-            elif approved_plan is None: # User rejected the plan
-                workflow_state.status = "failed"
-                st.error("Workflow terminated due to plan rejection.")
-                del st.session_state.active_sovereign_workflow # Clear active workflow
-            return # Exit to prevent further execution until user input is handled
+        if workflow_state.current_stage == "Manual Review & Override":
+            if workflow_state.status == "awaiting_user_input":
+                st.warning("Please review and approve the decomposition plan below to continue the workflow.")
+                # This function now returns a tuple: (status, plan)
+                approval_status, approved_plan = render_manual_review_panel(workflow_state.decomposition_plan)
+                
+                if approval_status == "approved":
+                    workflow_state.decomposition_plan = approved_plan
+                    workflow_state.current_stage = "Sub-Problem Solving Loop"
+                    workflow_state.status = "running"
+                    st.success("Plan approved. Resuming workflow...")
+                    st.rerun()
+                elif approval_status == "rejected":
+                    workflow_state.status = "failed"
+                    st.error("Workflow terminated due to plan rejection.")
+                    if "active_sovereign_workflow" in st.session_state:
+                        del st.session_state.active_sovereign_workflow # Clear active workflow
+                    st.rerun() # Rerun to clear the panel and show termination status
+                # If status is "pending", do nothing and wait for the next user interaction.
+                return # Exit to prevent further execution until user input is handled
+            else:
+                # This case handles the transition from the previous stage into manual review
+                workflow_state.status = "awaiting_user_input"
+                st.rerun() # Rerun to render the manual review panel
 
         if workflow_state.status == "completed":
             st.success("Workflow completed successfully!")
