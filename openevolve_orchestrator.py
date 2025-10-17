@@ -1140,6 +1140,7 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
         st.markdown("#### Stage 3: Sub-Problem Solving Loop")
         solver_team_name = st.selectbox("Solver Team (Blue)", blue_teams, key="sg_solver_team")
         patcher_team_name = st.selectbox("Patcher Team (Blue)", blue_teams, key="sg_patcher_team")
+        solver_generation_gauntlet_name = st.selectbox("Solver Generation Gauntlet (Blue)", blue_gauntlets, key="sg_solver_generation_gauntlet")
         sub_problem_red_gauntlet_name = st.selectbox("Sub-Problem Red Team Gauntlet", red_gauntlets, key="sg_sub_red_gauntlet")
         sub_problem_gold_gauntlet_name = st.selectbox("Sub-Problem Gold Team Gauntlet", gold_gauntlets, key="sg_sub_gold_gauntlet")
 
@@ -1159,6 +1160,7 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
             "planner_team_name": planner_team_name,
             "solver_team_name": solver_team_name,
             "patcher_team_name": patcher_team_name,
+            "solver_generation_gauntlet_name": solver_generation_gauntlet_name,
             "sub_problem_red_gauntlet_name": sub_problem_red_gauntlet_name,
             "sub_problem_gold_gauntlet_name": sub_problem_gold_gauntlet_name,
             "assembler_team_name": assembler_team_name,
@@ -1219,6 +1221,7 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                     planner_team=planner_team,
                     solver_team=solver_team,
                     patcher_team=patcher_team,
+                    solver_generation_gauntlet=gauntlet_manager.get_gauntlet(sg_config["solver_generation_gauntlet_name"]),
                     assembler_team=assembler_team,
                     sub_problem_red_gauntlet=sub_problem_red_gauntlet,
                     sub_problem_gold_gauntlet=sub_problem_gold_gauntlet,
@@ -1390,7 +1393,7 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
             sub_problem_gold_gauntlet=workflow_state.sub_problem_gold_gauntlet,
             final_red_gauntlet=workflow_state.final_red_gauntlet,
             final_gold_gauntlet=workflow_state.final_gold_gauntlet,
-            max_refinement_loops=workflow_state.decomposition_plan.max_refinement_loops if workflow_state.decomposition_plan else 3
+            max_refinement_loops=workflow_state.max_refinement_loops
         )
         
         # Display current status
@@ -1402,7 +1405,22 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
         
         st.progress(workflow_state.progress)
         st.info(f"Status: {workflow_state.status.capitalize()}")
-        
+
+        # Handle Manual Review & Override stage
+        if workflow_state.current_stage == "Manual Review & Override" and workflow_state.status == "awaiting_user_input":
+            st.warning("Please review and approve the decomposition plan below to continue the workflow.")
+            approved_plan = render_manual_review_panel(workflow_state.decomposition_plan)
+            if approved_plan:
+                workflow_state.decomposition_plan = approved_plan
+                workflow_state.current_stage = "Sub-Problem Solving Loop"
+                workflow_state.status = "running"
+                st.rerun()
+            elif approved_plan is None: # User rejected the plan
+                workflow_state.status = "failed"
+                st.error("Workflow terminated due to plan rejection.")
+                del st.session_state.active_sovereign_workflow # Clear active workflow
+            return # Exit to prevent further execution until user input is handled
+
         if workflow_state.status == "completed":
             st.success("Workflow completed successfully!")
             st.balloons()
