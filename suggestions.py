@@ -160,10 +160,12 @@ def render_suggestions():
                     suggestions = get_content_suggestions(content)
                     if suggestions:
                         st.success(f"Generated {len(suggestions)} suggestions!")
+                        st.session_state.last_generated_suggestions = suggestions # Store suggestions
                         for i, suggestion in enumerate(suggestions, 1):
                             st.info(f"{i}. {suggestion}")
                     else:
                         st.info("No specific suggestions generated for this content.")
+                        st.session_state.last_generated_suggestions = [] # Clear suggestions
                 except Exception as e:
                     st.error(f"Error generating suggestions: {e}")
     
@@ -240,13 +242,37 @@ def render_suggestions():
     
     with col2:
         if st.button("📋 Copy Suggestions", key="copy_sugg"):
-            # In a real implementation, this would copy to clipboard
-            st.info("Suggestions copied to clipboard! (Simulated)")
+            suggestions_text = "\n".join(st.session_state.get("last_generated_suggestions", []))
+            if suggestions_text:
+                st.components.v1.html(
+                    f"""
+                    <script>
+                    navigator.clipboard.writeText(`{suggestions_text}`).then(function() {{
+                        // console.log('Async: Copying to clipboard was successful!');
+                    }}, function(err) {{
+                        // console.error('Async: Could not copy text: ', err);
+                    }});
+                    </script>
+                    """,
+                    height=0,
+                    width=0,
+                )
+                st.success("Suggestions copied to clipboard!")
+            else:
+                st.info("No suggestions to copy.")
     
     with col3:
-        if st.button("💾 Save Suggestions", key="save_sugg"):
-            # In a real implementation, this would save to a file
-            st.success("Suggestions saved! (Simulated)")
+        suggestions_text = "\n".join(st.session_state.get("last_generated_suggestions", []))
+        if suggestions_text:
+            st.download_button(
+                label="💾 Save Suggestions",
+                data=suggestions_text,
+                file_name="suggestions.txt",
+                mime="text/plain",
+                key="save_sugg_download",
+            )
+        else:
+            st.button("💾 Save Suggestions", key="save_sugg_disabled", disabled=True, help="No suggestions to save.")
     
     # If all suggestions were requested
     if st.session_state.get("suggestions_run_all"):

@@ -7,12 +7,14 @@ import json
 import time
 
 # Initialize managers (can be done once in the main app or passed via session state)
+# These managers handle persistence of Teams and Gauntlets across Streamlit reruns.
 if 'team_manager' not in st.session_state:
     st.session_state.team_manager = TeamManager()
 if 'gauntlet_manager' not in st.session_state:
     st.session_state.gauntlet_manager = GauntletManager()
 
 def render_team_manager():
+    """Renders the Streamlit UI for managing AI teams. Allows users to create, view, edit, and delete teams."""
     st.header("👥 Team Manager")
     st.write("Create, view, edit, and delete your AI teams.")
 
@@ -38,9 +40,35 @@ def render_team_manager():
                 with col2:
                     api_base = st.text_input(f"API Base (e.g., https://api.openai.com/v1)", value="https://api.openai.com/v1", key=f"new_api_base_{i}")
                     temperature = st.slider(f"Temperature", min_value=0.0, max_value=2.0, value=0.7, step=0.1, key=f"new_temp_{i}")
+                    top_p = st.slider(f"Top P", min_value=0.0, max_value=1.0, value=1.0, step=0.01, key=f"new_top_p_{i}")
+                    max_tokens = st.number_input(f"Max Tokens", min_value=1, value=4096, key=f"new_max_tokens_{i}")
+                    frequency_penalty = st.slider(f"Frequency Penalty", min_value=-2.0, max_value=2.0, value=0.0, step=0.01, key=f"new_freq_penalty_{i}")
+                    presence_penalty = st.slider(f"Presence Penalty", min_value=-2.0, max_value=2.0, value=0.0, step=0.01, key=f"new_pres_penalty_{i}")
+                    seed = st.number_input(f"Seed (Optional)", value=None, key=f"new_seed_{i}")
+                    stop_sequences_str = st.text_input(f"Stop Sequences (comma-separated)", key=f"new_stop_sequences_{i}")
+                    logprobs = st.checkbox(f"Logprobs", key=f"new_logprobs_{i}")
+                    top_logprobs = st.number_input(f"Top Logprobs (0-5)", min_value=0, max_value=5, value=0, key=f"new_top_logprobs_{i}")
+                    response_format_str = st.text_input(f"Response Format (JSON string, e.g., '{{\"type\": \"json_object\"}}')", key=f"new_response_format_{i}")
+                    stream = st.checkbox(f"Stream", key=f"new_stream_{i}")
+                    user = st.text_input(f"User ID", key=f"new_user_{i}")
                 
-                # Add more model parameters as needed
-                new_members.append(ModelConfig(model_id=model_id, api_key=api_key, api_base=api_base, temperature=temperature))
+                new_members.append(ModelConfig(
+                    model_id=model_id,
+                    api_key=api_key,
+                    api_base=api_base,
+                    temperature=temperature,
+                    top_p=top_p,
+                    max_tokens=max_tokens,
+                    frequency_penalty=frequency_penalty,
+                    presence_penalty=presence_penalty,
+                    seed=seed if seed is not None else None,
+                    stop_sequences=[s.strip() for s in stop_sequences_str.split(',')] if stop_sequences_str else None,
+                    logprobs=logprobs if logprobs else None,
+                    top_logprobs=top_logprobs if top_logprobs > 0 else None,
+                    response_format=json.loads(response_format_str) if response_format_str else None,
+                    stream=stream if stream else None,
+                    user=user if user else None
+                ))
             
             submitted = st.form_submit_button("Create Team")
             if submitted:
@@ -65,13 +93,95 @@ def render_team_manager():
                 st.markdown(f"**{team.name}** ({team.role} Team)")
                 st.caption(team.description or "No description.")
                 
-                with st.expander(f"View/Edit Members for {team.name}", expanded=False):
+                with st.expander(f"View/Edit Team '{team.name}'", expanded=False):
+                    # Display current members
+                    st.markdown("#### Current Members:")
                     for i, member in enumerate(team.members):
                         st.markdown(f"**Model {i+1}**: `{member.model_id}`")
-                        st.write(f"API Base: `{member.api_base}` | Temp: `{member.temperature}`")
-                        # Display other params as needed
+                        st.write(f"API Base: `{member.api_base}` | Temp: `{member.temperature}` | Top P: `{member.top_p}` | Max Tokens: `{member.max_tokens}` | Freq Penalty: `{member.frequency_penalty}` | Pres Penalty: `{member.presence_penalty}` | Seed: `{member.seed}`")
+
+                    # Edit Form
+                    with st.form(f"edit_team_form_{team.name}"):
+                        edited_team_name = st.text_input("Team Name", value=team.name, key=f"edit_team_name_{team.name}")
+                        edited_team_role = st.selectbox("Team Role", ["Blue", "Red", "Gold"], index=["Blue", "Red", "Gold"].index(team.role), key=f"edit_team_role_{team.name}")
+                        edited_team_description = st.text_area("Description", value=team.description, key=f"edit_team_description_{team.name}")
+
+                        st.subheader("Edit Team Members (AI Models)")
+                        # Allow adding/removing members, or editing existing ones.
+                        # For simplicity, we'll allow editing existing members and adding new ones.
+                        # A more complex UI would allow reordering and more granular control.
+                        num_existing_members = len(team.members)
+                        num_members_to_edit = st.number_input("Number of Models in Team", min_value=1, value=num_existing_members, key=f"num_edit_members_{team.name}")
+
+                        edited_members = []
+                        for i in range(num_members_to_edit):
+                            st.markdown(f"**Model {i+1}**")
+                            col1, col2 = st.columns(2)
+                            with col1:
+                                current_model_id = team.members[i].model_id if i < num_existing_members else ""
+                                current_api_key = team.members[i].api_key if i < num_existing_members else ""
+                                edited_model_id = st.text_input(f"Model ID (e.g., gpt-4o)", value=current_model_id, key=f"edit_model_id_{team.name}_{i}")
+                                edited_api_key = st.text_input(f"API Key", type="password", value=current_api_key, key=f"edit_api_key_{team.name}_{i}")
+                            with col2:
+                                current_api_base = team.members[i].api_base if i < num_existing_members else "https://api.openai.com/v1"
+                                current_temperature = team.members[i].temperature if i < num_existing_members else 0.7
+                                current_top_p = team.members[i].top_p if i < num_existing_members else 1.0
+                                current_max_tokens = team.members[i].max_tokens if i < num_existing_members else 4096
+                                current_frequency_penalty = team.members[i].frequency_penalty if i < num_existing_members else 0.0
+                                current_presence_penalty = team.members[i].presence_penalty if i < num_existing_members else 0.0
+                                current_seed = team.members[i].seed if i < num_existing_members else None
+                                current_stop_sequences = ", ".join(team.members[i].stop_sequences) if i < num_existing_members and team.members[i].stop_sequences else ""
+                                current_logprobs = team.members[i].logprobs if i < num_existing_members and team.members[i].logprobs is not None else False
+                                current_top_logprobs = team.members[i].top_logprobs if i < num_existing_members and team.members[i].top_logprobs is not None else 0
+                                current_response_format = json.dumps(team.members[i].response_format) if i < num_existing_members and team.members[i].response_format else ""
+                                current_stream = team.members[i].stream if i < num_existing_members and team.members[i].stream is not None else False
+                                current_user = team.members[i].user if i < num_existing_members and team.members[i].user else ""
+
+                                edited_api_base = st.text_input(f"API Base (e.g., https://api.openai.com/v1)", value=current_api_base, key=f"edit_api_base_{team.name}_{i}")
+                                edited_temperature = st.slider(f"Temperature", min_value=0.0, max_value=2.0, value=current_temperature, step=0.1, key=f"edit_temp_{team.name}_{i}")
+                                edited_top_p = st.slider(f"Top P", min_value=0.0, max_value=1.0, value=current_top_p, step=0.01, key=f"edit_top_p_{team.name}_{i}")
+                                edited_max_tokens = st.number_input(f"Max Tokens", min_value=1, value=current_max_tokens, key=f"edit_max_tokens_{team.name}_{i}")
+                                edited_frequency_penalty = st.slider(f"Frequency Penalty", min_value=-2.0, max_value=2.0, value=current_frequency_penalty, step=0.01, key=f"edit_freq_penalty_{team.name}_{i}")
+                                edited_presence_penalty = st.slider(f"Presence Penalty", min_value=-2.0, max_value=2.0, value=current_presence_penalty, step=0.01, key=f"edit_pres_penalty_{team.name}_{i}")
+                                edited_seed = st.number_input(f"Seed (Optional)", value=current_seed, key=f"edit_seed_{team.name}_{i}")
+                                edited_stop_sequences_str = st.text_input(f"Stop Sequences (comma-separated)", value=current_stop_sequences, key=f"edit_stop_sequences_{team.name}_{i}")
+                                edited_logprobs = st.checkbox(f"Logprobs", value=current_logprobs, key=f"edit_logprobs_{team.name}_{i}")
+                                edited_top_logprobs = st.number_input(f"Top Logprobs (0-5)", min_value=0, max_value=5, value=current_top_logprobs, key=f"edit_top_logprobs_{team.name}_{i}")
+                                edited_response_format_str = st.text_input(f"Response Format (JSON string, e.g., '{{\"type\": \"json_object\"}}')", value=current_response_format, key=f"edit_response_format_{team.name}_{i}")
+                                edited_stream = st.checkbox(f"Stream", value=current_stream, key=f"edit_stream_{team.name}_{i}")
+                                edited_user = st.text_input(f"User ID", value=current_user, key=f"edit_user_{team.name}_{i}")
+                            
+                            if edited_model_id: # Only add if model ID is provided
+                                edited_members.append(ModelConfig(
+                                    model_id=edited_model_id,
+                                    api_key=edited_api_key,
+                                    api_base=edited_api_base,
+                                    temperature=edited_temperature,
+                                    top_p=edited_top_p,
+                                    max_tokens=edited_max_tokens,
+                                    frequency_penalty=edited_frequency_penalty,
+                                    presence_penalty=edited_presence_penalty,
+                                    seed=edited_seed if edited_seed is not None else None,
+                                    stop_sequences=[s.strip() for s in edited_stop_sequences_str.split(',')] if edited_stop_sequences_str else None,
+                                    logprobs=edited_logprobs if edited_logprobs else None,
+                                    top_logprobs=edited_top_logprobs if edited_top_logprobs > 0 else None,
+                                    response_format=json.loads(edited_response_format_str) if edited_response_format_str else None,
+                                    stream=edited_stream if edited_stream else None,
+                                    user=edited_user if edited_user else None
+                                ))
+                        
+                        update_submitted = st.form_submit_button("Update Team")
+                        if update_submitted:
+                            if edited_team_name and edited_members:
+                                updated_team = Team(name=edited_team_name, role=edited_team_role, members=edited_members, description=edited_team_description)
+                                if team_manager.update_team(team.name, updated_team):
+                                    st.success(f"Team '{edited_team_name}' updated successfully!")
+                                    st.session_state.team_manager = TeamManager() # Reload to refresh UI
+                                else:
+                                    st.error(f"Failed to update team '{team.name}'. A team with name '{edited_team_name}' might already exist.")
+                            else:
+                                st.error("Please fill in team name and at least one model ID for the updated team.")
                     
-                    # Edit functionality (simplified for now, full edit would be more complex)
                     if st.button(f"Delete Team '{team.name}'", key=f"delete_team_{team.name}"):
                         if team_manager.delete_team(team.name):
                             st.success(f"Team '{team.name}' deleted.")
@@ -80,6 +190,7 @@ def render_team_manager():
                             st.error(f"Failed to delete team '{team.name}'.")
 
 def render_gauntlet_designer():
+    """Renders the Streamlit UI for designing and managing Gauntlet definitions. Allows users to create, view, edit, and delete gauntlets."""
     st.header("🛡️ Gauntlet Designer")
     st.write("Create, view, edit, and delete your programmable Gauntlet definitions.")
 
@@ -116,7 +227,7 @@ def render_gauntlet_designer():
                 min_conf = st.slider(f"Minimum Overall Confidence (0.0-1.0)", min_value=0.0, max_value=1.0, value=0.75, step=0.05, key=f"round_{i}_min_conf")
                 max_var = st.number_input(f"Max Score Variance (Optional)", min_value=0.0, value=0.0, step=0.01, key=f"round_{i}_max_var")
                 
-                # Per-judge requirements (simplified UI for now)
+                # Per-judge requirements
                 st.caption("Per-Judge Requirements (JSON format, optional)")
                 per_judge_json = st.text_area(f"{{'model_id': {{'min_score': 0.9}}}}", key=f"round_{i}_per_judge_json")
                 per_judge_reqs = {}
@@ -201,7 +312,8 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
     st.header("📝 Manual Review & Override")
     st.info("Review the AI-generated decomposition plan. You can edit any aspect of the plan before approving it.")
 
-    # Use a session state object to hold edits, preventing loss on rerun
+    # Use a session state object to hold edits, preventing loss on rerun.
+    # This ensures that user modifications persist across Streamlit reruns until the plan is approved or rejected.
     if 'edited_sub_problems' not in st.session_state:
         st.session_state.edited_sub_problems = {sp.id: sp for sp in decomposition_plan.sub_problems}
 
@@ -210,12 +322,14 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
     st.markdown(f"**Analyzed Context Summary**: {decomposition_plan.analyzed_context.get('summary', 'N/A')}")
 
     st.subheader("Sub-Problems")
+    # Iterate through each sub-problem and provide an editable UI.
     for i, sub_problem in enumerate(decomposition_plan.sub_problems):
         with st.expander(f"Sub-Problem {sub_problem.id}: {sub_problem.description[:80]}...", expanded=False):
-            # Each sub-problem is its own form to allow individual updates
+            # Each sub-problem is its own form to allow individual updates and prevent full form submission on every change.
             with st.form(f"edit_sub_problem_form_{sub_problem.id}"):
                 current_sp_state = st.session_state.edited_sub_problems[sub_problem.id]
                 
+                # Editable fields for sub-problem details.
                 edited_description = st.text_area("Description", value=current_sp_state.description, key=f"desc_{sub_problem.id}")
                 edited_dependencies_str = st.text_input("Dependencies (comma-separated IDs)", value=", ".join(current_sp_state.dependencies), key=f"deps_{sub_problem.id}")
                 
@@ -228,6 +342,7 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
                 st.markdown("---")
                 st.markdown("**User Overrides (Select Teams & Gauntlets)**")
                 
+                # Retrieve available teams and gauntlets for dropdown selections.
                 team_manager: TeamManager = st.session_state.team_manager
                 gauntlet_manager: GauntletManager = st.session_state.gauntlet_manager
                 
@@ -235,9 +350,10 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
                 red_gauntlets = [g.name for g in gauntlet_manager.get_all_gauntlets() if gauntlet_manager.get_gauntlet(g.name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name).role == "Red"]
                 gold_gauntlets = [g.name for g in gauntlet_manager.get_all_gauntlets() if gauntlet_manager.get_gauntlet(g.name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name).role == "Gold"]
 
-                edited_solver_team_name = st.selectbox("Solver Team (Blue)", blue_teams, index=blue_teams.index(current_sp_state.solver_team_name) if current_sp_state.solver_team_name in blue_teams else 0, key=f"solver_team_{sub_problem.id}")
-                edited_red_gauntlet_name = st.selectbox("Red Team Gauntlet", ["None"] + red_gauntlets, index=(red_gauntlets.index(current_sp_state.red_team_gauntlet_name) + 1) if current_sp_state.red_team_gauntlet_name in red_gauntlets else 0, key=f"red_gauntlet_{sub_problem.id}")
-                edited_gold_gauntlet_name = st.selectbox("Gold Team Gauntlet", gold_gauntlets, index=gold_gauntlets.index(current_sp_state.gold_team_gauntlet_name) if current_sp_state.gold_team_gauntlet_name in gold_gauntlets else 0, key=f"gold_gauntlet_{sub_problem.id}")
+                # Dropdowns for user to override AI-suggested teams and gauntlets.
+                edited_solver_team_name = st.selectbox("Solver Team (Blue)", blue_teams, index=blue_teams.index(current_sp_state.solver_team_name) if current_sp_state.solver_team_name in blue_teams else 0, key=f"solver_team_{sub_problem.id}", disabled=not blue_teams)
+                edited_red_gauntlet_name = st.selectbox("Red Team Gauntlet", ["None"] + red_gauntlets, index=(red_gauntlets.index(current_sp_state.red_team_gauntlet_name) + 1) if current_sp_state.red_team_gauntlet_name in red_gauntlets else 0, key=f"red_gauntlet_{sub_problem.id}", disabled=not red_gauntlets)
+                edited_gold_gauntlet_name = st.selectbox("Gold Team Gauntlet", gold_gauntlets, index=gold_gauntlets.index(current_sp_state.gold_team_gauntlet_name) if current_sp_state.gold_team_gauntlet_name in gold_gauntlets else 0, key=f"gold_gauntlet_{sub_problem.id}", disabled=not gold_gauntlets)
 
                 st.caption("Specific Evolution Parameters (JSON format, optional)")
                 edited_evolution_params_json = st.text_area("{}", value=json.dumps(current_sp_state.evolution_params, indent=2), key=f"evol_params_{sub_problem.id}")
@@ -248,7 +364,12 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
                         edited_evolution_params = json.loads(edited_evolution_params_json) if edited_evolution_params_json else {}
                         edited_dependencies = [d.strip() for d in edited_dependencies_str.split(',') if d.strip()]
                         
-                        # Update the sub-problem in session state
+                        # Set to None if the selectbox was disabled (i.e., no options were available).
+                        final_solver_team_name = edited_solver_team_name if blue_teams else None
+                        final_red_gauntlet_name = edited_red_gauntlet_name if red_gauntlets else None
+                        final_gold_gauntlet_name = edited_gold_gauntlet_name if gold_gauntlets else None
+
+                        # Update the sub-problem in session state with the user's edits.
                         st.session_state.edited_sub_problems[sub_problem.id] = SubProblem(
                             id=sub_problem.id,
                             description=edited_description,
@@ -256,9 +377,9 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
                             ai_suggested_evolution_mode=edited_ai_suggested_evolution_mode,
                             ai_suggested_complexity_score=edited_ai_suggested_complexity_score,
                             ai_suggested_evaluation_prompt=edited_ai_suggested_evaluation_prompt,
-                            solver_team_name=edited_solver_team_name,
-                            red_team_gauntlet_name=edited_red_gauntlet_name if edited_red_gauntlet_name != "None" else None,
-                            gold_team_gauntlet_name=edited_gold_gauntlet_name,
+                            solver_team_name=final_solver_team_name,
+                            red_team_gauntlet_name=final_red_gauntlet_name if final_red_gauntlet_name != "None" else None,
+                            gold_team_gauntlet_name=final_gold_gauntlet_name,
                             evolution_params=edited_evolution_params
                         )
                         st.success(f"Sub-Problem {sub_problem.id} updated in draft plan.")
@@ -268,8 +389,9 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
     st.markdown("---")
     col1, col2 = st.columns(2)
     with col1:
+        # Button to approve the entire decomposition plan.
         if st.button("✅ Approve Plan", key="approve_plan_button", type="primary"):
-            # Reconstruct the DecompositionPlan from the edited sub-problems in session state
+            # Reconstruct the DecompositionPlan from the edited sub-problems in session state.
             final_sub_problems = list(st.session_state.edited_sub_problems.values())
             
             approved_plan = DecompositionPlan(
@@ -281,12 +403,13 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
                 final_red_team_gauntlet_name=decomposition_plan.final_red_team_gauntlet_name,
                 final_gold_team_gauntlet_name=decomposition_plan.final_gold_team_gauntlet_name
             )
-            del st.session_state.edited_sub_problems # Clean up session state
+            del st.session_state.edited_sub_problems # Clean up session state after approval.
             return "approved", approved_plan
     with col2:
+        # Button to reject the entire decomposition plan.
         if st.button("❌ Reject Plan", key="reject_plan_button"):
             st.error("Plan rejected. Please modify the initial problem or AI settings and try again.")
-            del st.session_state.edited_sub_problems # Clean up session state
+            del st.session_state.edited_sub_problems # Clean up session state after rejection.
             return "rejected", None
     
-    return "pending", None # Plan not yet approved or rejected
+    return "pending", None # Plan not yet approved or rejected.

@@ -17,6 +17,12 @@ class TemplateManager:
 
     def __init__(self):
         self.template_marketplace = PROTOCOL_TEMPLATE_MARKETPLACE
+        self.template_usage_db = {
+            "Example Template 1": {"times_used": 150, "last_used": "2025-10-15T10:00:00", "user_ratings": [5, 4, 5], "average_rating": 4.6},
+            "Example Template 2": {"times_used": 80, "last_used": "2025-10-10T14:30:00", "user_ratings": [3, 4], "average_rating": 3.5},
+            "Security Policy Template": {"times_used": 200, "last_used": "2025-10-16T09:00:00", "user_ratings": [5, 5, 4, 5], "average_rating": 4.75},
+            "Documentation Template": {"times_used": 50, "last_used": "2025-10-12T11:00:00", "user_ratings": [4], "average_rating": 4.0},
+        }
 
     def list_template_categories(self) -> List[str]:
         """
@@ -183,18 +189,22 @@ class TemplateManager:
         
         <script>
         function loadTemplate(category, templateName) {
-            // In a real implementation, this would load the template
-            alert('Loading template: ' + templateName + ' from category: ' + category);
+            const url = new URL(window.location);
+            url.searchParams.set('load_template_category', category);
+            url.searchParams.set('load_template_name', templateName);
+            window.location.href = url.toString(); // This will trigger a full page reload
         }
         
         function filterTemplates(filterType) {
-            // In a real implementation, this would filter the templates
-            alert('Filtering by: ' + filterType);
+            const url = new URL(window.location);
+            url.searchParams.set('filter_type', filterType);
+            window.location.href = url.toString(); // This will trigger a full page reload
         }
         
-        document.getElementById('templateSearch').addEventListener('input', function(e) {
-            // In a real implementation, this would search the templates
-            console.log('Searching for: ' + e.target.value);
+        document.getElementById('templateSearch').addEventListener('change', function(e) { // Use 'change' instead of 'input' to trigger on blur or enter
+            const url = new URL(window.location);
+            url.searchParams.set('template_search_query', e.target.value);
+            window.location.href = url.toString(); // This will trigger a full page reload
         });
         </script>
         """
@@ -282,13 +292,13 @@ class TemplateManager:
             Dict: Usage statistics
         """
         # This would connect to a database in a full implementation
-        # For now, return placeholder stats
-        return {
+        # For now, we use a simulated database for usage statistics
+        return self.template_usage_db.get(template_name, {
             "times_used": 0,
             "last_used": None,
             "user_ratings": [],
             "average_rating": 0.0,
-        }
+        })
 
 
 # Initialize template manager on import
@@ -303,6 +313,33 @@ def render_template_manager():
     
     # Initialize template manager
     tm = TemplateManager()
+
+    # Process query parameters for template actions
+    query_params = st.experimental_get_query_params()
+
+    if "load_template_category" in query_params and "load_template_name" in query_params:
+        category = query_params["load_template_category"][0]
+        template_name = query_params["load_template_name"][0]
+        details = tm.get_template_details(category, template_name)
+        if details:
+            st.session_state.protocol_text = details.get("content", "")
+            st.success(f"Template '{template_name}' loaded!")
+        else:
+            st.error(f"Failed to load template: {template_name}")
+        st.experimental_set_query_params(load_template_category=None, load_template_name=None)
+        st.rerun()
+
+    # Note: filter_type and template_search_query will be handled by the Streamlit UI elements directly
+    # as they are now triggering reruns and the UI elements will pick up the new state.
+    # We don't need explicit processing here for them, but we should clear them if they exist
+    # to prevent persistent filtering/searching across sessions if not desired.
+    if "filter_type" in query_params:
+        st.experimental_set_query_params(filter_type=None)
+        # st.rerun() # No need to rerun again, the main UI will handle the filtering based on the new state
+
+    if "template_search_query" in query_params:
+        st.experimental_set_query_params(template_search_query=None)
+        # st.rerun() # No need to rerun again
     
     # Create tabs for different template functions
     tab1, tab2, tab3 = st.tabs(["🏪 Marketplace", "📁 My Templates", "➕ Create Template"])

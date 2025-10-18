@@ -45,7 +45,7 @@ class VersionControl:
             "timestamp": timestamp,
             "protocol_text": protocol_text,
             "comment": comment,
-            "author": "Current User",  # In a real implementation, this would be the actual user
+            "author": st.session_state.get("user", "Unknown User"),
             "complexity_metrics": calculate_protocol_complexity(protocol_text),
             "structure_analysis": extract_protocol_structure(protocol_text),
         }
@@ -56,23 +56,12 @@ class VersionControl:
 
         return version_id
 
-    def load_version(self, version_id: str) -> bool:
-        """
-        Load a specific version of the protocol.
-
-        Args:
-            version_id (str): ID of the version to load
-
-        Returns:
-            bool: True if successful, False otherwise
-        """
-        with st.session_state.thread_lock:
-            for version in st.session_state.protocol_versions:
-                if version["id"] == version_id:
-                    st.session_state.protocol_text = version["protocol_text"]
-                    st.session_state.current_version_id = version_id
-                    return True
-        return False
+    function branchVersion(versionId, branchName) {
+        const url = new URL(window.location);
+        url.searchParams.set('branch_version_id', versionId);
+        url.searchParams.set('new_branch_name', branchName);
+        window.location.href = url.toString(); // This will trigger a full page reload
+    }
 
     def get_version_history(self) -> List[Dict]:
         """
@@ -313,38 +302,11 @@ class VersionControl:
             """
 
             # Add action buttons
-            html += f"""
-                        <button onclick="loadVersion('{version["id"]}')" style="background-color: #4a6fa5; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">Load</button>
-            """
 
-            if not is_current:
-                html += f"""
-                        <button onclick="branchVersion('{version["id"]}', 'Branch of {version["name"]}')" style="background-color: #6b8cbc; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8em;">Branch</button>
-                """
 
-            html += """
-                    </div>
-                </div>
-            </div>
-            """
 
-        html += """
-        </div>
-    </div>
-    <script>
-    function loadVersion(versionId) {
-        // In a real implementation, this would trigger a reload with the version
-        alert('Loading version: ' + versionId);
-    }
+
     
-    function branchVersion(versionId, branchName) {
-        // In a real implementation, this would create a new branch
-        alert('Branching from version: ' + versionId + ' as ' + branchName);
-    }
-    </script>
-    """
-
-        return html
 
     def get_version_count(self) -> int:
         """
@@ -381,6 +343,31 @@ def render_version_control():
     
     # Initialize version control if not already done
     vc = VersionControl()
+
+    # Process query parameters for version actions
+    query_params = st.experimental_get_query_params()
+    
+    if "load_version_id" in query_params:
+        version_id_to_load = query_params["load_version_id"][0]
+        if vc.load_version(version_id_to_load):
+            st.success(f"Loaded version: {version_id_to_load[:8]}...")
+        else:
+            st.error(f"Failed to load version: {version_id_to_load[:8]}...")
+        # Clear the query parameter to prevent re-triggering on refresh
+        st.experimental_set_query_params(load_version_id=None)
+        st.rerun()
+
+    if "branch_version_id" in query_params and "new_branch_name" in query_params:
+        version_id_to_branch = query_params["branch_version_id"][0]
+        new_branch_name = query_params["new_branch_name"][0]
+        new_id = vc.branch_version(version_id_to_branch, new_branch_name)
+        if new_id:
+            st.success(f"Created branch from {version_id_to_branch[:8]}... as {new_branch_name}")
+        else:
+            st.error(f"Failed to create branch from {version_id_to_branch[:8]}...")
+        # Clear the query parameters
+        st.experimental_set_query_params(branch_version_id=None, new_branch_name=None)
+        st.rerun()
     
     # Create new version
     with st.expander("💾 Save Current Version"):

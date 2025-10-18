@@ -17,6 +17,21 @@ class ValidationManager:
 
     def __init__(self):
         self.validation_rules = VALIDATION_RULES
+        self.compliance_databases = {
+            "generic": {
+                "max_length": 5000,
+                "required_keywords": ["security", "privacy"],
+                "forbidden_patterns": ["confidential data leak"]
+            },
+            "gdpr": {
+                "required_keywords": ["GDPR", "data protection", "consent"],
+                "forbidden_patterns": ["unencrypted personal data"]
+            },
+            "hipaa": {
+                "required_keywords": ["HIPAA", "PHI", "patient data"],
+                "forbidden_patterns": ["unsecured health information"]
+            }
+        }
 
     def add_validation_rule(self, rule_name: str, rule_config: Dict) -> bool:
         """
@@ -221,13 +236,17 @@ class ValidationManager:
         Returns:
             Dict: Compliance check results
         """
-        # For now, this uses the same validation logic as the broader validation
         # In a full implementation, this would connect to compliance databases
+        # For now, we use a simulated connection to compliance databases
+        compliance_rules = self.compliance_databases.get(compliance_framework)
+        
+        if not compliance_rules:
+            st.warning(f"Compliance framework '{compliance_framework}' not found. Using generic rules.")
+            compliance_rules = self.compliance_databases.get("generic", {})
+
         return self._apply_single_rule(
             content,
-            self.validation_rules.get(
-                compliance_framework, self.validation_rules.get("generic", {})
-            ),
+            compliance_rules,
             compliance_framework,
         )
 

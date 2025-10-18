@@ -3,7 +3,7 @@ import os
 from typing import List, Optional, Dict, Any
 from workflow_structures import Team, ModelConfig # Assuming workflow_structures is in the same directory
 
-TEAMS_FILE = "teams.json"
+TEAMS_FILE = "teams.json" # Name of the file used for persisting team data.
 
 class TeamManager:
     """
@@ -11,11 +11,18 @@ class TeamManager:
     Persists team data to a JSON file.
     """
     def __init__(self, teams_file: str = TEAMS_FILE):
+        """Initializes the TeamManager.
+
+        Args:
+            teams_file (str): The name of the JSON file to use for persisting team data.
+        """
         self.teams_file = teams_file
         self.teams: Dict[str, Team] = self._load_teams()
 
     def _load_teams(self) -> Dict[str, Team]:
-        """Loads teams from the JSON file and deserializes them into Team objects."""
+        """Loads teams from the JSON file and deserializes them into Team objects.
+        Handles deserialization of nested `ModelConfig` objects and optional `description` field.
+        """
         if os.path.exists(self.teams_file):
             with open(self.teams_file, "r") as f:
                 data = json.load(f)
@@ -29,7 +36,7 @@ class TeamManager:
         return {}
 
     def _save_teams(self):
-        """Serializes Team objects and saves them to the JSON file."""
+        """Serializes Team objects, including nested `ModelConfig` objects, and saves them to the JSON file."""
         data = {}
         for name, team in self.teams.items():
             # Convert Team object to a dictionary
@@ -74,5 +81,9 @@ class TeamManager:
         return False
 
     def get_teams_by_role(self, role: str) -> List[Team]:
-        """Retrieves all teams assigned to a specific role."""
+        """Retrieves all teams assigned to a specific role.
+
+        Args:
+            role (str): The role to filter teams by (e.g., "Blue", "Red", "Gold").
+        """
         return [team for team in self.teams.values() if team.role == role]

@@ -30,6 +30,7 @@ This document tracks the implementation of the workflow detailed in `SOVEREIGN_G
 ## Phase 4: Finalization & Self-Healing
 
 - [x] Implement the "Self-Healing" loop logic within the `run_sovereign_workflow` function, including the targeted feedback parsing and recursive re-solving of flawed sub-problems.
-- [ ] Conduct a full review of all new code, adding detailed docstrings and comments.
-- [ ] Perform integration testing to ensure all components work together as described in the design document.
+- [x] Conduct a full review of all new code, adding detailed docstrings and comments.
+- [ ] Perform comprehensive integration testing to ensure all components work together as described in the design document. A placeholder test file `comprehensive_integration_test.py` has been created as a guide for manual/UI-driven testing.
+- [ ] Consider implementing LLM response caching for performance optimization.
 - [ ] Remove any remaining placeholder code and finalize the implementation.
