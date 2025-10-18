@@ -92,18 +92,6 @@ The OpenEvolve Frontend is a comprehensive, general-purpose content improvement 
 - **Validation Management**: Define, manage, and apply custom validation rules
 - **Task Management**: Create and manage tasks with assignees and due dates
 
-### 🔗 External Integrations
-- **GitHub Integration**: Authenticate, commit, branch, and manage GitHub repositories
-- **GitLab Integration**: Support for GitLab repositories and workflows
-- **Jira Integration**: Create and manage issues directly from the application
-- **Slack Integration**: Send notifications and updates to Slack channels
-- **Discord Integration**: Send notifications to Discord webhooks
-- **Microsoft Teams Integration**: Send notifications to Microsoft Teams webhooks
-- **Generic Webhook Support**: Custom webhook integrations for external systems
-- **Remote Storage**: Save protocol generations to remote repositories with branching
-- **SMTP Email**: Send email notifications via SMTP configuration
-- **OAuth Integration**: Support for multiple authentication providers
-
 ### 📈 Advanced Features
 
 ### AI Insights Dashboard
@@ -139,10 +127,6 @@ The OpenEvolve Frontend is a comprehensive, general-purpose content improvement 
 - **Session State Management**: Robust session state management with defaults
 
 ## 🏗️ Architecture
-
-### Dual-Mode Operation
-1. **General Content Mode**: For protocols, documentation, and text content (primary focus)
-2. **Code Evolution Mode**: Integration with OpenEvolve backend for specialized code improvements
 
 ### Component Structure
 - **Frontend**: Streamlit-based UI with modular components
@@ -224,15 +208,6 @@ The frontend seamlessly integrates with the OpenEvolve backend for specialized c
 - **SWOT Analysis**: Strengths, weaknesses, opportunities, and threats
 - **AI Recommendations**: Personalized improvement suggestions
 - **Visual Metrics Cards**: Readability, structure, and compliance risk indicators
-
-### Machine Learning Integration
-- **Protocol Suggestions**: AI-powered improvement recommendations
-- **Content Classification**: Automatic categorization and tagging
-- **Pattern Recognition**: Identification of common issues and best practices
-- **Predictive Analytics**: Forecasting improvement potential
-- **Model Performance Tracking**: Continuous learning from testing results
-- **Complexity-Based Optimization**: Adaptive approach based on content complexity
-- **Performance Suggestions**: Configuration recommendations for better results
 
 ### Customization Options
 - **Theme Settings**: Light/dark mode with custom colors
