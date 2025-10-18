@@ -27,6 +27,53 @@ def render_team_manager():
             team_role = st.selectbox("Team Role", ["Blue", "Red", "Gold"], key="new_team_role")
             team_description = st.text_area("Description", key="new_team_description")
 
+            if team_role == "Blue":
+                st.subheader("Content Analysis Prompts (for Blue Teams acting as Content Analyzers)")
+                new_ca_system_prompt = st.text_area("Content Analysis System Prompt", value="You are a highly skilled content analyzer. Your task is to analyze a problem statement and extract key information, context, and potential challenges. Provide your analysis in a structured JSON format.", key="new_ca_system_prompt")
+                new_ca_user_prompt_template = st.text_area("Content Analysis User Prompt Template", value="""Analyze the following problem statement and extract:
+    - `domain`: (e.g., "Software Development", "Physics", "Legal")
+    - `keywords`: List of important terms.
+    - `estimated_complexity`: (1-10)
+    - `potential_challenges`: List of anticipated difficulties.
+    - `required_expertise`: List of expertise areas needed.
+    - `summary`: A brief, concise summary of the problem.
+
+    Problem Statement:
+    ---
+    {problem_statement}
+    ---
+    """, key="new_ca_user_prompt_template", height=300)
+            else:
+                new_ca_system_prompt = None
+                new_ca_user_prompt_template = None
+
+            if team_role == "Blue":
+                st.subheader("Decomposition Prompts (for Blue Teams acting as Planners)")
+                new_decomp_system_prompt = st.text_area("Decomposition System Prompt", value="You are an expert problem decomposer. Your task is to break down a complex problem into smaller, manageable sub-problems. For each sub-problem, suggest an evolution mode, a complexity score (1-10), and a specific evaluation prompt. Provide the output as a JSON array of sub-problem objects.", key="new_decomp_system_prompt")
+                new_decomp_user_prompt_template = st.text_area("Decomposition User Prompt Template", value="""Decompose the following problem into a list of sub-problems. For each sub-problem, provide:
+    - `id`: A unique identifier (e.g., "sub_1.1")
+    - `description`: A clear statement of the sub-problem.
+    - `dependencies`: A list of `id`s of other sub-problems this one depends on.
+    - `ai_suggested_evolution_mode`: Suggested evolution mode (e.g., "standard", "adversarial", "quality_diversity").
+    - `ai_suggested_complexity_score`: An integer from 1 to 10.
+    - `ai_suggested_evaluation_prompt`: A specific prompt for a Gold Team to evaluate this sub-problem's solution.
+
+    Problem Statement:
+    ---
+    {problem_statement}
+    ---
+
+    Analyzed Context:
+    ---
+    {analyzed_context}
+    ---
+
+    Provide the output as a JSON array of sub-problem objects.
+    """, key="new_decomp_user_prompt_template", height=300)
+            else:
+                new_decomp_system_prompt = None
+                new_decomp_user_prompt_template = None
+
             st.subheader("Team Members (AI Models)")
             num_members = st.number_input("Number of Models in Team", min_value=1, value=1, key="num_new_members")
             
@@ -51,6 +98,21 @@ def render_team_manager():
                     response_format_str = st.text_input(f"Response Format (JSON string, e.g., '{{\"type\": \"json_object\"}}')", key=f"new_response_format_{i}")
                     stream = st.checkbox(f"Stream", key=f"new_stream_{i}")
                     user = st.text_input(f"User ID", key=f"new_user_{i}")
+                    reasoning_effort = st.selectbox(f"Reasoning Effort", [None, "low", "medium", "high"], key=f"new_reasoning_effort_{i}")
+                    max_retries = st.number_input(f"Max Retries", min_value=0, value=5, key=f"new_max_retries_{i}")
+                    timeout = st.number_input(f"Timeout (seconds)", min_value=1, value=120, key=f"new_timeout_{i}")
+                    organization = st.text_input(f"Organization ID (Optional)", key=f"new_organization_{i}")
+                    response_model = st.text_input(f"Response Model (Pydantic model name, Optional)", key=f"new_response_model_{i}")
+                    tools_json = st.text_area(f"Tools (JSON array, Optional)", key=f"new_tools_{i}", help="e.g., [{'type': 'function', 'function': {'name': 'my_function', 'description': '...', 'parameters': {...}}}]")
+                    tool_choice = st.text_input(f"Tool Choice (e.g., 'auto', 'none', or JSON)", key=f"new_tool_choice_{i}")
+                    system_fingerprint = st.text_input(f"System Fingerprint (Optional)", key=f"new_system_fingerprint_{i}")
+                    deployment_id = st.text_input(f"Deployment ID (Azure OpenAI, Optional)", key=f"new_deployment_id_{i}")
+                    encoding_format = st.text_input(f"Encoding Format (Optional)", key=f"new_encoding_format_{i}")
+                    max_input_tokens = st.number_input(f"Max Input Tokens (Optional)", value=None, key=f"new_max_input_tokens_{i}")
+                    stop_token = st.text_input(f"Stop Token (Optional, single token)", key=f"new_stop_token_{i}")
+                    best_of = st.number_input(f"Best Of (Optional)", value=None, key=f"new_best_of_{i}")
+                    logprobs_offset = st.number_input(f"Logprobs Offset (Optional)", value=None, key=f"new_logprobs_offset_{i}")
+                    suffix = st.text_input(f"Suffix (Optional)", key=f"new_suffix_{i}")
                 
                 new_members.append(ModelConfig(
                     model_id=model_id,
@@ -67,13 +129,28 @@ def render_team_manager():
                     top_logprobs=top_logprobs if top_logprobs > 0 else None,
                     response_format=json.loads(response_format_str) if response_format_str else None,
                     stream=stream if stream else None,
-                    user=user if user else None
+                    user=user if user else None,
+                    reasoning_effort=reasoning_effort,
+                    max_retries=max_retries,
+                    timeout=timeout,
+                    organization=organization if organization else None,
+                    response_model=response_model if response_model else None,
+                    tools=json.loads(tools_json) if tools_json else None,
+                    tool_choice=json.loads(tool_choice) if tool_choice and tool_choice.startswith('{') else (tool_choice if tool_choice else None),
+                    system_fingerprint=system_fingerprint if system_fingerprint else None,
+                    deployment_id=deployment_id if deployment_id else None,
+                    encoding_format=encoding_format if encoding_format else None,
+                    max_input_tokens=max_input_tokens if max_input_tokens is not None else None,
+                    stop_token=stop_token if stop_token else None,
+                    best_of=best_of if best_of is not None else None,
+                    logprobs_offset=logprobs_offset if logprobs_offset is not None else None,
+                    suffix=suffix if suffix else None
                 ))
             
             submitted = st.form_submit_button("Create Team")
             if submitted:
                 if team_name and new_members[0].model_id: # Basic validation
-                    new_team = Team(name=team_name, role=team_role, members=new_members, description=team_description)
+                    new_team = Team(name=team_name, role=team_role, members=new_members, description=team_description, content_analysis_system_prompt=new_ca_system_prompt, content_analysis_user_prompt_template=new_ca_user_prompt_template, decomposition_system_prompt=new_decomp_system_prompt, decomposition_user_prompt_template=new_decomp_user_prompt_template)
                     if team_manager.create_team(new_team):
                         st.success(f"Team '{team_name}' created successfully!")
                         st.session_state.team_manager = TeamManager() # Reload to refresh UI
@@ -99,12 +176,65 @@ def render_team_manager():
                     for i, member in enumerate(team.members):
                         st.markdown(f"**Model {i+1}**: `{member.model_id}`")
                         st.write(f"API Base: `{member.api_base}` | Temp: `{member.temperature}` | Top P: `{member.top_p}` | Max Tokens: `{member.max_tokens}` | Freq Penalty: `{member.frequency_penalty}` | Pres Penalty: `{member.presence_penalty}` | Seed: `{member.seed}`")
+                        st.write(f"Stop Sequences: `{member.stop_sequences}` | Logprobs: `{member.logprobs}` | Top Logprobs: `{member.top_logprobs}` | Response Format: `{member.response_format}` | Stream: `{member.stream}` | User: `{member.user}` | Reasoning Effort: `{member.reasoning_effort}`")
+                        st.write(f"Max Retries: `{member.max_retries}` | Timeout: `{member.timeout}` | Organization: `{member.organization}` | Response Model: `{member.response_model}`")
+                        st.write(f"Tools: `{member.tools}` | Tool Choice: `{member.tool_choice}` | System Fingerprint: `{member.system_fingerprint}` | Deployment ID: `{member.deployment_id}`")
+                        st.write(f"Encoding Format: `{member.encoding_format}` | Max Input Tokens: `{member.max_input_tokens}` | Stop Token: `{member.stop_token}` | Best Of: `{member.best_of}` | Logprobs Offset: `{member.logprobs_offset}` | Suffix: `{member.suffix}`")
 
                     # Edit Form
                     with st.form(f"edit_team_form_{team.name}"):
                         edited_team_name = st.text_input("Team Name", value=team.name, key=f"edit_team_name_{team.name}")
                         edited_team_role = st.selectbox("Team Role", ["Blue", "Red", "Gold"], index=["Blue", "Red", "Gold"].index(team.role), key=f"edit_team_role_{team.name}")
                         edited_team_description = st.text_area("Description", value=team.description, key=f"edit_team_description_{team.name}")
+
+                        edited_ca_system_prompt = None
+                        edited_ca_user_prompt_template = None
+                        if edited_team_role == "Blue":
+                            st.subheader("Content Analysis Prompts (for Blue Teams acting as Content Analyzers)")
+                            edited_ca_system_prompt = st.text_area("Content Analysis System Prompt", value=team.content_analysis_system_prompt if team.content_analysis_system_prompt else "You are a highly skilled content analyzer. Your task is to analyze a problem statement and extract key information, context, and potential challenges. Provide your analysis in a structured JSON format.", key=f"edit_ca_system_prompt_{team.name}")
+                            edited_ca_user_prompt_template = st.text_area("Content Analysis User Prompt Template", value=team.content_analysis_user_prompt_template if team.content_analysis_user_prompt_template else """Analyze the following problem statement and extract:
+    - `domain`: (e.g., "Software Development", "Physics", "Legal")
+    - `keywords`: List of important terms.
+    - `estimated_complexity`: (1-10)
+    - `potential_challenges`: List of anticipated difficulties.
+    - `required_expertise`: List of expertise areas needed.
+    - `summary`: A brief, concise summary of the problem.
+
+    Problem Statement:
+    ---
+    {problem_statement}
+    ---
+    """, key=f"edit_ca_user_prompt_template_{team.name}", height=300)
+
+                            current_decomp_system_prompt = team.decomposition_system_prompt if team.decomposition_system_prompt else "You are an expert problem decomposer. Your task is to break down a complex problem into smaller, manageable sub-problems. For each sub-problem, suggest an evolution mode, a complexity score (1-10), and a specific evaluation prompt. Provide the output as a JSON array of sub-problem objects."
+                            current_decomp_user_prompt_template = team.decomposition_user_prompt_template if team.decomposition_user_prompt_template else """Decompose the following problem into a list of sub-problems. For each sub-problem, provide:
+    - `id`: A unique identifier (e.g., "sub_1.1")
+    - `description`: A clear statement of the sub-problem.
+    - `dependencies`: A list of `id`s of other sub-problems this one depends on.
+    - `ai_suggested_evolution_mode`: Suggested evolution mode (e.g., "standard", "adversarial", "quality_diversity").
+    - `ai_suggested_complexity_score`: An integer from 1 to 10.
+    - `ai_suggested_evaluation_prompt`: A specific prompt for a Gold Team to evaluate this sub-problem's solution.
+
+    Problem Statement:
+    ---
+    {problem_statement}
+    ---
+
+    Analyzed Context:
+    ---
+    {analyzed_context}
+    ---
+
+    Provide the output as a JSON array of sub-problem objects.
+    """
+                            st.subheader("Decomposition Prompts (for Blue Teams acting as Planners)")
+                            edited_decomp_system_prompt = st.text_area("Decomposition System Prompt", value=current_decomp_system_prompt, key=f"edit_decomp_system_prompt_{team.name}")
+                            edited_decomp_user_prompt_template = st.text_area("Decomposition User Prompt Template", value=current_decomp_user_prompt_template, key=f"edit_decomp_user_prompt_template_{team.name}", height=300)
+                        else:
+                            edited_ca_system_prompt = None
+                            edited_ca_user_prompt_template = None
+                            edited_decomp_system_prompt = None
+                            edited_decomp_user_prompt_template = None
 
                         st.subheader("Edit Team Members (AI Models)")
                         # Allow adding/removing members, or editing existing ones.
@@ -150,6 +280,22 @@ def render_team_manager():
                                 edited_response_format_str = st.text_input(f"Response Format (JSON string, e.g., '{{\"type\": \"json_object\"}}')", value=current_response_format, key=f"edit_response_format_{team.name}_{i}")
                                 edited_stream = st.checkbox(f"Stream", value=current_stream, key=f"edit_stream_{team.name}_{i}")
                                 edited_user = st.text_input(f"User ID", value=current_user, key=f"edit_user_{team.name}_{i}")
+                                current_reasoning_effort = team.members[i].reasoning_effort if i < num_existing_members else None
+                                edited_reasoning_effort = st.selectbox(f"Reasoning Effort", [None, "low", "medium", "high"], index=[None, "low", "medium", "high"].index(current_reasoning_effort) if current_reasoning_effort in ["low", "medium", "high"] else 0, key=f"edit_reasoning_effort_{team.name}_{i}")
+                                edited_max_retries = st.number_input(f"Max Retries", min_value=0, value=current_max_retries, key=f"edit_max_retries_{team.name}_{i}")
+                                edited_timeout = st.number_input(f"Timeout (seconds)", min_value=1, value=current_timeout, key=f"edit_timeout_{team.name}_{i}")
+                                edited_organization = st.text_input(f"Organization ID (Optional)", value=current_organization, key=f"edit_organization_{team.name}_{i}")
+                                edited_response_model = st.text_input(f"Response Model (Pydantic model name, Optional)", value=current_response_model, key=f"edit_response_model_{team.name}_{i}")
+                                edited_tools_json = st.text_area(f"Tools (JSON array, Optional)", value=current_tools, key=f"edit_tools_{team.name}_{i}", help="e.g., [{'type': 'function', 'function': {'name': 'my_function', 'description': '...', 'parameters': {...}}}]")
+                                edited_tool_choice = st.text_input(f"Tool Choice (e.g., 'auto', 'none', or JSON)", value=current_tool_choice, key=f"edit_tool_choice_{team.name}_{i}")
+                                edited_system_fingerprint = st.text_input(f"System Fingerprint (Optional)", value=current_system_fingerprint, key=f"edit_system_fingerprint_{team.name}_{i}")
+                                edited_deployment_id = st.text_input(f"Deployment ID (Azure OpenAI, Optional)", value=current_deployment_id, key=f"edit_deployment_id_{team.name}_{i}")
+                                edited_encoding_format = st.text_input(f"Encoding Format (Optional)", value=current_encoding_format, key=f"edit_encoding_format_{team.name}_{i}")
+                                edited_max_input_tokens = st.number_input(f"Max Input Tokens (Optional)", value=current_max_input_tokens, key=f"edit_max_input_tokens_{team.name}_{i}")
+                                edited_stop_token = st.text_input(f"Stop Token (Optional, single token)", value=current_stop_token, key=f"edit_stop_token_{team.name}_{i}")
+                                edited_best_of = st.number_input(f"Best Of (Optional)", value=current_best_of, key=f"edit_best_of_{team.name}_{i}")
+                                edited_logprobs_offset = st.number_input(f"Logprobs Offset (Optional)", value=current_logprobs_offset, key=f"edit_logprobs_offset_{team.name}_{i}")
+                                edited_suffix = st.text_input(f"Suffix (Optional)", value=current_suffix, key=f"edit_suffix_{team.name}_{i}")
                             
                             if edited_model_id: # Only add if model ID is provided
                                 edited_members.append(ModelConfig(
@@ -167,13 +313,28 @@ def render_team_manager():
                                     top_logprobs=edited_top_logprobs if edited_top_logprobs > 0 else None,
                                     response_format=json.loads(edited_response_format_str) if edited_response_format_str else None,
                                     stream=edited_stream if edited_stream else None,
-                                    user=edited_user if edited_user else None
+                                    user=edited_user if edited_user else None,
+                                    reasoning_effort=edited_reasoning_effort,
+                                    max_retries=edited_max_retries,
+                                    timeout=edited_timeout,
+                                    organization=edited_organization if edited_organization else None,
+                                    response_model=edited_response_model if edited_response_model else None,
+                                    tools=json.loads(edited_tools_json) if edited_tools_json else None,
+                                    tool_choice=json.loads(edited_tool_choice) if edited_tool_choice and edited_tool_choice.startswith('{') else (edited_tool_choice if edited_tool_choice else None),
+                                    system_fingerprint=edited_system_fingerprint if edited_system_fingerprint else None,
+                                    deployment_id=edited_deployment_id if edited_deployment_id else None,
+                                    encoding_format=edited_encoding_format if edited_encoding_format else None,
+                                    max_input_tokens=edited_max_input_tokens if edited_max_input_tokens is not None else None,
+                                    stop_token=edited_stop_token if edited_stop_token else None,
+                                    best_of=edited_best_of if edited_best_of is not None else None,
+                                    logprobs_offset=edited_logprobs_offset if edited_logprobs_offset is not None else None,
+                                    suffix=edited_suffix if edited_suffix else None
                                 ))
                         
                         update_submitted = st.form_submit_button("Update Team")
                         if update_submitted:
                             if edited_team_name and edited_members:
-                                updated_team = Team(name=edited_team_name, role=edited_team_role, members=edited_members, description=edited_team_description)
+                                updated_team = Team(name=edited_team_name, role=edited_team_role, members=edited_members, description=edited_team_description, content_analysis_system_prompt=edited_ca_system_prompt, content_analysis_user_prompt_template=edited_ca_user_prompt_template, decomposition_system_prompt=edited_decomp_system_prompt, decomposition_user_prompt_template=edited_decomp_user_prompt_template)
                                 if team_manager.update_team(team.name, updated_team):
                                     st.success(f"Team '{edited_team_name}' updated successfully!")
                                     st.session_state.team_manager = TeamManager() # Reload to refresh UI

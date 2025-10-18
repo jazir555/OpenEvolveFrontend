@@ -10,7 +10,7 @@ from typing import Any, Dict, List, Literal, Optional
 
 import streamlit as st
 
-from ui_components import render_manual_review_panel
+
 from workflow_structures import (
     CritiqueReport, DecompositionPlan, GauntletDefinition, GauntletRoundRule,
     ModelConfig, SolutionAttempt, SubProblem, Team, VerificationReport,
@@ -42,7 +42,22 @@ def _request_openai_compatible_chat(
     top_logprobs: Optional[int] = None,
     response_format: Optional[Dict[str, str]] = None,
     stream: Optional[bool] = None,
-    user: Optional[str] = None
+    user: Optional[str] = None,
+    reasoning_effort: Optional[str] = None,
+    max_retries: int = 5,
+    timeout: int = 120,
+    organization: Optional[str] = None,
+    response_model: Optional[str] = None,
+    tools: Optional[List[Dict[str, Any]]] = None,
+    tool_choice: Optional[Any] = None,
+    system_fingerprint: Optional[str] = None,
+    deployment_id: Optional[str] = None,
+    encoding_format: Optional[str] = None,
+    max_input_tokens: Optional[int] = None,
+    stop_token: Optional[str] = None,
+    best_of: Optional[int] = None,
+    logprobs_offset: Optional[int] = None,
+    suffix: Optional[str] = None
 ) -> Optional[str]:
     """
     Makes a request to an OpenAI-compatible API endpoint for chat completions.
@@ -65,13 +80,31 @@ def _request_openai_compatible_chat(
         response_format (Optional[Dict[str, str]]): An object specifying the format that the model must output.
         stream (Optional[bool]): If set, partial message deltas will be sent, like in ChatGPT.
         user (Optional[str]): A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
+        reasoning_effort (Optional[str]): The reasoning effort to apply for the model (e.g., 'low', 'medium', 'high').
+        max_retries (int): Maximum number of retries for API calls.
+        timeout (int): Timeout for API calls in seconds.
+        organization (Optional[str]): For OpenAI, the organization ID.
+        response_model (Optional[str]): For structured output, a Pydantic model or similar (string representation).
+        tools (Optional[List[Dict[str, Any]]]): For function calling, a list of tool definitions.
+        tool_choice (Optional[Any]): For function calling, control over tool usage (e.g., "auto", "none", {"type": "function", "function": {"name": "my_function"}}).
+        system_fingerprint (Optional[str]): For OpenAI, a unique identifier for the model's configuration.
+        deployment_id (Optional[str]): For Azure OpenAI, the deployment name.
+        encoding_format (Optional[str]): For some models, the encoding format for output (e.g., "base64").
+        max_input_tokens (Optional[int]): Maximum number of input tokens.
+        stop_token (Optional[str]): A single stop token (alternative to stop_sequences).
+        best_of (Optional[int]): Generates best_of completions on the server side and returns the "best".
+        logprobs_offset (Optional[int]): Offset for logprobs.
+        suffix (Optional[str]): A suffix that will be appended to the end of the generated text.
 
     Returns:
         Optional[str]: The content of the generated message, or None if an error occurred.
     """
     try:
         import openai
-        client = openai.OpenAI(api_key=api_key, base_url=base_url)
+        # Initialize OpenAI client with organization and base_url
+        client_params = {"api_key": api_key, "base_url": base_url}
+        if organization: client_params["organization"] = organization
+        client = openai.OpenAI(**client_params)
         
         completion_params = {
             "model": model,
@@ -82,12 +115,21 @@ def _request_openai_compatible_chat(
             "presence_penalty": presence_penalty,
             "max_tokens": max_tokens,
             "seed": seed,
-            "stop": stop_sequences,
+            "stop": stop_sequences if stop_sequences else stop_token,
             "logprobs": logprobs,
             "top_logprobs": top_logprobs,
             "response_format": response_format,
             "stream": stream,
-            "user": user
+            "user": user,
+            # New parameters
+            "n": 1, # Assuming 1 for now, can be made configurable if needed
+            "tools": tools,
+            "tool_choice": tool_choice,
+            "system_fingerprint": system_fingerprint,
+            "deployment_id": deployment_id,
+            "best_of": best_of,
+            "logit_bias": None, # Not directly exposed in ModelConfig yet, but can be added
+            "suffix": suffix
         }
         # Filter out None values to avoid sending them to the API if not specified
         completion_params = {k: v for k, v in completion_params.items() if v is not None}
@@ -116,17 +158,27 @@ def _request_openai_compatible_chat(
             "presence_penalty": presence_penalty,
             "max_tokens": max_tokens,
             "seed": seed,
-            "stop": stop_sequences,
+            "stop": stop_sequences if stop_sequences else stop_token,
             "logprobs": logprobs,
             "top_logprobs": top_logprobs,
             "response_format": response_format,
             "stream": stream,
-            "user": user
+            "user": user,
+            "reasoning_effort": reasoning_effort,
+            # New parameters for requests fallback
+            "n": 1, # Assuming 1 for now
+            "tools": tools,
+            "tool_choice": tool_choice,
+            "system_fingerprint": system_fingerprint,
+            "deployment_id": deployment_id,
+            "best_of": best_of,
+            "logit_bias": None, # Not directly exposed in ModelConfig yet
+            "suffix": suffix
         }
         # Filter out None values
         data = {k: v for k, v in data.items() if v is not None}
             
-        response = requests.post(f"{base_url}/chat/completions", headers=headers, json=data)
+        response = requests.post(f"{base_url}/chat/completions", headers=headers, json=data, timeout=timeout)
         response.raise_for_status()
         
         result = response.json()
@@ -170,8 +222,8 @@ def run_content_analysis(problem_statement: str, team: Team) -> Dict[str, Any]:
     analyses = []
     threads = []
 
-    system_prompt = "You are a highly skilled content analyzer. Your task is to analyze a problem statement and extract key information, context, and potential challenges. Provide your analysis in a structured JSON format."
-    user_prompt_template = f"""Analyze the following problem statement and extract:
+    system_prompt = team.content_analysis_system_prompt if team.content_analysis_system_prompt else "You are a highly skilled content analyzer. Your task is to analyze a problem statement and extract key information, context, and potential challenges. Provide your analysis in a structured JSON format."
+    user_prompt_template = team.content_analysis_user_prompt_template if team.content_analysis_user_prompt_template else f"""Analyze the following problem statement and extract:
     - `domain`: (e.g., "Software Development", "Physics", "Legal")
     - `keywords`: List of important terms.
     - `estimated_complexity`: (1-10)
@@ -181,16 +233,18 @@ def run_content_analysis(problem_statement: str, team: Team) -> Dict[str, Any]:
 
     Problem Statement:
     ---
-    {problem_statement}
+    {{problem_statement}}
     ---
     """
 
     def _analyze_with_model(model_config: ModelConfig):
+        # Replace the {{problem_statement}} placeholder in the user prompt template
+        formatted_user_prompt = user_prompt_template.replace("{{problem_statement}}", problem_statement)
         response = _request_openai_compatible_chat(
             api_key=model_config.api_key,
             base_url=model_config.api_base,
             model=model_config.model_id,
-            messages=_compose_messages(system_prompt, user_prompt_template),
+            messages=_compose_messages(system_prompt, formatted_user_prompt),
             temperature=model_config.temperature,
             top_p=model_config.top_p,
             frequency_penalty=model_config.frequency_penalty,
@@ -202,7 +256,22 @@ def run_content_analysis(problem_statement: str, team: Team) -> Dict[str, Any]:
             top_logprobs=model_config.top_logprobs,
             response_format=model_config.response_format,
             stream=model_config.stream,
-            user=model_config.user
+            user=model_config.user,
+            reasoning_effort=model_config.reasoning_effort,
+            max_retries=model_config.max_retries,
+            timeout=model_config.timeout,
+            organization=model_config.organization,
+            response_model=model_config.response_model,
+            tools=model_config.tools,
+            tool_choice=model_config.tool_choice,
+            system_fingerprint=model_config.system_fingerprint,
+            deployment_id=model_config.deployment_id,
+            encoding_format=model_config.encoding_format,
+            max_input_tokens=model_config.max_input_tokens,
+            stop_token=model_config.stop_token,
+            best_of=model_config.best_of,
+            logprobs_offset=model_config.logprobs_offset,
+            suffix=model_config.suffix
         )
         if response:
             try:
@@ -267,8 +336,8 @@ def run_ai_decomposition(problem_statement: str, analyzed_context: Dict[str, Any
     plans = []
     threads = []
 
-    system_prompt = "You are an expert problem decomposer. Your task is to break down a complex problem into smaller, manageable sub-problems. For each sub-problem, suggest an evolution mode, a complexity score (1-10), and a specific evaluation prompt. Provide the output as a JSON array of sub-problem objects."
-    user_prompt_template = f"""Decompose the following problem into a list of sub-problems. For each sub-problem, provide:
+    system_prompt = team.decomposition_system_prompt if team.decomposition_system_prompt else "You are an expert problem decomposer. Your task is to break down a complex problem into smaller, manageable sub-problems. For each sub-problem, suggest an evolution mode, a complexity score (1-10), and a specific evaluation prompt. Provide the output as a JSON array of sub-problem objects."
+    user_prompt_template = team.decomposition_user_prompt_template if team.decomposition_user_prompt_template else f"""Decompose the following problem into a list of sub-problems. For each sub-problem, provide:
     - `id`: A unique identifier (e.g., "sub_1.1")
     - `description`: A clear statement of the sub-problem.
     - `dependencies`: A list of `id`s of other sub-problems this one depends on.
@@ -278,23 +347,26 @@ def run_ai_decomposition(problem_statement: str, analyzed_context: Dict[str, Any
 
     Problem Statement:
     ---
-    {problem_statement}
+    {{problem_statement}}
     ---
 
     Analyzed Context:
     ---
-    {json.dumps(analyzed_context, indent=2)}
+    {{analyzed_context}}
     ---
 
     Provide the output as a JSON array of sub-problem objects.
     """
 
     def _decompose_with_model(model_config: ModelConfig):
+        # Replace placeholders in the user prompt template
+        formatted_user_prompt = user_prompt_template.replace("{{problem_statement}}", problem_statement)
+        formatted_user_prompt = formatted_user_prompt.replace("{{analyzed_context}}", json.dumps(analyzed_context, indent=2))
         response = _request_openai_compatible_chat(
             api_key=model_config.api_key,
             base_url=model_config.api_base,
             model=model_config.model_id,
-            messages=_compose_messages(system_prompt, user_prompt_template),
+            messages=_compose_messages(system_prompt, formatted_user_prompt),
             temperature=model_config.temperature,
             top_p=model_config.top_p,
             frequency_penalty=model_config.frequency_penalty,
@@ -306,7 +378,22 @@ def run_ai_decomposition(problem_statement: str, analyzed_context: Dict[str, Any
             top_logprobs=model_config.top_logprobs,
             response_format=model_config.response_format,
             stream=model_config.stream,
-            user=model_config.user
+            user=model_config.user,
+            reasoning_effort=model_config.reasoning_effort,
+            max_retries=model_config.max_retries,
+            timeout=model_config.timeout,
+            organization=model_config.organization,
+            response_model=model_config.response_model,
+            tools=model_config.tools,
+            tool_choice=model_config.tool_choice,
+            system_fingerprint=model_config.system_fingerprint,
+            deployment_id=model_config.deployment_id,
+            encoding_format=model_config.encoding_format,
+            max_input_tokens=model_config.max_input_tokens,
+            stop_token=model_config.stop_token,
+            best_of=model_config.best_of,
+            logprobs_offset=model_config.logprobs_offset,
+            suffix=model_config.suffix
         )
         if response:
             try:
@@ -445,7 +532,7 @@ def run_gauntlet(
                 api_key=member.api_key,
                 base_url=member.api_base,
                 model=member.model_id,
-                messages=messages,
+                messages=_compose_messages(system_prompt, user_prompt_template.replace("{content}", solution_content)),
                 temperature=member.temperature,
                 top_p=member.top_p,
                 frequency_penalty=member.frequency_penalty,
@@ -457,7 +544,22 @@ def run_gauntlet(
                 top_logprobs=member.top_logprobs,
                 response_format=member.response_format,
                 stream=member.stream,
-                user=member.user
+                user=member.user,
+                reasoning_effort=member.reasoning_effort,
+                max_retries=member.max_retries,
+                timeout=member.timeout,
+                organization=member.organization,
+                response_model=member.response_model,
+                tools=member.tools,
+                tool_choice=member.tool_choice,
+                system_fingerprint=member.system_fingerprint,
+                deployment_id=member.deployment_id,
+                encoding_format=member.encoding_format,
+                max_input_tokens=member.max_input_tokens,
+                stop_token=member.stop_token,
+                best_of=member.best_of,
+                logprobs_offset=member.logprobs_offset,
+                suffix=member.suffix
             )
 
             judge_score = 0.0
@@ -717,34 +819,31 @@ def run_sovereign_workflow(
     # This stage is a human-in-the-loop step where the user reviews and potentially modifies
     # the AI-generated decomposition plan. The workflow pauses here awaiting user input.
     if workflow_state.current_stage == "Manual Review & Override":
-        st.info("Awaiting user review and approval of the decomposition plan.")
-        # Dynamically render the manual review panel and pause execution.
-        # render_manual_review_panel returns the approved plan and a boolean indicating approval status.
-        approved_plan, approved = render_manual_review_panel(workflow_state.decomposition_plan)
+        st.info("Awaiting user review and approval of the decomposition plan in the UI.")
+        workflow_state.status = "awaiting_user_input"
+        
+        # Dynamically render the manual review panel and get user's decision
+        from ui_components import render_manual_review_panel # Import here to avoid circular dependency
+        approval_status, approved_plan = render_manual_review_panel(workflow_state.decomposition_plan)
 
-        if approved:
-            # If the user approves, update the decomposition plan and transition to the next stage.
+        if approval_status == "approved":
             workflow_state.decomposition_plan = approved_plan
+            st.success(f"[Manual Review & Override] Decomposition plan approved. Resuming workflow.")
+            workflow_state.current_stage = "Sub-Problem Solving Loop" # Transition to the next stage.
             workflow_state.status = "running"
-            workflow_state.current_stage = "Sub-Problem Solving Loop"
-            st.rerun() # Rerun to immediately proceed to the next stage.
-        elif approved is False: # Explicitly check for False to differentiate from None (not yet acted upon)
-            # If the user explicitly rejects, mark the workflow as failed.
+            workflow_state.progress = 0.5 # Update overall progress.
+            st.rerun() # Rerun to immediately proceed to the next stage
+        elif approval_status == "rejected":
+            st.error("[Manual Review & Override] Decomposition plan rejected by user. Workflow terminated.")
             workflow_state.status = "failed"
-            st.error("Decomposition plan rejected by user. Workflow terminated.")
-            # No return here, as openevolve_orchestrator.py handles the termination and rerun.
+            return
         else:
-            # If the user has not yet approved or rejected (i.e., `approved` is None),
-            # keep the status as `awaiting_user_input`.
-            # This allows Streamlit to re-render the UI and wait for user interaction.
-            workflow_state.status = "awaiting_user_input"
-            # No return here, as openevolve_orchestrator.py handles the rerun.
+            return # Still awaiting user input, so exit and let Streamlit re-render.
 
-    # If the workflow resumes after manual review, the plan should be approved and updated.
-    # This block handles the transition if Streamlit reruns after user approval.
-    if workflow_state.current_stage == "Sub-Problem Solving Loop" and workflow_state.decomposition_plan.sub_problems and workflow_state.status != "running":
-        st.success(f"[Manual Review & Override] Decomposition plan approved. Resuming workflow.")
-        workflow_state.status = "running" # Set status back to running to continue execution.
+    # The block below is no longer needed as the transition is handled directly above.
+    # if workflow_state.current_stage == "Sub-Problem Solving Loop" and workflow_state.decomposition_plan and workflow_state.decomposition_plan.sub_problems and workflow_state.status != "running":
+    #     st.success(f"[Manual Review & Override] Decomposition plan approved. Resuming workflow.")
+    #     workflow_state.status = "running" # Set status back to running to continue execution.
 
     # --- Stage 3: Sub-Problem Solving Loop ---
     # Iteratively generates, critiques, and verifies solutions for each sub-problem,
@@ -797,6 +896,7 @@ def run_sovereign_workflow(
             return
 
         # Process sub-problems in topological order (i.e., only after all their dependencies are met).
+        processed_this_iteration = set() # Initialize set to track sub-problems processed in this iteration
         while queue:
             current_sp_id = queue.pop(0) # Get the next solvable sub-problem from the queue.
             current_sub_problem = sub_problems_by_id.get(current_sp_id)
@@ -1214,101 +1314,119 @@ def generate_solution_for_sub_problem(sub_problem: SubProblem, team: Team, conte
             # Get a base configuration from the workflow_state's parameters
             base_evolution_args = create_comprehensive_openevolve_config(
                 content=sub_problem.description,
-                content_type=workflow_state.decomposition_plan.analyzed_context.get("content_type", "text_general"), # Use content_type from analyzed_context or default
+                content_type=workflow_state.decomposition_plan.analyzed_context.get("content_type", "text_general"),
                 evolution_mode=sub_problem.ai_suggested_evolution_mode,
-                model_configs=[{"name": model_config.model_id, "weight": 1.0}],
+                model_configs=[{
+                    "name": model_config.model_id,
+                    "weight": 1.0,
+                    "temperature": model_config.temperature,
+                    "top_p": model_config.top_p,
+                    "max_tokens": model_config.max_tokens,
+                    "frequency_penalty": model_config.frequency_penalty,
+                    "presence_penalty": model_config.presence_penalty,
+                    "seed": model_config.seed,
+                    "n": model_config.n,
+                    "logit_bias": model_config.logit_bias,
+                    "stop_sequences": model_config.stop_sequences,
+                    "logprobs": model_config.logprobs,
+                    "top_logprobs": model_config.top_logprobs,
+                    "response_format": model_config.response_format,
+                    "stream": model_config.stream,
+                    "user": model_config.user
+                }],
                 api_key=model_config.api_key,
                 api_base=model_config.api_base,
                 temperature=model_config.temperature,
-                top_p=model_config.top_p, # Use model_config's top_p
+                top_p=model_config.top_p,
                 max_tokens=model_config.max_tokens,
                 frequency_penalty=model_config.frequency_penalty,
                 presence_penalty=model_config.presence_penalty,
                 seed=model_config.seed,
-                stop_sequences=model_config.stop_sequences, # Pass new ModelConfig parameter
-                logprobs=model_config.logprobs, # Pass new ModelConfig parameter
-                top_logprobs=model_config.top_logprobs, # Pass new ModelConfig parameter
-                response_format=model_config.response_format, # Pass new ModelConfig parameter
-                stream=model_config.stream, # Pass new ModelConfig parameter
-                user=model_config.user, # Pass new ModelConfig parameter
+                # Pass new ModelConfig parameter
+                stop_sequences=getattr(model_config, 'stop_sequences', None),
+                logprobs=getattr(model_config, 'logprobs', None),
+                top_logprobs=getattr(model_config, 'top_logprobs', None),
+                response_format=getattr(model_config, 'response_format', None),
+                stream=getattr(model_config, 'stream', None),
+                user=getattr(model_config, 'user', None),
                 system_message=system_message,
-                evaluator_system_message=sub_problem.ai_suggested_evaluation_prompt, # Use sub-problem's evaluation prompt as evaluator system message
+                evaluator_system_message=sub_problem.ai_suggested_evaluation_prompt,
                 
                 # Parameters from workflow_state (or its decomposition_plan)
-                max_iterations=workflow_state.decomposition_plan.max_refinement_loops * 2, # Example: scale with refinement loops
-                population_size=100, # Default, can be overridden by evolution_params
-                num_islands=5, # Default
-                migration_interval=50, # Default
-                migration_rate=0.1, # Default
-                archive_size=100, # Default
-                elite_ratio=0.1, # Default
-                exploration_ratio=0.2, # Default
-                exploitation_ratio=0.7, # Default
-                checkpoint_interval=100, # Default
-                feature_dimensions=workflow_state.decomposition_plan.analyzed_context.get("feature_dimensions", ["complexity", "diversity"]),
-                feature_bins=10, # Default
-                diversity_metric="edit_distance", # Default
+                max_iterations=workflow_state.max_iterations,
+                population_size=workflow_state.population_size,
+                num_islands=workflow_state.num_islands,
+                migration_interval=workflow_state.migration_interval,
+                migration_rate=workflow_state.migration_rate,
+                archive_size=workflow_state.archive_size,
+                elite_ratio=workflow_state.elite_ratio,
+                exploration_ratio=workflow_state.exploration_ratio,
+                exploitation_ratio=workflow_state.exploitation_ratio,
+                checkpoint_interval=workflow_state.checkpoint_interval,
+                feature_dimensions=workflow_state.feature_dimensions,
+                feature_bins=workflow_state.feature_bins,
+                diversity_metric=workflow_state.diversity_metric,
                 
-                enable_artifacts=True, # Default
-                cascade_evaluation=True, # Default
-                cascade_thresholds=[0.5, 0.75, 0.9], # Default
-                use_llm_feedback=True, # Default
-                llm_feedback_weight=0.1, # Default
-                parallel_evaluations=4, # Default
-                distributed=False, # Default
-                template_dir=None, # Default
-                num_top_programs=3, # Default
-                num_diverse_programs=2, # Default
-                use_template_stochasticity=True, # Default
-                template_variations=None, # Default
-                use_meta_prompting=False, # Default
-                meta_prompt_weight=0.1, # Default
-                include_artifacts=True, # Default
-                max_artifact_bytes=20 * 1024, # Default
-                artifact_security_filter=True, # Default
-                early_stopping_patience=None, # Default
-                convergence_threshold=0.001, # Default
-                early_stopping_metric="combined_score", # Default
-                memory_limit_mb=2048, # Default
-                cpu_limit=4.0, # Default
-                random_seed=42, # Default
-                db_path=None, # Default
-                in_memory=True, # Default
+                enable_artifacts=workflow_state.enable_artifacts,
+                cascade_evaluation=workflow_state.cascade_evaluation,
+                cascade_thresholds=workflow_state.cascade_thresholds,
+                use_llm_feedback=workflow_state.use_llm_feedback,
+                llm_feedback_weight=workflow_state.llm_feedback_weight,
+                parallel_evaluations=workflow_state.parallel_evaluations,
+                distributed=workflow_state.distributed,
+                template_dir=workflow_state.template_dir,
+                num_top_programs=workflow_state.num_top_programs,
+                num_diverse_programs=workflow_state.num_diverse_programs,
+                use_template_stochasticity=workflow_state.use_template_stochasticity,
+                template_variations=workflow_state.template_variations,
+                use_meta_prompting=workflow_state.use_meta_prompting,
+                meta_prompt_weight=workflow_state.meta_prompt_weight,
+                include_artifacts=workflow_state.include_artifacts,
+                max_artifact_bytes=workflow_state.max_artifact_bytes,
+                artifact_security_filter=workflow_state.artifact_security_filter,
+                early_stopping_patience=workflow_state.early_stopping_patience,
+                convergence_threshold=workflow_state.convergence_threshold,
+                early_stopping_metric=workflow_state.early_stopping_metric,
+                memory_limit_mb=workflow_state.memory_limit_mb,
+                cpu_limit=workflow_state.cpu_limit,
+                random_seed=workflow_state.random_seed,
+                db_path=workflow_state.db_path,
+                in_memory=workflow_state.in_memory,
                 
-                diff_based_evolution=True, # Default
-                max_code_length=10000, # Default
-                evolution_trace_enabled=False, # Default
-                evolution_trace_format="jsonl", # Default
-                evolution_trace_include_code=False, # Default
-                evolution_trace_include_prompts=True, # Default
-                evolution_trace_output_path=None, # Default
-                evolution_trace_buffer_size=10, # Default
-                evolution_trace_compress=False, # Default
-                log_level="INFO", # Default
-                log_dir=None, # Default
-                api_timeout=60, # Default
-                api_retries=3, # Default
-                api_retry_delay=5, # Default
-                artifact_size_threshold=32 * 1024, # Default
-                cleanup_old_artifacts=True, # Default
-                artifact_retention_days=30, # Default
-                diversity_reference_size=20, # Default
-                max_retries_eval=3, # Default
-                evaluator_timeout=300, # Default
-                evaluator_models=None, # Default
+                diff_based_evolution=workflow_state.diff_based_evolution,
+                max_code_length=workflow_state.max_code_length,
+                evolution_trace_enabled=workflow_state.evolution_trace_enabled,
+                evolution_trace_format=workflow_state.evolution_trace_format,
+                evolution_trace_include_code=workflow_state.evolution_trace_include_code,
+                evolution_trace_include_prompts=workflow_state.evolution_trace_include_prompts,
+                evolution_trace_output_path=workflow_state.evolution_trace_output_path,
+                evolution_trace_buffer_size=workflow_state.evolution_trace_buffer_size,
+                evolution_trace_compress=workflow_state.evolution_trace_compress,
+                log_level=workflow_state.log_level,
+                log_dir=workflow_state.log_dir,
+                api_timeout=workflow_state.api_timeout,
+                api_retries=workflow_state.api_retries,
+                api_retry_delay=workflow_state.api_retry_delay,
+                artifact_size_threshold=workflow_state.artifact_size_threshold,
+                cleanup_old_artifacts=workflow_state.cleanup_old_artifacts,
+                artifact_retention_days=workflow_state.artifact_retention_days,
+                diversity_reference_size=workflow_state.diversity_reference_size,
+                max_retries_eval=workflow_state.max_retries_eval,
+                evaluator_timeout=workflow_state.evaluator_timeout,
+                evaluator_models=workflow_state.evaluator_models,
                 
-                double_selection=True, # Default
-                adaptive_feature_dimensions=True, # Default
-                test_time_compute=False, # Default
-                optillm_integration=False, # Default
-                plugin_system=False, # Default
-                hardware_optimization=False, # Default
-                multi_strategy_sampling=True, # Default
-                ring_topology=True, # Default
-                controlled_gene_flow=True, # Default
-                auto_diff=True, # Default
-                symbolic_execution=False, # Default
-                coevolutionary_approach=False, # Default
+                double_selection=workflow_state.double_selection,
+                adaptive_feature_dimensions=workflow_state.adaptive_feature_dimensions,
+                test_time_compute=workflow_state.test_time_compute,
+                optillm_integration=workflow_state.optillm_integration,
+                plugin_system=workflow_state.plugin_system,
+                hardware_optimization=workflow_state.hardware_optimization,
+                multi_strategy_sampling=workflow_state.multi_strategy_sampling,
+                ring_topology=workflow_state.ring_topology,
+                controlled_gene_flow=workflow_state.controlled_gene_flow,
+                auto_diff=workflow_state.auto_diff,
+                symbolic_execution=workflow_state.symbolic_execution,
+                coevolutionary_approach=workflow_state.coevolutionary_approach,
             )
     
             # Override base configuration with sub_problem.evolution_params
@@ -1358,16 +1476,31 @@ def generate_solution_for_sub_problem(sub_problem: SubProblem, team: Team, conte
                 messages=_compose_messages(system_message, user_prompt),
                 temperature=model_config.temperature,
                 top_p=model_config.top_p,
+                max_tokens=model_config.max_tokens,
                 frequency_penalty=model_config.frequency_penalty,
                 presence_penalty=model_config.presence_penalty,
-                max_tokens=model_config.max_tokens,
                 seed=model_config.seed,
                 stop_sequences=model_config.stop_sequences,
                 logprobs=model_config.logprobs,
                 top_logprobs=model_config.top_logprobs,
                 response_format=model_config.response_format,
                 stream=model_config.stream,
-                user=model_config.user
+                user=model_config.user,
+                reasoning_effort=model_config.reasoning_effort,
+                max_retries=model_config.max_retries,
+                timeout=model_config.timeout,
+                organization=model_config.organization,
+                response_model=model_config.response_model,
+                tools=model_config.tools,
+                tool_choice=model_config.tool_choice,
+                system_fingerprint=model_config.system_fingerprint,
+                deployment_id=model_config.deployment_id,
+                encoding_format=model_config.encoding_format,
+                max_input_tokens=model_config.max_input_tokens,
+                stop_token=model_config.stop_token,
+                best_of=model_config.best_of,
+                logprobs_offset=model_config.logprobs_offset,
+                suffix=model_config.suffix
             )
             
             if response:
@@ -1410,16 +1543,31 @@ def generate_solution_for_sub_problem(sub_problem: SubProblem, team: Team, conte
                     messages=_compose_messages(candidate_system_message, candidate_user_prompt),
                     temperature=member.temperature + (i * 0.1), # Slightly vary temperature for diversity in candidates.
                     top_p=member.top_p,
+                    max_tokens=member.max_tokens,
                     frequency_penalty=member.frequency_penalty,
                     presence_penalty=member.presence_penalty,
-                    max_tokens=member.max_tokens,
                     seed=member.seed,
                     stop_sequences=member.stop_sequences,
                     logprobs=member.logprobs,
                     top_logprobs=member.top_logprobs,
                     response_format=member.response_format,
                     stream=member.stream,
-                    user=member.user
+                    user=member.user,
+                    reasoning_effort=member.reasoning_effort,
+                    max_retries=member.max_retries,
+                    timeout=member.timeout,
+                    organization=member.organization,
+                    response_model=member.response_model,
+                    tools=member.tools,
+                    tool_choice=member.tool_choice,
+                    system_fingerprint=member.system_fingerprint,
+                    deployment_id=member.deployment_id,
+                    encoding_format=member.encoding_format,
+                    max_input_tokens=member.max_input_tokens,
+                    stop_token=member.stop_token,
+                    best_of=member.best_of,
+                    logprobs_offset=member.logprobs_offset,
+                    suffix=member.suffix
                 )
                 if candidate_response:
                     candidates.append({"model_id": member.model_id, "content": candidate_response})
@@ -1462,16 +1610,31 @@ def generate_solution_for_sub_problem(sub_problem: SubProblem, team: Team, conte
                 messages=_compose_messages(review_system_message, review_user_prompt),
                 temperature=0.5, # Lower temperature for more deterministic synthesis.
                 top_p=model_config.top_p,
+                max_tokens=model_config.max_tokens,
                 frequency_penalty=model_config.frequency_penalty,
                 presence_penalty=model_config.presence_penalty,
-                max_tokens=model_config.max_tokens,
                 seed=model_config.seed,
                 stop_sequences=model_config.stop_sequences,
                 logprobs=model_config.logprobs,
                 top_logprobs=model_config.top_logprobs,
                 response_format=model_config.response_format,
                 stream=model_config.stream,
-                user=model_config.user
+                user=model_config.user,
+                reasoning_effort=model_config.reasoning_effort,
+                max_retries=model_config.max_retries,
+                timeout=model_config.timeout,
+                organization=model_config.organization,
+                response_model=model_config.response_model,
+                tools=model_config.tools,
+                tool_choice=model_config.tool_choice,
+                system_fingerprint=model_config.system_fingerprint,
+                deployment_id=model_config.deployment_id,
+                encoding_format=model_config.encoding_format,
+                max_input_tokens=model_config.max_input_tokens,
+                stop_token=model_config.stop_token,
+                best_of=model_config.best_of,
+                logprobs_offset=model_config.logprobs_offset,
+                suffix=model_config.suffix
             )
             
             if synthesized_response:

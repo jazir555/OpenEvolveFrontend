@@ -16,6 +16,7 @@ import logging # Added this line
 from ui_components import render_team_manager, render_gauntlet_designer # NEW IMPORT
 from team_manager import TeamManager # NEW IMPORT
 from gauntlet_manager import GauntletManager # NEW IMPORT
+from template_manager import TemplateManager, WorkflowTemplate # NEW IMPORT
 from workflow_engine import run_sovereign_workflow, WorkflowState # NEW IMPORT
 from workflow_history_manager import WorkflowHistoryManager # NEW IMPORT
 
@@ -1259,7 +1260,98 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
         st.markdown("#### Stage 5: Final Verification & Self-Healing Loop")
         final_red_gauntlet_name = st.selectbox("Final Red Team Gauntlet", red_gauntlets, key="sg_final_red_gauntlet", help="Red Team Gauntlet to perform a final adversarial attack on the assembled solution.")
         final_gold_gauntlet_name = st.selectbox("Final Gold Team Gauntlet", gold_gauntlets, key="sg_final_gold_gauntlet", help="Gold Team Gauntlet to perform a holistic evaluation of the final assembled solution.")
-        max_refinement_loops = st.number_input("Max Refinement Loops", min_value=1, value=3, key="sg_max_refinement_loops", help="Maximum number of times the self-healing loop can re-attempt to fix the final solution.")
+                diversity_metric = st.selectbox("Diversity Metric per Sub-Problem", options=["edit_distance", "cosine_similarity", "jaccard_index"], index=0, key="sg_diversity_metric")
+
+        with st.expander("⚙️ Advanced Evaluation Parameters for Sub-Problems", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                enable_artifacts = st.checkbox("Enable Artifact Feedback", value=True, key="sg_enable_artifacts")
+                cascade_evaluation = st.checkbox("Enable Cascade Evaluation", value=True, key="sg_cascade_evaluation")
+                cascade_thresholds_str = st.text_input("Cascade Thresholds (comma-separated floats)", value="0.5, 0.75, 0.9", key="sg_cascade_thresholds")
+                use_llm_feedback = st.checkbox("Use LLM Feedback", value=False, key="sg_use_llm_feedback")
+                llm_feedback_weight = st.slider("LLM Feedback Weight", min_value=0.0, max_value=1.0, value=0.1, step=0.01, key="sg_llm_feedback_weight")
+                parallel_evaluations = st.number_input("Parallel Evaluations", min_value=1, value=4, key="sg_parallel_evaluations")
+                distributed = st.checkbox("Distributed Evaluation", value=False, key="sg_distributed")
+                num_top_programs = st.number_input("Num Top Programs for Prompt", min_value=1, value=3, key="sg_num_top_programs")
+                num_diverse_programs = st.number_input("Num Diverse Programs for Prompt", min_value=1, value=2, key="sg_num_diverse_programs")
+                use_template_stochasticity = st.checkbox("Use Template Stochasticity", value=True, key="sg_use_template_stochasticity")
+                include_artifacts = st.checkbox("Include Artifacts in Prompts", value=True, key="sg_include_artifacts")
+                max_artifact_bytes = st.number_input("Max Artifact Bytes", min_value=1024, value=20 * 1024, key="sg_max_artifact_bytes")
+                artifact_security_filter = st.checkbox("Artifact Security Filter", value=True, key="sg_artifact_security_filter")
+                early_stopping_patience = st.number_input("Early Stopping Patience (0 for none)", min_value=0, value=0, key="sg_early_stopping_patience")
+                convergence_threshold = st.number_input("Convergence Threshold", min_value=0.0, value=0.001, format="%.3f", key="sg_convergence_threshold")
+                early_stopping_metric = st.selectbox("Early Stopping Metric", options=["combined_score", "fitness", "diversity"], key="sg_early_stopping_metric")
+            with col2:
+                memory_limit_mb = st.number_input("Memory Limit (MB)", min_value=100, value=2048, key="sg_memory_limit_mb")
+                cpu_limit = st.number_input("CPU Limit", min_value=0.1, value=4.0, step=0.1, key="sg_cpu_limit")
+                random_seed = st.number_input("Random Seed", value=42, key="sg_random_seed")
+                db_path = st.text_input("Database Path (leave empty for default)", value="", key="sg_db_path")
+                in_memory = st.checkbox("In-Memory Database", value=True, key="sg_in_memory")
+                template_dir = st.text_input("Template Directory (leave empty for default)", value="", key="sg_template_dir")
+                template_variations_str = st.text_area("Template Variations (JSON string)", value="{}", key="sg_template_variations")
+                use_meta_prompting = st.checkbox("Use Meta-Prompting", value=False, key="sg_use_meta_prompting")
+                meta_prompt_weight = st.slider("Meta-Prompt Weight", min_value=0.0, max_value=1.0, value=0.1, step=0.01, key="sg_meta_prompt_weight")
+                artifact_size_threshold = st.number_input("Artifact Size Threshold", min_value=1024, value=32 * 1024, key="sg_artifact_size_threshold")
+                cleanup_old_artifacts = st.checkbox("Cleanup Old Artifacts", value=True, key="sg_cleanup_old_artifacts")
+                artifact_retention_days = st.number_input("Artifact Retention Days", min_value=1, value=30, key="sg_artifact_retention_days")
+                diversity_reference_size = st.number_input("Diversity Reference Size", min_value=1, value=20, key="sg_diversity_reference_size")
+                max_retries_eval = st.number_input("Max Evaluation Retries", min_value=1, value=3, key="sg_max_retries_eval")
+                evaluator_timeout = st.number_input("Evaluator Timeout (s)", min_value=10, value=300, key="sg_evaluator_timeout")
+
+        with st.expander("⚙️ Advanced OpenEvolve Parameters for Sub-Problems", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                diff_based_evolution = st.checkbox("Diff-Based Evolution", value=True, key="sg_diff_based_evolution")
+                max_code_length = st.number_input("Max Code Length", min_value=100, value=10000, key="sg_max_code_length")
+                evolution_trace_enabled = st.checkbox("Enable Evolution Tracing", value=False, key="sg_evolution_trace_enabled")
+                evolution_trace_format = st.selectbox("Evolution Trace Format", options=["jsonl", "csv", "parquet"], key="sg_evolution_trace_format")
+                evolution_trace_include_code = st.checkbox("Include Code in Traces", value=False, key="sg_evolution_trace_include_code")
+                evolution_trace_include_prompts = st.checkbox("Include Prompts in Traces", value=True, key="sg_evolution_trace_include_prompts")
+            with col2:
+                evolution_trace_output_path = st.text_input("Evolution Trace Output Path (leave empty for default)", value="", key="sg_evolution_trace_output_path")
+                evolution_trace_buffer_size = st.number_input("Evolution Trace Buffer Size", min_value=1, value=10, key="sg_evolution_trace_buffer_size")
+                evolution_trace_compress = st.checkbox("Compress Traces", value=False, key="sg_evolution_trace_compress")
+                log_level = st.selectbox("Log Level", options=["DEBUG", "INFO", "WARNING", "ERROR"], index=1, key="sg_log_level")
+                log_dir = st.text_input("Log Directory (leave empty for default)", value="", key="sg_log_dir")
+                api_timeout = st.number_input("API Timeout (s)", min_value=10, value=60, key="sg_api_timeout")
+                api_retries = st.number_input("API Retries", min_value=0, value=3, key="sg_api_retries")
+                api_retry_delay = st.number_input("API Retry Delay (s)", min_value=1, value=5, key="sg_api_retry_delay")
+
+        with st.expander("🔬 Research-Grade Features for Sub-Problems", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                double_selection = st.checkbox("Double Selection", value=True, key="sg_double_selection")
+                adaptive_feature_dimensions = st.checkbox("Adaptive Feature Dimensions", value=True, key="sg_adaptive_feature_dimensions")
+                test_time_compute = st.checkbox("Test-Time Compute", value=False, key="sg_test_time_compute")
+                optillm_integration = st.checkbox("OptiLLM Integration", value=False, key="sg_optillm_integration")
+                plugin_system = st.checkbox("Plugin System", value=False, key="sg_plugin_system")
+                hardware_optimization = st.checkbox("Hardware Optimization", value=False, key="sg_hardware_optimization")
+            with col2:
+                multi_strategy_sampling = st.checkbox("Multi-Strategy Sampling", value=True, key="sg_multi_strategy_sampling")
+                ring_topology = st.checkbox("Ring Topology", value=True, key="sg_ring_topology")
+                controlled_gene_flow = st.checkbox("Controlled Gene Flow", value=True, key="sg_controlled_gene_flow")
+                auto_diff = st.checkbox("Auto Diff", value=True, key="sg_auto_diff")
+                symbolic_execution = st.checkbox("Symbolic Execution", value=False, key="sg_symbolic_execution")
+                coevolutionary_approach = st.checkbox("Coevolutionary Approach", value=False, key="sg_coevolutionary_approach")
+
+        with st.expander("⚙️ Core Evolution Parameters for Sub-Problems", expanded=False):
+            st.markdown("These parameters apply to the OpenEvolve runs for individual sub-problems.")
+            col1, col2 = st.columns(2)
+            with col1:
+                max_iterations = st.number_input("Max Iterations per Sub-Problem", min_value=1, value=100, key="sg_max_iterations")
+                population_size = st.number_input("Population Size per Sub-Problem", min_value=10, value=100, key="sg_population_size")
+                num_islands = st.number_input("Number of Islands per Sub-Problem", min_value=1, value=5, key="sg_num_islands")
+                migration_interval = st.number_input("Migration Interval per Sub-Problem", min_value=1, value=50, key="sg_migration_interval")
+                migration_rate = st.slider("Migration Rate per Sub-Problem", min_value=0.0, max_value=1.0, value=0.1, step=0.01, key="sg_migration_rate")
+                archive_size = st.number_input("Archive Size per Sub-Problem", min_value=10, value=100, key="sg_archive_size")
+            with col2:
+                elite_ratio = st.slider("Elite Ratio per Sub-Problem", min_value=0.0, max_value=1.0, value=0.1, step=0.01, key="sg_elite_ratio")
+                exploration_ratio = st.slider("Exploration Ratio per Sub-Problem", min_value=0.0, max_value=1.0, value=0.2, step=0.01, key="sg_exploration_ratio")
+                exploitation_ratio = st.slider("Exploitation Ratio per Sub-Problem", min_value=0.0, max_value=1.0, value=0.7, step=0.01, key="sg_exploitation_ratio")
+                checkpoint_interval = st.number_input("Checkpoint Interval per Sub-Problem", min_value=1, value=100, key="sg_checkpoint_interval")
+                feature_dimensions = st.multiselect("Feature Dimensions per Sub-Problem", options=["complexity", "diversity", "performance", "readability", "efficiency", "accuracy", "robustness", "maintainability", "scalability", "resource_usage"], default=["complexity", "diversity"], key="sg_feature_dimensions")
+                feature_bins = st.number_input("Feature Bins per Sub-Problem", min_value=1, value=10, key="sg_feature_bins")
+                diversity_metric = st.selectbox("Diversity Metric per Sub-Problem", options=["edit_distance", "cosine_similarity", "jaccard_index"], index=0, key="sg_diversity_metric")
 
         # Store selected teams and gauntlets in session state for retrieval by orchestrator.
         st.session_state.sg_config = {
@@ -1274,6 +1366,84 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
             "final_red_gauntlet_name": final_red_gauntlet_name,
             "final_gold_gauntlet_name": final_gold_gauntlet_name,
             "max_refinement_loops": max_refinement_loops,
+
+            # Core Evolution Parameters
+            "max_iterations": max_iterations,
+            "population_size": population_size,
+            "num_islands": num_islands,
+            "migration_interval": migration_interval,
+            "migration_rate": migration_rate,
+            "archive_size": archive_size,
+            "elite_ratio": elite_ratio,
+            "exploration_ratio": exploration_ratio,
+            "exploitation_ratio": exploitation_ratio,
+            "checkpoint_interval": checkpoint_interval,
+            "feature_dimensions": feature_dimensions,
+            "feature_bins": feature_bins,
+            "diversity_metric": diversity_metric,
+
+            # Advanced Evaluation Parameters
+            "enable_artifacts": enable_artifacts,
+            "cascade_evaluation": cascade_evaluation,
+            "cascade_thresholds": [float(x.strip()) for x in cascade_thresholds_str.split(',')] if cascade_thresholds_str else [],
+            "use_llm_feedback": use_llm_feedback,
+            "llm_feedback_weight": llm_feedback_weight,
+            "parallel_evaluations": parallel_evaluations,
+            "distributed": distributed,
+            "template_dir": template_dir if template_dir else None,
+            "num_top_programs": num_top_programs,
+            "num_diverse_programs": num_diverse_programs,
+            "use_template_stochasticity": use_template_stochasticity,
+            "template_variations": json.loads(template_variations_str) if template_variations_str else {},
+            "use_meta_prompting": use_meta_prompting,
+            "meta_prompt_weight": meta_prompt_weight,
+            "include_artifacts": include_artifacts,
+            "max_artifact_bytes": max_artifact_bytes,
+            "artifact_security_filter": artifact_security_filter,
+            "early_stopping_patience": early_stopping_patience if early_stopping_patience > 0 else None,
+            "convergence_threshold": convergence_threshold,
+            "early_stopping_metric": early_stopping_metric,
+            "memory_limit_mb": memory_limit_mb,
+            "cpu_limit": cpu_limit,
+            "random_seed": random_seed,
+            "db_path": db_path if db_path else None,
+            "in_memory": in_memory,
+            "artifact_size_threshold": artifact_size_threshold,
+            "cleanup_old_artifacts": cleanup_old_artifacts,
+            "artifact_retention_days": artifact_retention_days,
+            "diversity_reference_size": diversity_reference_size,
+            "max_retries_eval": max_retries_eval,
+            "evaluator_timeout": evaluator_timeout,
+
+            # Advanced OpenEvolve Parameters
+            "diff_based_evolution": diff_based_evolution,
+            "max_code_length": max_code_length,
+            "evolution_trace_enabled": evolution_trace_enabled,
+            "evolution_trace_format": evolution_trace_format,
+            "evolution_trace_include_code": evolution_trace_include_code,
+            "evolution_trace_include_prompts": evolution_trace_include_prompts,
+            "evolution_trace_output_path": evolution_trace_output_path if evolution_trace_output_path else None,
+            "evolution_trace_buffer_size": evolution_trace_buffer_size,
+            "evolution_trace_compress": evolution_trace_compress,
+            "log_level": log_level,
+            "log_dir": log_dir if log_dir else None,
+            "api_timeout": api_timeout,
+            "api_retries": api_retries,
+            "api_retry_delay": api_retry_delay,
+
+            # Research-Grade Features
+            "double_selection": double_selection,
+            "adaptive_feature_dimensions": adaptive_feature_dimensions,
+            "test_time_compute": test_time_compute,
+            "optillm_integration": optillm_integration,
+            "plugin_system": plugin_system,
+            "hardware_optimization": hardware_optimization,
+            "multi_strategy_sampling": multi_strategy_sampling,
+            "ring_topology": ring_topology,
+            "controlled_gene_flow": controlled_gene_flow,
+            "auto_diff": auto_diff,
+            "symbolic_execution": symbolic_execution,
+            "coevolutionary_approach": coevolutionary_approach,
         }
     # --- End Sovereign-Grade Decomposition Workflow Configuration ---
     
@@ -1345,7 +1515,82 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                     sub_problem_gold_gauntlet=sub_problem_gold_gauntlet,
                     final_red_gauntlet=final_red_gauntlet,
                     final_gold_gauntlet=final_gold_gauntlet,
-                    max_refinement_loops=sg_config["max_refinement_loops"]
+                    max_refinement_loops=sg_config["max_refinement_loops"],
+
+                    # Populate OpenEvolve parameters from sg_config
+                    max_iterations=sg_config["max_iterations"],
+                    population_size=sg_config["population_size"],
+                    num_islands=sg_config["num_islands"],
+                    migration_interval=sg_config["migration_interval"],
+                    migration_rate=sg_config["migration_rate"],
+                    archive_size=sg_config["archive_size"],
+                    elite_ratio=sg_config["elite_ratio"],
+                    exploration_ratio=sg_config["exploration_ratio"],
+                    exploitation_ratio=sg_config["exploitation_ratio"],
+                    checkpoint_interval=sg_config["checkpoint_interval"],
+                    feature_dimensions=sg_config["feature_dimensions"],
+                    feature_bins=sg_config["feature_bins"],
+                    diversity_metric=sg_config["diversity_metric"],
+
+                    enable_artifacts=sg_config["enable_artifacts"],
+                    cascade_evaluation=sg_config["cascade_evaluation"],
+                    cascade_thresholds=sg_config["cascade_thresholds"],
+                    use_llm_feedback=sg_config["use_llm_feedback"],
+                    llm_feedback_weight=sg_config["llm_feedback_weight"],
+                    parallel_evaluations=sg_config["parallel_evaluations"],
+                    distributed=sg_config["distributed"],
+                    template_dir=sg_config["template_dir"],
+                    num_top_programs=sg_config["num_top_programs"],
+                    num_diverse_programs=sg_config["num_diverse_programs"],
+                    use_template_stochasticity=sg_config["use_template_stochasticity"],
+                    template_variations=sg_config["template_variations"],
+                    use_meta_prompting=sg_config["use_meta_prompting"],
+                    meta_prompt_weight=sg_config["meta_prompt_weight"],
+                    include_artifacts=sg_config["include_artifacts"],
+                    max_artifact_bytes=sg_config["max_artifact_bytes"],
+                    artifact_security_filter=sg_config["artifact_security_filter"],
+                    early_stopping_patience=sg_config["early_stopping_patience"],
+                    convergence_threshold=sg_config["convergence_threshold"],
+                    early_stopping_metric=sg_config["early_stopping_metric"],
+                    memory_limit_mb=sg_config["memory_limit_mb"],
+                    cpu_limit=sg_config["cpu_limit"],
+                    random_seed=sg_config["random_seed"],
+                    db_path=sg_config["db_path"],
+                    in_memory=sg_config["in_memory"],
+                    artifact_size_threshold=sg_config["artifact_size_threshold"],
+                    cleanup_old_artifacts=sg_config["cleanup_old_artifacts"],
+                    artifact_retention_days=sg_config["artifact_retention_days"],
+                    diversity_reference_size=sg_config["diversity_reference_size"],
+                    max_retries_eval=sg_config["max_retries_eval"],
+                    evaluator_timeout=sg_config["evaluator_timeout"],
+
+                    diff_based_evolution=sg_config["diff_based_evolution"],
+                    max_code_length=sg_config["max_code_length"],
+                    evolution_trace_enabled=sg_config["evolution_trace_enabled"],
+                    evolution_trace_format=sg_config["evolution_trace_format"],
+                    evolution_trace_include_code=sg_config["evolution_trace_include_code"],
+                    evolution_trace_include_prompts=sg_config["evolution_trace_include_prompts"],
+                    evolution_trace_output_path=sg_config["evolution_trace_output_path"],
+                    evolution_trace_buffer_size=sg_config["evolution_trace_buffer_size"],
+                    evolution_trace_compress=sg_config["evolution_trace_compress"],
+                    log_level=sg_config["log_level"],
+                    log_dir=sg_config["log_dir"],
+                    api_timeout=sg_config["api_timeout"],
+                    api_retries=sg_config["api_retries"],
+                    api_retry_delay=sg_config["api_retry_delay"],
+
+                    double_selection=sg_config["double_selection"],
+                    adaptive_feature_dimensions=sg_config["adaptive_feature_dimensions"],
+                    test_time_compute=sg_config["test_time_compute"],
+                    optillm_integration=sg_config["optillm_integration"],
+                    plugin_system=sg_config["plugin_system"],
+                    hardware_optimization=sg_config["hardware_optimization"],
+                    multi_strategy_sampling=sg_config["multi_strategy_sampling"],
+                    ring_topology=sg_config["ring_topology"],
+                    controlled_gene_flow=sg_config["controlled_gene_flow"],
+                    auto_diff=sg_config["auto_diff"],
+                    symbolic_execution=sg_config["symbolic_execution"],
+                    coevolutionary_approach=sg_config["coevolutionary_approach"],
                 )
                 
                 # Store the workflow_state in Streamlit's session state
@@ -1787,6 +2032,9 @@ def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
     **Why This Matters**: Configuration management allows you to standardize evolution processes, reuse effective parameter sets, and maintain consistency across multiple workflow runs.
     """)
     
+    # Initialize TemplateManager
+    template_manager = TemplateManager()
+
     # Tabs for different configuration aspects
     config_tabs = st.tabs(["Team Manager", "Gauntlet Designer", "Workflow Templates", "Parameter Presets", "Global Settings", "Import/Export"])
     
@@ -1802,57 +2050,135 @@ def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
         
         # Create new template
         with st.expander("Create New Template", expanded=True):
-            template_name = st.text_input("Template Name", placeholder="e.g., Python Code Optimization")
-            template_description = st.text_area("Description", placeholder="Describe what this template is for...")
+            template_name = st.text_input("Template Name", placeholder="e.g., Python Code Optimization", key="new_template_name")
+            template_description = st.text_area("Description", placeholder="Describe what this template is for...", key="new_template_description")
             
-            # Default parameters for the template
-            col1, col2 = st.columns(2)
-            with col1:
-                default_max_iterations = st.number_input("Default Max Iterations", value=100)
-                default_population_size = st.number_input("Default Population Size", value=100)
-                default_num_islands = st.number_input("Default Number of Islands", value=5)
-            with col2:
-                default_temperature = st.slider("Default Temperature", min_value=0.0, max_value=2.0, value=0.7, step=0.1)
-                default_elite_ratio = st.slider("Default Elite Ratio", min_value=0.0, max_value=1.0, value=0.1, step=0.01)
-            
-            if st.button("💾 Save Template"):
-                # In a real implementation, this would save to persistent storage
-                template_data = {
-                    "name": template_name,
-                    "description": template_description,
-                    "parameters": {
-                        "max_iterations": default_max_iterations,
-                        "population_size": default_population_size,
-                        "num_islands": default_num_islands,
-                        "temperature": default_temperature,
-                        "elite_ratio": default_elite_ratio
-                    }
-                }
-                # Save template to session state (in real implementation, save to persistent storage)
-                if "workflow_templates" not in st.session_state:
-                    st.session_state.workflow_templates = {}
-                st.session_state.workflow_templates[template_name] = template_data
-                st.success(f"Template '{template_name}' saved successfully!")
+            # Default parameters for the template (capturing all configurable parameters)
+            default_params = {
+                "model": st.session_state.get("model", "gpt-4o"),
+                "api_key": st.session_state.get("api_key", ""),
+                "base_url": st.session_state.get("base_url", "https://api.openai.com/v1"),
+                "temperature": st.session_state.get("temperature", 0.7),
+                "top_p": st.session_state.get("top_p", 0.95),
+                "max_tokens": st.session_state.get("max_tokens", 4096),
+                "frequency_penalty": st.session_state.get("frequency_penalty", 0.0),
+                "presence_penalty": st.session_state.get("presence_penalty", 0.0),
+                "seed": st.session_state.get("seed", 42),
+                "stop_sequences": st.session_state.get("stop_sequences", ""),
+                "logprobs": st.session_state.get("logprobs", False),
+                "top_logprobs": st.session_state.get("top_logprobs", 0),
+                "response_format": st.session_state.get("response_format", ""),
+                "stream": st.session_state.get("stream", False),
+                "user": st.session_state.get("user", ""),
+                "system_prompt": st.session_state.get("system_prompt", ""),
+                "evaluator_system_prompt": st.session_state.get("evaluator_system_prompt", ""),
+
+                "max_iterations": st.session_state.get("max_iterations", 100),
+                "population_size": st.session_state.get("population_size", 100),
+                "num_islands": st.session_state.get("num_islands", 5),
+                "archive_size": st.session_state.get("archive_size", 100),
+                "elite_ratio": st.session_state.get("elite_ratio", 0.1),
+                "exploration_ratio": st.session_state.get("exploration_ratio", 0.2),
+                "exploitation_ratio": st.session_state.get("exploitation_ratio", 0.7),
+                "checkpoint_interval": st.session_state.get("checkpoint_interval", 100),
+                "feature_dimensions": st.session_state.get("feature_dimensions", ["complexity", "diversity"]),
+                "feature_bins": st.session_state.get("feature_bins", 10),
+                "diversity_metric": st.session_state.get("diversity_metric", "edit_distance"),
+
+                "enable_artifacts": st.session_state.get("enable_artifacts", True),
+                "cascade_evaluation": st.session_state.get("cascade_evaluation", True),
+                "cascade_thresholds": st.session_state.get("cascade_thresholds", [0.5, 0.75, 0.9]),
+                "use_llm_feedback": st.session_state.get("use_llm_feedback", False),
+                "llm_feedback_weight": st.session_state.get("llm_feedback_weight", 0.1),
+                "parallel_evaluations": st.session_state.get("parallel_evaluations", 4),
+                "distributed": st.session_state.get("distributed", False),
+                "template_dir": st.session_state.get("template_dir", None),
+                "num_top_programs": st.session_state.get("num_top_programs", 3),
+                "num_diverse_programs": st.session_state.get("num_diverse_programs", 2),
+                "use_template_stochasticity": st.session_state.get("use_template_stochasticity", True),
+                "template_variations": st.session_state.get("template_variations", {}),
+                "use_meta_prompting": st.session_state.get("use_meta_prompting", False),
+                "meta_prompt_weight": st.session_state.get("meta_prompt_weight", 0.1),
+                "include_artifacts": st.session_state.get("include_artifacts", True),
+                "max_artifact_bytes": st.session_state.get("max_artifact_bytes", 20 * 1024),
+                "artifact_security_filter": st.session_state.get("artifact_security_filter", True),
+                "early_stopping_patience": st.session_state.get("early_stopping_patience", None),
+                "convergence_threshold": st.session_state.get("convergence_threshold", 0.001),
+                "early_stopping_metric": st.session_state.get("early_stopping_metric", "combined_score"),
+                "memory_limit_mb": st.session_state.get("memory_limit_mb", 2048),
+                "cpu_limit": st.session_state.get("cpu_limit", 4.0),
+                "random_seed": st.session_state.get("random_seed", 42),
+                "db_path": st.session_state.get("db_path", None),
+                "in_memory": st.session_state.get("in_memory", True),
+
+                "diff_based_evolution": st.session_state.get("diff_based_evolution", True),
+                "max_code_length": st.session_state.get("max_code_length", 10000),
+                "evolution_trace_enabled": st.session_state.get("evolution_trace_enabled", False),
+                "evolution_trace_format": st.session_state.get("evolution_trace_format", "jsonl"),
+                "evolution_trace_include_code": st.session_state.get("evolution_trace_include_code", False),
+                "evolution_trace_include_prompts": st.session_state.get("evolution_trace_include_prompts", True),
+                "evolution_trace_output_path": st.session_state.get("evolution_trace_output_path", None),
+                "evolution_trace_buffer_size": st.session_state.get("evolution_trace_buffer_size", 10),
+                "evolution_trace_compress": st.session_state.get("evolution_trace_compress", False),
+                "log_level": st.session_state.get("log_level", "INFO"),
+                "log_dir": st.session_state.get("log_dir", None),
+                "api_timeout": st.session_state.get("api_timeout", 60),
+                "api_retries": st.session_state.get("api_retries", 3),
+                "api_retry_delay": st.session_state.get("api_retry_delay", 5),
+                "artifact_size_threshold": st.session_state.get("artifact_size_threshold", 32 * 1024),
+                "cleanup_old_artifacts": st.session_state.get("cleanup_old_artifacts", True),
+                "artifact_retention_days": st.session_state.get("artifact_retention_days", 30),
+                "diversity_reference_size": st.session_state.get("diversity_reference_size", 20),
+                "max_retries_eval": st.session_state.get("max_retries_eval", 3),
+                "evaluator_timeout": st.session_state.get("evaluator_timeout", 300),
+
+                "double_selection": st.session_state.get("double_selection", True),
+                "adaptive_feature_dimensions": st.session_state.get("adaptive_feature_dimensions", True),
+                "test_time_compute": st.session_state.get("test_time_compute", False),
+                "optillm_integration": st.session_state.get("optillm_integration", False),
+                "plugin_system": st.session_state.get("plugin_system", False),
+                "hardware_optimization": st.session_state.get("hardware_optimization", False),
+                "multi_strategy_sampling": st.session_state.get("multi_strategy_sampling", True),
+                "ring_topology": st.session_state.get("ring_topology", True),
+                "controlled_gene_flow": st.session_state.get("controlled_gene_flow", True),
+                "auto_diff": st.session_state.get("auto_diff", True),
+                "symbolic_execution": st.session_state.get("symbolic_execution", False),
+                "coevolutionary_approach": st.session_state.get("coevolutionary_approach", False),
+            }
+            st.json(default_params)
+
+            if st.button("💾 Save Template", key="save_new_template"):
+                if template_name:
+                    new_template = WorkflowTemplate(
+                        name=template_name,
+                        description=template_description,
+                        parameters=default_params # Save the current default parameters
+                    )
+                    template_manager.save_template(new_template)
+                    st.success(f"Template '{template_name}' saved successfully!")
+                    st.rerun()
+                else:
+                    st.error("Template Name cannot be empty.")
         
         # Show existing templates
-        if "workflow_templates" in st.session_state and st.session_state.workflow_templates:
+        existing_templates = template_manager.get_all_templates()
+        if existing_templates:
             st.write("#### Existing Templates:")
-            for name, data in st.session_state.workflow_templates.items():
+            for template in existing_templates:
                 with st.container(border=True):
-                    st.write(f"**{name}**")
-                    st.caption(f"Description: {data.get('description', 'No description')}")
-                    if st.button(f"Use Template: {name}", key=f"use_{name}"):
-                        # Apply template parameters to session state
-                        params = data.get('parameters', {})
-                        st.session_state.setdefault('max_iterations', params.get('max_iterations', 100))
-                        st.session_state.setdefault('population_size', params.get('population_size', 100))
-                        st.session_state.setdefault('num_islands', params.get('num_islands', 5))
-                        st.session_state.setdefault('temperature', params.get('temperature', 0.7))
-                        st.session_state.setdefault('elite_ratio', params.get('elite_ratio', 0.1))
-                        st.success(f"Applied template '{name}' parameters!")
+                    st.write(f"**{template.name}**")
+                    st.caption(f"Description: {template.description or 'No description'}")
                     
-                    if st.button(f"❌ Delete: {name}", key=f"del_{name}"):
-                        del st.session_state.workflow_templates[name]
+                    if st.button(f"Use Template: {template.name}", key=f"use_template_{template.name}"):
+                        # Apply template parameters to session state
+                        for param, value in template.parameters.items():
+                            st.session_state[param] = value
+                        st.success(f"Applied template '{template.name}' parameters!")
+                        st.rerun()
+                    
+                    if st.button(f"❌ Delete: {template.name}", key=f"del_template_{template.name}"):
+                        template_manager.delete_template(template.name)
+                        st.success(f"Template '{template.name}' deleted successfully!")
                         st.rerun()
         else:
             st.info("No templates saved yet. Create your first template above.")

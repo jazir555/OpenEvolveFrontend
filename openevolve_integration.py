@@ -484,6 +484,7 @@ def create_advanced_openevolve_config(
                     timeout=eval_model.get('timeout', api_timeout),
                     retries=eval_model.get('retries', api_retries),
                     retry_delay=eval_model.get('retry_delay', api_retry_delay),
+                    reasoning_effort=eval_model.get('reasoning_effort', reasoning_effort),
                     random_seed=random_seed,
                 )
                 evaluator_llm_configs.append(evaluator_config)
@@ -2848,6 +2849,7 @@ def create_comprehensive_openevolve_config(
     feature_dimensions: Optional[List[str]] = None,
     feature_bins: Optional[int] = None,
     diversity_metric: str = "edit_distance",
+    reasoning_effort: Optional[str] = None,
     system_message: str = None,
     evaluator_system_message: str = None,
     enable_artifacts: bool = True,
