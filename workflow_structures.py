@@ -65,7 +65,7 @@ class ModelConfig:
     organization: Optional[str] = None # For OpenAI, the organization ID.
     response_model: Optional[str] = None # For structured output, a Pydantic model or similar (string representation).
     tools: Optional[List[Dict[str, Any]]] = None # For function calling, a list of tool definitions.
-    tool_choice: Optional[str] = None # For function calling, control over tool usage (e.g., "auto", "none", {"type": "function", "function": {"name": "my_function"}}).
+    tool_choice: Optional[Any] = None # For function calling, control over tool usage (e.g., "auto", "none", {"type": "function", "function": {"name": "my_function"}}).
     system_fingerprint: Optional[str] = None # For OpenAI, a unique identifier for the model's configuration.
     deployment_id: Optional[str] = None # For Azure OpenAI, the deployment name.
     encoding_format: Optional[str] = None # For some models, the encoding format for output (e.g., "base64").
@@ -74,22 +74,51 @@ class ModelConfig:
     best_of: Optional[int] = None # Generates best_of completions on the server side and returns the "best".
     logprobs_offset: Optional[int] = None # Offset for logprobs.
     suffix: Optional[str] = None # A suffix that will be appended to the end of the generated text.
-
+    presence_penalty_range: Optional[List[float]] = None # Range for presence penalty.
+    frequency_penalty_range: Optional[List[float]] = None # Range for frequency penalty.
+    stop_token_id: Optional[int] = None # For models that use token IDs for stopping.
+    response_json_format: Optional[bool] = None # If the response should be in JSON format.
+    max_output_tokens: Optional[int] = None # Maximum number of output tokens.
+    stream_options: Optional[Dict[str, Any]] = None # For more granular control over streaming.
+    logprobs_type: Optional[str] = None # To specify the type of log probabilities.
+    top_k: Optional[int] = None # Another common sampling parameter.
+    repetition_penalty: Optional[float] = None # To penalize repeated tokens.
+    length_penalty: Optional[float] = None # To control the length of generated sequences.
+    early_stopping: Optional[bool] = None # For beam search.
+    num_beams: Optional[int] = None # For beam search.
+    do_sample: Optional[bool] = None # To enable/disable sampling.
+    temperature_fallback: Optional[float] = None # A fallback temperature.
+    top_p_fallback: Optional[float] = None # A fallback top_p.
+    max_time: Optional[int] = None # Maximum time to generate a response.
+    return_full_text: Optional[bool] = None # Whether to return the full text or just the generated part.
+    tokenizer_config: Optional[Dict[str, Any]] = None # For tokenizer-specific settings.
+    model_kwargs: Optional[Dict[str, Any]] = None # For any other model-specific keyword arguments.
 
 @dataclasses.dataclass
 class Team:
-    """A user-defined group of AI models assigned to a specific role within the workflow.
-
-    Attributes:
-        name (str): A unique name for the team.
-        role (Literal["Blue", "Red", "Gold"]): Specifies the team\'s primary function (e.g., creation, critique, evaluation).
-        members (List[ModelConfig]): A list of `ModelConfig` objects defining the AI models that comprise this team.
-        description (Optional[str]): An optional human-readable description of the team\'s purpose or specialization.
-        content_analysis_system_prompt (Optional[str]): System prompt for content analysis if this team is used for it.
-        content_analysis_user_prompt_template (Optional[str]): User prompt template for content analysis if this team is used for it.
-        decomposition_system_prompt (Optional[str]): System prompt for decomposition if this team is used for it.
-        decomposition_user_prompt_template (Optional[str]): User prompt template for decomposition if this team is used for it.
-    """
+        """
+        A user-defined group of AI models assigned to a specific role within the workflow.
+    
+        Attributes:
+            name (str): A unique name for the team.
+            role (Literal["Blue", "Red", "Gold"]): Specifies the team\'s primary function (e.g., creation, critique, evaluation).
+            members (List[ModelConfig]): A list of `ModelConfig` objects defining the AI models that comprise this team.
+            description (Optional[str]): An optional human-readable description of the team\'s purpose or specialization.
+            content_analysis_system_prompt (Optional[str]): System prompt for content analysis if this team is used for it.
+            content_analysis_user_prompt_template (Optional[str]): User prompt template for content analysis if this team is used for it.
+            decomposition_system_prompt (Optional[str]): System prompt for decomposition if this team is used for it.
+            decomposition_user_prompt_template (Optional[str]): User prompt template for decomposition if this team is used for it.
+            solver_system_prompt (Optional[str]): System prompt for solvers if this team is used for generating solutions.
+            solver_user_prompt_template (Optional[str]): User prompt template for solvers if this team is used for generating solutions.
+            patcher_system_prompt (Optional[str]): System prompt for patchers if this team is used for fixing rejected solutions.
+            patcher_user_prompt_template (Optional[str]): User prompt template for patchers if this team is used for fixing rejected solutions.
+            assembler_system_prompt (Optional[str]): System prompt for assemblers if this team is used for reassembling the final solution.
+            assembler_user_prompt_template (Optional[str]): User prompt template for assemblers if this team is used for reassembling the final solution.
+            red_team_system_prompt (Optional[str]): System prompt for Red Teams when performing critiques.
+            red_team_user_prompt_template (Optional[str]): User prompt template for Red Teams when performing critiques.
+            gold_team_system_prompt (Optional[str]): System prompt for Gold Teams when performing verifications.
+            gold_team_user_prompt_template (Optional[str]): User prompt template for Gold Teams when performing verifications.
+        """
     name: str
     role: Literal["Blue", "Red", "Gold"]
     members: List[ModelConfig]
@@ -98,6 +127,16 @@ class Team:
     content_analysis_user_prompt_template: Optional[str] = None # User prompt template for content analysis if this team is used for it.
     decomposition_system_prompt: Optional[str] = None # System prompt for decomposition if this team is used for it.
     decomposition_user_prompt_template: Optional[str] = None # User prompt template for decomposition if this team is used for it.
+    solver_system_prompt: Optional[str] = None # System prompt for solvers if this team is used for generating solutions.
+    solver_user_prompt_template: Optional[str] = None # User prompt template for solvers if this team is used for generating solutions.
+    patcher_system_prompt: Optional[str] = None # System prompt for patchers if this team is used for fixing rejected solutions.
+    patcher_user_prompt_template: Optional[str] = None # User prompt template for patchers if this team is used for fixing rejected solutions.
+    assembler_system_prompt: Optional[str] = None # System prompt for assemblers if this team is used for reassembling the final solution.
+    assembler_user_prompt_template: Optional[str] = None # User prompt template for assemblers if this team is used for reassembling the final solution.
+    red_team_system_prompt: Optional[str] = None
+    red_team_user_prompt_template: Optional[str] = None
+    gold_team_system_prompt: Optional[str] = None
+    gold_team_user_prompt_template: Optional[str] = None
 
 @dataclasses.dataclass
 class GauntletRoundRule:

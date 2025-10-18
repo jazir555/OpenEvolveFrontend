@@ -70,9 +70,66 @@ def render_team_manager():
 
     Provide the output as a JSON array of sub-problem objects.
     """, key="new_decomp_user_prompt_template", height=300)
+
+                st.subheader("Solver Prompts (for Blue Teams acting as Solvers)")
+                new_solver_system_prompt = st.text_area("Solver System Prompt", value="You are an expert problem solver. Your task is to generate a solution for the given sub-problem.", key="new_solver_system_prompt")
+                new_solver_user_prompt_template = st.text_area("Solver User Prompt Template", value="""Generate a solution for the following sub-problem:
+    ---
+    {sub_problem_description}
+    ---
+    """, key="new_solver_user_prompt_template", height=200)
+
+                st.subheader("Patcher Prompts (for Blue Teams acting as Patchers)")
+                new_patcher_system_prompt = st.text_area("Patcher System Prompt", value="You are an expert problem patcher. Your task is to fix the identified flaws in the given solution attempt.", key="new_patcher_system_prompt")
+                new_patcher_user_prompt_template = st.text_area("Patcher User Prompt Template", value="""Given the following sub-problem, solution attempt, and critique report, modify the solution to address the identified flaws:
+    ---
+    Sub-Problem: {sub_problem_description}
+    Solution Attempt: {solution_attempt_content}
+    Critique Report: {critique_report_summary}
+    ---
+    """, key="new_patcher_user_prompt_template", height=200)
+
+                st.subheader("Assembler Prompts (for Blue Teams acting as Assemblers)")
+                new_assembler_system_prompt = st.text_area("Assembler System Prompt", value="You are an expert solution assembler. Your task is to integrate the verified sub-problem solutions into a single, coherent final product.", key="new_assembler_system_prompt")
+                new_assembler_user_prompt_template = st.text_area("Assembler User Prompt Template", value="""Integrate the following verified sub-problem solutions into a single, coherent final product:
+    ---
+    {verified_solutions}
+    ---
+    """, key="new_assembler_user_prompt_template", height=200)
             else:
                 new_decomp_system_prompt = None
                 new_decomp_user_prompt_template = None
+                new_solver_system_prompt = None
+                new_solver_user_prompt_template = None
+                new_patcher_system_prompt = None
+                new_patcher_user_prompt_template = None
+                new_assembler_system_prompt = None
+                new_assembler_user_prompt_template = None
+
+            if team_role == "Red":
+                st.subheader("Red Team Prompts")
+                new_red_team_system_prompt = st.text_area("Red Team System Prompt", value="You are an adversarial AI. Your task is to critically evaluate the given solution, identify vulnerabilities, inconsistencies, and weaknesses, and provide a detailed critique report.", key="new_red_team_system_prompt")
+                new_red_team_user_prompt_template = st.text_area("Red Team User Prompt Template", value="""Critique the following solution attempt based on the attack modes: {attack_modes}
+    ---
+    Solution: {solution_attempt_content}
+    ---
+    """, key="new_red_team_user_prompt_template", height=200)
+            else:
+                new_red_team_system_prompt = None
+                new_red_team_user_prompt_template = None
+
+            if team_role == "Gold":
+                st.subheader("Gold Team Prompts")
+                new_gold_team_system_prompt = st.text_area("Gold Team System Prompt", value="You are an impartial evaluator. Your task is to verify the correctness, quality, and adherence to requirements of the given solution against the provided evaluation prompt.", key="new_gold_team_system_prompt")
+                new_gold_team_user_prompt_template = st.text_area("Gold Team User Prompt Template", value="""Evaluate the following solution attempt against the evaluation prompt:
+    ---
+    Evaluation Prompt: {evaluation_prompt}
+    Solution: {solution_attempt_content}
+    ---
+    """, key="new_gold_team_user_prompt_template", height=200)
+            else:
+                new_gold_team_system_prompt = None
+                new_gold_team_user_prompt_template = None
 
             st.subheader("Team Members (AI Models)")
             num_members = st.number_input("Number of Models in Team", min_value=1, value=1, key="num_new_members")
@@ -113,6 +170,25 @@ def render_team_manager():
                     best_of = st.number_input(f"Best Of (Optional)", value=None, key=f"new_best_of_{i}")
                     logprobs_offset = st.number_input(f"Logprobs Offset (Optional)", value=None, key=f"new_logprobs_offset_{i}")
                     suffix = st.text_input(f"Suffix (Optional)", key=f"new_suffix_{i}")
+                    presence_penalty_range_str = st.text_input(f"Presence Penalty Range (comma-separated floats, e.g., -2.0,2.0)", key=f"new_presence_penalty_range_{i}")
+                    frequency_penalty_range_str = st.text_input(f"Frequency Penalty Range (comma-separated floats, e.g., -2.0,2.0)", key=f"new_frequency_penalty_range_{i}")
+                    stop_token_id = st.number_input(f"Stop Token ID (Optional)", value=None, key=f"new_stop_token_id_{i}")
+                    response_json_format = st.checkbox(f"Response JSON Format", key=f"new_response_json_format_{i}")
+                    max_output_tokens = st.number_input(f"Max Output Tokens (Optional)", value=None, key=f"new_max_output_tokens_{i}")
+                    stream_options_json = st.text_area(f"Stream Options (JSON, Optional)", key=f"new_stream_options_{i}")
+                    logprobs_type = st.selectbox(f"Logprobs Type (Optional)", [None, "per_token", "all"], key=f"new_logprobs_type_{i}")
+                    top_k = st.number_input(f"Top K (Optional)", value=None, key=f"new_top_k_{i}")
+                    repetition_penalty = st.slider(f"Repetition Penalty (Optional)", min_value=0.0, max_value=2.0, value=1.0, step=0.01, key=f"new_repetition_penalty_{i}")
+                    length_penalty = st.slider(f"Length Penalty (Optional)", min_value=0.0, max_value=2.0, value=1.0, step=0.01, key=f"new_length_penalty_{i}")
+                    early_stopping = st.checkbox(f"Early Stopping (for beam search)", key=f"new_early_stopping_{i}")
+                    num_beams = st.number_input(f"Number of Beams (for beam search)", min_value=1, value=1, key=f"new_num_beams_{i}")
+                    do_sample = st.checkbox(f"Do Sample", value=True, key=f"new_do_sample_{i}")
+                    temperature_fallback = st.slider(f"Temperature Fallback (Optional)", min_value=0.0, max_value=2.0, value=0.7, step=0.1, key=f"new_temperature_fallback_{i}")
+                    top_p_fallback = st.slider(f"Top P Fallback (Optional)", min_value=0.0, max_value=1.0, value=1.0, step=0.01, key=f"new_top_p_fallback_{i}")
+                    max_time = st.number_input(f"Max Time (seconds, Optional)", value=None, key=f"new_max_time_{i}")
+                    return_full_text = st.checkbox(f"Return Full Text", value=False, key=f"new_return_full_text_{i}")
+                    tokenizer_config_json = st.text_area(f"Tokenizer Config (JSON, Optional)", key=f"new_tokenizer_config_{i}")
+                    model_kwargs_json = st.text_area(f"Model Kwargs (JSON, Optional)", key=f"new_model_kwargs_{i}")
                 
                 new_members.append(ModelConfig(
                     model_id=model_id,
@@ -150,7 +226,21 @@ def render_team_manager():
             submitted = st.form_submit_button("Create Team")
             if submitted:
                 if team_name and new_members[0].model_id: # Basic validation
-                    new_team = Team(name=team_name, role=team_role, members=new_members, description=team_description, content_analysis_system_prompt=new_ca_system_prompt, content_analysis_user_prompt_template=new_ca_user_prompt_template, decomposition_system_prompt=new_decomp_system_prompt, decomposition_user_prompt_template=new_decomp_user_prompt_template)
+                    new_team = Team(name=team_name, role=team_role, members=new_members, description=team_description, 
+                                    content_analysis_system_prompt=new_ca_system_prompt, 
+                                    content_analysis_user_prompt_template=new_ca_user_prompt_template, 
+                                    decomposition_system_prompt=new_decomp_system_prompt, 
+                                    decomposition_user_prompt_template=new_decomp_user_prompt_template,
+                                    solver_system_prompt=new_solver_system_prompt,
+                                    solver_user_prompt_template=new_solver_user_prompt_template,
+                                    patcher_system_prompt=new_patcher_system_prompt,
+                                    patcher_user_prompt_template=new_patcher_user_prompt_template,
+                                    assembler_system_prompt=new_assembler_system_prompt,
+                                    assembler_user_prompt_template=new_assembler_user_prompt_template,
+                                    red_team_system_prompt=new_red_team_system_prompt,
+                                    red_team_user_prompt_template=new_red_team_user_prompt_template,
+                                    gold_team_system_prompt=new_gold_team_system_prompt,
+                                    gold_team_user_prompt_template=new_gold_team_user_prompt_template)
                     if team_manager.create_team(new_team):
                         st.success(f"Team '{team_name}' created successfully!")
                         st.session_state.team_manager = TeamManager() # Reload to refresh UI
@@ -170,6 +260,31 @@ def render_team_manager():
                 st.markdown(f"**{team.name}** ({team.role} Team)")
                 st.caption(team.description or "No description.")
                 
+                if team.role == "Blue":
+                    st.markdown("**Content Analysis Prompts:**")
+                    st.write(f"System: `{team.content_analysis_system_prompt}`")
+                    st.write(f"User Template: `{team.content_analysis_user_prompt_template}`")
+                    st.markdown("**Decomposition Prompts:**")
+                    st.write(f"System: `{team.decomposition_system_prompt}`")
+                    st.write(f"User Template: `{team.decomposition_user_prompt_template}`")
+                    st.markdown("**Solver Prompts:**")
+                    st.write(f"System: `{team.solver_system_prompt}`")
+                    st.write(f"User Template: `{team.solver_user_prompt_template}`")
+                    st.markdown("**Patcher Prompts:**")
+                    st.write(f"System: `{team.patcher_system_prompt}`")
+                    st.write(f"User Template: `{team.patcher_user_prompt_template}`")
+                    st.markdown("**Assembler Prompts:**")
+                    st.write(f"System: `{team.assembler_system_prompt}`")
+                    st.write(f"User Template: `{team.assembler_user_prompt_template}`")
+                elif team.role == "Red":
+                    st.markdown("**Red Team Prompts:**")
+                    st.write(f"System: `{team.red_team_system_prompt}`")
+                    st.write(f"User Template: `{team.red_team_user_prompt_template}`")
+                elif team.role == "Gold":
+                    st.markdown("**Gold Team Prompts:**")
+                    st.write(f"System: `{team.gold_team_system_prompt}`")
+                    st.write(f"User Template: `{team.gold_team_user_prompt_template}`")
+                
                 with st.expander(f"View/Edit Team '{team.name}'", expanded=False):
                     # Display current members
                     st.markdown("#### Current Members:")
@@ -180,6 +295,10 @@ def render_team_manager():
                         st.write(f"Max Retries: `{member.max_retries}` | Timeout: `{member.timeout}` | Organization: `{member.organization}` | Response Model: `{member.response_model}`")
                         st.write(f"Tools: `{member.tools}` | Tool Choice: `{member.tool_choice}` | System Fingerprint: `{member.system_fingerprint}` | Deployment ID: `{member.deployment_id}`")
                         st.write(f"Encoding Format: `{member.encoding_format}` | Max Input Tokens: `{member.max_input_tokens}` | Stop Token: `{member.stop_token}` | Best Of: `{member.best_of}` | Logprobs Offset: `{member.logprobs_offset}` | Suffix: `{member.suffix}`")
+                        st.write(f"Presence Penalty Range: `{member.presence_penalty_range}` | Frequency Penalty Range: `{member.frequency_penalty_range}` | Stop Token ID: `{member.stop_token_id}` | Response JSON Format: `{member.response_json_format}` | Max Output Tokens: `{member.max_output_tokens}`")
+                        st.write(f"Stream Options: `{member.stream_options}` | Logprobs Type: `{member.logprobs_type}` | Top K: `{member.top_k}` | Repetition Penalty: `{member.repetition_penalty}` | Length Penalty: `{member.length_penalty}`")
+                        st.write(f"Early Stopping: `{member.early_stopping}` | Num Beams: `{member.num_beams}` | Do Sample: `{member.do_sample}` | Temperature Fallback: `{member.temperature_fallback}` | Top P Fallback: `{member.top_p_fallback}`")
+                        st.write(f"Max Time: `{member.max_time}` | Return Full Text: `{member.return_full_text}` | Tokenizer Config: `{member.tokenizer_config}` | Model Kwargs: `{member.model_kwargs}`")
 
                     # Edit Form
                     with st.form(f"edit_team_form_{team.name}"):
@@ -230,11 +349,85 @@ def render_team_manager():
                             st.subheader("Decomposition Prompts (for Blue Teams acting as Planners)")
                             edited_decomp_system_prompt = st.text_area("Decomposition System Prompt", value=current_decomp_system_prompt, key=f"edit_decomp_system_prompt_{team.name}")
                             edited_decomp_user_prompt_template = st.text_area("Decomposition User Prompt Template", value=current_decomp_user_prompt_template, key=f"edit_decomp_user_prompt_template_{team.name}", height=300)
+
+                            current_solver_system_prompt = team.solver_system_prompt if team.solver_system_prompt else "You are an expert problem solver. Your task is to generate a solution for the given sub-problem."
+                            current_solver_user_prompt_template = team.solver_user_prompt_template if team.solver_user_prompt_template else """Generate a solution for the following sub-problem:
+    ---
+    {sub_problem_description}
+    ---
+    """
+                            st.subheader("Solver Prompts (for Blue Teams acting as Solvers)")
+                            edited_solver_system_prompt = st.text_area("Solver System Prompt", value=current_solver_system_prompt, key=f"edit_solver_system_prompt_{team.name}")
+                            edited_solver_user_prompt_template = st.text_area("Solver User Prompt Template", value=current_solver_user_prompt_template, key=f"edit_solver_user_prompt_template_{team.name}", height=200)
+
+                            current_patcher_system_prompt = team.patcher_system_prompt if team.patcher_system_prompt else "You are an expert problem patcher. Your task is to fix the identified flaws in the given solution attempt."
+                            current_patcher_user_prompt_template = team.patcher_user_prompt_template if team.patcher_user_prompt_template else """Given the following sub-problem, solution attempt, and critique report, modify the solution to address the identified flaws:
+    ---
+    Sub-Problem: {sub_problem_description}
+    Solution Attempt: {solution_attempt_content}
+    Critique Report: {critique_report_summary}
+    ---
+    """
+                            st.subheader("Patcher Prompts (for Blue Teams acting as Patchers)")
+                            edited_patcher_system_prompt = st.text_area("Patcher System Prompt", value=current_patcher_system_prompt, key=f"edit_patcher_system_prompt_{team.name}")
+                            edited_patcher_user_prompt_template = st.text_area("Patcher User Prompt Template", value=current_patcher_user_prompt_template, key=f"edit_patcher_user_prompt_template_{team.name}", height=200)
+
+                            current_assembler_system_prompt = team.assembler_system_prompt if team.assembler_system_prompt else "You are an expert solution assembler. Your task is to integrate the verified sub-problem solutions into a single, coherent final product."
+                            current_assembler_user_prompt_template = team.assembler_user_prompt_template if team.assembler_user_prompt_template else """Integrate the following verified sub-problem solutions into a single, coherent final product:
+    ---
+    {verified_solutions}
+    ---
+    """
+                            st.subheader("Assembler Prompts (for Blue Teams acting as Assemblers)")
+                            edited_assembler_system_prompt = st.text_area("Assembler System Prompt", value=current_assembler_system_prompt, key=f"edit_assembler_system_prompt_{team.name}")
+                            edited_assembler_user_prompt_template = st.text_area("Assembler User Prompt Template", value=current_assembler_user_prompt_template, key=f"edit_assembler_user_prompt_template_{team.name}", height=200)
+
+                            edited_solver_system_prompt = None
+                            edited_solver_user_prompt_template = None
+                            edited_patcher_system_prompt = None
+                            edited_patcher_user_prompt_template = None
+                            edited_assembler_system_prompt = None
+                            edited_assembler_user_prompt_template = None
                         else:
                             edited_ca_system_prompt = None
                             edited_ca_user_prompt_template = None
                             edited_decomp_system_prompt = None
                             edited_decomp_user_prompt_template = None
+                            edited_solver_system_prompt = None
+                            edited_solver_user_prompt_template = None
+                            edited_patcher_system_prompt = None
+                            edited_patcher_user_prompt_template = None
+                            edited_assembler_system_prompt = None
+                            edited_assembler_user_prompt_template = None
+
+                        if edited_team_role == "Red":
+                            current_red_team_system_prompt = team.red_team_system_prompt if team.red_team_system_prompt else "You are an adversarial AI. Your task is to critically evaluate the given solution, identify vulnerabilities, inconsistencies, and weaknesses, and provide a detailed critique report."
+                            current_red_team_user_prompt_template = team.red_team_user_prompt_template if team.red_team_user_prompt_template else """Critique the following solution attempt based on the attack modes: {attack_modes}
+    ---
+    Solution: {solution_attempt_content}
+    ---
+    """
+                            st.subheader("Red Team Prompts")
+                            edited_red_team_system_prompt = st.text_area("Red Team System Prompt", value=current_red_team_system_prompt, key=f"edit_red_team_system_prompt_{team.name}")
+                            edited_red_team_user_prompt_template = st.text_area("Red Team User Prompt Template", value=current_red_team_user_prompt_template, key=f"edit_red_team_user_prompt_template_{team.name}", height=200)
+                        else:
+                            edited_red_team_system_prompt = None
+                            edited_red_team_user_prompt_template = None
+
+                        if edited_team_role == "Gold":
+                            current_gold_team_system_prompt = team.gold_team_system_prompt if team.gold_team_system_prompt else "You are an impartial evaluator. Your task is to verify the correctness, quality, and adherence to requirements of the given solution against the provided evaluation prompt."
+                            current_gold_team_user_prompt_template = team.gold_team_user_prompt_template if team.gold_team_user_prompt_template else """Evaluate the following solution attempt against the evaluation prompt:
+    ---
+    Evaluation Prompt: {evaluation_prompt}
+    Solution: {solution_attempt_content}
+    ---
+    """
+                            st.subheader("Gold Team Prompts")
+                            edited_gold_team_system_prompt = st.text_area("Gold Team System Prompt", value=current_gold_team_system_prompt, key=f"edit_gold_team_system_prompt_{team.name}")
+                            edited_gold_team_user_prompt_template = st.text_area("Gold Team User Prompt Template", value=current_gold_team_user_prompt_template, key=f"edit_gold_team_user_prompt_template_{team.name}", height=200)
+                        else:
+                            edited_gold_team_system_prompt = None
+                            edited_gold_team_user_prompt_template = None
 
                         st.subheader("Edit Team Members (AI Models)")
                         # Allow adding/removing members, or editing existing ones.
@@ -253,11 +446,6 @@ def render_team_manager():
                                 edited_model_id = st.text_input(f"Model ID (e.g., gpt-4o)", value=current_model_id, key=f"edit_model_id_{team.name}_{i}")
                                 edited_api_key = st.text_input(f"API Key", type="password", value=current_api_key, key=f"edit_api_key_{team.name}_{i}")
                             with col2:
-                                current_api_base = team.members[i].api_base if i < num_existing_members else "https://api.openai.com/v1"
-                                current_temperature = team.members[i].temperature if i < num_existing_members else 0.7
-                                current_top_p = team.members[i].top_p if i < num_existing_members else 1.0
-                                current_max_tokens = team.members[i].max_tokens if i < num_existing_members else 4096
-                                current_frequency_penalty = team.members[i].frequency_penalty if i < num_existing_members else 0.0
                                 current_presence_penalty = team.members[i].presence_penalty if i < num_existing_members else 0.0
                                 current_seed = team.members[i].seed if i < num_existing_members else None
                                 current_stop_sequences = ", ".join(team.members[i].stop_sequences) if i < num_existing_members and team.members[i].stop_sequences else ""
@@ -266,6 +454,40 @@ def render_team_manager():
                                 current_response_format = json.dumps(team.members[i].response_format) if i < num_existing_members and team.members[i].response_format else ""
                                 current_stream = team.members[i].stream if i < num_existing_members and team.members[i].stream is not None else False
                                 current_user = team.members[i].user if i < num_existing_members and team.members[i].user else ""
+                                current_reasoning_effort = team.members[i].reasoning_effort if i < num_existing_members else None
+                                current_max_retries = team.members[i].max_retries if i < num_existing_members else 5
+                                current_timeout = team.members[i].timeout if i < num_existing_members else 120
+                                current_organization = team.members[i].organization if i < num_existing_members else ""
+                                current_response_model = team.members[i].response_model if i < num_existing_members else ""
+                                current_tools = json.dumps(team.members[i].tools) if i < num_existing_members and team.members[i].tools else ""
+                                current_tool_choice = json.dumps(team.members[i].tool_choice) if i < num_existing_members and isinstance(team.members[i].tool_choice, dict) else (team.members[i].tool_choice if i < num_existing_members and team.members[i].tool_choice else "")
+                                current_system_fingerprint = team.members[i].system_fingerprint if i < num_existing_members else ""
+                                current_deployment_id = team.members[i].deployment_id if i < num_existing_members else ""
+                                current_encoding_format = team.members[i].encoding_format if i < num_existing_members else ""
+                                current_max_input_tokens = team.members[i].max_input_tokens if i < num_existing_members else None
+                                current_stop_token = team.members[i].stop_token if i < num_existing_members else ""
+                                current_best_of = team.members[i].best_of if i < num_existing_members else None
+                                current_logprobs_offset = team.members[i].logprobs_offset if i < num_existing_members else None
+                                current_suffix = team.members[i].suffix if i < num_existing_members else ""
+                                current_presence_penalty_range = ",".join(map(str, team.members[i].presence_penalty_range)) if i < num_existing_members and team.members[i].presence_penalty_range else ""
+                                current_frequency_penalty_range = ",".join(map(str, team.members[i].frequency_penalty_range)) if i < num_existing_members and team.members[i].frequency_penalty_range else ""
+                                current_stop_token_id = team.members[i].stop_token_id if i < num_existing_members else None
+                                current_response_json_format = team.members[i].response_json_format if i < num_existing_members and team.members[i].response_json_format is not None else False
+                                current_max_output_tokens = team.members[i].max_output_tokens if i < num_existing_members else None
+                                current_stream_options = json.dumps(team.members[i].stream_options) if i < num_existing_members and team.members[i].stream_options else ""
+                                current_logprobs_type = team.members[i].logprobs_type if i < num_existing_members else None
+                                current_top_k = team.members[i].top_k if i < num_existing_members else None
+                                current_repetition_penalty = team.members[i].repetition_penalty if i < num_existing_members else 1.0
+                                current_length_penalty = team.members[i].length_penalty if i < num_existing_members else 1.0
+                                current_early_stopping = team.members[i].early_stopping if i < num_existing_members and team.members[i].early_stopping is not None else False
+                                current_num_beams = team.members[i].num_beams if i < num_existing_members else 1
+                                current_do_sample = team.members[i].do_sample if i < num_existing_members and team.members[i].do_sample is not None else True
+                                current_temperature_fallback = team.members[i].temperature_fallback if i < num_existing_members else 0.7
+                                current_top_p_fallback = team.members[i].top_p_fallback if i < num_existing_members else 1.0
+                                current_max_time = team.members[i].max_time if i < num_existing_members else None
+                                current_return_full_text = team.members[i].return_full_text if i < num_existing_members and team.members[i].return_full_text is not None else False
+                                current_tokenizer_config = json.dumps(team.members[i].tokenizer_config) if i < num_existing_members and team.members[i].tokenizer_config else ""
+                                current_model_kwargs = json.dumps(team.members[i].model_kwargs) if i < num_existing_members and team.members[i].model_kwargs else ""
 
                                 edited_api_base = st.text_input(f"API Base (e.g., https://api.openai.com/v1)", value=current_api_base, key=f"edit_api_base_{team.name}_{i}")
                                 edited_temperature = st.slider(f"Temperature", min_value=0.0, max_value=2.0, value=current_temperature, step=0.1, key=f"edit_temp_{team.name}_{i}")
@@ -280,7 +502,6 @@ def render_team_manager():
                                 edited_response_format_str = st.text_input(f"Response Format (JSON string, e.g., '{{\"type\": \"json_object\"}}')", value=current_response_format, key=f"edit_response_format_{team.name}_{i}")
                                 edited_stream = st.checkbox(f"Stream", value=current_stream, key=f"edit_stream_{team.name}_{i}")
                                 edited_user = st.text_input(f"User ID", value=current_user, key=f"edit_user_{team.name}_{i}")
-                                current_reasoning_effort = team.members[i].reasoning_effort if i < num_existing_members else None
                                 edited_reasoning_effort = st.selectbox(f"Reasoning Effort", [None, "low", "medium", "high"], index=[None, "low", "medium", "high"].index(current_reasoning_effort) if current_reasoning_effort in ["low", "medium", "high"] else 0, key=f"edit_reasoning_effort_{team.name}_{i}")
                                 edited_max_retries = st.number_input(f"Max Retries", min_value=0, value=current_max_retries, key=f"edit_max_retries_{team.name}_{i}")
                                 edited_timeout = st.number_input(f"Timeout (seconds)", min_value=1, value=current_timeout, key=f"edit_timeout_{team.name}_{i}")
@@ -296,6 +517,25 @@ def render_team_manager():
                                 edited_best_of = st.number_input(f"Best Of (Optional)", value=current_best_of, key=f"edit_best_of_{team.name}_{i}")
                                 edited_logprobs_offset = st.number_input(f"Logprobs Offset (Optional)", value=current_logprobs_offset, key=f"edit_logprobs_offset_{team.name}_{i}")
                                 edited_suffix = st.text_input(f"Suffix (Optional)", value=current_suffix, key=f"edit_suffix_{team.name}_{i}")
+                                edited_presence_penalty_range_str = st.text_input(f"Presence Penalty Range (comma-separated floats, e.g., -2.0,2.0)", value=current_presence_penalty_range, key=f"edit_presence_penalty_range_{team.name}_{i}")
+                                edited_frequency_penalty_range_str = st.text_input(f"Frequency Penalty Range (comma-separated floats, e.g., -2.0,2.0)", value=current_frequency_penalty_range, key=f"edit_frequency_penalty_range_{team.name}_{i}")
+                                edited_stop_token_id = st.number_input(f"Stop Token ID (Optional)", value=current_stop_token_id, key=f"edit_stop_token_id_{team.name}_{i}")
+                                edited_response_json_format = st.checkbox(f"Response JSON Format", value=current_response_json_format, key=f"edit_response_json_format_{team.name}_{i}")
+                                edited_max_output_tokens = st.number_input(f"Max Output Tokens (Optional)", value=current_max_output_tokens, key=f"edit_max_output_tokens_{team.name}_{i}")
+                                edited_stream_options_json = st.text_area(f"Stream Options (JSON, Optional)", value=current_stream_options, key=f"edit_stream_options_{team.name}_{i}")
+                                edited_logprobs_type = st.selectbox(f"Logprobs Type (Optional)", [None, "per_token", "all"], index=[None, "per_token", "all"].index(current_logprobs_type) if current_logprobs_type in ["per_token", "all"] else 0, key=f"edit_logprobs_type_{team.name}_{i}")
+                                edited_top_k = st.number_input(f"Top K (Optional)", value=current_top_k, key=f"edit_top_k_{team.name}_{i}")
+                                edited_repetition_penalty = st.slider(f"Repetition Penalty (Optional)", min_value=0.0, max_value=2.0, value=current_repetition_penalty, step=0.01, key=f"edit_repetition_penalty_{team.name}_{i}")
+                                edited_length_penalty = st.slider(f"Length Penalty (Optional)", min_value=0.0, max_value=2.0, value=current_length_penalty, step=0.01, key=f"edit_length_penalty_{team.name}_{i}")
+                                edited_early_stopping = st.checkbox(f"Early Stopping (for beam search)", value=current_early_stopping, key=f"edit_early_stopping_{team.name}_{i}")
+                                edited_num_beams = st.number_input(f"Number of Beams (for beam search)", min_value=1, value=current_num_beams, key=f"edit_num_beams_{team.name}_{i}")
+                                edited_do_sample = st.checkbox(f"Do Sample", value=True, key=f"edit_do_sample_{team.name}_{i}")
+                                edited_temperature_fallback = st.slider(f"Temperature Fallback (Optional)", min_value=0.0, max_value=2.0, value=current_temperature_fallback, step=0.1, key=f"edit_temperature_fallback_{team.name}_{i}")
+                                edited_top_p_fallback = st.slider(f"Top P Fallback (Optional)", min_value=0.0, max_value=1.0, value=current_top_p_fallback, step=0.01, key=f"edit_top_p_fallback_{team.name}_{i}")
+                                edited_max_time = st.number_input(f"Max Time (seconds, Optional)", value=current_max_time, key=f"edit_max_time_{team.name}_{i}")
+                                edited_return_full_text = st.checkbox(f"Return Full Text", value=current_return_full_text, key=f"edit_return_full_text_{team.name}_{i}")
+                                edited_tokenizer_config_json = st.text_area(f"Tokenizer Config (JSON, Optional)", value=current_tokenizer_config, key=f"edit_tokenizer_config_{team.name}_{i}")
+                                edited_model_kwargs_json = st.text_area(f"Model Kwargs (JSON, Optional)", value=current_model_kwargs, key=f"edit_model_kwargs_{team.name}_{i}")
                             
                             if edited_model_id: # Only add if model ID is provided
                                 edited_members.append(ModelConfig(
@@ -334,7 +574,21 @@ def render_team_manager():
                         update_submitted = st.form_submit_button("Update Team")
                         if update_submitted:
                             if edited_team_name and edited_members:
-                                updated_team = Team(name=edited_team_name, role=edited_team_role, members=edited_members, description=edited_team_description, content_analysis_system_prompt=edited_ca_system_prompt, content_analysis_user_prompt_template=edited_ca_user_prompt_template, decomposition_system_prompt=edited_decomp_system_prompt, decomposition_user_prompt_template=edited_decomp_user_prompt_template)
+                                updated_team = Team(name=edited_team_name, role=edited_team_role, members=edited_members, description=edited_team_description, 
+                                                    content_analysis_system_prompt=edited_ca_system_prompt, 
+                                                    content_analysis_user_prompt_template=edited_ca_user_prompt_template, 
+                                                    decomposition_system_prompt=edited_decomp_system_prompt, 
+                                                    decomposition_user_prompt_template=edited_decomp_user_prompt_template,
+                                                    solver_system_prompt=edited_solver_system_prompt,
+                                                    solver_user_prompt_template=edited_solver_user_prompt_template,
+                                                    patcher_system_prompt=edited_patcher_system_prompt,
+                                                    patcher_user_prompt_template=edited_patcher_user_prompt_template,
+                                                    assembler_system_prompt=edited_assembler_system_prompt,
+                                                    assembler_user_prompt_template=edited_assembler_user_prompt_template,
+                                                    red_team_system_prompt=edited_red_team_system_prompt,
+                                                    red_team_user_prompt_template=edited_red_team_user_prompt_template,
+                                                    gold_team_system_prompt=edited_gold_team_system_prompt,
+                                                    gold_team_user_prompt_template=edited_gold_team_user_prompt_template)
                                 if team_manager.update_team(team.name, updated_team):
                                     st.success(f"Team '{edited_team_name}' updated successfully!")
                                     st.session_state.team_manager = TeamManager() # Reload to refresh UI
