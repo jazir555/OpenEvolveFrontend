@@ -25,7 +25,7 @@ from openevolve_integration import run_unified_evolution, create_comprehensive_o
 team_manager = TeamManager()
 gauntlet_manager = GauntletManager()
 
-def _request_openai_compatible_chat(
+from llm_utils import _request_openai_compatible_chat
     api_key: str,
     base_url: str,
     model: str,
@@ -952,24 +952,7 @@ def run_sovereign_workflow(
     if workflow_state.current_stage == "Manual Review & Override":
         st.info("Awaiting user review and approval of the decomposition plan in the UI.")
         workflow_state.status = "awaiting_user_input"
-        
-        # Dynamically render the manual review panel and get user's decision
-        from ui_components import render_manual_review_panel # Import here to avoid circular dependency
-        approval_status, approved_plan = render_manual_review_panel(workflow_state.decomposition_plan)
-
-        if approval_status == "approved":
-            workflow_state.decomposition_plan = approved_plan
-            st.success(f"[Manual Review & Override] Decomposition plan approved. Resuming workflow.")
-            workflow_state.current_stage = "Sub-Problem Solving Loop" # Transition to the next stage.
-            workflow_state.status = "running"
-            workflow_state.progress = 0.5 # Update overall progress.
-            st.rerun() # Rerun to immediately proceed to the next stage
-        elif approval_status == "rejected":
-            st.error("[Manual Review & Override] Decomposition plan rejected by user. Workflow terminated.")
-            workflow_state.status = "failed"
-            return
-        else:
-            return # Still awaiting user input, so exit and let Streamlit re-render.
+        return # Pause execution and wait for UI interaction
 
     # The block below is no longer needed as the transition is handled directly above.
     # if workflow_state.current_stage == "Sub-Problem Solving Loop" and workflow_state.decomposition_plan and workflow_state.decomposition_plan.sub_problems and workflow_state.status != "running":
@@ -1567,7 +1550,7 @@ def generate_solution_for_sub_problem(sub_problem: SubProblem, team: Team, conte
                 openevolve_config = create_comprehensive_openevolve_config(**openevolve_config_params)
     
                 try:
-                    result = run_unified_evolution(openevolve_config)
+                    result = run_unified_evolution(**openevolve_config)
                     if result and result.get("success") and result.get("best_solution"):
                         generated_solution_content = result["best_solution"]
                         st.success(f"Solution generated for {sub_problem.id} using OpenEvolve ({sub_problem.ai_suggested_evolution_mode}).")
