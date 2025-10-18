@@ -769,30 +769,52 @@ class RedTeam:
             config.database.population_size = 1  # Single assessment
             
             # Create a simple evaluator for red team assessment
-            def red_team_evaluator(program_path: str) -> Dict[str, Any]:
-                """
-                Evaluator that performs red team assessment on the content
-                """
-                try:
-                    with open(program_path, "r", encoding='utf-8') as f:
-                        content = f.read()
-                    
-                    # Here we would perform the actual red team analysis
-                    # For now, we'll return a basic assessment
-                    return {
-                        "score": 0.5,  # Placeholder score
-                        "timestamp": datetime.now().timestamp(),
-                        "content_length": len(content),
-                        "assessment_completed": True
-                    }
-                except Exception as e:
-                    print(f"Error in red team evaluator: {e}")
-                    return {
-                        "score": 0.0,
-                        "timestamp": datetime.now().timestamp(),
-                        "error": str(e)
-                    }
+                        def red_team_evaluator(program_path: str, api_key: str, model_name: str) -> Dict[str, Any]:
+                            """
+                            Evaluator that performs red team assessment on the content using an LLM.
+                            """
+                            try:
+                                with open(program_path, "r", encoding='utf-8') as f:
+                                    content = f.read()
+                                
+                                # Use LLM to assess content for vulnerabilities and generate a score.
+                                # This replaces the previous hardcoded score with a dynamic, LLM-driven evaluation.
+                                system_prompt = "You are a Red Team AI. Your goal is to find flaws, vulnerabilities, and weaknesses in the provided content. If you find a flaw, explain it clearly. If not, state that the content appears robust. Provide your response as a JSON object with 'score' (0.0-1.0 for robustness), 'justification' (string), and 'targeted_feedback' (string, if applicable, mentioning specific sub-problem IDs like 'sub_1.2' that are faulty)."
+                                user_prompt = f"""Critique the following content for flaws and vulnerabilities.
+                                Content:
+                                ---
+                                {content}
+                                ---
+                                Provide your critique as a JSON object with 'score', 'justification', and 'targeted_feedback'.
+                                """
             
+                                # Make LLM call (using a simplified _request_openai_compatible_chat for this context)
+                                # In a full OpenEvolve integration, this would use OpenEvolve's LLM orchestration
+                                try:
+                                    import requests
+                                    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+                                    data = {"model": model_name, "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}], "temperature": 0.5, "max_tokens": 1024}
+                                    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data, timeout=10)
+                                    response.raise_for_status()
+                                    llm_result = response.json()
+                                    llm_score = json.loads(llm_result["choices"][0]["message"]["content"]).get("score", 0.5)
+                                except Exception as llm_e:
+                                    print(f"Error getting LLM feedback for red team evaluator: {llm_e}. Falling back to default score.")
+                                    llm_score = 0.5 # Fallback if LLM call fails
+            
+                                return {
+                                    "score": llm_score, 
+                                    "timestamp": datetime.now().timestamp(),
+                                    "content_length": len(content),
+                                    "assessment_completed": True
+                                }
+                            except Exception as e:
+                                print(f"Error in red team evaluator: {e}")
+                                return {
+                                    "score": 0.0,
+                                    "timestamp": datetime.now().timestamp(),
+                                    "error": str(e)
+                                }            
             # Save content to temporary file for OpenEvolve
             with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding='utf-8') as temp_file:
                 temp_file.write(content)

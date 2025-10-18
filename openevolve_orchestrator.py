@@ -1377,39 +1377,10 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
         workflow_state: WorkflowState = st.session_state.active_sovereign_workflow
         st.subheader(f"👑 Sovereign-Grade Workflow: {workflow_state.workflow_id}")
         
-        # Call the workflow engine to continue execution
-        # This is where Streamlit's rerun mechanism is crucial.
-        # The run_sovereign_workflow function will update the workflow_state
-        # and then rerun the script, which will re-render this monitoring tab.
-        run_sovereign_workflow(
-            workflow_state=workflow_state,
-            content_analyzer_team=workflow_state.content_analyzer_team,
-            planner_team=workflow_state.planner_team,
-            solver_team=workflow_state.solver_team,
-            patcher_team=workflow_state.patcher_team,
-            assembler_team=workflow_state.assembler_team,
-            sub_problem_red_gauntlet=workflow_state.sub_problem_red_gauntlet,
-            sub_problem_gold_gauntlet=workflow_state.sub_problem_gold_gauntlet,
-            final_red_gauntlet=workflow_state.final_red_gauntlet,
-            final_gold_gauntlet=workflow_state.final_gold_gauntlet,
-            max_refinement_loops=workflow_state.max_refinement_loops
-        )
-        
-        # Display current status
-        st.markdown(f"**Current Stage**: `{workflow_state.current_stage}`")
-        if workflow_state.current_sub_problem_id:
-            st.markdown(f"**Working on Sub-Problem**: `{workflow_state.current_sub_problem_id}`")
-        if workflow_state.current_gauntlet_name:
-            st.markdown(f"**Running Gauntlet**: `{workflow_state.current_gauntlet_name}`")
-        
-        st.progress(workflow_state.progress)
-        st.info(f"Status: {workflow_state.status.capitalize()}")
-
         # Handle Manual Review & Override stage
         if workflow_state.current_stage == "Manual Review & Override":
             if workflow_state.status == "awaiting_user_input":
                 st.warning("Please review and approve the decomposition plan below to continue the workflow.")
-                # This function now returns a tuple: (status, plan)
                 approval_status, approved_plan = render_manual_review_panel(workflow_state.decomposition_plan)
                 
                 if approval_status == "approved":
@@ -1422,14 +1393,40 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
                     workflow_state.status = "failed"
                     st.error("Workflow terminated due to plan rejection.")
                     if "active_sovereign_workflow" in st.session_state:
-                        del st.session_state.active_sovereign_workflow # Clear active workflow
-                    st.rerun() # Rerun to clear the panel and show termination status
-                # If status is "pending", do nothing and wait for the next user interaction.
-                return # Exit to prevent further execution until user input is handled
+                        del st.session_state.active_sovereign_workflow
+                    st.rerun()
+                return
             else:
-                # This case handles the transition from the previous stage into manual review
                 workflow_state.status = "awaiting_user_input"
-                st.rerun() # Rerun to render the manual review panel
+                st.rerun()
+
+        # Call the workflow engine to continue execution if not in a waiting state
+        if workflow_state.status == "running":
+            run_sovereign_workflow(
+                workflow_state=workflow_state,
+                content_analyzer_team=workflow_state.content_analyzer_team,
+                planner_team=workflow_state.planner_team,
+                solver_team=workflow_state.solver_team,
+                patcher_team=workflow_state.patcher_team,
+                assembler_team=workflow_state.assembler_team,
+                sub_problem_red_gauntlet=workflow_state.sub_problem_red_gauntlet,
+                sub_problem_gold_gauntlet=workflow_state.sub_problem_gold_gauntlet,
+                final_red_gauntlet=workflow_state.final_red_gauntlet,
+                final_gold_gauntlet=workflow_state.final_gold_gauntlet,
+                max_refinement_loops=workflow_state.max_refinement_loops,
+                # NEW: Pass the solver generation gauntlet
+                solver_generation_gauntlet=getattr(workflow_state, 'solver_generation_gauntlet', None)
+            )
+
+        # Display current status
+        st.markdown(f"**Current Stage**: `{workflow_state.current_stage}`")
+        if workflow_state.current_sub_problem_id:
+            st.markdown(f"**Working on Sub-Problem**: `{workflow_state.current_sub_problem_id}`")
+        if workflow_state.current_gauntlet_name:
+            st.markdown(f"**Running Gauntlet**: `{workflow_state.current_gauntlet_name}`")
+        
+        st.progress(workflow_state.progress)
+        st.info(f"Status: {workflow_state.status.capitalize()}
 
         if workflow_state.status == "completed":
             st.success("Workflow completed successfully!")

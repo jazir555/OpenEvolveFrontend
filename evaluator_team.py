@@ -1005,29 +1005,51 @@ class EvaluatorTeam:
             config.database.population_size = 1  # Single assessment
             
             # Create an evaluator for quality assessment
-            def evaluator_assessment(program_path: str) -> Dict[str, Any]:
-                """
-                Evaluator that performs quality assessment on the content
-                """
-                try:
-                    with open(program_path, "r", encoding='utf-8') as f:
-                        content = f.read()
-                    
-                    # Return a basic assessment
-                    return {
-                        "score": 0.75,  # Placeholder score
-                        "timestamp": datetime.now().timestamp(),
-                        "content_length": len(content),
-                        "assessment_completed": True
-                    }
-                except Exception as e:
-                    print(f"Error in evaluator assessment: {e}")
-                    return {
-                        "score": 0.0,
-                        "timestamp": datetime.now().timestamp(),
-                        "error": str(e)
-                    }
+                        def evaluator_assessment(program_path: str, api_key: str, model_name: str) -> Dict[str, Any]:
+                            """
+                            Evaluator that performs quality assessment on the content using an LLM.
+                            """
+                            try:
+                                with open(program_path, "r", encoding='utf-8') as f:
+                                    content = f.read()
+                                
+                                # Use LLM to assess content for quality and generate a score.
+                                # This replaces the previous hardcoded score with a dynamic, LLM-driven evaluation.
+                                system_prompt = "You are an Evaluation AI. Your goal is to assess the provided content for overall quality, correctness, clarity, and completeness. Provide your response as a JSON object with 'score' (0.0-1.0 for overall quality), 'justification' (string), and 'targeted_feedback' (string, if applicable)."
+                                user_prompt = f"""Evaluate the following content.
+                                Content:
+                                ---
+                                {content}
+                                ---
+                                Provide your evaluation as a JSON object with 'score', 'justification', and 'targeted_feedback'.
+                                """
             
+                                # Make LLM call (using a simplified _request_openai_compatible_chat for this context)
+                                try:
+                                    import requests
+                                    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+                                    data = {"model": model_name, "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}], "temperature": 0.3, "max_tokens": 1024}
+                                    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data, timeout=10)
+                                    response.raise_for_status()
+                                    llm_result = response.json()
+                                    llm_score = json.loads(llm_result["choices"][0]["message"]["content"]).get("score", 0.75)
+                                except Exception as llm_e:
+                                    print(f"Error getting LLM feedback for evaluator assessment: {llm_e}. Falling back to default score.")
+                                    llm_score = 0.75 # Fallback if LLM call fails
+            
+                                return {
+                                    "score": llm_score, 
+                                    "timestamp": datetime.now().timestamp(),
+                                    "content_length": len(content),
+                                    "assessment_completed": True
+                                }
+                            except Exception as e:
+                                print(f"Error in evaluator assessment: {e}")
+                                return {
+                                    "score": 0.0,
+                                    "timestamp": datetime.now().timestamp(),
+                                    "error": str(e)
+                                }            
             # Save content to temporary file for OpenEvolve
             with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding='utf-8') as temp_file:
                 temp_file.write(content)

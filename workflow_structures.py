@@ -169,4 +169,4 @@ class WorkflowState:
     final_red_gauntlet: Optional[GauntletDefinition] = None
     final_gold_gauntlet: Optional[GauntletDefinition] = None
     max_refinement_loops: int = 3
-    problem_statement: str = "" # The initial problem statement
+

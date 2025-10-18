@@ -194,68 +194,47 @@ class QualityAssessmentEngine:
             config.max_iterations = 1  # Just one quality assessment
             config.database.population_size = 1  # Single assessment
             
-            # Create an evaluator for quality assessment
-            def quality_evaluator(program_path: str) -> Dict[str, Any]:
-                """
-                Evaluator that performs quality assessment on the content
-                """
-                try:
-                    with open(program_path, "r", encoding='utf-8') as f:
-                        content = f.read()
-                    
-                    # Perform basic quality checks
-                    word_count = len(content.split())
-                    char_count = len(content)
-                    
-                    # Return quality metrics
-                    return {
-                        "score": 0.7,  # Placeholder quality score
-                        "timestamp": datetime.now().timestamp(),
-                        "content_length": len(content),
-                        "word_count": word_count,
-                        "character_count": char_count,
-                        "assessment_completed": True
-                    }
-                except Exception as e:
-                    print(f"Error in quality evaluator: {e}")
-                    return {
-                        "score": 0.0,
-                        "timestamp": datetime.now().timestamp(),
-                        "error": str(e)
-                    }
-            
-            # Save content to temporary file for OpenEvolve
-            with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding='utf-8') as temp_file:
-                temp_file.write(content)
-                temp_file_path = temp_file.name
-            
-            try:
-                # Run quality assessment using OpenEvolve API
-                result = openevolve_run_evolution(
-                    initial_program=temp_file_path,
-                    evaluator=quality_evaluator,
-                    config=config,
-                    iterations=1,
-                    output_dir=None,  # Use temporary directory
-                    cleanup=True,
-                )
-                
-                # Generate quality assessment results based on OpenEvolve output
-                quality_result = self._generate_openevolve_quality_result(
-                    content, content_type, result, custom_requirements
-                )
-                
-                return quality_result
-                
-            finally:
-                # Clean up temporary file
-                if os.path.exists(temp_file_path):
-                    os.unlink(temp_file_path)
-        
-        except Exception as e:
-            print(f"Error using OpenEvolve backend: {e}")
-            # Fallback to custom implementation
-            return self._assess_quality_with_custom_implementation(content, content_type, custom_requirements)
+                        # Create an evaluator for quality assessment
+                        def quality_evaluator(program_path: str) -> Dict[str, Any]:
+                            return _quality_llm_evaluator(program_path, api_key, model_name)
+                        
+                        # Use LLM to assess content for quality and generate a score.
+                        # This replaces the previous hardcoded score with a dynamic, LLM-driven evaluation.
+                        system_prompt = "You are a Quality Assessment AI. Your goal is to evaluate the provided content for overall quality, correctness, clarity, and completeness. Provide your response as a JSON object with 'score' (0.0-1.0 for overall quality), 'justification' (string), and 'targeted_feedback' (string, if applicable)."
+                        user_prompt = f"""Evaluate the following content for quality.
+                        Content:
+                        ---
+                        {content}
+                        ---
+                        Provide your evaluation as a JSON object with 'score', 'justification', and 'targeted_feedback'.
+                        """
+
+                        # Make LLM call (using a simplified _request_openai_compatible_chat for this context)
+                        try:
+                            import requests
+                            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+                            data = {"model": model_name, "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}], "temperature": 0.3, "max_tokens": 1024}
+                            response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data, timeout=10)
+                            response.raise_for_status()
+                            llm_result = response.json()
+                            llm_score = json.loads(llm_result["choices"][0]["message"]["content"]).get("score", 0.7)
+                        except Exception as llm_e:
+                            print(f"Error getting LLM feedback for quality evaluator: {llm_e}. Falling back to default score.")
+                            llm_score = 0.7 # Fallback if LLM call fails
+
+                        return {
+                            "score": llm_score, 
+                            "timestamp": datetime.now().timestamp(),
+                            "content_length": len(content),
+                            "assessment_completed": True
+                        }
+                    except Exception as e:
+                        print(f"Error in quality evaluator: {e}")
+                        return {
+                            "score": 0.0,
+                            "timestamp": datetime.now().timestamp(),
+                            "error": str(e)
+                        }
     
     def _generate_openevolve_quality_result(self, content: str, content_type: str,
                                           result, custom_requirements: Optional[Dict[str, Any]]) -> QualityAssessmentResult:

@@ -84,7 +84,7 @@ def _request_openai_compatible_chat(
         return result["choices"][0]["message"]["content"]
         
     except Exception as e:
-        st.error(f"Error making API request: {e}")
+        st.error(f"Error making API request: {e}. Please check your API key, base URL, and network connection.")
         return None
 
 def _compose_messages(system_message: str, user_message: str) -> List[Dict[str, str]]:
@@ -99,7 +99,7 @@ def run_content_analysis(problem_statement: str, team: Team) -> Dict[str, Any]:
     Uses a Blue Team model to analyze the problem statement and extract context.
     """
     if not team.members:
-        st.error(f"Content Analysis Team '{team.name}' has no members.")
+        st.error(f"Content Analysis Team '{team.name}' has no members. Please configure the team in the Team Manager.")
         return {"error": "No team members"}
 
     # For simplicity, use the first model in the team
@@ -143,7 +143,7 @@ def run_ai_decomposition(problem_statement: str, analyzed_context: Dict[str, Any
     Uses a Blue Team (Planners) to generate a decomposition plan.
     """
     if not team.members:
-        st.error(f"Decomposition Team '{team.name}' has no members.")
+        st.error(f"Decomposition Team '{team.name}' has no members. Please configure the team in the Team Manager.")
         return DecompositionPlan(problem_statement=problem_statement, analyzed_context=analyzed_context, sub_problems=[])
 
     model_config = team.members[0] # Use the first model for now
@@ -185,10 +185,10 @@ def run_ai_decomposition(problem_statement: str, analyzed_context: Dict[str, Any
             sub_problems = [SubProblem(**sp) for sp in sub_problems_data]
             return DecompositionPlan(problem_statement=problem_statement, analyzed_context=analyzed_context, sub_problems=sub_problems)
         except json.JSONDecodeError:
-            st.error(f"AI Decomposition response was not valid JSON: {response[:500]}...")
+            st.error(f"AI Decomposition response was not valid JSON. Please check the LLM's output format. Response: {response[:500]}...")
             return DecompositionPlan(problem_statement=problem_statement, analyzed_context=analyzed_context, sub_problems=[])
     
-    st.error("Failed to get AI decomposition plan.")
+    st.error("Failed to get AI decomposition plan. Please check the LLM configuration and the problem statement.")
     return DecompositionPlan(problem_statement=problem_statement, analyzed_context=analyzed_context, sub_problems=[])
 
 import statistics # Need to import this for variance calculation
@@ -272,16 +272,12 @@ def run_gauntlet(
             previous_feedback = "\n".join([f"Model {r['model_id']}: {r['justification']} (Score: {r['score']})" for r in all_judge_reports[-len(team.members):]]) # Last round's feedback
             user_prompt_template += f"\n\nPrevious round's feedback:\n---\n{previous_feedback}\n---"
 
-        # Invoke each member of the team
-        for member in team.members:
-            st.info(f"  - Model: {member.model_id} evaluating...")
-            
-            # Get per-judge requirements for this round
-            per_judge_req = round_rule.per_judge_requirements.get(member.model_id, {})
-            min_score_for_judge = per_judge_req.get('min_score', round_rule.min_overall_confidence)
+        # Invoke each member of the team in parallel
+        member_results = []
+        threads = []
 
+        def _evaluate_member(member_idx, member, system_prompt, user_prompt_template, solution_content, min_score_for_judge):
             messages = _compose_messages(system_prompt, user_prompt_template.replace("{content}", solution_content))
-            
             response_content = _request_openai_compatible_chat(
                 api_key=member.api_key,
                 base_url=member.api_base,
@@ -296,32 +292,61 @@ def run_gauntlet(
             targeted_feedback = ""
             
             if response_content:
-                # Attempt to parse JSON response for structured feedback
                 try:
                     parsed_response = json.loads(response_content)
                     judge_score = parsed_response.get("score", 0.0)
                     justification = parsed_response.get("justification", response_content)
                     targeted_feedback = parsed_response.get("targeted_feedback", "")
                 except json.JSONDecodeError:
-                    # Fallback to regex if not JSON
                     score_match = re.search(r"score:\s*(\d+\.?\d*)", response_content, re.IGNORECASE)
                     if score_match:
                         judge_score = float(score_match.group(1))
-                        if judge_score > 1.0: judge_score /= 100.0 # Normalize if out of 100
+                        if judge_score > 1.0: judge_score /= 100.0
                     justification = response_content
             
-            st.write(f"    - {member.model_id} Score: {judge_score:.2f} (Required: {min_score_for_judge:.2f})")
-            st.caption(f"      Justification: {justification[:100]}...")
-
             judge_passed_this_round = False
             if team.role == "Red":
-                # For Red Team, a low score (finding a flaw) means it FAILED the solution, but PASSED its role as a Red Team member.
-                # The gauntlet is approved if the Red Team *fails* to find a flaw (i.e., score is high).
-                if judge_score >= min_score_for_judge: # Red Team found no significant flaw
-                    judge_passed_this_round = True
-            else: # Blue or Gold Team
                 if judge_score >= min_score_for_judge:
                     judge_passed_this_round = True
+            else:
+                if judge_score >= min_score_for_judge:
+                    judge_passed_this_round = True
+            
+            member_results.append({
+                "member_idx": member_idx,
+                "member": member,
+                "judge_score": judge_score,
+                "justification": justification,
+                "targeted_feedback": targeted_feedback,
+                "judge_passed_this_round": judge_passed_this_round
+            })
+
+        for member_idx, member in enumerate(team.members):
+            st.info(f"  - Model: {member.model_id} evaluating...")
+            per_judge_req = round_rule.per_judge_requirements.get(member.model_id, {})
+            min_score_for_judge = per_judge_req.get('min_score', round_rule.min_overall_confidence)
+
+            thread = threading.Thread(target=_evaluate_member, args=(member_idx, member, system_prompt, user_prompt_template, solution_content, min_score_for_judge))
+            threads.append(thread)
+            thread.start()
+
+        for thread in threads:
+            thread.join()
+
+        # Process results from parallel evaluations
+        # Sort results by member_idx to maintain original order if needed, though not strictly necessary for correctness.
+        member_results.sort(key=lambda x: x["member_idx"])
+
+        for result in member_results:
+            member = result["member"]
+            judge_score = result["judge_score"]
+            justification = result["justification"]
+            targeted_feedback = result["targeted_feedback"]
+            judge_passed_this_round = result["judge_passed_this_round"]
+            min_score_for_judge = round_rule.per_judge_requirements.get(member.model_id, {}).get('min_score', round_rule.min_overall_confidence)
+
+            st.write(f"    - {member.model_id} Score: {judge_score:.2f} (Required: {min_score_for_judge:.2f})")
+            st.caption(f"      Justification: {justification[:100]}...")
             
             if judge_passed_this_round:
                 round_approved_count += 1
@@ -366,16 +391,18 @@ def run_gauntlet(
     # --- Final Gauntlet Approval Check (Per-Judge Approval Counts) ---
     if overall_gauntlet_approved:
         for member in team.members:
-            per_judge_req = {} # Need to get this from GauntletDefinition if it's a global setting
-            # For now, assume per-judge approval counts are handled within round_rule or not implemented yet
-            # This part needs more thought on how per-judge approval counts across rounds are defined in GauntletDefinition
+            # Aggregate required_successful_rounds from all round_rules for this member.
+            # A judge must meet the highest `required_successful_rounds` specified for them across any round.
+            required_successful_rounds_for_member = 0
+            for round_rule in gauntlet_def.rounds:
+                per_judge_req = round_rule.per_judge_requirements.get(member.model_id, {})
+                if 'required_successful_rounds' in per_judge_req:
+                    required_successful_rounds_for_member = max(required_successful_rounds_for_member, per_judge_req['required_successful_rounds'])
             
-            # Placeholder for per-judge approval counts across rounds
-            # if successful_rounds_per_judge[member.model_id] < per_judge_req.get('required_successful_rounds', len(gauntlet_def.rounds)):
-            #     st.warning(f"Gauntlet '{gauntlet_def.name}' failed: Model {member.model_id} did not meet its required successful rounds.")
-            #     overall_gauntlet_approved = False
-            #     break
-            pass
+            if required_successful_rounds_for_member > 0 and successful_rounds_per_judge[member.model_id] < required_successful_rounds_for_member:
+                st.warning(f"Gauntlet '{gauntlet_def.name}' failed: Model {member.model_id} did not meet its required successful rounds ({successful_rounds_per_judge[member.model_id]}/{required_successful_rounds_for_member}).")
+                overall_gauntlet_approved = False
+                break
 
     report_summary = f"Gauntlet '{gauntlet_def.name}' {'APPROVED' if overall_gauntlet_approved else 'REJECTED'} by Team '{team.name}'."
     st.markdown(f"**{report_summary}**")
@@ -426,12 +453,36 @@ def run_sovereign_workflow(
     final_red_gauntlet: GauntletDefinition,
     final_gold_gauntlet: GauntletDefinition,
     
+    solver_generation_gauntlet: GauntletDefinition,
     max_refinement_loops: int = 3
 ):
+    """
+    Orchestrates the end-to-end Sovereign-Grade Decomposition Workflow.
+
+    This function manages the state transitions between different stages of the workflow,
+    invoking appropriate teams and gauntlets for content analysis, decomposition,
+    sub-problem solving, reassembly, and final verification. It also implements
+    the self-healing loop for refinement.
+
+    Args:
+        workflow_state: The current state object of the workflow.
+        content_analyzer_team: The Blue Team responsible for initial content analysis.
+        planner_team: The Blue Team responsible for generating the decomposition plan.
+        solver_team: The Blue Team responsible for generating solutions for sub-problems.
+        patcher_team: The Blue Team responsible for fixing rejected solutions.
+        assembler_team: The Blue Team responsible for reassembling the final solution.
+        sub_problem_red_gauntlet: The Red Team Gauntlet for critiquing sub-problem solutions.
+        sub_problem_gold_gauntlet: The Gold Team Gauntlet for verifying sub-problem solutions.
+        final_red_gauntlet: The Red Team Gauntlet for critiquing the final assembled solution.
+        final_gold_gauntlet: The Gold Team Gauntlet for verifying the final assembled solution.
+        solver_generation_gauntlet: The Blue Team Gauntlet used by the solver/patcher for internal generation/peer review.
+        max_refinement_loops: The maximum number of self-healing loops allowed for the final solution.
+    """
     st.info(f"Starting Sovereign-Grade Workflow: {workflow_state.workflow_id}")
     workflow_state.status = "running"
     
     team_manager = TeamManager() # Initialize team_manager
+    gauntlet_manager = GauntletManager() # Initialize gauntlet_manager
 
     # --- Stage 0: Content Analysis ---
     if workflow_state.current_stage == "INITIALIZING" or workflow_state.current_stage == "Content Analysis":
@@ -480,13 +531,13 @@ def run_sovereign_workflow(
     if workflow_state.current_stage == "Sub-Problem Solving Loop":
         st.info(f"[{workflow_state.current_stage}] Starting sub-problem solving...")
         
-        # Correctly implement topological sort for sub-problems
-        sub_problems_by_id = {sp.id: sp for sp in workflow_state.decomposition_plan.sub_problems}
-        
-        # Validate dependencies and calculate in-degrees
+        # Initialize data structures for topological sort
+        # `in_degree` stores the number of unmet dependencies for each sub-problem.
+        # `adj` (adjacency list) stores which sub-problems depend on each sub-problem.
         in_degree = {sp_id: 0 for sp_id in sub_problems_by_id}
         adj = {sp_id: [] for sp_id in sub_problems_by_id}
         
+        # Populate `in_degree` and `adj` based on sub-problem dependencies
         for sp_id, sp in sub_problems_by_id.items():
             for dep_id in sp.dependencies:
                 if dep_id in sub_problems_by_id:
@@ -497,9 +548,11 @@ def run_sovereign_workflow(
                     workflow_state.status = "failed"
                     return
         
-        # Initialize queue with sub-problems that have no dependencies and are not yet solved
+        # Initialize the queue with sub-problems that have no unmet dependencies (in-degree of 0)
+        # Only add sub-problems that have not been solved yet.
         queue = [sp_id for sp_id, degree in in_degree.items() if degree == 0 and sp_id not in workflow_state.solved_sub_problem_ids]
         
+        # Check for initial unsolvable state (e.g., circular dependencies or no starting points)
         if not queue and len(workflow_state.solved_sub_problem_ids) < len(workflow_state.decomposition_plan.sub_problems):
             st.error("Circular dependency detected or no solvable sub-problems initially. Workflow failed.")
             workflow_state.status = "failed"
@@ -507,8 +560,9 @@ def run_sovereign_workflow(
 
         processed_this_iteration = set()
 
+        # Process sub-problems in topological order
         while queue:
-            current_sp_id = queue.pop(0)
+            current_sp_id = queue.pop(0) # Get the next solvable sub-problem
             current_sub_problem = sub_problems_by_id.get(current_sp_id)
             
             if not current_sub_problem:
@@ -525,6 +579,13 @@ def run_sovereign_workflow(
             if current_sp_id in workflow_state.sub_problem_solutions:
                 generated_content = workflow_state.sub_problem_solutions[current_sp_id].content
 
+            # Determine the actual solver_generation_gauntlet for this sub-problem
+            actual_solver_generation_gauntlet = None
+            if current_sub_problem.solver_generation_gauntlet_name:
+                actual_solver_generation_gauntlet = gauntlet_manager.get_gauntlet(current_sub_problem.solver_generation_gauntlet_name)
+            else:
+                actual_solver_generation_gauntlet = solver_generation_gauntlet # Fallback to global if not specified for sub-problem
+
             # If a solution exists and was rejected, use the Patcher Team
             if current_sp_id in workflow_state.rejected_sub_problems:
                 st.info(f"  - Invoking Patcher Team for {current_sp_id} based on previous rejection.")
@@ -533,11 +594,13 @@ def run_sovereign_workflow(
                     current_sub_problem, 
                     patcher_team, 
                     {"current_solution": generated_content, "feedback_report": last_report},
-                    workflow_state.solver_generation_gauntlet
+                    actual_solver_generation_gauntlet
                 )
                 del workflow_state.rejected_sub_problems[current_sp_id] # Clear rejection status
             else:
-                generated_content = generate_solution_for_sub_problem(current_sub_problem, solver_team, {"current_solution": generated_content}, workflow_state.solver_generation_gauntlet)
+                # Determine the actual solver team for this sub-problem
+                actual_solver_team = team_manager.get_team(current_sub_problem.solver_team_name) if current_sub_problem.solver_team_name else solver_team
+                generated_content = generate_solution_for_sub_problem(current_sub_problem, actual_solver_team, {"current_solution": generated_content}, actual_solver_generation_gauntlet)
             
             if generated_content.startswith("Failed to generate solution:"):
                 st.error(f"Failed to generate solution for sub-problem {current_sp_id}. Workflow failed.")
@@ -552,42 +615,62 @@ def run_sovereign_workflow(
             )
             
             # --- Step B: Red Team Gauntlet ---
-            workflow_state.current_gauntlet_name = sub_problem_red_gauntlet.name
-            st.info(f"  - Running Red Team Gauntlet for {current_sp_id}...")
-            red_gauntlet_result = run_gauntlet(
-                solution_attempt.content,
-                sub_problem_red_gauntlet,
-                team_manager.get_team(sub_problem_red_gauntlet.team_name), # Use the assigned Red Team
-                {"sub_problem": current_sub_problem, "solution_id": solution_attempt.sub_problem_id}
-            )
-            workflow_state.all_critique_reports.append(red_gauntlet_result['critique_report'])
-            st.info("INFO: Red team gauntlet finished.")
-            
-            if not red_gauntlet_result['is_approved']:
-                st.warning(f"  - Red Team rejected solution for {current_sp_id}. Marking for rework.")
-                workflow_state.rejected_sub_problems[current_sp_id] = red_gauntlet_result['critique_report']
-                # Re-add to queue if it needs to be re-processed after patching
-                queue.append(current_sp_id) # This will cause it to be re-evaluated
-                continue # Skip Gold Team and next dependencies for this sub-problem
+            # Determine the actual red gauntlet for this sub-problem
+            actual_red_gauntlet = None
+            if current_sub_problem.red_team_gauntlet_name:
+                actual_red_gauntlet = gauntlet_manager.get_gauntlet(current_sub_problem.red_team_gauntlet_name)
+            else:
+                actual_red_gauntlet = sub_problem_red_gauntlet # Fallback to global if not specified for sub-problem
+
+            if actual_red_gauntlet:
+                workflow_state.current_gauntlet_name = actual_red_gauntlet.name
+                st.info(f"  - Running Red Team Gauntlet for {current_sp_id}...")
+                red_gauntlet_result = run_gauntlet(
+                    solution_attempt.content,
+                    actual_red_gauntlet,
+                    team_manager.get_team(actual_red_gauntlet.team_name), # Use the assigned Red Team
+                    {"sub_problem": current_sub_problem, "solution_id": solution_attempt.sub_problem_id}
+                )
+                workflow_state.all_critique_reports.append(red_gauntlet_result['critique_report'])
+                st.info("INFO: Red team gauntlet finished.")
+                
+                if not red_gauntlet_result['is_approved']:
+                    st.warning(f"  - Red Team rejected solution for {current_sp_id}. Marking for rework.")
+                    workflow_state.rejected_sub_problems[current_sp_id] = red_gauntlet_result['critique_report']
+                    # Re-add to queue if it needs to be re-processed after patching
+                    queue.append(current_sp_id) # This will cause it to be re-evaluated
+                    continue # Skip Gold Team and next dependencies for this sub-problem
+            else:
+                st.info(f"  - No Red Team Gauntlet configured for {current_sp_id}. Skipping Red Team evaluation.")
 
             st.info("INFO: About to run gold team gauntlet.")
             # --- Step C: Gold Team Gauntlet ---
-            workflow_state.current_gauntlet_name = sub_problem_gold_gauntlet.name
-            st.info(f"  - Running Gold Team Gauntlet for {current_sp_id}...")
-            gold_gauntlet_result = run_gauntlet(
-                solution_attempt.content,
-                sub_problem_gold_gauntlet,
-                team_manager.get_team(sub_problem_gold_gauntlet.team_name), # Use the assigned Gold Team
-                {"sub_problem": current_sub_problem, "solution_id": solution_attempt.sub_problem_id}
-            )
-            workflow_state.all_verification_reports.append(gold_gauntlet_result['verification_report'])
+            # Determine the actual gold gauntlet for this sub-problem
+            actual_gold_gauntlet = None
+            if current_sub_problem.gold_team_gauntlet_name:
+                actual_gold_gauntlet = gauntlet_manager.get_gauntlet(current_sub_problem.gold_team_gauntlet_name)
+            else:
+                actual_gold_gauntlet = sub_problem_gold_gauntlet # Fallback to global if not specified for sub-problem
 
-            if not gold_gauntlet_result['is_approved']:
-                st.warning(f"  - Gold Team rejected solution for {current_sp_id}. Marking for rework.")
-                workflow_state.rejected_sub_problems[current_sp_id] = gold_gauntlet_result['verification_report']
-                # Re-add to queue if it needs to be re-processed after patching
-                queue.append(current_sp_id) # This will cause it to be re-evaluated
-                continue # Skip next dependencies for this sub-problem
+            if actual_gold_gauntlet:
+                workflow_state.current_gauntlet_name = actual_gold_gauntlet.name
+                st.info(f"  - Running Gold Team Gauntlet for {current_sp_id}...")
+                gold_gauntlet_result = run_gauntlet(
+                    solution_attempt.content,
+                    actual_gold_gauntlet,
+                    team_manager.get_team(actual_gold_gauntlet.team_name), # Use the assigned Gold Team
+                    {"sub_problem": current_sub_problem, "solution_id": solution_attempt.sub_problem_id}
+                )
+                workflow_state.all_verification_reports.append(gold_gauntlet_result['verification_report'])
+
+                if not gold_gauntlet_result['is_approved']:
+                    st.warning(f"  - Gold Team rejected solution for {current_sp_id}. Marking for rework.")
+                    workflow_state.rejected_sub_problems[current_sp_id] = gold_gauntlet_result['verification_report']
+                    # Re-add to queue if it needs to be re-processed after patching
+                    queue.append(current_sp_id) # This will cause it to be re-evaluated
+                    continue # Skip next dependencies for this sub-problem
+            else:
+                st.info(f"  - No Gold Team Gauntlet configured for {current_sp_id}. Skipping Gold Team evaluation.")
             
             workflow_state.sub_problem_solutions[current_sp_id] = solution_attempt
             workflow_state.solved_sub_problem_ids.add(current_sp_id)
@@ -625,7 +708,7 @@ def run_sovereign_workflow(
         combined_solutions_input = "\n\n".join(verified_solutions_content)
 
         if not assembler_team.members:
-            st.error(f"Assembler Team '{assembler_team.name}' has no members.")
+            st.error(f"Assembler Team '{assembler_team.name}' has no members. Please configure the team in the Team Manager.")
             workflow_state.status = "failed"
             return
 
@@ -704,7 +787,7 @@ def run_sovereign_workflow(
                 # Parse feedback and identify problematic sub-problems
                 problematic_sub_problem_ids = parse_targeted_feedback(final_red_gauntlet_result['critique_report'])
                 if not problematic_sub_problem_ids:
-                    st.error("  - Red Team rejected, but no specific problematic sub-problems identified. Cannot self-heal.")
+                    st.error("  - Red Team rejected, but no specific problematic sub-problems identified. Cannot self-heal. Please review the Red Team's LLM output or prompt for actionable feedback.")
                     workflow_state.status = "failed"
                     return
 
@@ -739,7 +822,7 @@ def run_sovereign_workflow(
                 st.warning(f"  - Final Gold Team rejected solution. Initiating self-healing.")
                 problematic_sub_problem_ids = parse_targeted_feedback(final_gold_gauntlet_result['verification_report'])
                 if not problematic_sub_problem_ids:
-                    st.error("  - Gold Team rejected, but no specific problematic sub-problems identified. Cannot self-heal.")
+                    st.error("  - Gold Team rejected, but no specific problematic sub-problems identified. Cannot self-heal. Please review the Gold Team's LLM output or prompt for actionable feedback.")
                     workflow_state.status = "failed"
                     return
 
@@ -810,7 +893,7 @@ def generate_solution_for_sub_problem(sub_problem: SubProblem, team: Team, conte
     st.info(f"Generating solution for {sub_problem.id} using {team.name} via OpenEvolve...")
 
     if not team.members:
-        st.error(f"Solver Team '{team.name}' has no members.")
+        st.error(f"Solver Team '{team.name}' has no members. Please configure the team in the Team Manager.")
         return "Failed to generate solution: No team members."
 
     model_config = team.members[0] # Use the first model in the team for generation

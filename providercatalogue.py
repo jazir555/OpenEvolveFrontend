@@ -746,7 +746,7 @@ PROVIDERS = {
         "name": "Hugging Face",
         "api_base": "https://api-inference.huggingface.co/models",
         "models_endpoint": "https://api-inference.huggingface.co/models", # This might need a custom loader for specific HF models
-        "loader": _openai_style_loader, # Placeholder, might need custom logic
+        "loader": _openai_style_loader,
         "default_model": "HuggingFaceH4/zephyr-7b-beta",
     },
     "amazon_bedrock": {

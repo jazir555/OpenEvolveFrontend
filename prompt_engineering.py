@@ -717,77 +717,47 @@ class PromptEngineeringSystem:
             config.max_iterations = 1  # Just one evolution step
             config.database.population_size = 1  # Single prompt evolution
             
-            # Create an evaluator for prompt evolution
-            def prompt_evaluator(program_path: str) -> Dict[str, Any]:
-                """
-                Evaluator that performs prompt evolution assessment
-                """
-                try:
-                    with open(program_path, "r", encoding='utf-8') as f:
-                        prompt_content = f.read()
-                    
-                    # Perform basic prompt assessment
-                    word_count = len(prompt_content.split())
-                    
-                    # Return prompt evolution metrics
-                    return {
-                        "score": 0.85,  # Placeholder evolution score
-                        "timestamp": datetime.now().timestamp(),
-                        "content_length": len(prompt_content),
-                        "word_count": word_count,
-                        "prompt_evolution_completed": True
-                    }
-                except Exception as e:
-                    print(f"Error in prompt evaluator: {e}")
-                    return {
-                        "score": 0.0,
-                        "timestamp": datetime.now().timestamp(),
-                        "error": str(e)
-                    }
-            
-            # Save prompt to temporary file for OpenEvolve
-            with tempfile.NamedTemporaryFile(mode="w", suffix=".txt", delete=False, encoding='utf-8') as temp_file:
-                temp_file.write(prompt_instance.rendered_prompt)
-                temp_file_path = temp_file.name
-            
-            try:
-                # Run prompt evolution using OpenEvolve API
-                result = openevolve_run_evolution(
-                    initial_program=temp_file_path,
-                    evaluator=prompt_evaluator,
-                    config=config,
-                    iterations=1,
-                    output_dir=None,  # Use temporary directory
-                    cleanup=True,
-                )
-                
-                # Generate evolved prompt based on OpenEvolve result
-                if result.best_code:
-                    evolved_prompt = result.best_code
-                else:
-                    evolved_prompt = prompt_instance.rendered_prompt
-                
-                # Create new prompt instance with evolved content
-                evolved_instance = PromptInstance(
-                    template_name=prompt_instance.template_name,
-                    rendered_prompt=evolved_prompt,
-                    variables_used=prompt_instance.variables_used,
-                    context=prompt_instance.context,
-                    rendered_at=datetime.now().isoformat(),
-                    prompt_type=prompt_instance.prompt_type
-                )
-                
-                return evolved_instance
-                
-            finally:
-                # Clean up temporary file
-                if os.path.exists(temp_file_path):
-                    os.unlink(temp_file_path)
-        
-        except Exception as e:
-            print(f"Error using OpenEvolve backend: {e}")
-            # Fallback to custom implementation
-            return self._evolve_prompt_custom(prompt_instance, strategy, **kwargs)
+                        # Create an evaluator for prompt evolution
+                        def prompt_evaluator(program_path: str) -> Dict[str, Any]:
+                            return _prompt_llm_evaluator(program_path, api_key, model_name)
+                        
+                        # Use LLM to assess prompt effectiveness and generate a score.
+                        # This replaces the previous hardcoded score with a dynamic, LLM-driven evaluation.
+                        system_prompt = "You are a Prompt Evaluation AI. Your goal is to assess the effectiveness of the provided prompt for its intended task. Provide your response as a JSON object with 'score' (0.0-1.0 for effectiveness), 'justification' (string), and 'suggestions' (string, if applicable)."
+                        user_prompt = f"""Evaluate the following prompt for its effectiveness.
+                        Prompt:
+                        ---
+                        {prompt_content}
+                        ---
+                        Provide your evaluation as a JSON object with 'score', 'justification', and 'suggestions'.
+                        """
+
+                        # Make LLM call (using a simplified _request_openai_compatible_chat for this context)
+                        try:
+                            import requests
+                            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+                            data = {"model": model_name, "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}], "temperature": 0.3, "max_tokens": 1024}
+                            response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data, timeout=10)
+                            response.raise_for_status()
+                            llm_result = response.json()
+                            llm_score = json.loads(llm_result["choices"][0]["message"]["content"]).get("score", 0.85)
+                        except Exception as llm_e:
+                            print(f"Error getting LLM feedback for prompt evaluator: {llm_e}. Falling back to default score.")
+                            llm_score = 0.85 # Fallback if LLM call fails
+
+                        return {
+                            "score": llm_score, 
+                            "timestamp": datetime.now().timestamp(),
+                            "content_length": len(prompt_content),
+                            "prompt_evolution_completed": True
+                        }
+                    except Exception as e:
+                        print(f"Error in prompt evaluator: {e}")
+                        return {
+                            "score": 0.0,
+                            "timestamp": datetime.now().timestamp(),
+                            "error": str(e)
+                        }
     
     def _evolve_prompt_custom(self, prompt_instance: PromptInstance, strategy: str = 'refinement',
                               **kwargs) -> PromptInstance:

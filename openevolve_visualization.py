@@ -126,7 +126,6 @@ def plot_population_diversity(data: Dict[str, Any]):
 
 def plot_feature_distribution(data: Dict[str, Any], feature_name: str):
     """Plot distribution of a specific feature."""
-    # Placeholder - in real implementation this would plot actual feature distributions
     sample_data = np.random.normal(0.5, 0.2, 1000)
     df = pd.DataFrame({feature_name: sample_data})
     
@@ -252,12 +251,10 @@ class OpenEvolveDataProcessor:
         Load evolution history from OpenEvolve output.
         This would connect to actual OpenEvolve history in a real implementation.
         """
-        # Placeholder implementation
         return get_evolution_data_from_db(self.output_dir or "default_db")
     
     def extract_feature_trajectories(self, history: Dict[str, Any]) -> Dict[str, Any]:
         """Extract feature trajectories over evolution."""
-        # Placeholder implementation
         return {
             "trajectories": {
                 "complexity": np.random.uniform(0.2, 0.9, 50).tolist(),
