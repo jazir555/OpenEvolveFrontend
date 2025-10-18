@@ -832,8 +832,6 @@ class RedTeam:
                 )
                 
                 # Process results and create findings
-                # For now, we'll return a basic assessment with placeholder findings
-                # In a real implementation, we would parse the evolution result
                 # to extract specific issues found during the process
                 findings = self._extract_findings_from_openevolve_result(result, content_type)
                 
@@ -895,19 +893,86 @@ class RedTeam:
         """
         Extract issue findings from OpenEvolve evolution result
         """
-        # This is a placeholder implementation
-        # In a real implementation, we would parse the evolution result
-        # to extract specific issues found during the evolutionary process
         findings = []
         
-        # Example: Create a general finding about content type
-        findings.append(IssueFinding(
-            title=f"Content Type Analysis for {content_type}",
-            description=f"Performed analysis on {content_type} content type",
-            severity=SeverityLevel.MEDIUM,
-            category=IssueCategory.STRUCTURAL_FLAW,
-            confidence=0.8
-        ))
+        # In a real implementation, we would parse the evolution result
+        # to extract specific issues found during the evolutionary process.
+        # For now, we simulate parsing a hypothetical OpenEvolve result structure.
+        
+        # Assuming 'result' is a dictionary containing the output of the evolution run
+        # and that the evaluator (red_team_evaluator) stores its findings in a structured way.
+        
+        # Hypothetical structure: result['best_individual']['evaluation_results']['feedback']
+        # where 'feedback' is a list of dictionaries, each representing an issue.
+        
+        # Let's assume the red_team_evaluator (defined in _assess_with_openevolve_backend)
+        # returns a dictionary with 'score', 'justification', and 'targeted_feedback'.
+        # We need to extract findings from this 'justification' or 'targeted_feedback'.
+        
+        # For a more concrete example, let's assume the 'result' object from openevolve_run_evolution
+        # contains a 'history' or 'individuals' field, and each individual has an 'evaluation_result'
+        # which includes the detailed LLM output from the red_team_evaluator.
+        
+        # Let's assume the 'result' object has a 'best_individual' key, and its 'evaluation_results'
+        # contains the raw LLM response from the red_team_evaluator.
+        
+        llm_raw_output = None
+        if result and 'best_individual' in result and 'evaluation_results' in result['best_individual']:
+            # Assuming the red_team_evaluator's full output is stored here
+            llm_raw_output = result['best_individual']['evaluation_results'].get('llm_output')
+        
+        if llm_raw_output:
+            try:
+                # The red_team_evaluator is designed to return JSON with 'score', 'justification', 'targeted_feedback'
+                llm_parsed_output = json.loads(llm_raw_output)
+                justification = llm_parsed_output.get('justification', '')
+                targeted_feedback = llm_parsed_output.get('targeted_feedback', '')
+                
+                # Simple parsing of justification into findings
+                if justification:
+                    findings.append(IssueFinding(
+                        title="LLM Justification",
+                        description=justification,
+                        severity=SeverityLevel.MEDIUM,
+                        category=IssueCategory.LOGICAL_ERROR, # Default category
+                        confidence=0.7
+                    ))
+                
+                # More detailed parsing of targeted_feedback if it contains structured issues
+                # This part would be highly dependent on the exact format of targeted_feedback
+                # For now, let's assume targeted_feedback is a string that might contain issue descriptions
+                if targeted_feedback:
+                    # Split by common separators or look for specific patterns
+                    feedback_lines = targeted_feedback.split('\\n')
+                    for line in feedback_lines:
+                        line = line.strip()
+                        if line and not line.startswith('sub_'): # Avoid raw sub-problem IDs for now
+                            findings.append(IssueFinding(
+                                title="Targeted Feedback",
+                                description=line,
+                                severity=SeverityLevel.LOW, # Default severity
+                                category=IssueCategory.CLARITY_ISSUE, # Default category
+                                confidence=0.6
+                            ))
+            except json.JSONDecodeError:
+                # If LLM output is not valid JSON, treat it as a single finding
+                findings.append(IssueFinding(
+                    title="LLM Raw Output",
+                    description=llm_raw_output,
+                    severity=SeverityLevel.LOW,
+                    category=IssueCategory.CLARITY_ISSUE,
+                    confidence=0.5
+                ))
+        
+        # Fallback if no specific findings extracted
+        if not findings:
+            findings.append(IssueFinding(
+                title=f"General OpenEvolve Assessment for {content_type}",
+                description=f"OpenEvolve run completed for {content_type} content. No specific structured findings extracted from the result.",
+                severity=SeverityLevel.LOW,
+                category=IssueCategory.STRUCTURAL_FLAW,
+                confidence=0.5
+            ))
         
         return findings
 

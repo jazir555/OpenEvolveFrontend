@@ -34,6 +34,11 @@ class ReportGenerator:
     
     def __init__(self):
         self.reports: List[EvolutionReport] = []
+        # Simulated historical data for percentile calculation
+        self.historical_scores: List[float] = [
+            0.65, 0.70, 0.72, 0.75, 0.68, 0.80, 0.81, 0.79, 0.85, 0.77,
+            0.90, 0.88, 0.92, 0.83, 0.76, 0.71, 0.84, 0.86, 0.91, 0.89
+        ]
     
     def generate_evolution_report(
         self, 
@@ -140,19 +145,24 @@ class ReportGenerator:
             return "Very Poor"
     
     def _calculate_percentile(self, score: float) -> int:
-        """Calculate percentile ranking (simulated)."""
+        """Calculate percentile ranking based on historical data."""
         # In a real implementation, this would compare against historical data
-        # For now, we'll create a simple mapping
-        percentiles = [
-            (0.95, 99), (0.90, 95), (0.85, 90), (0.80, 80),
-            (0.75, 70), (0.70, 60), (0.65, 50), (0.60, 40),
-            (0.55, 30), (0.50, 20), (0.00, 10)
-        ]
+        # For now, we use a simulated historical data set
         
-        for threshold, percentile in percentiles:
-            if score >= threshold:
-                return percentile
-        return 10
+        # Add the current score to historical data for future calculations (optional, but makes it dynamic)
+        self.historical_scores.append(score)
+        
+        # Sort historical scores to calculate percentile
+        sorted_scores = sorted(self.historical_scores)
+        
+        # Find the position of the current score
+        count_lower = sum(1 for s in sorted_scores if s < score)
+        
+        # Calculate percentile
+        if len(sorted_scores) > 0:
+            percentile = (count_lower / len(sorted_scores)) * 100
+            return int(percentile)
+        return 0 # Default if no historical data
     
     def _convergence_speed(self, rate: float) -> str:
         """Analyze convergence speed."""

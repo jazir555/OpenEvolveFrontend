@@ -17,6 +17,7 @@ from ui_components import render_team_manager, render_gauntlet_designer # NEW IM
 from team_manager import TeamManager # NEW IMPORT
 from gauntlet_manager import GauntletManager # NEW IMPORT
 from workflow_engine import run_sovereign_workflow, WorkflowState # NEW IMPORT
+from workflow_history_manager import WorkflowHistoryManager # NEW IMPORT
 
 
 def get_project_root():
@@ -42,7 +43,7 @@ try:
     )
     from monitoring_system import EvolutionMonitor
     from reporting_system import create_evolution_report
-    ORCHESTRATOR_AVAILABLE = True
+    ORCHESTRATOR_AVAILABLE = True # Flag indicating if OpenEvolve orchestrator components are available
 except ImportError:
     ORCHESTRATOR_AVAILABLE = False
     print("OpenEvolve orchestrator components not available")
@@ -89,13 +90,16 @@ class WorkflowState:
 
 
 class OpenEvolveOrchestrator:
-    """Orchestrates complex OpenEvolve workflows with ALL parameters"""
+    """Orchestrates complex OpenEvolve workflows, managing their lifecycle, parameters, and monitoring.
+    It handles the creation, starting, stopping, and monitoring of various evolution workflow types.
+    """
     
     def __init__(self):
         self.workflows: Dict[str, WorkflowState] = {}
         self.active_workflows: List[str] = []
         self.monitor = EvolutionMonitor() if ORCHESTRATOR_AVAILABLE else None
         self.workflow_callbacks: Dict[str, List[Callable]] = {}
+        self.history_manager = WorkflowHistoryManager() # Initialize history manager
         
     def create_workflow(
         self, 
@@ -103,7 +107,16 @@ class OpenEvolveOrchestrator:
         parameters: Dict[str, Any],
         workflow_id: Optional[str] = None
     ) -> str:
-        """Create a new evolution workflow"""
+        """Creates a new evolution workflow and initializes its state.
+
+        Args:
+            workflow_type (EvolutionWorkflow): The type of evolution workflow to create.
+            parameters (Dict[str, Any]): A dictionary of parameters specific to the workflow type.
+            workflow_id (Optional[str]): An optional unique ID for the workflow. If None, a timestamp-based ID is generated.
+
+        Returns:
+            str: The unique ID of the created workflow.
+        """
         if not workflow_id:
             workflow_id = f"workflow_{int(time.time())}"
             
@@ -123,7 +136,14 @@ class OpenEvolveOrchestrator:
         return workflow_id
     
     def start_workflow(self, workflow_id: str) -> bool:
-        """Start an evolution workflow"""
+        """Starts the execution of a previously created workflow in a separate thread.
+
+        Args:
+            workflow_id (str): The ID of the workflow to start.
+
+        Returns:
+            bool: True if the workflow was successfully started, False otherwise.
+        """
         if workflow_id not in self.workflows:
             st.error(f"Workflow {workflow_id} not found")
             return False
@@ -143,7 +163,14 @@ class OpenEvolveOrchestrator:
         return True
     
     def stop_workflow(self, workflow_id: str) -> bool:
-        """Stop an evolution workflow"""
+        """Stops a running workflow.
+
+        Args:
+            workflow_id (str): The ID of the workflow to stop.
+
+        Returns:
+            bool: True if the workflow was successfully stopped, False otherwise.
+        """
         if workflow_id not in self.workflows:
             return False
             
@@ -151,13 +178,21 @@ class OpenEvolveOrchestrator:
         workflow.status = "cancelled"
         workflow.end_time = time.time()
         
+        # Add to history manager
+        self.history_manager.add_workflow_to_history(workflow)
+
         if workflow_id in self.active_workflows:
             self.active_workflows.remove(workflow_id)
             
         return True
     
     def _execute_workflow(self, workflow_id: str):
-        """Execute the workflow steps with ALL OpenEvolve parameters"""
+        """Executes the steps of a specific workflow, handling its stages and parameter configurations.
+        This method is designed to run in a separate thread.
+
+        Args:
+            workflow_id (str): The ID of the workflow to execute.
+        """
         try:
             workflow = self.workflows[workflow_id]
             
@@ -478,6 +513,9 @@ class OpenEvolveOrchestrator:
             self._notify_callbacks(workflow_id, "stage_changed", workflow.current_stage)
             self._notify_callbacks(workflow_id, "workflow_completed", workflow.results)
             
+            # Add to history manager
+            self.history_manager.add_workflow_to_history(workflow)
+
             # Remove from active workflows
             if workflow_id in self.active_workflows:
                 self.active_workflows.remove(workflow_id)
@@ -489,11 +527,21 @@ class OpenEvolveOrchestrator:
             workflow.results["error"] = str(e)
             self._notify_callbacks(workflow_id, "workflow_failed", str(e))
             
+            # Add to history manager
+            self.history_manager.add_workflow_to_history(workflow)
+
             if workflow_id in self.active_workflows:
                 self.active_workflows.remove(workflow_id)
     
     def get_workflow_status(self, workflow_id: str) -> Optional[Dict[str, Any]]:
-        """Get the status of a workflow"""
+        """Retrieves the current status and key metrics of a specified workflow.
+
+        Args:
+            workflow_id (str): The ID of the workflow to retrieve status for.
+
+        Returns:
+            Optional[Dict[str, Any]]: A dictionary containing the workflow's status, or None if the workflow is not found.
+        """
         if workflow_id not in self.workflows:
             return None
             
@@ -510,7 +558,11 @@ class OpenEvolveOrchestrator:
         }
     
     def get_active_workflows(self) -> List[Dict[str, Any]]:
-        """Get all active workflows"""
+        """Retrieves the status of all currently active workflows.
+
+        Returns:
+            List[Dict[str, Any]]: A list of dictionaries, each representing the status of an active workflow.
+        """
         statuses = []
         for workflow_id in self.active_workflows:
             status = self.get_workflow_status(workflow_id)
@@ -519,13 +571,24 @@ class OpenEvolveOrchestrator:
         return statuses
     
     def register_callback(self, workflow_id: str, callback: Callable):
-        """Register a callback for workflow events"""
+        """Registers a callback function to be notified of events for a specific workflow.
+
+        Args:
+            workflow_id (str): The ID of the workflow to register the callback for.
+            callback (Callable): The function to call when a workflow event occurs. It should accept (event: str, data: Any) as arguments.
+        """
         if workflow_id not in self.workflow_callbacks:
             self.workflow_callbacks[workflow_id] = []
         self.workflow_callbacks[workflow_id].append(callback)
     
     def _notify_callbacks(self, workflow_id: str, event: str, data: Any):
-        """Notify registered callbacks of an event"""
+        """Notifies all registered callbacks for a given workflow about a specific event.
+
+        Args:
+            workflow_id (str): The ID of the workflow whose callbacks should be notified.
+            event (str): The name of the event that occurred (e.g., "stage_changed", "workflow_completed").
+            data (Any): The data associated with the event.
+        """
         if workflow_id in self.workflow_callbacks:
             for callback in self.workflow_callbacks[workflow_id]:
                 try:
@@ -630,7 +693,11 @@ def render_openevolve_orchestrator_ui():
 
 
 def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
-    """Render the create workflow tab"""
+    """Renders the 'Create Workflow' tab in the Streamlit UI, allowing users to configure and start new evolution workflows.
+
+    Args:
+        orchestrator (OpenEvolveOrchestrator): The orchestrator instance to interact with.
+    """
     st.subheader("Create Workflow")
     
     # Initialize managers
@@ -812,7 +879,46 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
         }.get(x, x),
         help="Select the type of content being evolved. This helps the system apply appropriate evaluation and evolution strategies."
     )
-    
+
+    # Global Model Settings
+    with st.expander("🧠 Global Model Settings", expanded=False):
+        st.markdown("**Purpose**: Configure the default AI model and its generation parameters for non-Sovereign workflows.")
+        st.session_state.setdefault("model", "gpt-4o")
+        st.session_state.setdefault("api_key", "")
+        st.session_state.setdefault("base_url", "https://api.openai.com/v1")
+        st.session_state.setdefault("temperature", 0.7)
+        st.session_state.setdefault("top_p", 0.95)
+        st.session_state.setdefault("max_tokens", 4096)
+        st.session_state.setdefault("frequency_penalty", 0.0)
+        st.session_state.setdefault("presence_penalty", 0.0)
+        st.session_state.setdefault("seed", 42)
+        st.session_state.setdefault("stop_sequences", "")
+        st.session_state.setdefault("logprobs", False)
+        st.session_state.setdefault("top_logprobs", 0)
+        st.session_state.setdefault("response_format", "")
+        st.session_state.setdefault("stream", False)
+        st.session_state.setdefault("user", "")
+        st.session_state.setdefault("system_prompt", "")
+        st.session_state.setdefault("evaluator_system_prompt", "")
+
+        st.session_state.model = st.text_input("Model ID", value=st.session_state.model, key="global_model_id")
+        st.session_state.api_key = st.text_input("API Key", type="password", value=st.session_state.api_key, key="global_api_key")
+        st.session_state.base_url = st.text_input("API Base URL", value=st.session_state.base_url, key="global_base_url")
+        st.session_state.temperature = st.slider("Temperature", min_value=0.0, max_value=2.0, value=st.session_state.temperature, step=0.1, key="global_temperature")
+        st.session_state.top_p = st.slider("Top P", min_value=0.0, max_value=1.0, value=st.session_state.top_p, step=0.01, key="global_top_p")
+        st.session_state.max_tokens = st.number_input("Max Tokens", min_value=1, value=st.session_state.max_tokens, key="global_max_tokens")
+        st.session_state.frequency_penalty = st.slider("Frequency Penalty", min_value=-2.0, max_value=2.0, value=st.session_state.frequency_penalty, step=0.01, key="global_frequency_penalty")
+        st.session_state.presence_penalty = st.slider("Presence Penalty", min_value=-2.0, max_value=2.0, value=st.session_state.presence_penalty, step=0.01, key="global_presence_penalty")
+        st.session_state.seed = st.number_input("Seed (Optional)", value=st.session_state.seed, key="global_seed")
+        st.session_state.stop_sequences = st.text_input("Stop Sequences (comma-separated)", value=st.session_state.stop_sequences, key="global_stop_sequences")
+        st.session_state.logprobs = st.checkbox("Logprobs", value=st.session_state.logprobs, key="global_logprobs")
+        st.session_state.top_logprobs = st.number_input("Top Logprobs (0-5)", min_value=0, max_value=5, value=st.session_state.top_logprobs, key="global_top_logprobs")
+        st.session_state.response_format = st.text_input("Response Format (JSON string, e.g., '{\"type\": \"json_object\"}')", value=st.session_state.response_format, key="global_response_format")
+        st.session_state.stream = st.checkbox("Stream", value=st.session_state.stream, key="global_stream")
+        st.session_state.user = st.text_input("User ID", value=st.session_state.user, key="global_user")
+        st.session_state.system_prompt = st.text_area("System Prompt", value=st.session_state.system_prompt, height=100, help="Initial system message for the AI model.")
+        st.session_state.evaluator_system_prompt = st.text_area("Evaluator System Prompt", value=st.session_state.evaluator_system_prompt, height=100, help="System message for the evaluator AI model.")
+
     # Core Configuration with more detailed options and tooltips
     with st.expander("🎯 Core Evolution Parameters", expanded=True):
         st.markdown("**Purpose**: These parameters control the fundamental behavior of the evolution process.")
@@ -1114,47 +1220,48 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
         st.subheader("👑 Sovereign-Grade Workflow Configuration")
         st.info("Configure the specialized Teams and Gauntlets for each stage of the Sovereign-Grade Decomposition Workflow.")
 
-        # Get available teams and gauntlets
-        all_teams = team_manager.get_all_teams()
-        all_gauntlets = gauntlet_manager.get_all_gauntlets()
+        # Get available teams and gauntlets from managers.
+        team_manager = TeamManager()
+        gauntlet_manager = GauntletManager()
 
-        blue_teams = [t.name for t in all_teams if t.role == "Blue"]
-        red_teams = [t.name for t in all_teams if t.role == "Red"]
-        gold_teams = [t.name for t in all_teams if t.role == "Gold"]
+        # Filter teams by role for appropriate selection.
+        blue_teams = [t.name for t in team_manager.get_all_teams() if t.role == "Blue"]
+        red_teams = [t.name for t in team_manager.get_all_teams() if t.role == "Red"]
+        gold_teams = [t.name for t in team_manager.get_all_teams() if t.role == "Gold"]
 
-        # Filter gauntlets by team role
-        # Note: This filtering is simplified. In a real app, you'd ensure the gauntlet's team_name actually exists and has the correct role.
-        blue_gauntlets = [g.name for g in all_gauntlets if gauntlet_manager.get_gauntlet(g.name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name).role == "Blue"]
-        red_gauntlets = [g.name for g in all_gauntlets if gauntlet_manager.get_gauntlet(g.name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name).role == "Red"]
-        gold_gauntlets = [g.name for g in all_gauntlets if gauntlet_manager.get_gauntlet(g.name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name).role == "Gold"]
+        # Filter gauntlets by the role of the team they are run by.
+        # This ensures only relevant gauntlets are presented for selection.
+        blue_gauntlets = [g.name for g in gauntlet_manager.get_all_gauntlets() if gauntlet_manager.get_gauntlet(g.name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name).role == "Blue"]
+        red_gauntlets = [g.name for g in gauntlet_manager.get_all_gauntlets() if gauntlet_manager.get_gauntlet(g.name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name).role == "Red"]
+        gold_gauntlets = [g.name for g in gauntlet_manager.get_all_gauntlets() if gauntlet_manager.get_gauntlet(g.name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name) and team_manager.get_team(gauntlet_manager.get_gauntlet(g.name).team_name).role == "Gold"]
 
-        # Stage 0: Content Analysis
+        # Stage 0: Content Analysis - Select the Blue Team responsible for initial problem understanding.
         st.markdown("#### Stage 0: Content Analysis")
         content_analyzer_team_name = st.selectbox("Content Analyzer Team (Blue)", blue_teams, key="sg_content_analyzer_team")
 
-        # Stage 1: AI-Assisted Decomposition
+        # Stage 1: AI-Assisted Decomposition - Select the Blue Team responsible for breaking down the problem.
         st.markdown("#### Stage 1: AI-Assisted Decomposition")
         planner_team_name = st.selectbox("Planner Team (Blue)", blue_teams, key="sg_planner_team")
 
-        # Stage 3: Sub-Problem Solving Loop
+        # Stage 3: Sub-Problem Solving Loop - Configure teams and gauntlets for individual sub-problem resolution.
         st.markdown("#### Stage 3: Sub-Problem Solving Loop")
-        solver_team_name = st.selectbox("Solver Team (Blue)", blue_teams, key="sg_solver_team")
-        patcher_team_name = st.selectbox("Patcher Team (Blue)", blue_teams, key="sg_patcher_team")
-        solver_generation_gauntlet_name = st.selectbox("Solver Generation Gauntlet (Blue)", blue_gauntlets, key="sg_solver_generation_gauntlet")
-        sub_problem_red_gauntlet_name = st.selectbox("Sub-Problem Red Team Gauntlet", red_gauntlets, key="sg_sub_red_gauntlet")
-        sub_problem_gold_gauntlet_name = st.selectbox("Sub-Problem Gold Team Gauntlet", gold_gauntlets, key="sg_sub_gold_gauntlet")
+        solver_team_name = st.selectbox("Solver Team (Blue)", blue_teams, key="sg_solver_team", help="Team responsible for generating initial solutions for sub-problems.")
+        patcher_team_name = st.selectbox("Patcher Team (Blue)", blue_teams, key="sg_patcher_team", help="Team responsible for modifying solutions based on critique/verification reports.")
+        solver_generation_gauntlet_name = st.selectbox("Solver Generation Gauntlet (Blue)", blue_gauntlets, key="sg_solver_generation_gauntlet", help="Blue Team Gauntlet defining how solvers generate solutions (e.g., single candidate, multi-candidate peer review).")
+        sub_problem_red_gauntlet_name = st.selectbox("Sub-Problem Red Team Gauntlet", red_gauntlets, key="sg_sub_red_gauntlet", help="Red Team Gauntlet to critique individual sub-problem solutions.")
+        sub_problem_gold_gauntlet_name = st.selectbox("Sub-Problem Gold Team Gauntlet", gold_gauntlets, key="sg_sub_gold_gauntlet", help="Gold Team Gauntlet to verify individual sub-problem solutions.")
 
-        # Stage 4: Configurable Reassembly
+        # Stage 4: Configurable Reassembly - Select the Blue Team for integrating verified sub-solutions.
         st.markdown("#### Stage 4: Configurable Reassembly")
-        assembler_team_name = st.selectbox("Assembler Team (Blue)", blue_teams, key="sg_assembler_team")
+        assembler_team_name = st.selectbox("Assembler Team (Blue)", blue_teams, key="sg_assembler_team", help="Team responsible for combining all verified sub-problem solutions into a final product.")
 
-        # Stage 5: Final Verification & Self-Healing Loop
+        # Stage 5: Final Verification & Self-Healing Loop - Configure gauntlets for overall solution validation.
         st.markdown("#### Stage 5: Final Verification & Self-Healing Loop")
-        final_red_gauntlet_name = st.selectbox("Final Red Team Gauntlet", red_gauntlets, key="sg_final_red_gauntlet")
-        final_gold_gauntlet_name = st.selectbox("Final Gold Team Gauntlet", gold_gauntlets, key="sg_final_gold_gauntlet")
-        max_refinement_loops = st.number_input("Max Refinement Loops", min_value=1, value=3, key="sg_max_refinement_loops")
+        final_red_gauntlet_name = st.selectbox("Final Red Team Gauntlet", red_gauntlets, key="sg_final_red_gauntlet", help="Red Team Gauntlet to perform a final adversarial attack on the assembled solution.")
+        final_gold_gauntlet_name = st.selectbox("Final Gold Team Gauntlet", gold_gauntlets, key="sg_final_gold_gauntlet", help="Gold Team Gauntlet to perform a holistic evaluation of the final assembled solution.")
+        max_refinement_loops = st.number_input("Max Refinement Loops", min_value=1, value=3, key="sg_max_refinement_loops", help="Maximum number of times the self-healing loop can re-attempt to fix the final solution.")
 
-        # Store selected teams and gauntlets in session state for retrieval by orchestrator
+        # Store selected teams and gauntlets in session state for retrieval by orchestrator.
         st.session_state.sg_config = {
             "content_analyzer_team_name": content_analyzer_team_name,
             "planner_team_name": planner_team_name,
@@ -1204,9 +1311,20 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                 final_gold_gauntlet = gauntlet_manager.get_gauntlet(sg_config["final_gold_gauntlet_name"])
                 
                 # Basic validation for selected teams/gauntlets
-                if not all([content_analyzer_team, planner_team, solver_team, patcher_team, assembler_team,
-                            sub_problem_red_gauntlet, sub_problem_gold_gauntlet, final_red_gauntlet, final_gold_gauntlet]):
-                    st.error("❌ One or more selected Teams/Gauntlets are invalid. Please check your configuration.")
+                invalid_configs = []
+                if not content_analyzer_team: invalid_configs.append("Content Analyzer Team")
+                if not planner_team: invalid_configs.append("Planner Team")
+                if not solver_team: invalid_configs.append("Solver Team")
+                if not patcher_team: invalid_configs.append("Patcher Team")
+                if not assembler_team: invalid_configs.append("Assembler Team")
+                if not gauntlet_manager.get_gauntlet(sg_config["solver_generation_gauntlet_name"]): invalid_configs.append("Solver Generation Gauntlet")
+                if not sub_problem_red_gauntlet: invalid_configs.append("Sub-Problem Red Team Gauntlet")
+                if not sub_problem_gold_gauntlet: invalid_configs.append("Sub-Problem Gold Team Gauntlet")
+                if not final_red_gauntlet: invalid_configs.append("Final Red Team Gauntlet")
+                if not final_gold_gauntlet: invalid_configs.append("Final Gold Team Gauntlet")
+
+                if invalid_configs:
+                    st.error(f"❌ The following configurations are invalid or missing: {', '.join(invalid_configs)}. Please check your configuration.")
                     return
 
                 # Create a new WorkflowState for the Sovereign-Grade workflow
@@ -1245,28 +1363,41 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                     # Core parameters
                     "content": content,
                     "content_type": content_type,  # Use the selected content type
-                    "model_configs": [{"name": st.session_state.get("model", "gpt-4o"), "weight": 1.0}],
-                    "api_key": st.session_state.get("api_key", ""),
-                    "api_base": st.session_state.get("base_url", "https://api.openai.com/v1"),
+                    "model_configs": [{
+                        "name": st.session_state.model,
+                        "weight": 1.0,
+                        "api_key": st.session_state.api_key,
+                        "api_base": st.session_state.base_url,
+                        "temperature": st.session_state.temperature,
+                        "top_p": st.session_state.top_p,
+                        "max_tokens": st.session_state.max_tokens,
+                        "frequency_penalty": st.session_state.frequency_penalty,
+                        "presence_penalty": st.session_state.presence_penalty,
+                        "seed": st.session_state.seed,
+                        "stop_sequences": [s.strip() for s in st.session_state.stop_sequences.split(',')] if st.session_state.stop_sequences else None,
+                        "logprobs": st.session_state.logprobs if st.session_state.logprobs else None,
+                        "top_logprobs": st.session_state.top_logprobs if st.session_state.top_logprobs > 0 else None,
+                        "response_format": json.loads(st.session_state.response_format) if st.session_state.response_format else None,
+                        "stream": st.session_state.stream if st.session_state.stream else None,
+                        "user": st.session_state.user if st.session_state.user else None
+                    }],
+                    "api_key": st.session_state.api_key, # Also pass top-level for backward compatibility if needed
+                    "api_base": st.session_state.base_url, # Also pass top-level
                     "max_iterations": max_iterations,
                     "population_size": population_size,
-                    "num_islands": num_islands,
-                    "archive_size": archive_size,
-                    "feature_dimensions": feature_dimensions,
-                    "feature_bins": 10,
-                    "diversity_metric": "edit_distance",
-                    "system_message": st.session_state.get("system_prompt", ""),
-                    "evaluator_system_message": st.session_state.get("evaluator_system_prompt", ""),
-                    "temperature": temperature,
-                    "top_p": 0.95,
-                    "max_tokens": st.session_state.get("max_tokens", 4096),
+                    "system_message": st.session_state.system_prompt,
+                    "evaluator_system_message": st.session_state.evaluator_system_prompt,
+                    "temperature": st.session_state.temperature, # Also pass top-level
+                    "top_p": st.session_state.top_p, # Also pass top-level
+                    "max_tokens": st.session_state.max_tokens, # Also pass top-level
                     "elite_ratio": elite_ratio,
                     "exploration_ratio": exploration_ratio,
                     "exploitation_ratio": exploitation_ratio,
                     "checkpoint_interval": 100,
                     "migration_interval": 50,
                     "migration_rate": 0.1,
-                    "seed": st.session_state.get("seed", 42),
+                    "seed": st.session_state.seed, # Also pass top-level
+
                     
                     # Advanced evaluation parameters
                     "enable_artifacts": enable_artifacts,
@@ -1356,7 +1487,11 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
 
 
 def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
-    """Render the monitoring tab"""
+    """Renders the 'Monitoring Panel' tab in the Streamlit UI, displaying real-time status and progress of active workflows.
+
+    Args:
+        orchestrator (OpenEvolveOrchestrator): The orchestrator instance to interact with.
+    """
     st.subheader("Real-time Monitoring")
     
     # Add usage information
@@ -1372,77 +1507,80 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
     **Why This Matters**: Real-time monitoring allows you to track the evolution performance, identify bottlenecks, and make decisions about resource allocation and workflow continuation.
     """)
     
-    # Check for active Sovereign-Grade Workflow
-    if "active_sovereign_workflow" in st.session_state and st.session_state.active_sovereign_workflow.status == "running":
-        workflow_state: WorkflowState = st.session_state.active_sovereign_workflow
-        st.subheader(f"👑 Sovereign-Grade Workflow: {workflow_state.workflow_id}")
-        
-        # Handle Manual Review & Override stage
-        if workflow_state.current_stage == "Manual Review & Override":
-            if workflow_state.status == "awaiting_user_input":
-                st.warning("Please review and approve the decomposition plan below to continue the workflow.")
-                approval_status, approved_plan = render_manual_review_panel(workflow_state.decomposition_plan)
-                
-                if approval_status == "approved":
-                    workflow_state.decomposition_plan = approved_plan
-                    workflow_state.current_stage = "Sub-Problem Solving Loop"
-                    workflow_state.status = "running"
-                    st.success("Plan approved. Resuming workflow...")
+        # Check for active Sovereign-Grade Workflow and render its specific monitoring UI.
+        if "active_sovereign_workflow" in st.session_state and st.session_state.active_sovereign_workflow.status in ["running", "awaiting_user_input"]:
+            workflow_state: WorkflowState = st.session_state.active_sovereign_workflow
+            st.subheader(f"👑 Sovereign-Grade Workflow: {workflow_state.workflow_id}")
+            
+            # Handle Manual Review & Override stage: Pause execution and display the review panel.
+            if workflow_state.current_stage == "Manual Review & Override":
+                if workflow_state.status == "awaiting_user_input":
+                    st.warning("Please review and approve the decomposition plan below to continue the workflow.")
+                    # Render the manual review panel and capture user's decision.
+                    approval_status, approved_plan = render_manual_review_panel(workflow_state.decomposition_plan)
+                    
+                    if approval_status == "approved":
+                        # If approved, update the workflow state with the (potentially modified) plan and resume.
+                        workflow_state.decomposition_plan = approved_plan
+                        workflow_state.current_stage = "Sub-Problem Solving Loop"
+                        workflow_state.status = "running"
+                        st.success("Plan approved. Resuming workflow...")
+                        st.rerun() # Trigger a rerun to continue workflow execution.
+                    elif approval_status == "rejected":
+                        # If rejected, mark workflow as failed and clear it.
+                        workflow_state.status = "failed"
+                        st.error("Workflow terminated due to plan rejection.")
+                        if "active_sovereign_workflow" in st.session_state:
+                            del st.session_state.active_sovereign_workflow
+                        st.rerun() # Trigger a rerun to update the UI.
+                    return # Exit to prevent further processing until user action.
+                else:
+                    # If not yet awaiting input, set status and trigger rerun to display the panel.
+                    workflow_state.status = "awaiting_user_input"
                     st.rerun()
-                elif approval_status == "rejected":
-                    workflow_state.status = "failed"
-                    st.error("Workflow terminated due to plan rejection.")
-                    if "active_sovereign_workflow" in st.session_state:
-                        del st.session_state.active_sovereign_workflow
-                    st.rerun()
-                return
-            else:
-                workflow_state.status = "awaiting_user_input"
+    
+            # Call the workflow engine to continue execution if not in a waiting state.
+            # This is the core loop that drives the Sovereign-Grade workflow forward.
+            if workflow_state.status == "running":
+                run_sovereign_workflow(
+                    workflow_state=workflow_state,
+                    content_analyzer_team=workflow_state.content_analyzer_team,
+                    planner_team=workflow_state.planner_team,
+                    solver_team=workflow_state.solver_team,
+                    patcher_team=workflow_state.patcher_team,
+                    assembler_team=workflow_state.assembler_team,
+                    sub_problem_red_gauntlet=workflow_state.sub_problem_red_gauntlet,
+                    sub_problem_gold_gauntlet=workflow_state.sub_problem_gold_gauntlet,
+                    final_red_gauntlet=workflow_state.final_red_gauntlet,
+                    final_gold_gauntlet=workflow_state.final_gold_gauntlet,
+                    max_refinement_loops=workflow_state.max_refinement_loops,
+                    solver_generation_gauntlet=getattr(workflow_state, 'solver_generation_gauntlet', None)
+                )
+    
+            # Display current status and progress of the Sovereign-Grade Workflow.
+            st.markdown(f"**Current Stage**: `{workflow_state.current_stage}`")
+            if workflow_state.current_sub_problem_id:
+                st.markdown(f"**Working on Sub-Problem**: `{workflow_state.current_sub_problem_id}`")
+            if workflow_state.current_gauntlet_name:
+                st.markdown(f"**Running Gauntlet**: `{workflow_state.current_gauntlet_name}`")
+            
+            st.progress(workflow_state.progress)
+            st.info(f"Status: {workflow_state.status.capitalize()}")
+    
+            if workflow_state.status == "completed":
+                st.success("Workflow completed successfully!")
+                st.balloons()
+                del st.session_state.active_sovereign_workflow # Clear active workflow upon completion.
+            elif workflow_state.status == "failed":
+                st.error("Workflow failed. Check logs for details.")
+                del st.session_state.active_sovereign_workflow # Clear active workflow upon failure.
+            
+            # Auto-rerun to continue the workflow execution and update the display.
+            if workflow_state.status == "running":
+                time.sleep(1) # Small delay to make progress visible and prevent excessive reruns.
                 st.rerun()
-
-        # Call the workflow engine to continue execution if not in a waiting state
-        if workflow_state.status == "running":
-            run_sovereign_workflow(
-                workflow_state=workflow_state,
-                content_analyzer_team=workflow_state.content_analyzer_team,
-                planner_team=workflow_state.planner_team,
-                solver_team=workflow_state.solver_team,
-                patcher_team=workflow_state.patcher_team,
-                assembler_team=workflow_state.assembler_team,
-                sub_problem_red_gauntlet=workflow_state.sub_problem_red_gauntlet,
-                sub_problem_gold_gauntlet=workflow_state.sub_problem_gold_gauntlet,
-                final_red_gauntlet=workflow_state.final_red_gauntlet,
-                final_gold_gauntlet=workflow_state.final_gold_gauntlet,
-                max_refinement_loops=workflow_state.max_refinement_loops,
-                # NEW: Pass the solver generation gauntlet
-                solver_generation_gauntlet=getattr(workflow_state, 'solver_generation_gauntlet', None)
-            )
-
-        # Display current status
-        st.markdown(f"**Current Stage**: `{workflow_state.current_stage}`")
-        if workflow_state.current_sub_problem_id:
-            st.markdown(f"**Working on Sub-Problem**: `{workflow_state.current_sub_problem_id}`")
-        if workflow_state.current_gauntlet_name:
-            st.markdown(f"**Running Gauntlet**: `{workflow_state.current_gauntlet_name}`")
-        
-        st.progress(workflow_state.progress)
-        st.info(f"Status: {workflow_state.status.capitalize()}
-
-        if workflow_state.status == "completed":
-            st.success("Workflow completed successfully!")
-            st.balloons()
-            del st.session_state.active_sovereign_workflow # Clear active workflow
-        elif workflow_state.status == "failed":
-            st.error("Workflow failed. Check logs for details.")
-            del st.session_state.active_sovereign_workflow # Clear active workflow
-        
-        # Auto-rerun to continue the workflow
-        if workflow_state.status == "running":
-            time.sleep(1) # Small delay to make progress visible
-            st.rerun()
-        
-        return # Exit to prevent rendering other active workflows for now
-
+            
+            return # Exit to prevent rendering other active workflows for now.
     # Active workflows (for traditional evolution workflows)
     active_workflows = orchestrator.get_active_workflows()
     
@@ -1510,7 +1648,11 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
 
 
 def render_history_tab(orchestrator: OpenEvolveOrchestrator):
-    """Render the history tab"""
+    """Renders the 'History' tab in the Streamlit UI, displaying completed, failed, or cancelled workflows.
+
+    Args:
+        orchestrator (OpenEvolveOrchestrator): The orchestrator instance to interact with.
+    """
     st.subheader("Workflow History")
     
     # Add usage information
@@ -1526,25 +1668,10 @@ def render_history_tab(orchestrator: OpenEvolveOrchestrator):
     **Why This Matters**: Historical data provides insights into evolution patterns, parameter effectiveness, and helps with future workflow optimization.
     """)
     
-    # Simulated history data (in a real implementation, this would come from persistent storage)
-    completed_workflows = []
+    # Retrieve historical workflows from the WorkflowHistoryManager
+    historical_workflows = orchestrator.history_manager.get_all_historical_workflows()
     
-    # Get completed workflows from orchestrator (if any are already completed)
-    for wf_id, wf_state in orchestrator.workflows.items():
-        if wf_state.status in ['completed', 'failed', 'cancelled']:
-            completed_workflows.append({
-                'workflow_id': wf_id,
-                'workflow_type': wf_state.workflow_type.value,
-                'status': wf_state.status,
-                'start_time': wf_state.start_time,
-                'end_time': wf_state.end_time or time.time(),
-                'duration': (wf_state.end_time or time.time()) - wf_state.start_time,
-                'parameters': wf_state.parameters,
-                'results': wf_state.results,
-                'metrics': wf_state.metrics
-            })
-    
-    if not completed_workflows:
+    if not historical_workflows:
         st.info("No completed workflows found. Run some workflows in the 'Create Workflow' tab to see history here.")
         
         # Show some example workflow types that could help guide users
@@ -1558,62 +1685,94 @@ def render_history_tab(orchestrator: OpenEvolveOrchestrator):
         return
     
     # Display completed workflows in a table format
-    for workflow in completed_workflows:
+    for workflow_state in historical_workflows:
         with st.container(border=True):
             col1, col2, col3, col4 = st.columns(4)
             
             with col1:
-                st.markdown(f"**{workflow['workflow_id']}**")
-                st.caption(f"Type: {workflow['workflow_type'].replace('_', ' ').title()}")
+                st.markdown(f"**{workflow_state.workflow_id}**")
+                st.caption(f"Type: {workflow_state.workflow_type.value.replace('_', ' ').title()}")
             
             with col2:
-                status_emoji = "✅" if workflow['status'] == 'completed' else "❌" if workflow['status'] == 'failed' else "🛑"
-                st.metric("Status", f"{status_emoji} {workflow['status'].title()}")
+                status_emoji = "✅" if workflow_state.status == 'completed' else "❌" if workflow_state.status == 'failed' else "🛑"
+                st.metric("Status", f"{status_emoji} {workflow_state.status.title()}")
             
             with col3:
-                duration = workflow['duration']
+                duration = (workflow_state.end_time or time.time()) - workflow_state.start_time
                 st.metric("Duration", f"{duration:.1f}s")
             
             with col4:
-                start_time = time.strftime('%H:%M:%S', time.localtime(workflow['start_time']))
-                st.metric("Start Time", start_time)
+                start_time_str = time.strftime('%H:%M:%S', time.localtime(workflow_state.start_time))
+                st.metric("Start Time", start_time_str)
             
             # Expandable section for details
             with st.expander("📊 View Details", expanded=False):
-                st.write(f"**Status**: {workflow['status'].title()}")
-                st.write(f"**Duration**: {workflow['duration']:.1f} seconds")
-                st.write(f"**Start Time**: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(workflow['start_time']))}")
+                st.write(f"**Status**: {workflow_state.status.title()}")
+                st.write(f"**Duration**: {duration:.1f} seconds")
+                st.write(f"**Start Time**: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(workflow_state.start_time))}")
                 
-                if workflow['end_time']:
-                    st.write(f"**End Time**: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(workflow['end_time']))}")
+                if workflow_state.end_time:
+                    st.write(f"**End Time**: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(workflow_state.end_time))}")
                 
-                if workflow['metrics']:
-                    st.write("**Key Metrics**: ")
-                    col1, col2 = st.columns(2)
-                    for i, (key, value) in enumerate(list(workflow['metrics'].items())[:10]):  # Show first 10 metrics
-                        if i % 2 == 0:
-                            col1.write(f"- {key}: {value}")
+                # For traditional workflows, parameters and metrics are stored directly in workflow_state.parameters/metrics
+                if workflow_state.workflow_type != EvolutionWorkflow.SOVEREIGN_DECOMPOSITION:
+                    if workflow_state.metrics:
+                        st.write("**Key Metrics**: ")
+                        col1, col2 = st.columns(2)
+                        for i, (key, value) in enumerate(list(workflow_state.metrics.items())[:10]):  # Show first 10 metrics
+                            if i % 2 == 0:
+                                col1.write(f"- {key}: {value}")
+                            else:
+                                col2.write(f"- {key}: {value}")
+                    
+                    if workflow_state.results and 'error' in workflow_state.results:
+                        st.error(f"**Error**: {workflow_state.results['error']}")
+                    
+                    with st.expander("🔧 View Parameters"):
+                        params = workflow_state.parameters
+                        st.json({
+                            'content_type': params.get('content_type', 'Unknown'),
+                            'max_iterations': params.get('max_iterations', 'Unknown'),
+                            'population_size': params.get('population_size', 'Unknown'),
+                            'num_islands': params.get('num_islands', 'Unknown'),
+                            'temperature': params.get('temperature', 'Unknown'),
+                            'workflow_type_details': 'Full parameter set stored in workflow object'
+                        })
+                else: # Display details for Sovereign-Grade Decomposition workflows
+                    st.write("**Sovereign-Grade Workflow Details**")
+                    if workflow_state.decomposition_plan:
+                        st.write(f"**Problem Statement**: {workflow_state.decomposition_plan.problem_statement}")
+                        st.write(f"**Analyzed Context Summary**: {workflow_state.decomposition_plan.analyzed_context.get('summary', 'N/A')}")
+                        st.write(f"**Sub-Problems Solved**: {len(workflow_state.sub_problem_solutions)}/{len(workflow_state.decomposition_plan.sub_problems)}")
+                        
+                        with st.expander("View Decomposition Plan"):
+                            for sp in workflow_state.decomposition_plan.sub_problems:
+                                st.write(f"- **{sp.id}**: {sp.description}")
+                                if sp.id in workflow_state.sub_problem_solutions:
+                                    st.success(f"  Solution: {workflow_state.sub_problem_solutions[sp.id].content[:100]}...")
+                                else:
+                                    st.warning("  Solution not found or not yet solved.")
+                        
+                        if workflow_state.final_solution:
+                            st.success(f"**Final Solution**: {workflow_state.final_solution.content[:200]}...")
                         else:
-                            col2.write(f"- {key}: {value}")
-                
-                if workflow['results'] and 'error' in workflow['results']:
-                    st.error(f"**Error**: {workflow['results']['error']}")
-                
-                # Option to view full parameters (in a real implementation, this would load from persistent storage)
-                with st.expander("🔧 View Parameters"):
-                    params = workflow['parameters']
-                    st.json({
-                        'content_type': params.get('content_type', 'Unknown'),
-                        'max_iterations': params.get('max_iterations', 'Unknown'),
-                        'population_size': params.get('population_size', 'Unknown'),
-                        'num_islands': params.get('num_islands', 'Unknown'),
-                        'temperature': params.get('temperature', 'Unknown'),
-                        'workflow_type_details': 'Full parameter set stored in workflow object'
-                    })
-
+                            st.warning("Final solution not yet available.")
+                    
+                    if workflow_state.all_critique_reports:
+                        with st.expander("View Critique Reports"):
+                            for report in workflow_state.all_critique_reports:
+                                st.json(dataclasses.asdict(report))
+                    if workflow_state.all_verification_reports:
+                        with st.expander("View Verification Reports"):
+                            for report in workflow_state.all_verification_reports:
+                                st.json(dataclasses.asdict(report))
 
 def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
-    """Render the configuration tab"""
+    """Renders the 'Configuration' tab in the Streamlit UI, allowing users to manage workflow templates, parameter presets, and global settings.
+
+    Args:
+        orchestrator (OpenEvolveOrchestrator): The orchestrator instance to interact with.
+    """
     st.subheader("Configuration Management")
     
     st.info("""
@@ -1897,7 +2056,9 @@ def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
 
 # Initialize session state
 def initialize_orchestrator_session():
-    """Initialize orchestrator session state"""
+    """Initializes the OpenEvolveOrchestrator instance in Streamlit's session state if it doesn't already exist.
+    This ensures that the orchestrator state persists across Streamlit reruns.
+    """
     if "orchestrator" not in st.session_state:
         st.session_state.orchestrator = OpenEvolveOrchestrator()
 
@@ -1911,7 +2072,9 @@ if __name__ == "__main__":
 
 def start_openevolve_services():
     print("start_openevolve_services called")
-    """Start all OpenEvolve services."""
+    """Starts necessary OpenEvolve backend services, including checking for an LLM backend and launching the visualizer.
+    This function attempts to ensure all required background processes are running.
+    """
     # Check if LLM backend is already running on port 8000
     try:
         # Try to connect to the LLM server health endpoint
@@ -1990,14 +2153,20 @@ def start_openevolve_services():
         logging.error(f"Full traceback: {traceback.format_exc()}")
 
 def stop_openevolve_services():
-    """Stop all OpenEvolve services."""
+    """Stops the OpenEvolve backend process if it is running.
+    This ensures a clean shutdown of background services.
+    """
     if "openevolve_backend_process" in st.session_state and st.session_state.openevolve_backend_process:
         st.session_state.openevolve_backend_process.terminate()
         st.session_state.openevolve_backend_process = None
         logging.info("OpenEvolve backend process terminated.")
 
 def restart_openevolve_services():
-    """Restart all OpenEvolve services."""
+    """Restarts all OpenEvolve services by stopping and then starting them.
+    This is useful for applying configuration changes or recovering from issues.
+    """
+    stop_openevolve_services()
+    start_openevolve_services()
     stop_openevolve_services()
     time.sleep(2)
     start_openevolve_services()

@@ -3,7 +3,7 @@ import os
 from typing import List, Optional, Dict, Any
 from workflow_structures import GauntletDefinition, GauntletRoundRule # Assuming workflow_structures is in the same directory
 
-GAUNTLETS_FILE = "gauntlets.json"
+GAUNTLETS_FILE = "gauntlets.json" # Name of the file used for persisting gauntlet data.
 
 class GauntletManager:
     """
@@ -11,11 +11,19 @@ class GauntletManager:
     Persists gauntlet data to a JSON file.
     """
     def __init__(self, gauntlets_file: str = GAUNTLETS_FILE):
+        """Initializes the GauntletManager.
+
+        Args:
+            gauntlets_file (str): The name of the JSON file to use for persisting gauntlet data.
+        """
         self.gauntlets_file = gauntlets_file
         self.gauntlets: Dict[str, GauntletDefinition] = self._load_gauntlets()
 
     def _load_gauntlets(self) -> Dict[str, GauntletDefinition]:
-        """Loads gauntlets from the JSON file and deserializes them into GauntletDefinition objects."""
+        """Loads gauntlets from the JSON file and deserializes them into GauntletDefinition objects.
+        Handles deserialization of nested `GauntletRoundRule` objects, and optional fields like `description`,
+        `attack_modes`, and `generation_mode`.
+        """
         if os.path.exists(self.gauntlets_file):
             with open(self.gauntlets_file, "r") as f:
                 data = json.load(f)
@@ -38,7 +46,7 @@ class GauntletManager:
         return {}
 
     def _save_gauntlets(self):
-        """Serializes GauntletDefinition objects and saves them to the JSON file."""
+        """Serializes GauntletDefinition objects, including nested `GauntletRoundRule` objects, and saves them to the JSON file."""
         data = {}
         for name, gauntlet in self.gauntlets.items():
             # Convert GauntletDefinition object to a dictionary
