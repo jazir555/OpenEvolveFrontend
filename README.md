@@ -40,23 +40,6 @@ The OpenEvolve Frontend is a comprehensive, general-purpose content improvement 
 - **Compliance Rule Checking**: Validates content against custom compliance rules
 - **Content Validation**: Validates against domain-specific rules and requirements
 
-### 👥 Collaboration & Sharing
-- **Real-time Editing**: Multiple users can collaborate simultaneously
-- **Version Control**: Complete history with branching and tagging
-- **Commenting System**: Threaded discussions with mentions and notifications
-- **Project Sharing**: Secure sharing with password protection
-- **Collaborative Sessions**: Multi-user editing with conflict detection and resolution
-- **Presence Tracking**: See who is currently online in the session
-- **Cursor Position Sharing**: View where other users are editing in real-time
-- **Participant Management**: Add, remove, and manage collaborators with roles
-- **Collaboration Notifications**: Real-time notifications for team activities
-- **Conflict Resolution**: Automatic detection and resolution of edit conflicts
-- **Session Management**: Join, leave, and manage collaborative sessions
-- **Chat Integration**: Real-time chat for team communication
-- **Role-Based Access Control (RBAC)**: Admin, editor, and viewer roles with specific permissions
-- **Webhook Integration**: Send notifications to Discord, Microsoft Teams, and generic webhooks
-- **Email Notifications**: SMTP-based email notifications for important events
-- **Notification Management**: In-app and email notification systems
 
 ### 📊 Advanced Analytics
 - **Performance Tracking**: Real-time metrics and progress visualization
