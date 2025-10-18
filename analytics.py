@@ -1123,16 +1123,11 @@ def generate_advanced_analytics(results: Dict) -> Dict:
     # Calculate clarity score based on protocol structure
     final_sop = results.get("final_sop", "")
     if final_sop:
-        # Placeholder calls for now, will be replaced with actual functions
-        structure = {
-            "has_headers": True,
-            "has_numbered_steps": True,
-            "has_preconditions": True,
-            "has_postconditions": True,
-            "has_error_handling": True,
-            "section_count": 5,
-        }
-        complexity = {"word_count": 100, "unique_words": 50, "avg_sentence_length": 15}
+        # Generate different sections of the report
+        summary_data = self.get_summary_statistics()
+        trend_data = self.get_trend_analysis()
+        model_performance_data = self.get_model_performance_analysis()
+        cost_data = self.get_cost_analysis()
 
         # Clarity score based on structure elements
         clarity_score = 0

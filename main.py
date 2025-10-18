@@ -158,7 +158,13 @@ except ImportError as e:
     logging.error(f"Failed to import collaboration module: {e}")
     st.error(f"Failed to load collaboration module: {e}")
     def start_collaboration_server():
-        logging.warning("Collaboration server placeholder - module not available")
+        try:
+        from collaboration import CollaborationManager
+        st.session_state.collaboration_manager = CollaborationManager()
+        logging.info("Collaboration server module loaded successfully")
+    except ImportError:
+        logging.warning("Collaboration server module not available. Real-time collaboration features will be disabled.")
+        st.session_state.collaboration_manager = None
 
 try:
     from mainlayout import render_main_layout

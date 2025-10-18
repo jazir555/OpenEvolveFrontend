@@ -1731,6 +1731,9 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
         """)
 
 
+
+
+
 def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
     """Renders the 'Monitoring Panel' tab in the Streamlit UI, displaying real-time status and progress of active workflows.
 
@@ -1751,81 +1754,73 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
     
     **Why This Matters**: Real-time monitoring allows you to track the evolution performance, identify bottlenecks, and make decisions about resource allocation and workflow continuation.
     """)
-    
-        # Check for active Sovereign-Grade Workflow and render its specific monitoring UI.
-        if "active_sovereign_workflow" in st.session_state and st.session_state.active_sovereign_workflow.status in ["running", "awaiting_user_input"]:
-            workflow_state: WorkflowState = st.session_state.active_sovereign_workflow
-            st.subheader(f"👑 Sovereign-Grade Workflow: {workflow_state.workflow_id}")
+
+    # Check for active Sovereign-Grade Workflow
+    if "active_sovereign_workflow" in st.session_state:
+        workflow_state: WorkflowState = st.session_state.active_sovereign_workflow
+
+        # Always run the workflow engine if the status is 'running'
+        if workflow_state.status == "running":
+            run_sovereign_workflow(
+                workflow_state=workflow_state,
+                content_analyzer_team=workflow_state.content_analyzer_team,
+                planner_team=workflow_state.planner_team,
+                solver_team=workflow_state.solver_team,
+                patcher_team=workflow_state.patcher_team,
+                assembler_team=workflow_state.assembler_team,
+                sub_problem_red_gauntlet=workflow_state.sub_problem_red_gauntlet,
+                sub_problem_gold_gauntlet=workflow_state.sub_problem_gold_gauntlet,
+                final_red_gauntlet=workflow_state.final_red_gauntlet,
+                final_gold_gauntlet=workflow_state.final_gold_gauntlet,
+                max_refinement_loops=workflow_state.max_refinement_loops,
+                solver_generation_gauntlet=getattr(workflow_state, 'solver_generation_gauntlet', None)
+            )
+
+        st.subheader(f"👑 Sovereign-Grade Workflow: {workflow_state.workflow_id}")
+
+        # Handle UI based on the current state
+        if workflow_state.status == "awaiting_user_input" and workflow_state.current_stage == "Manual Review & Override":
+            st.warning("Please review and approve the decomposition plan below to continue the workflow.")
+            from ui_components import render_manual_review_panel # Import here to avoid potential circular dependencies at startup
+            approval_status, approved_plan = render_manual_review_panel(workflow_state.decomposition_plan)
             
-            # Handle Manual Review & Override stage: Pause execution and display the review panel.
-            if workflow_state.current_stage == "Manual Review & Override":
-                if workflow_state.status == "awaiting_user_input":
-                    st.warning("Please review and approve the decomposition plan below to continue the workflow.")
-                    # Render the manual review panel and capture user's decision.
-                    approval_status, approved_plan = render_manual_review_panel(workflow_state.decomposition_plan)
-                    
-                    if approval_status == "approved":
-                        # If approved, update the workflow state with the (potentially modified) plan and resume.
-                        workflow_state.decomposition_plan = approved_plan
-                        workflow_state.current_stage = "Sub-Problem Solving Loop"
-                        workflow_state.status = "running"
-                        st.success("Plan approved. Resuming workflow...")
-                        st.rerun() # Trigger a rerun to continue workflow execution.
-                    elif approval_status == "rejected":
-                        # If rejected, mark workflow as failed and clear it.
-                        workflow_state.status = "failed"
-                        st.error("Workflow terminated due to plan rejection.")
-                        if "active_sovereign_workflow" in st.session_state:
-                            del st.session_state.active_sovereign_workflow
-                        st.rerun() # Trigger a rerun to update the UI.
-                    return # Exit to prevent further processing until user action.
-                else:
-                    # If not yet awaiting input, set status and trigger rerun to display the panel.
-                    workflow_state.status = "awaiting_user_input"
-                    st.rerun()
-    
-            # Call the workflow engine to continue execution if not in a waiting state.
-            # This is the core loop that drives the Sovereign-Grade workflow forward.
-            if workflow_state.status == "running":
-                run_sovereign_workflow(
-                    workflow_state=workflow_state,
-                    content_analyzer_team=workflow_state.content_analyzer_team,
-                    planner_team=workflow_state.planner_team,
-                    solver_team=workflow_state.solver_team,
-                    patcher_team=workflow_state.patcher_team,
-                    assembler_team=workflow_state.assembler_team,
-                    sub_problem_red_gauntlet=workflow_state.sub_problem_red_gauntlet,
-                    sub_problem_gold_gauntlet=workflow_state.sub_problem_gold_gauntlet,
-                    final_red_gauntlet=workflow_state.final_red_gauntlet,
-                    final_gold_gauntlet=workflow_state.final_gold_gauntlet,
-                    max_refinement_loops=workflow_state.max_refinement_loops,
-                    solver_generation_gauntlet=getattr(workflow_state, 'solver_generation_gauntlet', None)
-                )
-    
-            # Display current status and progress of the Sovereign-Grade Workflow.
-            st.markdown(f"**Current Stage**: `{workflow_state.current_stage}`")
-            if workflow_state.current_sub_problem_id:
-                st.markdown(f"**Working on Sub-Problem**: `{workflow_state.current_sub_problem_id}`")
-            if workflow_state.current_gauntlet_name:
-                st.markdown(f"**Running Gauntlet**: `{workflow_state.current_gauntlet_name}`")
-            
-            st.progress(workflow_state.progress)
-            st.info(f"Status: {workflow_state.status.capitalize()}")
-    
-            if workflow_state.status == "completed":
-                st.success("Workflow completed successfully!")
-                st.balloons()
-                del st.session_state.active_sovereign_workflow # Clear active workflow upon completion.
-            elif workflow_state.status == "failed":
-                st.error("Workflow failed. Check logs for details.")
-                del st.session_state.active_sovereign_workflow # Clear active workflow upon failure.
-            
-            # Auto-rerun to continue the workflow execution and update the display.
-            if workflow_state.status == "running":
-                time.sleep(1) # Small delay to make progress visible and prevent excessive reruns.
+            if approval_status == "approved":
+                workflow_state.decomposition_plan = approved_plan
+                workflow_state.current_stage = "Sub-Problem Solving Loop"
+                workflow_state.status = "running"
+                st.success("Plan approved. Resuming workflow...")
+                st.rerun() # Rerun to continue the workflow engine
+            elif approval_status == "rejected":
+                workflow_state.status = "failed"
+                st.error("Workflow terminated due to plan rejection.")
+                if "active_sovereign_workflow" in st.session_state:
+                    del st.session_state.active_sovereign_workflow
                 st.rerun()
-            
-            return # Exit to prevent rendering other active workflows for now.
+            return # Stop further rendering in this cycle
+
+        # Display progress and status for all other states
+        st.markdown(f"**Current Stage**: `{workflow_state.current_stage}`")
+        if workflow_state.current_sub_problem_id:
+            st.markdown(f"**Working on Sub-Problem**: `{workflow_state.current_sub_problem_id}`")
+        if workflow_state.current_gauntlet_name:
+            st.markdown(f"**Running Gauntlet**: `{workflow_state.current_gauntlet_name}`")
+        
+        st.progress(workflow_state.progress)
+        st.info(f"Status: {workflow_state.status.capitalize()}")
+
+        if workflow_state.status == "completed":
+            st.success("Workflow completed successfully!")
+            st.balloons()
+            del st.session_state.active_sovereign_workflow
+        elif workflow_state.status == "failed":
+            st.error("Workflow failed. Check logs for details.")
+            del st.session_state.active_sovereign_workflow
+        
+        if workflow_state.status == "running":
+            time.sleep(1)
+            st.rerun()
+        return
+
     # Active workflows (for traditional evolution workflows)
     active_workflows = orchestrator.get_active_workflows()
     
@@ -2183,7 +2178,7 @@ def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
         else:
             st.info("No templates saved yet. Create your first template above.")
     
-    with config_tabs[1]:  # Parameter Presets
+    with config_tabs[3]:  # Parameter Presets
         st.markdown("#### ⚙️ Parameter Presets")
         st.write("Common parameter configurations for different evolution scenarios")
         
@@ -2231,7 +2226,7 @@ def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
                         st.session_state[param] = value
                     st.success(f"Applied '{preset_name}' preset!")
     
-    with config_tabs[2]:  # Global Settings
+    with config_tabs[4]:  # Global Settings
         st.markdown("#### 🌐 Global Settings")
         st.write("Configure global orchestrator behavior and defaults")
         
@@ -2312,7 +2307,7 @@ def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
                 for key, value in settings.items():
                     st.write(f"- {key}: {value}")
     
-    with config_tabs[3]:  # Import/Export
+    with config_tabs[5]:  # Import/Export
         st.markdown("#### 📤 Import/Export Configurations")
         st.write("Import or export workflow configurations for sharing or backup")
         

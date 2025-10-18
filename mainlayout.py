@@ -313,7 +313,27 @@ def render_collaboration_ui():
     <div id="notification-center" class="notification-center"></div>
     <script>
         if (!window.collaborationWebSocket) {
-            // Placeholder for WebSocket connection
+            // Establish WebSocket connection for real-time updates
+        const socket = new WebSocket("ws://localhost:8000/ws");
+
+        socket.onopen = function(event) {
+            console.log("WebSocket connection established");
+            socket.send(JSON.stringify({message: "Hello from frontend"}));
+        };
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            console.log("WebSocket message received:", data);
+            // Add logic to handle incoming messages and update the UI
+        };
+
+        socket.onclose = function(event) {
+            console.log("WebSocket connection closed");
+        };
+
+        socket.onerror = function(error) {
+            console.error("WebSocket error:", error);
+        };
             console.log("WebSocket should be initialized here.");
         }
     </script>

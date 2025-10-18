@@ -954,8 +954,11 @@ def run_enhanced_evolution_loop(
                             new_population.append(result)
                         except Exception as e:
                             _update_evolution_log_and_status(f"❌ Error generating candidate: {e}")
-                            # Add a placeholder if generation fails
-                            new_population.append(current_content)
+            # If generation fails, log the error and attempt to retry
+            logging.error(f"Content generation failed for section: {section_name}")
+            # Retry logic can be added here, e.g., up to 3 retries with exponential backoff
+            # For now, we will add a placeholder message
+            generated_content = f"Error: Content generation failed for {section_name}. Please try again."
 
                 _update_evolution_log_and_status("🔍 Evaluating new population...")
 

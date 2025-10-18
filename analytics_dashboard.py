@@ -19,13 +19,33 @@ def render_analytics_dashboard():
     if not st.session_state.get("evolution_history") and not st.session_state.get("adversarial_results"):
         st.info("No analytics data available yet. Run an evolution or adversarial testing to generate data.")
         
-        # Show dashboard overview with placeholder metrics
         st.subheader("Dashboard Overview")
         col1, col2, col3, col4 = st.columns(4)
-        col1.metric("Total Evolutions", "0", "Run evolution to start")
-        col2.metric("Best Fitness", "N/A", "Best solution quality")
-        col3.metric("Final Approval Rate", "N/A", "Quality metric")
-        col4.metric("Total Cost ($)", "0.0", "Estimated cost")
+        evolution_history = st.session_state.get("evolution_history", [])
+        total_evolutions = len(evolution_history)
+        if evolution_history:
+            latest_generation = evolution_history[-1]
+            population = latest_generation.get("population", [])
+            if population:
+                best_fitness = max(ind.get("fitness", 0) for ind in population)
+            else:
+                best_fitness = 0
+        else:
+            best_fitness = 0
+        adversarial_results = st.session_state.get("adversarial_results", {})
+        adversarial_iterations = adversarial_results.get("iterations", [])
+        if adversarial_iterations:
+            latest_iteration = adversarial_iterations[-1]
+            approval_check = latest_iteration.get("approval_check", {})
+            final_approval_rate = approval_check.get("approval_rate", 0)
+        else:
+            final_approval_rate = 0
+        total_cost = st.session_state.get("adversarial_cost_estimate_usd", 0) + \
+                     st.session_state.get("evolution_cost_estimate_usd", 0)
+        col1.metric("Total Evolutions", f"{total_evolutions:,}")
+        col2.metric("Best Fitness", f"{best_fitness:.4f}")
+        col3.metric("Final Approval Rate", f"{final_approval_rate:.1f}%")
+        col4.metric("Total Cost ($)", f"${total_cost:.4f}")
         return
     
     # Create tabs for different analytics views

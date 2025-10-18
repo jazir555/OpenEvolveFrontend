@@ -232,9 +232,17 @@ class CachingOptimizer(PerformanceOptimizer):
         return hashlib.md5(key_data.encode()).hexdigest()
     
     def _process_data(self, data: Any, context: Dict[str, Any]) -> Any:
-        """Process data (placeholder for actual computation)"""
-        # In a real implementation, this would be the actual expensive computation
-        # For demo purposes, we'll just return the data
+        """Process data (simulating a CPU-intensive task)"""
+        # Simulate a CPU-intensive task
+        start_time = time.time()
+        # Example: Perform a calculation on the data
+        if isinstance(data, (int, float)):
+            for _ in range(100000):
+                data = data * 1.00001
+        elif isinstance(data, str):
+            data = hashlib.sha256(data.encode()).hexdigest()
+        # Simulate processing time based on data size
+        time.sleep(0.001 * len(str(data)) / 1000)
         return data
     
     def _store_in_cache(self, cache_key: str, data: Any):

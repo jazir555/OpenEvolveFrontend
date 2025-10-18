@@ -289,8 +289,6 @@ class BlueTeamMember:
         if content_type != "code":
             return None
             
-        # This is a simplified diff generation
-        # In a real system, we'd implement more sophisticated diffing
         try:
             # For demonstration, we'll create a basic diff for some common issues
             if issue.category == IssueCategory.SECURITY_VULNERABILITY:
@@ -299,16 +297,13 @@ class BlueTeamMember:
                     lines = content.split('\n')
                     new_lines = []
                     for line in lines:
-                        if 'eval(' in line and 'eval(' in line:
-                            # Create a simple diff line
+                        if 'eval(' in line:
                             new_line = line.replace('eval(', 'ast.literal_eval(')
                             if line != new_line:
-                                # Create a simple diff format
-                                return f"Line with eval: {line.strip()}\nReplace with: {new_line.strip()}\n"
+                                return f"- {line.strip()}\n+ {new_line.strip()}\n"
                         new_lines.append(line)
             
-            # For other issues, we might return more generic guidance
-            return f"Fix needed for: {issue.description}\nLocation: {issue.location or 'unknown'}\n"
+            return f"No automated diff generated for: {issue.description}. Manual fix required."
         except Exception:
             return None
 

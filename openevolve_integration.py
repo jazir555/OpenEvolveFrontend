@@ -41,6 +41,9 @@ except ImportError:
     st.warning("OpenEvolve backend not available - using API-based evolution only")
 
 
+from llm_utils import _request_openai_compatible_chat
+
+
 class OpenEvolveAPI:
     def __init__(self, base_url: str, api_key: str):
         self.base_url = base_url
@@ -4504,13 +4507,44 @@ def run_unified_evolution(
     
     elif evolution_mode == "prompt_optimization":
         def default_prompt_evaluator(prompt_text):
-            # Default prompt evaluation - in a real use case, this would call an LLM to test the prompt
-            return {
-                "clarity": 0.7,
-                "effectiveness": 0.6,
-                "conciseness": 0.8,
-                "combined_score": 0.7
-            }
+            """Default prompt evaluation using an LLM to assess prompt quality."""
+            try:
+                evaluation_prompt = f"""Evaluate the following prompt based on clarity, effectiveness, and conciseness. 
+                Provide a score from 0.0 to 1.0 for each category, and a brief justification.
+                Return the output as a JSON object with keys 'clarity', 'effectiveness', 'conciseness', and 'justification'.
+
+                Prompt to evaluate:
+                ---
+                {prompt_text}
+                ---
+                """
+                
+                response = _request_openai_compatible_chat(
+                    api_key=api_key,
+                    base_url=api_base,
+                    model=model_configs[0]['name'],
+                    messages=[{"role": "user", "content": evaluation_prompt}],
+                    temperature=0.2,
+                    max_tokens=200,
+                    response_format={"type": "json_object"}
+                )
+                
+                if response:
+                    eval_result = json.loads(response)
+                    clarity = eval_result.get("clarity", 0.5)
+                    effectiveness = eval_result.get("effectiveness", 0.5)
+                    conciseness = eval_result.get("conciseness", 0.5)
+                    
+                    return {
+                        "clarity": clarity,
+                        "effectiveness": effectiveness,
+                        "conciseness": conciseness,
+                        "combined_score": (clarity + effectiveness + conciseness) / 3.0
+                    }
+            except Exception as e:
+                print(f"Error in default_prompt_evaluator: {e}") 
+            
+            return {"clarity": 0.5, "effectiveness": 0.5, "conciseness": 0.5, "combined_score": 0.5}
         
         evaluation_func = evaluation_function or default_prompt_evaluator
         
