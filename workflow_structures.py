@@ -187,6 +187,7 @@ class SubProblem:
     ai_suggested_evolution_mode: str = "standard"
     ai_suggested_complexity_score: int = 5
     ai_suggested_evaluation_prompt: str = ""
+    content_type: str = "text_general" # New: Content type for the sub-problem's solution
     solver_team_name: str = ""
     red_team_gauntlet_name: Optional[str] = None
     gold_team_gauntlet_name: str = ""
@@ -325,17 +326,90 @@ class WorkflowState:
     rejected_sub_problems: Dict[str, Any] = dataclasses.field(default_factory=dict)
     final_solution: Optional[SolutionAttempt] = None
     refinement_loop_count: int = 0
+    # Store the specific teams and gauntlets used for THIS workflow run.
+    # This ensures consistency even if global definitions in TeamManager/GauntletManager change later.
     content_analyzer_team: Optional[Team] = None
     planner_team: Optional[Team] = None
     solver_team: Optional[Team] = None
     patcher_team: Optional[Team] = None
-    solver_generation_gauntlet: Optional[GauntletDefinition] = None
     assembler_team: Optional[Team] = None
     sub_problem_red_gauntlet: Optional[GauntletDefinition] = None
     sub_problem_gold_gauntlet: Optional[GauntletDefinition] = None
     final_red_gauntlet: Optional[GauntletDefinition] = None
     final_gold_gauntlet: Optional[GauntletDefinition] = None
-    max_refinement_loops: int = 3
+    max_refinement_loops: int = 3 # Max iterations for the self-healing loop
+
+    # OpenEvolve Parameters (User-configurable via UI)
+    max_iterations: int = 100
+    population_size: int = 50
+    num_islands: int = 5
+    migration_interval: int = 10
+    migration_rate: float = 0.1
+    archive_size: int = 10
+    elite_ratio: float = 0.1
+    exploration_ratio: float = 0.7
+    exploitation_ratio: float = 0.3
+    checkpoint_interval: int = 10
+    feature_dimensions: int = 5
+    feature_bins: int = 10
+    diversity_metric: str = "cosine"
+    enable_artifacts: bool = True
+    cascade_evaluation: bool = False
+    cascade_thresholds: Optional[List[float]] = None
+    use_llm_feedback: bool = True
+    llm_feedback_weight: float = 0.5
+    parallel_evaluations: int = 4
+    distributed: bool = False
+    template_dir: str = "./templates"
+    num_top_programs: int = 5
+    num_diverse_programs: int = 5
+    use_template_stochasticity: bool = True
+    template_variations: int = 3
+    use_meta_prompting: bool = True
+    meta_prompt_weight: float = 0.5
+    include_artifacts: bool = True
+    max_artifact_bytes: int = 1048576 # 1 MB
+    artifact_security_filter: bool = True
+    early_stopping_patience: int = 10
+    convergence_threshold: float = 0.01
+    early_stopping_metric: str = "fitness"
+    memory_limit_mb: int = 2048
+    cpu_limit: float = 1.0
+    random_seed: Optional[int] = None
+    db_path: str = "./openevolve.db"
+    in_memory: bool = False
+    diff_based_evolution: bool = False
+    max_code_length: int = 10000
+    evolution_trace_enabled: bool = False
+    evolution_trace_format: str = "json"
+    evolution_trace_include_code: bool = False
+    evolution_trace_include_prompts: bool = False
+    evolution_trace_output_path: str = "./evolution_trace"
+    evolution_trace_buffer_size: int = 100
+    evolution_trace_compress: bool = False
+    log_level: str = "INFO"
+    log_dir: str = "./logs"
+    api_timeout: int = 60
+    api_retries: int = 3
+    api_retry_delay: float = 1.0
+    artifact_size_threshold: int = 5242880 # 5 MB
+    cleanup_old_artifacts: bool = True
+    artifact_retention_days: int = 7
+    diversity_reference_size: int = 100
+    max_retries_eval: int = 3
+    evaluator_timeout: int = 30
+    double_selection: bool = False
+    adaptive_feature_dimensions: bool = False
+    test_time_compute: bool = False
+    optillm_integration: bool = False
+    plugin_system: bool = False
+    hardware_optimization: bool = False
+    multi_strategy_sampling: bool = False
+    ring_topology: bool = False
+    controlled_gene_flow: bool = False
+    auto_diff: bool = False
+    symbolic_execution: bool = False
+    coevolutionary_approach: bool = False
     all_critique_reports: List[CritiqueReport] = dataclasses.field(default_factory=list)
     all_verification_reports: List[VerificationReport] = dataclasses.field(default_factory=list)
 

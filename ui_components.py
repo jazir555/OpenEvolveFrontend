@@ -149,6 +149,8 @@ def render_team_manager():
                     frequency_penalty = st.slider(f"Frequency Penalty", min_value=-2.0, max_value=2.0, value=0.0, step=0.01, key=f"new_freq_penalty_{i}")
                     presence_penalty = st.slider(f"Presence Penalty", min_value=-2.0, max_value=2.0, value=0.0, step=0.01, key=f"new_pres_penalty_{i}")
                     seed = st.number_input(f"Seed (Optional)", value=None, key=f"new_seed_{i}")
+                    n = st.number_input(f"N (Number of completions)", min_value=1, value=1, key=f"new_n_{i}")
+                    logit_bias_str = st.text_area(f"Logit Bias (JSON, Optional)", key=f"new_logit_bias_{i}")
                     stop_sequences_str = st.text_input(f"Stop Sequences (comma-separated)", key=f"new_stop_sequences_{i}")
                     logprobs = st.checkbox(f"Logprobs", key=f"new_logprobs_{i}")
                     top_logprobs = st.number_input(f"Top Logprobs (0-5)", min_value=0, max_value=5, value=0, key=f"new_top_logprobs_{i}")
@@ -200,6 +202,8 @@ def render_team_manager():
                     frequency_penalty=frequency_penalty,
                     presence_penalty=presence_penalty,
                     seed=seed if seed is not None else None,
+                    n=n,
+                    logit_bias=json.loads(logit_bias_str) if logit_bias_str else None,
                     stop_sequences=[s.strip() for s in stop_sequences_str.split(',')] if stop_sequences_str else None,
                     logprobs=logprobs if logprobs else None,
                     top_logprobs=top_logprobs if top_logprobs > 0 else None,
@@ -448,6 +452,8 @@ def render_team_manager():
                             with col2:
                                 current_presence_penalty = team.members[i].presence_penalty if i < num_existing_members else 0.0
                                 current_seed = team.members[i].seed if i < num_existing_members else None
+                                current_n = team.members[i].n if i < num_existing_members else 1
+                                current_logit_bias = json.dumps(team.members[i].logit_bias) if i < num_existing_members and team.members[i].logit_bias else ""
                                 current_stop_sequences = ", ".join(team.members[i].stop_sequences) if i < num_existing_members and team.members[i].stop_sequences else ""
                                 current_logprobs = team.members[i].logprobs if i < num_existing_members and team.members[i].logprobs is not None else False
                                 current_top_logprobs = team.members[i].top_logprobs if i < num_existing_members and team.members[i].top_logprobs is not None else 0
@@ -496,6 +502,8 @@ def render_team_manager():
                                 edited_frequency_penalty = st.slider(f"Frequency Penalty", min_value=-2.0, max_value=2.0, value=current_frequency_penalty, step=0.01, key=f"edit_freq_penalty_{team.name}_{i}")
                                 edited_presence_penalty = st.slider(f"Presence Penalty", min_value=-2.0, max_value=2.0, value=current_presence_penalty, step=0.01, key=f"edit_pres_penalty_{team.name}_{i}")
                                 edited_seed = st.number_input(f"Seed (Optional)", value=current_seed, key=f"edit_seed_{team.name}_{i}")
+                                edited_n = st.number_input(f"N (Number of completions)", min_value=1, value=current_n, key=f"edit_n_{team.name}_{i}")
+                                edited_logit_bias_str = st.text_area(f"Logit Bias (JSON, Optional)", value=current_logit_bias, key=f"edit_logit_bias_{team.name}_{i}")
                                 edited_stop_sequences_str = st.text_input(f"Stop Sequences (comma-separated)", value=current_stop_sequences, key=f"edit_stop_sequences_{team.name}_{i}")
                                 edited_logprobs = st.checkbox(f"Logprobs", value=current_logprobs, key=f"edit_logprobs_{team.name}_{i}")
                                 edited_top_logprobs = st.number_input(f"Top Logprobs (0-5)", min_value=0, max_value=5, value=current_top_logprobs, key=f"edit_top_logprobs_{team.name}_{i}")
@@ -548,6 +556,8 @@ def render_team_manager():
                                     frequency_penalty=edited_frequency_penalty,
                                     presence_penalty=edited_presence_penalty,
                                     seed=edited_seed if edited_seed is not None else None,
+                                    n=edited_n,
+                                    logit_bias=json.loads(edited_logit_bias_str) if edited_logit_bias_str else None,
                                     stop_sequences=[s.strip() for s in edited_stop_sequences_str.split(',')] if edited_stop_sequences_str else None,
                                     logprobs=edited_logprobs if edited_logprobs else None,
                                     top_logprobs=edited_top_logprobs if edited_top_logprobs > 0 else None,
@@ -753,6 +763,13 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
                 edited_ai_suggested_evolution_mode = st.text_input("Suggested Evolution Mode", value=current_sp_state.ai_suggested_evolution_mode, key=f"ai_mode_{sub_problem.id}")
                 edited_ai_suggested_complexity_score = st.number_input("Suggested Complexity Score (1-10)", min_value=1, max_value=10, value=current_sp_state.ai_suggested_complexity_score, key=f"ai_comp_{sub_problem.id}")
                 edited_ai_suggested_evaluation_prompt = st.text_area("Suggested Evaluation Prompt", value=current_sp_state.ai_suggested_evaluation_prompt, key=f"ai_eval_prompt_{sub_problem.id}")
+                edited_content_type = st.selectbox("Content Type", options=[
+                    "text_general", "code_python", "code_javascript", "document_legal", "document_medical", "document_technical", "prompt", "protocol"
+                ], index=[
+                    "text_general", "code_python", "code_javascript", "document_legal", "document_medical", "document_technical", "prompt", "protocol"
+                ].index(current_sp_state.content_type) if current_sp_state.content_type in [
+                    "text_general", "code_python", "code_javascript", "document_legal", "document_medical", "document_technical", "prompt", "protocol"
+                ] else 0, key=f"content_type_{sub_problem.id}")
                 
                 st.markdown("---")
                 st.markdown("**User Overrides (Select Teams & Gauntlets)**")
@@ -792,6 +809,7 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
                             ai_suggested_evolution_mode=edited_ai_suggested_evolution_mode,
                             ai_suggested_complexity_score=edited_ai_suggested_complexity_score,
                             ai_suggested_evaluation_prompt=edited_ai_suggested_evaluation_prompt,
+                            content_type=edited_content_type,
                             solver_team_name=final_solver_team_name,
                             red_team_gauntlet_name=final_red_gauntlet_name if final_red_gauntlet_name != "None" else None,
                             gold_team_gauntlet_name=final_gold_gauntlet_name,
