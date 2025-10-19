@@ -3,6 +3,7 @@ Blue Team (Fixers) Functionality for OpenEvolve
 Implements the Blue Team functionality described in the ultimate explanation document.
 """
 
+import os
 import json
 
 import tempfile
@@ -17,6 +18,7 @@ import random
 import copy
 import difflib
 
+from .llm_utils import _request_openai_compatible_chat, _compose_messages
 from .content_analyzer import ContentAnalyzer
 
 # Import OpenEvolve components for enhanced functionality
@@ -514,17 +516,23 @@ class BlueTeam:
             
                                 # Make LLM call (using a simplified _request_openai_compatible_chat for this context)
                                 try:
-                                    import requests
-                                    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-                                    data = {"model": model_name, "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}], "temperature": 0.3, "max_tokens": 1024}
-                                    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data, timeout=10)
-                                    response.raise_for_status()
-                                    llm_result = response.json()
-                                    llm_score = json.loads(llm_result["choices"][0]["message"]["content"]).get("score", 0.8)
-                                except Exception as llm_e:
-                                    print(f"Error getting LLM feedback for blue team evaluator: {llm_e}. Falling back to default score.")
-                                    llm_score = 0.8 # Fallback if LLM call fails
-            
+                                                                    llm_response_content = _request_openai_compatible_chat(
+                                                                        api_key=api_key,
+                                                                        base_url="https://api.openai.com/v1", # Default base URL
+                                                                        model=model_name,
+                                                                        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+                                                                        temperature=0.3,
+                                                                        max_tokens=1024,
+                                                                        timeout=10,
+                                                                        response_json_format=True # Request JSON format for structured output
+                                                                    )
+                                                                    if llm_response_content:
+                                                                        llm_parsed_response = json.loads(llm_response_content)
+                                                                        llm_score = llm_parsed_response.get("score", 0.8)
+                                                                    else:
+                                                                        print("LLM call failed for blue team evaluator. Falling back to default score.")
+                                                                        llm_score = 0.8 # Fallback if LLM call fails
+                                                
                                 return {
                                     "score": llm_score, 
                                     "timestamp": datetime.now().timestamp(),
@@ -620,36 +628,229 @@ class BlueTeam:
             # Fallback to custom implementation
             return self._apply_fixes_with_custom_implementation(content, issues, content_type)
 
-    def _generate_fixes_from_openevolve_result(self, original_content: str, fixed_content: str,
-                                             issues: List[IssueFinding]) -> List[BlueTeamFix]:
-        """
-        Generate BlueTeamFix objects from OpenEvolve result
-        """
-        fixes = []
-        
-        # For each issue, generate a corresponding fix if it was addressed
-        for issue in issues:
-            # Create a basic fix object
-            fix_suggestion = FixSuggestion(
-                issue_finding=issue,
-                fix_type=issue.category.value.replace(' ', '_').lower().replace('-', '_'),  # Map to fix type
-                fix_description=f"Addressed issue: {issue.description}",
-                priority=FixPriority.HIGH if issue.severity == SeverityLevel.CRITICAL else FixPriority.MEDIUM,
-                confidence=0.8  # Default confidence
-            )
+        def _generate_fixes_from_openevolve_result(self, original_content: str, fixed_content: str, issues: List[IssueFinding]) -> List[BlueTeamFix]:
+
+            """
+
+            Generate BlueTeamFix objects from OpenEvolve result by comparing original and fixed content.
+
+            """
+
+            fixes = []
+
             
-            fix = BlueTeamFix(
-                fix_suggestion=fix_suggestion,
-                implementation_details=f"Applied fix for {issue.title}: {issue.description}",
-                fixed_content=fixed_content,
-                fix_status="applied",
-                time_taken=0,  # Will be calculated separately
-                effectiveness_score=80  # Default effectiveness score
+
+            # Generate a diff to identify changes
+
+            diff = difflib.unified_diff(
+
+                original_content.splitlines(keepends=True),
+
+                fixed_content.splitlines(keepends=True),
+
+                fromfile='original',
+
+                tofile='fixed',
+
+                lineterm=''
+
             )
+
             
-            fixes.append(fix)
-        
-        return fixes
+
+            # Process diff to create FixSuggestion and BlueTeamFix objects
+
+            # This is a simplified interpretation of a diff for fix generation.
+
+            # In a more sophisticated implementation, we would analyze the diff contextually.
+
+            for line in diff:
+
+                if line.startswith('+') and not line.startswith('+++'):
+
+                    # Added line
+
+                    description = f"Added line: {line[1:].strip()}"
+
+                    fix_type = FixType.LOGIC_CORRECTION # Generic type
+
+                    category = IssueCategory.TECHNICAL_DEBT # Generic category
+
+                    
+
+                    # Try to link to an existing issue if description matches
+
+                    related_issue = next((issue for issue in issues if description in issue.description), None)
+
+                    issue_finding = related_issue if related_issue else IssueFinding(
+
+                        title="Content Addition",
+
+                        description=description,
+
+                        severity=SeverityLevel.LOW,
+
+                        category=category,
+
+                        confidence=0.7
+
+                    )
+
+                    
+
+                    fix_suggestion = FixSuggestion(
+
+                        issue_finding=issue_finding,
+
+                        fix_type=fix_type,
+
+                        fix_description=description,
+
+                        code_diff=line,
+
+                        priority=FixPriority.LOW,
+
+                        confidence=0.7
+
+                    )
+
+                    fixes.append(BlueTeamFix(
+
+                        fix_suggestion=fix_suggestion,
+
+                        implementation_details=f"Line added: {line[1:].strip()}",
+
+                        fixed_content=fixed_content,
+
+                        fix_status="applied",
+
+                        time_taken=0.1, # Placeholder
+
+                        effectiveness_score=70 # Placeholder
+
+                    ))
+
+                elif line.startswith('-') and not line.startswith('---'):
+
+                    # Removed line
+
+                    description = f"Removed line: {line[1:].strip()}"
+
+                    fix_type = FixType.CODE_REFACTORING # Generic type
+
+                    category = IssueCategory.TECHNICAL_DEBT # Generic category
+
+    
+
+                    # Try to link to an existing issue if description matches
+
+                    related_issue = next((issue for issue in issues if description in issue.description), None)
+
+                    issue_finding = related_issue if related_issue else IssueFinding(
+
+                        title="Content Removal",
+
+                        description=description,
+
+                        severity=SeverityLevel.LOW,
+
+                        category=category,
+
+                        confidence=0.7
+
+                    )
+
+    
+
+                    fix_suggestion = FixSuggestion(
+
+                        issue_finding=issue_finding,
+
+                        fix_type=fix_type,
+
+                        fix_description=description,
+
+                        code_diff=line,
+
+                        priority=FixPriority.LOW,
+
+                        confidence=0.7
+
+                    )
+
+                    fixes.append(BlueTeamFix(
+
+                        fix_suggestion=fix_suggestion,
+
+                        implementation_details=f"Line removed: {line[1:].strip()}",
+
+                        fixed_content=fixed_content,
+
+                        fix_status="applied",
+
+                        time_taken=0.1, # Placeholder
+
+                        effectiveness_score=70 # Placeholder
+
+                    ))
+
+            
+
+            # If no specific diffs are found but content changed, create a generic fix
+
+            if not fixes and original_content != fixed_content:
+
+                description = "Generic content modification by OpenEvolve."
+
+                issue_finding = IssueFinding(
+
+                    title="Generic Fix",
+
+                    description=description,
+
+                    severity=SeverityLevel.MEDIUM,
+
+                    category=IssueCategory.TECHNICAL_DEBT,
+
+                    confidence=0.8
+
+                )
+
+                fix_suggestion = FixSuggestion(
+
+                    issue_finding=issue_finding,
+
+                    fix_type=FixType.CODE_REFACTORING,
+
+                    fix_description=description,
+
+                    code_diff=difflib.unified_diff(original_content.splitlines(keepends=True), fixed_content.splitlines(keepends=True), fromfile='original', tofile='fixed', lineterm=''),
+
+                    priority=FixPriority.MEDIUM,
+
+                    confidence=0.8
+
+                )
+
+                fixes.append(BlueTeamFix(
+
+                    fix_suggestion=fix_suggestion,
+
+                    implementation_details="Content was modified by OpenEvolve.",
+
+                    fixed_content=fixed_content,
+
+                    fix_status="applied",
+
+                    time_taken=0.5, # Placeholder
+
+                    effectiveness_score=80 # Placeholder
+
+                ))
+
+    
+
+            return fixes
 
     def _apply_fixes_with_custom_implementation(self, content: str, issues: List[IssueFinding],
                                               content_type: str = "general",
@@ -802,23 +1003,73 @@ class BlueTeam:
         """Apply a single fix to the content"""
         start_time = time.time()
         
-        # In a real implementation, we would apply the actual fix
-        # For now, we'll simulate the fix by returning the original content
-        # with a simple modification based on the suggestion
-        
-        if content_type == "code":
-            fixed_content = self._apply_code_fix(content, suggestion)
-        elif content_type == "document":
-            fixed_content = self._apply_document_fix(content, suggestion)
-        elif content_type == "protocol":
-            fixed_content = self._apply_protocol_fix(content, suggestion)
+        fixed_content = content
+        fix_status = "skipped"
+
+        if suggestion.code_diff:
+            # Attempt to apply the diff
+            try:
+                original_lines = content.splitlines(keepends=True)
+                diff_lines = suggestion.code_diff.splitlines(keepends=True)
+                
+                # difflib.apply_patch is not directly available for unified_diff output
+                # A simple way to apply a unified diff is to reconstruct the file.
+                # This is a basic implementation and might not handle all complex diffs.
+                new_lines = []
+                original_idx = 0
+                diff_idx = 0
+                
+                while diff_idx < len(diff_lines):
+                    line = diff_lines[diff_idx]
+                    if line.startswith('---') or line.startswith('+++') or line.startswith('@@'):
+                        # Skip diff headers
+                        diff_idx += 1
+                        continue
+                    
+                    if line.startswith('-'):
+                        # Line removed from original
+                        original_idx += 1 # Skip this line in original
+                    elif line.startswith('+'):
+                        # Line added to new
+                        new_lines.append(line[1:])
+                    else:
+                        # Context line or unchanged line
+                        if original_idx < len(original_lines) and original_lines[original_idx].strip() == line.strip():
+                            new_lines.append(original_lines[original_idx])
+                            original_idx += 1
+                        else:
+                            # If context line doesn't match, something is wrong with the diff application
+                            # For simplicity, we'll just append the context line from diff
+                            new_lines.append(line)
+                            original_idx += 1 # Assume it corresponds to a line in original
+                    diff_idx += 1
+                
+                # Append any remaining original lines if the diff was shorter
+                while original_idx < len(original_lines):
+                    new_lines.append(original_lines[original_idx])
+                    original_idx += 1
+
+                fixed_content = "".join(new_lines)
+                fix_status = "applied"
+            except Exception as e:
+                print(f"Error applying diff for fix '{suggestion.fix_description}': {e}")
+                fixed_content = content # Fallback to original content on error
+                fix_status = "failed_to_apply_diff"
         else:
-            fixed_content = self._apply_general_fix(content, suggestion)
-        
-        fix_status = "applied" if fixed_content != content else "skipped"
+            # Fallback to content-type specific simplified fixes if no diff is provided
+            if content_type == "code":
+                fixed_content = self._apply_code_fix(content, suggestion)
+            elif content_type == "document":
+                fixed_content = self._apply_document_fix(content, suggestion)
+            elif content_type == "protocol":
+                fixed_content = self._apply_protocol_fix(content, suggestion)
+            else:
+                fixed_content = self._apply_general_fix(content, suggestion)
+            
+            fix_status = "applied" if fixed_content != content else "skipped"
         
         # Calculate effectiveness score (simulated for now)
-        effectiveness_score = suggestion.confidence * 100  # Convert to 0-100 scale
+        effectiveness_score = self._calculate_improvement_score(content, fixed_content, content_type)
         
         return BlueTeamFix(
             fix_suggestion=suggestion,
@@ -831,26 +1082,41 @@ class BlueTeam:
 
     def _apply_code_fix(self, content: str, suggestion: FixSuggestion) -> str:
         """Apply a fix to code content"""
-        # This is a simplified implementation
-        # In a real system, we would use AST manipulation or more sophisticated techniques
         fixed_content = content
         
         if suggestion.fix_type == FixType.SECURITY_PATCH:
-            # Example: Replace eval() with a safer alternative
-            if "eval(" in content:
-                fixed_content = content.replace('eval(', 'ast.literal_eval(')
-        
+            if suggestion.issue_finding.category == IssueCategory.SECURITY_VULNERABILITY:
+                if "eval(" in content and "eval()" in suggestion.issue_finding.description:
+                    fixed_content = content.replace('eval(', 'ast.literal_eval(')
+                if "password" in content.lower() and "hardcoded credentials" in suggestion.issue_finding.description.lower():
+                    # Remove hardcoded password (simplified: replace with placeholder)
+                    fixed_content = re.sub(r"password\s*[:=]\s*['\"][^'\"]+['\"]", "password = os.getenv('DB_PASSWORD')", fixed_content, flags=re.IGNORECASE)
+                if "sql" in content.lower() and "sql injection" in suggestion.issue_finding.description.lower():
+                    # Add placeholder for parameterized query
+                    fixed_content = re.sub(r"("select.*?from.*?where.*?=\s*)\'(.+?)\'", r"\\1%s", fixed_content, flags=re.IGNORECASE)
+                    fixed_content = "# Use parameterized queries\n" + fixed_content
+                if "xss" in suggestion.issue_finding.description.lower():
+                    fixed_content = "# Sanitize user input to prevent XSS\n" + fixed_content
+
+        elif suggestion.fix_type == FixType.PERFORMANCE_OPTIMIZATION:
+            if suggestion.issue_finding.category == IssueCategory.PERFORMANCE_PROBLEM:
+                if "append(" in content and "loop" in content and "inefficient list building" in suggestion.issue_finding.description.lower():
+                    # Replace append in loop with list comprehension (simplified)
+                    fixed_content = re.sub(r"for\s+(\w+)\s+in\s+range\((\d+)\):\s*\n\s*list\\.append\((\w+)\)", r"list = [\\3 for \\1 in range(\\2)]", fixed_content)
+                if "for" in content and "large range" in suggestion.issue_finding.description.lower():
+                    fixed_content = "# Optimize large loops, consider generators or vectorized operations\n" + fixed_content
+
         elif suggestion.fix_type == FixType.INPUT_VALIDATION:
-            # Add basic input validation as an example
-            if 'input(' in content and 'validate' not in content.lower():
-                # This is a very simplified example
-                fixed_content = content.replace(
-                    'input(',
-                    '# Validate input before using\n    if validate_input(input_val := input('
-                ).replace('))', ')) else default_value')
-        
+            if suggestion.issue_finding.category == IssueCategory.SECURITY_VULNERABILITY or suggestion.issue_finding.category == IssueCategory.EDGE_CASE:
+                if 'input(' in content and 'validate' not in content.lower():
+                    # Add basic input validation as an example
+                    fixed_content = content.replace(
+                        'input(',
+                        'validate_input(input('
+                    )
+                    fixed_content = "def validate_input(data):\n    # Basic validation logic\n    if not isinstance(data, str) or len(data) == 0:\n        raise ValueError(\"Invalid input\")\n    return data\n" + fixed_content
+
         elif suggestion.fix_type == FixType.ERROR_HANDLING:
-            # Add basic error handling as an example
             if "try:" not in content and "except:" not in content:
                 # Add basic try-except around function calls
                 lines = content.split('\n')
@@ -865,25 +1131,79 @@ class BlueTeam:
                     else:
                         modified_lines.append(line)
                 fixed_content = '\n'.join(modified_lines)
-        
-        # Add more code fixes as needed based on the suggestion
-        
+
+        elif suggestion.fix_type == FixType.CLARITY_IMPROVEMENT:
+            if suggestion.issue_finding.category == IssueCategory.CLARITY_ISSUE:
+                # Simple example: replace vague variable names
+                fixed_content = re.sub(r"\b(temp|tmp|data|val)\b", "meaningful_variable_name", fixed_content)
+
+        elif suggestion.fix_type == FixType.MAINTAINABILITY_IMPROVEMENT:
+            if suggestion.issue_finding.category == IssueCategory.MAINTAINABILITY_PROBLEM:
+                # Simple example: add comments to functions without docstrings
+                if re.search(r"(def\s+\w+\s*\([^)]*\):)\s*\n(?!\s*\"\")", fixed_content):
+                    fixed_content = re.sub(r"(def\s+\w+\s*\([^)]*\):)", r"\\1\n    \"""TODO: Add docstring\"""", fixed_content)
+
         return fixed_content
 
     def _apply_document_fix(self, content: str, suggestion: FixSuggestion) -> str:
         """Apply a fix to document content"""
-        # This is a simplified implementation
         fixed_content = content
         
         if suggestion.fix_type == FixType.CLARITY_IMPROVEMENT:
-            # Simplify complex sentences (simplified implementation)
-            # In a real system, we would implement more sophisticated text simplification
-            pass
+            # Use LLM to simplify complex sentences
+            if suggestion.issue_finding.category == IssueCategory.CLARITY_ISSUE:
+                system_prompt = "You are an AI assistant tasked with simplifying complex sentences in a document. Provide the simplified text directly."
+                user_prompt = f"Simplify the following text:\n---\n{content}\n---"
+                
+                # Use orchestrator's API details if available, otherwise use defaults or raise error
+                api_key = self.orchestrator.api_key if self.orchestrator else os.getenv("OPENAI_API_KEY")
+                api_base = self.orchestrator.api_base if self.orchestrator else "https://api.openai.com/v1"
+                model = self.orchestrator.model if self.orchestrator else "gpt-4o"
+
+                if not api_key:
+                    print("API key not available for LLM call. Skipping text simplification.")
+                    return fixed_content
+
+                simplified_text = _request_openai_compatible_chat(
+                    api_key=api_key,
+                    base_url=api_base,
+                    model=model,
+                    messages=_compose_messages(system_prompt, user_prompt),
+                    temperature=0.5,
+                    max_tokens=len(content) + 100 # Allow some expansion
+                )
+                if simplified_text:
+                    fixed_content = simplified_text
+                else:
+                    print("LLM failed to simplify text. Falling back to original content.")
         
         elif suggestion.fix_type == FixType.DOCUMENTATION_ADDITION:
-            # Add missing documentation
-            if "TODO" in content or "FIXME" in content:
-                fixed_content = content.replace("TODO", "DOCUMENTED: TODO").replace("FIXME", "DOCUMENTED: FIXME")
+            # Use LLM to generate missing documentation
+            if suggestion.issue_finding.category == IssueCategory.DOCUMENTATION_GAP:
+                system_prompt = "You are an AI assistant tasked with generating missing documentation for a given context. Provide the generated documentation directly."
+                user_prompt = f"Generate documentation for the following context, addressing the gap: {suggestion.issue_finding.description}\n---\n{content}\n---"
+                
+                # Use orchestrator's API details if available, otherwise use defaults or raise error
+                api_key = self.orchestrator.api_key if self.orchestrator else os.getenv("OPENAI_API_KEY")
+                api_base = self.orchestrator.api_base if self.orchestrator else "https://api.openai.com/v1"
+                model = self.orchestrator.model if self.orchestrator else "gpt-4o"
+
+                if not api_key:
+                    print("API key not available for LLM call. Skipping documentation generation.")
+                    return fixed_content
+
+                generated_doc = _request_openai_compatible_chat(
+                    api_key=api_key,
+                    base_url=api_base,
+                    model=model,
+                    messages=_compose_messages(system_prompt, user_prompt),
+                    temperature=0.5,
+                    max_tokens=len(content) + 500 # Allow for more documentation
+                )
+                if generated_doc:
+                    fixed_content = content + "\n\n" + generated_doc # Append generated doc
+                else:
+                    print("LLM failed to generate documentation. Falling back to original content.")
         
         return fixed_content
 
@@ -996,19 +1316,23 @@ class BlueTeam:
             
             request_id = self.orchestrator.submit_request(orchestration_request)
             
-            # Wait for orchestration result (simplified)
-            max_wait = 30  # seconds
+            # Wait for orchestration result (robust polling)
+            max_wait = 60  # seconds
+            poll_interval = 1 # seconds
             start_time = time.time()
+            orchestration_result = None
             
             while time.time() - start_time < max_wait:
                 status = self.orchestrator.get_request_status(request_id)
-                if status['status'] == 'completed':
+                if status and status['status'] == 'completed':
                     orchestration_result = status.get('response')
                     break
-                time.sleep(0.5)
+                elif status and status['status'] == 'failed':
+                    print(f"Orchestration request {request_id} failed: {status.get('error', 'Unknown error')}")
+                    break
+                time.sleep(poll_interval)
             else:
-                # Timeout
-                orchestration_result = None
+                print(f"Orchestration request {request_id} timed out after {max_wait} seconds.")
             
             # Combine results if orchestration was successful
             if orchestration_result and orchestration_result.success:
@@ -1024,8 +1348,34 @@ class BlueTeam:
                         # If orchestration provided mitigation matrix, add as additional fixes
                         if 'mitigation_matrix' in json_result:
                             for mitigation in json_result['mitigation_matrix']:
-                                # Add mitigation as a fix
-                                pass  # In a real implementation
+                                # Create a FixSuggestion from the mitigation
+                                mitigation_issue = IssueFinding(
+                                    title=mitigation.get('title', 'Orchestration Mitigation'),
+                                    description=mitigation.get('description', 'Mitigation suggested by orchestration.'),
+                                    severity=SeverityLevel[mitigation.get('severity', 'MEDIUM').upper()],
+                                    category=IssueCategory[mitigation.get('category', 'TECHNICAL_DEBT').upper()],
+                                    confidence=mitigation.get('confidence', 0.9)
+                                )
+                                mitigation_fix_suggestion = FixSuggestion(
+                                    issue_finding=mitigation_issue,
+                                    fix_type=FixType[mitigation.get('fix_type', 'LOGIC_CORRECTION').upper()],
+                                    fix_description=mitigation.get('fix_description', 'Apply suggested mitigation.'),
+                                    code_diff=mitigation.get('code_diff'),
+                                    priority=FixPriority[mitigation.get('priority', 'MEDIUM').upper()],
+                                    confidence=mitigation.get('confidence', 0.9),
+                                    implementation_notes=mitigation.get('implementation_notes'),
+                                    testing_approach=mitigation.get('testing_approach')
+                                )
+                                # Create a BlueTeamFix from the FixSuggestion
+                                mitigation_blue_team_fix = BlueTeamFix(
+                                    fix_suggestion=mitigation_fix_suggestion,
+                                    implementation_details=mitigation.get('implementation_details', 'Applied via orchestration mitigation.'),
+                                    fixed_content=fixed_content, # Assume fixed_content already incorporates this
+                                    fix_status="applied",
+                                    time_taken=0.1, # Placeholder
+                                    effectiveness_score=mitigation.get('effectiveness_score', 90)
+                                )
+                                combined_applied_fixes.append(mitigation_blue_team_fix)
                         
                         # Create new assessment with combined results
                         combined_assessment = BlueTeamAssessment(

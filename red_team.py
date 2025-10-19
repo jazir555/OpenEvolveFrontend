@@ -14,6 +14,7 @@ from datetime import datetime
 import random
 import statistics
 
+from llm_utils import _request_openai_compatible_chat, _compose_messages
 from content_analyzer import ContentAnalyzer
 
 # Import OpenEvolve components for enhanced functionality
@@ -791,17 +792,23 @@ class RedTeam:
                                 # Make LLM call (using a simplified _request_openai_compatible_chat for this context)
                                 # In a full OpenEvolve integration, this would use OpenEvolve's LLM orchestration
                                 try:
-                                    import requests
-                                    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-                                    data = {"model": model_name, "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}], "temperature": 0.5, "max_tokens": 1024}
-                                    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data, timeout=10)
-                                    response.raise_for_status()
-                                    llm_result = response.json()
-                                    llm_score = json.loads(llm_result["choices"][0]["message"]["content"]).get("score", 0.5)
-                                except Exception as llm_e:
-                                    print(f"Error getting LLM feedback for red team evaluator: {llm_e}. Falling back to default score.")
-                                    llm_score = 0.5 # Fallback if LLM call fails
-            
+                                                                    llm_response_content = _request_openai_compatible_chat(
+                                                                        api_key=api_key,
+                                                                        base_url="https://api.openai.com/v1", # Default base URL
+                                                                        model=model_name,
+                                                                        messages=_compose_messages(system_prompt, user_prompt),
+                                                                        temperature=0.5,
+                                                                        max_tokens=1024,
+                                                                        timeout=10,
+                                                                        response_json_format=True # Request JSON format for structured output
+                                                                    )
+                                                                    if llm_response_content:
+                                                                        llm_parsed_response = json.loads(llm_response_content)
+                                                                        llm_score = llm_parsed_response.get("score", 0.5)
+                                                                    else:
+                                                                        print("LLM call failed for red team evaluator. Falling back to default score.")
+                                                                        llm_score = 0.5 # Fallback if LLM call fails
+                                                
                                 return {
                                     "score": llm_score, 
                                     "timestamp": datetime.now().timestamp(),
@@ -1211,19 +1218,23 @@ class RedTeam:
             
             request_id = self.orchestrator.submit_request(orchestration_request)
             
-            # Wait for orchestration result (simplified)
-            max_wait = 30  # seconds
+            # Wait for orchestration result (robust polling)
+            max_wait = 60  # seconds
+            poll_interval = 1 # seconds
             start_time = time.time()
+            orchestration_result = None
             
             while time.time() - start_time < max_wait:
                 status = self.orchestrator.get_request_status(request_id)
-                if status['status'] == 'completed':
+                if status and status['status'] == 'completed':
                     orchestration_result = status.get('response')
                     break
-                time.sleep(0.5)
+                elif status and status['status'] == 'failed':
+                    print(f"Orchestration request {request_id} failed: {status.get('error', 'Unknown error')}")
+                    break
+                time.sleep(poll_interval)
             else:
-                # Timeout
-                orchestration_result = None
+                print(f"Orchestration request {request_id} timed out after {max_wait} seconds.")
             
             # Combine results
             if orchestration_result and orchestration_result.success:

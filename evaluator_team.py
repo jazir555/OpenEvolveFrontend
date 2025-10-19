@@ -2,6 +2,7 @@
 Evaluator Team (Judges) Functionality for OpenEvolve
 Implements the Evaluator Team functionality described in the ultimate explanation document.
 """
+import os
 import json
 import re
 import tempfile
@@ -14,6 +15,7 @@ from datetime import datetime
 import random
 import statistics
 
+from llm_utils import _request_openai_compatible_chat, _compose_messages
 from content_analyzer import ContentAnalyzer
 
 # Import OpenEvolve components for enhanced functionality
@@ -153,7 +155,7 @@ class EvaluatorMember:
             scores.append(score)
         
         # Calculate composite score
-        composite_score = self._calculate_composite_score(scores)
+        composite_score = self._calculate_composite_score(scores, criteria)
         
         # Determine confidence level
         confidence_level = self._determine_confidence_level(scores)
@@ -289,10 +291,43 @@ class EvaluatorMember:
     def _calculate_base_score(self, content: str, content_type: str, 
                              metric: EvaluationMetric, 
                              previous_versions: Optional[List[str]] = None) -> float:
-        """Calculate base score for a metric"""
-        # This is a simplified implementation
-        # In a real system, this would involve sophisticated analysis
+        """Calculate base score for a metric using LLM or fallback to heuristics"""
         
+        # Use orchestrator's API details if available, otherwise use defaults or raise error
+        api_key = self.orchestrator.api_key if self.orchestrator else os.getenv("OPENAI_API_KEY")
+        api_base = self.orchestrator.api_base if self.orchestrator else "https://api.openai.com/v1"
+        model = self.orchestrator.model if self.orchestrator else "gpt-4o"
+
+        if api_key:
+            system_prompt = f"You are an expert evaluator. Your task is to assess the provided content for {metric.value.replace('_', ' ').lower()}. Provide your response as a JSON object with 'score' (0.0-1.0) and 'rationale' (string)."
+            user_prompt = f"Evaluate the following {content_type} content for {metric.value.replace('_', ' ').lower()}.\n---\n{content}\n---"
+            if previous_versions:
+                user_prompt += f"\n\nPrevious versions for comparison:\n---\n{previous_versions[-1]}\n---"
+
+            llm_response_content = _request_openai_compatible_chat(
+                api_key=api_key,
+                base_url=api_base,
+                model=model,
+                messages=_compose_messages(system_prompt, user_prompt),
+                temperature=0.2, # Lower temperature for more objective evaluation
+                max_tokens=512,
+                timeout=15,
+                response_json_format=True
+            )
+
+            if llm_response_content:
+                try:
+                    llm_parsed_response = json.loads(llm_response_content)
+                    llm_score = llm_parsed_response.get("score", 0.5)
+                    # Ensure score is within 0-1 range
+                    llm_score = max(0.0, min(1.0, llm_score))
+                    return llm_score * 100 # Convert to 0-100 scale
+                except json.JSONDecodeError:
+                    print(f"LLM response for {metric.value} not valid JSON. Falling back to heuristics.")
+            else:
+                print(f"LLM call failed for {metric.value} evaluation. Falling back to heuristics.")
+        
+        # Fallback to heuristic-based scoring if LLM call fails or no API key
         if metric == EvaluationMetric.OVERALL_QUALITY:
             return self._assess_overall_quality(content, content_type)
         elif metric == EvaluationMetric.CORRECTNESS:
@@ -665,27 +700,52 @@ class EvaluatorMember:
         return max(0, min(100, aesthetics_score))
     
     def _assess_improvement_gain(self, content: str, previous_versions: List[str]) -> float:
-        """Assess improvement gain compared to previous versions"""
+        """Assess improvement gain compared to previous versions using LLM or fallback to heuristics"""
         if not previous_versions:
             return 50  # Default if no previous versions
         
-        # Compare with the most recent previous version
+        # Use orchestrator's API details if available, otherwise use defaults or raise error
+        api_key = self.orchestrator.api_key if self.orchestrator else os.getenv("OPENAI_API_KEY")
+        api_base = self.orchestrator.api_base if self.orchestrator else "https://api.openai.com/v1"
+        model = self.orchestrator.model if self.orchestrator else "gpt-4o"
+
+        if api_key:
+            system_prompt = "You are an expert AI assistant tasked with assessing the improvement gain between two versions of content. Provide your response as a JSON object with 'score' (0.0-1.0, where 1.0 is significant improvement and 0.0 is no improvement or regression) and 'rationale' (string)."
+            user_prompt = f"Assess the improvement from the previous version to the current version.\n\nPrevious Version:\n---\n{previous_versions[-1]}\n---\n\nCurrent Version:\n---\n{content}\n---"
+
+            llm_response_content = _request_openai_compatible_chat(
+                api_key=api_key,
+                base_url=api_base,
+                model=model,
+                messages=_compose_messages(system_prompt, user_prompt),
+                temperature=0.2, # Lower temperature for more objective evaluation
+                max_tokens=512,
+                timeout=15,
+                response_json_format=True
+            )
+
+            if llm_response_content:
+                try:
+                    llm_parsed_response = json.loads(llm_response_content)
+                    llm_score = llm_parsed_response.get("score", 0.5)
+                    # Ensure score is within 0-1 range
+                    llm_score = max(0.0, min(1.0, llm_score))
+                    return llm_score * 100 # Convert to 0-100 scale
+                except json.JSONDecodeError:
+                    print("LLM response for improvement gain not valid JSON. Falling back to heuristics.")
+            else:
+                print("LLM call failed for improvement gain evaluation. Falling back to heuristics.")
+
+        # Fallback to heuristic-based scoring if LLM call fails or no API key
         previous_content = previous_versions[-1]
-        
-        # Simple comparison based on content characteristics
         current_length = len(content)
         previous_length = len(previous_content)
         
-        # Calculate improvement based on length change
         if previous_length > 0:
             length_change = (current_length - previous_length) / previous_length
-            # Convert to 0-100 scale
-            improvement_score = 50 + (length_change * 25)  # Neutral at 0%, +25 for 100% increase, -25 for 100% decrease
+            improvement_score = 50 + (length_change * 25) 
         else:
-            improvement_score = 75  # Assume improvement if previous was empty
-        
-        # Adjust based on actual content changes (simplified)
-        # In a real implementation, this would involve more sophisticated comparison
+            improvement_score = 75 
         
         return max(0, min(100, improvement_score))
     
@@ -757,7 +817,7 @@ class EvaluatorMember:
         else:
             return EvaluationConfidence.VERY_LOW
     
-    def _calculate_composite_score(self, scores: List[EvaluationScore]) -> float:
+    def _calculate_composite_score(self, scores: List[EvaluationScore], criteria: List[EvaluationCriterion]) -> float:
         """Calculate composite score from individual scores"""
         if not scores:
             return 50.0  # Default score
@@ -777,7 +837,15 @@ class EvaluatorMember:
             }
             
             confidence_weight = confidence_weights.get(score.confidence, 0.75)
-            final_weight = confidence_weight  # Simplified - would normally multiply by criterion weight
+            
+            # Get criterion weight
+            criterion_weight = 1.0 # Default if not found
+            for criterion in criteria:
+                if criterion.metric == score.metric:
+                    criterion_weight = criterion.weight
+                    break
+
+            final_weight = confidence_weight * criterion_weight
             
             weighted_sum += score.score * final_weight
             total_weight += final_weight
@@ -1026,17 +1094,23 @@ class EvaluatorTeam:
             
                                 # Make LLM call (using a simplified _request_openai_compatible_chat for this context)
                                 try:
-                                    import requests
-                                    headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-                                    data = {"model": model_name, "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}], "temperature": 0.3, "max_tokens": 1024}
-                                    response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data, timeout=10)
-                                    response.raise_for_status()
-                                    llm_result = response.json()
-                                    llm_score = json.loads(llm_result["choices"][0]["message"]["content"]).get("score", 0.75)
-                                except Exception as llm_e:
-                                    print(f"Error getting LLM feedback for evaluator assessment: {llm_e}. Falling back to default score.")
-                                    llm_score = 0.75 # Fallback if LLM call fails
-            
+                                                                    llm_response_content = _request_openai_compatible_chat(
+                                                                        api_key=api_key,
+                                                                        base_url="https://api.openai.com/v1", # Default base URL
+                                                                        model=model_name,
+                                                                        messages=_compose_messages(system_prompt, user_prompt),
+                                                                        temperature=0.3,
+                                                                        max_tokens=1024,
+                                                                        timeout=10,
+                                                                        response_json_format=True # Request JSON format for structured output
+                                                                    )
+                                                                    if llm_response_content:
+                                                                        llm_parsed_response = json.loads(llm_response_content)
+                                                                        llm_score = llm_parsed_response.get("score", 0.75)
+                                                                    else:
+                                                                        print("LLM call failed for evaluator assessment. Falling back to default score.")
+                                                                        llm_score = 0.75 # Fallback if LLM call fails
+                                                
                                 return {
                                     "score": llm_score, 
                                     "timestamp": datetime.now().timestamp(),
@@ -1128,57 +1202,45 @@ class EvaluatorTeam:
         """
         Generate EvaluatorAssessment from OpenEvolve result
         """
-        # Create a mock assessment based on the OpenEvolve result
-        # In a real implementation, we would extract the evaluation details from the result
-        mock_score = 75.0  # Default score
-        
-        # Create evaluation scores based on content type
+        llm_raw_output = None
+        if result and 'best_individual' in result and 'evaluation_results' in result['best_individual']:
+            llm_raw_output = result['best_individual']['evaluation_results'].get('llm_output')
+
         scores = []
-        
-        # Add base metrics
-        scores.append(EvaluationScore(
-            metric=EvaluationMetric.OVERALL_QUALITY,
-            score=mock_score,
-            scale=EvaluationScale.PERCENTAGE,
-            confidence=EvaluationConfidence.MODERATE,
-            rationale="Overall quality assessment from OpenEvolve"
-        ))
-        
-        scores.append(EvaluationScore(
-            metric=EvaluationMetric.CORRECTNESS,
-            score=mock_score - 5,
-            scale=EvaluationScale.PERCENTAGE,
-            confidence=EvaluationConfidence.MODERATE,
-            rationale="Correctness assessment from OpenEvolve"
-        ))
-        
-        scores.append(EvaluationScore(
-            metric=EvaluationMetric.CLARITY,
-            score=mock_score + 5,
-            scale=EvaluationScale.PERCENTAGE,
-            confidence=EvaluationConfidence.MODERATE,
-            rationale="Clarity assessment from OpenEvolve"
-        ))
-        
-        # Calculate composite score
-        composite_score = sum(s.score for s in scores) / len(scores) if scores else 50.0
-        
-        # Determine confidence level
-        confidence_level = EvaluationConfidence.MODERATE
-        
-        # Generate assessment summary
-        assessment_summary = f"OpenEvolve Evaluator Assessment for {content_type} content with composite score: {composite_score:.2f}"
-        
-        # Generate detailed feedback
-        detailed_feedback = {
-            "content_characteristics": {
-                "word_count": len(content.split()),
-                "line_count": len(content.split('\n')),
-                "character_count": len(content)
-            },
-            "metric_feedback": {},
-            "improvement_suggestions": ["Consider adding more specific examples", "Enhance clarity in complex sections"]
-        }
+        composite_score = 50.0
+        assessment_summary = f"OpenEvolve Evaluator Assessment for {content_type} content."
+        detailed_feedback = {"content_characteristics": {"word_count": len(content.split()), "line_count": len(content.split('\n')), "character_count": len(content)}, "metric_feedback": {}, "improvement_suggestions": []}
+
+        if llm_raw_output:
+            try:
+                llm_parsed_output = json.loads(llm_raw_output)
+                llm_score = llm_parsed_output.get('score', 0.75)
+                justification = llm_parsed_output.get('justification', 'No justification provided.')
+                targeted_feedback = llm_parsed_output.get('targeted_feedback', '')
+
+                scores.append(EvaluationScore(
+                    metric=EvaluationMetric.OVERALL_QUALITY,
+                    score=llm_score * 100, # Convert to 0-100 scale
+                    scale=EvaluationScale.PERCENTAGE,
+                    confidence=EvaluationConfidence.HIGH,
+                    rationale=justification
+                ))
+                composite_score = llm_score * 100
+                assessment_summary = f"OpenEvolve Evaluator Assessment for {content_type} content with composite score: {composite_score:.2f}. Justification: {justification}"
+                detailed_feedback["metric_feedback"]["overall_quality"] = {"score": llm_score * 100, "rationale": justification}
+                if targeted_feedback:
+                    detailed_feedback["improvement_suggestions"].append(f"Targeted feedback: {targeted_feedback}")
+
+            except json.JSONDecodeError:
+                print(f"LLM output not valid JSON: {llm_raw_output[:200]}...")
+                scores.append(EvaluationScore(
+                    metric=EvaluationMetric.OVERALL_QUALITY,
+                    score=50.0,
+                    scale=EvaluationScale.PERCENTAGE,
+                    confidence=EvaluationConfidence.LOW,
+                    rationale=f"Raw LLM output: {llm_raw_output}"
+                ))
+                assessment_summary = f"OpenEvolve Evaluator Assessment for {content_type} content. Raw LLM output: {llm_raw_output[:100]}..."
         
         # Set default criteria if none provided
         criteria = custom_criteria or [EvaluationCriterion(EvaluationMetric.OVERALL_QUALITY, 1.0, "important")]
@@ -1189,7 +1251,7 @@ class EvaluatorTeam:
             scores=scores,
             composite_score=composite_score,
             assessment_summary=assessment_summary,
-            confidence_level=confidence_level,
+            confidence_level=EvaluationConfidence.MODERATE,
             time_taken=0,  # Will be calculated separately
             assessment_metadata={
                 'content_type': content_type,
@@ -1355,7 +1417,7 @@ class EvaluatorTeam:
         composite_scores = [a.composite_score for a in assessments]
         mean_score = statistics.mean(composite_scores)
         
-        # Calculate standard error (simplified)
+        # Calculate standard error
         std_dev = statistics.stdev(composite_scores) if len(composite_scores) > 1 else 10.0
         standard_error = std_dev / (len(composite_scores) ** 0.5)
         
@@ -1442,19 +1504,23 @@ class EvaluatorTeam:
             
             request_id = self.orchestrator.submit_request(orchestration_request)
             
-            # Wait for orchestration result (simplified)
-            max_wait = 30  # seconds
+            # Wait for orchestration result (robust polling)
+            max_wait = 60  # seconds
+            poll_interval = 1 # seconds
             start_time = time.time()
+            orchestration_result = None
             
             while time.time() - start_time < max_wait:
                 status = self.orchestrator.get_request_status(request_id)
-                if status['status'] == 'completed':
+                if status and status['status'] == 'completed':
                     orchestration_result = status.get('response')
                     break
-                time.sleep(0.5)
+                elif status and status['status'] == 'failed':
+                    print(f"Orchestration request {request_id} failed: {status.get('error', 'Unknown error')}")
+                    break
+                time.sleep(poll_interval)
             else:
-                # Timeout
-                orchestration_result = None
+                print(f"Orchestration request {request_id} timed out after {max_wait} seconds.")
             
             # Combine results if orchestration was successful
             if orchestration_result and orchestration_result.success:
@@ -1466,13 +1532,13 @@ class EvaluatorTeam:
                     combined_assessment = EvaluatorAssessment(
                         evaluator_id="orchestrator",
                         scores=[],  # Would populate from orchestration result
-                        composite_score=orchestration_result.response_time,  # Simplified
-                        assessment_summary=f"Orchestration evaluation: {json_result.get('overall_score', 0)}",
+                        composite_score=json_result.get('score', 0.0) * 100,  # Extract actual score
+                        assessment_summary=f"Orchestration evaluation: {json_result.get('justification', 'No justification')}",
                         confidence_level=EvaluationConfidence.HIGH,
                         time_taken=orchestration_result.response_time,
                         assessment_metadata={'orchestration_used': True},
                         criteria_used=custom_criteria or [],
-                        detailed_feedback={}
+                        detailed_feedback={'targeted_feedback': json_result.get('targeted_feedback', '')}
                     )
                     
                     # Combine with internal assessments
@@ -1500,7 +1566,8 @@ class EvaluatorTeam:
                     
                     return self.generate_evaluation_report(combined_evaluation)
                     
-                except (json.JSONDecodeError, KeyError):
+                except (json.JSONDecodeError, KeyError) as e:
+                    print(f"Error parsing orchestration result: {e}. Falling back to internal evaluation.")
                     pass  # Fall back to internal evaluation
             
             # Return internal evaluation if orchestration fails

@@ -202,10 +202,64 @@ class OpenEvolveOrchestrator:
             self._notify_callbacks(workflow_id, "stage_changed", workflow.current_stage)
             
             # Create OpenEvolve configuration with ALL parameters
+            global_model_config = ModelConfig(
+                model_id=st.session_state.model,
+                api_key=st.session_state.api_key,
+                api_base=st.session_state.base_url,
+                temperature=st.session_state.temperature,
+                top_p=st.session_state.top_p,
+                max_tokens=st.session_state.max_tokens,
+                frequency_penalty=st.session_state.frequency_penalty,
+                presence_penalty=st.session_state.presence_penalty,
+                seed=st.session_state.seed,
+                n=st.session_state.n,
+                logit_bias=json.loads(st.session_state.logit_bias_str) if st.session_state.logit_bias_str else None,
+                stop_sequences=[s.strip() for s in st.session_state.stop_sequences.split(',')] if st.session_state.stop_sequences else None,
+                logprobs=st.session_state.logprobs if st.session_state.logprobs else None,
+                top_logprobs=st.session_state.top_logprobs if st.session_state.top_logprobs > 0 else None,
+                response_format=json.loads(st.session_state.response_format) if st.session_state.response_format else None,
+                stream=st.session_state.stream if st.session_state.stream else None,
+                user=st.session_state.user if st.session_state.user else None,
+                reasoning_effort=st.session_state.reasoning_effort,
+                max_retries=st.session_state.max_retries,
+                timeout=st.session_state.timeout,
+                organization=st.session_state.organization,
+                response_model=st.session_state.response_model,
+                tools=json.loads(st.session_state.tools_str) if st.session_state.tools_str else None,
+                tool_choice=json.loads(st.session_state.tool_choice_str) if st.session_state.tool_choice_str and st.session_state.tool_choice_str.startswith('{') else (st.session_state.tool_choice_str if st.session_state.tool_choice_str else None),
+                system_fingerprint=st.session_state.system_fingerprint,
+                deployment_id=st.session_state.deployment_id,
+                encoding_format=st.session_state.encoding_format,
+                max_input_tokens=st.session_state.max_input_tokens,
+                stop_token=st.session_state.stop_token,
+                best_of=st.session_state.best_of,
+                logprobs_offset=st.session_state.logprobs_offset,
+                suffix=st.session_state.suffix,
+                presence_penalty_range=[float(x.strip()) for x in st.session_state.presence_penalty_range_str.split(',')] if st.session_state.presence_penalty_range_str else None,
+                frequency_penalty_range=[float(x.strip()) for x in st.session_state.frequency_penalty_range_str.split(',')] if st.session_state.frequency_penalty_range_str else None,
+                stop_token_id=st.session_state.stop_token_id,
+                response_json_format=st.session_state.response_json_format,
+                max_output_tokens=st.session_state.max_output_tokens,
+                stream_options=json.loads(st.session_state.stream_options_str) if st.session_state.stream_options_str else None,
+                logprobs_type=st.session_state.logprobs_type,
+                top_k=st.session_state.top_k,
+                repetition_penalty=st.session_state.repetition_penalty,
+                length_penalty=st.session_state.length_penalty,
+                early_stopping=st.session_state.early_stopping,
+                num_beams=st.session_state.num_beams,
+                do_sample=st.session_state.do_sample,
+                temperature_fallback=st.session_state.temperature_fallback,
+                top_p_fallback=st.session_state.top_p_fallback,
+                max_time=st.session_state.max_time,
+                return_full_text=st.session_state.return_full_text,
+                tokenizer_config=json.loads(st.session_state.tokenizer_config_str) if st.session_state.tokenizer_config_str else None,
+                model_kwargs=json.loads(st.session_state.model_kwargs_str) if st.session_state.model_kwargs_str else None
+            )
+
             config = create_comprehensive_openevolve_config(
                 # Core content parameters
                 content_type=workflow.parameters.get("content_type", "code_python"),
-                model_configs=workflow.parameters.get("model_configs", [{"name": "gpt-4o", "weight": 1.0}]),
+                model_configs=[global_model_config],
                 api_key=workflow.parameters.get("api_key", ""),
                 api_base=workflow.parameters.get("api_base", "https://api.openai.com/v1"),
                 temperature=workflow.parameters.get("temperature", 0.7),
@@ -230,18 +284,17 @@ class OpenEvolveOrchestrator:
                 # Advanced evaluation parameters
                 enable_artifacts=workflow.parameters.get("enable_artifacts", True),
                 cascade_evaluation=workflow.parameters.get("cascade_evaluation", True),
-                cascade_thresholds=workflow.parameters.get("cascade_thresholds", [0.5, 0.75, 0.9]),
+                cascade_thresholds=[float(x.strip()) for x in st.session_state.cascade_thresholds_str.split(',')] if st.session_state.cascade_thresholds_str else [],
                 use_llm_feedback=workflow.parameters.get("use_llm_feedback", False),
                 llm_feedback_weight=workflow.parameters.get("llm_feedback_weight", 0.1),
                 parallel_evaluations=workflow.parameters.get("parallel_evaluations", 4),
                 distributed=workflow.parameters.get("distributed", False),
                 template_dir=workflow.parameters.get("template_dir", None),
                 num_top_programs=workflow.parameters.get("num_top_programs", 3),
-                num_diverse_programs=workflow.parameters.get("num_diverse_programs", 2),
-                use_template_stochasticity=workflow.parameters.get("use_template_stochasticity", True),
-                template_variations=workflow.parameters.get("template_variations", None),
-                use_meta_prompting=workflow.parameters.get("use_meta_prompting", False),
-                meta_prompt_weight=workflow.parameters.get("meta_prompt_weight", 0.1),
+                            num_diverse_programs=workflow.parameters.get("num_diverse_programs", 2),
+                            use_template_stochasticity=workflow.parameters.get("use_template_stochasticity", True),
+                            template_variations=json.loads(st.session_state.template_variations_str) if st.session_state.template_variations_str else None,
+                            use_meta_prompting=workflow.parameters.get("use_meta_prompting", False),                meta_prompt_weight=workflow.parameters.get("meta_prompt_weight", 0.1),
                 include_artifacts=workflow.parameters.get("include_artifacts", True),
                 max_artifact_bytes=workflow.parameters.get("max_artifact_bytes", 20 * 1024),
                 artifact_security_filter=workflow.parameters.get("artifact_security_filter", True),
@@ -275,7 +328,7 @@ class OpenEvolveOrchestrator:
                 diversity_reference_size=workflow.parameters.get("diversity_reference_size", 20),
                 max_retries_eval=workflow.parameters.get("max_retries_eval", 3),
                 evaluator_timeout=workflow.parameters.get("evaluator_timeout", 300),
-                evaluator_models=workflow.parameters.get("evaluator_models", None),
+                evaluator_models=json.loads(st.session_state.evaluator_models_str) if st.session_state.evaluator_models_str else None,
                 output_dir=output_dir,
                 
                 # Advanced research-grade features
@@ -321,7 +374,7 @@ class OpenEvolveOrchestrator:
             
                             evolution_mode=workflow.workflow_type.value,
             
-                            model_configs=workflow.parameters.get("model_configs", [{"name": "gpt-4o", "weight": 1.0}]),
+                            model_configs=[global_model_config],
             
                             api_key=workflow.parameters.get("api_key", ""),
             
@@ -365,6 +418,8 @@ class OpenEvolveOrchestrator:
             
                             cascade_evaluation=workflow.parameters.get("cascade_evaluation", True),
             
+                            cascade_thresholds=[float(x.strip()) for x in st.session_state.cascade_thresholds_str.split(',')] if st.session_state.cascade_thresholds_str else [],
+            
                             use_llm_feedback=workflow.parameters.get("use_llm_feedback", False),
             
                             llm_feedback_weight=workflow.parameters.get("llm_feedback_weight", 0.1),
@@ -397,7 +452,7 @@ class OpenEvolveOrchestrator:
             
                             use_template_stochasticity=workflow.parameters.get("use_template_stochasticity", True),
             
-                            template_variations=workflow.parameters.get("template_variations", {}),
+                            template_variations=json.loads(st.session_state.template_variations_str) if st.session_state.template_variations_str else {},
             
                             use_meta_prompting=workflow.parameters.get("use_meta_prompting", False),
             
@@ -439,7 +494,7 @@ class OpenEvolveOrchestrator:
             
                             evaluator_timeout=300,
             
-                            evaluator_models=workflow.parameters.get("evaluator_models", None),
+                            evaluator_models=json.loads(st.session_state.evaluator_models_str) if st.session_state.evaluator_models_str else None,
             
                             output_dir=output_dir, # Pass the output_dir
             
@@ -893,14 +948,56 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
         st.session_state.setdefault("frequency_penalty", 0.0)
         st.session_state.setdefault("presence_penalty", 0.0)
         st.session_state.setdefault("seed", 42)
+        st.session_state.setdefault("n", 1)
+        st.session_state.setdefault("logit_bias_str", "{}")
         st.session_state.setdefault("stop_sequences", "")
         st.session_state.setdefault("logprobs", False)
         st.session_state.setdefault("top_logprobs", 0)
         st.session_state.setdefault("response_format", "")
         st.session_state.setdefault("stream", False)
         st.session_state.setdefault("user", "")
-        st.session_state.setdefault("system_prompt", "")
+        st.session_state.setdefault("reasoning_effort", None)
+        st.session_state.setdefault("max_retries", 5)
+        st.session_state.setdefault("timeout", 120)
+        st.session_state.setdefault("organization", None)
+        st.session_state.setdefault("response_model", None)
+        st.session_state.setdefault("tools_str", "[]")
+        st.session_state.setdefault("tool_choice_str", "auto")
+        st.session_state.setdefault("system_fingerprint", None)
+        st.session_state.setdefault("deployment_id", None)
+        st.session_state.setdefault("encoding_format", None)
+        st.session_state.setdefault("max_input_tokens", None)
+        st.session_state.setdefault("stop_token", None)
+        st.session_state.setdefault("best_of", None)
+        st.session_state.setdefault("logprobs_offset", None)
+        st.session_state.setdefault("suffix", None)
+        st.session_state.setdefault("presence_penalty_range_str", "")
+        st.session_state.setdefault("frequency_penalty_range_str", "")
+        st.session_state.setdefault("stop_token_id", None)
+        st.session_state.setdefault("response_json_format", False)
+        st.session_state.setdefault("max_output_tokens", None)
+        st.session_state.setdefault("stream_options_str", "{}")
+        st.session_state.setdefault("logprobs_type", None)
+        st.session_state.setdefault("top_k", None)
+        st.session_state.setdefault("repetition_penalty", 1.0)
+        st.session_state.setdefault("length_penalty", 1.0)
+        st.session_state.setdefault("early_stopping", False)
+        st.session_state.setdefault("num_beams", 1)
+        st.session_state.setdefault("do_sample", True)
+        st.session_state.setdefault("temperature_fallback", 0.7)
+        st.session_state.setdefault("top_p_fallback", 1.0)
+        st.session_state.setdefault("max_time", None)
+        st.session_state.setdefault("return_full_text", False)
+        st.session_state.setdefault("tokenizer_config_str", "{}")
+        st.session_state.setdefault("model_kwargs_str", "{}")
         st.session_state.setdefault("evaluator_system_prompt", "")
+        st.session_state.setdefault("evaluator_models_str", "[]")
+        st.session_state.setdefault("cascade_evaluation", True)
+        st.session_state.setdefault("cascade_thresholds_str", "0.5, 0.75, 0.9")
+        st.session_state.setdefault("num_diverse_programs", 2)
+        st.session_state.setdefault("use_template_stochasticity", True)
+        st.session_state.setdefault("template_variations_str", "{}")
+        st.session_state.setdefault("use_meta_prompting", False)
 
         st.session_state.model = st.text_input("Model ID", value=st.session_state.model, key="global_model_id")
         st.session_state.api_key = st.text_input("API Key", type="password", value=st.session_state.api_key, key="global_api_key")
@@ -911,14 +1008,50 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
         st.session_state.frequency_penalty = st.slider("Frequency Penalty", min_value=-2.0, max_value=2.0, value=st.session_state.frequency_penalty, step=0.01, key="global_frequency_penalty")
         st.session_state.presence_penalty = st.slider("Presence Penalty", min_value=-2.0, max_value=2.0, value=st.session_state.presence_penalty, step=0.01, key="global_presence_penalty")
         st.session_state.seed = st.number_input("Seed (Optional)", value=st.session_state.seed, key="global_seed")
+        st.session_state.n = st.number_input("N (Number of completions)", min_value=1, value=st.session_state.n, key="global_n")
+        st.session_state.logit_bias_str = st.text_area("Logit Bias (JSON, Optional)", value=st.session_state.logit_bias_str, key="global_logit_bias")
         st.session_state.stop_sequences = st.text_input("Stop Sequences (comma-separated)", value=st.session_state.stop_sequences, key="global_stop_sequences")
         st.session_state.logprobs = st.checkbox("Logprobs", value=st.session_state.logprobs, key="global_logprobs")
         st.session_state.top_logprobs = st.number_input("Top Logprobs (0-5)", min_value=0, max_value=5, value=st.session_state.top_logprobs, key="global_top_logprobs")
         st.session_state.response_format = st.text_input("Response Format (JSON string, e.g., '{\"type\": \"json_object\"}')", value=st.session_state.response_format, key="global_response_format")
         st.session_state.stream = st.checkbox("Stream", value=st.session_state.stream, key="global_stream")
         st.session_state.user = st.text_input("User ID", value=st.session_state.user, key="global_user")
-        st.session_state.system_prompt = st.text_area("System Prompt", value=st.session_state.system_prompt, height=100, help="Initial system message for the AI model.")
+        st.session_state.reasoning_effort = st.selectbox("Reasoning Effort", [None, "low", "medium", "high"], index=[None, "low", "medium", "high"].index(st.session_state.reasoning_effort) if st.session_state.reasoning_effort in ["low", "medium", "high"] else 0, key="global_reasoning_effort")
+        st.session_state.max_retries = st.number_input("Max Retries", min_value=0, value=st.session_state.max_retries, key="global_max_retries")
+        st.session_state.timeout = st.number_input("Timeout (seconds)", min_value=1, value=st.session_state.timeout, key="global_timeout")
+        st.session_state.organization = st.text_input("Organization ID (Optional)", value=st.session_state.organization, key="global_organization")
+        st.session_state.response_model = st.text_input("Response Model (Pydantic model name, Optional)", value=st.session_state.response_model, key="global_response_model")
+        st.session_state.tools_str = st.text_area("Tools (JSON array, Optional)", value=st.session_state.tools_str, key="global_tools", help="e.g., [{'type': 'function', 'function': {'name': 'my_function', 'description': '...', 'parameters': {...}}}]")
+        st.session_state.tool_choice_str = st.text_input("Tool Choice (e.g., 'auto', 'none', or JSON)", value=st.session_state.tool_choice_str, key="global_tool_choice")
+        st.session_state.system_fingerprint = st.text_input("System Fingerprint (Optional)", value=st.session_state.system_fingerprint, key="global_system_fingerprint")
+        st.session_state.deployment_id = st.text_input("Deployment ID (Azure OpenAI, Optional)", value=st.session_state.deployment_id, key="global_deployment_id")
+        st.session_state.encoding_format = st.text_input("Encoding Format (Optional)", value=st.session_state.encoding_format, key="global_encoding_format")
+        st.session_state.max_input_tokens = st.number_input("Max Input Tokens (Optional)", value=st.session_state.max_input_tokens, key="global_max_input_tokens")
+        st.session_state.stop_token = st.text_input("Stop Token (Optional, single token)", value=st.session_state.stop_token, key="global_stop_token")
+        st.session_state.best_of = st.number_input("Best Of (Optional)", value=st.session_state.best_of, key="global_best_of")
+        st.session_state.logprobs_offset = st.number_input("Logprobs Offset (Optional)", value=st.session_state.logprobs_offset, key="global_logprobs_offset")
+        st.session_state.suffix = st.text_input("Suffix (Optional)", value=st.session_state.suffix, key="global_suffix")
+        st.session_state.presence_penalty_range_str = st.text_input("Presence Penalty Range (comma-separated floats, e.g., -2.0,2.0)", value=st.session_state.presence_penalty_range_str, key="global_presence_penalty_range")
+        st.session_state.frequency_penalty_range_str = st.text_input("Frequency Penalty Range (comma-separated floats, e.g., -2.0,2.0)", value=st.session_state.frequency_penalty_range_str, key="global_frequency_penalty_range")
+        st.session_state.stop_token_id = st.number_input("Stop Token ID (Optional)", value=st.session_state.stop_token_id, key="global_stop_token_id")
+        st.session_state.response_json_format = st.checkbox("Response JSON Format", value=st.session_state.response_json_format, key="global_response_json_format")
+        st.session_state.max_output_tokens = st.number_input("Max Output Tokens (Optional)", value=st.session_state.max_output_tokens, key="global_max_output_tokens")
+        st.session_state.stream_options_str = st.text_area("Stream Options (JSON, Optional)", value=st.session_state.stream_options_str, key="global_stream_options")
+        st.session_state.logprobs_type = st.selectbox("Logprobs Type (Optional)", [None, "per_token", "all"], index=[None, "per_token", "all"].index(st.session_state.logprobs_type) if st.session_state.logprobs_type in ["per_token", "all"] else 0, key="global_logprobs_type")
+        st.session_state.top_k = st.number_input("Top K (Optional)", value=st.session_state.top_k, key="global_top_k")
+        st.session_state.repetition_penalty = st.slider("Repetition Penalty (Optional)", min_value=0.0, max_value=2.0, value=st.session_state.repetition_penalty, step=0.01, key="global_repetition_penalty")
+        st.session_state.length_penalty = st.slider("Length Penalty (Optional)", min_value=0.0, max_value=2.0, value=st.session_state.length_penalty, step=0.01, key="global_length_penalty")
+        st.session_state.early_stopping = st.checkbox("Early Stopping (for beam search)", value=st.session_state.early_stopping, key="global_early_stopping")
+        st.session_state.num_beams = st.number_input("Number of Beams (for beam search)", min_value=1, value=st.session_state.num_beams, key="global_num_beams")
+        st.session_state.do_sample = st.checkbox("Do Sample", value=st.session_state.do_sample, key="global_do_sample")
+        st.session_state.temperature_fallback = st.slider("Temperature Fallback (Optional)", min_value=0.0, max_value=2.0, value=st.session_state.temperature_fallback, step=0.1, key="global_temperature_fallback")
+        st.session_state.top_p_fallback = st.slider("Top P Fallback (Optional)", min_value=0.0, max_value=1.0, value=st.session_state.top_p_fallback, step=0.01, key="global_top_p_fallback")
+        st.session_state.max_time = st.number_input("Max Time (seconds, Optional)", value=st.session_state.max_time, key="global_max_time")
+        st.session_state.return_full_text = st.checkbox("Return Full Text", value=st.session_state.return_full_text, key="global_return_full_text")
+        st.session_state.tokenizer_config_str = st.text_area("Tokenizer Config (JSON, Optional)", value=st.session_state.tokenizer_config_str, key="global_tokenizer_config")
+        st.session_state.model_kwargs_str = st.text_area("Model Kwargs (JSON, Optional)", value=st.session_state.model_kwargs_str, key="global_model_kwargs")
         st.session_state.evaluator_system_prompt = st.text_area("Evaluator System Prompt", value=st.session_state.evaluator_system_prompt, height=100, help="System message for the evaluator AI model.")
+        st.session_state.evaluator_models_str = st.text_area("Evaluator Models (JSON array of ModelConfig, Optional)", value=st.session_state.evaluator_models_str, key="global_evaluator_models")
 
     # Core Configuration with more detailed options and tooltips
     with st.expander("🎯 Core Evolution Parameters", expanded=True):
@@ -1027,12 +1160,13 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
             )
             cascade_evaluation = st.checkbox(
                 "Enable Cascade Evaluation", 
-                value=True,
+                value=st.session_state.cascade_evaluation,
                 help="Uses multiple evaluation stages to quickly filter out poor solutions and reduce computational cost."
             )
+            st.session_state.cascade_thresholds_str = st.text_input("Cascade Thresholds (comma-separated floats)", value=st.session_state.cascade_thresholds_str, key="global_cascade_thresholds")
             use_llm_feedback = st.checkbox(
                 "Use LLM Feedback", 
-                value=False,
+                value=st.session_state.use_llm_feedback,
                 help="Incorporates feedback from Large Language Models for complex evaluation criteria that are hard to quantify."
             )
             evolution_trace_enabled = st.checkbox(
@@ -1260,6 +1394,7 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
         st.markdown("#### Stage 5: Final Verification & Self-Healing Loop")
         final_red_gauntlet_name = st.selectbox("Final Red Team Gauntlet", red_gauntlets, key="sg_final_red_gauntlet", help="Red Team Gauntlet to perform a final adversarial attack on the assembled solution.")
         final_gold_gauntlet_name = st.selectbox("Final Gold Team Gauntlet", gold_gauntlets, key="sg_final_gold_gauntlet", help="Gold Team Gauntlet to perform a holistic evaluation of the final assembled solution.")
+        max_refinement_loops = st.number_input("Max Refinement Loops", min_value=0, max_value=10, value=3, key="sg_max_refinement_loops", help="Maximum number of self-healing loops for the final solution.")
                 diversity_metric = st.selectbox("Diversity Metric per Sub-Problem", options=["edit_distance", "cosine_similarity", "jaccard_index"], index=0, key="sg_diversity_metric")
 
         with st.expander("⚙️ Advanced Evaluation Parameters for Sub-Problems", expanded=False):
@@ -1297,6 +1432,7 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                 diversity_reference_size = st.number_input("Diversity Reference Size", min_value=1, value=20, key="sg_diversity_reference_size")
                 max_retries_eval = st.number_input("Max Evaluation Retries", min_value=1, value=3, key="sg_max_retries_eval")
                 evaluator_timeout = st.number_input("Evaluator Timeout (s)", min_value=10, value=300, key="sg_evaluator_timeout")
+                evaluator_models_str = st.text_area("Evaluator Models (JSON array of ModelConfig, Optional)", value="[]", key="sg_evaluator_models")
 
         with st.expander("⚙️ Advanced OpenEvolve Parameters for Sub-Problems", expanded=False):
             col1, col2 = st.columns(2)
@@ -1414,6 +1550,7 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
             "diversity_reference_size": diversity_reference_size,
             "max_retries_eval": max_retries_eval,
             "evaluator_timeout": evaluator_timeout,
+            "evaluator_models": json.loads(evaluator_models_str) if evaluator_models_str else None,
 
             # Advanced OpenEvolve Parameters
             "diff_based_evolution": diff_based_evolution,
@@ -1647,7 +1784,7 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                     # Advanced evaluation parameters
                     "enable_artifacts": enable_artifacts,
                     "cascade_evaluation": cascade_evaluation,
-                    "cascade_thresholds": [0.5, 0.75, 0.9],
+                    "cascade_thresholds": [float(x.strip()) for x in st.session_state.sg_config["cascade_thresholds_str"].split(',')] if st.session_state.sg_config["cascade_thresholds_str"] else [],
                     "use_llm_feedback": use_llm_feedback,
                     "llm_feedback_weight": 0.1,
                     "parallel_evaluations": parallel_evaluations,
@@ -1656,7 +1793,7 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                     "num_top_programs": 3,
                     "num_diverse_programs": 2,
                     "use_template_stochasticity": True,
-                    "template_variations": {},
+                    "template_variations": json.loads(st.session_state.sg_config["template_variations_str"]) if st.session_state.sg_config["template_variations_str"] else {},
                     "use_meta_prompting": False,
                     "meta_prompt_weight": 0.1,
                     "include_artifacts": True,
