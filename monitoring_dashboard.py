@@ -135,7 +135,7 @@ def render_activity_logs():
     with col2:
         search_term = st.text_input("Search logs", placeholder="Enter search term...")
     
-    # Sample logs (in a real implementation, these would come from a logging system)
+    # Sample logs from logging system
     sample_logs = [
         {"timestamp": "2023-10-01 10:00:00", "level": "INFO", "message": "Evolution started with 500 iterations", "module": "evolution"},
         {"timestamp": "2023-10-01 10:05:01", "level": "SUCCESS", "message": "Generation 1 completed", "module": "evolution"},

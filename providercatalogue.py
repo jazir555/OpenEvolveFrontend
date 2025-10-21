@@ -114,8 +114,7 @@ def _bedrock_loader(api_key: Optional[str] = None) -> List[str]:
 def _vertex_ai_loader(api_key: Optional[str] = None) -> List[str]:
     """Loader for Google Vertex AI models, attempting to use the SDK with a static fallback."""
     try:
-        # Assuming project_id and location are configured elsewhere or can be passed.
-        # For simplicity, using hardcoded defaults or environment variables.
+        # Load project_id and location from environment variables
         project_id = os.environ.get("GCP_PROJECT_ID", "your-gcp-project-id")
         location = os.environ.get("GCP_LOCATION", "us-central1")
 

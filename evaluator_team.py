@@ -1073,7 +1073,7 @@ class EvaluatorTeam:
             config.database.population_size = 1  # Single assessment
             
             # Create an evaluator for quality assessment
-                        def evaluator_assessment(program_path: str, api_key: str, model_name: str) -> Dict[str, Any]:
+            def evaluator_assessment(program_path: str, api_key: str, model_name: str) -> Dict[str, Any]:
                             """
                             Evaluator that performs quality assessment on the content using an LLM.
                             """
@@ -1092,31 +1092,38 @@ class EvaluatorTeam:
                                 Provide your evaluation as a JSON object with 'score', 'justification', and 'targeted_feedback'.
                                 """
             
-                                # Make LLM call (using a simplified _request_openai_compatible_chat for this context)
+                                # Make LLM call to perform evaluation
                                 try:
-                                                                    llm_response_content = _request_openai_compatible_chat(
-                                                                        api_key=api_key,
-                                                                        base_url="https://api.openai.com/v1", # Default base URL
-                                                                        model=model_name,
-                                                                        messages=_compose_messages(system_prompt, user_prompt),
-                                                                        temperature=0.3,
-                                                                        max_tokens=1024,
-                                                                        timeout=10,
-                                                                        response_json_format=True # Request JSON format for structured output
-                                                                    )
-                                                                    if llm_response_content:
-                                                                        llm_parsed_response = json.loads(llm_response_content)
-                                                                        llm_score = llm_parsed_response.get("score", 0.75)
-                                                                    else:
-                                                                        print("LLM call failed for evaluator assessment. Falling back to default score.")
-                                                                        llm_score = 0.75 # Fallback if LLM call fails
-                                                
-                                return {
-                                    "score": llm_score, 
-                                    "timestamp": datetime.now().timestamp(),
-                                    "content_length": len(content),
-                                    "assessment_completed": True
-                                }
+                                    llm_response_content = _request_openai_compatible_chat(
+                                        api_key=api_key,
+                                        base_url="https://api.openai.com/v1",  # Default base URL
+                                        model=model_name,
+                                        messages=_compose_messages(system_prompt, user_prompt),
+                                        temperature=0.3,
+                                        max_tokens=1024,
+                                        timeout=10,
+                                        response_json_format=True  # Request JSON format for structured output
+                                    )
+                                    if llm_response_content:
+                                        llm_parsed_response = json.loads(llm_response_content)
+                                        llm_score = llm_parsed_response.get("score", 0.75)
+                                    else:
+                                        print("LLM call failed for evaluator assessment. Falling back to default score.")
+                                        llm_score = 0.75  # Fallback if LLM call fails
+                                    
+                                    return {
+                                        "score": llm_score, 
+                                        "timestamp": datetime.now().timestamp(),
+                                        "content_length": len(content),
+                                        "assessment_completed": True
+                                    }
+                                except Exception as e:
+                                    print(f"Error in LLM call for evaluator assessment: {e}")
+                                    return {
+                                        "score": 0.75,
+                                        "timestamp": datetime.now().timestamp(),
+                                        "error": str(e)
+                                    }
                             except Exception as e:
                                 print(f"Error in evaluator assessment: {e}")
                                 return {

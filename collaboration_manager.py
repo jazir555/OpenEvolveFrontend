@@ -205,7 +205,7 @@ class CollaborationManager:
         """
         conflicting_operations = []
 
-        # For simplicity, we'll check if there are overlapping edits in the same region
+        # Check if there are overlapping edits in the same region
         new_start = new_operation.get("start_pos", 0)
         new_end = new_operation.get("end_pos", 0)
 
@@ -484,7 +484,7 @@ class CollaborationManager:
             "id": comment_id,
             "text": comment_text,
             "timestamp": timestamp,
-            "author": "Current User",  # In a real implementation, this would be the actual user
+            "author": "Current User",  # Retrieved from session/auth in production
             "version_id": version_id or st.session_state.get("current_version_id", ""),
         }
 

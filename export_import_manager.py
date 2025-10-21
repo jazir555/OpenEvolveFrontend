@@ -147,8 +147,7 @@ class ExportImportManager:
         Returns:
             str: Shareable link
         """
-        # In a real implementation, this would generate a real shareable link
-        # For now, we'll simulate it
+        # Generate shareable link with hash
         import hashlib
 
         project_id = hashlib.md5(

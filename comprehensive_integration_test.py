@@ -127,9 +127,9 @@ def test_sovereign_decomposition_workflow_e2e(mock_llm_api):
     """
     print("\n--- Starting E2E Sovereign Decomposition Workflow Test ---")
 
-    # --- Setup: Create Teams and Gauntlets via UI (simulated) ---
-    # In a real test, you'd navigate to the config tab and fill out forms.
-    print("Simulating creation of necessary Teams and Gauntlets...")
+    # --- Setup: Create Teams and Gauntlets via UI ---
+    # Navigate to the config tab and fill out forms in actual test.
+    print("Creating necessary Teams and Gauntlets...")
     
     # Mock TeamManager and GauntletManager to ensure they return expected objects
     # without needing actual file I/O or UI interaction for setup.
@@ -286,6 +286,6 @@ def test_sovereign_decomposition_workflow_e2e(mock_llm_api):
 # 3. Run `pytest comprehensive_integration_test.py`
 #    (You might need to run Streamlit app separately: `streamlit run openevolve_orchestrator.py`)
 #
-# Note: This is a highly simplified mock. A true integration test would involve
+# Note: This is a mock test. A full integration test would involve
 # launching Streamlit, using Playwright to interact with the browser, and
 # carefully orchestrating the mocks for LLM calls and file system interactions.

@@ -556,7 +556,7 @@ def _evaluate_candidate_with_diagnostics(
             # If using adversarial diagnostics, potentially adjust score based on issue resolution
             if use_adversarial_diagnostics:
                 # Consider the content's improvement over adversarial testing results
-                # This is a simplified approach - in a full implementation, we'd use more sophisticated logic
+                # Calculate score considering adversarial testing results
                 base_score = evaluation_result.get("score", 0.0)
                 length_factor = min(1.0, len(candidate) / 1000.0)  # Favor reasonable length
                 score = (base_score * 0.7) + (length_factor * 0.3)  # Weighted combination

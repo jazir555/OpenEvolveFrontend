@@ -1395,7 +1395,6 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
         final_red_gauntlet_name = st.selectbox("Final Red Team Gauntlet", red_gauntlets, key="sg_final_red_gauntlet", help="Red Team Gauntlet to perform a final adversarial attack on the assembled solution.")
         final_gold_gauntlet_name = st.selectbox("Final Gold Team Gauntlet", gold_gauntlets, key="sg_final_gold_gauntlet", help="Gold Team Gauntlet to perform a holistic evaluation of the final assembled solution.")
         max_refinement_loops = st.number_input("Max Refinement Loops", min_value=0, max_value=10, value=3, key="sg_max_refinement_loops", help="Maximum number of self-healing loops for the final solution.")
-                diversity_metric = st.selectbox("Diversity Metric per Sub-Problem", options=["edit_distance", "cosine_similarity", "jaccard_index"], index=0, key="sg_diversity_metric")
 
         with st.expander("⚙️ Advanced Evaluation Parameters for Sub-Problems", expanded=False):
             col1, col2 = st.columns(2)
@@ -1433,6 +1432,68 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
                 max_retries_eval = st.number_input("Max Evaluation Retries", min_value=1, value=3, key="sg_max_retries_eval")
                 evaluator_timeout = st.number_input("Evaluator Timeout (s)", min_value=10, value=300, key="sg_evaluator_timeout")
                 evaluator_models_str = st.text_area("Evaluator Models (JSON array of ModelConfig, Optional)", value="[]", key="sg_evaluator_models")
+
+        with st.expander("🎯 Specialized Evolution Parameters", expanded=False):
+            st.markdown("Configure parameters for specific evolution modes and content types.")
+            col1, col2 = st.columns(2)
+            with col1:
+                st.markdown("**Quality Diversity Parameters**")
+                qd_algorithm = st.selectbox("QD Algorithm", options=["map_elites", "cvt_map_elites", "novelty_search"], key="sg_qd_algorithm")
+                qd_selection_pressure = st.slider("QD Selection Pressure", min_value=0.0, max_value=1.0, value=0.8, step=0.01, key="sg_qd_selection_pressure")
+                qd_mutation_rate = st.slider("QD Mutation Rate", min_value=0.0, max_value=1.0, value=0.1, step=0.01, key="sg_qd_mutation_rate")
+                qd_crossover_rate = st.slider("QD Crossover Rate", min_value=0.0, max_value=1.0, value=0.7, step=0.01, key="sg_qd_crossover_rate")
+                qd_novelty_threshold = st.slider("QD Novelty Threshold", min_value=0.0, max_value=1.0, value=0.1, step=0.01, key="sg_qd_novelty_threshold")
+                qd_archive_threshold = st.slider("QD Archive Threshold", min_value=0.0, max_value=1.0, value=0.5, step=0.01, key="sg_qd_archive_threshold")
+                
+                st.markdown("**Multi-Objective Parameters**")
+                mo_algorithm = st.selectbox("MO Algorithm", options=["nsga2", "spea2", "moea_d"], key="sg_mo_algorithm")
+                mo_crossover_prob = st.slider("MO Crossover Probability", min_value=0.0, max_value=1.0, value=0.9, step=0.01, key="sg_mo_crossover_prob")
+                mo_mutation_prob = st.slider("MO Mutation Probability", min_value=0.0, max_value=1.0, value=0.1, step=0.01, key="sg_mo_mutation_prob")
+                mo_tournament_size = st.number_input("MO Tournament Size", min_value=2, value=3, key="sg_mo_tournament_size")
+                mo_reference_point_str = st.text_input("MO Reference Point (comma-separated floats, optional)", value="", key="sg_mo_reference_point")
+                
+            with col2:
+                st.markdown("**Adversarial Parameters**")
+                adversarial_rounds = st.number_input("Adversarial Rounds", min_value=1, value=5, key="sg_adversarial_rounds")
+                adversarial_attack_budget = st.number_input("Adversarial Attack Budget", min_value=1, value=10, key="sg_adversarial_attack_budget")
+                adversarial_defense_budget = st.number_input("Adversarial Defense Budget", min_value=1, value=10, key="sg_adversarial_defense_budget")
+                adversarial_success_threshold = st.slider("Adversarial Success Threshold", min_value=0.0, max_value=1.0, value=0.8, step=0.01, key="sg_adversarial_success_threshold")
+                
+                st.markdown("**Prompt Optimization Parameters**")
+                prompt_max_length = st.number_input("Prompt Max Length", min_value=50, value=2000, key="sg_prompt_max_length")
+                prompt_min_length = st.number_input("Prompt Min Length", min_value=10, value=50, key="sg_prompt_min_length")
+                prompt_optimization_target = st.selectbox("Prompt Optimization Target", options=["performance", "brevity", "clarity"], key="sg_prompt_optimization_target")
+                prompt_evaluation_samples = st.number_input("Prompt Evaluation Samples", min_value=1, value=10, key="sg_prompt_evaluation_samples")
+                
+                st.markdown("**Code Evolution Parameters**")
+                code_language = st.selectbox("Code Language", options=["python", "javascript", "java", "cpp", "csharp", "go", "rust"], key="sg_code_language")
+                code_style_guide = st.selectbox("Code Style Guide", options=["pep8", "google", "airbnb", "standard"], key="sg_code_style_guide")
+                code_complexity_limit = st.number_input("Code Complexity Limit", min_value=1, value=15, key="sg_code_complexity_limit")
+                code_test_coverage_target = st.slider("Code Test Coverage Target", min_value=0.0, max_value=1.0, value=0.8, step=0.01, key="sg_code_test_coverage_target")
+                code_security_scan = st.checkbox("Code Security Scan", value=True, key="sg_code_security_scan")
+
+        with st.expander("📄 Document Evolution Parameters", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                document_max_words = st.number_input("Document Max Words", min_value=100, value=5000, key="sg_document_max_words")
+                document_min_words = st.number_input("Document Min Words", min_value=10, value=100, key="sg_document_min_words")
+                document_readability_target = st.selectbox("Document Readability Target", options=["elementary", "middle", "high_school", "college", "graduate"], index=3, key="sg_document_readability_target")
+            with col2:
+                document_tone = st.selectbox("Document Tone", options=["casual", "professional", "academic", "technical"], index=1, key="sg_document_tone")
+                document_format = st.selectbox("Document Format", options=["markdown", "html", "latex", "plain_text"], key="sg_document_format")
+
+        with st.expander("🔧 LLM Generation Parameters", expanded=False):
+            col1, col2 = st.columns(2)
+            with col1:
+                temperature = st.slider("Temperature", min_value=0.0, max_value=2.0, value=0.7, step=0.01, key="sg_temperature")
+                top_p = st.slider("Top P", min_value=0.0, max_value=1.0, value=0.95, step=0.01, key="sg_top_p")
+                max_tokens = st.number_input("Max Tokens", min_value=1, value=4096, key="sg_max_tokens")
+                frequency_penalty = st.slider("Frequency Penalty", min_value=-2.0, max_value=2.0, value=0.0, step=0.01, key="sg_frequency_penalty")
+                presence_penalty = st.slider("Presence Penalty", min_value=-2.0, max_value=2.0, value=0.0, step=0.01, key="sg_presence_penalty")
+            with col2:
+                reasoning_effort = st.selectbox("Reasoning Effort", options=[None, "low", "medium", "high"], key="sg_reasoning_effort")
+                system_message = st.text_area("System Message (optional)", value="", key="sg_system_message")
+                evaluator_system_message = st.text_area("Evaluator System Message (optional)", value="", key="sg_evaluator_system_message")
 
         with st.expander("⚙️ Advanced OpenEvolve Parameters for Sub-Problems", expanded=False):
             col1, col2 = st.columns(2)
@@ -1581,6 +1642,49 @@ def render_create_workflow_tab(orchestrator: OpenEvolveOrchestrator):
             "auto_diff": auto_diff,
             "symbolic_execution": symbolic_execution,
             "coevolutionary_approach": coevolutionary_approach,
+            
+            # Specialized Evolution Parameters
+            "qd_algorithm": qd_algorithm,
+            "qd_selection_pressure": qd_selection_pressure,
+            "qd_mutation_rate": qd_mutation_rate,
+            "qd_crossover_rate": qd_crossover_rate,
+            "qd_novelty_threshold": qd_novelty_threshold,
+            "qd_archive_threshold": qd_archive_threshold,
+            "mo_algorithm": mo_algorithm,
+            "mo_crossover_prob": mo_crossover_prob,
+            "mo_mutation_prob": mo_mutation_prob,
+            "mo_tournament_size": mo_tournament_size,
+            "mo_reference_point": [float(x.strip()) for x in mo_reference_point_str.split(',')] if mo_reference_point_str else None,
+            "adversarial_rounds": adversarial_rounds,
+            "adversarial_attack_budget": adversarial_attack_budget,
+            "adversarial_defense_budget": adversarial_defense_budget,
+            "adversarial_success_threshold": adversarial_success_threshold,
+            "prompt_max_length": prompt_max_length,
+            "prompt_min_length": prompt_min_length,
+            "prompt_optimization_target": prompt_optimization_target,
+            "prompt_evaluation_samples": prompt_evaluation_samples,
+            "code_language": code_language,
+            "code_style_guide": code_style_guide,
+            "code_complexity_limit": code_complexity_limit,
+            "code_test_coverage_target": code_test_coverage_target,
+            "code_security_scan": code_security_scan,
+            
+            # Document Evolution Parameters
+            "document_max_words": document_max_words,
+            "document_min_words": document_min_words,
+            "document_readability_target": document_readability_target,
+            "document_tone": document_tone,
+            "document_format": document_format,
+            
+            # LLM Generation Parameters
+            "temperature": temperature,
+            "top_p": top_p,
+            "max_tokens": max_tokens,
+            "frequency_penalty": frequency_penalty,
+            "presence_penalty": presence_penalty,
+            "reasoning_effort": reasoning_effort,
+            "system_message": system_message if system_message else "",
+            "evaluator_system_message": evaluator_system_message if evaluator_system_message else "",
         }
     # --- End Sovereign-Grade Decomposition Workflow Configuration ---
     

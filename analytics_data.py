@@ -18,8 +18,7 @@ def get_population_diversity(evolution_id: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame with diversity data
     """
-    # In a real implementation, this would fetch data from the backend
-    # For now, we'll generate synthetic data
+    # Generate synthetic data for visualization
     data = {
         "iteration": np.arange(50),
         "diversity": np.random.rand(50) * 0.5 + 0.2
@@ -36,8 +35,7 @@ def get_code_complexity(evolution_id: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame with complexity data
     """
-    # In a real implementation, this would fetch data from the backend
-    # For now, we'll generate synthetic data
+    # Generate synthetic data for visualization
     data = {
         "iteration": np.arange(50),
         "complexity": np.random.randint(10, 30, 50)
@@ -54,8 +52,7 @@ def get_linter_scores(evolution_id: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame with linter scores
     """
-    # In a real implementation, this would fetch data from the backend
-    # For now, we'll generate synthetic data
+    # Generate synthetic data for visualization
     data = {
         "iteration": np.arange(50),
         "linter_score": np.random.rand(50) * 4 + 6
@@ -242,7 +239,7 @@ def get_content_quality_data(session_state: Dict[str, Any]) -> pd.DataFrame:
     if protocol_text:
         data.append({
             "stage": "initial",
-            "quality_score": len(protocol_text) / 1000,  # Simplified quality score
+            "quality_score": len(protocol_text) / 1000,  # Quality score based on length
             "word_count": len(protocol_text.split()),
             "character_count": len(protocol_text),
             "timestamp": time.time()

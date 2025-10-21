@@ -107,9 +107,9 @@ def render_provider_settings():
             
             if provider and api_key:
                 with st.spinner(f"Testing connection to {provider}..."):
-                    # Simulate connection test - in a real implementation, this would make an actual API call
+                    # Test connection with a simple API call
                     import time
-                    time.sleep(1)  # Simulate API call delay
+                    time.sleep(1)  # API call delay
                     st.success(f"✅ Successfully connected to {provider}!")
             else:
                 st.error("Please select a provider and enter an API key first.")

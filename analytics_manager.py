@@ -154,7 +154,7 @@ class AnalyticsManager:
         avg_sentence_length = len(words) / len(sentences)
         avg_word_length = sum(len(word) for word in words) / len(words)
         
-        # Simplified readability formula
+        # Readability formula based on sentence and word length
         readability = 100 - (avg_sentence_length * 1.0) - (avg_word_length * 5.0)
         return max(0.0, min(100.0, readability))
 

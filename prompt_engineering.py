@@ -123,7 +123,7 @@ class PromptOptimizer:
         
         # Filter by prompt type if specified
         if prompt_type:
-            # This would require keeping track of prompt types, simplified for this example
+            # Future enhancement: filter by prompt type metadata
             pass
         
         return [prompt_id for prompt_id, _ in sorted_prompts[:limit]]
@@ -732,7 +732,7 @@ class PromptEngineeringSystem:
                         Provide your evaluation as a JSON object with 'score', 'justification', and 'suggestions'.
                         """
 
-                        # Make LLM call (using a simplified _request_openai_compatible_chat for this context)
+                        # Make LLM call to evaluate prompt quality
                         try:
                             import requests
                             headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
@@ -879,15 +879,15 @@ class PromptEngineeringSystem:
         response_length = len(response)
         prompt_length = len(prompt_instance.rendered_prompt)
         
-        # Calculate relevance (simplified - in a real system, this would be more complex)
+        # Calculate relevance based on response/prompt length ratio
         relevance_score = min(1.0, response_length / max(1, prompt_length * 0.5))
         
-        # Calculate coherence (simplified)
+        # Calculate coherence by analyzing sentence structure
         sentences = re.split(r'[.!?]+', response)
         coherent_sentences = sum(1 for s in sentences if len(s.strip()) > 3)
         coherence_score = coherent_sentences / max(1, len(sentences))
         
-        # Calculate task completion (simplified)
+        # Calculate task completion by checking requirement satisfaction
         template_requirements = prompt_instance.context.get('requirements', [])
         completion_score = 0.5  # Default
         

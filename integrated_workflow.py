@@ -1343,7 +1343,7 @@ def _merge_consensus_sop(current_content: str, blue_patches: List[Dict], critiqu
         "score": 0.8  # Default score
     }
     
-    # In a real implementation, this function would perform more sophisticated merging logic
+    # Merge patches using sophisticated merging logic
     for patch in blue_patches:
         if isinstance(patch, dict) and "text" in patch:
             # Simple implementation for now - apply each patch

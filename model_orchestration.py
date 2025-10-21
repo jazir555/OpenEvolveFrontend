@@ -405,9 +405,9 @@ class ModelClient:
         """Call Google API"""
         # For now, we'll implement a basic structure
         logger.warning("Google API call not fully implemented in this example")
-        content = f"Response to: {prompt[:100]}..."  # Simulated response
+        content = f"Response to: {prompt[:100]}..."  # Mock response for testing
         estimated_tokens = len(content.split())
-        cost = estimated_tokens * 0.000005  # Rough estimate
+        cost = estimated_tokens * 0.000005  # Estimated cost
         return content, estimated_tokens, cost
     
     def _call_openrouter_api(self, prompt: str, temperature: float, max_tokens: int) -> Tuple[str, int, float]:
@@ -445,9 +445,9 @@ class ModelClient:
     def _call_custom_api(self, prompt: str, temperature: float, max_tokens: int) -> Tuple[str, int, float]:
         """Call custom API"""
         logger.warning("Custom API call not fully implemented in this example")
-        content = f"Response to: {prompt[:100]}..."  # Simulated response
+        content = f"Response to: {prompt[:100]}..."  # Mock response for testing
         estimated_tokens = len(content.split())
-        cost = estimated_tokens * 0.000008  # Rough estimate
+        cost = estimated_tokens * 0.000008  # Estimated cost
         return content, estimated_tokens, cost
 
 
@@ -782,7 +782,7 @@ class ModelOrchestrator:
         for model in available_models:
             history = self.performance_history.get(model, [])
             if history:
-                # Average the performance metrics (simplified)
+                # Average the performance metrics
                 scores = [h.get("score", 0.5) for h in history if "score" in h]
                 perf_scores[model] = sum(scores) / len(scores) if scores else 0.5
             else:

@@ -100,7 +100,7 @@ def analyze_plan_quality(plan_text: str) -> Dict[str, Any]:
     for pattern in timeline_patterns:
         timeline_elements += len(re.findall(pattern, plan_text, re.IGNORECASE))
 
-    # Calculate quality score (simplified)
+    # Calculate quality score
     quality_score = 50  # Start with baseline
 
     # Add points for completeness
@@ -195,7 +195,7 @@ def analyze_code_quality(code_text: str) -> Dict[str, Any]:
     for pattern in complexity_patterns:
         complexity += len(re.findall(pattern, code_text))
 
-    # Calculate readability score (simplified)
+    # Calculate readability score based on line length
     avg_line_length = np.mean([len(line) for line in lines]) if lines else 0
     readability_score = max(0, 100 - (avg_line_length / 2))  # Higher avg length = lower readability
 
@@ -250,11 +250,11 @@ def analyze_document_quality(document_text: str) -> Dict[str, Any]:
     # Average paragraph length
     avg_paragraph_length = sentence_count / max(1, paragraph_count)
 
-    # Simplified readability score (Flesch-like approximation)
+    # Readability score using Flesch-like approximation
     syllables = sum(word.count(vowel) for word in words for vowel in 'aeiouAEIOU')
     readability_score = 206.835 - (1.015 * avg_sentence_length) - (84.6 * (syllables / max(1, word_count)))
 
-    # Tone consistency (simplified)
+    # Tone consistency analysis
     # Count positive/negative words for consistency
     positive_words = ['good', 'excellent', 'great', 'amazing', 'fantastic', 'wonderful', 'outstanding']
     negative_words = ['bad', 'terrible', 'awful', 'horrible', 'disappointing', 'poor', 'worst']
@@ -1184,7 +1184,7 @@ def render_analytics_settings():
         collect_error_data = st.checkbox("Enable error reporting", value=True)
         
         if st.button("Save Analytics Settings"):
-            # In a real implementation, this would save to user preferences
+            # Save to user preferences in session state
             st.session_state.analytics_settings = {
                 "collect_usage_data": collect_usage_data,
                 "collect_performance_data": collect_performance_data,
