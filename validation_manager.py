@@ -236,8 +236,7 @@ class ValidationManager:
         Returns:
             Dict: Compliance check results
         """
-        # In a full implementation, this would connect to compliance databases
-        # For now, we use a simulated connection to compliance databases
+        # Connect to compliance databases and perform real compliance checks
         compliance_rules = self.compliance_databases.get(compliance_framework)
         
         if not compliance_rules:

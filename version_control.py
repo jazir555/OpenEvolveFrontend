@@ -207,7 +207,7 @@ class VersionControl:
         if not version1 or not version2:
             return {"error": "One or both versions not found"}
 
-        # Calculate differences (simplified approach)
+        # Calculate differences using difflib
         text1 = version1["protocol_text"]
         text2 = version2["protocol_text"]
 

@@ -12,8 +12,8 @@ openai==1.35.11
 optillm>=0.3.0
 
 # Data processing
-pandas==2.2.2
-matplotlib==3.9.1
+pandas==2.3.3
+matplotlib==3.10.7
 seaborn==0.13.2
 
 # Web framework

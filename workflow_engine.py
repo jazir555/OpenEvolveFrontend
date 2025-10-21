@@ -27,237 +27,7 @@ team_manager = TeamManager()
 gauntlet_manager = GauntletManager()
 
 from llm_utils import _request_openai_compatible_chat
-    api_key: str,
-    base_url: str,
-    model: str,
-    messages: List[Dict[str, str]],
-    extra_headers: Optional[Dict[str, str]] = None,
-    temperature: float = 0.7,
-    top_p: float = 1.0,
-    frequency_penalty: float = 0.0,
-    presence_penalty: float = 0.0,
-    max_tokens: int = 4096,
-    seed: Optional[int] = None,
-    n: Optional[int] = None,
-    logit_bias: Optional[Dict[int, int]] = None,
-    reasoning_effort: Optional[str] = None,
-    max_retries: int = 5,
-    timeout: int = 120,
-    organization: Optional[str] = None,
-    response_model: Optional[str] = None,
-    tools: Optional[List[Dict[str, Any]]] = None,
-    tool_choice: Optional[Any] = None,
-    system_fingerprint: Optional[str] = None,
-    deployment_id: Optional[str] = None,
-    encoding_format: Optional[str] = None,
-    max_input_tokens: Optional[int] = None,
-    stop_token: Optional[str] = None,
-    best_of: Optional[int] = None,
-    logprobs_offset: Optional[int] = None,
-    suffix: Optional[str] = None,
-    presence_penalty_range: Optional[List[float]] = None,
-    frequency_penalty_range: Optional[List[float]] = None,
-    stop_token_id: Optional[int] = None,
-    response_json_format: Optional[bool] = None,
-    max_output_tokens: Optional[int] = None,
-    stream_options: Optional[Dict[str, Any]] = None,
-    logprobs_type: Optional[str] = None,
-    top_k: Optional[int] = None,
-    repetition_penalty: Optional[float] = None,
-    length_penalty: Optional[float] = None,
-    early_stopping: Optional[bool] = None,
-    num_beams: Optional[int] = None,
-    do_sample: Optional[bool] = None,
-    temperature_fallback: Optional[float] = None,
-    top_p_fallback: Optional[float] = None,
-    max_time: Optional[int] = None,
-    return_full_text: Optional[bool] = None,
-    tokenizer_config: Optional[Dict[str, Any]] = None,
-    model_kwargs: Optional[Dict[str, Any]] = None
-) -> Optional[str]:
-    """
-    Makes a request to an OpenAI-compatible API endpoint for chat completions.
 
-    Args:
-        api_key (str): The API key for authentication.
-        base_url (str): The base URL of the API endpoint.
-        model (str): The model identifier to use for the completion.
-        messages (List[Dict[str, str]]): A list of message dictionaries, typically in OpenAI chat format.
-        extra_headers (Optional[Dict[str]]): Additional headers to include in the request.
-        temperature (float): Controls randomness in model outputs.
-        top_p (float): Nucleus sampling parameter.
-        frequency_penalty (float): Penalizes new tokens based on their existing frequency.
-        presence_penalty (float): Penalizes new tokens based on whether they appear in the text.
-        max_tokens (int): Maximum number of tokens to generate.
-        seed (Optional[int]): Seed for reproducible sampling.
-        stop_sequences (Optional[List[str]]): Up to 4 sequences where the API will stop generating further tokens.
-        logprobs (Optional[bool]): Whether to return log probabilities of the output tokens or not.
-        top_logprobs (Optional[int]): An integer between 0 and 5 specifying the number of most likely tokens to return at each token position.
-        response_format (Optional[Dict[str, str]]): An object specifying the format that the model must output.
-        stream (Optional[bool]): If set, partial message deltas will be sent, like in ChatGPT.
-        user (Optional[str]): A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.
-        reasoning_effort (Optional[str]): The reasoning effort to apply for the model (e.g., 'low', 'medium', 'high').
-        max_retries (int): Maximum number of retries for API calls.
-        timeout (int): Timeout for API calls in seconds.
-        organization (Optional[str]): For OpenAI, the organization ID.
-        response_model (Optional[str]): For structured output, a Pydantic model or similar (string representation).
-        tools (Optional[List[Dict[str, Any]]]): For function calling, a list of tool definitions.
-        tool_choice (Optional[Any]): For function calling, control over tool usage (e.g., "auto", "none", {"type": "function", "function": {"name": "my_function"}}).
-        system_fingerprint (Optional[str]): For OpenAI, a unique identifier for the model's configuration.
-        deployment_id (Optional[str]): For Azure OpenAI, the deployment name.
-        encoding_format (Optional[str]): For some models, the encoding format for output (e.g., "base64").
-        max_input_tokens (Optional[int]): Maximum number of input tokens.
-        stop_token (Optional[str]): A single stop token (alternative to stop_sequences).
-        best_of (Optional[int]): Generates best_of completions on the server side and returns the "best".
-        logprobs_offset (Optional[int]): Offset for logprobs.
-        suffix (Optional[str]): A suffix that will be appended to the end of the generated text.
-        presence_penalty_range (Optional[List[float]]): Range for presence penalty.
-        frequency_penalty_range (Optional[List[float]]): Range for frequency penalty.
-        stop_token_id (Optional[int]): For models that use token IDs for stopping.
-        response_json_format (Optional[bool]): If the response should be in JSON format.
-        max_output_tokens (Optional[int]): Maximum number of output tokens.
-        stream_options (Optional[Dict[str, Any]]): For more granular control over streaming.
-        logprobs_type (Optional[str]): To specify the type of log probabilities.
-        top_k (Optional[int]): Another common sampling parameter.
-        repetition_penalty (Optional[float]): To penalize repeated tokens.
-        length_penalty (Optional[float]): To control the length of generated sequences.
-        early_stopping (Optional[bool]): For beam search.
-        num_beams (Optional[int]): For beam search.
-        do_sample (Optional[bool]): To enable/disable sampling.
-        temperature_fallback (Optional[float]): A fallback temperature.
-        top_p_fallback (Optional[float]): A fallback top_p.
-        max_time (Optional[int]): Maximum time to generate a response.
-        return_full_text (Optional[bool]): Whether to return the full text or just the generated part.
-        tokenizer_config (Optional[Dict[str, Any]]): For tokenizer-specific settings.
-        model_kwargs (Optional[Dict[str, Any]]): For any other model-specific keyword arguments.
-
-    Returns:
-        Optional[str]: The content of the generated message, or None if an error occurred.
-    """
-    try:
-        import openai
-        # Initialize OpenAI client with organization and base_url
-        client_params = {"api_key": api_key, "base_url": base_url}
-        if organization: client_params["organization"] = organization
-        client = openai.OpenAI(**client_params)
-        
-        completion_params = {
-            "model": model,
-            "messages": messages,
-            "temperature": temperature,
-            "top_p": top_p,
-            "frequency_penalty": frequency_penalty,
-            "presence_penalty": presence_penalty,
-            "max_tokens": max_tokens,
-            "seed": seed,
-            "n": n,
-            "logit_bias": logit_bias,
-            "stop": stop_sequences if stop_sequences else stop_token,
-            "logprobs": logprobs,
-            "top_logprobs": top_logprobs,
-            "response_format": response_format,
-            "stream": stream,
-            "user": user,
-            "tools": tools,
-            "tool_choice": tool_choice,
-            "system_fingerprint": system_fingerprint,
-            "deployment_id": deployment_id,
-            "best_of": best_of,
-            "suffix": suffix,
-            "presence_penalty_range": presence_penalty_range,
-            "frequency_penalty_range": frequency_penalty_range,
-            "stop_token_id": stop_token_id,
-            "response_json_format": response_json_format,
-            "max_output_tokens": max_output_tokens,
-            "stream_options": stream_options,
-            "logprobs_type": logprobs_type,
-            "top_k": top_k,
-            "repetition_penalty": repetition_penalty,
-            "length_penalty": length_penalty,
-            "early_stopping": early_stopping,
-            "num_beams": num_beams,
-            "do_sample": do_sample,
-            "temperature_fallback": temperature_fallback,
-            "top_p_fallback": top_p_fallback,
-            "max_time": max_time,
-            "return_full_text": return_full_text,
-            "tokenizer_config": tokenizer_config,
-            "model_kwargs": model_kwargs
-        }
-        # Filter out None values to avoid sending them to the API if not specified
-        completion_params = {k: v for k, v in completion_params.items() if v is not None}
-
-        response = client.chat.completions.create(**completion_params)
-        
-        return response.choices[0].message.content
-        
-    except ImportError:
-        # If openai package is not available, try using requests
-        import requests
-        
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-        if extra_headers:
-            headers.update(extra_headers)
-        
-        data = {
-            "model": model,
-            "messages": messages,
-            "temperature": temperature,
-            "top_p": top_p,
-            "frequency_penalty": frequency_penalty,
-            "presence_penalty": presence_penalty,
-            "max_tokens": max_tokens,
-            "seed": seed,
-            "n": n,
-            "logit_bias": logit_bias,
-            "stop": stop_sequences if stop_sequences else stop_token,
-            "logprobs": logprobs,
-            "top_logprobs": top_logprobs,
-            "response_format": response_format,
-            "stream": stream,
-            "user": user,
-            "reasoning_effort": reasoning_effort,
-            "tools": tools,
-            "tool_choice": tool_choice,
-            "system_fingerprint": system_fingerprint,
-            "deployment_id": deployment_id,
-            "best_of": best_of,
-            "suffix": suffix,
-            "presence_penalty_range": presence_penalty_range,
-            "frequency_penalty_range": frequency_penalty_range,
-            "stop_token_id": stop_token_id,
-            "response_json_format": response_json_format,
-            "max_output_tokens": max_output_tokens,
-            "stream_options": stream_options,
-            "logprobs_type": logprobs_type,
-            "top_k": top_k,
-            "repetition_penalty": repetition_penalty,
-            "length_penalty": length_penalty,
-            "early_stopping": early_stopping,
-            "num_beams": num_beams,
-            "do_sample": do_sample,
-            "temperature_fallback": temperature_fallback,
-            "top_p_fallback": top_p_fallback,
-            "max_time": max_time,
-            "return_full_text": return_full_text,
-            "tokenizer_config": tokenizer_config,
-            "model_kwargs": model_kwargs
-        }
-        # Filter out None values
-        data = {k: v for k, v in data.items() if v is not None}
-            
-        response = requests.post(f"{base_url}/chat/completions", headers=headers, json=data, timeout=timeout)
-        response.raise_for_status()
-        
-        result = response.json()
-        return result["choices"][0]["message"]["content"]
-        
-    except Exception as e:
-        st.error(f"Error making API request: {e}. Please check your API key, base URL, and network connection.")
-        return None
 
 def _compose_messages(system_message: str, user_message: str) -> List[Dict[str, str]]:
     """Helper function to compose messages in the format expected by OpenAI-compatible chat APIs.
@@ -381,17 +151,21 @@ def run_content_analysis(problem_statement: str, team: Team) -> Dict[str, Any]:
     if not analyses:
         return {"summary": "Failed to analyze content with any team member."}
 
-    # Combine analyses: For simplicity, concatenate summaries and keywords, take average complexity.
+    # Combine analyses from multiple team members using ensemble aggregation:
+    # - Concatenate summaries to capture all perspectives
+    # - Union of keywords, challenges, and expertise to ensure comprehensive coverage
+    # - Average complexity scores for balanced assessment
+    # - Majority voting for domain classification
     combined_summary = " ".join([a.get("summary", "") for a in analyses if a.get("summary")])
     combined_keywords = list(set(kw for a in analyses for kw in a.get("keywords", [])))
     combined_challenges = list(set(c for a in analyses for c in a.get("potential_challenges", [])))
     combined_expertise = list(set(e for a in analyses for e in a.get("required_expertise", [])))
     
-    # Average complexity, default to 5 if no valid complexities found
+    # Average complexity with validation, default to 5 if no valid complexities found
     complexities = [a.get("estimated_complexity", 0) for a in analyses if isinstance(a.get("estimated_complexity"), int) and 1 <= a.get("estimated_complexity") <= 10]
     avg_complexity = int(sum(complexities) / len(complexities)) if complexities else 5
 
-    # Take the most frequent domain, or the first one if no clear majority
+    # Use majority voting for domain classification
     domains = [a.get("domain") for a in analyses if a.get("domain")]
     from collections import Counter
     most_common_domain = Counter(domains).most_common(1)[0][0] if domains else "General"
@@ -538,6 +312,13 @@ def run_gauntlet(
     Executes a Gauntlet with a given Team to critique or verify a piece of content.
     This function supports evaluation by Blue, Red, and Gold Teams, applying programmable rules
     for each round and generating detailed reports.
+    
+    Supports multiple gauntlet types:
+    - standard: Fixed rules for all rounds
+    - adaptive: Rules adapt based on content being evaluated
+    - hierarchical: Multiple tiers with increasingly strict criteria
+    - competitive: Multiple solutions compete against each other
+    - collaborative: Models work together to improve solution
 
     Args:
         solution_content (str): The content (e.g., solution, critique) to be evaluated by the gauntlet.
@@ -554,7 +335,29 @@ def run_gauntlet(
                           The 'targeted_feedback' within these reports is expected to be a JSON array of strings
                           (sub-problem IDs) if applicable.
     """
-    st.info(f"Running Gauntlet '{gauntlet_def.name}' with Team '{team.name}'...")
+    st.info(f"Running {gauntlet_def.gauntlet_type.upper()} Gauntlet '{gauntlet_def.name}' with Team '{team.name}'...")
+    
+    # Route to appropriate gauntlet type handler
+    if gauntlet_def.gauntlet_type == "adaptive":
+        return _run_adaptive_gauntlet(solution_content, gauntlet_def, team, context)
+    elif gauntlet_def.gauntlet_type == "hierarchical":
+        return _run_hierarchical_gauntlet(solution_content, gauntlet_def, team, context)
+    elif gauntlet_def.gauntlet_type == "competitive":
+        return _run_competitive_gauntlet(solution_content, gauntlet_def, team, context)
+    elif gauntlet_def.gauntlet_type == "collaborative":
+        return _run_collaborative_gauntlet(solution_content, gauntlet_def, team, context)
+    else:  # standard
+        return _run_standard_gauntlet(solution_content, gauntlet_def, team, context)
+
+
+def _run_standard_gauntlet(
+    solution_content: str,
+    gauntlet_def: GauntletDefinition,
+    team: Team,
+    context: Dict[str, Any]
+) -> Dict[str, Any]:
+    """Execute a standard gauntlet with fixed rules."""
+    st.info(f"Running Standard Gauntlet '{gauntlet_def.name}' with Team '{team.name}'...")
     
     all_judge_reports = []
     overall_gauntlet_approved = True
@@ -1676,7 +1479,7 @@ def generate_solution_for_sub_problem(sub_problem: SubProblem, team: Team, conte
                 existing_solution_text = f"Existing solution to refine:\n---\n{context['current_solution']}\n---"
             formatted_candidate_user_prompt = formatted_candidate_user_prompt.replace("{{existing_solution_to_refine}}", existing_solution_text)
 
-                        candidate_response = _request_openai_compatible_chat(
+            candidate_response = _request_openai_compatible_chat(
                             api_key=member.api_key,
                             base_url=member.api_base,
                             model=member.model_id,
@@ -1729,7 +1532,9 @@ def generate_solution_for_sub_problem(sub_problem: SubProblem, team: Team, conte
                             return_full_text=member.return_full_text,
                             tokenizer_config=member.tokenizer_config,
                             model_kwargs=member.model_kwargs
-                        )            if candidate_response:
+                        )
+            
+            if candidate_response:
                 candidates.append({"model_id": member.model_id, "content": candidate_response})
                 st.info(f"    - Candidate {i+1} generated by {member.model_id}.")
             else:
@@ -1827,15 +1632,384 @@ def generate_solution_for_sub_problem(sub_problem: SubProblem, team: Team, conte
             tokenizer_config=model_config.tokenizer_config,
             model_kwargs=model_config.model_kwargs
         )
-                    
-                    if synthesized_response:
-                        generated_solution_content = synthesized_response
-                        st.success(f"Solution synthesized for {sub_problem.id} by {model_config.model_id}.")
-                    else:
-                        st.error(f"Failed to synthesize solution for {sub_problem.id} in multi_candidate_peer_review mode.")
-                        return "Failed to generate solution: Synthesis failed."
+        
+        if synthesized_response:
+            generated_solution_content = synthesized_response
+            st.success(f"Solution synthesized for {sub_problem.id} by {model_config.model_id}.")
+        else:
+            st.error(f"Failed to synthesize solution for {sub_problem.id} in multi_candidate_peer_review mode.")
+            return "Failed to generate solution: Synthesis failed."
     else:
         st.error(f"No valid generation method specified for sub-problem {sub_problem.id}. Neither evolution_params nor solver_generation_gauntlet provided.")
         return "Failed to generate solution: No generation method specified."
 
     return generated_solution_content
+
+
+
+# --- Advanced Gauntlet Type Implementations ---
+
+def _run_adaptive_gauntlet(
+    solution_content: str,
+    gauntlet_def: GauntletDefinition,
+    team: Team,
+    context: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Execute an adaptive gauntlet that adjusts its rules based on the content being evaluated.
+    
+    Adaptive behavior:
+    - Analyzes content complexity and adjusts thresholds
+    - Increases scrutiny for complex or critical solutions
+    - Reduces requirements for simple, low-risk solutions
+    """
+    st.info("Adaptive Gauntlet: Analyzing content to adjust evaluation criteria...")
+    
+    # Analyze content to determine complexity
+    content_complexity = _analyze_content_complexity(solution_content, context)
+    st.write(f"Content complexity score: {content_complexity:.2f}")
+    
+    # Create adapted gauntlet definition
+    adapted_gauntlet = GauntletDefinition(
+        name=f"{gauntlet_def.name} (Adapted)",
+        team_name=gauntlet_def.team_name,
+        rounds=[],
+        description=f"Adaptive version of {gauntlet_def.name}",
+        attack_modes=gauntlet_def.attack_modes,
+        generation_mode=gauntlet_def.generation_mode,
+        gauntlet_type="standard"  # Run as standard after adaptation
+    )
+    
+    # Adapt each round based on complexity
+    for round_rule in gauntlet_def.rounds:
+        adapted_round = GauntletRoundRule(
+            round_number=round_rule.round_number,
+            quorum_required_approvals=round_rule.quorum_required_approvals,
+            quorum_from_panel_size=round_rule.quorum_from_panel_size,
+            min_overall_confidence=_adapt_threshold(
+                round_rule.min_overall_confidence,
+                content_complexity
+            ),
+            max_score_variance=_adapt_variance(
+                round_rule.max_score_variance,
+                content_complexity
+            ),
+            per_judge_requirements=round_rule.per_judge_requirements,
+            collaboration_mode=round_rule.collaboration_mode
+        )
+        adapted_gauntlet.rounds.append(adapted_round)
+    
+    st.success(f"Adapted gauntlet criteria based on complexity score {content_complexity:.2f}")
+    
+    # Run the adapted gauntlet as a standard gauntlet
+    return _run_standard_gauntlet(solution_content, adapted_gauntlet, team, context)
+
+
+def _analyze_content_complexity(solution_content: str, context: Dict[str, Any]) -> float:
+    """
+    Analyze content to determine its complexity score (0.0-1.0).
+    Higher scores indicate more complex content requiring stricter evaluation.
+    """
+    complexity_score = 0.5  # Base score
+    
+    # Length-based complexity
+    content_length = len(solution_content)
+    if content_length > 5000:
+        complexity_score += 0.2
+    elif content_length > 2000:
+        complexity_score += 0.1
+    
+    # Code complexity indicators
+    if "def " in solution_content or "class " in solution_content:
+        complexity_score += 0.1
+    if solution_content.count("if ") > 5:
+        complexity_score += 0.1
+    if solution_content.count("for ") > 3 or solution_content.count("while ") > 2:
+        complexity_score += 0.1
+    
+    # Context-based complexity
+    if context.get("sub_problem"):
+        sub_problem = context["sub_problem"]
+        if isinstance(sub_problem, dict):
+            ai_complexity = sub_problem.get("ai_suggested_complexity_score", 5)
+            complexity_score += (ai_complexity / 10) * 0.2
+    
+    return min(1.0, complexity_score)
+
+
+def _adapt_threshold(original_threshold: float, complexity: float) -> float:
+    """Adapt confidence threshold based on complexity."""
+    # Higher complexity = higher threshold
+    adaptation_factor = 0.5 + (complexity * 0.5)  # 0.5 to 1.0
+    adapted = original_threshold * adaptation_factor
+    return min(0.95, max(0.3, adapted))  # Clamp between 0.3 and 0.95
+
+
+def _adapt_variance(original_variance: Optional[float], complexity: float) -> Optional[float]:
+    """Adapt variance threshold based on complexity."""
+    if original_variance is None:
+        return None
+    # Higher complexity = lower allowed variance (stricter consensus)
+    adaptation_factor = 1.5 - (complexity * 0.5)  # 1.5 to 1.0
+    adapted = original_variance * adaptation_factor
+    return max(0.05, adapted)  # Minimum variance of 0.05
+
+
+def _run_hierarchical_gauntlet(
+    solution_content: str,
+    gauntlet_def: GauntletDefinition,
+    team: Team,
+    context: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Execute a hierarchical gauntlet with multiple tiers of evaluation.
+    
+    Each tier has increasingly strict criteria. Solutions must pass all tiers.
+    """
+    st.info("Hierarchical Gauntlet: Evaluating through multiple tiers...")
+    
+    # Divide rounds into tiers (every 2 rounds = 1 tier)
+    tier_size = max(1, len(gauntlet_def.rounds) // 3)  # 3 tiers
+    tiers = []
+    for i in range(0, len(gauntlet_def.rounds), tier_size):
+        tiers.append(gauntlet_def.rounds[i:i + tier_size])
+    
+    all_judge_reports = []
+    current_tier = 1
+    
+    for tier_rounds in tiers:
+        st.subheader(f"Tier {current_tier}/{len(tiers)}")
+        
+        # Create a gauntlet for this tier
+        tier_gauntlet = GauntletDefinition(
+            name=f"{gauntlet_def.name} - Tier {current_tier}",
+            team_name=gauntlet_def.team_name,
+            rounds=tier_rounds,
+            description=f"Tier {current_tier} of hierarchical gauntlet",
+            attack_modes=gauntlet_def.attack_modes,
+            generation_mode=gauntlet_def.generation_mode,
+            gauntlet_type="standard"
+        )
+        
+        # Run this tier
+        tier_result = _run_standard_gauntlet(solution_content, tier_gauntlet, team, context)
+        
+        # Collect reports
+        if "critique_report" in tier_result:
+            all_judge_reports.extend(tier_result["critique_report"].reports_by_judge)
+        elif "verification_report" in tier_result:
+            all_judge_reports.extend(tier_result["verification_report"].reports_by_judge)
+        
+        # If tier failed, stop evaluation
+        if not tier_result["is_approved"]:
+            st.warning(f"Failed at Tier {current_tier}. Hierarchical gauntlet rejected.")
+            
+            # Return failure report
+            if team.role == "Red":
+                return {
+                    "is_approved": False,
+                    "report_summary": f"Hierarchical Gauntlet '{gauntlet_def.name}' REJECTED at Tier {current_tier}",
+                    "critique_report": CritiqueReport(
+                        solution_attempt_id=context.get('solution_id', 'unknown'),
+                        gauntlet_name=gauntlet_def.name,
+                        is_approved=False,
+                        reports_by_judge=all_judge_reports,
+                        summary=f"Failed at Tier {current_tier}/{len(tiers)}"
+                    )
+                }
+            else:
+                return {
+                    "is_approved": False,
+                    "report_summary": f"Hierarchical Gauntlet '{gauntlet_def.name}' REJECTED at Tier {current_tier}",
+                    "verification_report": VerificationReport(
+                        solution_attempt_id=context.get('solution_id', 'unknown'),
+                        gauntlet_name=gauntlet_def.name,
+                        is_approved=False,
+                        reports_by_judge=all_judge_reports,
+                        summary=f"Failed at Tier {current_tier}/{len(tiers)}"
+                    )
+                }
+        
+        st.success(f"Passed Tier {current_tier}")
+        current_tier += 1
+    
+    # All tiers passed
+    st.success(f"Passed all {len(tiers)} tiers!")
+    
+    if team.role == "Red":
+        return {
+            "is_approved": True,
+            "report_summary": f"Hierarchical Gauntlet '{gauntlet_def.name}' APPROVED (passed all {len(tiers)} tiers)",
+            "critique_report": CritiqueReport(
+                solution_attempt_id=context.get('solution_id', 'unknown'),
+                gauntlet_name=gauntlet_def.name,
+                is_approved=True,
+                reports_by_judge=all_judge_reports,
+                summary=f"Passed all {len(tiers)} tiers"
+            )
+        }
+    else:
+        return {
+            "is_approved": True,
+            "report_summary": f"Hierarchical Gauntlet '{gauntlet_def.name}' APPROVED (passed all {len(tiers)} tiers)",
+            "verification_report": VerificationReport(
+                solution_attempt_id=context.get('solution_id', 'unknown'),
+                gauntlet_name=gauntlet_def.name,
+                is_approved=True,
+                reports_by_judge=all_judge_reports,
+                summary=f"Passed all {len(tiers)} tiers"
+            )
+        }
+
+
+def _run_competitive_gauntlet(
+    solution_content: str,
+    gauntlet_def: GauntletDefinition,
+    team: Team,
+    context: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Execute a competitive gauntlet where multiple solutions compete.
+    
+    Note: This requires multiple solutions in context. If only one solution is provided,
+    it falls back to standard evaluation.
+    """
+    st.info("Competitive Gauntlet: Comparing multiple solutions...")
+    
+    # Check if we have multiple solutions to compare
+    competing_solutions = context.get("competing_solutions", [solution_content])
+    
+    if len(competing_solutions) <= 1:
+        st.warning("Only one solution provided. Running as standard gauntlet.")
+        return _run_standard_gauntlet(solution_content, gauntlet_def, team, context)
+    
+    st.write(f"Comparing {len(competing_solutions)} solutions...")
+    
+    # Evaluate each solution
+    solution_scores = []
+    for idx, solution in enumerate(competing_solutions):
+        st.subheader(f"Evaluating Solution {idx + 1}/{len(competing_solutions)}")
+        
+        # Run standard gauntlet for this solution
+        result = _run_standard_gauntlet(solution, gauntlet_def, team, context)
+        
+        # Extract average score
+        if "verification_report" in result:
+            avg_score = result["verification_report"].average_score
+        elif "critique_report" in result:
+            # For critique, use inverse of flaw count as score
+            avg_score = 1.0 if result["is_approved"] else 0.5
+        else:
+            avg_score = 0.5
+        
+        solution_scores.append({
+            "solution_idx": idx,
+            "solution": solution,
+            "score": avg_score,
+            "result": result
+        })
+    
+    # Sort by score (highest first)
+    solution_scores.sort(key=lambda x: x["score"], reverse=True)
+    
+    # The best solution wins
+    best_solution = solution_scores[0]
+    st.success(f"Solution {best_solution['solution_idx'] + 1} wins with score {best_solution['score']:.2f}")
+    
+    # Return result for the best solution
+    return best_solution["result"]
+
+
+def _run_collaborative_gauntlet(
+    solution_content: str,
+    gauntlet_def: GauntletDefinition,
+    team: Team,
+    context: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    Execute a collaborative gauntlet where models work together to improve the solution.
+    
+    Instead of just evaluating, models suggest improvements and the solution is iteratively refined.
+    """
+    st.info("Collaborative Gauntlet: Models working together to improve solution...")
+    
+    current_solution = solution_content
+    improvement_iterations = gauntlet_def.gauntlet_config.get("max_iterations", 3) if gauntlet_def.gauntlet_config else 3
+    all_judge_reports = []
+    
+    for iteration in range(improvement_iterations):
+        st.subheader(f"Collaboration Iteration {iteration + 1}/{improvement_iterations}")
+        
+        # Evaluate current solution
+        result = _run_standard_gauntlet(current_solution, gauntlet_def, team, context)
+        
+        # Collect reports
+        if "critique_report" in result:
+            all_judge_reports.extend(result["critique_report"].reports_by_judge)
+        elif "verification_report" in result:
+            all_judge_reports.extend(result["verification_report"].reports_by_judge)
+        
+        # If approved, we're done
+        if result["is_approved"]:
+            st.success(f"Solution approved after {iteration + 1} iterations!")
+            return result
+        
+        # Otherwise, collect improvement suggestions
+        st.info("Collecting improvement suggestions from team...")
+        improvements = []
+        
+        for judge_report in (result.get("critique_report") or result.get("verification_report")).reports_by_judge:
+            if judge_report.get("justification"):
+                improvements.append(judge_report["justification"])
+        
+        if not improvements:
+            st.warning("No improvement suggestions available. Stopping collaboration.")
+            return result
+        
+        # Ask a team member to improve the solution
+        improvement_prompt = f"""The following solution needs improvement based on team feedback:
+
+Original Solution:
+---
+{current_solution}
+---
+
+Team Feedback:
+{chr(10).join(f"- {imp}" for imp in improvements)}
+
+Please provide an improved version of the solution that addresses the feedback."""
+        
+        # Use first team member to generate improvement
+        if team.members:
+            member = team.members[0]
+            improved_solution = _request_openai_compatible_chat(
+                api_key=member.api_key,
+                base_url=member.api_base,
+                model=member.model_id,
+                messages=_compose_messages(
+                    "You are an AI assistant helping to improve solutions based on team feedback.",
+                    improvement_prompt
+                ),
+                temperature=member.temperature,
+                max_tokens=member.max_tokens
+            )
+            
+            if improved_solution:
+                current_solution = improved_solution
+                st.success("Solution improved. Re-evaluating...")
+            else:
+                st.warning("Failed to generate improvement. Stopping collaboration.")
+                return result
+        else:
+            st.warning("No team members available for improvement. Stopping collaboration.")
+            return result
+    
+    # Max iterations reached
+    st.warning(f"Max iterations ({improvement_iterations}) reached. Returning final result.")
+    final_result = _run_standard_gauntlet(current_solution, gauntlet_def, team, context)
+    
+    # Update solution in context if it was improved
+    if current_solution != solution_content:
+        context["improved_solution"] = current_solution
+    
+    return final_result

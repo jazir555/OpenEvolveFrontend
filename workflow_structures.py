@@ -112,6 +112,14 @@ class ModelConfig:
     return_full_text: Optional[bool] = None
     tokenizer_config: Optional[Dict[str, Any]] = None
     model_kwargs: Optional[Dict[str, Any]] = None
+    # Domain specialization for the model
+    domain_specialization: Optional[List[str]] = None
+    # Problem type specialization for the model
+    problem_type_specialization: Optional[List[str]] = None
+    # Performance metrics for the model
+    performance_metrics: Optional[Dict[str, float]] = None
+    # Cost per token for the model
+    cost_per_token: Optional[float] = None
 
 @dataclasses.dataclass
 class Team:
@@ -156,6 +164,16 @@ class Team:
     red_team_user_prompt_template: Optional[str] = None
     gold_team_system_prompt: Optional[str] = None
     gold_team_user_prompt_template: Optional[str] = None
+    # Sub-role for the team (e.g., "Planner", "Solver", "Patcher" for Blue teams)
+    sub_role: Optional[str] = None
+    # Domain specialization for the team
+    domain_specialization: Optional[List[str]] = None
+    # Problem type specialization for the team
+    problem_type_specialization: Optional[List[str]] = None
+    # Performance metrics for the team
+    performance_metrics: Optional[Dict[str, float]] = None
+    # Team configuration parameters
+    team_config: Optional[Dict[str, Any]] = None
 
 @dataclasses.dataclass
 class GauntletRoundRule:
@@ -167,6 +185,13 @@ class GauntletRoundRule:
     max_score_variance: Optional[float] = None
     per_judge_requirements: Dict[str, Dict[str, Any]] = dataclasses.field(default_factory=dict)
     collaboration_mode: Literal["independent", "share_previous_feedback"] = "independent"
+    # Time constraints for this round
+    time_limit_seconds: Optional[int] = None
+    # Resource constraints for this round
+    max_api_calls: Optional[int] = None
+    max_tokens: Optional[int] = None
+    # Adaptive rules for this round
+    adaptive_rules: Optional[Dict[str, Any]] = None
 
 @dataclasses.dataclass
 class GauntletDefinition:
@@ -176,7 +201,13 @@ class GauntletDefinition:
     rounds: List[GauntletRoundRule]
     description: Optional[str] = None
     attack_modes: List[str] = dataclasses.field(default_factory=list)
-    generation_mode: Literal["single_candidate", "multi_candidate_peer_review"] = "single_candidate"
+    generation_mode: Literal["single_candidate", "multi_candidate_peer_review", "evolutionary", "hybrid"] = "single_candidate"
+    # Gauntlet type
+    gauntlet_type: Literal["standard", "adaptive", "hierarchical", "competitive", "collaborative"] = "standard"
+    # Performance metrics for the gauntlet
+    performance_metrics: Optional[Dict[str, float]] = None
+    # Gauntlet configuration parameters
+    gauntlet_config: Optional[Dict[str, Any]] = None
 
 @dataclasses.dataclass
 class SubProblem:
@@ -192,7 +223,19 @@ class SubProblem:
     red_team_gauntlet_name: Optional[str] = None
     gold_team_gauntlet_name: str = ""
     solver_generation_gauntlet_name: Optional[str] = None
+    patcher_team_name: str = ""  # Name of the Blue Team assigned to patch solutions for this sub-problem
     evolution_params: Dict[str, Any] = dataclasses.field(default_factory=dict)
+    # AI suggestions (additional fields from document)
+    ai_suggested_team_assignment: Optional[str] = None
+    ai_suggested_gauntlet_assignment: Optional[Dict[str, str]] = None
+    estimated_resources: Optional[Dict[str, Any]] = None
+    potential_approaches: Optional[List[str]] = None
+    # Sub-problem status
+    status: Literal["pending", "in_progress", "solved", "failed", "requires_rework"] = "pending"
+    # Solution attempts for this sub-problem
+    solution_attempts: List['SolutionAttempt'] = dataclasses.field(default_factory=list)
+    # Performance metrics for this sub-problem
+    performance_metrics: Optional[Dict[str, float]] = None
 
 @dataclasses.dataclass
 class DecompositionPlan:
@@ -201,6 +244,19 @@ class DecompositionPlan:
     analyzed_context: Dict[str, Any]
     sub_problems: List[SubProblem]
     max_refinement_loops: int = 3
+    auto_approval_enabled: bool = False
+    auto_approval_criteria: Optional[Dict[str, Any]] = None
+    # Resource limits for the workflow
+    resource_limits: Optional[Dict[str, Any]] = None
+    # Parallel processing configuration
+    parallel_processing_enabled: bool = False
+    max_parallel_sub_problems: int = 1
+    # Learning configuration
+    learning_enabled: bool = False
+    learning_config: Optional[Dict[str, Any]] = None
+    # Teams and Gauntlets for final stages
+    content_analyzer_team_name: str = ""
+    planner_team_name: str = ""
     assembler_team_name: str = ""
     final_red_team_gauntlet_name: Optional[str] = None
     final_gold_team_gauntlet_name: str = ""
@@ -213,6 +269,18 @@ class SolutionAttempt:
     generated_by_model: str
     timestamp: float
     history: List[Dict[str, Any]] = dataclasses.field(default_factory=list)
+    # Solution metadata
+    solution_type: Optional[str] = None
+    solution_approach: Optional[str] = None
+    # Solution quality metrics
+    quality_metrics: Optional[Dict[str, float]] = None
+    # Resource usage for this solution attempt
+    resource_usage: Optional[Dict[str, Any]] = None
+    # Solution status
+    status: Literal["generated", "critiqued", "verified", "rejected", "patched"] = "generated"
+    # Related critiques and verifications
+    critique_reports: List['CritiqueReport'] = dataclasses.field(default_factory=list)
+    verification_reports: List['VerificationReport'] = dataclasses.field(default_factory=list)
 
 @dataclasses.dataclass
 class CritiqueReport:
@@ -222,6 +290,17 @@ class CritiqueReport:
     is_approved: bool
     reports_by_judge: List[Dict[str, Any]]
     summary: str = ""
+    # Critique metadata
+    critique_timestamp: float = dataclasses.field(default_factory=time.time)
+    # Critique metrics
+    overall_score: float = 0.0
+    flaw_severity_scores: Dict[str, float] = dataclasses.field(default_factory=dict)
+    # Identified flaws
+    identified_flaws: List[Dict[str, Any]] = dataclasses.field(default_factory=list)
+    # Suggested improvements
+    suggested_improvements: List[str] = dataclasses.field(default_factory=list)
+    # Resource usage for this critique
+    resource_usage: Optional[Dict[str, Any]] = None
 
 @dataclasses.dataclass
 class VerificationReport:
@@ -233,6 +312,49 @@ class VerificationReport:
     average_score: float = 0.0
     score_variance: float = 0.0
     summary: str = ""
+    # Verification metadata
+    verification_timestamp: float = dataclasses.field(default_factory=time.time)
+    # Verification metrics
+    dimension_scores: Dict[str, float] = dataclasses.field(default_factory=dict)
+    # Verification criteria
+    criteria_met: List[str] = dataclasses.field(default_factory=list)
+    criteria_not_met: List[str] = dataclasses.field(default_factory=list)
+    # Targeted feedback
+    targeted_feedback: Optional[str] = None
+    # Resource usage for this verification
+    resource_usage: Optional[Dict[str, Any]] = None
+
+# --- Knowledge Management ---
+
+@dataclasses.dataclass
+class KnowledgeArtifact:
+    """Represents a piece of knowledge extracted from a workflow execution."""
+    id: str  # Unique identifier for this knowledge artifact
+    artifact_type: Literal["solution_pattern", "problem_solution_mapping", "critique_insight", "team_performance", "gauntlet_effectiveness"]
+    content: Dict[str, Any]  # Content of the knowledge artifact
+    source_workflow_id: str  # ID of the workflow this artifact was extracted from
+    extraction_timestamp: float = dataclasses.field(default_factory=time.time)
+    # Artifact metadata
+    domain: Optional[str] = None
+    problem_type: Optional[str] = None
+    # Artifact usage metrics
+    usage_count: int = 0
+    effectiveness_score: float = 0.0
+    # Artifact relationships
+    related_artifacts: List[str] = dataclasses.field(default_factory=list)
+
+@dataclasses.dataclass
+class PerformanceMetrics:
+    """Represents performance metrics for a team, gauntlet, or workflow."""
+    entity_type: Literal["team", "gauntlet", "workflow"]
+    entity_id: str
+    metrics: Dict[str, float]
+    timestamp: float = dataclasses.field(default_factory=time.time)
+    # Metrics metadata
+    domain: Optional[str] = None
+    problem_type: Optional[str] = None
+    # Metrics context
+    context: Optional[Dict[str, Any]] = None
 
 # --- Workflow State Management ---
 
@@ -251,81 +373,11 @@ class WorkflowState:
     end_time: Optional[float] = None
     decomposition_plan: Optional[DecompositionPlan] = None
     sub_problem_solutions: Dict[str, SolutionAttempt] = dataclasses.field(default_factory=dict)
-    max_iterations: int = 100
-    population_size: int = 1000
-    num_islands: int = 5
-    migration_interval: int = 50
-    migration_rate: float = 0.1
-    archive_size: int = 100
-    elite_ratio: float = 0.1
-    exploration_ratio: float = 0.2
-    exploitation_ratio: float = 0.7
-    checkpoint_interval: int = 100
-    feature_dimensions: List[str] = dataclasses.field(default_factory=lambda: ["complexity", "diversity"])
-    feature_bins: int = 10
-    diversity_metric: str = "edit_distance"
-    enable_artifacts: bool = True
-    cascade_evaluation: bool = True
-    cascade_thresholds: List[float] = dataclasses.field(default_factory=lambda: [0.5, 0.75, 0.9])
-    use_llm_feedback: bool = False
-    llm_feedback_weight: float = 0.1
-    parallel_evaluations: int = 4
-    distributed: bool = False
-    template_dir: Optional[str] = None
-    num_top_programs: int = 3
-    num_diverse_programs: int = 2
-    use_template_stochasticity: bool = True
-    template_variations: Optional[Dict[str, List[str]]] = None
-    use_meta_prompting: bool = False
-    meta_prompt_weight: float = 0.1
-    include_artifacts: bool = True
-    max_artifact_bytes: int = 20 * 1024
-    artifact_security_filter: bool = True
-    early_stopping_patience: Optional[int] = None
-    convergence_threshold: float = 0.001
-    early_stopping_metric: str = "combined_score"
-    memory_limit_mb: Optional[int] = 2048
-    cpu_limit: Optional[float] = 4.0
-    random_seed: Optional[int] = 42
-    db_path: Optional[str] = None
-    in_memory: bool = True
-    diff_based_evolution: bool = True
-    max_code_length: int = 10000
-    evolution_trace_enabled: bool = False
-    evolution_trace_format: str = "jsonl"
-    evolution_trace_include_code: bool = False
-    evolution_trace_include_prompts: bool = True
-    evolution_trace_output_path: Optional[str] = None
-    evolution_trace_buffer_size: int = 10
-    evolution_trace_compress: bool = False
-    log_level: str = "INFO"
-    log_dir: Optional[str] = None
-    api_timeout: int = 60
-    api_retries: int = 3
-    api_retry_delay: int = 5
-    artifact_size_threshold: int = 32 * 1024
-    cleanup_old_artifacts: bool = True
-    artifact_retention_days: int = 30
-    diversity_reference_size: int = 20
-    max_retries_eval: int = 3
-    evaluator_timeout: int = 300
-    evaluator_models: Optional[List[Dict[str, Any]]] = None
-    double_selection: bool = True
-    adaptive_feature_dimensions: bool = True
-    test_time_compute: bool = False
-    optillm_integration: bool = False
-    plugin_system: bool = False
-    hardware_optimization: bool = False
-    multi_strategy_sampling: bool = True
-    ring_topology: bool = True
-    controlled_gene_flow: bool = True
-    auto_diff: bool = True
-    symbolic_execution: bool = False
-    coevolutionary_approach: bool = False
     solved_sub_problem_ids: Set[str] = dataclasses.field(default_factory=set)
     rejected_sub_problems: Dict[str, Any] = dataclasses.field(default_factory=dict)
     final_solution: Optional[SolutionAttempt] = None
     refinement_loop_count: int = 0
+    
     # Store the specific teams and gauntlets used for THIS workflow run.
     # This ensures consistency even if global definitions in TeamManager/GauntletManager change later.
     content_analyzer_team: Optional[Team] = None
@@ -338,8 +390,16 @@ class WorkflowState:
     final_red_gauntlet: Optional[GauntletDefinition] = None
     final_gold_gauntlet: Optional[GauntletDefinition] = None
     max_refinement_loops: int = 3 # Max iterations for the self-healing loop
+    all_critique_reports: List[CritiqueReport] = dataclasses.field(default_factory=list)
+    all_verification_reports: List[VerificationReport] = dataclasses.field(default_factory=list)
+    # Resource usage for the workflow
+    resource_usage: Dict[str, Any] = dataclasses.field(default_factory=dict)
+    # Performance metrics for the workflow
+    performance_metrics: Dict[str, float] = dataclasses.field(default_factory=dict)
+    # Knowledge artifacts extracted from the workflow
+    knowledge_artifacts: List[KnowledgeArtifact] = dataclasses.field(default_factory=list)
 
-    # OpenEvolve Parameters (User-configurable via UI)
+    # OpenEvolve Parameters (User-configurable via UI) - Complete set
     max_iterations: int = 100
     population_size: int = 50
     num_islands: int = 5
@@ -350,12 +410,12 @@ class WorkflowState:
     exploration_ratio: float = 0.7
     exploitation_ratio: float = 0.3
     checkpoint_interval: int = 10
-    feature_dimensions: int = 5
+    feature_dimensions: List[str] = dataclasses.field(default_factory=lambda: ["complexity", "diversity"])
     feature_bins: int = 10
-    diversity_metric: str = "cosine"
+    diversity_metric: str = "edit_distance"
     enable_artifacts: bool = True
     cascade_evaluation: bool = False
-    cascade_thresholds: Optional[List[float]] = None
+    cascade_thresholds: List[float] = dataclasses.field(default_factory=lambda: [0.5, 0.75, 0.9])
     use_llm_feedback: bool = True
     llm_feedback_weight: float = 0.5
     parallel_evaluations: int = 4
@@ -364,7 +424,7 @@ class WorkflowState:
     num_top_programs: int = 5
     num_diverse_programs: int = 5
     use_template_stochasticity: bool = True
-    template_variations: int = 3
+    template_variations: Dict[str, List[str]] = dataclasses.field(default_factory=dict)
     use_meta_prompting: bool = True
     meta_prompt_weight: float = 0.5
     include_artifacts: bool = True
@@ -398,6 +458,9 @@ class WorkflowState:
     diversity_reference_size: int = 100
     max_retries_eval: int = 3
     evaluator_timeout: int = 30
+    evaluator_models: Optional[List[Dict[str, Any]]] = None
+    
+    # Advanced OpenEvolve research features
     double_selection: bool = False
     adaptive_feature_dimensions: bool = False
     test_time_compute: bool = False
@@ -410,6 +473,54 @@ class WorkflowState:
     auto_diff: bool = False
     symbolic_execution: bool = False
     coevolutionary_approach: bool = False
-    all_critique_reports: List[CritiqueReport] = dataclasses.field(default_factory=list)
-    all_verification_reports: List[VerificationReport] = dataclasses.field(default_factory=list)
-
+    
+    # Additional LLM parameters for comprehensive control
+    temperature: float = 0.7
+    top_p: float = 0.95
+    max_tokens: int = 4096
+    frequency_penalty: float = 0.0
+    presence_penalty: float = 0.0
+    reasoning_effort: Optional[str] = None
+    system_message: str = ""
+    evaluator_system_message: str = ""
+    
+    # Quality Diversity specific parameters
+    qd_algorithm: str = "map_elites"  # map_elites, cvt_map_elites, novelty_search
+    qd_selection_pressure: float = 0.8
+    qd_mutation_rate: float = 0.1
+    qd_crossover_rate: float = 0.7
+    qd_novelty_threshold: float = 0.1
+    qd_archive_threshold: float = 0.5
+    
+    # Multi-objective specific parameters
+    mo_algorithm: str = "nsga2"  # nsga2, spea2, moea_d
+    mo_crossover_prob: float = 0.9
+    mo_mutation_prob: float = 0.1
+    mo_tournament_size: int = 3
+    mo_reference_point: Optional[List[float]] = None
+    
+    # Adversarial specific parameters
+    adversarial_rounds: int = 5
+    adversarial_attack_budget: int = 10
+    adversarial_defense_budget: int = 10
+    adversarial_success_threshold: float = 0.8
+    
+    # Prompt optimization specific parameters
+    prompt_max_length: int = 2000
+    prompt_min_length: int = 50
+    prompt_optimization_target: str = "performance"  # performance, brevity, clarity
+    prompt_evaluation_samples: int = 10
+    
+    # Code evolution specific parameters
+    code_language: str = "python"
+    code_style_guide: str = "pep8"
+    code_complexity_limit: int = 15
+    code_test_coverage_target: float = 0.8
+    code_security_scan: bool = True
+    
+    # Document evolution specific parameters
+    document_max_words: int = 5000
+    document_min_words: int = 100
+    document_readability_target: str = "college"  # elementary, middle, high_school, college, graduate
+    document_tone: str = "professional"  # casual, professional, academic, technical
+    document_format: str = "markdown"  # markdown, html, latex, plain_text

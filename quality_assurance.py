@@ -718,9 +718,17 @@ class OutputValidationMechanism(QualityAssuranceMechanism):
         indented_lines = [line for line in non_empty_lines if line.startswith(('  ', '\t'))]
         indentation_consistency = len(indented_lines) / len(non_empty_lines)
         
-        # Check header consistency
-        headers = re.findall(r'^#+\s', content, re.MULTILINE)
-        header_consistency = 1.0 if headers else 0.0  # Simplified
+        # Check header consistency - analyze header hierarchy and formatting
+        headers = re.findall(r'^(#+)\s+(.+)$', content, re.MULTILINE)
+        if headers:
+            # Check for proper header hierarchy (no skipping levels)
+            header_levels = [len(h[0]) for h in headers]
+            proper_hierarchy = all(header_levels[i+1] - header_levels[i] <= 1 for i in range(len(header_levels)-1))
+            # Check for consistent formatting (space after #)
+            proper_formatting = len(headers) == len(re.findall(r'^#+\s+\S', content, re.MULTILINE))
+            header_consistency = (0.6 if proper_hierarchy else 0.3) + (0.4 if proper_formatting else 0.0)
+        else:
+            header_consistency = 0.0
         
         # Combined score
         score = (indentation_consistency * 0.7 + header_consistency * 0.3) * 100
@@ -1043,15 +1051,20 @@ class SecurityValidationMechanism(QualityAssuranceMechanism):
         return issues
     
     def _is_plausible_pii(self, match: str) -> bool:
-        """Determine if a match is plausibly PII"""
-        # Simple heuristic to avoid false positives
-        # This would be more sophisticated in a real implementation
+        """Determine if a match is plausibly PII using comprehensive heuristics"""
         
         # For SSN-like patterns
         if re.match(r"\b\d{3}-\d{2}-\d{4}\b", match):
-            # Check if it looks like a real SSN (not 000-00-0000)
+            # Check if it looks like a real SSN (not 000-00-0000 or other invalid patterns)
             parts = match.split('-')
+            # Invalid SSN patterns: 000-xx-xxxx, xxx-00-xxxx, xxx-xx-0000
             if parts[0] == "000" or parts[1] == "00" or parts[2] == "0000":
+                return False
+            # Invalid SSN patterns: 666-xx-xxxx, 9xx-xx-xxxx
+            if parts[0] == "666" or parts[0].startswith('9'):
+                return False
+            # Check for sequential or repeated digits (likely test data)
+            if match in ["123-45-6789", "111-11-1111", "222-22-2222", "333-33-3333"]:
                 return False
             return True
         

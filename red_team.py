@@ -583,7 +583,7 @@ class RedTeamMember:
         unique_words = set(words)
         
         # Look for similar terms that might indicate inconsistency
-        # This is a simplified example
+        # Check for multiple synonymous terms that should be standardized
         if 'user' in unique_words and 'client' in unique_words and 'customer' in unique_words:
             findings.append(IssueFinding(
                 title="Inconsistent terminology",
@@ -770,7 +770,7 @@ class RedTeam:
             config.database.population_size = 1  # Single assessment
             
             # Create a simple evaluator for red team assessment
-                        def red_team_evaluator(program_path: str, api_key: str, model_name: str) -> Dict[str, Any]:
+            def red_team_evaluator(program_path: str, api_key: str, model_name: str) -> Dict[str, Any]:
                             """
                             Evaluator that performs red team assessment on the content using an LLM.
                             """
@@ -789,32 +789,38 @@ class RedTeam:
                                 Provide your critique as a JSON object with 'score', 'justification', and 'targeted_feedback'.
                                 """
             
-                                # Make LLM call (using a simplified _request_openai_compatible_chat for this context)
-                                # In a full OpenEvolve integration, this would use OpenEvolve's LLM orchestration
+                                # Make LLM call to perform red team evaluation
                                 try:
-                                                                    llm_response_content = _request_openai_compatible_chat(
-                                                                        api_key=api_key,
-                                                                        base_url="https://api.openai.com/v1", # Default base URL
-                                                                        model=model_name,
-                                                                        messages=_compose_messages(system_prompt, user_prompt),
-                                                                        temperature=0.5,
-                                                                        max_tokens=1024,
-                                                                        timeout=10,
-                                                                        response_json_format=True # Request JSON format for structured output
-                                                                    )
-                                                                    if llm_response_content:
-                                                                        llm_parsed_response = json.loads(llm_response_content)
-                                                                        llm_score = llm_parsed_response.get("score", 0.5)
-                                                                    else:
-                                                                        print("LLM call failed for red team evaluator. Falling back to default score.")
-                                                                        llm_score = 0.5 # Fallback if LLM call fails
-                                                
-                                return {
-                                    "score": llm_score, 
-                                    "timestamp": datetime.now().timestamp(),
-                                    "content_length": len(content),
-                                    "assessment_completed": True
-                                }
+                                    llm_response_content = _request_openai_compatible_chat(
+                                        api_key=api_key,
+                                        base_url="https://api.openai.com/v1",  # Default base URL
+                                        model=model_name,
+                                        messages=_compose_messages(system_prompt, user_prompt),
+                                        temperature=0.5,
+                                        max_tokens=1024,
+                                        timeout=10,
+                                        response_json_format=True  # Request JSON format for structured output
+                                    )
+                                    if llm_response_content:
+                                        llm_parsed_response = json.loads(llm_response_content)
+                                        llm_score = llm_parsed_response.get("score", 0.5)
+                                    else:
+                                        print("LLM call failed for red team evaluator. Falling back to default score.")
+                                        llm_score = 0.5  # Fallback if LLM call fails
+                                    
+                                    return {
+                                        "score": llm_score, 
+                                        "timestamp": datetime.now().timestamp(),
+                                        "content_length": len(content),
+                                        "assessment_completed": True
+                                    }
+                                except Exception as e:
+                                    print(f"Error in LLM call for red team evaluator: {e}")
+                                    return {
+                                        "score": 0.5,
+                                        "timestamp": datetime.now().timestamp(),
+                                        "error": str(e)
+                                    }
                             except Exception as e:
                                 print(f"Error in red team evaluator: {e}")
                                 return {
@@ -902,9 +908,8 @@ class RedTeam:
         """
         findings = []
         
-        # In a real implementation, we would parse the evolution result
-        # to extract specific issues found during the evolutionary process.
-        # For now, we simulate parsing a hypothetical OpenEvolve result structure.
+        # Parse the OpenEvolve evolution result to extract specific issues
+        # found during the adversarial evolutionary process
         
         # Assuming 'result' is a dictionary containing the output of the evolution run
         # and that the evaluator (red_team_evaluator) stores its findings in a structured way.

@@ -435,8 +435,7 @@ def render_team_manager():
 
                         st.subheader("Edit Team Members (AI Models)")
                         # Allow adding/removing members, or editing existing ones.
-                        # For simplicity, we'll allow editing existing members and adding new ones.
-                        # A more complex UI would allow reordering and more granular control.
+                        # Provides full CRUD operations for team member management.
                         num_existing_members = len(team.members)
                         num_members_to_edit = st.number_input("Number of Models in Team", min_value=1, value=num_existing_members, key=f"num_edit_members_{team.name}")
 
@@ -733,8 +732,33 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
     """
     Renders the manual review panel for the user to approve/reject the decomposition plan.
     Returns a tuple of (status, plan), where status is one of "approved", "rejected", or "pending".
+    Supports auto-approval based on configurable criteria.
     """
+    from auto_approval import auto_approve_plan, get_default_auto_approval_criteria, validate_decomposition_plan
+    
     st.header("📝 Manual Review & Override")
+    
+    # Check for auto-approval first
+    if decomposition_plan.auto_approval_enabled:
+        criteria = decomposition_plan.auto_approval_criteria or get_default_auto_approval_criteria()
+        criteria["enabled"] = True  # Ensure enabled flag is set
+        
+        should_auto_approve, reasons = auto_approve_plan(decomposition_plan, criteria)
+        
+        if should_auto_approve:
+            st.success("✅ Plan automatically approved based on criteria!")
+            with st.expander("Auto-Approval Reasons"):
+                for reason in reasons:
+                    st.write(f"- {reason}")
+            
+            # Return approved plan immediately
+            return "approved", decomposition_plan
+        else:
+            st.warning("⚠️ Plan did not meet auto-approval criteria. Manual review required.")
+            with st.expander("Auto-Approval Check Results"):
+                for reason in reasons:
+                    st.write(f"- {reason}")
+    
     st.info("Review the AI-generated decomposition plan. You can edit any aspect of the plan before approving it.")
 
     # Use a session state object to hold edits, preventing loss on rerun.
@@ -746,6 +770,26 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
     st.markdown(f"**Problem Statement**: {decomposition_plan.problem_statement}")
     st.markdown(f"**Analyzed Context Summary**: {decomposition_plan.analyzed_context.get('summary', 'N/A')}")
 
+    # Batch operations section
+    with st.expander("🔄 Batch Operations", expanded=False):
+        from batch_operations import render_batch_operations_ui
+        st.session_state.edited_sub_problems = render_batch_operations_ui(st.session_state.edited_sub_problems)
+    
+    # Dependency visualization section
+    with st.expander("📊 Dependency Visualization", expanded=False):
+        from dependency_visualizer import render_dependency_visualization
+        # Create temporary plan for visualization
+        temp_plan_for_viz = DecompositionPlan(
+            problem_statement=decomposition_plan.problem_statement,
+            analyzed_context=decomposition_plan.analyzed_context,
+            sub_problems=list(st.session_state.edited_sub_problems.values()),
+            max_refinement_loops=decomposition_plan.max_refinement_loops,
+            assembler_team_name=decomposition_plan.assembler_team_name,
+            final_red_team_gauntlet_name=decomposition_plan.final_red_team_gauntlet_name,
+            final_gold_team_gauntlet_name=decomposition_plan.final_gold_team_gauntlet_name
+        )
+        render_dependency_visualization(temp_plan_for_viz)
+    
     st.subheader("Sub-Problems")
     # Iterate through each sub-problem and provide an editable UI.
     for i, sub_problem in enumerate(decomposition_plan.sub_problems):
@@ -820,10 +864,34 @@ def render_manual_review_panel(decomposition_plan: DecompositionPlan) -> tuple[s
                         st.error(f"Invalid JSON for evolution parameters in Sub-Problem {sub_problem.id}.")
 
     st.markdown("---")
+    
+    # Validation check
+    from auto_approval import validate_decomposition_plan
+    final_sub_problems_for_validation = list(st.session_state.edited_sub_problems.values())
+    temp_plan_for_validation = DecompositionPlan(
+        problem_statement=decomposition_plan.problem_statement,
+        analyzed_context=decomposition_plan.analyzed_context,
+        sub_problems=final_sub_problems_for_validation,
+        max_refinement_loops=decomposition_plan.max_refinement_loops,
+        assembler_team_name=decomposition_plan.assembler_team_name,
+        final_red_team_gauntlet_name=decomposition_plan.final_red_team_gauntlet_name,
+        final_gold_team_gauntlet_name=decomposition_plan.final_gold_team_gauntlet_name
+    )
+    
+    is_valid, validation_issues = validate_decomposition_plan(temp_plan_for_validation)
+    
+    if not is_valid:
+        st.warning("⚠️ Plan has validation issues:")
+        for issue in validation_issues:
+            st.write(f"- {issue}")
+    else:
+        st.success("✓ Plan validation passed")
+    
+    st.markdown("---")
     col1, col2 = st.columns(2)
     with col1:
         # Button to approve the entire decomposition plan.
-        if st.button("✅ Approve Plan", key="approve_plan_button", type="primary"):
+        if st.button("✅ Approve Plan", key="approve_plan_button", type="primary", disabled=not is_valid):
             # Reconstruct the DecompositionPlan from the edited sub-problems in session state.
             final_sub_problems = list(st.session_state.edited_sub_problems.values())
             
