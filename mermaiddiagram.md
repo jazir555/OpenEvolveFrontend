@@ -13,172 +13,185 @@ graph TB
     S1_Team --> S1_Process[Generate Plan:<br/>• Define SubProblems<br/>• Map Dependencies<br/>• Suggest Strategies<br/>• Draft Criteria]
     S1_Process --> S1_Validate{Valid<br/>Structure?}
     S1_Validate -->|No| S1_Team
-    S1_Validate -->|Yes| S1_Output[(📋 DecompositionPlan)]
+    S1_Validate -->|Yes| S1_Output[(📋 DecompositionPlan<br/>N SubProblems)]
     
     S1_Output --> S2_Init[Stage 2: User Review]
     
     S2_Init --> S2_UI[👤 Interactive UI]
-    S2_UI --> S2_Review[Review & Edit:<br/>• SubProblems<br/>• Dependencies<br/>• Teams & Gauntlets<br/>• Parameters]
+    S2_UI --> S2_Review[Review & Edit:<br/>• SubProblems<br/>• Dependencies<br/>• Teams & Gauntlets<br/>• Acceptance Thresholds]
     S2_Review --> S2_Decision{Approve?}
     S2_Decision -->|❌ Reject| End_Reject([❌ TERMINATED])
     S2_Decision -->|✅ Approve| S2_Output[(✅ ApprovedPlan)]
     
-    S2_Output --> S3_Init[Stage 3: Solve SubProblems]
+    S2_Output --> S3_Init[Stage 3: SubProblem Loop]
     
-    S3_Init --> S3_Sort[Sort by Dependencies]
-    S3_Sort --> S3_Loop{Next<br/>SubProblem?}
-    S3_Loop -->|None Left| S3_Done[✅ All Verified]
-    S3_Loop -->|Select Next| S3_Gen_Init
+    S3_Init[Initialize Queue:<br/>Sort by Dependencies] --> S3_Check{All SubProblems<br/>Verified?}
     
-    S3_Gen_Init[A: Generate Solution] --> S3_Gen_Team{{🔵 Solver<br/>Blue Team}}
-    S3_Gen_Team --> S3_Gen_Mode{Mode?}
-    S3_Gen_Mode -->|Single| S3_Gen_Single[Direct Generation]
-    S3_Gen_Mode -->|Multi| S3_Gen_Multi[Multi-Candidate<br/>+ Peer Review]
-    S3_Gen_Single --> S3_Gen_Output
-    S3_Gen_Multi --> S3_Gen_Output[(💡 SolutionAttempt)]
+    S3_Check -->|No - Select Next| S3_Select[Select Next<br/>Unverified SubProblem]
+    S3_Select --> S3_Attempt[Attempt Counter = 0]
     
-    S3_Gen_Output --> S3_Red_Init[B: Red Team Critique]
+    S3_Attempt --> S3A_Init[🔵 BLUE TEAM: Generate Solution]
     
-    S3_Red_Init --> S3_Red_Team{{🔴 Assailants<br/>Red Team}}
-    S3_Red_Team --> S3_Red_Attack[Attack Modes:<br/>• Security Scan<br/>• Edge Cases<br/>• Assumptions<br/>• Stress Test]
-    S3_Red_Attack --> S3_Red_Rounds[Multi-Round<br/>Gauntlet]
-    S3_Red_Rounds --> S3_Red_Rules[Check Rules:<br/>• Quorum M/N<br/>• Confidence<br/>• Variance]
-    S3_Red_Rules --> S3_Red_Pass{Pass?}
+    S3A_Init --> S3A_Team{{🔵 Solver Team}}
+    S3A_Team --> S3A_Gen[Generate Solution<br/>for SubProblem]
+    S3A_Gen --> S3A_Output[(💡 Solution Candidate)]
     
-    S3_Red_Pass -->|❌ Flaws| S3_Red_Report[(🔴 CritiqueReport)]
-    S3_Red_Report --> S3_Red_Heal{Attempts<br/>< Max?}
-    S3_Red_Heal -->|No| S3_Red_Alert[⚠️ Max Attempts]
-    S3_Red_Alert --> S3_User1{User?}
-    S3_User1 -->|Skip| S3_Loop
-    S3_User1 -->|Fix| S3_Manual1[Manual Solution]
-    S3_Manual1 --> S3_Red_Init
-    S3_Red_Heal -->|Yes| S3_Red_Patch{{🔵 Patcher<br/>Blue Team}}
-    S3_Red_Patch --> S3_Red_Fix[Generate Patch<br/>from Report]
-    S3_Red_Fix --> S3_Red_Init
+    S3A_Output --> S3B_Init[🔴 RED TEAM: Critique & Attack]
     
-    S3_Red_Pass -->|✅ Robust| S3_Gold_Init[C: Gold Team Verification]
+    S3B_Init --> S3B_Team{{🔴 Assailant Team}}
+    S3B_Team --> S3B_Attack[Multi-Round Attack:<br/>• Security Vulnerabilities<br/>• Edge Cases<br/>• Logic Flaws<br/>• Assumption Holes<br/>• Stress Testing]
+    S3B_Attack --> S3B_Gauntlet[Red Team Gauntlet:<br/>• Quorum M of N<br/>• Multiple Rounds<br/>• Attack Modes<br/>• Severity Scores]
+    S3B_Gauntlet --> S3B_Decision{Red Team<br/>Approves?}
     
-    S3_Gold_Init --> S3_Gold_Team{{🟡 Judges<br/>Gold Team}}
-    S3_Gold_Team --> S3_Gold_Eval[Evaluate:<br/>• Correctness<br/>• Quality<br/>• Requirements<br/>• Custom Criteria]
-    S3_Gold_Eval --> S3_Gold_Rounds[Multi-Round<br/>Gauntlet]
-    S3_Gold_Rounds --> S3_Gold_Rules[Check Rules:<br/>• Quorum M/N<br/>• Confidence<br/>• Variance<br/>• Collaboration]
-    S3_Gold_Rules --> S3_Gold_Pass{Pass?}
+    S3B_Decision -->|❌ Flaws Found| S3B_Report[(🔴 Critique Report:<br/>Detailed Flaws)]
+    S3B_Report --> S3B_Check{Max Attempts<br/>Reached?}
+    S3B_Check -->|Yes| S3B_Fail[❌ SubProblem Failed<br/>Red Team Validation]
+    S3B_Fail --> S3_UserInt1{User<br/>Intervention?}
+    S3_UserInt1 -->|Skip| S3_MarkFailed[Mark as Failed]
+    S3_UserInt1 -->|Manual Fix| S3_Manual1[User Provides Solution]
+    S3_Manual1 --> S3C_Init
+    S3_UserInt1 -->|Reconfigure| S3_Reconfig1[Adjust Teams/Thresholds]
+    S3_Reconfig1 --> S3A_Init
     
-    S3_Gold_Pass -->|❌ Issues| S3_Gold_Report[(🟡 VerificationReport)]
-    S3_Gold_Report --> S3_Gold_Heal{Attempts<br/>< Max?}
-    S3_Gold_Heal -->|No| S3_Gold_Alert[⚠️ Max Attempts]
-    S3_Gold_Alert --> S3_User2{User?}
-    S3_User2 -->|Skip| S3_Loop
-    S3_User2 -->|Fix| S3_Manual2[Manual Solution]
-    S3_Manual2 --> S3_Gold_Init
-    S3_Gold_Heal -->|Yes| S3_Gold_Patch{{🔵 Patcher<br/>Blue Team}}
-    S3_Gold_Patch --> S3_Gold_Fix[Generate Patch<br/>from Report]
-    S3_Gold_Fix --> S3_Red_Init
+    S3B_Check -->|No| S3B_Patch{{🔵 Patcher Team}}
+    S3B_Patch --> S3B_Fix[Analyze Critique<br/>Generate Targeted Fix]
+    S3B_Fix --> S3B_Inc[Increment Attempts]
+    S3B_Inc --> S3A_Init
     
-    S3_Gold_Pass -->|✅ Verified| S3_Store[(✅ VerifiedSolution)]
-    S3_Store --> S3_Loop
+    S3B_Decision -->|✅ Robust| S3C_Init[🟡 GOLD TEAM: Verification]
     
-    S3_Done --> S4_Init[Stage 4: Reassembly]
+    S3C_Init --> S3C_Team{{🟡 Judge Team}}
+    S3C_Team --> S3C_Eval[Multi-Round Evaluation:<br/>• Correctness Check<br/>• Quality Assessment<br/>• Requirement Match<br/>• Completeness Score<br/>• Acceptance Criteria]
+    S3C_Eval --> S3C_Gauntlet[Gold Team Gauntlet:<br/>• Quorum M of N<br/>• Min Confidence Score<br/>• Max Score Variance<br/>• Per-Judge Requirements<br/>• Collaboration Rounds]
+    S3C_Gauntlet --> S3C_Decision{Meets<br/>Acceptance<br/>Threshold?}
     
-    S4_Init --> S4_Team{{🔵 Assembler<br/>Blue Team}}
-    S4_Team --> S4_Gather[Gather All<br/>Verified Solutions]
-    S4_Gather --> S4_Integrate[Integrate:<br/>• Respect Dependencies<br/>• Synthesize Coherently<br/>• Polish Output]
-    S4_Integrate --> S4_Internal{Internal<br/>Review?}
-    S4_Internal -->|Yes| S4_Check[Self-Review]
-    S4_Check --> S4_Output
-    S4_Internal -->|No| S4_Output[(🧬 FinalCandidate)]
+    S3C_Decision -->|❌ Below Threshold| S3C_Report[(🟡 Verification Report:<br/>Quality Issues)]
+    S3C_Report --> S3C_Check{Max Attempts<br/>Reached?}
+    S3C_Check -->|Yes| S3C_Fail[❌ SubProblem Failed<br/>Gold Team Validation]
+    S3C_Fail --> S3_UserInt2{User<br/>Intervention?}
+    S3_UserInt2 -->|Skip| S3_MarkFailed
+    S3_UserInt2 -->|Manual Fix| S3_Manual2[User Provides Solution]
+    S3_Manual2 --> S3C_Init
+    S3_UserInt2 -->|Reconfigure| S3_Reconfig2[Adjust Teams/Thresholds]
+    S3_Reconfig2 --> S3A_Init
+    
+    S3C_Check -->|No| S3C_Patch{{🔵 Patcher Team}}
+    S3C_Patch --> S3C_Fix[Analyze Report<br/>Generate Quality Fix]
+    S3C_Fix --> S3C_Inc[Increment Attempts]
+    S3C_Inc --> S3B_Init
+    
+    S3C_Decision -->|✅ Approved| S3_Store[(✅ Verified SubProblem<br/>Stored)]
+    S3_Store --> S3_Check
+    
+    S3_MarkFailed --> S3_Check
+    S3_Check -->|Yes - All Done| S3_Complete[SubProblem Solving<br/>Complete]
+    
+    S3_Complete --> S3_ValidateAll{All SubProblems<br/>Successfully<br/>Verified?}
+    S3_ValidateAll -->|No - Some Failed| S3_FailedAlert[⚠️ Some SubProblems Failed]
+    S3_FailedAlert --> S3_UserDecision{User<br/>Decision?}
+    S3_UserDecision -->|Abort| End_Incomplete([❌ INCOMPLETE<br/>Some SubProblems Failed])
+    S3_UserDecision -->|Continue Partial| S4_Init
+    
+    S3_ValidateAll -->|Yes - All Verified| S4_Init[Stage 4: Reassembly]
+    
+    S4_Init --> S4_Team{{🔵 Assembler Team}}
+    S4_Team --> S4_Gather[Gather All Verified<br/>SubProblem Solutions]
+    S4_Gather --> S4_Integrate[Integrate & Synthesize:<br/>• Respect Dependencies<br/>• Maintain Coherence<br/>• Resolve Interfaces<br/>• Polish & Format]
+    S4_Integrate --> S4_Output[(🧬 Assembled Solution<br/>Candidate)]
     
     S4_Output --> S5_Init[Stage 5: Final Verification]
     
-    S5_Init --> S5_Counter[refinement_loop = 0]
-    S5_Counter --> S5_Red_Init
+    S5_Init[refinement_loop = 0] --> S5_Red_Init[🔴 RED TEAM: Final Attack]
     
-    S5_Red_Init[Final Red Gauntlet] --> S5_Red_Team{{🔴 Final Attack<br/>Red Team}}
-    S5_Red_Team --> S5_Red_Test[Test Integration:<br/>• Integration Errors<br/>• New Vulnerabilities<br/>• Consistency<br/>• Conflicts]
-    S5_Red_Test --> S5_Red_Rounds[Multi-Round<br/>Gauntlet]
-    S5_Red_Rounds --> S5_Red_Rules[Apply Rules]
-    S5_Red_Rules --> S5_Red_Pass{Pass?}
+    S5_Red_Init --> S5_Red_Team{{🔴 Final Assailant Team}}
+    S5_Red_Team --> S5_Red_Attack[Integration Testing:<br/>• Component Integration<br/>• Interface Consistency<br/>• New Vulnerabilities<br/>• System-Level Flaws<br/>• Emergent Issues]
+    S5_Red_Attack --> S5_Red_Gauntlet[Red Team Gauntlet:<br/>Multi-Round Attack]
+    S5_Red_Gauntlet --> S5_Red_Decision{Red Team<br/>Approves?}
     
-    S5_Red_Pass -->|❌ Fail| S5_Red_Report[(🔴 Final Critique)]
-    S5_Red_Report --> S5_Heal_Init
+    S5_Red_Decision -->|❌ Integration Flaws| S5_Red_Report[(🔴 Final Critique:<br/>Integration Issues)]
+    S5_Red_Report --> S5_Decompose_Init
     
-    S5_Red_Pass -->|✅ Pass| S5_Gold_Init
+    S5_Red_Decision -->|✅ Passes| S5_Gold_Init[🟡 GOLD TEAM: Final Judgment]
     
-    S5_Gold_Init[Final Gold Gauntlet] --> S5_Gold_Team{{🟡 Final Judges<br/>Gold Team}}
-    S5_Gold_Team --> S5_Gold_Eval[Holistic Evaluation:<br/>• Problem Solved?<br/>• Overall Quality<br/>• Completeness<br/>• Expert Review]
-    S5_Gold_Eval --> S5_Gold_Rounds[Multi-Round<br/>Gauntlet]
-    S5_Gold_Rounds --> S5_Gold_Rules[Strict Rules:<br/>• High Confidence<br/>• Low Variance<br/>• Consensus]
-    S5_Gold_Rules --> S5_Gold_Pass{Pass?}
+    S5_Gold_Init --> S5_Gold_Team{{🟡 Final Judge Team}}
+    S5_Gold_Team --> S5_Gold_Eval[Holistic Evaluation:<br/>• Original Problem Solved?<br/>• Overall Quality Score<br/>• Completeness Check<br/>• Expert-Level Review<br/>• Acceptance Criteria]
+    S5_Gold_Eval --> S5_Gold_Gauntlet[Gold Team Gauntlet:<br/>• Strict Quorum<br/>• High Confidence Threshold<br/>• Low Score Variance<br/>• Consensus Required]
+    S5_Gold_Gauntlet --> S5_Gold_Decision{Meets Final<br/>Acceptance<br/>Threshold?}
     
-    S5_Gold_Pass -->|❌ Fail| S5_Gold_Report[(🟡 Final Verification)]
-    S5_Gold_Report --> S5_Heal_Init
+    S5_Gold_Decision -->|❌ Below Threshold| S5_Gold_Report[(🟡 Final Verification:<br/>Quality/Completeness Issues)]
+    S5_Gold_Report --> S5_Decompose_Init
     
-    S5_Heal_Init[🔄 Global Self-Healing] --> S5_Heal_Parse[Parse Targeted<br/>Feedback]
-    S5_Heal_Parse --> S5_Heal_ID[Identify Problematic<br/>SubProblem IDs]
-    S5_Heal_ID --> S5_Heal_Valid{Valid IDs?}
+    S5_Decompose_Init[🔄 DECOMPOSE BACK] --> S5_Parse[Parse Targeted Feedback:<br/>Identify Root Cause]
+    S5_Parse --> S5_Identify[Identify Problematic<br/>SubProblem IDs]
+    S5_Identify --> S5_Valid{Valid SubProblem<br/>IDs Found?}
     
-    S5_Heal_Valid -->|No| S5_Heal_Manual[⚠️ General Failure]
-    S5_Heal_Manual --> S5_User3{User?}
-    S5_User3 -->|Fix| S5_Manual_Fix[Manual Adjustment]
-    S5_Manual_Fix --> S5_Red_Init
-    S5_User3 -->|Abort| End_Fail
+    S5_Valid -->|No - General Issue| S5_General[Cannot Isolate<br/>Specific SubProblem]
+    S5_General --> S5_UserReview{User<br/>Review?}
+    S5_UserReview -->|Manual Fix| S5_ManualFix[User Adjusts<br/>Final Solution]
+    S5_ManualFix --> S5_Red_Init
+    S5_UserReview -->|Abort| End_Fail
     
-    S5_Heal_Valid -->|Yes| S5_Heal_Flag[Flag SubProblems<br/>for Rework]
-    S5_Heal_Flag --> S5_Heal_Check{Loop Count<br/>< Max?}
+    S5_Valid -->|Yes| S5_Flag[Flag Identified<br/>SubProblems for Rework]
+    S5_Flag --> S5_LoopCheck{refinement_loop<br/>< max_loops?}
     
-    S5_Heal_Check -->|No| S5_Heal_Max[⚠️ MAX LOOPS REACHED]
-    S5_Heal_Max --> S5_Heal_Alert[Alert User with<br/>Full Details]
-    S5_Heal_Alert --> S5_User4{User?}
-    S5_User4 -->|Accept| End_Partial
-    S5_User4 -->|Fix| S5_Manual_Fix2[Manual Fix]
-    S5_Manual_Fix2 --> S5_Red_Init
-    S5_User4 -->|Abort| End_Fail
+    S5_LoopCheck -->|No| S5_MaxLoops[⚠️ MAX REFINEMENT<br/>LOOPS REACHED]
+    S5_MaxLoops --> S5_FinalUser{User<br/>Final Decision?}
+    S5_FinalUser -->|Accept Partial| End_Partial
+    S5_FinalUser -->|Manual Fix| S5_ManualFix2[User Manually<br/>Fixes Issues]
+    S5_ManualFix2 --> S5_Red_Init
+    S5_FinalUser -->|Abort| End_Fail
     
-    S5_Heal_Check -->|Yes| S5_Heal_Inc[Increment Loop]
-    S5_Heal_Inc --> S5_Heal_Clear[Clear Flagged<br/>Solutions]
-    S5_Heal_Clear --> S5_Heal_Return[🔄 Return to Stage 3]
-    S5_Heal_Return --> S3_Loop
+    S5_LoopCheck -->|Yes| S5_Increment[Increment refinement_loop]
+    S5_Increment --> S5_Clear[Clear Flagged<br/>SubProblem Solutions]
+    S5_Clear --> S5_Return[🔄 RETURN TO STAGE 3:<br/>Re-solve Flagged SubProblems]
+    S5_Return --> S3_Check
     
-    S5_Gold_Pass -->|✅ VERIFIED| S5_Finalize[Finalize Workflow]
+    S5_Gold_Decision -->|✅ APPROVED| S5_Success[Final Solution<br/>Meets All Criteria]
     
-    S5_User4 -->|Abort| End_Fail
-    S5_User3 -->|Abort| End_Fail
-    S5_User4 -->|Accept| End_Partial
+    S5_Success --> S6_Init[Stage 6: Finalization]
     
+    S6_Init --> S6_Package[Package Complete Solution:<br/>• All Verification Reports<br/>• Critique Reports<br/>• Quality Scores<br/>• SubProblem Solutions<br/>• Metadata & Trace<br/>• Timestamps]
+    S6_Package --> S6_Document[Generate Documentation:<br/>• Technical Specifications<br/>• Solution Architecture<br/>• Quality Certificates<br/>• Verification Attestations<br/>• Usage Guidelines]
+    S6_Document --> S6_Certify[Issue Certificates:<br/>• Sovereign-Grade Badge<br/>• Quality Certification<br/>• Compliance Attestation<br/>• Security Clearance<br/>• Verification Proof]
+    S6_Certify --> S6_Archive[Archive Everything:<br/>• Full WorkflowState<br/>• All Reports & Scores<br/>• Team Configurations<br/>• Version Control<br/>• Backup Archives]
+    S6_Archive --> S6_Report[Generate Final Report:<br/>• Executive Summary<br/>• Detailed Analysis<br/>• All Iterations Logged<br/>• Performance Metrics<br/>• Quality Dashboard]
+    S6_Report --> S6_Notify[Notify Stakeholders:<br/>• Success Notification<br/>• Delivery Confirmation<br/>• Access Instructions<br/>• Support Contacts<br/>• Deployment Info]
+    S6_Notify --> S6_Handoff[Complete Handoff:<br/>• Client Presentation<br/>• Knowledge Transfer<br/>• Training Materials<br/>• Maintenance Plan<br/>• Support Setup]
+    S6_Handoff --> S6_Monitor[Setup Monitoring:<br/>• Performance Tracking<br/>• Health Checks<br/>• Alert Systems<br/>• Analytics Dashboard<br/>• Feedback Loop]
+    S6_Monitor --> S6_QA[Final QA & Validation:<br/>• End-to-End Testing<br/>• Compliance Check<br/>• Security Audit<br/>• Performance Validation<br/>• Reproducibility Test]
+    S6_QA --> S6_Release[Prepare Release:<br/>• Staging Setup<br/>• Release Notes<br/>• Deployment Package<br/>• Rollback Plan<br/>• Launch Checklist]
+    S6_Release --> S6_Stats[Update Statistics:<br/>• Success Metrics<br/>• Quality Benchmarks<br/>• Performance Baseline<br/>• Historical Records<br/>• Team Analytics]
+    S6_Stats --> S6_Celebrate[🎉 Mark Achievement:<br/>Sovereign-Grade<br/>Solution Delivered]
+    S6_Celebrate --> S6_Final[(🏆 VerifiedFinalSolution<br/>Ready for Deployment)]
+    
+    S6_Final --> End_Success
+    
+    End_Reject([❌ TERMINATED<br/>User Rejected Plan])
+    End_Incomplete([❌ INCOMPLETE<br/>Some SubProblems Failed])
     End_Fail([❌ FAILED<br/>Manual Intervention Needed])
     End_Partial([⚠️ PARTIAL SUCCESS<br/>Accepted with Issues])
-    
-    S5_Finalize --> S5_Package[Package Final Solution:<br/>• All Verification Reports<br/>• Quality Scores<br/>• Metadata & Trace<br/>• Timestamp]
-    S5_Package --> S5_Final[(🏆 VerifiedFinalSolution)]
-    S5_Final --> S5_Present[Present to User]
-    S5_Present --> S5_Archive[Archive Complete<br/>Workflow State]
-    S5_Archive --> S5_UserNotify[Notify User of Success]
-    S5_UserNotify --> S5_GenerateReport[Generate Final Report]
-    S5_GenerateReport --> S5_SaveArtifacts[Save All Artifacts]
-    S5_SaveArtifacts --> S5_Cleanup[Cleanup Temporary Data]
-    S5_Cleanup --> S5_LogSuccess[Log Success Metrics]
-    S5_LogSuccess --> End_Success
-    
-    End_Success([✅ ✅ ✅ SUCCESS ✅ ✅ ✅<br/>SOVEREIGN-GRADE SOLUTION DELIVERED<br/>ALL VERIFICATIONS PASSED])
+    End_Success([🎉 COMPLETE SUCCESS 🎉<br/>Sovereign-Grade Solution<br/>Successfully Delivered<br/>✅ All Verifications Passed<br/>✅ All Thresholds Met<br/>✅ Iterative Refinement Complete<br/>🏆 Ready for Deployment 🏆])
     
     classDef blueTeam fill:#2196f3,stroke:#0d47a1,stroke-width:3px,color:#fff,font-weight:bold
     classDef redTeam fill:#f44336,stroke:#b71c1c,stroke-width:3px,color:#fff,font-weight:bold
     classDef goldTeam fill:#ffc107,stroke:#f57f17,stroke-width:3px,color:#000,font-weight:bold
     classDef userControl fill:#ff9800,stroke:#e65100,stroke-width:3px,color:#fff,font-weight:bold
-    classDef dataStore fill:#90a4ae,stroke:#37474f,stroke-width:2px,color:#fff,font-weight:bold
+    classDef dataStore fill:#00acc1,stroke:#006064,stroke-width:3px,color:#fff,font-weight:bold
     classDef success fill:#4caf50,stroke:#1b5e20,stroke-width:4px,color:#fff,font-weight:bold
     classDef failure fill:#f44336,stroke:#b71c1c,stroke-width:4px,color:#fff,font-weight:bold
     classDef warning fill:#ff9800,stroke:#e65100,stroke-width:3px,color:#000,font-weight:bold
     classDef healing fill:#9c27b0,stroke:#4a148c,stroke-width:3px,color:#fff,font-weight:bold
     classDef stage fill:#bbdefb,stroke:#1976d2,stroke-width:2px,color:#000,font-weight:bold
+    classDef loop fill:#e1bee7,stroke:#6a1b9a,stroke-width:3px,color:#000,font-weight:bold
     
-    class S0_Team,S1_Team,S3_Gen_Team,S3_Red_Patch,S3_Gold_Patch,S4_Team blueTeam
-    class S3_Red_Team,S5_Red_Team redTeam
-    class S3_Gold_Team,S5_Gold_Team goldTeam
+    class S0_Team,S1_Team,S3A_Team,S3B_Patch,S3C_Patch,S4_Team blueTeam
+    class S3B_Team,S5_Red_Team redTeam
+    class S3C_Team,S5_Gold_Team goldTeam
     class S2_UI,S2_Review userControl
-    class S0_Output,S1_Output,S2_Output,S3_Gen_Output,S3_Store,S4_Output,S5_Final dataStore
+    class S0_Output,S1_Output,S2_Output,S3A_Output,S3_Store,S4_Output,S6_Final dataStore
     class Start,End_Success success
-    class End_Reject,End_Fail failure
-    class End_Partial,S3_Red_Alert,S3_Gold_Alert,S5_Heal_Manual,S5_Heal_Max,S5_Heal_Alert warning
-    class S3_Red_Fix,S3_Gold_Fix,S5_Heal_Init,S5_Heal_Inc,S5_Heal_Clear,S5_Heal_Return healing
-    class S0_Init,S1_Init,S2_Init,S3_Init,S4_Init,S5_Init stage
+    class End_Reject,End_Incomplete,End_Fail failure
+    class End_Partial,S3B_Fail,S3C_Fail,S5_MaxLoops warning
+    class S3B_Fix,S3C_Fix,S5_Parse,S5_Identify,S5_Flag,S5_Clear,S5_Return healing
+    class S0_Init,S1_Init,S2_Init,S4_Init,S6_Init stage
+    class S3_Init,S3_Check,S5_Init,S5_Decompose_Init loop
