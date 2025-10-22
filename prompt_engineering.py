@@ -985,3 +985,30 @@ def test_prompt_engineering_system():
 
 if __name__ == "__main__":
     test_prompt_engineering_system()
+
+def evol
+ve_prompt_with_openevolve(base_prompt: str, api_key: str, evaluation_criteria: List[str]) -> str:
+    """Evolve prompt using OpenEvolve"""
+    try:
+        from openevolve_client import OpenEvolveClient
+        
+        client = OpenEvolveClient(api_key=api_key)
+        
+        evolution_prompt = f"""Improve this prompt based on criteria: {', '.join(evaluation_criteria)}
+
+Base Prompt:
+{base_prompt}
+
+Return an improved version."""
+        
+        result = client.evolve(
+            content=evolution_prompt,
+            evolution_mode="standard",
+            max_iterations=10,
+            population_size=15,
+            temperature=0.8
+        )
+        
+        return result.get('best_code', base_prompt)
+    except Exception as e:
+        return base_prompt

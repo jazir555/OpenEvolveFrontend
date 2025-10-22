@@ -1144,6 +1144,24 @@ def run_sovereign_workflow(
             workflow_state.status = "completed"
             workflow_state.end_time = time.time()
             workflow_state.progress = 1.0
+            
+            # --- Stage 6: Knowledge Extraction & Learning ---
+            st.info("[Knowledge Extraction] Extracting knowledge from workflow execution...")
+            try:
+                from knowledge_manager import KnowledgeManager
+                km = KnowledgeManager()
+                
+                # Extract knowledge artifacts from the completed workflow
+                artifacts = _extract_workflow_knowledge(workflow_state, km)
+                
+                if artifacts:
+                    st.success(f"[Knowledge Extraction] Extracted {len(artifacts)} knowledge artifacts.")
+                    workflow_state.knowledge_artifacts = artifacts
+                else:
+                    st.info("[Knowledge Extraction] No knowledge artifacts extracted.")
+            except Exception as e:
+                st.warning(f"[Knowledge Extraction] Failed to extract knowledge: {e}")
+            
             st.info("INFO: Workflow completed.")
             return # Workflow completed.
 
@@ -1222,6 +1240,27 @@ def generate_solution_for_sub_problem(sub_problem: SubProblem, team: Team, conte
         str: The generated solution content, or an error message if generation fails.
     """
     st.info(f"Generating solution for {sub_problem.id} using {team.name} via OpenEvolve...")
+    
+    # Enrich context with external knowledge if available
+    try:
+        from external_knowledge_integration import get_knowledge_integration_manager
+        knowledge_manager = get_knowledge_integration_manager()
+        
+        # Query external knowledge based on sub-problem
+        knowledge_context = {
+            "query": sub_problem.description,
+            "domain": workflow_state.decomposition_plan.analyzed_context.get("domain", ""),
+            "keywords": workflow_state.decomposition_plan.analyzed_context.get("keywords", []),
+            "limit": 5
+        }
+        
+        external_knowledge = knowledge_manager.query_all_connectors(knowledge_context)
+        if external_knowledge:
+            context["external_knowledge"] = external_knowledge
+            st.info(f"  - Enriched context with external knowledge from {len(external_knowledge)} sources")
+    except Exception as e:
+        # Continue without external knowledge if it fails
+        st.warning(f"  - Could not retrieve external knowledge: {e}")
 
     if not team.members:
         st.error(f"Solver Team '{team.name}' has no members. Please configure the team in the Team Manager.")
@@ -1254,6 +1293,19 @@ def generate_solution_for_sub_problem(sub_problem: SubProblem, team: Team, conte
     if "current_solution" in context and context["current_solution"]:
         existing_solution_text = f"Existing solution to refine:\n---\n{context['current_solution']}\n---"
     formatted_user_prompt = formatted_user_prompt.replace("{{existing_solution_to_refine}}", existing_solution_text)
+    
+    # Add external knowledge to prompt if available
+    if "external_knowledge" in context and context["external_knowledge"]:
+        external_knowledge_text = "\n\nRelevant External Knowledge:\n"
+        for source_name, items in context["external_knowledge"].items():
+            if items:
+                external_knowledge_text += f"\nFrom {source_name}:\n"
+                for item in items[:3]:  # Limit to top 3 items per source
+                    if hasattr(item, 'content'):
+                        external_knowledge_text += f"- {item.content[:200]}...\n"
+                    elif isinstance(item, dict):
+                        external_knowledge_text += f"- {str(item)[:200]}...\n"
+        formatted_user_prompt += external_knowledge_text
 
     if "feedback_report" in context:
         feedback_report_obj = context["feedback_report"]
@@ -2013,3 +2065,465 @@ Please provide an improved version of the solution that addresses the feedback."
         context["improved_solution"] = current_solution
     
     return final_result
+
+
+
+# --- Knowledge Extraction Helper ---
+
+def _extract_workflow_knowledge(workflow_state: WorkflowState, km: 'KnowledgeManager') -> List['KnowledgeArtifact']:
+    """
+    Extract knowledge artifacts from a completed workflow execution.
+    
+    Args:
+        workflow_state: The completed workflow state
+        km: KnowledgeManager instance
+        
+    Returns:
+        List of extracted knowledge artifacts
+    """
+    from workflow_structures import KnowledgeArtifact
+    import hashlib
+    from datetime import datetime
+    
+    artifacts = []
+    
+    # 1. Extract solution patterns from successful sub-problems
+    for sp_id, solution in workflow_state.sub_problem_solutions.items():
+        if sp_id in workflow_state.solved_sub_problem_ids:
+            artifact_id = hashlib.md5(
+                f"{workflow_state.workflow_id}_solution_{sp_id}_{datetime.now().isoformat()}".encode()
+            ).hexdigest()
+            
+            # Find the sub-problem
+            sub_problem = next(
+                (sp for sp in workflow_state.decomposition_plan.sub_problems if sp.id == sp_id),
+                None
+            )
+            
+            if sub_problem:
+                artifact = KnowledgeArtifact(
+                    id=artifact_id,
+                    artifact_type="solution_pattern",
+                    content={
+                        "sub_problem_id": sp_id,
+                        "sub_problem_description": sub_problem.description,
+                        "solution_content": solution.content,
+                        "solution_approach": solution.solution_approach,
+                        "quality_metrics": solution.quality_metrics,
+                        "generated_by_model": solution.generated_by_model,
+                        "evolution_mode": sub_problem.ai_suggested_evolution_mode,
+                        "complexity_score": sub_problem.ai_suggested_complexity_score
+                    },
+                    source_workflow_id=workflow_state.workflow_id,
+                    domain=workflow_state.decomposition_plan.analyzed_context.get("domain"),
+                    problem_type=workflow_state.decomposition_plan.analyzed_context.get("problem_type", "general")
+                )
+                km.store_knowledge_artifact(artifact)
+                artifacts.append(artifact)
+    
+    # 2. Extract problem-solution mapping
+    if workflow_state.final_solution and workflow_state.decomposition_plan:
+        artifact_id = hashlib.md5(
+            f"{workflow_state.workflow_id}_mapping_{datetime.now().isoformat()}".encode()
+        ).hexdigest()
+        
+        artifact = KnowledgeArtifact(
+            id=artifact_id,
+            artifact_type="problem_solution_mapping",
+            content={
+                "problem_statement": workflow_state.problem_statement,
+                "analyzed_context": workflow_state.decomposition_plan.analyzed_context,
+                "num_sub_problems": len(workflow_state.decomposition_plan.sub_problems),
+                "decomposition_strategy": {
+                    "sub_problem_types": [sp.ai_suggested_evolution_mode 
+                                         for sp in workflow_state.decomposition_plan.sub_problems],
+                    "complexity_scores": [sp.ai_suggested_complexity_score 
+                                         for sp in workflow_state.decomposition_plan.sub_problems]
+                },
+                "final_solution": workflow_state.final_solution.content,
+                "success_metrics": {
+                    "total_time": workflow_state.end_time - workflow_state.start_time if workflow_state.end_time else 0,
+                    "refinement_loops": workflow_state.refinement_loop_count,
+                    "solved_sub_problems": len(workflow_state.solved_sub_problem_ids)
+                }
+            },
+            source_workflow_id=workflow_state.workflow_id,
+            domain=workflow_state.decomposition_plan.analyzed_context.get("domain"),
+            problem_type=workflow_state.decomposition_plan.analyzed_context.get("problem_type", "general")
+        )
+        km.store_knowledge_artifact(artifact)
+        artifacts.append(artifact)
+    
+    # 3. Extract critique insights from failed attempts
+    for critique_report in workflow_state.all_critique_reports:
+        if not critique_report.is_approved and critique_report.identified_flaws:
+            artifact_id = hashlib.md5(
+                f"{workflow_state.workflow_id}_critique_{critique_report.solution_attempt_id}_{datetime.now().isoformat()}".encode()
+            ).hexdigest()
+            
+            artifact = KnowledgeArtifact(
+                id=artifact_id,
+                artifact_type="critique_insight",
+                content={
+                    "solution_attempt_id": critique_report.solution_attempt_id,
+                    "identified_flaws": critique_report.identified_flaws,
+                    "flaw_severity_scores": critique_report.flaw_severity_scores,
+                    "suggested_improvements": critique_report.suggested_improvements,
+                    "gauntlet_name": critique_report.gauntlet_name
+                },
+                source_workflow_id=workflow_state.workflow_id,
+                domain=workflow_state.decomposition_plan.analyzed_context.get("domain") if workflow_state.decomposition_plan else None,
+                problem_type=workflow_state.decomposition_plan.analyzed_context.get("problem_type", "general") if workflow_state.decomposition_plan else "general"
+            )
+            km.store_knowledge_artifact(artifact)
+            artifacts.append(artifact)
+    
+    # 4. Extract team performance metrics
+    teams_used = {}
+    
+    # Track content analyzer
+    if workflow_state.content_analyzer_team:
+        teams_used[workflow_state.content_analyzer_team.name] = {
+            "role": "content_analyzer",
+            "success": True
+        }
+    
+    # Track planner
+    if workflow_state.planner_team:
+        teams_used[workflow_state.planner_team.name] = {
+            "role": "planner",
+            "success": True
+        }
+    
+    # Track solver/patcher teams
+    if workflow_state.decomposition_plan:
+        for sp in workflow_state.decomposition_plan.sub_problems:
+            if sp.solver_team_name:
+                if sp.solver_team_name not in teams_used:
+                    teams_used[sp.solver_team_name] = {
+                        "role": "solver",
+                        "successes": 0,
+                        "failures": 0
+                    }
+                
+                if sp.id in workflow_state.solved_sub_problem_ids:
+                    teams_used[sp.solver_team_name]["successes"] += 1
+                else:
+                    teams_used[sp.solver_team_name]["failures"] += 1
+    
+    # Create team performance artifacts
+    for team_name, performance_data in teams_used.items():
+        artifact_id = hashlib.md5(
+            f"{workflow_state.workflow_id}_team_{team_name}_{datetime.now().isoformat()}".encode()
+        ).hexdigest()
+        
+        artifact = KnowledgeArtifact(
+            id=artifact_id,
+            artifact_type="team_performance",
+            content={
+                "team_name": team_name,
+                "performance_data": performance_data,
+                "workflow_id": workflow_state.workflow_id
+            },
+            source_workflow_id=workflow_state.workflow_id,
+            domain=workflow_state.decomposition_plan.analyzed_context.get("domain") if workflow_state.decomposition_plan else None,
+            problem_type=workflow_state.decomposition_plan.analyzed_context.get("problem_type", "general") if workflow_state.decomposition_plan else "general"
+        )
+        km.store_knowledge_artifact(artifact)
+        artifacts.append(artifact)
+    
+    # 5. Extract gauntlet effectiveness
+    gauntlets_used = {}
+    
+    # Track red team gauntlets
+    for critique_report in workflow_state.all_critique_reports:
+        if critique_report.gauntlet_name not in gauntlets_used:
+            gauntlets_used[critique_report.gauntlet_name] = {
+                "type": "red_team",
+                "total_runs": 0,
+                "flaws_found": 0,
+                "approved": 0,
+                "rejected": 0
+            }
+        
+        gauntlets_used[critique_report.gauntlet_name]["total_runs"] += 1
+        if critique_report.is_approved:
+            gauntlets_used[critique_report.gauntlet_name]["approved"] += 1
+        else:
+            gauntlets_used[critique_report.gauntlet_name]["rejected"] += 1
+            gauntlets_used[critique_report.gauntlet_name]["flaws_found"] += len(critique_report.identified_flaws)
+    
+    # Track gold team gauntlets
+    for verification_report in workflow_state.all_verification_reports:
+        if verification_report.gauntlet_name not in gauntlets_used:
+            gauntlets_used[verification_report.gauntlet_name] = {
+                "type": "gold_team",
+                "total_runs": 0,
+                "approved": 0,
+                "rejected": 0,
+                "average_scores": []
+            }
+        
+        gauntlets_used[verification_report.gauntlet_name]["total_runs"] += 1
+        if verification_report.is_approved:
+            gauntlets_used[verification_report.gauntlet_name]["approved"] += 1
+        else:
+            gauntlets_used[verification_report.gauntlet_name]["rejected"] += 1
+        
+        gauntlets_used[verification_report.gauntlet_name]["average_scores"].append(
+            verification_report.average_score
+        )
+    
+    # Create gauntlet effectiveness artifacts
+    for gauntlet_name, effectiveness_data in gauntlets_used.items():
+        artifact_id = hashlib.md5(
+            f"{workflow_state.workflow_id}_gauntlet_{gauntlet_name}_{datetime.now().isoformat()}".encode()
+        ).hexdigest()
+        
+        artifact = KnowledgeArtifact(
+            id=artifact_id,
+            artifact_type="gauntlet_effectiveness",
+            content={
+                "gauntlet_name": gauntlet_name,
+                "effectiveness_data": effectiveness_data,
+                "workflow_id": workflow_state.workflow_id
+            },
+            source_workflow_id=workflow_state.workflow_id,
+            domain=workflow_state.decomposition_plan.analyzed_context.get("domain") if workflow_state.decomposition_plan else None,
+            problem_type=workflow_state.decomposition_plan.analyzed_context.get("problem_type", "general") if workflow_state.decomposition_plan else "general"
+        )
+        km.store_knowledge_artifact(artifact)
+        artifacts.append(artifact)
+    
+    return artifacts
+
+
+# --- OpenEvolve Integration Functions ---
+
+def run_content_analysis_with_openevolve(
+    problem_statement: str,
+    team: Team,
+    api_key: str,
+    model_name: str = "gpt-4o",
+    max_iterations: int = 5
+) -> Dict[str, Any]:
+    """
+    Run content analysis using OpenEvolve evolution
+    
+    Args:
+        problem_statement: Problem to analyze
+        team: Team to use for analysis
+        api_key: API key for OpenEvolve
+        model_name: Model to use
+        max_iterations: Number of evolution iterations
+        
+    Returns:
+        Analyzed context dictionary with OpenEvolve metrics
+    """
+    try:
+        from openevolve_client import OpenEvolveClient
+        
+        client = OpenEvolveClient(api_key=api_key)
+        
+        # Run evolution to generate analysis
+        result = client.evolve(
+            content=problem_statement,
+            evolution_mode="standard",
+            max_iterations=max_iterations,
+            population_size=10,
+            temperature=0.7,
+            model_name=model_name,
+            content_type="text_general"
+        )
+        
+        # Parse best analysis
+        best_analysis = result.get('best_code', '')
+        
+        try:
+            analyzed_context = json.loads(best_analysis)
+        except json.JSONDecodeError:
+            # Fallback to basic structure
+            analyzed_context = {
+                'domain': 'general',
+                'keywords': [],
+                'estimated_complexity': 5,
+                'potential_challenges': [],
+                'required_expertise': [],
+                'summary': best_analysis[:200]
+            }
+        
+        # Add OpenEvolve metrics
+        analyzed_context['openevolve_metrics'] = result.get('metrics', {})
+        analyzed_context['openevolve_used'] = True
+        
+        return analyzed_context
+        
+    except Exception as e:
+        st.error(f"Error using OpenEvolve for content analysis: {e}")
+        # Fallback to standard analysis
+        return run_content_analysis(problem_statement, team)
+
+
+def run_decomposition_with_openevolve(
+    problem_statement: str,
+    analyzed_context: Dict[str, Any],
+    team: Team,
+    api_key: str,
+    model_name: str = "gpt-4o",
+    max_iterations: int = 10
+) -> Any:
+    """
+    Run decomposition using OpenEvolve evolution
+    
+    Args:
+        problem_statement: Problem to decompose
+        analyzed_context: Context from analysis
+        team: Team to use for decomposition
+        api_key: API key for OpenEvolve
+        model_name: Model to use
+        max_iterations: Number of evolution iterations
+        
+    Returns:
+        DecompositionPlan with OpenEvolve metrics
+    """
+    try:
+        from openevolve_client import OpenEvolveClient
+        from workflow_structures import DecompositionPlan, SubProblem
+        
+        client = OpenEvolveClient(api_key=api_key)
+        
+        # Create prompt for decomposition
+        decomposition_prompt = f"""Decompose the following problem into sub-problems:
+
+Problem: {problem_statement}
+
+Context: {json.dumps(analyzed_context, indent=2)}
+
+Provide a JSON array of sub-problems, each with:
+- id: unique identifier
+- description: clear description
+- dependencies: list of dependent sub-problem ids
+- estimated_complexity: 1-10 scale
+"""
+        
+        # Run evolution
+        result = client.evolve(
+            content=decomposition_prompt,
+            evolution_mode="standard",
+            max_iterations=max_iterations,
+            population_size=15,
+            temperature=0.8,
+            model_name=model_name,
+            content_type="text_general"
+        )
+        
+        # Parse decomposition
+        best_decomposition = result.get('best_code', '')
+        
+        try:
+            sub_problems_data = json.loads(best_decomposition)
+            if not isinstance(sub_problems_data, list):
+                sub_problems_data = [sub_problems_data]
+        except json.JSONDecodeError:
+            # Fallback to single sub-problem
+            sub_problems_data = [{
+                'id': 'sp_1',
+                'description': problem_statement,
+                'dependencies': [],
+                'estimated_complexity': 5
+            }]
+        
+        # Create SubProblem objects
+        sub_problems = []
+        for sp_data in sub_problems_data:
+            sub_problem = SubProblem(
+                id=sp_data.get('id', f'sp_{len(sub_problems)+1}'),
+                description=sp_data.get('description', ''),
+                dependencies=sp_data.get('dependencies', []),
+                ai_suggested_complexity_score=sp_data.get('estimated_complexity', 5)
+            )
+            sub_problems.append(sub_problem)
+        
+        # Create decomposition plan
+        plan = DecompositionPlan(
+            problem_statement=problem_statement,
+            analyzed_context=analyzed_context,
+            sub_problems=sub_problems
+        )
+        
+        # Add OpenEvolve metrics to analyzed_context
+        if 'openevolve_metrics' not in analyzed_context:
+            analyzed_context['openevolve_metrics'] = {}
+        analyzed_context['openevolve_metrics']['decomposition'] = result.get('metrics', {})
+        
+        return plan
+        
+    except Exception as e:
+        st.error(f"Error using OpenEvolve for decomposition: {e}")
+        # Fallback to standard decomposition
+        return run_ai_decomposition(problem_statement, analyzed_context, team)
+
+
+def run_assembly_with_openevolve(
+    sub_problem_solutions: Dict[str, str],
+    problem_statement: str,
+    team: Team,
+    api_key: str,
+    model_name: str = "gpt-4o",
+    max_iterations: int = 5
+) -> str:
+    """
+    Run solution assembly using OpenEvolve evolution
+    
+    Args:
+        sub_problem_solutions: Dictionary of sub-problem solutions
+        problem_statement: Original problem statement
+        team: Team to use for assembly
+        api_key: API key for OpenEvolve
+        model_name: Model to use
+        max_iterations: Number of evolution iterations
+        
+    Returns:
+        Assembled final solution
+    """
+    try:
+        from openevolve_client import OpenEvolveClient
+        
+        client = OpenEvolveClient(api_key=api_key)
+        
+        # Create assembly prompt
+        solutions_text = "\n\n".join([
+            f"Sub-problem {sp_id}:\n{solution}"
+            for sp_id, solution in sub_problem_solutions.items()
+        ])
+        
+        assembly_prompt = f"""Assemble the following sub-problem solutions into a coherent final solution:
+
+Original Problem: {problem_statement}
+
+Sub-problem Solutions:
+{solutions_text}
+
+Provide a unified, coherent solution that integrates all sub-solutions.
+"""
+        
+        # Run evolution
+        result = client.evolve(
+            content=assembly_prompt,
+            evolution_mode="standard",
+            max_iterations=max_iterations,
+            population_size=10,
+            temperature=0.7,
+            model_name=model_name,
+            content_type="text_general"
+        )
+        
+        # Get best assembled solution
+        final_solution = result.get('best_code', '')
+        
+        return final_solution
+        
+    except Exception as e:
+        st.error(f"Error using OpenEvolve for assembly: {e}")
+        # Fallback to standard assembly
+        return run_assembly(sub_problem_solutions, problem_statement, team)

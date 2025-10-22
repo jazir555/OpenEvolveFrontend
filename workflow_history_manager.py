@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from workflow_structures import WorkflowState, DecompositionPlan, SubProblem, SolutionAttempt, CritiqueReport, VerificationReport, ModelConfig, Team, GauntletDefinition, GauntletRoundRule
 import dataclasses
 
@@ -130,3 +130,226 @@ class WorkflowHistoryManager:
         """
         self.history = {}
         self._save_history()
+    
+    def get_openevolve_metrics_history(self, workflow_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Get OpenEvolve metrics from workflow history.
+        
+        Args:
+            workflow_id: Optional specific workflow ID, or None for all workflows
+            
+        Returns:
+            Dictionary with OpenEvolve metrics aggregated from history
+        """
+        if workflow_id:
+            workflow = self.get_historical_workflow(workflow_id)
+            if not workflow:
+                return {}
+            workflows = [workflow]
+        else:
+            workflows = self.get_all_historical_workflows()
+        
+        metrics = {
+            "total_workflows": len(workflows),
+            "workflows_with_openevolve": 0,
+            "total_evolution_calls": 0,
+            "total_quality_diversity_calls": 0,
+            "total_ensemble_calls": 0,
+            "average_fitness_improvement": 0.0,
+            "average_diversity_score": 0.0,
+            "by_workflow": {}
+        }
+        
+        fitness_improvements = []
+        diversity_scores = []
+        
+        for wf in workflows:
+            wf_metrics = self._extract_openevolve_metrics_from_workflow(wf)
+            if wf_metrics["has_openevolve_data"]:
+                metrics["workflows_with_openevolve"] += 1
+                metrics["total_evolution_calls"] += wf_metrics["evolution_calls"]
+                metrics["total_quality_diversity_calls"] += wf_metrics["quality_diversity_calls"]
+                metrics["total_ensemble_calls"] += wf_metrics["ensemble_calls"]
+                
+                if wf_metrics["fitness_improvement"] is not None:
+                    fitness_improvements.append(wf_metrics["fitness_improvement"])
+                if wf_metrics["diversity_score"] is not None:
+                    diversity_scores.append(wf_metrics["diversity_score"])
+                
+                metrics["by_workflow"][wf.workflow_id] = wf_metrics
+        
+        if fitness_improvements:
+            metrics["average_fitness_improvement"] = sum(fitness_improvements) / len(fitness_improvements)
+        if diversity_scores:
+            metrics["average_diversity_score"] = sum(diversity_scores) / len(diversity_scores)
+        
+        return metrics
+    
+    def _extract_openevolve_metrics_from_workflow(self, workflow: WorkflowState) -> Dict[str, Any]:
+        """
+        Extract OpenEvolve metrics from a single workflow.
+        
+        Args:
+            workflow: Workflow state to extract metrics from
+            
+        Returns:
+            Dictionary with extracted metrics
+        """
+        metrics = {
+            "workflow_id": workflow.workflow_id,
+            "has_openevolve_data": False,
+            "evolution_calls": 0,
+            "quality_diversity_calls": 0,
+            "ensemble_calls": 0,
+            "fitness_improvement": None,
+            "diversity_score": None,
+            "metrics_by_stage": {}
+        }
+        
+        # Check decomposition plan metrics
+        if workflow.decomposition_plan and hasattr(workflow.decomposition_plan, 'openevolve_metrics'):
+            if workflow.decomposition_plan.openevolve_metrics:
+                metrics["has_openevolve_data"] = True
+                metrics["metrics_by_stage"]["decomposition"] = workflow.decomposition_plan.openevolve_metrics
+        
+        # Check sub-problem solutions metrics
+        if workflow.sub_problem_solutions:
+            for sp_id, solution in workflow.sub_problem_solutions.items():
+                if hasattr(solution, 'openevolve_metrics') and solution.openevolve_metrics:
+                    metrics["has_openevolve_data"] = True
+                    metrics["evolution_calls"] += 1
+                    metrics["metrics_by_stage"][f"subproblem_{sp_id}"] = solution.openevolve_metrics
+                    
+                    # Extract fitness improvement if available
+                    if "fitness_improvement" in solution.openevolve_metrics:
+                        if metrics["fitness_improvement"] is None:
+                            metrics["fitness_improvement"] = solution.openevolve_metrics["fitness_improvement"]
+                        else:
+                            metrics["fitness_improvement"] = (metrics["fitness_improvement"] + solution.openevolve_metrics["fitness_improvement"]) / 2
+        
+        # Check final solution metrics
+        if workflow.final_solution and hasattr(workflow.final_solution, 'openevolve_metrics'):
+            if workflow.final_solution.openevolve_metrics:
+                metrics["has_openevolve_data"] = True
+                metrics["metrics_by_stage"]["final_solution"] = workflow.final_solution.openevolve_metrics
+        
+        # Check critique reports for quality diversity metrics
+        if workflow.all_critique_reports:
+            for report in workflow.all_critique_reports:
+                if hasattr(report, 'openevolve_metrics') and report.openevolve_metrics:
+                    metrics["has_openevolve_data"] = True
+                    metrics["quality_diversity_calls"] += 1
+                    
+                    if "diversity_score" in report.openevolve_metrics:
+                        if metrics["diversity_score"] is None:
+                            metrics["diversity_score"] = report.openevolve_metrics["diversity_score"]
+                        else:
+                            metrics["diversity_score"] = (metrics["diversity_score"] + report.openevolve_metrics["diversity_score"]) / 2
+        
+        # Check verification reports for ensemble metrics
+        if workflow.all_verification_reports:
+            for report in workflow.all_verification_reports:
+                if hasattr(report, 'openevolve_metrics') and report.openevolve_metrics:
+                    metrics["has_openevolve_data"] = True
+                    metrics["ensemble_calls"] += 1
+        
+        return metrics
+    
+    def aggregate_metrics_by_timeframe(self, days: int = 30) -> Dict[str, Any]:
+        """
+        Aggregate OpenEvolve metrics for workflows within a timeframe.
+        
+        Args:
+            days: Number of days to look back
+            
+        Returns:
+            Aggregated metrics dictionary
+        """
+        from datetime import datetime, timedelta
+        
+        cutoff_date = datetime.now() - timedelta(days=days)
+        recent_workflows = []
+        
+        for workflow in self.get_all_historical_workflows():
+            # Assuming workflow has a timestamp field
+            if hasattr(workflow, 'created_at'):
+                try:
+                    wf_date = datetime.fromisoformat(workflow.created_at)
+                    if wf_date >= cutoff_date:
+                        recent_workflows.append(workflow)
+                except:
+                    # If date parsing fails, include the workflow
+                    recent_workflows.append(workflow)
+            else:
+                # If no timestamp, include the workflow
+                recent_workflows.append(workflow)
+        
+        # Aggregate metrics for recent workflows
+        metrics = {
+            "timeframe_days": days,
+            "total_workflows": len(recent_workflows),
+            "workflows_with_openevolve": 0,
+            "total_evolution_calls": 0,
+            "total_quality_diversity_calls": 0,
+            "total_ensemble_calls": 0,
+            "average_fitness_improvement": 0.0,
+            "average_diversity_score": 0.0
+        }
+        
+        fitness_improvements = []
+        diversity_scores = []
+        
+        for wf in recent_workflows:
+            wf_metrics = self._extract_openevolve_metrics_from_workflow(wf)
+            if wf_metrics["has_openevolve_data"]:
+                metrics["workflows_with_openevolve"] += 1
+                metrics["total_evolution_calls"] += wf_metrics["evolution_calls"]
+                metrics["total_quality_diversity_calls"] += wf_metrics["quality_diversity_calls"]
+                metrics["total_ensemble_calls"] += wf_metrics["ensemble_calls"]
+                
+                if wf_metrics["fitness_improvement"] is not None:
+                    fitness_improvements.append(wf_metrics["fitness_improvement"])
+                if wf_metrics["diversity_score"] is not None:
+                    diversity_scores.append(wf_metrics["diversity_score"])
+        
+        if fitness_improvements:
+            metrics["average_fitness_improvement"] = sum(fitness_improvements) / len(fitness_improvements)
+        if diversity_scores:
+            metrics["average_diversity_score"] = sum(diversity_scores) / len(diversity_scores)
+        
+        return metrics
+    
+    def query_workflows_by_metrics(self, min_fitness: Optional[float] = None, 
+                                   min_diversity: Optional[float] = None) -> List[WorkflowState]:
+        """
+        Query workflows that meet specified metric thresholds.
+        
+        Args:
+            min_fitness: Minimum fitness improvement threshold
+            min_diversity: Minimum diversity score threshold
+            
+        Returns:
+            List of workflows meeting the criteria
+        """
+        matching_workflows = []
+        
+        for workflow in self.get_all_historical_workflows():
+            wf_metrics = self._extract_openevolve_metrics_from_workflow(workflow)
+            
+            if not wf_metrics["has_openevolve_data"]:
+                continue
+            
+            meets_criteria = True
+            
+            if min_fitness is not None:
+                if wf_metrics["fitness_improvement"] is None or wf_metrics["fitness_improvement"] < min_fitness:
+                    meets_criteria = False
+            
+            if min_diversity is not None:
+                if wf_metrics["diversity_score"] is None or wf_metrics["diversity_score"] < min_diversity:
+                    meets_criteria = False
+            
+            if meets_criteria:
+                matching_workflows.append(workflow)
+        
+        return matching_workflows

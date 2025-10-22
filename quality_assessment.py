@@ -1434,3 +1434,38 @@ The system implements proper error handling with try-catch blocks. Any validatio
 
 if __name__ == "__main__":
     test_quality_assessment_engine()
+
+def 
+assess_with_ensemble(content: str, api_key: str, num_evaluators: int = 5) -> Dict[str, Any]:
+    """Assess quality using ensemble of evaluators via OpenEvolve"""
+    try:
+        from openevolve_client import OpenEvolveClient
+        
+        client = OpenEvolveClient(api_key=api_key)
+        
+        assessment_prompt = f"""Assess the quality of this content:
+
+{content}
+
+Provide a quality score (0-100) and detailed feedback."""
+        
+        result = client.evolve(
+            content=assessment_prompt,
+            evolution_mode="standard",
+            max_iterations=5,
+            population_size=num_evaluators,
+            temperature=0.7
+        )
+        
+        # Extract ensemble scores
+        population = result.get('population', [])
+        scores = [ind.get('fitness', 0) * 100 for ind in population]
+        
+        return {
+            'ensemble_score': sum(scores) / len(scores) if scores else 0,
+            'individual_scores': scores,
+            'consensus': max(scores) - min(scores) < 20 if scores else False,
+            'metrics': result.get('metrics', {})
+        }
+    except Exception as e:
+        return {'error': str(e)}

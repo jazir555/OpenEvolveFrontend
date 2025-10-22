@@ -174,6 +174,8 @@ class Team:
     performance_metrics: Optional[Dict[str, float]] = None
     # Team configuration parameters
     team_config: Optional[Dict[str, Any]] = None
+    # OpenEvolve metrics for the team
+    openevolve_metrics: Optional[List[Dict[str, Any]]] = None
 
 @dataclasses.dataclass
 class GauntletRoundRule:
@@ -236,6 +238,8 @@ class SubProblem:
     solution_attempts: List['SolutionAttempt'] = dataclasses.field(default_factory=list)
     # Performance metrics for this sub-problem
     performance_metrics: Optional[Dict[str, float]] = None
+    # OpenEvolve metrics for this sub-problem
+    openevolve_metrics: Optional[Dict[str, Any]] = None
 
 @dataclasses.dataclass
 class DecompositionPlan:
@@ -281,6 +285,8 @@ class SolutionAttempt:
     # Related critiques and verifications
     critique_reports: List['CritiqueReport'] = dataclasses.field(default_factory=list)
     verification_reports: List['VerificationReport'] = dataclasses.field(default_factory=list)
+    # OpenEvolve metrics for this solution attempt
+    openevolve_metrics: Optional[Dict[str, Any]] = None
 
 @dataclasses.dataclass
 class CritiqueReport:
@@ -398,6 +404,8 @@ class WorkflowState:
     performance_metrics: Dict[str, float] = dataclasses.field(default_factory=dict)
     # Knowledge artifacts extracted from the workflow
     knowledge_artifacts: List[KnowledgeArtifact] = dataclasses.field(default_factory=list)
+    # OpenEvolve metrics for the workflow
+    openevolve_metrics: Dict[str, Any] = dataclasses.field(default_factory=dict)
 
     # OpenEvolve Parameters (User-configurable via UI) - Complete set
     max_iterations: int = 100

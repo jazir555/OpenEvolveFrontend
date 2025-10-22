@@ -25,7 +25,7 @@ This document tracks the implementation of the workflow detailed in `SOVEREIGN_G
     - [x] Create the UI for configuring a new workflow, including dropdowns to select pre-configured Teams and Gauntlets for each stage.
     - [x] Implement the "Manual Review" panel. This UI must render the `DecompositionPlan` and allow the user to edit and approve it, which requires careful state management.
 - [x] Implement the real-time monitoring view for the workflow's progress.
-- [ ] Connect the "Start Workflow" button to the `run_sovereign_workflow()` function in the `workflow_engine.py`.
+- [x] Connect the "Start Workflow" button to the `run_sovereign_workflow()` function in the `workflow_engine.py`.
 
 ## Phase 4: Finalization & Self-Healing
 

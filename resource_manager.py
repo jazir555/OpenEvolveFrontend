@@ -264,6 +264,118 @@ class ResourceManager:
             remaining['time_seconds'] = max(0, self.limits.max_execution_time_seconds - elapsed)
         
         return remaining
+    
+    def track_openevolve_operation(
+        self,
+        operation_type: str,
+        metrics: Dict[str, Any]
+    ) -> None:
+        """
+        Track OpenEvolve operation resource usage.
+        
+        Args:
+            operation_type: Type of OpenEvolve operation (evolve, quality_diversity, ensemble)
+            metrics: OpenEvolve metrics dictionary
+        """
+        component = f"openevolve_{operation_type}"
+        
+        # Extract metrics
+        api_calls = metrics.get('api_calls', metrics.get('total_evaluations', 0))
+        tokens = metrics.get('tokens_total', metrics.get('total_tokens', 0))
+        execution_time = metrics.get('total_time', metrics.get('execution_time', 0.0))
+        
+        # Track the operation
+        self.track_api_call(
+            component=component,
+            model=metrics.get('model', 'openevolve'),
+            tokens=tokens,
+            execution_time=execution_time
+        )
+        
+        # Store OpenEvolve-specific metrics
+        if component not in self.component_usage:
+            self.component_usage[component] = ResourceUsage()
+        
+        comp_usage = self.component_usage[component]
+        comp_usage.details['openevolve_metrics'] = metrics
+        comp_usage.details['operation_type'] = operation_type
+    
+    def get_openevolve_usage_summary(self) -> Dict[str, Any]:
+        """Get summary of OpenEvolve-specific resource usage."""
+        openevolve_components = {
+            k: v for k, v in self.component_usage.items()
+            if k.startswith('openevolve_')
+        }
+        
+        total_operations = len(openevolve_components)
+        total_api_calls = sum(v.api_calls for v in openevolve_components.values())
+        total_tokens = sum(v.tokens_used for v in openevolve_components.values())
+        total_cost = sum(v.estimated_cost for v in openevolve_components.values())
+        total_time = sum(v.execution_time_seconds for v in openevolve_components.values())
+        
+        return {
+            'total_operations': total_operations,
+            'total_api_calls': total_api_calls,
+            'total_tokens': total_tokens,
+            'total_cost': total_cost,
+            'total_time_seconds': total_time,
+            'operations_by_type': {
+                k.replace('openevolve_', ''): {
+                    'api_calls': v.api_calls,
+                    'tokens': v.tokens_used,
+                    'cost': v.estimated_cost,
+                    'time': v.execution_time_seconds
+                }
+                for k, v in openevolve_components.items()
+            }
+        }
+    
+    def enforce_resource_limits(self) -> bool:
+        """
+        Enforce resource limits and raise exception if exceeded.
+        
+        Returns:
+            True if within limits
+            
+        Raises:
+            ResourceLimitExceeded: If any limit is exceeded
+        """
+        within_limits, violations = self.check_limits()
+        
+        if not within_limits:
+            raise ResourceLimitExceeded(
+                f"Resource limits exceeded: {', '.join(violations)}"
+            )
+        
+        return True
+    
+    def get_resource_usage_visualization_data(self) -> Dict[str, Any]:
+        """Get data formatted for visualization."""
+        return {
+            'usage_by_component': [
+                {
+                    'component': comp,
+                    'api_calls': usage.api_calls,
+                    'tokens': usage.tokens_used,
+                    'cost': usage.estimated_cost,
+                    'time': usage.execution_time_seconds
+                }
+                for comp, usage in self.component_usage.items()
+            ],
+            'total_usage': {
+                'api_calls': self.usage.api_calls,
+                'tokens': self.usage.tokens_used,
+                'cost': self.usage.estimated_cost,
+                'time': time.time() - self.start_time
+            },
+            'limits': self.limits.to_dict(),
+            'remaining': self.get_remaining_resources()
+        }
+
+
+class ResourceLimitExceeded(Exception):
+    """Exception raised when resource limits are exceeded."""
+    pass
 
 
 def render_resource_dashboard(resource_manager: ResourceManager):
@@ -398,3 +510,31 @@ def get_default_resource_limits() -> ResourceLimits:
         max_execution_time_seconds=3600,  # 1 hour
         max_memory_mb=2048  # 2 GB
     )
+
+
+# OpenEvolve resource tracking
+def track_openevolve_resources(
+    operation_id: str,
+    metrics: Dict[str, Any],
+    resource_manager: 'ResourceManager'
+) -> None:
+    """
+    Track OpenEvolve resource usage
+    
+    Args:
+        operation_id: Operation identifier
+        metrics: OpenEvolve metrics
+        resource_manager: ResourceManager instance
+    """
+    # Extract resource usage from metrics
+    api_calls = metrics.get('api_calls', 0)
+    tokens = metrics.get('tokens_total', 0)
+    cost = metrics.get('cost_usd', 0.0)
+    duration = metrics.get('total_time', 0.0)
+    memory = metrics.get('memory_peak_mb', 0.0)
+    
+    # Update resource manager
+    resource_manager.api_calls_used += api_calls
+    resource_manager.tokens_used += tokens
+    resource_manager.cost_incurred += cost
+    resource_manager.memory_used_mb = max(resource_manager.memory_used_mb, memory)

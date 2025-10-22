@@ -87,3 +87,124 @@ class TeamManager:
             role (str): The role to filter teams by (e.g., "Blue", "Red", "Gold").
         """
         return [team for team in self.teams.values() if team.role == role]
+    
+    def add_openevolve_metrics(self, team_name: str, metrics: Dict[str, Any]) -> bool:
+        """
+        Add OpenEvolve metrics to a team
+        
+        Args:
+            team_name: Name of the team
+            metrics: OpenEvolve metrics to add
+            
+        Returns:
+            True if successful, False if team not found
+        """
+        team = self.get_team(team_name)
+        if not team:
+            return False
+        
+        # Initialize openevolve_metrics if not present
+        if not hasattr(team, 'openevolve_metrics'):
+            team.openevolve_metrics = []
+        
+        # Add metrics with timestamp
+        metrics_entry = {
+            'timestamp': metrics.get('timestamp', None),
+            'metrics': metrics
+        }
+        team.openevolve_metrics.append(metrics_entry)
+        
+        # Update team
+        self.update_team(team)
+        return True
+    
+    def get_openevolve_metrics(self, team_name: str) -> List[Dict[str, Any]]:
+        """
+        Get OpenEvolve metrics for a team
+        
+        Args:
+            team_name: Name of the team
+            
+        Returns:
+            List of metrics entries
+        """
+        team = self.get_team(team_name)
+        if not team or not hasattr(team, 'openevolve_metrics'):
+            return []
+        
+        return team.openevolve_metrics
+    
+    def aggregate_team_metrics(self, team_name: str) -> Dict[str, Any]:
+        """
+        Aggregate OpenEvolve metrics for a team
+        
+        Args:
+            team_name: Name of the team
+            
+        Returns:
+            Aggregated metrics
+        """
+        metrics_list = self.get_openevolve_metrics(team_name)
+        
+        if not metrics_list:
+            return {
+                'total_operations': 0,
+                'avg_fitness': 0.0,
+                'total_iterations': 0,
+                'total_cost': 0.0
+            }
+        
+        # Aggregate metrics
+        total_operations = len(metrics_list)
+        total_fitness = 0.0
+        total_iterations = 0
+        total_cost = 0.0
+        
+        for entry in metrics_list:
+            metrics = entry.get('metrics', {})
+            total_fitness += metrics.get('best_fitness', 0.0)
+            total_iterations += metrics.get('iterations_completed', 0)
+            total_cost += metrics.get('cost_usd', 0.0)
+        
+        return {
+            'total_operations': total_operations,
+            'avg_fitness': total_fitness / total_operations if total_operations > 0 else 0.0,
+            'total_iterations': total_iterations,
+            'avg_iterations': total_iterations / total_operations if total_operations > 0 else 0.0,
+            'total_cost': total_cost,
+            'avg_cost': total_cost / total_operations if total_operations > 0 else 0.0
+        }
+    
+    def get_all_teams_metrics(self) -> Dict[str, Dict[str, Any]]:
+        """
+        Get aggregated metrics for all teams
+        
+        Returns:
+            Dictionary mapping team names to their aggregated metrics
+        """
+        all_metrics = {}
+        
+        for team_name in self.teams.keys():
+            all_metrics[team_name] = self.aggregate_team_metrics(team_name)
+        
+        return all_metrics
+    
+    def clear_team_metrics(self, team_name: str) -> bool:
+        """
+        Clear OpenEvolve metrics for a team
+        
+        Args:
+            team_name: Name of the team
+            
+        Returns:
+            True if successful, False if team not found
+        """
+        team = self.get_team(team_name)
+        if not team:
+            return False
+        
+        if hasattr(team, 'openevolve_metrics'):
+            team.openevolve_metrics = []
+            self.update_team(team)
+        
+        return True

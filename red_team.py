@@ -76,6 +76,7 @@ class RedTeamAssessment:
     assessment_metadata: Dict[str, Any]
     issues_by_severity: Dict[SeverityLevel, int]
     issues_by_category: Dict[IssueCategory, int]
+    openevolve_metrics: Optional[Dict[str, Any]] = None  # OpenEvolve metrics if used
 
 class RedTeamMember:
     """Individual red team member with specific expertise"""
@@ -1342,6 +1343,226 @@ class RedTeam:
             ))
         
         return findings
+    
+    def critique_with_quality_diversity(
+        self,
+        content: str,
+        content_type: str = "general",
+        api_key: Optional[str] = None,
+        model_name: str = "gpt-4o",
+        feature_dimensions: Optional[List[str]] = None,
+        max_iterations: int = 10
+    ) -> RedTeamAssessment:
+        """
+        Perform critique using quality diversity (MAP-Elites) to find diverse issues
+        
+        Args:
+            content: Content to critique
+            content_type: Type of content
+            api_key: API key for OpenEvolve
+            model_name: Model to use
+            feature_dimensions: Behavior dimensions for diversity
+            max_iterations: Number of evolution iterations
+            
+        Returns:
+            RedTeamAssessment with diverse findings
+        """
+        if not OPENEVOLVE_AVAILABLE or not api_key:
+            return self.assess_content(content, content_type)
+        
+        try:
+            from openevolve_client import OpenEvolveClient
+            
+            client = OpenEvolveClient(api_key=api_key)
+            
+            # Create behavior dimensions if not provided
+            if not feature_dimensions:
+                feature_dimensions = self._create_behavior_dimensions(content_type)
+            
+            # Run quality diversity evolution
+            result = client.evolve(
+                content=content,
+                evolution_mode="quality_diversity",
+                max_iterations=max_iterations,
+                population_size=20,
+                temperature=0.8,
+                model_name=model_name,
+                content_type=content_type,
+                feature_dimensions=feature_dimensions,
+                archive_size=100
+            )
+            
+            # Extract diverse findings from archive
+            findings = self._extract_diverse_findings(result, content_type)
+            
+            # Count by severity and category
+            issues_by_severity = {}
+            issues_by_category = {}
+            
+            for finding in findings:
+                severity = finding.severity
+                issues_by_severity[severity] = issues_by_severity.get(severity, 0) + 1
+                
+                category = finding.category
+                issues_by_category[category] = issues_by_category.get(category, 0) + 1
+            
+            # Calculate confidence
+            confidence_score = self._calculate_confidence_score(findings)
+            
+            # Create assessment
+            assessment = RedTeamAssessment(
+                findings=findings,
+                assessment_summary=f"Quality diversity critique found {len(findings)} diverse issues across {len(feature_dimensions)} behavior dimensions",
+                confidence_score=confidence_score,
+                time_taken=result.get('metrics', {}).get('total_time', 0.0),
+                assessment_metadata={
+                    'content_type': content_type,
+                    'openevolve_used': True,
+                    'evolution_mode': 'quality_diversity',
+                    'feature_dimensions': feature_dimensions,
+                    'archive_size': result.get('metrics', {}).get('archive_size', 0),
+                    'openevolve_metrics': result.get('metrics', {})
+                },
+                issues_by_severity=issues_by_severity,
+                issues_by_category=issues_by_category,
+                openevolve_metrics=result.get('metrics', {})
+            )
+            
+            self.assessment_history.append(assessment)
+            return assessment
+            
+        except Exception as e:
+            print(f"Error using quality diversity for critique: {e}")
+            return self.assess_content(content, content_type)
+    
+    def _create_behavior_dimensions(self, content_type: str) -> List[str]:
+        """
+        Create behavior dimensions for quality diversity
+        
+        Args:
+            content_type: Type of content being assessed
+            
+        Returns:
+            List of behavior dimension names
+        """
+        if content_type == "code":
+            return [
+                "security_focus",
+                "performance_focus",
+                "maintainability_focus",
+                "logic_correctness",
+                "edge_case_coverage"
+            ]
+        elif content_type == "document":
+            return [
+                "clarity_level",
+                "completeness_level",
+                "technical_depth",
+                "structure_quality"
+            ]
+        elif content_type == "protocol":
+            return [
+                "safety_level",
+                "completeness_level",
+                "error_handling_coverage",
+                "edge_case_coverage"
+            ]
+        else:
+            return [
+                "quality_level",
+                "completeness_level",
+                "clarity_level"
+            ]
+    
+    def _extract_diverse_findings(
+        self,
+        evolution_result: Dict[str, Any],
+        content_type: str
+    ) -> List[IssueFinding]:
+        """
+        Extract diverse findings from quality diversity archive
+        
+        Args:
+            evolution_result: Result from OpenEvolve quality diversity
+            content_type: Type of content
+            
+        Returns:
+            List of diverse issue findings
+        """
+        findings = []
+        
+        # Get archive from result
+        archive = evolution_result.get('archive', [])
+        
+        # Extract findings from each archive entry
+        for entry in archive:
+            critique_text = entry.get('code', '')
+            behavior = entry.get('behavior', {})
+            fitness = entry.get('fitness', 0.0)
+            
+            # Parse critique to extract issues
+            # This is a simplified extraction - in practice, would use LLM to parse
+            if critique_text:
+                # Create a finding for this archive entry
+                # Determine severity based on fitness
+                if fitness > 0.8:
+                    severity = SeverityLevel.CRITICAL
+                elif fitness > 0.6:
+                    severity = SeverityLevel.HIGH
+                elif fitness > 0.4:
+                    severity = SeverityLevel.MEDIUM
+                else:
+                    severity = SeverityLevel.LOW
+                
+                # Determine category based on behavior dimensions
+                category = self._infer_category_from_behavior(behavior)
+                
+                finding = IssueFinding(
+                    title=f"Issue in {list(behavior.keys())[0] if behavior else 'general'} dimension",
+                    description=critique_text[:200],  # Truncate for summary
+                    severity=severity,
+                    category=category,
+                    confidence=fitness,
+                    location=None,
+                    suggested_fix=None
+                )
+                
+                findings.append(finding)
+        
+        return findings
+    
+    def _infer_category_from_behavior(self, behavior: Dict[str, float]) -> IssueCategory:
+        """
+        Infer issue category from behavior dimensions
+        
+        Args:
+            behavior: Behavior descriptor from archive entry
+            
+        Returns:
+            Inferred issue category
+        """
+        if not behavior:
+            return IssueCategory.LOGICAL_ERROR
+        
+        # Get dimension with highest value
+        max_dimension = max(behavior.items(), key=lambda x: x[1])[0]
+        
+        # Map dimension to category
+        dimension_map = {
+            "security_focus": IssueCategory.SECURITY_VULNERABILITY,
+            "performance_focus": IssueCategory.PERFORMANCE_PROBLEM,
+            "maintainability_focus": IssueCategory.MAINTAINABILITY_PROBLEM,
+            "logic_correctness": IssueCategory.LOGICAL_ERROR,
+            "edge_case_coverage": IssueCategory.EDGE_CASE,
+            "clarity_level": IssueCategory.CLARITY_ISSUE,
+            "completeness_level": IssueCategory.DOCUMENTATION_GAP,
+            "technical_depth": IssueCategory.TECHNICAL_DEBT,
+            "structure_quality": IssueCategory.STRUCTURAL_FLAW,
+            "safety_level": IssueCategory.SECURITY_VULNERABILITY,
+            "error_handling_coverage": IssueCategory.EDGE_CASE
+        }
+        
+        return dimension_map.get(max_dimension, IssueCategory.LOGICAL_ERROR)
 
 # Example usage and testing
 def test_red_team():
