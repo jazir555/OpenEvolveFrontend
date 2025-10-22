@@ -1371,3 +1371,121 @@ def test_model_orchestration():
 
 if __name__ == "__main__":
     test_model_orchestration()
+
+
+# --- OpenEvolve Integration Methods ---
+
+def orchestrate_with_openevolve(
+    orchestrator: 'ModelOrchestrator',
+    content: str,
+    api_key: str,
+    evolution_mode: str = "standard",
+    max_iterations: int = 10,
+    population_size: int = 20
+) -> Dict[str, Any]:
+    """
+    Orchestrate model execution using OpenEvolve
+    
+    Args:
+        orchestrator: ModelOrchestrator instance
+        content: Content to process
+        api_key: API key for OpenEvolve
+        evolution_mode: Evolution mode to use
+        max_iterations: Number of iterations
+        population_size: Population size
+        
+    Returns:
+        Dictionary with orchestration results and metrics
+    """
+    try:
+        from openevolve_client import OpenEvolveClient
+        
+        client = OpenEvolveClient(api_key=api_key)
+        
+        # Run evolution
+        result = client.evolve(
+            content=content,
+            evolution_mode=evolution_mode,
+            max_iterations=max_iterations,
+            population_size=population_size,
+            temperature=0.7,
+            content_type="text_general"
+        )
+        
+        return {
+            'success': True,
+            'best_result': result.get('best_code', ''),
+            'metrics': result.get('metrics', {}),
+            'openevolve_used': True
+        }
+        
+    except Exception as e:
+        logger.error(f"Error in OpenEvolve orchestration: {e}")
+        return {
+            'success': False,
+            'error': str(e),
+            'openevolve_used': False
+        }
+
+
+def select_models_with_evolution(
+    orchestrator: 'ModelOrchestrator',
+    task_description: str,
+    available_models: List[str],
+    api_key: str,
+    num_models: int = 3
+) -> List[str]:
+    """
+    Use evolution to select best models for a task
+    
+    Args:
+        orchestrator: ModelOrchestrator instance
+        task_description: Description of the task
+        available_models: List of available model names
+        api_key: API key for OpenEvolve
+        num_models: Number of models to select
+        
+    Returns:
+        List of selected model names
+    """
+    try:
+        from openevolve_client import OpenEvolveClient
+        
+        client = OpenEvolveClient(api_key=api_key)
+        
+        # Create selection prompt
+        models_text = ", ".join(available_models)
+        selection_prompt = f"""Select the {num_models} best models for this task:
+
+Task: {task_description}
+
+Available models: {models_text}
+
+Return a JSON array of {num_models} model names."""
+        
+        # Run evolution
+        result = client.evolve(
+            content=selection_prompt,
+            evolution_mode="standard",
+            max_iterations=5,
+            population_size=10,
+            temperature=0.5,
+            content_type="text_general"
+        )
+        
+        # Parse selection
+        import json
+        best_selection = result.get('best_code', '[]')
+        try:
+            selected = json.loads(best_selection)
+            if isinstance(selected, list):
+                return selected[:num_models]
+        except:
+            pass
+        
+        # Fallback to performance-based selection
+        return available_models[:num_models]
+        
+    except Exception as e:
+        logger.error(f"Error in model selection: {e}")
+        return available_models[:num_models]

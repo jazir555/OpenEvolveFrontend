@@ -426,3 +426,268 @@ def get_performance_trends_data(session_state: Dict[str, Any]) -> pd.DataFrame:
         })
     
     return pd.DataFrame(data)
+
+def collect_openevolve_metrics(metrics_collector) -> pd.DataFrame:
+    """Collect comprehensive OpenEvolve metrics for analytics"""
+    summary = metrics_collector.get_summary_stats()
+    
+    data = {
+        'metric': ['Total Operations', 'Avg Fitness', 'Best Fitness', 'Success Rate', 'Total Cost', 'Avg Duration', 'Total Iterations', 'Avg Population Size'],
+        'value': [
+            summary.get('total_operations', 0),
+            summary.get('avg_fitness_improvement', 0.0),
+            summary.get('best_fitness', 0.0),
+            summary.get('success_rate', 0.0),
+            summary.get('total_cost', 0.0),
+            summary.get('avg_duration', 0.0),
+            summary.get('total_iterations', 0),
+            summary.get('avg_population_size', 0)
+        ]
+    }
+    
+    return pd.DataFrame(data)
+
+
+def aggregate_metrics_by_mode(metrics_collector) -> pd.DataFrame:
+    """Aggregate metrics by evolution mode with comprehensive statistics"""
+    aggregated = metrics_collector.aggregate_metrics()
+    
+    mode_data = []
+    for mode, stats in aggregated.by_evolution_mode.items():
+        mode_data.append({
+            'mode': mode,
+            'count': stats.get('count', 0),
+            'avg_fitness': stats.get('avg_fitness_improvement', 0.0),
+            'best_fitness': stats.get('best_fitness', 0.0),
+            'success_rate': stats.get('success_rate', 0.0),
+            'total_cost': stats.get('total_cost', 0.0),
+            'avg_duration': stats.get('avg_duration', 0.0),
+            'avg_iterations': stats.get('avg_iterations', 0.0)
+        })
+    
+    return pd.DataFrame(mode_data)
+
+
+def get_openevolve_time_series(metrics_collector, days: int = 30) -> pd.DataFrame:
+    """Get OpenEvolve metrics as time series for trend analysis
+    
+    Args:
+        metrics_collector: MetricsCollector instance
+        days: Number of days to include in time series
+        
+    Returns:
+        DataFrame with time series data
+    """
+    from datetime import datetime, timedelta
+    
+    # Get all metrics
+    all_metrics = metrics_collector.get_all_metrics()
+    
+    # Filter by date range
+    cutoff_date = datetime.now() - timedelta(days=days)
+    
+    time_series_data = []
+    for metric in all_metrics:
+        timestamp = metric.get('timestamp', time.time())
+        metric_date = datetime.fromtimestamp(timestamp)
+        
+        if metric_date >= cutoff_date:
+            time_series_data.append({
+                'date': metric_date.date(),
+                'fitness_improvement': metric.get('fitness_improvement', 0.0),
+                'cost': metric.get('cost_usd', 0.0),
+                'duration': metric.get('total_time', 0.0),
+                'success': 1 if metric.get('success', False) else 0,
+                'mode': metric.get('evolution_mode', 'unknown')
+            })
+    
+    df = pd.DataFrame(time_series_data)
+    
+    if not df.empty:
+        # Aggregate by date
+        df_agg = df.groupby('date').agg({
+            'fitness_improvement': 'mean',
+            'cost': 'sum',
+            'duration': 'mean',
+            'success': 'sum'
+        }).reset_index()
+        
+        return df_agg
+    
+    return df
+
+
+def get_openevolve_parameter_analysis(metrics_collector) -> pd.DataFrame:
+    """Analyze impact of different parameters on performance
+    
+    Args:
+        metrics_collector: MetricsCollector instance
+        
+    Returns:
+        DataFrame with parameter analysis
+    """
+    all_metrics = metrics_collector.get_all_metrics()
+    
+    param_data = []
+    for metric in all_metrics:
+        params = metric.get('parameters', {})
+        
+        param_data.append({
+            'population_size': params.get('population_size', 0),
+            'max_iterations': params.get('max_iterations', 0),
+            'temperature': params.get('temperature', 0.0),
+            'elite_ratio': params.get('elite_ratio', 0.0),
+            'exploration_ratio': params.get('exploration_ratio', 0.0),
+            'fitness_improvement': metric.get('fitness_improvement', 0.0),
+            'success': 1 if metric.get('success', False) else 0,
+            'cost': metric.get('cost_usd', 0.0)
+        })
+    
+    return pd.DataFrame(param_data)
+
+
+def get_openevolve_quality_diversity_data(archive_data: Dict[str, Any]) -> pd.DataFrame:
+    """Extract quality diversity archive data for visualization
+    
+    Args:
+        archive_data: Archive data from quality diversity evolution
+        
+    Returns:
+        DataFrame with archive entries
+    """
+    if not archive_data or 'entries' not in archive_data:
+        return pd.DataFrame()
+    
+    entries = archive_data['entries']
+    
+    archive_df_data = []
+    for entry in entries:
+        behavior = entry.get('behavior', {})
+        
+        row = {
+            'fitness': entry.get('fitness', 0.0),
+            'iteration_added': entry.get('iteration', 0)
+        }
+        
+        # Add behavior dimensions
+        for dim_name, dim_value in behavior.items():
+            row[f'behavior_{dim_name}'] = dim_value
+        
+        archive_df_data.append(row)
+    
+    return pd.DataFrame(archive_df_data)
+
+
+def get_openevolve_pareto_front_data(pareto_data: Dict[str, Any]) -> pd.DataFrame:
+    """Extract Pareto front data for multi-objective optimization
+    
+    Args:
+        pareto_data: Pareto front data from multi-objective evolution
+        
+    Returns:
+        DataFrame with Pareto-optimal solutions
+    """
+    if not pareto_data or 'solutions' not in pareto_data:
+        return pd.DataFrame()
+    
+    solutions = pareto_data['solutions']
+    
+    pareto_df_data = []
+    for solution in solutions:
+        objectives = solution.get('objectives', {})
+        
+        row = {
+            'is_pareto_optimal': solution.get('is_pareto_optimal', False),
+            'dominated_by': solution.get('dominated_by', 0)
+        }
+        
+        # Add objectives
+        for obj_name, obj_value in objectives.items():
+            row[f'objective_{obj_name}'] = obj_value
+        
+        pareto_df_data.append(row)
+    
+    return pd.DataFrame(pareto_df_data)
+
+
+def calculate_convergence_metrics(fitness_history: list) -> Dict[str, float]:
+    """Calculate convergence metrics from fitness history
+    
+    Args:
+        fitness_history: List of fitness values over iterations
+        
+    Returns:
+        Dictionary with convergence metrics
+    """
+    if not fitness_history or len(fitness_history) < 2:
+        return {
+            'convergence_rate': 0.0,
+            'stagnation_percentage': 0.0,
+            'improvement_variance': 0.0
+        }
+    
+    # Calculate improvement per iteration
+    improvements = [fitness_history[i] - fitness_history[i-1] for i in range(1, len(fitness_history))]
+    
+    # Convergence rate (average improvement per iteration)
+    convergence_rate = sum(improvements) / len(improvements)
+    
+    # Stagnation percentage (iterations with minimal improvement)
+    stagnation_threshold = 0.001
+    stagnant_count = sum(1 for imp in improvements if abs(imp) < stagnation_threshold)
+    stagnation_percentage = (stagnant_count / len(improvements)) * 100
+    
+    # Improvement variance (consistency of improvements)
+    improvement_variance = np.var(improvements) if len(improvements) > 1 else 0.0
+    
+    return {
+        'convergence_rate': convergence_rate,
+        'stagnation_percentage': stagnation_percentage,
+        'improvement_variance': improvement_variance,
+        'total_improvement': fitness_history[-1] - fitness_history[0],
+        'best_single_improvement': max(improvements) if improvements else 0.0
+    }
+
+
+def calculate_diversity_metrics(diversity_history: list) -> Dict[str, float]:
+    """Calculate diversity metrics from diversity history
+    
+    Args:
+        diversity_history: List of diversity values over iterations
+        
+    Returns:
+        Dictionary with diversity metrics
+    """
+    if not diversity_history:
+        return {
+            'avg_diversity': 0.0,
+            'min_diversity': 0.0,
+            'max_diversity': 0.0,
+            'diversity_trend': 'stable'
+        }
+    
+    avg_diversity = sum(diversity_history) / len(diversity_history)
+    min_diversity = min(diversity_history)
+    max_diversity = max(diversity_history)
+    
+    # Determine trend
+    if len(diversity_history) > 1:
+        first_half_avg = sum(diversity_history[:len(diversity_history)//2]) / (len(diversity_history)//2)
+        second_half_avg = sum(diversity_history[len(diversity_history)//2:]) / (len(diversity_history) - len(diversity_history)//2)
+        
+        if second_half_avg > first_half_avg * 1.1:
+            diversity_trend = 'increasing'
+        elif second_half_avg < first_half_avg * 0.9:
+            diversity_trend = 'decreasing'
+        else:
+            diversity_trend = 'stable'
+    else:
+        diversity_trend = 'stable'
+    
+    return {
+        'avg_diversity': avg_diversity,
+        'min_diversity': min_diversity,
+        'max_diversity': max_diversity,
+        'diversity_range': max_diversity - min_diversity,
+        'diversity_trend': diversity_trend
+    }

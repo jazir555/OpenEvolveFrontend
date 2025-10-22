@@ -164,3 +164,43 @@ def _request_openai_compatible_chat(
     except Exception as e:
         print(f"Error making API request: {e}")
         return None
+
+
+def call_openevolve_cascade(content: str, api_key: str, thresholds: List[float]) -> Dict[str, Any]:
+    """Call OpenEvolve with cascade evaluation"""
+    try:
+        from openevolve_client import OpenEvolveClient
+        
+        client = OpenEvolveClient(api_key=api_key)
+        
+        result = client.evolve(
+            content=content,
+            evolution_mode="standard",
+            max_iterations=10,
+            population_size=20,
+            cascade_evaluation=True,
+            cascade_thresholds=thresholds
+        )
+        
+        return result
+    except Exception as e:
+        return {'error': str(e)}
+
+def call_openevolve_ensemble(content: str, api_key: str, num_models: int) -> Dict[str, Any]:
+    """Call OpenEvolve with ensemble of models"""
+    try:
+        from openevolve_client import OpenEvolveClient
+        
+        client = OpenEvolveClient(api_key=api_key)
+        
+        result = client.evolve(
+            content=content,
+            evolution_mode="standard",
+            max_iterations=5,
+            population_size=num_models,
+            temperature=0.7
+        )
+        
+        return result
+    except Exception as e:
+        return {'error': str(e)}

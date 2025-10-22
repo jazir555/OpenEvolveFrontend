@@ -485,3 +485,25 @@ def render_batch_operations_ui(sub_problems: Dict[str, SubProblem]) -> Dict[str,
         st.info("No sub-problems match the current filters.")
     
     return sub_problems
+
+
+def batch_evolve_solutions(problems: List[str], api_key: str) -> List[Dict[str, Any]]:
+    """Batch evolve solutions for multiple problems"""
+    try:
+        from openevolve_client import OpenEvolveClient
+        
+        client = OpenEvolveClient(api_key=api_key)
+        results = []
+        
+        for problem in problems:
+            result = client.evolve(
+                content=problem,
+                evolution_mode="standard",
+                max_iterations=10,
+                population_size=20
+            )
+            results.append(result)
+        
+        return results
+    except Exception as e:
+        return [{'error': str(e)} for _ in problems]

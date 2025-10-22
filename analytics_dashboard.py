@@ -550,3 +550,583 @@ def render_analytics_dashboard():
     # Create and render dashboard
     dashboard = AnalyticsDashboard(knowledge_manager)
     dashboard.render_analytics_dashboard()
+
+
+def render_openevolve_metrics_dashboard(metrics_data: Dict[str, Any]):
+    """Render comprehensive OpenEvolve metrics dashboard with detailed visualizations"""
+    st.subheader("🧬 OpenEvolve Metrics Dashboard")
+    
+    # Key metrics row
+    col1, col2, col3, col4, col5 = st.columns(5)
+    
+    with col1:
+        st.metric("Total Operations", metrics_data.get('total_operations', 0))
+    with col2:
+        st.metric("Avg Fitness", f"{metrics_data.get('avg_fitness', 0.0):.3f}")
+    with col3:
+        st.metric("Best Fitness", f"{metrics_data.get('best_fitness', 0.0):.3f}")
+    with col4:
+        st.metric("Total Cost", f"${metrics_data.get('total_cost', 0.0):.2f}")
+    with col5:
+        st.metric("Success Rate", f"{metrics_data.get('success_rate', 0.0)*100:.1f}%")
+    
+    # Fitness evolution chart
+    if 'fitness_history' in metrics_data and metrics_data['fitness_history']:
+        st.subheader("Fitness Evolution Over Time")
+        
+        fitness_df = pd.DataFrame({
+            'Iteration': range(len(metrics_data['fitness_history'])),
+            'Fitness': metrics_data['fitness_history']
+        })
+        
+        fig = px.line(
+            fitness_df,
+            x='Iteration',
+            y='Fitness',
+            title='Fitness Improvement Across Iterations',
+            labels={'Fitness': 'Fitness Score', 'Iteration': 'Iteration Number'}
+        )
+        fig.add_hline(
+            y=metrics_data.get('avg_fitness', 0),
+            line_dash="dash",
+            annotation_text="Average",
+            line_color="orange"
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Evolution mode comparison
+    if 'by_evolution_mode' in metrics_data and metrics_data['by_evolution_mode']:
+        st.subheader("Performance by Evolution Mode")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            mode_df = pd.DataFrame(metrics_data['by_evolution_mode']).T
+            mode_df = mode_df.reset_index()
+            mode_df.columns = ['Mode'] + list(mode_df.columns[1:])
+            
+            if 'avg_fitness' in mode_df.columns:
+                fig = px.bar(
+                    mode_df,
+                    x='Mode',
+                    y='avg_fitness',
+                    title='Average Fitness by Evolution Mode',
+                    labels={'avg_fitness': 'Average Fitness', 'Mode': 'Evolution Mode'}
+                )
+                st.plotly_chart(fig, use_container_width=True)
+        
+        with col2:
+            if 'total_cost' in mode_df.columns:
+                fig = px.bar(
+                    mode_df,
+                    x='Mode',
+                    y='total_cost',
+                    title='Total Cost by Evolution Mode',
+                    labels={'total_cost': 'Total Cost ($)', 'Mode': 'Evolution Mode'},
+                    color='total_cost',
+                    color_continuous_scale='Reds'
+                )
+                st.plotly_chart(fig, use_container_width=True)
+        
+        # Detailed table
+        st.dataframe(mode_df, use_container_width=True)
+    
+    # Population diversity metrics
+    if 'diversity_metrics' in metrics_data:
+        st.subheader("Population Diversity")
+        
+        diversity = metrics_data['diversity_metrics']
+        
+        col1, col2, col3 = st.columns(3)
+        with col1:
+            st.metric("Avg Diversity", f"{diversity.get('avg_diversity', 0.0):.3f}")
+        with col2:
+            st.metric("Max Diversity", f"{diversity.get('max_diversity', 0.0):.3f}")
+        with col3:
+            st.metric("Archive Coverage", f"{diversity.get('archive_coverage', 0.0)*100:.1f}%")
+        
+        if 'diversity_history' in diversity:
+            diversity_df = pd.DataFrame({
+                'Iteration': range(len(diversity['diversity_history'])),
+                'Diversity': diversity['diversity_history']
+            })
+            
+            fig = px.line(
+                diversity_df,
+                x='Iteration',
+                y='Diversity',
+                title='Diversity Evolution',
+                labels={'Diversity': 'Diversity Score', 'Iteration': 'Iteration Number'}
+            )
+            st.plotly_chart(fig, use_container_width=True)
+    
+    # Resource usage breakdown
+    if 'resource_usage' in metrics_data:
+        st.subheader("Resource Usage")
+        
+        resources = metrics_data['resource_usage']
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("API Calls", resources.get('api_calls', 0))
+        with col2:
+            st.metric("Tokens Used", f"{resources.get('tokens_used', 0):,}")
+        with col3:
+            st.metric("Execution Time", f"{resources.get('execution_time', 0.0):.1f}s")
+        with col4:
+            st.metric("Memory Peak", f"{resources.get('memory_peak_mb', 0.0):.1f} MB")
+    
+    # Parameter configuration summary
+    if 'parameters' in metrics_data:
+        with st.expander("📋 Configuration Parameters"):
+            params = metrics_data['parameters']
+            
+            col1, col2 = st.columns(2)
+            
+            with col1:
+                st.write("**Evolution Settings:**")
+                st.write(f"- Max Iterations: {params.get('max_iterations', 'N/A')}")
+                st.write(f"- Population Size: {params.get('population_size', 'N/A')}")
+                st.write(f"- Archive Size: {params.get('archive_size', 'N/A')}")
+                st.write(f"- Temperature: {params.get('temperature', 'N/A')}")
+            
+            with col2:
+                st.write("**Selection Ratios:**")
+                st.write(f"- Elite Ratio: {params.get('elite_ratio', 'N/A')}")
+                st.write(f"- Exploration Ratio: {params.get('exploration_ratio', 'N/A')}")
+                st.write(f"- Exploitation Ratio: {params.get('exploitation_ratio', 'N/A')}")
+                
+                if params.get('enable_quality_diversity'):
+                    st.write("**Quality Diversity:** ✅ Enabled")
+                if params.get('enable_cascade_evaluation'):
+                    st.write("**Cascade Evaluation:** ✅ Enabled")
+
+def render_diversity_heatmap(archive_data: List[Dict[str, Any]], feature_dimensions: Optional[List[str]] = None):
+    """Render comprehensive quality diversity archive heatmap with interactive features"""
+    st.subheader("🗺️ Quality Diversity Archive Heatmap")
+    
+    if not archive_data:
+        st.info("No archive data available")
+        return
+    
+    import numpy as np
+    
+    # Get feature dimensions
+    if not feature_dimensions and archive_data:
+        first_behavior = archive_data[0].get('behavior', {})
+        feature_dimensions = list(first_behavior.keys())
+    
+    if not feature_dimensions or len(feature_dimensions) < 2:
+        st.warning("Need at least 2 feature dimensions for heatmap visualization")
+        return
+    
+    # Allow user to select dimensions to visualize
+    col1, col2 = st.columns(2)
+    with col1:
+        dim_x = st.selectbox("X-Axis Dimension", feature_dimensions, index=0)
+    with col2:
+        dim_y = st.selectbox("Y-Axis Dimension", feature_dimensions, index=min(1, len(feature_dimensions)-1))
+    
+    # Grid size selection
+    grid_size = st.slider("Grid Resolution", min_value=5, max_value=20, value=10, step=1)
+    
+    # Create heatmap data
+    heatmap = np.zeros((grid_size, grid_size))
+    counts = np.zeros((grid_size, grid_size))
+    
+    for entry in archive_data:
+        behavior = entry.get('behavior', {})
+        if dim_x in behavior and dim_y in behavior:
+            x = int(behavior[dim_x] * grid_size) % grid_size
+            y = int(behavior[dim_y] * grid_size) % grid_size
+            fitness = entry.get('fitness', 0)
+            
+            # Average fitness if multiple entries in same cell
+            heatmap[y][x] = (heatmap[y][x] * counts[y][x] + fitness) / (counts[y][x] + 1)
+            counts[y][x] += 1
+    
+    # Calculate coverage
+    coverage = np.count_nonzero(counts) / (grid_size * grid_size) * 100
+    
+    # Display metrics
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Archive Size", len(archive_data))
+    with col2:
+        st.metric("Coverage", f"{coverage:.1f}%")
+    with col3:
+        st.metric("Avg Fitness", f"{np.mean([e.get('fitness', 0) for e in archive_data]):.3f}")
+    
+    # Plot heatmap
+    fig = go.Figure(data=go.Heatmap(
+        z=heatmap,
+        colorscale='Viridis',
+        colorbar=dict(title="Fitness"),
+        hovertemplate=f'{dim_x}: %{{x}}<br>{dim_y}: %{{y}}<br>Fitness: %{{z:.3f}}<extra></extra>'
+    ))
+    
+    fig.update_layout(
+        title=f"Archive Coverage: {dim_x} vs {dim_y}",
+        xaxis_title=dim_x,
+        yaxis_title=dim_y,
+        height=500
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Show filled cells distribution
+    st.subheader("Cell Occupancy Distribution")
+    
+    occupancy_data = counts.flatten()
+    occupancy_data = occupancy_data[occupancy_data > 0]  # Only filled cells
+    
+    if len(occupancy_data) > 0:
+        fig = px.histogram(
+            occupancy_data,
+            nbins=20,
+            title="Distribution of Solutions per Cell",
+            labels={'value': 'Solutions per Cell', 'count': 'Number of Cells'}
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    
+    # Top performers in archive
+    with st.expander("🏆 Top Performers in Archive"):
+        top_n = st.slider("Number of top solutions to show", 5, 20, 10)
+        top_solutions = sorted(archive_data, key=lambda x: x.get('fitness', 0), reverse=True)[:top_n]
+        
+        top_data = []
+        for i, sol in enumerate(top_solutions, 1):
+            behavior = sol.get('behavior', {})
+            top_data.append({
+                'Rank': i,
+                'Fitness': f"{sol.get('fitness', 0):.3f}",
+                **{dim: f"{behavior.get(dim, 0):.3f}" for dim in feature_dimensions}
+            })
+        
+        st.dataframe(pd.DataFrame(top_data), use_container_width=True)
+
+def render_fitness_evolution_plot(evolution_history: List[Dict[str, Any]]):
+    """Render detailed fitness evolution plot with statistics"""
+    st.subheader("📊 Fitness Evolution Analysis")
+    
+    if not evolution_history:
+        st.info("No evolution history available")
+        return
+    
+    # Extract data
+    iterations = [entry.get('iteration', i) for i, entry in enumerate(evolution_history)]
+    best_fitness = [entry.get('best_fitness', 0) for entry in evolution_history]
+    avg_fitness = [entry.get('avg_fitness', 0) for entry in evolution_history]
+    worst_fitness = [entry.get('worst_fitness', 0) for entry in evolution_history]
+    
+    # Calculate improvement metrics
+    if len(best_fitness) > 1:
+        total_improvement = best_fitness[-1] - best_fitness[0]
+        improvement_rate = total_improvement / len(best_fitness)
+        
+        col1, col2, col3, col4 = st.columns(4)
+        with col1:
+            st.metric("Initial Fitness", f"{best_fitness[0]:.3f}")
+        with col2:
+            st.metric("Final Fitness", f"{best_fitness[-1]:.3f}")
+        with col3:
+            st.metric("Total Improvement", f"{total_improvement:.3f}")
+        with col4:
+            st.metric("Improvement Rate", f"{improvement_rate:.4f}/iter")
+    
+    # Create evolution plot
+    fig = go.Figure()
+    
+    # Best fitness line
+    fig.add_trace(go.Scatter(
+        x=iterations,
+        y=best_fitness,
+        mode='lines+markers',
+        name='Best Fitness',
+        line=dict(color='green', width=3),
+        marker=dict(size=6)
+    ))
+    
+    # Average fitness line
+    fig.add_trace(go.Scatter(
+        x=iterations,
+        y=avg_fitness,
+        mode='lines',
+        name='Average Fitness',
+        line=dict(color='blue', width=2, dash='dash')
+    ))
+    
+    # Worst fitness line
+    fig.add_trace(go.Scatter(
+        x=iterations,
+        y=worst_fitness,
+        mode='lines',
+        name='Worst Fitness',
+        line=dict(color='red', width=1, dash='dot'),
+        opacity=0.5
+    ))
+    
+    # Add shaded area between best and worst
+    fig.add_trace(go.Scatter(
+        x=iterations + iterations[::-1],
+        y=best_fitness + worst_fitness[::-1],
+        fill='toself',
+        fillcolor='rgba(0,100,200,0.1)',
+        line=dict(color='rgba(255,255,255,0)'),
+        showlegend=False,
+        name='Fitness Range'
+    ))
+    
+    fig.update_layout(
+        title='Fitness Evolution Over Iterations',
+        xaxis_title='Iteration',
+        yaxis_title='Fitness Score',
+        height=500,
+        hovermode='x unified'
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Convergence analysis
+    st.subheader("Convergence Analysis")
+    
+    # Calculate convergence rate (change in best fitness)
+    if len(best_fitness) > 1:
+        convergence_rates = [best_fitness[i] - best_fitness[i-1] for i in range(1, len(best_fitness))]
+        
+        fig = px.bar(
+            x=iterations[1:],
+            y=convergence_rates,
+            title='Fitness Improvement per Iteration',
+            labels={'x': 'Iteration', 'y': 'Fitness Improvement'},
+            color=convergence_rates,
+            color_continuous_scale='RdYlGn'
+        )
+        st.plotly_chart(fig, use_container_width=True)
+        
+        # Identify stagnation periods
+        stagnation_threshold = 0.001
+        stagnant_iterations = sum(1 for rate in convergence_rates if abs(rate) < stagnation_threshold)
+        stagnation_percentage = (stagnant_iterations / len(convergence_rates)) * 100
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.metric("Stagnant Iterations", stagnant_iterations)
+        with col2:
+            st.metric("Stagnation %", f"{stagnation_percentage:.1f}%")
+
+
+def render_population_diversity_plot(diversity_history: List[Dict[str, Any]]):
+    """Render population diversity evolution plot"""
+    st.subheader("🌈 Population Diversity Analysis")
+    
+    if not diversity_history:
+        st.info("No diversity history available")
+        return
+    
+    # Extract data
+    iterations = [entry.get('iteration', i) for i, entry in enumerate(diversity_history)]
+    diversity_scores = [entry.get('diversity', 0) for entry in diversity_history]
+    
+    # Display metrics
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Initial Diversity", f"{diversity_scores[0]:.3f}")
+    with col2:
+        st.metric("Final Diversity", f"{diversity_scores[-1]:.3f}")
+    with col3:
+        avg_diversity = sum(diversity_scores) / len(diversity_scores)
+        st.metric("Average Diversity", f"{avg_diversity:.3f}")
+    
+    # Create diversity plot
+    fig = go.Figure()
+    
+    fig.add_trace(go.Scatter(
+        x=iterations,
+        y=diversity_scores,
+        mode='lines+markers',
+        name='Diversity Score',
+        line=dict(color='purple', width=2),
+        marker=dict(size=6),
+        fill='tozeroy',
+        fillcolor='rgba(128,0,128,0.1)'
+    ))
+    
+    # Add average line
+    fig.add_hline(
+        y=avg_diversity,
+        line_dash="dash",
+        annotation_text="Average",
+        line_color="orange"
+    )
+    
+    fig.update_layout(
+        title='Population Diversity Over Iterations',
+        xaxis_title='Iteration',
+        yaxis_title='Diversity Score',
+        height=400,
+        hovermode='x unified'
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Diversity trend analysis
+    if len(diversity_scores) > 1:
+        diversity_trend = "increasing" if diversity_scores[-1] > diversity_scores[0] else "decreasing"
+        trend_color = "green" if diversity_trend == "increasing" else "red"
+        
+        st.markdown(f"**Diversity Trend:** :{trend_color}[{diversity_trend.upper()}]")
+        
+        if diversity_trend == "decreasing":
+            st.warning("⚠️ Decreasing diversity may indicate premature convergence. Consider increasing exploration ratio or population size.")
+        else:
+            st.success("✅ Increasing diversity indicates good exploration of the solution space.")
+
+
+def render_pareto_front(solutions: List[Dict[str, Any]], objective_names: Optional[List[str]] = None):
+    """Render interactive Pareto front visualization for multi-objective optimization"""
+    st.subheader("📈 Pareto Front Visualization")
+    
+    if not solutions:
+        st.info("No Pareto front data available")
+        return
+    
+    # Detect objectives
+    if not objective_names and solutions:
+        first_sol = solutions[0]
+        objective_names = [k for k in first_sol.keys() if k.startswith('objective_')]
+    
+    if not objective_names or len(objective_names) < 2:
+        st.warning("Need at least 2 objectives for Pareto front visualization")
+        return
+    
+    # Allow user to select objectives to visualize
+    col1, col2 = st.columns(2)
+    with col1:
+        obj_x = st.selectbox("X-Axis Objective", objective_names, index=0)
+    with col2:
+        obj_y = st.selectbox("Y-Axis Objective", objective_names, index=min(1, len(objective_names)-1))
+    
+    # Extract objective values
+    obj_x_vals = [s.get(obj_x, 0) for s in solutions]
+    obj_y_vals = [s.get(obj_y, 0) for s in solutions]
+    
+    # Identify Pareto-optimal solutions
+    pareto_optimal = []
+    for i, sol in enumerate(solutions):
+        is_dominated = False
+        for j, other in enumerate(solutions):
+            if i != j:
+                # Check if other dominates sol
+                if (other.get(obj_x, 0) >= sol.get(obj_x, 0) and 
+                    other.get(obj_y, 0) >= sol.get(obj_y, 0) and
+                    (other.get(obj_x, 0) > sol.get(obj_x, 0) or other.get(obj_y, 0) > sol.get(obj_y, 0))):
+                    is_dominated = True
+                    break
+        pareto_optimal.append(not is_dominated)
+    
+    # Calculate metrics
+    num_pareto = sum(pareto_optimal)
+    pareto_percentage = (num_pareto / len(solutions)) * 100 if solutions else 0
+    
+    # Display metrics
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        st.metric("Total Solutions", len(solutions))
+    with col2:
+        st.metric("Pareto-Optimal", num_pareto)
+    with col3:
+        st.metric("Pareto %", f"{pareto_percentage:.1f}%")
+    
+    # Create scatter plot
+    colors = ['red' if p else 'blue' for p in pareto_optimal]
+    sizes = [12 if p else 6 for p in pareto_optimal]
+    
+    fig = go.Figure()
+    
+    # Non-Pareto solutions
+    non_pareto_x = [obj_x_vals[i] for i in range(len(solutions)) if not pareto_optimal[i]]
+    non_pareto_y = [obj_y_vals[i] for i in range(len(solutions)) if not pareto_optimal[i]]
+    
+    if non_pareto_x:
+        fig.add_trace(go.Scatter(
+            x=non_pareto_x,
+            y=non_pareto_y,
+            mode='markers',
+            name='Dominated',
+            marker=dict(size=6, color='lightblue', opacity=0.6),
+            hovertemplate=f'{obj_x}: %{{x:.3f}}<br>{obj_y}: %{{y:.3f}}<extra></extra>'
+        ))
+    
+    # Pareto-optimal solutions
+    pareto_x = [obj_x_vals[i] for i in range(len(solutions)) if pareto_optimal[i]]
+    pareto_y = [obj_y_vals[i] for i in range(len(solutions)) if pareto_optimal[i]]
+    
+    if pareto_x:
+        # Sort for line connection
+        pareto_points = sorted(zip(pareto_x, pareto_y), key=lambda p: p[0])
+        pareto_x_sorted = [p[0] for p in pareto_points]
+        pareto_y_sorted = [p[1] for p in pareto_points]
+        
+        fig.add_trace(go.Scatter(
+            x=pareto_x_sorted,
+            y=pareto_y_sorted,
+            mode='markers+lines',
+            name='Pareto Front',
+            marker=dict(size=12, color='red', symbol='star'),
+            line=dict(color='red', width=2, dash='dash'),
+            hovertemplate=f'{obj_x}: %{{x:.3f}}<br>{obj_y}: %{{y:.3f}}<extra></extra>'
+        ))
+    
+    fig.update_layout(
+        title=f"Pareto Front: {obj_x} vs {obj_y}",
+        xaxis_title=obj_x.replace('_', ' ').title(),
+        yaxis_title=obj_y.replace('_', ' ').title(),
+        height=500,
+        showlegend=True,
+        hovermode='closest'
+    )
+    
+    st.plotly_chart(fig, use_container_width=True)
+    
+    # Hypervolume indicator (if 2D)
+    if len(objective_names) == 2:
+        st.subheader("Hypervolume Indicator")
+        
+        # Calculate hypervolume (simplified 2D case)
+        if pareto_x:
+            # Use reference point as minimum of all objectives
+            ref_x = min(obj_x_vals) - 0.1 * (max(obj_x_vals) - min(obj_x_vals))
+            ref_y = min(obj_y_vals) - 0.1 * (max(obj_y_vals) - min(obj_y_vals))
+            
+            # Calculate area under Pareto front
+            hypervolume = 0
+            sorted_pareto = sorted(zip(pareto_x, pareto_y), key=lambda p: p[0])
+            
+            for i in range(len(sorted_pareto)):
+                x, y = sorted_pareto[i]
+                if i == 0:
+                    width = x - ref_x
+                else:
+                    width = x - sorted_pareto[i-1][0]
+                height = y - ref_y
+                hypervolume += width * height
+            
+            st.metric("Hypervolume", f"{hypervolume:.3f}")
+            st.caption("Higher hypervolume indicates better coverage of the objective space")
+    
+    # Show Pareto-optimal solutions table
+    with st.expander("🏆 Pareto-Optimal Solutions"):
+        pareto_solutions = [solutions[i] for i in range(len(solutions)) if pareto_optimal[i]]
+        
+        if pareto_solutions:
+            pareto_data = []
+            for i, sol in enumerate(pareto_solutions, 1):
+                row = {'Rank': i}
+                for obj in objective_names:
+                    row[obj.replace('_', ' ').title()] = f"{sol.get(obj, 0):.3f}"
+                pareto_data.append(row)
+            
+            st.dataframe(pd.DataFrame(pareto_data), use_container_width=True)
+        else:
+            st.info("No Pareto-optimal solutions found")

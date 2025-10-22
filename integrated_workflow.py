@@ -954,11 +954,35 @@ def run_enhanced_evolution_loop(
                             new_population.append(result)
                         except Exception as e:
                             _update_evolution_log_and_status(f"❌ Error generating candidate: {e}")
-            # If generation fails, log the error and attempt to retry
-            logging.error(f"Content generation failed for section: {section_name}")
-            # Retry logic can be added here, e.g., up to 3 retries with exponential backoff
-            # For now, we will add a placeholder message
-            generated_content = f"Error: Content generation failed for {section_name}. Please try again."
+                            # Implement retry logic with exponential backoff
+                            max_retries = 3
+                            for retry in range(max_retries):
+                                try:
+                                    backoff_time = 2 ** retry  # Exponential backoff: 1s, 2s, 4s
+                                    _update_evolution_log_and_status(f"🔄 Retrying after {backoff_time}s (attempt {retry + 1}/{max_retries})...")
+                                    time.sleep(backoff_time)
+                                    
+                                    retry_result = _request_openai_compatible_chat(
+                                        api_key,
+                                        base_url,
+                                        model,
+                                        _compose_messages(system_prompt, current_content),
+                                        extra_headers,
+                                        temperature,
+                                        top_p,
+                                        frequency_penalty,
+                                        presence_penalty,
+                                        max_tokens,
+                                        seed + i if seed is not None else None,
+                                    )
+                                    new_population.append(retry_result)
+                                    _update_evolution_log_and_status(f"✅ Retry successful")
+                                    break
+                                except Exception as retry_error:
+                                    if retry == max_retries - 1:
+                                        _update_evolution_log_and_status(f"❌ All retries failed: {retry_error}")
+                                    else:
+                                        _update_evolution_log_and_status(f"⚠️ Retry {retry + 1} failed: {retry_error}")
 
                 _update_evolution_log_and_status("🔍 Evaluating new population...")
 
@@ -1362,19 +1386,117 @@ def check_approval_rate(
     approval_prompt: str = ""
 ) -> Dict[str, Any]:
     """
-    Check approval rate of content with red team models.
+    Check approval rate of content with red team models using OpenEvolve ensemble evaluation.
     """
     if extra_headers is None:
         extra_headers = {}
     
-    # For now, return a mock approval check result
-    return {
-        "approved": True,
-        "approvals": len(red_team_models),
-        "rejections": 0,
-        "approval_rate": 1.0,
-        "details": "Content approved by all models"
-    }
+    # Use OpenEvolve ensemble evaluation for robust approval checking
+    try:
+        from evaluator_team import EvaluatorTeam
+        from workflow_structures import ModelConfig, Team
+        
+        # Create evaluator team from red team models
+        evaluator_configs = []
+        for model_id in red_team_models:
+            config = model_configs.get(model_id, {})
+            evaluator_configs.append(ModelConfig(
+                model_id=model_id,
+                temperature=config.get("temperature", 0.7),
+                max_tokens=config.get("max_tokens", 2000),
+                top_p=config.get("top_p", 1.0),
+                frequency_penalty=config.get("frequency_penalty", 0.0),
+                presence_penalty=config.get("presence_penalty", 0.0)
+            ))
+        
+        evaluator_team_obj = Team(
+            name="approval_evaluators",
+            members=evaluator_configs,
+            system_prompt=approval_prompt or "Evaluate if this content meets quality standards. Respond with 'approved' or 'rejected' and provide reasoning."
+        )
+        
+        evaluator_team = EvaluatorTeam(
+            team=evaluator_team_obj,
+            api_key=api_key,
+            base_url=st.session_state.get("base_url", "https://api.openai.com/v1")
+        )
+        
+        # Use ensemble evaluation with OpenEvolve
+        assessment = evaluator_team.evaluate_with_ensemble(
+            content=content_to_check,
+            criteria={"quality": "overall quality", "completeness": "completeness", "correctness": "correctness"},
+            consensus_threshold=0.6
+        )
+        
+        # Calculate approval rate from assessment
+        approvals = 0
+        rejections = 0
+        
+        for eval_result in assessment.individual_evaluations:
+            score = eval_result.get("overall_score", 0.0)
+            if score >= 0.7:  # 70% threshold for approval
+                approvals += 1
+            else:
+                rejections += 1
+        
+        approval_rate = approvals / len(red_team_models) if red_team_models else 0.0
+        approved = approval_rate >= 0.6  # 60% consensus threshold
+        
+        return {
+            "approved": approved,
+            "approvals": approvals,
+            "rejections": rejections,
+            "approval_rate": approval_rate,
+            "details": f"Content {'approved' if approved else 'rejected'} with {approval_rate:.1%} approval rate",
+            "consensus_score": assessment.consensus_score,
+            "confidence": assessment.confidence,
+            "openevolve_metrics": assessment.openevolve_metrics
+        }
+        
+    except Exception as e:
+        _update_adv_log_and_status(f"⚠️ Ensemble evaluation failed, using fallback: {e}")
+        
+        # Fallback to simple evaluation
+        approvals = 0
+        rejections = 0
+        
+        for model_id in red_team_models:
+            try:
+                result = analyze_with_model(
+                    api_key,
+                    model_id,
+                    content_to_check,
+                    model_configs.get(model_id, {}),
+                    approval_prompt or "Evaluate if this content meets quality standards. Rate from 0-10.",
+                    force_json=False,
+                    seed=seed,
+                    extra_headers=extra_headers
+                )
+                
+                if result.get("ok"):
+                    # Try to extract a score from the response
+                    response_text = result.get("text", "").lower()
+                    if any(word in response_text for word in ["approved", "accept", "good", "excellent"]):
+                        approvals += 1
+                    else:
+                        rejections += 1
+                else:
+                    rejections += 1
+                    
+            except Exception as model_error:
+                _update_adv_log_and_status(f"⚠️ Model {model_id} evaluation failed: {model_error}")
+                rejections += 1
+        
+        approval_rate = approvals / len(red_team_models) if red_team_models else 0.0
+        approved = approval_rate >= 0.6
+        
+        return {
+            "approved": approved,
+            "approvals": approvals,
+            "rejections": rejections,
+            "approval_rate": approval_rate,
+            "details": f"Content {'approved' if approved else 'rejected'} with {approval_rate:.1%} approval rate (fallback evaluation)"
+        }
 
 
 def _aggregate_red_risk(critiques: List[Dict]) -> Dict[str, Any]:

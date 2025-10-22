@@ -5,10 +5,9 @@ Implements the Blue Team functionality described in the ultimate explanation doc
 
 import os
 import json
-
+import re
 import tempfile
-import os
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass
 from enum import Enum
 
@@ -102,6 +101,7 @@ class BlueTeamAssessment:
     assessment_metadata: Dict[str, Any]
     fixes_by_type: Dict[FixType, int]
     fixes_by_priority: Dict[FixPriority, int]
+    openevolve_metrics: Optional[Dict[str, Any]] = None  # OpenEvolve metrics if used
 
 class BlueTeamMember:
     """Individual blue team member with specific fixing expertise"""
@@ -1267,6 +1267,271 @@ class BlueTeam:
         base_score *= fix_type_multipliers.get(suggestion.fix_type, 1.0)
         
         return min(100.0, base_score)
+
+    def generate_solution_with_openevolve(
+        self,
+        content: str,
+        content_type: str = "general",
+        api_key: Optional[str] = None,
+        model_name: str = "gpt-4o",
+        max_iterations: int = 5,
+        population_size: int = 10
+    ) -> BlueTeamAssessment:
+        """
+        Generate solution using OpenEvolve evolution
+        
+        Args:
+            content: Original content to improve
+            content_type: Type of content
+            api_key: API key for OpenEvolve
+            model_name: Model to use
+            max_iterations: Number of evolution iterations
+            population_size: Population size for evolution
+            
+        Returns:
+            BlueTeamAssessment with evolved solution
+        """
+        if not OPENEVOLVE_AVAILABLE or not api_key:
+            # Fallback to custom implementation
+            return self._apply_fixes_with_custom_implementation(
+                content, [], content_type
+            )
+        
+        try:
+            from openevolve_client import OpenEvolveClient
+            
+            client = OpenEvolveClient(api_key=api_key)
+            
+            # Run evolution to generate improved solution
+            result = client.evolve(
+                content=content,
+                evolution_mode="standard",
+                max_iterations=max_iterations,
+                population_size=population_size,
+                temperature=0.7,
+                model_name=model_name,
+                content_type=content_type
+            )
+            
+            # Extract best solution
+            fixed_content = result.get('best_code', content)
+            metrics = result.get('metrics', {})
+            
+            # Create assessment
+            assessment = BlueTeamAssessment(
+                original_content=content,
+                fixed_content=fixed_content,
+                applied_fixes=[],
+                fix_suggestions=[],
+                assessment_summary=f"Solution generated using OpenEvolve evolution with {max_iterations} iterations",
+                overall_improvement_score=metrics.get('best_fitness', 0.0) * 100,
+                time_taken=metrics.get('total_time', 0.0),
+                assessment_metadata={
+                    'content_type': content_type,
+                    'openevolve_used': True,
+                    'evolution_mode': 'standard',
+                    'iterations': metrics.get('iterations_completed', 0),
+                    'openevolve_metrics': metrics
+                },
+                fixes_by_type={},
+                fixes_by_priority={}
+            )
+            
+            self.fix_history.append(assessment)
+            return assessment
+            
+        except Exception as e:
+            print(f"Error using OpenEvolve for solution generation: {e}")
+            return self._apply_fixes_with_custom_implementation(
+                content, [], content_type
+            )
+    
+    def fix_with_openevolve(
+        self,
+        content: str,
+        issues: List[IssueFinding],
+        content_type: str = "general",
+        api_key: Optional[str] = None,
+        model_name: str = "gpt-4o",
+        max_iterations: int = 3
+    ) -> BlueTeamAssessment:
+        """
+        Fix issues using OpenEvolve evolution
+        
+        Args:
+            content: Original content with issues
+            issues: List of issues to fix
+            content_type: Type of content
+            api_key: API key for OpenEvolve
+            model_name: Model to use
+            max_iterations: Number of evolution iterations
+            
+        Returns:
+            BlueTeamAssessment with fixes applied
+        """
+        if not OPENEVOLVE_AVAILABLE or not api_key:
+            return self.apply_fixes(content, issues, content_type)
+        
+        try:
+            from openevolve_client import OpenEvolveClient
+            
+            client = OpenEvolveClient(api_key=api_key)
+            
+            # Create evaluator that checks if issues are fixed
+            def fix_evaluator(program_path: str, api_key: str, model_name: str) -> Dict[str, Any]:
+                """Evaluator that scores based on issue resolution"""
+                try:
+                    with open(program_path, "r", encoding='utf-8') as f:
+                        fixed_content = f.read()
+                    
+                    # Use LLM to assess if issues are fixed
+                    issues_desc = "\n".join([f"- {issue.title}: {issue.description}" for issue in issues])
+                    
+                    system_prompt = "You are an AI evaluator. Assess if the provided content has resolved the listed issues. Respond with a JSON object containing 'score' (0.0-1.0) and 'issues_resolved' (list of issue titles that are resolved)."
+                    user_prompt = f"""Original Issues:
+{issues_desc}
+
+Fixed Content:
+---
+{fixed_content}
+---
+
+Evaluate if the issues have been resolved."""
+                    
+                    response = _request_openai_compatible_chat(
+                        api_key=api_key,
+                        base_url="https://api.openai.com/v1",
+                        model=model_name,
+                        messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+                        temperature=0.3,
+                        max_tokens=1024,
+                        response_json_format=True
+                    )
+                    
+                    if response:
+                        result = json.loads(response)
+                        return {
+                            "score": result.get("score", 0.5),
+                            "issues_resolved": result.get("issues_resolved", []),
+                            "timestamp": datetime.now().timestamp()
+                        }
+                    
+                    return {"score": 0.5, "timestamp": datetime.now().timestamp()}
+                    
+                except Exception as e:
+                    print(f"Error in fix evaluator: {e}")
+                    return {"score": 0.0, "error": str(e)}
+            
+            # Run evolution with fix evaluator
+            result = client.evolve(
+                content=content,
+                evaluator=fix_evaluator,
+                evolution_mode="standard",
+                max_iterations=max_iterations,
+                population_size=10,
+                temperature=0.5,
+                model_name=model_name,
+                content_type=content_type
+            )
+            
+            # Extract results
+            fixed_content = result.get('best_code', content)
+            metrics = result.get('metrics', {})
+            
+            # Generate fixes from comparison
+            applied_fixes = self._generate_fixes_from_openevolve_result(
+                content, fixed_content, issues
+            )
+            
+            # Create assessment
+            assessment = BlueTeamAssessment(
+                original_content=content,
+                fixed_content=fixed_content,
+                applied_fixes=applied_fixes,
+                fix_suggestions=[],
+                assessment_summary=f"Issues fixed using OpenEvolve evolution with {max_iterations} iterations",
+                overall_improvement_score=metrics.get('best_fitness', 0.0) * 100,
+                time_taken=metrics.get('total_time', 0.0),
+                assessment_metadata={
+                    'content_type': content_type,
+                    'num_issues_addressed': len(issues),
+                    'openevolve_used': True,
+                    'evolution_mode': 'standard',
+                    'iterations': metrics.get('iterations_completed', 0),
+                    'openevolve_metrics': metrics
+                },
+                fixes_by_type={},
+                fixes_by_priority={}
+            )
+            
+            self.fix_history.append(assessment)
+            return assessment
+            
+        except Exception as e:
+            print(f"Error using OpenEvolve for fixing: {e}")
+            return self.apply_fixes(content, issues, content_type)
+    
+    def _create_openevolve_evaluator(
+        self,
+        evaluation_criteria: List[str],
+        content_type: str = "general"
+    ) -> Callable:
+        """
+        Create custom evaluator for OpenEvolve
+        
+        Args:
+            evaluation_criteria: List of criteria to evaluate
+            content_type: Type of content being evaluated
+            
+        Returns:
+            Evaluator function for OpenEvolve
+        """
+        def evaluator(program_path: str, api_key: str, model_name: str) -> Dict[str, Any]:
+            """Custom evaluator for Blue Team operations"""
+            try:
+                with open(program_path, "r", encoding='utf-8') as f:
+                    content = f.read()
+                
+                # Build evaluation prompt
+                criteria_text = "\n".join([f"- {criterion}" for criterion in evaluation_criteria])
+                
+                system_prompt = f"You are an AI evaluator for {content_type} content. Evaluate the content based on the provided criteria. Respond with a JSON object containing 'score' (0.0-1.0), 'strengths' (list), and 'weaknesses' (list)."
+                user_prompt = f"""Evaluation Criteria:
+{criteria_text}
+
+Content to Evaluate:
+---
+{content}
+---
+
+Provide your evaluation."""
+                
+                response = _request_openai_compatible_chat(
+                    api_key=api_key,
+                    base_url="https://api.openai.com/v1",
+                    model=model_name,
+                    messages=[{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}],
+                    temperature=0.3,
+                    max_tokens=1024,
+                    response_json_format=True
+                )
+                
+                if response:
+                    result = json.loads(response)
+                    return {
+                        "score": result.get("score", 0.5),
+                        "strengths": result.get("strengths", []),
+                        "weaknesses": result.get("weaknesses", []),
+                        "timestamp": datetime.now().timestamp()
+                    }
+                
+                return {"score": 0.5, "timestamp": datetime.now().timestamp()}
+                
+            except Exception as e:
+                print(f"Error in custom evaluator: {e}")
+                return {"score": 0.0, "error": str(e)}
+        
+        return evaluator
 
     def _create_fix_summary(self, applied_fixes: List[BlueTeamFix], content_type: str) -> str:
         """Create a summary of the fixes applied"""

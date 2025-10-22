@@ -102,6 +102,7 @@ class EvaluatorAssessment:
     assessment_metadata: Dict[str, Any]
     criteria_used: List[EvaluationCriterion]
     detailed_feedback: Dict[str, Any]
+    openevolve_metrics: Optional[Dict[str, Any]] = None  # OpenEvolve metrics if used
 
 @dataclass
 class IntegratedEvaluation:
@@ -1657,6 +1658,165 @@ class EvaluatorTeam:
         }
         
         return report
+    
+    def evaluate_with_ensemble(
+        self,
+        content: str,
+        content_type: str = "general",
+        api_key: Optional[str] = None,
+        model_name: str = "gpt-4o",
+        num_models: int = 5,
+        max_iterations: int = 3
+    ) -> IntegratedEvaluation:
+        """
+        Evaluate content using ensemble of models via OpenEvolve
+        
+        Args:
+            content: Content to evaluate
+            content_type: Type of content
+            api_key: API key for OpenEvolve
+            model_name: Base model to use
+            num_models: Number of models in ensemble
+            max_iterations: Number of evolution iterations
+            
+        Returns:
+            IntegratedEvaluation with ensemble results
+        """
+        if not OPENEVOLVE_AVAILABLE or not api_key:
+            return self.evaluate_content(content, content_type)
+        
+        try:
+            from openevolve_client import OpenEvolveClient
+            
+            client = OpenEvolveClient(api_key=api_key)
+            
+            # Run ensemble evaluation
+            result = client.evolve(
+                content=content,
+                evolution_mode="standard",
+                max_iterations=max_iterations,
+                population_size=num_models,
+                temperature=0.7,
+                model_name=model_name,
+                content_type=content_type
+            )
+            
+            # Extract evaluations from population
+            assessments = []
+            population = result.get('population', [])
+            
+            for i, individual in enumerate(population[:num_models]):
+                # Parse evaluation from individual
+                evaluation_text = individual.get('code', '')
+                fitness = individual.get('fitness', 0.5)
+                
+                # Create assessment
+                assessment = EvaluatorAssessment(
+                    evaluator_id=f"ensemble_model_{i+1}",
+                    scores=[
+                        EvaluationScore(
+                            metric=EvaluationMetric.OVERALL_QUALITY,
+                            score=fitness * 100,
+                            scale=EvaluationScale.PERCENTAGE,
+                            confidence=EvaluationConfidence.HIGH,
+                            rationale=evaluation_text[:200]
+                        )
+                    ],
+                    composite_score=fitness * 100,
+                    assessment_summary=f"Ensemble evaluation {i+1}",
+                    confidence_level=EvaluationConfidence.HIGH,
+                    time_taken=0.0,
+                    assessment_metadata={
+                        'ensemble_member': i+1,
+                        'openevolve_used': True
+                    },
+                    criteria_used=[],
+                    detailed_feedback={},
+                    openevolve_metrics=result.get('metrics', {})
+                )
+                
+                assessments.append(assessment)
+            
+            # Calculate consensus
+            consensus_score = self._calculate_consensus(assessments)
+            confidence = self._calculate_confidence(assessments)
+            
+            # Create integrated evaluation
+            evaluation = IntegratedEvaluation(
+                assessments=assessments,
+                consensus_score=consensus_score,
+                consensus_reached=True,
+                final_verdict="approved" if consensus_score >= 70 else "rejected",
+                confidence_intervals={
+                    'lower_bound': consensus_score - 10,
+                    'upper_bound': consensus_score + 10
+                },
+                variance_analysis={
+                    'score_range': max([a.composite_score for a in assessments]) - min([a.composite_score for a in assessments]),
+                    'standard_deviation': 5.0  # Simplified
+                },
+                recommendations=[],
+                evaluation_metadata={
+                    'content_type': content_type,
+                    'num_evaluators': len(assessments),
+                    'openevolve_used': True,
+                    'ensemble_size': num_models,
+                    'openevolve_metrics': result.get('metrics', {})
+                }
+            )
+            
+            self.evaluation_history.append(evaluation)
+            return evaluation
+            
+        except Exception as e:
+            print(f"Error using ensemble evaluation: {e}")
+            return self.evaluate_content(content, content_type)
+    
+    def _calculate_consensus(self, assessments: List[EvaluatorAssessment]) -> float:
+        """
+        Calculate consensus score from multiple assessments
+        
+        Args:
+            assessments: List of evaluator assessments
+            
+        Returns:
+            Consensus score (0-100)
+        """
+        if not assessments:
+            return 0.0
+        
+        # Simple average of composite scores
+        total_score = sum(a.composite_score for a in assessments)
+        return total_score / len(assessments)
+    
+    def _calculate_confidence(self, assessments: List[EvaluatorAssessment]) -> EvaluationConfidence:
+        """
+        Calculate overall confidence from multiple assessments
+        
+        Args:
+            assessments: List of evaluator assessments
+            
+        Returns:
+            Overall confidence level
+        """
+        if not assessments:
+            return EvaluationConfidence.LOW
+        
+        # Calculate variance in scores
+        scores = [a.composite_score for a in assessments]
+        avg_score = sum(scores) / len(scores)
+        variance = sum((s - avg_score) ** 2 for s in scores) / len(scores)
+        std_dev = variance ** 0.5
+        
+        # Lower variance = higher confidence
+        if std_dev < 5:
+            return EvaluationConfidence.VERY_HIGH
+        elif std_dev < 10:
+            return EvaluationConfidence.HIGH
+        elif std_dev < 15:
+            return EvaluationConfidence.MEDIUM
+        else:
+            return EvaluationConfidence.LOW
 
 # Example usage and testing
 def test_evaluator_team():

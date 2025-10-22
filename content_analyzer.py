@@ -775,3 +775,33 @@ The function validate_input() performs validation checks.
 
 if __name__ == "__main__":
     test_content_analyzer()
+
+
+def analyze_with_quality_diversity(content: str, api_key: str, feature_dimensions: List[str]) -> Dict[str, Any]:
+    """Analyze content using quality diversity to get diverse perspectives"""
+    try:
+        from openevolve_client import OpenEvolveClient
+        
+        client = OpenEvolveClient(api_key=api_key)
+        
+        analysis_prompt = f"""Analyze this content from multiple perspectives:
+
+{content}
+
+Provide diverse analyses focusing on: {', '.join(feature_dimensions)}"""
+        
+        result = client.evolve(
+            content=analysis_prompt,
+            evolution_mode="quality_diversity",
+            max_iterations=10,
+            population_size=20,
+            feature_dimensions=feature_dimensions,
+            archive_size=50
+        )
+        
+        return {
+            'diverse_analyses': result.get('archive', []),
+            'metrics': result.get('metrics', {})
+        }
+    except Exception as e:
+        return {'error': str(e)}
