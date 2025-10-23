@@ -1,363 +1,503 @@
-#!/usr/bin/env python3
 """
-Comprehensive Test Suite for OpenEvolve Integration
-This script tests all the integrated OpenEvolve features to ensure they work correctly.
+Test Suite for OpenEvolve Integration
+
+This module provides comprehensive tests for the OpenEvolve integration,
+including parameter management, metrics collection, and team integration.
 """
 
-import sys
-import os
-import traceback
+import pytest
+import json
+from typing import Dict, Any, Tuple, List
+from unittest.mock import Mock, patch, MagicMock
+
+# Import modules to test
+from parameter_manager import ParameterManager, ParameterValidator, PresetManager
+from metrics_collector import MetricsCollector, MetricsStore
+from openevolve_client import OpenEvolveClient
+from fallback_handler import FallbackHandler
 
 
-def test_openevolve_availability():
-    """Test if OpenEvolve backend is available."""
-    print("[INFO] Testing OpenEvolve backend availability...")
-    try:
-        print("[SUCCESS] OpenEvolve backend is available")
-        return True
-    except ImportError as e:
-        print(f"[FAILURE] OpenEvolve backend not available: {e}")
-        return False
-
-
-def test_advanced_configuration():
-    """Test advanced configuration options."""
-    print("[INFO] Testing advanced configuration options...")
-    try:
-        from openevolve_integration import create_advanced_openevolve_config
-        
-        # Test creating advanced configuration
-        config = create_advanced_openevolve_config(
-            model_name="gpt-4",
-            api_key="test-key",
-            temperature=0.7,
-            max_iterations=100,
-            population_size=1000,
-            num_islands=5,
-            feature_dimensions=["complexity", "diversity"],
-            feature_bins=10,
-            enable_artifacts=True,
-            cascade_evaluation=True,
-            use_llm_feedback=True,
-        )
-        
-        if config:
-            print("[SUCCESS] Advanced configuration created successfully")
-            print(f"   - Max iterations: {config.max_iterations}")
-            print(f"   - Population size: {config.database.population_size}")
-            print(f"   - Islands: {config.database.num_islands}")
-            print(f"   - Feature dimensions: {config.database.feature_dimensions}")
-            return True
-        else:
-            print("[FAILURE] Failed to create advanced configuration")
-            return False
-    except Exception as e:
-        print(f"[FAILURE] Error testing advanced configuration: {e}")
-        traceback.print_exc()
-        return False
-
-
-def test_ensemble_configuration():
-    """Test ensemble model configuration."""
-    print("[INFO] Testing ensemble model configuration...")
-    try:
-        from openevolve_integration import create_ensemble_config_with_fallback
-        
-        # Test creating ensemble configuration
-        primary_models = ["gpt-4", "claude-3-opus"]
-        fallback_models = ["gpt-3.5-turbo", "claude-3-sonnet"]
-        
-        config = create_ensemble_config_with_fallback(
-            primary_models=primary_models,
-            fallback_models=fallback_models,
-            api_key="test-key",
-            primary_weight=1.0,
-            fallback_weight=0.3,
-        )
-        
-        if config:
-            print("[SUCCESS] Ensemble configuration created successfully")
-            print(f"   - Primary models: {len(config.llm.models[:len(primary_models)])}")
-            print(f"   - Fallback models: {len(config.llm.models[len(primary_models):])}")
-            return True
-        else:
-            print("[FAILURE] Failed to create ensemble configuration")
-            return False
-    except Exception as e:
-        print(f"[FAILURE] Error testing ensemble configuration: {e}")
-        traceback.print_exc()
-        return False
-
-
-def test_map_elites_features():
-    """Test MAP-Elites quality-diversity optimization features."""
-    print("[INFO] Testing MAP-Elites features...")
-    try:
-        # Test that MAP-Elites features are configurable
-        from openevolve.config import DatabaseConfig
-        
-        db_config = DatabaseConfig(
-            feature_dimensions=["complexity", "diversity", "performance"],
-            feature_bins=15,
-            diversity_metric="edit_distance",
-        )
-        
-        print("[SUCCESS] MAP-Elites configuration validated")
-        print(f"   - Feature dimensions: {db_config.feature_dimensions}")
-        print(f"   - Feature bins: {db_config.feature_bins}")
-        print(f"   - Diversity metric: {db_config.diversity_metric}")
-        return True
-    except Exception as e:
-        print(f"[FAILURE] Error testing MAP-Elites features: {e}")
-        traceback.print_exc()
-        return False
-
-
-def test_island_model_features():
-    """Test island-based evolution features."""
-    print("[INFO] Testing island model features...")
-    try:
-        # Test island configuration
-        from openevolve.config import DatabaseConfig
-        
-        db_config = DatabaseConfig(
-            num_islands=3,
-            migration_interval=25,
-            migration_rate=0.15,
-        )
-        
-        print("[SUCCESS] Island model configuration validated")
-        print(f"   - Islands: {db_config.num_islands}")
-        print(f"   - Migration interval: {db_config.migration_interval}")
-        print(f"   - Migration rate: {db_config.migration_rate}")
-        return True
-    except Exception as e:
-        print(f"[FAILURE] Error testing island model features: {e}")
-        traceback.print_exc()
-        return False
-
-
-def test_artifact_feedback():
-    """Test artifact side-channel feedback."""
-    print("[INFO] Testing artifact feedback features...")
-    try:
-        # Test evaluator configuration with artifact support
-        from openevolve.config import EvaluatorConfig
-        
-        eval_config = EvaluatorConfig(
-            enable_artifacts=True,
-            max_artifact_storage=50 * 1024 * 1024,  # 50MB
-        )
-        
-        print("[SUCCESS] Artifact feedback configuration validated")
-        print(f"   - Artifacts enabled: {eval_config.enable_artifacts}")
-        print(f"   - Max storage: {eval_config.max_artifact_storage} bytes")
-        return True
-    except Exception as e:
-        print(f"[FAILURE] Error testing artifact feedback features: {e}")
-        traceback.print_exc()
-        return False
-
-
-def test_cascade_evaluation():
-    """Test cascade evaluation features."""
-    print("[INFO] Testing cascade evaluation features...")
-    try:
-        # Test cascade evaluation configuration
-        from openevolve.config import EvaluatorConfig
-        
-        eval_config = EvaluatorConfig(
-            cascade_evaluation=True,
-            cascade_thresholds=[0.6, 0.8, 0.95],
-        )
-        
-        print("[SUCCESS] Cascade evaluation configuration validated")
-        print(f"   - Cascade enabled: {eval_config.cascade_evaluation}")
-        print(f"   - Thresholds: {eval_config.cascade_thresholds}")
-        return True
-    except Exception as e:
-        print(f"[FAILURE] Error testing cascade evaluation features: {e}")
-        traceback.print_exc()
-        return False
-
-
-def test_llm_feedback():
-    """Test LLM feedback integration."""
-    print("[INFO] Testing LLM feedback features...")
-    try:
-        # Test LLM feedback configuration
-        from openevolve.config import EvaluatorConfig
-        
-        eval_config = EvaluatorConfig(
-            use_llm_feedback=True,
-            llm_feedback_weight=0.15,
-        )
-        
-        print("[SUCCESS] LLM feedback configuration validated")
-        print(f"   - LLM feedback enabled: {eval_config.use_llm_feedback}")
-        print(f"   - Feedback weight: {eval_config.llm_feedback_weight}")
-        return True
-    except Exception as e:
-        print(f"[FAILURE] Error testing LLM feedback features: {e}")
-        traceback.print_exc()
-        return False
-
-
-def test_prompt_stochasticity():
-    """Test prompt template stochasticity features."""
-    print("[INFO] Testing prompt stochasticity features...")
-    try:
-        # Test prompt configuration with stochasticity
-        from openevolve.config import PromptConfig
-        
-        prompt_config = PromptConfig(
-            use_template_stochasticity=True,
-            use_meta_prompting=True,
-            meta_prompt_weight=0.1,
-        )
-        
-        print("[SUCCESS] Prompt stochasticity configuration validated")
-        print(f"   - Template stochasticity: {prompt_config.use_template_stochasticity}")
-        print(f"   - Meta-prompting: {prompt_config.use_meta_prompting}")
-        print(f"   - Meta-prompt weight: {prompt_config.meta_prompt_weight}")
-        return True
-    except Exception as e:
-        print(f"[FAILURE] Error testing prompt stochasticity features: {e}")
-        traceback.print_exc()
-        return False
-
-
-def test_early_stopping():
-    """Test early stopping mechanisms."""
-    print("[INFO] Testing early stopping features...")
-    try:
-        # Test early stopping configuration
-        from openevolve.config import Config
-        
-        config = Config(
-            early_stopping_patience=15,
-            convergence_threshold=0.001,
-            early_stopping_metric="combined_score",
-        )
-        
-        print("[SUCCESS] Early stopping configuration validated")
-        print(f"   - Patience: {config.early_stopping_patience}")
-        print(f"   - Convergence threshold: {config.convergence_threshold}")
-        print(f"   - Metric: {config.early_stopping_metric}")
-        return True
-    except Exception as e:
-        print(f"[FAILURE] Error testing early stopping features: {e}")
-        traceback.print_exc()
-        return False
-
-
-def test_visualization_features():
-    """Test visualization features."""
-    print("[INFO] Testing visualization features...")
-    try:
-        # Test that visualization dependencies are available
-        import matplotlib.pyplot as plt
-        import numpy as np
-        
-        # Create a simple test plot
-        fig, ax = plt.subplots()
-        x = np.linspace(0, 10, 100)
-        y = np.sin(x)
-        ax.plot(x, y)
-        plt.close(fig)
-        
-        print("[SUCCESS] Visualization libraries are available")
-        return True
-    except Exception as e:
-        print(f"[FAILURE] Error testing visualization features: {e}")
-        return False
-
-
-def test_logging_features():
-    """Test logging and monitoring features."""
-    print("[INFO] Testing logging and monitoring features...")
-    try:
-        # Test that logging utilities are available
-        from logging_util import logger
-        
-        # Test basic logging
-        logger.info("Testing logging system")
-        logger.warning("Testing warning logging")
-        logger.error("Testing error logging")
-        
-        # Test specialized logging
-        logger.log_evolution_start({"test_param": "value"})
-        logger.log_adversarial_progress(1, 0.85, 3)
-        logger.log_api_call("gpt-4", 1200, 1.5, True)
-        
-        print("[SUCCESS] Logging system is working correctly")
-        return True
-    except Exception as e:
-        print(f"[FAILURE] Error testing logging features: {e}")
-        traceback.print_exc()
-        return False
-
-
-def run_comprehensive_tests():
-    """Run all comprehensive tests."""
-    print("=" * 60)
-    print("OpenEvolve Comprehensive Integration Test Suite")
-    print("=" * 60)
+class TestParameterManager:
+    """Test suite for ParameterManager"""
     
-    tests = [
-        ("OpenEvolve Backend", test_openevolve_availability),
-        ("Advanced Configuration", test_advanced_configuration),
-        ("Ensemble Models", test_ensemble_configuration),
-        ("MAP-Elites Features", test_map_elites_features),
-        ("Island Model", test_island_model_features),
-        ("Artifact Feedback", test_artifact_feedback),
-        ("Cascade Evaluation", test_cascade_evaluation),
-        ("LLM Feedback", test_llm_feedback),
-        ("Prompt Stochasticity", test_prompt_stochasticity),
-        ("Early Stopping", test_early_stopping),
-        ("Visualization", test_visualization_features),
-        ("Logging System", test_logging_features),
-    ]
+    def test_parameter_manager_initialization(self):
+        """Test ParameterManager initializes correctly"""
+        pm = ParameterManager()
+        assert pm is not None
+        assert hasattr(pm, 'validator')
+        assert hasattr(pm, 'preset_manager')
     
-    results = []
-    passed = 0
-    total = len(tests)
+    def test_parameter_validation_valid_params(self):
+        """Test parameter validation with valid parameters"""
+        pm = ParameterManager()
+        
+        params = {
+            'max_iterations': 10,
+            'population_size': 20,
+            'temperature': 0.7,
+            'elite_ratio': 0.1,
+            'exploration_ratio': 0.4,
+            'exploitation_ratio': 0.5
+        }
+        
+        is_valid, errors = pm.validate_parameters(params)
+        assert is_valid, f"Validation failed with errors: {errors}"
+        assert len(errors) == 0
     
-    for test_name, test_func in tests:
-        print(f"\n{'-' * 60}")
-        try:
-            result = test_func()
-            results.append((test_name, result))
-            if result:
-                passed += 1
-                print(f"[PASS] {test_name}: PASSED")
-            else:
-                print(f"[FAIL] {test_name}: FAILED")
-        except Exception as e:
-            print(f"[ERROR] {test_name}: ERROR - {e}")
-            results.append((test_name, False))
+    def test_parameter_validation_invalid_range(self):
+        """Test parameter validation with out-of-range values"""
+        pm = ParameterManager()
+        
+        params = {
+            'max_iterations': -1,  # Invalid: must be positive
+            'temperature': 3.0,     # Invalid: max is 2.0
+        }
+        
+        is_valid, errors = pm.validate_parameters(params)
+        assert not is_valid
+        assert len(errors) > 0
     
-    print(f"\n{'-' * 60}")
-    print("TEST SUMMARY")
-    print(f"{'-' * 60}")
-    print(f"Passed: {passed}/{total} tests")
-    print(f"Success Rate: {(passed/total)*100:.1f}%")
+    def test_parameter_validation_ratio_sum(self):
+        """Test parameter validation for ratio sum"""
+        pm = ParameterManager()
+        
+        params = {
+            'elite_ratio': 0.2,
+            'exploration_ratio': 0.3,
+            'exploitation_ratio': 0.6  # Sum = 1.1, should fail
+        }
+        
+        is_valid, errors = pm.validate_parameters(params)
+        assert not is_valid
+        assert any('ratio' in err.lower() for err in errors)
     
-    if passed == total:
-        print("\n[SUCCESS] ALL TESTS PASSED! OpenEvolve integration is working correctly.")
-        return True
-    else:
-        print(f"\n[WARNING] {total-passed} tests failed. Please review the errors above.")
-        return False
+    def test_preset_loading(self):
+        """Test loading presets"""
+        pm = ParameterManager()
+        
+        presets = ['fast', 'balanced', 'thorough', 'research']
+        
+        for preset_name in presets:
+            preset = pm.get_preset(preset_name)
+            assert preset is not None
+            assert 'max_iterations' in preset
+            assert 'population_size' in preset
+    
+    def test_parameter_persistence(self):
+        """Test saving and loading parameters"""
+        pm = ParameterManager()
+        
+        params = {
+            'max_iterations': 50,
+            'population_size': 30,
+            'temperature': 0.8
+        }
+        
+        # Save parameters
+        pm.save_parameters(params, 'test_config')
+        
+        # Load parameters
+        loaded_params = pm.load_parameters('test_config')
+        
+        assert loaded_params is not None
+        assert loaded_params['max_iterations'] == 50
+        assert loaded_params['population_size'] == 30
+        assert loaded_params['temperature'] == 0.8
 
 
-if __name__ == "__main__":
-    # Change to the project directory
-    project_dir = os.path.dirname(os.path.abspath(__file__))
-    os.chdir(project_dir)
+class TestMetricsCollector:
+    """Test suite for MetricsCollector"""
     
-    # Run comprehensive tests
-    success = run_comprehensive_tests()
+    def test_metrics_collector_initialization(self):
+        """Test MetricsCollector initializes correctly"""
+        mc = MetricsCollector()
+        assert mc is not None
+        assert hasattr(mc, 'store')
     
-    # Exit with appropriate code
-    sys.exit(0 if success else 1)
+    def test_record_operation(self):
+        """Test recording an operation"""
+        mc = MetricsCollector()
+        
+        operation_id = mc.start_operation(
+            evolution_mode='standard',
+            parameters={'max_iterations': 10}
+        )
+        
+        assert operation_id is not None
+        assert len(operation_id) > 0
+    
+    def test_update_operation_metrics(self):
+        """Test updating operation metrics"""
+        mc = MetricsCollector()
+        
+        operation_id = mc.start_operation(
+            evolution_mode='standard',
+            parameters={'max_iterations': 10}
+        )
+        
+        mc.update_operation(
+            operation_id,
+            iteration=5,
+            best_fitness=0.75,
+            avg_fitness=0.65
+        )
+        
+        operation = mc.get_operation(operation_id)
+        assert operation is not None
+        assert operation.get('iteration') == 5
+        assert operation.get('best_fitness') == 0.75
+    
+    def test_complete_operation(self):
+        """Test completing an operation"""
+        mc = MetricsCollector()
+        
+        operation_id = mc.start_operation(
+            evolution_mode='standard',
+            parameters={'max_iterations': 10}
+        )
+        
+        mc.complete_operation(
+            operation_id,
+            success=True,
+            final_fitness=0.85
+        )
+        
+        operation = mc.get_operation(operation_id)
+        assert operation is not None
+        assert operation.get('success') is True
+        assert operation.get('final_fitness') == 0.85
+    
+    def test_metrics_aggregation(self):
+        """Test metrics aggregation"""
+        mc = MetricsCollector()
+        
+        # Record multiple operations
+        for i in range(5):
+            op_id = mc.start_operation(
+                evolution_mode='standard',
+                parameters={'max_iterations': 10}
+            )
+            mc.complete_operation(
+                op_id,
+                success=True,
+                final_fitness=0.7 + i * 0.05
+            )
+        
+        # Get aggregated metrics
+        aggregated = mc.aggregate_metrics()
+        
+        assert aggregated is not None
+        assert aggregated.get('total_operations') == 5
+        assert aggregated.get('success_rate') == 1.0
+    
+    def test_metrics_export_json(self):
+        """Test exporting metrics to JSON"""
+        mc = MetricsCollector()
+        
+        op_id = mc.start_operation(
+            evolution_mode='standard',
+            parameters={'max_iterations': 10}
+        )
+        mc.complete_operation(op_id, success=True, final_fitness=0.8)
+        
+        json_data = mc.export_to_json()
+        
+        assert json_data is not None
+        assert isinstance(json_data, str)
+        
+        # Verify it's valid JSON
+        parsed = json.loads(json_data)
+        assert 'operations' in parsed
+
+
+class TestOpenEvolveClient:
+    """Test suite for OpenEvolveClient"""
+    
+    @patch('openevolve_client.run_evolution')
+    def test_client_initialization(self, mock_run_evolution):
+        """Test OpenEvolveClient initializes correctly"""
+        client = OpenEvolveClient(
+            api_key='test_key',
+            base_url='https://api.test.com'
+        )
+        
+        assert client is not None
+        assert client.api_key == 'test_key'
+        assert client.base_url == 'https://api.test.com'
+    
+    @patch('openevolve_client.run_evolution')
+    def test_evolve_with_valid_params(self, mock_run_evolution):
+        """Test evolve method with valid parameters"""
+        mock_run_evolution.return_value = Mock(
+            best_fitness=0.85,
+            best_solution='test solution',
+            iterations_completed=10
+        )
+        
+        client = OpenEvolveClient(api_key='test_key')
+        
+        result = client.evolve(
+            initial_content='test content',
+            evolution_mode='standard',
+            max_iterations=10,
+            population_size=20
+        )
+        
+        assert result is not None
+        assert 'best_fitness' in result or result.best_fitness is not None
+    
+    def test_validate_parameters(self):
+        """Test parameter validation in client"""
+        client = OpenEvolveClient(api_key='test_key')
+        
+        valid_params = {
+            'max_iterations': 10,
+            'population_size': 20,
+            'temperature': 0.7
+        }
+        
+        is_valid, errors = client.validate_parameters(valid_params)
+        assert is_valid
+        assert len(errors) == 0
+    
+    def test_get_metrics(self):
+        """Test getting metrics from client"""
+        client = OpenEvolveClient(api_key='test_key')
+        
+        metrics = client.get_metrics()
+        
+        assert metrics is not None
+        assert isinstance(metrics, dict)
+
+
+class TestFallbackHandler:
+    """Test suite for FallbackHandler"""
+    
+    def test_fallback_handler_initialization(self):
+        """Test FallbackHandler initializes correctly"""
+        fh = FallbackHandler()
+        assert fh is not None
+    
+    def test_fallback_on_error(self):
+        """Test fallback behavior on error"""
+        fh = FallbackHandler()
+        
+        # Simulate an error
+        def failing_operation():
+            raise Exception("Test error")
+        
+        result = fh.execute_with_fallback(
+            failing_operation,
+            fallback_value="fallback result"
+        )
+        
+        assert result == "fallback result"
+    
+    def test_cache_functionality(self):
+        """Test caching in fallback handler"""
+        fh = FallbackHandler(enable_cache=True)
+        
+        call_count = 0
+        
+        def expensive_operation(x):
+            nonlocal call_count
+            call_count += 1
+            return x * 2
+        
+        # First call - should execute
+        result1 = fh.execute_with_cache(
+            expensive_operation,
+            cache_key='test_key',
+            args=(5,)
+        )
+        
+        # Second call - should use cache
+        result2 = fh.execute_with_cache(
+            expensive_operation,
+            cache_key='test_key',
+            args=(5,)
+        )
+        
+        assert result1 == 10
+        assert result2 == 10
+        assert call_count == 1  # Should only be called once
+
+
+class TestTeamIntegration:
+    """Test suite for team integration with OpenEvolve"""
+    
+    @patch('blue_team.OpenEvolveClient')
+    def test_blue_team_openevolve_integration(self, mock_client):
+        """Test Blue Team integration with OpenEvolve"""
+        from blue_team import BlueTeam
+        from workflow_structures import Team, ModelConfig
+        
+        # Create mock team
+        team = Team(
+            name='test_blue_team',
+            members=[ModelConfig(model_id='gpt-4', temperature=0.7)],
+            system_prompt='Test prompt'
+        )
+        
+        blue_team = BlueTeam(team=team, api_key='test_key')
+        
+        # Test that OpenEvolve methods exist
+        assert hasattr(blue_team, 'generate_solution_with_openevolve')
+        assert hasattr(blue_team, 'fix_with_openevolve')
+    
+    @patch('red_team.OpenEvolveClient')
+    def test_red_team_openevolve_integration(self, mock_client):
+        """Test Red Team integration with OpenEvolve"""
+        from red_team import RedTeam
+        from workflow_structures import Team, ModelConfig
+        
+        # Create mock team
+        team = Team(
+            name='test_red_team',
+            members=[ModelConfig(model_id='gpt-4', temperature=0.7)],
+            system_prompt='Test prompt'
+        )
+        
+        red_team = RedTeam(team=team, api_key='test_key')
+        
+        # Test that OpenEvolve methods exist
+        assert hasattr(red_team, 'critique_with_quality_diversity')
+    
+    @patch('evaluator_team.OpenEvolveClient')
+    def test_evaluator_team_openevolve_integration(self, mock_client):
+        """Test Evaluator Team integration with OpenEvolve"""
+        from evaluator_team import EvaluatorTeam
+        from workflow_structures import Team, ModelConfig
+        
+        # Create mock team
+        team = Team(
+            name='test_evaluator_team',
+            members=[ModelConfig(model_id='gpt-4', temperature=0.7)],
+            system_prompt='Test prompt'
+        )
+        
+        evaluator_team = EvaluatorTeam(team=team, api_key='test_key')
+        
+        # Test that OpenEvolve methods exist
+        assert hasattr(evaluator_team, 'evaluate_with_ensemble')
+
+
+class TestWorkflowIntegration:
+    """Test suite for workflow integration with OpenEvolve"""
+    
+    def test_workflow_engine_openevolve_methods(self):
+        """Test that workflow engine has OpenEvolve methods"""
+        from workflow_engine import WorkflowEngine
+        
+        engine = WorkflowEngine()
+        
+        # Test that OpenEvolve methods exist
+        assert hasattr(engine, 'run_content_analysis_with_openevolve')
+        assert hasattr(engine, 'run_decomposition_with_openevolve')
+        assert hasattr(engine, 'run_assembly_with_openevolve')
+    
+    def test_workflow_structures_openevolve_fields(self):
+        """Test that workflow structures have OpenEvolve metric fields"""
+        from workflow_structures import Team, SubProblem, SolutionAttempt, WorkflowState
+        
+        # Test Team has openevolve_metrics
+        team = Team(name='test', members=[], system_prompt='test')
+        assert hasattr(team, 'openevolve_metrics')
+        
+        # Test SubProblem has openevolve_metrics
+        sub_problem = SubProblem(
+            id='test',
+            description='test',
+            dependencies=[],
+            solver_team_name='test',
+            gold_team_gauntlet_name='test'
+        )
+        assert hasattr(sub_problem, 'openevolve_metrics')
+
+
+class TestResourceManagement:
+    """Test suite for resource management"""
+    
+    def test_resource_manager_tracking(self):
+        """Test resource tracking"""
+        from resource_manager import ResourceManager, ResourceLimits
+        
+        limits = ResourceLimits(
+            max_api_calls=100,
+            max_cost=10.0
+        )
+        
+        rm = ResourceManager(limits=limits)
+        
+        # Track some API calls
+        rm.track_api_call(
+            component='test',
+            model='gpt-4',
+            tokens=1000,
+            execution_time=1.0
+        )
+        
+        usage = rm.get_usage_summary()
+        
+        assert usage['api_calls'] == 1
+        assert usage['tokens_used'] == 1000
+    
+    def test_resource_limit_enforcement(self):
+        """Test resource limit enforcement"""
+        from resource_manager import ResourceManager, ResourceLimits, ResourceLimitExceeded
+        
+        limits = ResourceLimits(max_api_calls=2)
+        rm = ResourceManager(limits=limits)
+        
+        # Track calls up to limit
+        rm.track_api_call('test', 'gpt-4', 100, 0.1)
+        rm.track_api_call('test', 'gpt-4', 100, 0.1)
+        
+        # This should exceed the limit
+        rm.track_api_call('test', 'gpt-4', 100, 0.1)
+        
+        within_limits, violations = rm.check_limits()
+        assert not within_limits
+        assert len(violations) > 0
+
+
+class TestTemplateManagement:
+    """Test suite for template management"""
+    
+    def test_template_manager_presets(self):
+        """Test template manager presets"""
+        from template_manager import TemplateManager
+        
+        tm = TemplateManager()
+        tm.add_openevolve_preset_templates()
+        
+        # Test that presets exist
+        fast_preset = tm.get_openevolve_template('fast')
+        assert fast_preset is not None
+        
+        balanced_preset = tm.get_openevolve_template('balanced')
+        assert balanced_preset is not None
+    
+    def test_template_validation(self):
+        """Test template validation"""
+        from template_manager import TemplateManager
+        
+        tm = TemplateManager()
+        
+        valid_config = {
+            'max_iterations': 10,
+            'population_size': 20,
+            'temperature': 0.7,
+            'elite_ratio': 0.1,
+            'exploration_ratio': 0.4,
+            'exploitation_ratio': 0.5
+        }
+        
+        is_valid, errors = tm.validate_openevolve_config(valid_config)
+        assert is_valid
+        assert len(errors) == 0
+
+
+# Pytest configuration
+if __name__ == '__main__':
+    pytest.main([__file__, '-v', '--tb=short'])

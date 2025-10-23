@@ -56,12 +56,20 @@ class VersionControl:
 
         return version_id
 
-    function branchVersion(versionId, branchName) {
-        const url = new URL(window.location);
-        url.searchParams.set('branch_version_id', versionId);
-        url.searchParams.set('new_branch_name', branchName);
-        window.location.href = url.toString(); // This will trigger a full page reload
-    }
+    def branch_version(self, version_id: str, branch_name: str) -> str:
+        """
+        Create a new branch from an existing version.
+        
+        Args:
+            version_id: ID of the version to branch from
+            branch_name: Name for the new branch
+            
+        Returns:
+            str: ID of the new branch version
+        """
+        # This would be implemented with proper version control logic
+        # For now, return a placeholder
+        return f"{version_id}_branch_{branch_name}"
 
     def get_version_history(self) -> List[Dict]:
         """
