@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  sovereign-system:
+    build: .
+    container_name: sovereign-system
+    ports:
+      - "8501:8501"
+      - "8000:8000"
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+    environment:
+      - ENVIRONMENT=production
+      - LOG_LEVEL=INFO
+      - DATABASE_PATH=/app/data/sovereign_system.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "from sovereign_reliability import get_health_monitor; m = get_health_monitor(); exit(0 if m.run_health_checks()['overall_healthy'] else 1)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  sovereign-system-staging:
+    build: .
+    container_name: sovereign-system-staging
+    ports:
+      - "8502:8501"
+      - "8001:8000"
+    volumes:
+      - ./data-staging:/app/data
+      - ./logs-staging:/app/logs
+    environment:
+      - ENVIRONMENT=staging
+      - LOG_LEVEL=DEBUG
+      - DATABASE_PATH=/app/data/sovereign_system_staging.db
+    restart: unless-stopped
