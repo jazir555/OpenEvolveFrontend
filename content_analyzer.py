@@ -13,16 +13,19 @@ from nltk.corpus import stopwords
 from textstat import flesch_reading_ease, flesch_kincaid_grade
 import hashlib
 
+# Try to download NLTK data, but don't fail if it doesn't work
+NLTK_AVAILABLE = False
 try:
-    # Download required NLTK data
     nltk.download('punkt', quiet=True)
+    nltk.download('punkt_tab', quiet=True)
     nltk.download('stopwords', quiet=True)
     nltk.download('averaged_perceptron_tagger', quiet=True)
     nltk.download('wordnet', quiet=True)
     from nltk.corpus import wordnet
+    NLTK_AVAILABLE = True
 except Exception:
-    # Handle cases where NLTK downloads fail
     wordnet = None
+    NLTK_AVAILABLE = False
 
 class ContentType(Enum):
     """Enumeration of content types for categorization"""
@@ -49,7 +52,20 @@ class ContentAnalyzer:
     """Main content analysis component that implements parsing, understanding, pattern recognition and metadata extraction"""
     
     def __init__(self):
-        self.stop_words = set(stopwords.words('english')) if 'stopwords' in dir(nltk.corpus) else set()
+        # Initialize stop words with fallback
+        try:
+            if NLTK_AVAILABLE:
+                self.stop_words = set(stopwords.words('english'))
+            else:
+                # Common English stop words as fallback
+                self.stop_words = {
+                    'a', 'an', 'and', 'are', 'as', 'at', 'be', 'by', 'for', 'from',
+                    'has', 'he', 'in', 'is', 'it', 'its', 'of', 'on', 'that', 'the',
+                    'to', 'was', 'will', 'with', 'the', 'this', 'but', 'they', 'have',
+                    'had', 'what', 'when', 'where', 'who', 'which', 'why', 'how'
+                }
+        except Exception:
+            self.stop_words = set()
         self.content_type_patterns = {
             ContentType.CODE: [
                 r'def\s+\w+',  # Python function
@@ -130,6 +146,18 @@ class ContentAnalyzer:
             recommendations=recommendations
         )
     
+    def _simple_sent_tokenize(self, text: str) -> List[str]:
+        """Simple sentence tokenizer as fallback when NLTK is not available"""
+        # Split on common sentence endings
+        sentences = re.split(r'[.!?]+\s+', text)
+        return [s.strip() for s in sentences if s.strip()]
+    
+    def _simple_word_tokenize(self, text: str) -> List[str]:
+        """Simple word tokenizer as fallback when NLTK is not available"""
+        # Split on whitespace and punctuation
+        words = re.findall(r'\b\w+\b', text)
+        return words
+    
     def parse_content(self, content: str) -> Dict[str, Any]:
         """
         Analyzes content structure, format, and type
@@ -141,8 +169,19 @@ class ContentAnalyzer:
             Dictionary containing parsing results
         """
         lines = content.split('\n')
-        sentences = sent_tokenize(content)
-        words = word_tokenize(content.lower())
+        
+        # Use NLTK if available, otherwise use simple fallbacks
+        if NLTK_AVAILABLE:
+            try:
+                sentences = sent_tokenize(content)
+                words = word_tokenize(content.lower())
+            except Exception:
+                # Fallback to simple tokenization
+                sentences = self._simple_sent_tokenize(content)
+                words = self._simple_word_tokenize(content.lower())
+        else:
+            sentences = self._simple_sent_tokenize(content)
+            words = self._simple_word_tokenize(content.lower())
         
         # Filter out punctuation
         words = [word for word in words if word.isalnum()]
