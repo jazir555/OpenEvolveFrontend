@@ -717,47 +717,47 @@ class PromptEngineeringSystem:
             config.max_iterations = 1  # Just one evolution step
             config.database.population_size = 1  # Single prompt evolution
             
-                        # Create an evaluator for prompt evolution
-                        def prompt_evaluator(program_path: str) -> Dict[str, Any]:
-                            return _prompt_llm_evaluator(program_path, api_key, model_name)
-                        
-                        # Use LLM to assess prompt effectiveness and generate a score.
-                        # This replaces the previous hardcoded score with a dynamic, LLM-driven evaluation.
-                        system_prompt = "You are a Prompt Evaluation AI. Your goal is to assess the effectiveness of the provided prompt for its intended task. Provide your response as a JSON object with 'score' (0.0-1.0 for effectiveness), 'justification' (string), and 'suggestions' (string, if applicable)."
-                        user_prompt = f"""Evaluate the following prompt for its effectiveness.
-                        Prompt:
-                        ---
-                        {prompt_content}
-                        ---
-                        Provide your evaluation as a JSON object with 'score', 'justification', and 'suggestions'.
-                        """
+            # Create an evaluator for prompt evolution
+            def prompt_evaluator(program_path: str) -> Dict[str, Any]:
+                return _prompt_llm_evaluator(program_path, api_key, model_name)
+            
+            # Use LLM to assess prompt effectiveness and generate a score.
+            # This replaces the previous hardcoded score with a dynamic, LLM-driven evaluation.
+            system_prompt = "You are a Prompt Evaluation AI. Your goal is to assess the effectiveness of the provided prompt for its intended task. Provide your response as a JSON object with 'score' (0.0-1.0 for effectiveness), 'justification' (string), and 'suggestions' (string, if applicable)."
+            user_prompt = f"""Evaluate the following prompt for its effectiveness.
+            Prompt:
+            ---
+            {prompt_content}
+            ---
+            Provide your evaluation as a JSON object with 'score', 'justification', and 'suggestions'.
+            """
 
-                        # Make LLM call to evaluate prompt quality
-                        try:
-                            import requests
-                            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
-                            data = {"model": model_name, "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}], "temperature": 0.3, "max_tokens": 1024}
-                            response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data, timeout=10)
-                            response.raise_for_status()
-                            llm_result = response.json()
-                            llm_score = json.loads(llm_result["choices"][0]["message"]["content"]).get("score", 0.85)
-                        except Exception as llm_e:
-                            print(f"Error getting LLM feedback for prompt evaluator: {llm_e}. Falling back to default score.")
-                            llm_score = 0.85 # Fallback if LLM call fails
+            # Make LLM call to evaluate prompt quality
+            try:
+                import requests
+                headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+                data = {"model": model_name, "messages": [{"role": "system", "content": system_prompt}, {"role": "user", "content": user_prompt}], "temperature": 0.3, "max_tokens": 1024}
+                response = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=data, timeout=10)
+                response.raise_for_status()
+                llm_result = response.json()
+                llm_score = json.loads(llm_result["choices"][0]["message"]["content"]).get("score", 0.85)
+            except Exception as llm_e:
+                print(f"Error getting LLM feedback for prompt evaluator: {llm_e}. Falling back to default score.")
+                llm_score = 0.85 # Fallback if LLM call fails
 
-                        return {
-                            "score": llm_score, 
-                            "timestamp": datetime.now().timestamp(),
-                            "content_length": len(prompt_content),
-                            "prompt_evolution_completed": True
-                        }
-                    except Exception as e:
-                        print(f"Error in prompt evaluator: {e}")
-                        return {
-                            "score": 0.0,
-                            "timestamp": datetime.now().timestamp(),
-                            "error": str(e)
-                        }
+            return {
+                "score": llm_score, 
+                "timestamp": datetime.now().timestamp(),
+                "content_length": len(prompt_content),
+                "prompt_evolution_completed": True
+            }
+        except Exception as e:
+            print(f"Error in prompt evaluator: {e}")
+            return {
+                "score": 0.0,
+                "timestamp": datetime.now().timestamp(),
+                "error": str(e)
+            }
     
     def _evolve_prompt_custom(self, prompt_instance: PromptInstance, strategy: str = 'refinement',
                               **kwargs) -> PromptInstance:
@@ -986,8 +986,7 @@ def test_prompt_engineering_system():
 if __name__ == "__main__":
     test_prompt_engineering_system()
 
-def evol
-ve_prompt_with_openevolve(base_prompt: str, api_key: str, evaluation_criteria: List[str]) -> str:
+def evolve_prompt_with_openevolve(base_prompt: str, api_key: str, evaluation_criteria: List[str]) -> str:
     """Evolve prompt using OpenEvolve"""
     try:
         from openevolve_client import OpenEvolveClient

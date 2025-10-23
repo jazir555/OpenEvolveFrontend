@@ -5,7 +5,7 @@ Provides validation, presets, and persistence for OpenEvolve configuration
 
 import json
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field, asdict
 from enum import Enum
 
@@ -275,30 +275,416 @@ class ParameterSchema:
         self._add_param("cache_evaluations", ParameterType.BOOLEAN, True,
                        "Cache evaluation results", "evaluation")
         
-        # Continue with remaining categories (9-19) - abbreviated for space
-        # Category 9: Prompt Engineering (12 params)
-        # Category 10: Artifact Management (10 params)
-        # Category 11: Resource Management (10 params)
-        # Category 12: Database & Storage (10 params)
-        # Category 13: Evolution Tracing (12 params)
-        # Category 14: Early Stopping (8 params)
-        # Category 15: Distributed Processing (10 params)
-        # Category 16: Advanced Research (20 params)
-        # Category 17: Custom Requirements (8 params)
-        # Category 18: UI & Visualization (8 params)
-        # Category 19: Experimental (7 params)
+        # Category 9: Prompt Engineering (12 parameters)
+        self._add_param("prompt_template", ParameterType.STRING, "default",
+                       "Base prompt template", "prompt_engineering")
+        self._add_param("system_prompt", ParameterType.STRING, "",
+                       "System-level prompt", "prompt_engineering")
+        self._add_param("context_length", ParameterType.INTEGER, 2000,
+                       "Maximum context length", "prompt_engineering", min_value=100, max_value=8000)
+        self._add_param("prompt_optimization", ParameterType.BOOLEAN, True,
+                       "Optimize prompts during evolution", "prompt_engineering")
+        self._add_param("template_stochasticity", ParameterType.BOOLEAN, True,
+                       "Use stochastic templates", "prompt_engineering")
+        self._add_param("meta_prompting", ParameterType.BOOLEAN, False,
+                       "Use meta-prompting techniques", "prompt_engineering")
+        self._add_param("few_shot_examples", ParameterType.INTEGER, 3,
+                       "Number of few-shot examples", "prompt_engineering", min_value=0, max_value=20)
+        self._add_param("chain_of_thought", ParameterType.BOOLEAN, True,
+                       "Use chain-of-thought prompting", "prompt_engineering")
+        self._add_param("self_consistency", ParameterType.BOOLEAN, False,
+                       "Use self-consistency decoding", "prompt_engineering")
+        self._add_param("prompt_ensembling", ParameterType.BOOLEAN, False,
+                       "Ensemble multiple prompts", "prompt_engineering")
+        self._add_param("dynamic_prompting", ParameterType.BOOLEAN, False,
+                       "Dynamically adjust prompts", "prompt_engineering")
+        self._add_param("prompt_compression", ParameterType.BOOLEAN, False,
+                       "Compress long prompts", "prompt_engineering")
         
-        # Add remaining parameters...
+        # Category 10: Artifact Management (10 parameters)
+        self._add_param("enable_artifacts", ParameterType.BOOLEAN, True,
+                       "Enable artifact generation", "artifact_management")
+        self._add_param("artifact_types", ParameterType.LIST, ["code", "text"],
+                       "Types of artifacts to generate", "artifact_management")
+        self._add_param("max_artifact_size", ParameterType.INTEGER, 20480,
+                       "Maximum artifact size in bytes", "artifact_management", min_value=1024, max_value=1048576)
+        self._add_param("artifact_validation", ParameterType.BOOLEAN, True,
+                       "Validate generated artifacts", "artifact_management")
+        self._add_param("artifact_compression", ParameterType.BOOLEAN, False,
+                       "Compress artifacts", "artifact_management")
+        self._add_param("artifact_versioning", ParameterType.BOOLEAN, True,
+                       "Version control for artifacts", "artifact_management")
+        self._add_param("artifact_metadata", ParameterType.BOOLEAN, True,
+                       "Include metadata with artifacts", "artifact_management")
+        self._add_param("artifact_cleanup", ParameterType.BOOLEAN, True,
+                       "Clean up old artifacts", "artifact_management")
+        self._add_param("artifact_storage", ParameterType.SELECT, "memory",
+                       "Artifact storage location", "artifact_management",
+                       options=["memory", "disk", "cloud"])
+        self._add_param("artifact_encryption", ParameterType.BOOLEAN, False,
+                       "Encrypt sensitive artifacts", "artifact_management")
+        
+        # Category 11: Resource Management (10 parameters)
+        self._add_param("memory_limit_mb", ParameterType.INTEGER, 4096,
+                       "Memory limit in MB", "resource_management", min_value=512, max_value=32768)
+        self._add_param("cpu_limit", ParameterType.FLOAT, 0.8,
+                       "CPU usage limit (fraction)", "resource_management", min_value=0.1, max_value=1.0)
+        self._add_param("max_time", ParameterType.INTEGER, 1800,
+                       "Maximum execution time in seconds", "resource_management", min_value=60, max_value=7200)
+        self._add_param("disk_limit_mb", ParameterType.INTEGER, 1024,
+                       "Disk usage limit in MB", "resource_management", min_value=100, max_value=10240)
+        self._add_param("network_limit_mbps", ParameterType.INTEGER, 100,
+                       "Network bandwidth limit", "resource_management", min_value=1, max_value=1000)
+        self._add_param("api_call_limit", ParameterType.INTEGER, 1000,
+                       "Maximum API calls", "resource_management", min_value=10, max_value=10000)
+        self._add_param("token_limit", ParameterType.INTEGER, 100000,
+                       "Maximum tokens", "resource_management", min_value=1000, max_value=1000000)
+        self._add_param("cost_limit_usd", ParameterType.FLOAT, 10.0,
+                       "Maximum cost in USD", "resource_management", min_value=0.01, max_value=1000.0)
+        self._add_param("resource_monitoring", ParameterType.BOOLEAN, True,
+                       "Monitor resource usage", "resource_management")
+        self._add_param("auto_scaling", ParameterType.BOOLEAN, False,
+                       "Auto-scale resources", "resource_management")
+        
+        # Category 12: Database & Storage (10 parameters)
+        self._add_param("db_path", ParameterType.STRING, "./openevolve.db",
+                       "Database file path", "database_storage")
+        self._add_param("db_type", ParameterType.SELECT, "sqlite",
+                       "Database type", "database_storage",
+                       options=["sqlite", "postgresql", "mongodb"])
+        self._add_param("connection_string", ParameterType.STRING, "",
+                       "Database connection string", "database_storage")
+        self._add_param("max_connections", ParameterType.INTEGER, 10,
+                       "Maximum database connections", "database_storage", min_value=1, max_value=100)
+        self._add_param("connection_timeout", ParameterType.INTEGER, 30,
+                       "Connection timeout in seconds", "database_storage", min_value=1, max_value=60)
+        self._add_param("query_timeout", ParameterType.INTEGER, 60,
+                       "Query timeout in seconds", "database_storage", min_value=1, max_value=300)
+        self._add_param("batch_size", ParameterType.INTEGER, 1000,
+                       "Batch size for operations", "database_storage", min_value=1, max_value=10000)
+        self._add_param("compression", ParameterType.BOOLEAN, True,
+                       "Compress stored data", "database_storage")
+        self._add_param("encryption", ParameterType.BOOLEAN, False,
+                       "Encrypt stored data", "database_storage")
+        self._add_param("backup_enabled", ParameterType.BOOLEAN, True,
+                       "Enable automatic backups", "database_storage")
+        
+        # Category 13: Evolution Tracing (12 parameters)
+        self._add_param("trace_enabled", ParameterType.BOOLEAN, False,
+                       "Enable evolution tracing", "evolution_tracing")
+        self._add_param("trace_level", ParameterType.SELECT, "basic",
+                       "Level of tracing detail", "evolution_tracing",
+                       options=["basic", "detailed", "full"])
+        self._add_param("trace_format", ParameterType.SELECT, "json",
+                       "Trace output format", "evolution_tracing",
+                       options=["json", "csv", "binary"])
+        self._add_param("trace_file", ParameterType.STRING, "./trace.log",
+                       "Trace output file", "evolution_tracing")
+        self._add_param("trace_compression", ParameterType.BOOLEAN, True,
+                       "Compress trace files", "evolution_tracing")
+        self._add_param("trace_rotation", ParameterType.BOOLEAN, True,
+                       "Rotate trace files", "evolution_tracing")
+        self._add_param("max_trace_size_mb", ParameterType.INTEGER, 100,
+                       "Maximum trace file size", "evolution_tracing", min_value=1, max_value=1024)
+        self._add_param("trace_buffer_size", ParameterType.INTEGER, 1000,
+                       "Trace buffer size", "evolution_tracing", min_value=100, max_value=10000)
+        self._add_param("real_time_tracing", ParameterType.BOOLEAN, False,
+                       "Real-time trace streaming", "evolution_tracing")
+        self._add_param("trace_sampling", ParameterType.FLOAT, 1.0,
+                       "Sampling rate for tracing", "evolution_tracing", min_value=0.01, max_value=1.0)
+        self._add_param("include_population", ParameterType.BOOLEAN, False,
+                       "Include population in trace", "evolution_tracing")
+        self._add_param("include_fitness", ParameterType.BOOLEAN, True,
+                       "Include fitness in trace", "evolution_tracing")
+        
+        # Category 14: Early Stopping (8 parameters)
+        self._add_param("early_stopping", ParameterType.BOOLEAN, False,
+                       "Enable early stopping", "early_stopping")
+        self._add_param("early_stopping_patience", ParameterType.INTEGER, 10,
+                       "Patience for early stopping", "early_stopping", min_value=1, max_value=100)
+        self._add_param("min_improvement", ParameterType.FLOAT, 0.001,
+                       "Minimum improvement threshold", "early_stopping", min_value=0.0, max_value=1.0)
+        self._add_param("improvement_window", ParameterType.INTEGER, 5,
+                       "Window for improvement calculation", "early_stopping", min_value=1, max_value=50)
+        self._add_param("plateau_threshold", ParameterType.INTEGER, 20,
+                       "Generations to consider plateau", "early_stopping", min_value=1, max_value=100)
+        self._add_param("convergence_check", ParameterType.BOOLEAN, True,
+                       "Check for convergence", "early_stopping")
+        self._add_param("diversity_threshold", ParameterType.FLOAT, 0.01,
+                       "Minimum diversity threshold", "early_stopping", min_value=0.0, max_value=1.0)
+        self._add_param("stagnation_limit", ParameterType.INTEGER, 50,
+                       "Maximum stagnation generations", "early_stopping", min_value=1, max_value=100)
+        
+        # Category 15: Distributed Processing (10 parameters)
+        self._add_param("distributed", ParameterType.BOOLEAN, False,
+                       "Enable distributed processing", "distributed_processing")
+        self._add_param("num_workers", ParameterType.INTEGER, 4,
+                       "Number of worker processes", "distributed_processing", min_value=1, max_value=100)
+        self._add_param("worker_timeout", ParameterType.INTEGER, 120,
+                       "Worker timeout in seconds", "distributed_processing", min_value=10, max_value=600)
+        self._add_param("load_balancing", ParameterType.SELECT, "round_robin",
+                       "Load balancing strategy", "distributed_processing",
+                       options=["round_robin", "least_loaded", "random"])
+        self._add_param("fault_tolerance", ParameterType.BOOLEAN, True,
+                       "Enable fault tolerance", "distributed_processing")
+        self._add_param("worker_restart", ParameterType.BOOLEAN, True,
+                       "Auto-restart failed workers", "distributed_processing")
+        self._add_param("communication_backend", ParameterType.SELECT, "local",
+                       "Communication backend", "distributed_processing",
+                       options=["local", "redis", "rabbitmq"])
+        self._add_param("message_compression", ParameterType.BOOLEAN, True,
+                       "Compress messages", "distributed_processing")
+        self._add_param("heartbeat_interval", ParameterType.INTEGER, 10,
+                       "Heartbeat interval in seconds", "distributed_processing", min_value=1, max_value=60)
+        self._add_param("cluster_scaling", ParameterType.BOOLEAN, False,
+                       "Auto-scale cluster", "distributed_processing")
+        
+        # Category 16: Advanced Research (20 parameters)
+        self._add_param("novelty_search", ParameterType.BOOLEAN, False,
+                       "Enable novelty search", "advanced_research")
+        self._add_param("curiosity_driven", ParameterType.BOOLEAN, False,
+                       "Curiosity-driven exploration", "advanced_research")
+        self._add_param("meta_learning", ParameterType.BOOLEAN, False,
+                       "Enable meta-learning", "advanced_research")
+        self._add_param("transfer_learning", ParameterType.BOOLEAN, False,
+                       "Transfer from previous runs", "advanced_research")
+        self._add_param("continual_learning", ParameterType.BOOLEAN, False,
+                       "Continual learning mode", "advanced_research")
+        self._add_param("few_shot_adaptation", ParameterType.BOOLEAN, False,
+                       "Few-shot adaptation", "advanced_research")
+        self._add_param("zero_shot_transfer", ParameterType.BOOLEAN, False,
+                       "Zero-shot transfer", "advanced_research")
+        self._add_param("domain_adaptation", ParameterType.BOOLEAN, False,
+                       "Domain adaptation", "advanced_research")
+        self._add_param("multi_task_learning", ParameterType.BOOLEAN, False,
+                       "Multi-task learning", "advanced_research")
+        self._add_param("lifelong_learning", ParameterType.BOOLEAN, False,
+                       "Lifelong learning", "advanced_research")
+        self._add_param("neural_architecture_search", ParameterType.BOOLEAN, False,
+                       "NAS integration", "advanced_research")
+        self._add_param("hyperparameter_optimization", ParameterType.BOOLEAN, False,
+                       "HPO integration", "advanced_research")
+        self._add_param("automated_ml", ParameterType.BOOLEAN, False,
+                       "AutoML features", "advanced_research")
+        self._add_param("explainable_ai", ParameterType.BOOLEAN, False,
+                       "XAI integration", "advanced_research")
+        self._add_param("federated_learning", ParameterType.BOOLEAN, False,
+                       "Federated learning", "advanced_research")
+        self._add_param("differential_privacy", ParameterType.BOOLEAN, False,
+                       "Privacy preservation", "advanced_research")
+        self._add_param("quantum_computing", ParameterType.BOOLEAN, False,
+                       "Quantum computing support", "advanced_research")
+        self._add_param("neuromorphic_computing", ParameterType.BOOLEAN, False,
+                       "Neuromorphic support", "advanced_research")
+        self._add_param("edge_computing", ParameterType.BOOLEAN, False,
+                       "Edge deployment", "advanced_research")
+        self._add_param("green_ai", ParameterType.BOOLEAN, False,
+                       "Energy-efficient AI", "advanced_research")
+        
+        # Category 17: Custom Requirements (8 parameters)
+        self._add_param("custom_fitness", ParameterType.STRING, "",
+                       "Custom fitness function code", "custom_requirements")
+        self._add_param("custom_operators", ParameterType.LIST, [],
+                       "Custom genetic operators", "custom_requirements")
+        self._add_param("custom_constraints", ParameterType.LIST, [],
+                       "Custom constraint functions", "custom_requirements")
+        self._add_param("domain_knowledge", ParameterType.STRING, "",
+                       "Domain-specific knowledge", "custom_requirements")
+        self._add_param("expert_rules", ParameterType.LIST, [],
+                       "Expert-defined rules", "custom_requirements")
+        self._add_param("business_logic", ParameterType.STRING, "",
+                       "Business logic constraints", "custom_requirements")
+        self._add_param("regulatory_compliance", ParameterType.LIST, [],
+                       "Compliance requirements", "custom_requirements")
+        self._add_param("ethical_guidelines", ParameterType.LIST, [],
+                       "Ethical AI guidelines", "custom_requirements")
+        
+        # Category 18: UI & Visualization (8 parameters)
+        self._add_param("enable_visualization", ParameterType.BOOLEAN, True,
+                       "Enable visualizations", "ui_visualization")
+        self._add_param("plot_frequency", ParameterType.INTEGER, 10,
+                       "Plotting frequency", "ui_visualization", min_value=1, max_value=100)
+        self._add_param("plot_types", ParameterType.LIST, ["fitness", "diversity"],
+                       "Types of plots to generate", "ui_visualization")
+        self._add_param("interactive_plots", ParameterType.BOOLEAN, True,
+                       "Interactive visualizations", "ui_visualization")
+        self._add_param("real_time_updates", ParameterType.BOOLEAN, False,
+                       "Real-time plot updates", "ui_visualization")
+        self._add_param("export_plots", ParameterType.BOOLEAN, True,
+                       "Export plots to files", "ui_visualization")
+        self._add_param("plot_format", ParameterType.SELECT, "png",
+                       "Plot export format", "ui_visualization",
+                       options=["png", "svg", "pdf"])
+        self._add_param("dashboard_enabled", ParameterType.BOOLEAN, True,
+                       "Enable monitoring dashboard", "ui_visualization")
+        
+        # Category 19: Experimental (7 parameters)
+        self._add_param("experimental_features", ParameterType.BOOLEAN, False,
+                       "Enable experimental features", "experimental")
+        self._add_param("beta_algorithms", ParameterType.BOOLEAN, False,
+                       "Use beta algorithms", "experimental")
+        self._add_param("research_mode", ParameterType.BOOLEAN, False,
+                       "Research mode settings", "experimental")
+        self._add_param("debug_mode", ParameterType.BOOLEAN, False,
+                       "Debug mode", "experimental")
+        self._add_param("profiling_enabled", ParameterType.BOOLEAN, False,
+                       "Performance profiling", "experimental")
+        self._add_param("memory_profiling", ParameterType.BOOLEAN, False,
+                       "Memory usage profiling", "experimental")
+        self._add_param("experimental_logging", ParameterType.BOOLEAN, False,
+                       "Experimental logging", "experimental")
+        
+        # Additional core parameters from API reference
+        self._add_param("convergence_threshold", ParameterType.FLOAT, 0.001,
+                       "Threshold for convergence detection", "core_evolution", min_value=0.0, max_value=1.0)
+        self._add_param("fitness_function", ParameterType.STRING, "default",
+                       "Fitness evaluation function", "core_evolution")
+        self._add_param("elitism", ParameterType.BOOLEAN, True,
+                       "Preserve best individuals", "core_evolution")
+        self._add_param("diversity_maintenance", ParameterType.BOOLEAN, True,
+                       "Maintain population diversity", "core_evolution")
+        self._add_param("adaptive_parameters", ParameterType.BOOLEAN, False,
+                       "Adapt parameters during evolution", "core_evolution")
+        
+        # Additional model configuration parameters
+        self._add_param("model_id", ParameterType.STRING, "gpt-4",
+                       "Primary model identifier", "model_config")
+        self._add_param("backup_models", ParameterType.LIST, [],
+                       "Fallback model list", "model_config")
+        self._add_param("timeout", ParameterType.INTEGER, 30,
+                       "Request timeout in seconds", "model_config", min_value=1, max_value=300)
+        self._add_param("max_retries", ParameterType.INTEGER, 3,
+                       "Maximum retry attempts", "model_config", min_value=0, max_value=10)
+        self._add_param("retry_delay", ParameterType.FLOAT, 1.0,
+                       "Delay between retries", "model_config", min_value=0.1, max_value=10.0)
+        self._add_param("rate_limit", ParameterType.INTEGER, 60,
+                       "Requests per minute", "model_config", min_value=1, max_value=1000)
+        self._add_param("concurrent_requests", ParameterType.INTEGER, 5,
+                       "Concurrent API requests", "model_config", min_value=1, max_value=50)
+        self._add_param("model_rotation", ParameterType.BOOLEAN, False,
+                       "Rotate between models", "model_config")
+        
+        # Additional quality diversity parameters
+        self._add_param("quality_threshold", ParameterType.FLOAT, 0.0,
+                       "Minimum quality for archive", "quality_diversity", min_value=0.0, max_value=1.0)
+        self._add_param("diversity_weight", ParameterType.FLOAT, 0.5,
+                       "Weight of diversity vs quality", "quality_diversity", min_value=0.0, max_value=1.0)
+        self._add_param("behavior_space", ParameterType.STRING, "auto",
+                       "Behavior space definition", "quality_diversity")
+        self._add_param("distance_metric", ParameterType.SELECT, "euclidean",
+                       "Distance calculation method", "quality_diversity",
+                       options=["euclidean", "manhattan", "cosine"])
+        self._add_param("archive_update_freq", ParameterType.INTEGER, 1,
+                       "Archive update frequency", "quality_diversity", min_value=1, max_value=100)
+        self._add_param("exploration_bonus", ParameterType.FLOAT, 0.1,
+                       "Bonus for exploration", "quality_diversity", min_value=0.0, max_value=2.0)
+        self._add_param("pareto_layers", ParameterType.INTEGER, 3,
+                       "Number of Pareto layers", "quality_diversity", min_value=1, max_value=10)
+        
+        # Additional multi-objective parameters
+        self._add_param("dominance_type", ParameterType.SELECT, "standard",
+                       "Dominance relation type", "multi_objective",
+                       options=["standard", "epsilon", "fuzzy"])
+        self._add_param("epsilon_values", ParameterType.LIST, [],
+                       "Epsilon values for epsilon-dominance", "multi_objective")
+        self._add_param("scalarization", ParameterType.SELECT, "weighted_sum",
+                       "Scalarization method", "multi_objective",
+                       options=["weighted_sum", "tchebycheff", "pbi"])
+        self._add_param("constraint_tolerance", ParameterType.FLOAT, 0.01,
+                       "Tolerance for constraints", "multi_objective", min_value=0.0, max_value=1.0)
+        self._add_param("hypervolume_ref", ParameterType.LIST, [],
+                       "Hypervolume reference point", "multi_objective")
+        
+        # Additional adversarial parameters
+        self._add_param("attack_strength", ParameterType.FLOAT, 1.0,
+                       "Strength of adversarial attacks", "adversarial", min_value=0.1, max_value=2.0)
+        self._add_param("defense_strength", ParameterType.FLOAT, 1.0,
+                       "Strength of defense mechanisms", "adversarial", min_value=0.1, max_value=2.0)
+        self._add_param("adversarial_budget", ParameterType.INTEGER, 100,
+                       "Budget for adversarial operations", "adversarial", min_value=1, max_value=1000)
+        self._add_param("attack_types", ParameterType.LIST, [],
+                       "Types of attacks to use", "adversarial")
+        self._add_param("defense_strategies", ParameterType.LIST, [],
+                       "Defense strategies to employ", "adversarial")
+        self._add_param("robustness_metric", ParameterType.STRING, "accuracy",
+                       "Metric for robustness evaluation", "adversarial")
+        self._add_param("perturbation_bound", ParameterType.FLOAT, 0.1,
+                       "Maximum perturbation allowed", "adversarial", min_value=0.0, max_value=1.0)
+        self._add_param("gradient_masking", ParameterType.BOOLEAN, False,
+                       "Use gradient masking", "adversarial")
+        self._add_param("ensemble_defense", ParameterType.BOOLEAN, True,
+                       "Use ensemble for defense", "adversarial")
+        
+        # Additional island model parameters
+        self._add_param("migration_size", ParameterType.INTEGER, 5,
+                       "Number of individuals to migrate", "island_model", min_value=1, max_value=50)
+        self._add_param("migration_policy", ParameterType.SELECT, "best",
+                       "Migration selection policy", "island_model",
+                       options=["best", "random", "diverse"])
+        self._add_param("replacement_policy", ParameterType.SELECT, "worst",
+                       "Replacement policy", "island_model",
+                       options=["worst", "random", "similar"])
+        self._add_param("island_sizes", ParameterType.LIST, [],
+                       "Custom sizes for each island", "island_model")
+        self._add_param("heterogeneous_islands", ParameterType.BOOLEAN, False,
+                       "Use different algorithms per island", "island_model")
+        self._add_param("synchronous_migration", ParameterType.BOOLEAN, True,
+                       "Synchronize migration timing", "island_model")
+        self._add_param("adaptive_migration", ParameterType.BOOLEAN, False,
+                       "Adapt migration parameters", "island_model")
+        
+        # Additional selection parameters
+        self._add_param("random_ratio", ParameterType.FLOAT, 0.2,
+                       "Ratio for random selection", "selection", min_value=0.0, max_value=1.0)
+        self._add_param("survivor_selection", ParameterType.SELECT, "generational",
+                       "Survivor selection method", "selection",
+                       options=["generational", "steady_state"])
+        self._add_param("replacement_rate", ParameterType.FLOAT, 1.0,
+                       "Population replacement rate", "selection", min_value=0.0, max_value=1.0)
+        self._add_param("selection_pressure_decay", ParameterType.FLOAT, 0.0,
+                       "Selection pressure decay rate", "selection", min_value=0.0, max_value=1.0)
+        self._add_param("diversity_selection", ParameterType.BOOLEAN, False,
+                       "Include diversity in selection", "selection")
+        self._add_param("age_based_selection", ParameterType.BOOLEAN, False,
+                       "Consider individual age", "selection")
+        
+        # Additional evaluation parameters
+        self._add_param("cache_size", ParameterType.INTEGER, 1000,
+                       "Maximum cache size", "evaluation", min_value=100, max_value=10000)
+        self._add_param("evaluation_noise", ParameterType.FLOAT, 0.0,
+                       "Noise level in evaluations", "evaluation", min_value=0.0, max_value=0.5)
+        self._add_param("fitness_scaling", ParameterType.SELECT, "linear",
+                       "Fitness scaling method", "evaluation",
+                       options=["linear", "exponential", "logarithmic"])
+        self._add_param("normalization", ParameterType.BOOLEAN, True,
+                       "Normalize fitness values", "evaluation")
+        self._add_param("multi_criteria_eval", ParameterType.BOOLEAN, False,
+                       "Multi-criteria evaluation", "evaluation")
+        self._add_param("evaluation_budget", ParameterType.INTEGER, 10000,
+                       "Total evaluation budget", "evaluation", min_value=1, max_value=100000)
+        self._add_param("incremental_eval", ParameterType.BOOLEAN, False,
+                       "Incremental evaluation", "evaluation")
+        self._add_param("surrogate_model", ParameterType.BOOLEAN, False,
+                       "Use surrogate model", "evaluation")
+        self._add_param("active_learning", ParameterType.BOOLEAN, False,
+                       "Active learning for evaluation", "evaluation")
+        self._add_param("uncertainty_sampling", ParameterType.BOOLEAN, False,
+                       "Sample uncertain regions", "evaluation")
+        
+        # Additional checkpoint parameter
         self._add_param("checkpoint_interval", ParameterType.INTEGER, 10,
                        "Generations between checkpoints", "resource_management", min_value=1, max_value=1000)
-        self._add_param("memory_limit_mb", ParameterType.INTEGER, 4096,
-                       "Memory limit in MB", "resource_management", min_value=128, max_value=65536)
-        self._add_param("cpu_limit", ParameterType.FLOAT, 0.8,
-                       "CPU limit (fraction)", "resource_management", min_value=0.1, max_value=1.0)
-        self._add_param("distributed", ParameterType.BOOLEAN, False,
-                       "Enable distributed processing", "distributed")
-        self._add_param("num_workers", ParameterType.INTEGER, 4,
-                       "Number of distributed workers", "distributed", min_value=1, max_value=100)
+        
+        # Additional core evolution parameters to reach 211 total
+        self._add_param("adaptive_stopping", ParameterType.BOOLEAN, False,
+                       "Adaptive stopping criteria", "early_stopping")
+        self._add_param("reasoning_effort", ParameterType.SELECT, "medium",
+                       "Reasoning effort level", "core_evolution",
+                       options=["low", "medium", "high"])
+        self._add_param("language", ParameterType.STRING, "python",
+                       "Programming language", "core_evolution")
+        self._add_param("file_suffix", ParameterType.STRING, ".py",
+                       "File extension", "core_evolution")
     
     def _add_param(self, name: str, param_type: ParameterType, default: Any,
                    description: str, category: str, **kwargs):
@@ -506,6 +892,11 @@ class ParameterManager:
     def validate(self, params: Dict[str, Any]) -> ValidationResult:
         """Validate parameters"""
         return self.validator.validate(params)
+    
+    def validate_parameters(self, params: Dict[str, Any]) -> Tuple[bool, List[str]]:
+        """Validate parameters (returns tuple for backward compatibility)"""
+        result = self.validate(params)
+        return result.valid, result.errors
     
     def get_preset(self, name: str) -> Optional[Dict[str, Any]]:
         """Get preset configuration"""

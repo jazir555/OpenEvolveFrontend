@@ -1131,6 +1131,107 @@ class RedTeam:
         
         return min(100.0, (weighted_confidence_sum / total_weight) * 100)
     
+    def assess_content_with_quality_diversity(self, content: str, content_type: str = "general",
+                                            api_key: Optional[str] = None, model_name: str = "gpt-4",
+                                            **kwargs) -> RedTeamAssessment:
+        """
+        Assess content using quality diversity approach (MAP-Elites style).
+        This method explores diverse critique strategies to find a wide range of issues.
+        
+        Args:
+            content: Content to assess
+            content_type: Type of content being assessed
+            api_key: API key for LLM calls
+            model_name: Model to use for assessment
+            **kwargs: Additional parameters
+            
+        Returns:
+            RedTeamAssessment with diverse findings
+        """
+        start_time = time.time()
+        
+        # Use multiple strategies to get diverse findings
+        strategies = [
+            RedTeamStrategy.SYSTEMATIC,
+            RedTeamStrategy.FOCUSED_ATTACK,
+            RedTeamStrategy.DEEP_DIVE,
+            RedTeamStrategy.ADVERSARIAL
+        ]
+        
+        all_findings = []
+        strategy_results = {}
+        
+        for strategy in strategies:
+            try:
+                # Create a temporary member with this strategy
+                temp_member = RedTeamMember(
+                    name=f"QD_{strategy.value}",
+                    specializations=list(IssueCategory),
+                    attack_method=strategy
+                )
+                
+                # Get findings using this strategy
+                strategy_findings = temp_member.assess_content(content, content_type)
+                all_findings.extend(strategy_findings)
+                strategy_results[strategy.value] = len(strategy_findings)
+                
+            except Exception as e:
+                print(f"Error in strategy {strategy.value}: {e}")
+                continue
+        
+        # Remove duplicate findings (same title and location)
+        unique_findings = []
+        seen_issues = set()
+        
+        for finding in all_findings:
+            issue_key = (finding.title, finding.location)
+            if issue_key not in seen_issues:
+                unique_findings.append(finding)
+                seen_issues.add(issue_key)
+        
+        # Calculate diversity metrics
+        categories_found = set(f.category for f in unique_findings)
+        severities_found = set(f.severity for f in unique_findings)
+        
+        # Create assessment summary
+        summary = f"Quality Diversity Assessment found {len(unique_findings)} unique issues across {len(categories_found)} categories using {len(strategies)} strategies."
+        
+        # Calculate confidence based on diversity
+        diversity_score = (len(categories_found) / len(IssueCategory)) * 0.5 + (len(severities_found) / len(SeverityLevel)) * 0.5
+        confidence = min(0.95, 0.7 + diversity_score * 0.25)
+        
+        # Create metadata
+        metadata = {
+            "strategies_used": [s.value for s in strategies],
+            "strategy_results": strategy_results,
+            "diversity_metrics": {
+                "categories_covered": len(categories_found),
+                "severities_covered": len(severities_found),
+                "diversity_score": diversity_score
+            },
+            "quality_diversity_approach": True
+        }
+        
+        # Count issues by severity and category
+        issues_by_severity = {}
+        issues_by_category = {}
+        
+        for severity in SeverityLevel:
+            issues_by_severity[severity] = sum(1 for f in unique_findings if f.severity == severity)
+            
+        for category in IssueCategory:
+            issues_by_category[category] = sum(1 for f in unique_findings if f.category == category)
+        
+        return RedTeamAssessment(
+            findings=unique_findings,
+            assessment_summary=summary,
+            confidence_score=confidence,
+            time_taken=time.time() - start_time,
+            assessment_metadata=metadata,
+            issues_by_severity=issues_by_severity,
+            issues_by_category=issues_by_category
+        )
+    
     def _create_assessment_summary(self, findings: List[IssueFinding], content_type: str) -> str:
         """Create a summary of the assessment"""
         if not findings:

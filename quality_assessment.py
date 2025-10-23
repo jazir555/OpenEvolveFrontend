@@ -1435,8 +1435,7 @@ The system implements proper error handling with try-catch blocks. Any validatio
 if __name__ == "__main__":
     test_quality_assessment_engine()
 
-def 
-assess_with_ensemble(content: str, api_key: str, num_evaluators: int = 5) -> Dict[str, Any]:
+def assess_with_ensemble(content: str, api_key: str, num_evaluators: int = 5) -> Dict[str, Any]:
     """Assess quality using ensemble of evaluators via OpenEvolve"""
     try:
         from openevolve_client import OpenEvolveClient

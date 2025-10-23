@@ -11,7 +11,8 @@ from collaboration_manager import collaboration_manager
 from version_control import version_control
 from analytics_manager import analytics_manager
 from export_import_manager import export_import_manager
-from template_manager import template_manager
+from template_manager import TemplateManager
+template_manager = TemplateManager()
 from validation_manager import validation_manager
 from session_utils import (
     reset_defaults,

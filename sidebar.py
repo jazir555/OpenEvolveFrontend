@@ -2,6 +2,7 @@ import streamlit as st
 from providercatalogue import get_providers
 from session_utils import reset_defaults, save_user_preferences
 from openevolve_integration import OpenEvolveAPI
+from parameter_manager import ParameterManager, ParameterType
 import json
 import os
 import sys
@@ -14,39 +15,58 @@ import logging
 # Configure logging for this module
 logger = logging.getLogger(__name__)
 
-# It's good practice to define default parameter functions
+# Initialize parameter manager
+@st.cache_resource
+def get_parameter_manager():
+    """Get cached parameter manager instance"""
+    return ParameterManager()
+
+# Parameter management using ParameterManager
 def get_default_generation_params():
     """Returns a dictionary of default generation parameters."""
-    return {
-        "temperature": 0.7,
-        "top_p": 1.0,
-        "frequency_penalty": 0.0,
-        "presence_penalty": 0.0,
-        "max_tokens": 4096,
-        "seed": 42,
+    param_manager = get_parameter_manager()
+    defaults = param_manager.get_defaults()
+    
+    # Filter for generation-related parameters
+    generation_params = {}
+    for name, param in param_manager.schema.parameters.items():
+        if param.category in ["core_evolution", "model_config"] and name in [
+            "temperature", "top_p", "frequency_penalty", "presence_penalty", 
+            "max_tokens", "seed", "api_timeout", "api_retries"
+        ]:
+            generation_params[name] = defaults[name]
+    
+    # Add legacy parameters for backward compatibility
+    generation_params.update({
         "reasoning_effort": "medium",
-    }
+    })
+    
+    return generation_params
 
 
 def get_default_evolution_params():
     """Returns a dictionary of default evolution parameters."""
-    return {
-        "max_iterations": 100,
-        "population_size": 10,
-        "num_islands": 1,
-        "migration_interval": 50,
-        "migration_rate": 0.1,
-        "archive_size": 100,
-        "elite_ratio": 0.1,
-        "exploration_ratio": 0.2,
-        "exploitation_ratio": 0.7,
-        "checkpoint_interval": 10,
+    param_manager = get_parameter_manager()
+    defaults = param_manager.get_defaults()
+    
+    # Filter for evolution-related parameters
+    evolution_params = {}
+    for name, param in param_manager.schema.parameters.items():
+        if param.category in ["core_evolution", "quality_diversity", "island_model", "selection"] and name in [
+            "max_iterations", "population_size", "num_islands", "migration_interval", 
+            "migration_rate", "archive_size", "elite_ratio", "exploration_ratio", 
+            "exploitation_ratio", "checkpoint_interval", "feature_dimensions", 
+            "feature_bins", "diversity_metric"
+        ]:
+            evolution_params[name] = defaults[name]
+    
+    # Add legacy parameters for backward compatibility
+    evolution_params.update({
         "language": "python",
         "file_suffix": ".py",
-        "feature_dimensions": ["complexity", "diversity"],
-        "feature_bins": 10,
-        "diversity_metric": "edit_distance",
-    }
+    })
+    
+    return evolution_params
 
 def get_project_root():
     """
@@ -67,12 +87,14 @@ def load_settings_for_scope():
     """
     Loads parameters into session_state for the UI based on the selected scope.
     It applies settings hierarchically: Global -> Provider -> Model.
+    Uses ParameterManager for validation and defaults.
     """
+    param_manager = get_parameter_manager()
     scope = st.session_state.get("settings_scope", "Global")
     provider = st.session_state.get("provider")
     model = st.session_state.get("model")
 
-    # Start with base defaults
+    # Start with base defaults from ParameterManager
     gen_params = get_default_generation_params()
     evo_params = get_default_evolution_params()
 
@@ -103,6 +125,19 @@ def load_settings_for_scope():
         )
         gen_params.update(model_settings.get("generation", {}))
         evo_params.update(model_settings.get("evolution", {}))
+
+    # Validate parameters using ParameterManager
+    all_params = {**gen_params, **evo_params}
+    validation_result = param_manager.validate(all_params)
+    
+    if not validation_result.valid:
+        logger.warning(f"Parameter validation errors: {validation_result.errors}")
+        # Show warnings in UI but continue with corrected values
+        for error in validation_result.errors[:3]:  # Show max 3 errors
+            st.warning(f"Parameter issue: {error}")
+    
+    if validation_result.warnings:
+        logger.info(f"Parameter validation warnings: {validation_result.warnings}")
 
     # Update session_state for UI widgets
     for key, value in gen_params.items():
@@ -420,6 +455,91 @@ def display_sidebar():
 
 
 
+        # PARAMETER PRESETS
+        st.subheader("Parameter Presets")
+        param_manager = get_parameter_manager()
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown(create_tooltip_html("Load Preset", "Load a predefined parameter configuration"), unsafe_allow_html=True)
+            preset_options = ["None"] + param_manager.list_presets()
+            selected_preset = st.selectbox(
+                "Load Preset",
+                preset_options,
+                key="selected_preset",
+                label_visibility="hidden"
+            )
+            
+            if st.button("Apply Preset", disabled=(selected_preset == "None")):
+                if selected_preset != "None":
+                    preset_params = param_manager.get_preset(selected_preset)
+                    if preset_params:
+                        # Update session state with preset values
+                        for key, value in preset_params.items():
+                            st.session_state[key] = value
+                        st.success(f"Applied preset: {selected_preset}")
+                        st.rerun()
+                    else:
+                        st.error(f"Failed to load preset: {selected_preset}")
+        
+        with col2:
+            st.markdown(create_tooltip_html("Save Configuration", "Save current parameters as a custom configuration"), unsafe_allow_html=True)
+            config_name = st.text_input(
+                "Configuration Name",
+                key="config_name_input",
+                label_visibility="hidden",
+                placeholder="Enter config name..."
+            )
+            
+            if st.button("Save Config", disabled=(not config_name)):
+                if config_name:
+                    # Collect current parameters
+                    current_params = {}
+                    for param_name in param_manager.schema.parameters.keys():
+                        if param_name in st.session_state:
+                            current_params[param_name] = st.session_state[param_name]
+                    
+                    try:
+                        param_manager.save_config(config_name, current_params)
+                        st.success(f"Configuration '{config_name}' saved!")
+                    except Exception as e:
+                        st.error(f"Failed to save configuration: {e}")
+
+        # Load saved configurations
+        saved_configs = param_manager.list_configs()
+        if saved_configs:
+            st.markdown(create_tooltip_html("Saved Configurations", "Load or delete your saved configurations"), unsafe_allow_html=True)
+            selected_config = st.selectbox(
+                "Saved Configurations",
+                ["None"] + saved_configs,
+                key="selected_saved_config",
+                label_visibility="hidden"
+            )
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("Load Config", disabled=(selected_config == "None")):
+                    if selected_config != "None":
+                        config_params = param_manager.load_config(selected_config)
+                        if config_params:
+                            for key, value in config_params.items():
+                                st.session_state[key] = value
+                            st.success(f"Loaded configuration: {selected_config}")
+                            st.rerun()
+                        else:
+                            st.error(f"Failed to load configuration: {selected_config}")
+            
+            with col2:
+                if st.button("Delete Config", disabled=(selected_config == "None")):
+                    if selected_config != "None":
+                        if param_manager.delete_config(selected_config):
+                            st.success(f"Deleted configuration: {selected_config}")
+                            st.rerun()
+                        else:
+                            st.error(f"Failed to delete configuration: {selected_config}")
+
+        st.markdown("---")
+
         # SETTINGS SCOPE SELECTOR
         st.subheader("Parameter Scope")
         st.markdown(create_tooltip_html("Settings Level", "Select the scope for viewing and saving parameters. Settings are inherited from Global -> Provider -> Model."), unsafe_allow_html=True)
@@ -457,6 +577,7 @@ def display_sidebar():
             )
             if st.form_submit_button("Apply Generation Parameters"):
                 try:
+                    param_manager = get_parameter_manager()
                     scope = st.session_state.settings_scope
                     provider = st.session_state.get("provider")
                     model = st.session_state.get("model")
@@ -470,6 +591,13 @@ def display_sidebar():
                         "seed": st.session_state.seed,
                         "reasoning_effort": st.session_state.reasoning_effort,
                     }
+                    
+                    # Validate parameters before saving
+                    validation_result = param_manager.validate(gen_settings_to_save)
+                    if not validation_result.valid:
+                        for error in validation_result.errors:
+                            st.error(f"Validation error: {error}")
+                        return
 
                     if scope == "Global":
                         st.session_state.parameter_settings["global"][
@@ -583,6 +711,7 @@ def display_sidebar():
             )
             if st.form_submit_button("Apply Evolution Parameters"):
                 try:
+                    param_manager = get_parameter_manager()
                     scope = st.session_state.settings_scope
                     provider = st.session_state.get("provider")
                     model = st.session_state.get("model")
@@ -600,10 +729,17 @@ def display_sidebar():
                         "checkpoint_interval": st.session_state.checkpoint_interval,
                         "language": st.session_state.language,
                         "file_suffix": st.session_state.file_suffix,
-                        "feature_dimensions": st.session_state.feature_dimensions,
+                        "feature_dimensions": st.session_state.get("feature_dimensions_sidebar", []),
                         "feature_bins": st.session_state.feature_bins,
                         "diversity_metric": st.session_state.diversity_metric,
                     }
+                    
+                    # Validate parameters before saving
+                    validation_result = param_manager.validate(evo_settings_to_save)
+                    if not validation_result.valid:
+                        for error in validation_result.errors:
+                            st.error(f"Validation error: {error}")
+                        return
 
                     if scope == "Global":
                         st.session_state.parameter_settings["global"][
@@ -1113,6 +1249,87 @@ def display_sidebar():
             )
             st.session_state.max_retries_eval = max_retries_eval
 
+        # Configuration Export/Import
+        st.markdown("---")
+        st.subheader("📤 Export/Import")
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("Export Config"):
+                # Collect all current parameters
+                current_params = {}
+                for param_name in param_manager.schema.parameters.keys():
+                    if param_name in st.session_state:
+                        current_params[param_name] = st.session_state[param_name]
+                
+                # Create downloadable JSON
+                config_json = json.dumps(current_params, indent=2)
+                st.download_button(
+                    label="Download Configuration",
+                    data=config_json,
+                    file_name="openevolve_config.json",
+                    mime="application/json"
+                )
+        
+        with col2:
+            uploaded_file = st.file_uploader(
+                "Import Config",
+                type=['json'],
+                key="config_import"
+            )
+            
+            if uploaded_file is not None:
+                try:
+                    config_data = json.load(uploaded_file)
+                    validation_result = param_manager.validate(config_data)
+                    
+                    if validation_result.valid:
+                        # Apply imported configuration
+                        for key, value in config_data.items():
+                            st.session_state[key] = value
+                        st.success("Configuration imported successfully!")
+                        st.rerun()
+                    else:
+                        st.error("Invalid configuration file")
+                        for error in validation_result.errors[:3]:
+                            st.error(error)
+                except Exception as e:
+                    st.error(f"Failed to import configuration: {e}")
+
+        # Parameter Browser
+        st.markdown("---")
+        st.subheader("📋 Parameter Browser")
+        param_manager = get_parameter_manager()
+        
+        # Category filter
+        categories = ["All"] + param_manager.get_categories()
+        selected_category = st.selectbox(
+            "Filter by Category",
+            categories,
+            key="param_browser_category"
+        )
+        
+        # Show parameters in selected category
+        if selected_category == "All":
+            params_to_show = list(param_manager.schema.parameters.values())
+        else:
+            params_to_show = param_manager.get_parameters_by_category(selected_category)
+        
+        if params_to_show:
+            with st.expander(f"Parameters ({len(params_to_show)})", expanded=False):
+                for param in params_to_show[:10]:  # Show first 10 to avoid UI clutter
+                    current_value = st.session_state.get(param.name, param.default)
+                    st.caption(f"**{param.name}**: {param.description}")
+                    st.caption(f"Type: {param.type.value}, Default: {param.default}, Current: {current_value}")
+                    if param.min_value is not None or param.max_value is not None:
+                        st.caption(f"Range: {param.min_value} - {param.max_value}")
+                    if param.options:
+                        st.caption(f"Options: {', '.join(param.options)}")
+                    st.markdown("---")
+                
+                if len(params_to_show) > 10:
+                    st.caption(f"... and {len(params_to_show) - 10} more parameters")
+
         # Add button to access visualization dashboard
         st.markdown("---")
         st.subheader("📊 Visualization & Analytics")
@@ -1120,12 +1337,44 @@ def display_sidebar():
             st.session_state.page = "openevolve_dashboard"
             st.rerun()
 
+        # Parameter validation status
+        st.markdown("---")
+        st.subheader("🔍 Parameter Validation")
+        param_manager = get_parameter_manager()
+        
+        # Collect current parameters for validation
+        current_params = {}
+        for param_name in param_manager.schema.parameters.keys():
+            if param_name in st.session_state:
+                current_params[param_name] = st.session_state[param_name]
+        
+        validation_result = param_manager.validate(current_params)
+        
+        if validation_result.valid:
+            st.success("✅ All parameters are valid")
+        else:
+            st.error(f"❌ {len(validation_result.errors)} validation errors")
+            with st.expander("View Validation Issues"):
+                for error in validation_result.errors:
+                    st.error(error)
+                for warning in validation_result.warnings:
+                    st.warning(warning)
+        
+        # Parameter statistics
+        total_params = len(param_manager.schema.parameters)
+        configured_params = len(current_params)
+        st.caption(f"Parameters configured: {configured_params}/{total_params}")
+        
+        # Categories breakdown
+        categories = param_manager.get_categories()
+        st.caption(f"Categories: {len(categories)} ({', '.join(categories[:3])}{'...' if len(categories) > 3 else ''})")
+
         # Status information
         st.markdown("---")
         st.subheader("ℹ️ Status")
-        st.caption(f"Active Project: {st.session_state.project_name}")
+        st.caption(f"Active Project: {st.session_state.get('project_name', 'Unnamed')}")
         st.caption("Content Type: Auto-detected")
-        st.caption(f"Evolution Running: {st.session_state.evolution_running}")
-        st.caption(f"Adversarial Running: {st.session_state.adversarial_running}")
+        st.caption(f"Evolution Running: {st.session_state.get('evolution_running', False)}")
+        st.caption(f"Adversarial Running: {st.session_state.get('adversarial_running', False)}")
         st.caption(f"OpenEvolve Available: {st.session_state.get('openevolve_available', False)}")
         st.caption(f"Advanced Modes: QD={st.session_state.get('enable_qd_evolution', False)}, MO={st.session_state.get('enable_multi_objective', False)}")
