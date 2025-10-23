@@ -2,6 +2,18 @@
 import requests
 from typing import Dict, Any, Optional, List
 
+def _compose_messages(system_message: str, user_message: str) -> List[Dict[str, str]]:
+    """Helper function to compose messages in the format expected by OpenAI-compatible chat APIs.
+
+    Args:
+        system_message (str): The system message to set the context or role of the AI.
+        user_message (str): The user's message or prompt.
+
+    Returns:
+        List[Dict[str, str]]: A list of message dictionaries.
+    """
+    return [{"role": "system", "content": system_message}, {"role": "user", "content": user_message}]
+
 def _request_openai_compatible_chat(
     api_key: str,
     base_url: str,

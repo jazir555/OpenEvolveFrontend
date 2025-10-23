@@ -120,11 +120,13 @@ class EvaluatorMember:
     """Individual evaluator team member with specific expertise"""
     
     def __init__(self, evaluator_id: str, specializations: List[EvaluationMetric], 
-                 expertise_level: int = 7, evaluation_philosophy: str = "balanced"):
+                 expertise_level: int = 7, evaluation_philosophy: str = "balanced",
+                 orchestrator: Optional[Any] = None):
         self.evaluator_id = evaluator_id
         self.specializations = specializations
         self.expertise_level = expertise_level  # 1-10 scale
         self.evaluation_philosophy = evaluation_philosophy  # e.g., "strict", "lenient", "balanced"
+        self.orchestrator = orchestrator  # Optional orchestrator for API access
         self.performance_history: List[Dict[str, Any]] = []
         self.reliability_score = 0.9  # Base reliability
         self.bias_profile: Dict[str, float] = {}  # Track evaluator biases

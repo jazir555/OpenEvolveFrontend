@@ -777,31 +777,256 @@ if __name__ == "__main__":
     test_content_analyzer()
 
 
-def analyze_with_quality_diversity(content: str, api_key: str, feature_dimensions: List[str]) -> Dict[str, Any]:
-    """Analyze content using quality diversity to get diverse perspectives"""
+def analyze_with_quality_diversity(
+    content: str,
+    api_key: str,
+    feature_dimensions: Optional[List[str]] = None,
+    max_iterations: int = 20,
+    population_size: int = 30,
+    archive_size: int = 100
+) -> Dict[str, Any]:
+    """Analyze content using quality diversity to get diverse analytical perspectives
+    
+    This function uses MAP-Elites quality diversity evolution to generate a diverse
+    set of content analyses, each focusing on different aspects or perspectives.
+    
+    Args:
+        content: Content to analyze
+        api_key: API key for OpenEvolve
+        feature_dimensions: Dimensions for diversity (e.g., ['technical_depth', 'readability', 'completeness'])
+        max_iterations: Maximum evolution iterations
+        population_size: Population size for evolution
+        archive_size: Size of the quality diversity archive
+        
+    Returns:
+        Dictionary with diverse analyses and metrics
+    """
     try:
         from openevolve_client import OpenEvolveClient
         
+        # Default feature dimensions if not provided
+        if feature_dimensions is None:
+            feature_dimensions = [
+                'technical_depth',
+                'readability_focus',
+                'completeness_coverage',
+                'critical_perspective'
+            ]
+        
         client = OpenEvolveClient(api_key=api_key)
         
-        analysis_prompt = f"""Analyze this content from multiple perspectives:
+        # Create comprehensive analysis prompt
+        analysis_prompt = f"""Analyze the following content from multiple diverse perspectives.
+Each analysis should focus on different aspects while maintaining high quality.
 
-{content}
+Content to analyze:
+---
+{content[:2000]}  # Limit content length
+---
 
-Provide diverse analyses focusing on: {', '.join(feature_dimensions)}"""
+Feature dimensions to explore:
+{', '.join(feature_dimensions)}
+
+Provide a comprehensive analysis that covers:
+1. Technical accuracy and depth
+2. Readability and clarity
+3. Completeness and coverage
+4. Critical evaluation and potential issues
+5. Recommendations for improvement
+
+Your analysis should be thorough yet concise."""
         
+        # Run quality diversity evolution
         result = client.evolve(
             content=analysis_prompt,
             evolution_mode="quality_diversity",
-            max_iterations=10,
-            population_size=20,
+            max_iterations=max_iterations,
+            population_size=population_size,
             feature_dimensions=feature_dimensions,
-            archive_size=50
+            archive_size=archive_size,
+            feature_bins=10,
+            diversity_metric='semantic'
         )
         
-        return {
-            'diverse_analyses': result.get('archive', []),
-            'metrics': result.get('metrics', {})
+        # Extract diverse analyses from archive
+        archive = result.get('archive', [])
+        
+        # Organize analyses by behavior characteristics
+        analyses_by_dimension = {}
+        for dim in feature_dimensions:
+            analyses_by_dimension[dim] = []
+        
+        for entry in archive:
+            behavior = entry.get('behavior', {})
+            # Find dominant dimension
+            if behavior:
+                dominant_dim = max(behavior.items(), key=lambda x: x[1])[0]
+                if dominant_dim in analyses_by_dimension:
+                    analyses_by_dimension[dominant_dim].append({
+                        'analysis': entry.get('content', ''),
+                        'fitness': entry.get('fitness', 0),
+                        'behavior': behavior
+                    })
+        
+        # Get top analyses for each dimension
+        top_analyses = {}
+        for dim, analyses in analyses_by_dimension.items():
+            if analyses:
+                # Sort by fitness and take top 3
+                sorted_analyses = sorted(analyses, key=lambda x: x['fitness'], reverse=True)
+                top_analyses[dim] = sorted_analyses[:3]
+        
+        # Calculate diversity metrics
+        diversity_metrics = {
+            'archive_size': len(archive),
+            'coverage': len(archive) / archive_size if archive_size > 0 else 0,
+            'dimensions_covered': len([d for d in analyses_by_dimension.values() if d]),
+            'avg_fitness': sum(e.get('fitness', 0) for e in archive) / len(archive) if archive else 0,
+            'best_fitness': max((e.get('fitness', 0) for e in archive), default=0)
         }
+        
+        return {
+            'success': True,
+            'diverse_analyses': archive,
+            'analyses_by_dimension': top_analyses,
+            'diversity_metrics': diversity_metrics,
+            'feature_dimensions': feature_dimensions,
+            'evolution_metrics': result.get('metrics', {})
+        }
+        
     except Exception as e:
-        return {'error': str(e)}
+        import traceback
+        return {
+            'success': False,
+            'error': str(e),
+            'traceback': traceback.format_exc()
+        }
+
+
+def get_diverse_analysis_perspectives(
+    content: str,
+    num_perspectives: int = 5
+) -> List[Dict[str, Any]]:
+    """Get diverse analytical perspectives on content without OpenEvolve
+    
+    This is a fallback function that provides diverse perspectives using
+    rule-based analysis when OpenEvolve is not available.
+    
+    Args:
+        content: Content to analyze
+        num_perspectives: Number of different perspectives to generate
+        
+    Returns:
+        List of analysis perspectives
+    """
+    analyzer = ContentAnalyzer()
+    base_analysis = analyzer.analyze_content(content)
+    
+    perspectives = []
+    
+    # Perspective 1: Technical/Structural
+    perspectives.append({
+        'name': 'Technical Structure',
+        'focus': 'technical_depth',
+        'analysis': {
+            'complexity': base_analysis.input_parsing.get('complexity_score', 0),
+            'structure': base_analysis.pattern_recognition.get('structure_patterns', []),
+            'technical_terms': base_analysis.semantic_understanding.get('key_terms', [])[:10]
+        },
+        'score': base_analysis.overall_score
+    })
+    
+    # Perspective 2: Readability/Clarity
+    perspectives.append({
+        'name': 'Readability & Clarity',
+        'focus': 'readability_focus',
+        'analysis': {
+            'readability_score': base_analysis.semantic_understanding.get('readability_score', 0),
+            'sentence_complexity': base_analysis.input_parsing.get('avg_sentence_length', 0),
+            'clarity_issues': [issue for issue in base_analysis.issues_found if 'clarity' in issue.get('type', '').lower()]
+        },
+        'score': base_analysis.semantic_understanding.get('readability_score', 50) / 100
+    })
+    
+    # Perspective 3: Completeness
+    perspectives.append({
+        'name': 'Completeness & Coverage',
+        'focus': 'completeness_coverage',
+        'analysis': {
+            'sections_found': len(base_analysis.pattern_recognition.get('structure_patterns', [])),
+            'missing_elements': base_analysis.recommendations[:5],
+            'coverage_score': 1.0 - (len(base_analysis.issues_found) / 10)  # Rough estimate
+        },
+        'score': 1.0 - (len(base_analysis.issues_found) / 10)
+    })
+    
+    # Perspective 4: Critical Evaluation
+    perspectives.append({
+        'name': 'Critical Evaluation',
+        'focus': 'critical_perspective',
+        'analysis': {
+            'issues_found': len(base_analysis.issues_found),
+            'critical_issues': base_analysis.issues_found[:5],
+            'risk_level': 'high' if len(base_analysis.issues_found) > 5 else 'medium' if len(base_analysis.issues_found) > 2 else 'low'
+        },
+        'score': max(0, 1.0 - (len(base_analysis.issues_found) / 20))
+    })
+    
+    # Perspective 5: Semantic Understanding
+    perspectives.append({
+        'name': 'Semantic Understanding',
+        'focus': 'semantic_depth',
+        'analysis': {
+            'key_concepts': base_analysis.semantic_understanding.get('key_terms', [])[:10],
+            'sentiment': base_analysis.semantic_understanding.get('sentiment', 'neutral'),
+            'domain': base_analysis.metadata_extraction.get('content_type', 'general')
+        },
+        'score': base_analysis.overall_score
+    })
+    
+    return perspectives[:num_perspectives]
+
+
+def compare_analyses(analyses: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Compare multiple analyses to identify consensus and disagreements
+    
+    Args:
+        analyses: List of analysis results to compare
+        
+    Returns:
+        Dictionary with comparison results
+    """
+    if not analyses:
+        return {'error': 'No analyses to compare'}
+    
+    # Extract scores
+    scores = [a.get('score', 0) for a in analyses if 'score' in a]
+    
+    # Calculate consensus metrics
+    avg_score = sum(scores) / len(scores) if scores else 0
+    score_variance = sum((s - avg_score) ** 2 for s in scores) / len(scores) if scores else 0
+    score_std = score_variance ** 0.5
+    
+    # Determine consensus level
+    if score_std < 0.1:
+        consensus_level = 'high'
+    elif score_std < 0.2:
+        consensus_level = 'medium'
+    else:
+        consensus_level = 'low'
+    
+    # Find common themes
+    all_focuses = [a.get('focus', '') for a in analyses if 'focus' in a]
+    focus_counts = {}
+    for focus in all_focuses:
+        focus_counts[focus] = focus_counts.get(focus, 0) + 1
+    
+    return {
+        'num_analyses': len(analyses),
+        'avg_score': avg_score,
+        'score_std': score_std,
+        'consensus_level': consensus_level,
+        'score_range': (min(scores), max(scores)) if scores else (0, 0),
+        'focus_distribution': focus_counts,
+        'agreement': consensus_level == 'high'
+    }

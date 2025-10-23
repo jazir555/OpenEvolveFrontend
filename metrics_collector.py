@@ -6,6 +6,8 @@ Tracks evolution performance, resource usage, and quality metrics
 import time
 import json
 import csv
+import logging
+import threading
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -26,12 +28,14 @@ class EvolutionMetrics:
     best_fitness: float
     final_fitness: float
     fitness_improvement: float
-    convergence_iteration: Optional[int] = None
     
     # Population metrics
     population_size: int
     population_diversity: float
     elite_count: int
+    
+    # Optional evolution metrics
+    convergence_iteration: Optional[int] = None
     
     # Quality Diversity metrics
     archive_size: Optional[int] = None
@@ -70,6 +74,31 @@ class EvolutionMetrics:
     
     # Additional metadata
     metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class OperationMetrics:
+    """Metrics for tracking an active operation"""
+    operation_id: str
+    start_time: float
+    evolution_mode: str
+    max_iterations: int
+    population_size: int
+    content_type: str = ""
+    file_name: str = ""
+    component: str = ""
+    user_id: Optional[str] = None
+    session_id: Optional[str] = None
+    end_time: Optional[float] = None
+    status: str = "running"
+    current_iteration: int = 0
+    best_fitness: float = 0.0
+    metrics: Dict[str, Any] = field(default_factory=dict)
+    
+    def finalize(self):
+        """Finalize the operation metrics"""
+        self.end_time = time.time()
+        self.status = "completed"
 
 
 @dataclass
@@ -148,6 +177,10 @@ class MetricsStore:
 
 class MetricsAggregator:
     """Aggregates metrics across operations"""
+    
+    def __init__(self, store=None):
+        """Initialize aggregator with optional store"""
+        self.store = store
     
     def aggregate(self, metrics_list: List[EvolutionMetrics]) -> AggregatedMetrics:
         """Aggregate metrics"""
@@ -238,6 +271,10 @@ class MetricsAggregator:
 
 class MetricsExporter:
     """Exports metrics in various formats"""
+    
+    def __init__(self, store=None):
+        """Initialize exporter with optional store"""
+        self.store = store
     
     def export_json(self, metrics_list: List[EvolutionMetrics]) -> str:
         """Export metrics as JSON"""
@@ -533,8 +570,22 @@ class MetricsCollector:
             metrics = self._active_operations.pop(operation_id)
             metrics.finalize()
             
-            # Store in database
-            self.store.store_metrics(metrics)
+            # Convert to EvolutionMetrics and store
+            evolution_metrics = EvolutionMetrics(
+                operation_id=metrics.operation_id,
+                timestamp=metrics.start_time,
+                evolution_mode=metrics.evolution_mode,
+                content_type=metrics.content_type,
+                iterations_completed=metrics.current_iteration,
+                best_fitness=metrics.best_fitness,
+                final_fitness=metrics.best_fitness,
+                fitness_improvement=metrics.best_fitness,
+                population_size=metrics.population_size,
+                population_diversity=0.5,  # Default value
+                elite_count=int(metrics.population_size * 0.1),  # Default 10%
+                duration=(metrics.end_time or time.time()) - metrics.start_time
+            )
+            self.store.add(evolution_metrics)
             
             self.logger.info(f"Completed tracking operation {operation_id}")
             return metrics
@@ -562,12 +613,21 @@ class MetricsCollector:
         end_time: Optional[float] = None
     ) -> AggregatedMetrics:
         """Aggregate metrics with filters"""
-        return self.aggregator.aggregate(
-            evolution_mode=evolution_mode,
-            component=component,
-            start_time=start_time,
-            end_time=end_time
-        )
+        # Get all metrics from store
+        all_metrics = self.store.get_all()
+        
+        # Apply filters
+        filtered_metrics = all_metrics
+        if evolution_mode:
+            filtered_metrics = [m for m in filtered_metrics if m.evolution_mode == evolution_mode]
+        if component:
+            filtered_metrics = [m for m in filtered_metrics if m.metadata.get('component') == component]
+        if start_time:
+            filtered_metrics = [m for m in filtered_metrics if m.timestamp >= start_time]
+        if end_time:
+            filtered_metrics = [m for m in filtered_metrics if m.timestamp <= end_time]
+        
+        return self.aggregator.aggregate(filtered_metrics)
     
     def export_json(
         self,
@@ -578,13 +638,18 @@ class MetricsCollector:
         end_time: Optional[float] = None
     ):
         """Export metrics to JSON"""
-        self.exporter.export_json(
-            filepath=filepath,
-            evolution_mode=evolution_mode,
-            component=component,
-            start_time=start_time,
-            end_time=end_time
-        )
+        # Get filtered metrics
+        all_metrics = self.store.get_all()
+        filtered_metrics = all_metrics
+        if evolution_mode:
+            filtered_metrics = [m for m in filtered_metrics if m.evolution_mode == evolution_mode]
+        
+        # Export to JSON string
+        json_data = self.exporter.export_json(filtered_metrics)
+        
+        # Write to file
+        with open(filepath, 'w') as f:
+            f.write(json_data)
     
     def export_csv(
         self,
@@ -595,13 +660,18 @@ class MetricsCollector:
         end_time: Optional[float] = None
     ):
         """Export metrics to CSV"""
-        self.exporter.export_csv(
-            filepath=filepath,
-            evolution_mode=evolution_mode,
-            component=component,
-            start_time=start_time,
-            end_time=end_time
-        )
+        # Get filtered metrics
+        all_metrics = self.store.get_all()
+        filtered_metrics = all_metrics
+        if evolution_mode:
+            filtered_metrics = [m for m in filtered_metrics if m.evolution_mode == evolution_mode]
+        
+        # Export to CSV string
+        csv_data = self.exporter.export_csv(filtered_metrics)
+        
+        # Write to file
+        with open(filepath, 'w') as f:
+            f.write(csv_data)
     
     def export_excel(self, filepath: str, aggregated: AggregatedMetrics):
         """Export aggregated metrics to Excel"""

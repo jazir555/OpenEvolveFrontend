@@ -17,8 +17,8 @@ import random
 import copy
 import difflib
 
-from .llm_utils import _request_openai_compatible_chat, _compose_messages
-from .content_analyzer import ContentAnalyzer
+from llm_utils import _request_openai_compatible_chat, _compose_messages
+from content_analyzer import ContentAnalyzer
 
 # Import OpenEvolve components for enhanced functionality
 try:
@@ -31,10 +31,10 @@ except ImportError:
     OPENEVOLVE_AVAILABLE = False
     print("OpenEvolve backend not available - using fallback implementation")
 
-from .prompt_engineering import PromptEngineeringSystem
-from .model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTeam
-from .quality_assessment import QualityAssessmentEngine, SeverityLevel
-from .red_team import RedTeam, RedTeamAssessment, IssueFinding, IssueCategory
+from prompt_engineering import PromptEngineeringSystem
+from model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTeam
+from quality_assessment import QualityAssessmentEngine, SeverityLevel
+from red_team import RedTeam, RedTeamAssessment, IssueFinding, IssueCategory
 
 class FixPriority(Enum):
     """Priority levels for fixes"""
