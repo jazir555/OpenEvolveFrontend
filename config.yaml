@@ -1,0 +1,103 @@
+# OpenEvolve General Configuration
+
+llm:
+  # Default models for different providers
+  anthropic_default_model: "claude-sonnet-4-20250514"
+  openai_default_model: "gpt-4o-mini"
+  google_default_model: "gemini-2.0-flash"
+
+  # General LLM settings for KnowledgeEngine and CodeIndexer
+  model_provider: "openai" # Can be "openai", "anthropic", "google"
+  system_prompt: "You are a helpful assistant."
+  temperature: 0.3
+  max_tokens: 1000
+  compress_max_tokens: 500
+  compress_temperature: 0.3
+  verbose_output: False # Set to True for more detailed LLM output in logs
+
+# CodeIndexer specific configurations
+indexer:
+  paths:
+    # These paths are relative to the project root unless specified otherwise
+    code_base_path: "code_base"
+    output_dir: "indexes"
+  
+  file_analysis:
+    supported_extensions:
+      - ".py"
+      - ".js"
+      - ".ts"
+      - ".java"
+      - ".cpp"
+      - ".c"
+      - ".h"
+      - ".hpp"
+      - ".cs"
+      - ".php"
+      - ".rb"
+      - ".go"
+      - ".rs"
+      - ".scala"
+      - ".kt"
+      - ".swift"
+      - ".m"
+      - ".mm"
+      - ".r"
+      - ".matlab"
+      - ".sql"
+      - ".sh"
+      - ".bat"
+      - ".ps1"
+      - ".yaml"
+      - ".yml"
+      - ".json"
+      - ".xml"
+      - ".toml"
+    skip_directories:
+      - "__pycache__"
+      - "node_modules"
+      - "target"
+      - "build"
+      - "dist"
+      - "venv"
+      - "env"
+      - ".git" # Added to prevent indexing git directory
+    max_file_size: 1048576 # 1MB
+    max_content_length: 3000 # Max characters to send to LLM for analysis
+
+  relationships:
+    min_confidence_score: 0.3
+    high_confidence_threshold: 0.7
+    relationship_types:
+      direct_match: 1.0
+      partial_match: 0.8
+      reference: 0.6
+      utility: 0.4
+
+  performance:
+    enable_concurrent_analysis: True
+    max_concurrent_files: 5
+    enable_content_caching: True
+    max_cache_size: 100
+
+  debug:
+    save_raw_responses: False
+    raw_responses_dir: "debug_responses"
+    verbose_output: False
+    mock_llm_responses: False
+
+  output:
+    generate_summary: True
+    generate_statistics: True
+    include_metadata: True
+    index_filename_pattern: "{repo_name}_index.json"
+    summary_filename: "indexing_summary.json"
+    stats_filename: "indexing_statistics.json"
+    json_indent: 2
+    ensure_ascii: False
+
+logging:
+  level: "INFO"
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  log_to_file: False
+  log_file: "openevolve.log"
