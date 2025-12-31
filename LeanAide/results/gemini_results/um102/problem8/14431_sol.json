@@ -1,0 +1,61 @@
+{
+  "type": "theorem",
+  "name": "Circulation at the Origin",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "kind": "System of linear differential equations",
+      "property": "Given by $\\dot{x}=-y$ and $\\dot{y}=x$"
+    }
+  ],
+  "conclusion": "The origin is a circulation (centre) of the given system of differential equations.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "The system can be represented in matrix form as $(\\begin{matrix} \\dot{x} \\\\ \\dot{y} \\end{matrix}) = A (\\begin{matrix} x \\\\ y \\end{matrix}) = (\\begin{matrix} -y \\\\ x \\end{matrix})$",
+        "proof-method": "Rewriting the system in matrix form"
+      },
+      {
+        "type": "assert",
+        "claim": "The matrix $A$ is given by  $A = \\begin{bmatrix} 0 & -1 \\\\ 1 & 0 \\end{bmatrix}$",
+        "proof-method": "By inspection from the matrix representation"
+      },
+      {
+        "type": "assert",
+        "claim": "The trace of matrix $A$ is $Tr(A)=0$",
+        "proof-method": "Direct calculation"
+      },
+      {
+        "type": "assert",
+        "claim": "The determinant of matrix $A$ is $Det(A)=1$",
+        "proof-method": "Direct calculation"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of matrix $A$ are $\\lambda = i$ and $-i$",
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "Calculate the eigenvalues of the matrix $A$",
+            "solved": false
+          }
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "Hence, according to the Tr-Det phase diagram, this is an example of circulation.",
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "Explain how the Tr-Det phase diagram leads to the conclusion of circulation given the calculated eigenvalues",
+            "solved": false
+          }
+        ]
+      }
+    ]
+  }
+}

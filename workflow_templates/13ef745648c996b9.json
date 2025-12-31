@@ -1,0 +1,30 @@
+{
+  "id": "13ef745648c996b9",
+  "name": "Ensemble Evaluation",
+  "description": "Use ensemble of evaluators for robust assessment",
+  "version": "1.0",
+  "config": {
+    "max_iterations": 15,
+    "population_size": 25,
+    "archive_size": 100,
+    "temperature": 0.7,
+    "enable_cascade_evaluation": true,
+    "cascade_thresholds": [
+      0.6,
+      0.8,
+      0.95
+    ],
+    "parallel_evaluations": 5,
+    "ensemble_size": 5,
+    "consensus_threshold": 0.7,
+    "enable_artifacts": true
+  },
+  "usage_count": 0,
+  "created_at": "2025-10-22T02:00:48.215909",
+  "updated_at": "2025-10-22T02:00:48.215909",
+  "tags": [
+    "openevolve",
+    "ensemble",
+    "preset"
+  ]
+}

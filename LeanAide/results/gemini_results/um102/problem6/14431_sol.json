@@ -1,0 +1,60 @@
+{
+  "type": "theorem",
+  "name": "Saddle Point of a Linear System",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "x(t)",
+      "kind": "real-valued function"
+    },
+    {
+      "type": "let",
+      "variable": "y(t)",
+      "kind": "real-valued function"
+    },
+    {
+      "type": "assume",
+      "statement": "The functions $x(t)$ and $y(t)$ satisfy the system of differential equations $\\dot{x} = y$ and $\\dot{y} = x$."
+    }
+  ],
+  "conclusion": "The origin is a saddle point of the system of differential equations.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "We need to analyze the eigenvalues of the coefficient matrix of the system."
+      },
+      {
+        "type": "assert",
+        "claim": "The system can be written in matrix form as $\\begin{bmatrix} \\dot{x} \\\\ \\dot{y} \\end{bmatrix} = \\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix} \\begin{bmatrix} x \\\\ y \\end{bmatrix}$.",
+        "proof-method": "Direct rewriting of the given system."
+      },
+      {
+        "type": "let",
+        "variable": "A",
+        "value": "{\\begin{bmatrix} 0 & 1 \\\\ 1 & 0 \\end{bmatrix}}",
+        "kind": "matrix"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of A are 1 and -1.",
+        "calculation": [
+          "$\\text{Tr}(A) = 0 + 0 = 0$",
+          "$\\text{Det}(A) = (0)(0) - (1)(1) = -1$",
+          {
+            "step": "$\\lambda = \\frac{1}{2}[\\text{Tr}(A) \\pm \\sqrt{(\\text{Tr}(A))^2 - 4 \\text{Det}(A)}] = \\frac{1}{2}[0 \\pm \\sqrt{0^2 - 4(-1)}] = \\frac{1}{2}[0 \\pm 2]$",
+            "justification": "Formula for eigenvalues of a 2x2 matrix."
+          },
+          "$\\lambda = 1$ or $\\lambda = -1$"
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "Since the eigenvalues of the coefficient matrix have opposite signs, the origin is a saddle point.",
+        "error": "The conclusion requires justification. While having eigenvalues of opposite signs is a characteristic of saddle points for linear systems, a more detailed explanation connecting eigenvalues to the behavior of the system near the origin is needed."
+      }
+    ]
+  }
+}

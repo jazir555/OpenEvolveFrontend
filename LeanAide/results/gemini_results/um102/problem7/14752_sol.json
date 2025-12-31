@@ -1,0 +1,26 @@
+{
+  "type": "theorem",
+  "name": null,
+  "status": "incomplete proof",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "kind": "System of differential equations",
+      "value": "$ \\dot{x}=x $ and $ \\dot{y}=y $"
+    }
+  ],
+  "conclusion": "The origin is a source for the given system of differential equations.",
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Show that the general solution to the system is of the form $\\mathbf{x(t)} = c_1 e^t \\begin{bmatrix} 1 \\ 0 \\end{bmatrix} + c_2 e^t \\begin{bmatrix} 0 \\ 1 \\end{bmatrix}$ for arbitrary constants $c_1, c_2$.",
+      "solved": false
+    },
+    {
+      "type": "problem",
+      "statement": "Use the general solution to show that the origin is a source.",
+      "solved": false
+    }
+  ]
+}

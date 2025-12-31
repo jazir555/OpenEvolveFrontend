@@ -1,0 +1,778 @@
+/**
+ * JSON parsing utilities extracted from AI Agent for reusability and testing
+ */
+
+/**
+ * Check if input has an incomplete code block (opening fence but no closing fence)
+ */
+function hasIncompleteCodeBlock(input: string): boolean {
+  const codeFencePattern = /```(?:json)?\s*\n?/g;
+  const matches = [...input.matchAll(codeFencePattern)];
+
+  if (matches.length === 0) return false;
+
+  // Count opening and closing fences
+  let openCount = 0;
+  let closeCount = 0;
+
+  for (const match of matches) {
+    const afterMatch = input.slice(match.index! + match[0].length);
+    // Check if there's a closing fence after this opening fence
+    const closingFenceIndex = afterMatch.search(/```/);
+    if (closingFenceIndex !== -1) {
+      closeCount++;
+    } else {
+      openCount++;
+    }
+  }
+
+  // If we have more opening fences than closing fences, it's incomplete
+  return openCount > closeCount;
+}
+
+/**
+ * Check if JSON appears to be embedded in markdown documentation
+ * Only rejects if there's substantial documentation text outside the JSON structure
+ */
+function isJsonEmbeddedInDocumentation(input: string): boolean {
+  // First, check if the input is valid JSON as-is (not embedded in documentation)
+  try {
+    JSON.parse(input);
+    // If original input is valid JSON, it's not documentation
+    return false;
+  } catch {
+    // Not parseable as-is, continue checking
+  }
+
+  // Check for markdown formatting indicators
+  const hasMarkdownFormatting =
+    input.includes('**') ||
+    input.includes('*') ||
+    input.includes('#') ||
+    input.includes('1.') || // numbered lists
+    input.includes('-') || // bullet lists
+    input.includes('`'); // inline code
+
+  if (!hasMarkdownFormatting) return false;
+
+  // Check if there's a code block (complete or incomplete)
+  const hasCodeBlock = input.includes('```');
+
+  if (!hasCodeBlock) return false;
+
+  // Check if there's substantial text content before or after the code block
+  // This indicates it's documentation, not just a JSON response with markdown formatting
+  const lines = input.split('\n');
+  const codeBlockStartIndex = input.indexOf('```');
+  const codeBlockEndIndex = input.lastIndexOf('```');
+
+  // Count non-empty lines before and after code block
+  let linesBefore = 0;
+  let linesAfter = 0;
+  let currentIndex = 0;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const lineStart = currentIndex;
+    const lineEnd = currentIndex + line.length;
+
+    if (lineStart < codeBlockStartIndex && line.trim().length > 0) {
+      linesBefore++;
+    } else if (lineEnd > codeBlockEndIndex + 3 && line.trim().length > 0) {
+      // +3 for the closing ```
+      linesAfter++;
+    }
+
+    currentIndex = lineEnd + 1; // +1 for the newline character
+  }
+
+  // If there are multiple lines of documentation text before or after the code block,
+  // it's likely documentation, not a JSON response
+  // Even if JSON inside the code block can be parsed, if there's substantial text outside,
+  // it's still documentation
+  if (linesBefore > 2 || linesAfter > 2) {
+    return true;
+  }
+
+  // If there's no substantial documentation text outside, try to parse the JSON
+  // If we can successfully parse it, it's valid JSON (even if it contains markdown in strings)
+  const stripped = stripCodeFences(input);
+  const scanned = extractTopLevelJson(stripped);
+  if (scanned) {
+    try {
+      const cleaned = postProcessJSON(scanned);
+      JSON.parse(cleaned);
+      // If we can parse it and there's no substantial documentation text, it's valid JSON
+      return false;
+    } catch {
+      // JSON extraction found something but it's not parseable
+      // Continue to check if it's documentation
+    }
+  }
+
+  // If we can't parse JSON and there's markdown formatting, it's likely documentation
+  return true;
+}
+
+/**
+ * Strip markdown code fences and return inner content.
+ */
+function stripCodeFences(input: string): string {
+  let s = input.trim();
+  // Remove fenced blocks entirely, keep inner JSON
+  s = s.replace(/```(?:json)?\s*\n?([\s\S]*?)\n?```/g, '$1');
+  s = s.replace(/^```json\s*/, '').replace(/\s*```[^\n]*$/, '');
+  return s.trim();
+}
+
+/**
+ * Extract the first top-level JSON object/array from mixed text using a scanner
+ * that respects quotes and escaping.
+ */
+function extractTopLevelJson(input: string): string | null {
+  const s = input;
+  let start = -1;
+  for (let i = 0; i < s.length; i++) {
+    const ch = s[i];
+    if (ch === '{' || ch === '[') {
+      start = i;
+      break;
+    }
+  }
+  if (start === -1) return null;
+
+  const stack: Array<'object' | 'array'> = [];
+  let insideString = false;
+  let escapeNext = false;
+  let end = -1;
+
+  for (let i = start; i < s.length; i++) {
+    const ch = s[i];
+    if (insideString) {
+      if (escapeNext) {
+        escapeNext = false;
+      } else if (ch === '\\') {
+        escapeNext = true;
+      } else if (ch === '"') {
+        insideString = false;
+      }
+    } else {
+      if (ch === '"') {
+        insideString = true;
+      } else if (ch === '{') {
+        stack.push('object');
+      } else if (ch === '[') {
+        stack.push('array');
+      } else if (ch === '}') {
+        if (stack[stack.length - 1] === 'object') stack.pop();
+        if (stack.length === 0) {
+          end = i;
+          break;
+        }
+      } else if (ch === ']') {
+        if (stack[stack.length - 1] === 'array') stack.pop();
+        if (stack.length === 0) {
+          end = i;
+          break;
+        }
+      }
+    }
+  }
+
+  if (end !== -1) {
+    return s.slice(start, end + 1);
+  }
+
+  // If not properly closed, return from start to end and let post-processing fix it
+  return s.slice(start);
+}
+
+/**
+ * State-machine pass to escape problematic quotes and control chars inside strings.
+ * Heuristic: inside a string, a quote is considered an end if the next non-WS
+ * char is a valid JSON delimiter for the string type; otherwise, we escape it.
+ */
+function escapeProblematicQuotesAndControlChars(input: string): string {
+  const out: string[] = [];
+  const scope: Array<'object' | 'array'> = [];
+  let insideString = false;
+  let escapeNext = false;
+  let isKeyString = false;
+  let prevNonWS: string | null = null;
+
+  const isWhitespace = (c: string) => /\s/.test(c);
+
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+
+    if (!insideString) {
+      if (ch === '{') {
+        scope.push('object');
+        out.push(ch);
+        prevNonWS = ch;
+        continue;
+      }
+      if (ch === '[') {
+        scope.push('array');
+        out.push(ch);
+        prevNonWS = ch;
+        continue;
+      }
+      if (ch === '}' || ch === ']') {
+        scope.pop();
+        out.push(ch);
+        prevNonWS = ch;
+        continue;
+      }
+      if (ch === '"') {
+        // Determine key vs value string
+        if (prevNonWS === ':') {
+          isKeyString = false;
+        } else if (
+          scope[scope.length - 1] === 'object' &&
+          (prevNonWS === '{' || prevNonWS === ',' || prevNonWS === null)
+        ) {
+          isKeyString = true;
+        } else {
+          // In arrays or after colon, consider as value string
+          isKeyString = false;
+        }
+        insideString = true;
+        out.push('"');
+        continue;
+      }
+      if (!isWhitespace(ch)) {
+        prevNonWS = ch;
+      }
+      out.push(ch);
+      continue;
+    }
+
+    // inside string
+    if (escapeNext) {
+      out.push(ch);
+      escapeNext = false;
+      continue;
+    }
+    if (ch === '\\') {
+      // Handle invalid JSON escape sequences by converting \x (where x is not a valid escape)
+      // into a literal backslash followed by the character (i.e., "\\x").
+      const next = input[i + 1];
+      const isValidEscape =
+        next === '"' ||
+        next === '\\' ||
+        next === '/' ||
+        next === 'b' ||
+        next === 'f' ||
+        next === 'n' ||
+        next === 'r' ||
+        next === 't' ||
+        next === 'u';
+
+      if (isValidEscape && typeof next === 'string') {
+        // Preserve valid escape as-is
+        out.push('\\');
+        escapeNext = true; // consume next char verbatim
+        continue;
+      }
+      // Not a valid JSON escape: emit a literal backslash and continue
+      out.push('\\\\');
+      continue;
+    }
+    if (ch === '"') {
+      // Peek next non-whitespace char
+      let j = i + 1;
+      let nextNonWS: string | undefined;
+      while (j < input.length) {
+        const c = input[j];
+        if (!isWhitespace(c)) {
+          nextNonWS = c;
+          break;
+        }
+        j++;
+      }
+      const validTerminator = isKeyString
+        ? nextNonWS === ':'
+        : nextNonWS === ',' ||
+          nextNonWS === ']' ||
+          nextNonWS === '}' ||
+          nextNonWS === undefined;
+      if (validTerminator) {
+        insideString = false;
+        out.push('"');
+        continue;
+      }
+      // Treat as literal quote inside value string
+      out.push('\\"');
+      continue;
+    }
+    if (ch === '\n') {
+      out.push('\\n');
+      continue;
+    }
+    if (ch === '\r') {
+      out.push('\\r');
+      continue;
+    }
+    if (ch === '\t') {
+      out.push('\\t');
+      continue;
+    }
+    out.push(ch);
+  }
+
+  if (insideString) {
+    // Close any unterminated string
+    out.push('"');
+  }
+  return out.join('');
+}
+
+/**
+ * Quote unquoted object keys, but ONLY when outside of strings.
+ */
+function quoteUnquotedKeysOutsideStrings(input: string): string {
+  const out: string[] = [];
+  let insideString = false;
+  let escapeNext = false;
+
+  // Sliding window buffer to detect patterns like: { name: or , name:
+  let buffer = '';
+
+  const flushBuffer = () => {
+    out.push(buffer);
+    buffer = '';
+  };
+
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    if (insideString) {
+      buffer += ch;
+      if (escapeNext) {
+        escapeNext = false;
+      } else if (ch === '\\') {
+        escapeNext = true;
+      } else if (ch === '"') {
+        insideString = false;
+      }
+      continue;
+    }
+
+    if (ch === '"') {
+      // We're about to enter a string; flush any pending outside buffer first
+      // after performing key-fix in the buffer.
+      // Replace occurrences of ({|,)\s*identifier\s*:
+      buffer = buffer.replace(
+        /([{,]\s*)([A-Za-z_$][A-Za-z0-9_$]*)(\s*):/g,
+        '$1"$2"$3:'
+      );
+      flushBuffer();
+      insideString = true;
+      out.push('"');
+      continue;
+    }
+
+    buffer += ch;
+  }
+
+  // Process remainder outside-string buffer for unquoted keys
+  buffer = buffer.replace(
+    /([{,]\s*)([A-Za-z_$][A-Za-z0-9_$]*)(\s*):/g,
+    '$1"$2"$3:'
+  );
+  flushBuffer();
+  return out.join('');
+}
+
+/**
+ * Remove trailing commas before } or ] but ONLY when outside of strings.
+ */
+function removeTrailingCommasOutsideStrings(input: string): string {
+  const out: string[] = [];
+  let insideString = false;
+  let escapeNext = false;
+
+  for (let i = 0; i < input.length; i++) {
+    const ch = input[i];
+    out.push(ch);
+    if (insideString) {
+      if (escapeNext) {
+        escapeNext = false;
+      } else if (ch === '\\') {
+        escapeNext = true;
+      } else if (ch === '"') {
+        insideString = false;
+      }
+      continue;
+    }
+    if (ch === '"') {
+      insideString = true;
+      continue;
+    }
+    // If we see a comma followed only by whitespace then a closing } or ], drop the comma
+    if (
+      ch === ',' &&
+      (() => {
+        for (let j = i + 1; j < input.length; j++) {
+          const c = input[j];
+          if (/\s/.test(c)) continue;
+          return c === '}' || c === ']';
+        }
+        return false;
+      })()
+    ) {
+      // remove the last pushed comma
+      out.pop();
+      // and skip pushing it; continue loop
+    }
+  }
+  return out.join('');
+}
+
+/**
+ * Extract JSON from mixed text/JSON responses with robust cleanup
+ */
+export function extractAndCleanJSON(input: string): string | null {
+  // Check for incomplete code blocks - if found and input looks like documentation,
+  // reject it to avoid extracting JSON from markdown documentation
+  if (hasIncompleteCodeBlock(input)) {
+    // If input has markdown formatting (bullets, headers, multiple lines), it's likely documentation
+    const hasMarkdownFormatting =
+      input.includes('**') ||
+      input.includes('*') ||
+      input.includes('#') ||
+      (input.split('\n').length > 5 && input.includes('```'));
+
+    if (hasMarkdownFormatting) {
+      // This looks like documentation with an incomplete code block - reject it
+      return null;
+    }
+  }
+
+  // Check for complete code blocks embedded in documentation
+  // This catches cases where JSON is in a code block but surrounded by documentation text
+  if (isJsonEmbeddedInDocumentation(input)) {
+    return null;
+  }
+
+  const stripped = stripCodeFences(input);
+
+  // Preferred: scan/extract top-level JSON
+  const scanned = extractTopLevelJson(stripped);
+  if (scanned) {
+    const cleaned = postProcessJSON(scanned);
+    try {
+      JSON.parse(cleaned);
+      return cleaned;
+    } catch {
+      // continue
+    }
+  }
+
+  const trimmed = stripped.trim();
+
+  // Fallback: regex match for object/array
+  const jsonMatch = trimmed.match(
+    /({[^{}]*(?:{[^{}]*}[^{}]*)*}|\[[^[\]]*(?:\[[^[\]]*\][^[\]]*)*\])/
+  );
+  if (jsonMatch) {
+    const candidate = jsonMatch[1];
+    const cleaned = postProcessJSON(candidate);
+    try {
+      JSON.parse(cleaned);
+      return cleaned;
+    } catch {
+      // Continue to other strategies
+    }
+  }
+
+  // Last fallback: slice from first brace/bracket and try to fix
+  const firstBracketIdx = trimmed.search(/[[{]/);
+  if (firstBracketIdx !== -1) {
+    const candidate = trimmed.slice(firstBracketIdx);
+    const cleaned = postProcessJSON(candidate);
+    try {
+      JSON.parse(cleaned);
+      return cleaned;
+    } catch {
+      // Continue to other strategies
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Post-process potentially malformed JSON string to fix common issues
+ */
+export function postProcessJSON(jsonString: string): string {
+  let processed = jsonString.trim();
+
+  // Remove markdown code blocks if present
+  processed = stripCodeFences(processed);
+
+  // Remove trailing backslashes and other non-JSON characters after closing braces/brackets
+  processed = processed.replace(/([}\]])\s*\\+[^\n]*$/g, '$1');
+
+  // Remove common prefixes that AI might add
+  processed = processed
+    .replace(/^(?:Here's|Here is|The JSON is|Result:|Answer:)\s*:?\s*/i, '')
+    .replace(/^(?:the result|the response|response|result)\s*:?\s*/i, '')
+    .replace(/^["']?\s*/, '') // Remove leading quotes/spaces
+    .replace(/\s*["']?$/, ''); // Remove trailing quotes/spaces
+
+  // Fix unquoted keys ONLY outside strings
+  processed = quoteUnquotedKeysOutsideStrings(processed);
+
+  // Remove trailing commas ONLY outside strings
+  processed = removeTrailingCommasOutsideStrings(processed);
+
+  // Convert single-quoted values to double-quoted ONLY when the JSON-like input
+  // appears to not use any double quotes at all (to avoid corrupting content strings).
+  if (!processed.includes('"')) {
+    processed = processed.replace(
+      /(^|:|\[|,|\{)\s*'([^'\\]*(?:\\.[^'\\]*)*)'/g,
+      '$1"$2"'
+    );
+  }
+
+  // Escape problematic quotes and control chars in strings via state machine
+  processed = escapeProblematicQuotesAndControlChars(processed);
+
+  // Remove trailing commas again after quote fixes (outside strings)
+  processed = removeTrailingCommasOutsideStrings(processed);
+
+  // Remove control characters that can break JSON
+  // eslint-disable-next-line no-control-regex
+  processed = processed.replace(/[\x00-\x08\x0B-\x0C\x0E-\x1F\x7F]/g, '');
+
+  // Remove any trailing non-JSON content (like explanatory text after JSON)
+  // but only consider braces/brackets that are OUTSIDE of strings.
+  {
+    let inside = false;
+    let esc = false;
+    let lastClose = -1;
+    for (let i = 0; i < processed.length; i++) {
+      const ch = processed[i];
+      if (inside) {
+        if (esc) {
+          esc = false;
+        } else if (ch === '\\') {
+          esc = true;
+        } else if (ch === '"') {
+          inside = false;
+        }
+        continue;
+      }
+      if (ch === '"') {
+        inside = true;
+        continue;
+      }
+      if (ch === '}' || ch === ']') lastClose = i;
+    }
+    if (lastClose !== -1) {
+      processed = processed.slice(0, lastClose + 1);
+    }
+  }
+
+  // Attempt to balance brackets and braces more intelligently
+  let openBraces = 0;
+  let closeBraces = 0;
+  let openBrackets = 0;
+  let closeBrackets = 0;
+  {
+    let inside = false;
+    let esc = false;
+    for (let i = 0; i < processed.length; i++) {
+      const ch = processed[i];
+      if (inside) {
+        if (esc) {
+          esc = false;
+        } else if (ch === '\\') {
+          esc = true;
+        } else if (ch === '"') {
+          inside = false;
+        }
+        continue;
+      }
+      if (ch === '"') {
+        inside = true;
+        continue;
+      }
+      if (ch === '{') openBraces++;
+      else if (ch === '}') closeBraces++;
+      else if (ch === '[') openBrackets++;
+      else if (ch === ']') closeBrackets++;
+    }
+  }
+
+  // Add missing closing braces/brackets, but only if the string looks like it should have them
+  if (openBraces > closeBraces && processed.includes('{')) {
+    // Only add closing braces if the string starts with { or contains proper object structure
+    if (processed.trim().startsWith('{') || processed.includes('":')) {
+      // For nested structures, we need to be more careful about the order
+      // First close inner structures, then outer ones
+      const missingBraces = openBraces - closeBraces;
+      const missingBrackets = openBrackets - closeBrackets;
+
+      // If we have both missing braces and brackets, close brackets first (inner structures)
+      if (missingBrackets > 0 && processed.includes('[')) {
+        processed += ']'.repeat(missingBrackets);
+      }
+
+      // Then close braces
+      processed += '}'.repeat(missingBraces);
+    }
+  } else if (openBrackets > closeBrackets && processed.includes('[')) {
+    // Only add closing brackets if the string starts with [ or contains array structure
+    if (processed.trim().startsWith('[') || processed.includes('[')) {
+      processed += ']'.repeat(openBrackets - closeBrackets);
+    }
+  }
+
+  // Remove excess closing braces/brackets
+  if (closeBraces > openBraces) {
+    const excess = closeBraces - openBraces;
+    for (let i = 0; i < excess; i++) {
+      processed = processed.replace(/}\s*$/, '');
+    }
+  }
+  if (closeBrackets > openBrackets) {
+    const excess = closeBrackets - openBrackets;
+    for (let i = 0; i < excess; i++) {
+      processed = processed.replace(/]\s*$/, '');
+    }
+  }
+
+  return processed;
+}
+
+/**
+ * Multi-stage JSON parsing approach with various fallback strategies
+ */
+export function parseJsonWithFallbacks(finalResponse: string): {
+  response: string;
+  parsed: object | null;
+  success: boolean;
+  error?: string;
+} {
+  // Check for incomplete code blocks - if found and input looks like documentation,
+  // reject it early to avoid extracting JSON from markdown documentation
+  if (hasIncompleteCodeBlock(finalResponse)) {
+    // If input has markdown formatting (bullets, headers, multiple lines), it's likely documentation
+    const hasMarkdownFormatting =
+      finalResponse.includes('**') ||
+      finalResponse.includes('*') ||
+      finalResponse.includes('#') ||
+      (finalResponse.split('\n').length > 5 && finalResponse.includes('```'));
+
+    if (hasMarkdownFormatting) {
+      // This looks like documentation with an incomplete code block - reject it
+      return {
+        response: finalResponse,
+        parsed: null,
+        success: false,
+        error:
+          'AI Agent failed to generate valid JSON. Input appears to be markdown documentation with an incomplete code block, not valid JSON.',
+      };
+    }
+  }
+
+  // Check for complete code blocks embedded in documentation
+  // This catches cases where JSON is in a code block but surrounded by documentation text
+  if (isJsonEmbeddedInDocumentation(finalResponse)) {
+    return {
+      response: finalResponse,
+      parsed: null,
+      success: false,
+      error:
+        'AI Agent failed to generate valid JSON. Input appears to be markdown documentation with a code block, not valid JSON.',
+    };
+  }
+
+  const attempts = [
+    // Attempt 1: Try parsing the original response as-is
+    () => {
+      return {
+        response: finalResponse,
+        parsed: JSON.parse(finalResponse),
+        success: true,
+      };
+    },
+    // Attempt 2: Strip code fences, scan-extract, then post-process
+    () => {
+      const stripped = stripCodeFences(finalResponse);
+      const scanned = extractTopLevelJson(stripped);
+      if (!scanned) throw new Error('No valid JSON found');
+      const cleaned = postProcessJSON(scanned);
+      return { response: cleaned, parsed: JSON.parse(cleaned), success: true };
+    },
+    // Attempt 3: Try basic post-processing on original
+    () => {
+      const processed = postProcessJSON(finalResponse);
+      JSON.parse(processed);
+      return {
+        response: processed,
+        parsed: JSON.parse(processed),
+        success: true,
+      };
+    },
+    // Attempt 4: Last resort - try to wrap in object if it looks like key-value content
+    () => {
+      const trimmed = finalResponse.trim();
+      if (trimmed && !trimmed.startsWith('{') && !trimmed.startsWith('[')) {
+        // If it contains key-like patterns, try wrapping in object
+        if (trimmed.includes(':') && !trimmed.includes('\n\n')) {
+          const wrapped = `{${trimmed}}`;
+          const processed = postProcessJSON(wrapped);
+          JSON.parse(processed);
+          return {
+            response: processed,
+            parsed: JSON.parse(processed),
+            success: true,
+          };
+        }
+      }
+      throw new Error('Cannot convert to valid JSON');
+    },
+  ];
+
+  let lastError: Error | null = null;
+
+  for (let i = 0; i < attempts.length; i++) {
+    try {
+      const result = attempts[i]();
+      if (i > 0) {
+        console.log(`[JSON Parser] Parsing successful on attempt ${i + 1}`);
+      }
+      return {
+        response: result.response,
+        parsed: result.parsed,
+        error: undefined,
+        success: true,
+      };
+    } catch (error) {
+      lastError =
+        error instanceof Error ? error : new Error('Unknown parsing error');
+      console.warn(
+        `[JSON Parser] Parsing attempt ${i + 1} failed:`,
+        lastError.message
+      );
+    }
+  }
+
+  // All attempts failed
+  console.warn('[JSON Parser] All JSON parsing attempts failed');
+  console.warn('[JSON Parser] Original response:', finalResponse);
+
+  // Try to provide the best available response even if not valid JSON
+  const lastAttempt =
+    extractAndCleanJSON(finalResponse) || postProcessJSON(finalResponse);
+
+  return {
+    response: lastAttempt,
+    parsed: null,
+    error: `AI Agent failed to generate valid JSON. Post-processing attempted but JSON is still malformed: ${lastError?.message || 'Unknown error'}`,
+    success: false,
+  };
+}

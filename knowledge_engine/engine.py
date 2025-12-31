@@ -16,7 +16,12 @@ from .core import KnowledgeState, EntityKnowledgeGraph
 from .bedrock_kb import BedrockKnowledgeBaseClient
 from .eks_kb import EKSKnowledgeBaseHandler
 from .elasticsearch_search import ElasticsearchSearchEngine
-from llm_utils import initialize_llm_client # Import the centralized LLM initializer
+
+# LLM client initialization - use fallback if not available
+try:
+    from llm_utils import initialize_llm_client
+except ImportError:
+    initialize_llm_client = None
 
 
 class KnowledgeEngine:
@@ -510,7 +515,10 @@ class KnowledgeEngine:
             # If a specific progress callback is provided, we might need a dummy logger
             # or ensure the progress_callback handles logging adequately.
             # For now, let's keep the engine's logger and pass the callback.
-            pass
+            try:
+                progress_callback({"stage": "start", "message": "Research pipeline starting"})
+            except Exception:
+                self.logger.debug("Progress callback failed during research pipeline start.")
 
         try:
             pipeline_summary = await execute_multi_agent_research_pipeline(
@@ -549,7 +557,10 @@ class KnowledgeEngine:
         logger_for_pipeline = self.logger # Use the engine's logger
         if progress_callback:
             # Similar to research pipeline, keep engine's logger and pass callback.
-            pass
+            try:
+                progress_callback({"stage": "start", "message": "Chat-based planning pipeline starting"})
+            except Exception:
+                self.logger.debug("Progress callback failed during chat pipeline start.")
 
         try:
             pipeline_summary = await execute_chat_based_planning_pipeline(

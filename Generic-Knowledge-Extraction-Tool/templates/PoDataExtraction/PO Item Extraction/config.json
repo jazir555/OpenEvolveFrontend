@@ -1,0 +1,35 @@
+{
+  "stage_name": "PO Item Extraction",
+  "stage_type": "initial",
+  "document_types": [
+    "Purchase Order (PO)"
+  ],
+  "input_keys": [],
+  "output_keys": [],
+  "extraction_fields": [
+    {
+      "field_name": "Material Number",
+      "field_type": "str",
+      "description": "Unique identifier for the item; used for linking with BOM.",
+      "required": true
+    },
+    {
+      "field_name": "Quantity",
+      "field_type": "int",
+      "description": "Number of units ordered.",
+      "required": true
+    },
+    {
+      "field_name": "Description",
+      "field_type": "str",
+      "description": "Description of the item.",
+      "required": true
+    },
+    {
+      "field_name": "Delivery Date",
+      "field_type": "str",
+      "description": "Required delivery date for the item.",
+      "required": true
+    }
+  ]
+}

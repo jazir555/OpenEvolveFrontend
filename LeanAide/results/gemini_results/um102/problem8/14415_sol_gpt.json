@@ -1,0 +1,58 @@
+{
+  "type": "theorem",
+  "name": "Circulation at the origin",
+  "hypothesis": [
+    {
+      "type": "assume",
+      "statement": "The linear differential equation is given by $\\dot{x}=-y$ and $\\dot{y}=x$."
+    }
+  ],
+  "conclusion": "The origin is circulation.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$\\ddot{x} = -x$",
+        "deduced_from": {
+          "from_context": [
+            "$\\dot{x} = -y$",
+            "$\\dot{y} = x$"
+          ]
+        },
+        "proof-method": "Substitute $\\dot{y}$ into the first equation."
+      },
+      {
+        "type": "assert",
+        "claim": "$\\frac{d^2x}{dt^2} = -x$",
+        "deduced_from": {
+          "from_context": [
+            "$\\ddot{x} = -x$"
+          ]
+        },
+        "proof-method": "Rewrite $\\ddot{x}$ as $\\frac{d^2x}{dt^2}$."
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of the system are purely imaginary.",
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "Find the eigenvalues of the system $\\dot{x}=-y$ and $\\dot{y}=x$."
+          }
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "The origin is circulation.",
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "Show that purely imaginary eigenvalues imply circulation."
+          }
+        ]
+      }
+    ]
+  }
+}

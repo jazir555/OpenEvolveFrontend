@@ -1,0 +1,117 @@
+{
+  "extraction_config": {
+    "configuration_mode": "text_description",
+    "use_case": "Procurement - Invoice Extraction",
+    "description": "Extract invoice information from invoice documents",
+    "main_model_name": "Procurement_InvoiceInfo",
+    "text_description": "Extract invoice information from invoice documents",
+    "parsed_fields": [
+      {
+        "field_name": "supplier_name",
+        "field_type": "str",
+        "description": "Name of the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "supplier_id",
+        "field_type": "str",
+        "description": "Unique identifier for the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "invoice_number",
+        "field_type": "str",
+        "description": "Unique number identifying the invoice",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "invoice_date",
+        "field_type": "str",
+        "description": "Date the invoice was issued",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "total_amount",
+        "field_type": "float",
+        "description": "Total amount on the invoice",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "currency",
+        "field_type": "str",
+        "description": "Currency of the invoice amount",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "payment_due_date",
+        "field_type": "str",
+        "description": "Date by which payment is due",
+        "required": true,
+        "enum_values": null
+      }
+    ],
+    "fields": [
+      {
+        "field_name": "supplier_name",
+        "field_type": "str",
+        "description": "Name of the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "supplier_id",
+        "field_type": "str",
+        "description": "Unique identifier for the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "invoice_number",
+        "field_type": "str",
+        "description": "Unique number identifying the invoice",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "invoice_date",
+        "field_type": "str",
+        "description": "Date the invoice was issued",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "total_amount",
+        "field_type": "float",
+        "description": "Total amount on the invoice",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "currency",
+        "field_type": "str",
+        "description": "Currency of the invoice amount",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "payment_due_date",
+        "field_type": "str",
+        "description": "Date by which payment is due",
+        "required": true,
+        "enum_values": null
+      }
+    ],
+    "model_generation_model": "claude-sonnet-4-20250514",
+    "extraction_model": "gpt-4.1-2025-04-14",
+    "use_azure": false,
+    "parsing_method": "fast",
+    "extraction_type": "single_type",
+    "document_type": "invoice"
+  }
+}

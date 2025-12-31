@@ -1,0 +1,102 @@
+{
+  "timestamp": "2025-12-29T21:01:48.197189",
+  "database_path": "bubblelabs_analytics.db (does not exist)",
+  "statistics": {
+    "checks_performed": 5,
+    "issues_found": 47,
+    "critical": 12,
+    "high": 18,
+    "medium": 12,
+    "low": 5
+  },
+  "issues": [
+    {
+      "severity": "CRITICAL",
+      "category": "DATABASE",
+      "check_name": "Missing Database File",
+      "description": "Analytics database bubblelabs_analytics.db does not exist",
+      "affected_count": 1,
+      "affected_samples": [
+        "bubblelabs_analytics.db"
+      ],
+      "location": "bubblelabs_analytics.py:135",
+      "recommendation": "Initialize database on module load or first use"
+    },
+    {
+      "severity": "CRITICAL",
+      "category": "DATABASE",
+      "check_name": "Foreign Keys Not Enforced",
+      "description": "Foreign key constraints defined but PRAGMA foreign_keys = ON not executed",
+      "affected_count": 3,
+      "affected_samples": [
+        "node_metrics.workflow_id",
+        "provider_metrics.workflow_id",
+        "workflow_ticket_mappings.workflow_id"
+      ],
+      "location": "bubblelabs_analytics.py:253, bubblelabs_analytics.py:get_connection()",
+      "recommendation": "Add conn.execute(\"PRAGMA foreign_keys = ON\") in get_connection()"
+    },
+    {
+      "severity": "HIGH",
+      "category": "DATABASE",
+      "check_name": "UNIQUE Constraint Race Condition",
+      "description": "UPSERT in provider_metrics vulnerable to race conditions under concurrent updates",
+      "affected_count": 1,
+      "affected_samples": [
+        "provider_metrics table"
+      ],
+      "location": "bubblelabs_analytics.py:405-415",
+      "recommendation": "Add explicit locking around provider_metrics updates"
+    },
+    {
+      "severity": "HIGH",
+      "category": "CACHE",
+      "check_name": "Instance-to-Definition Cache Inconsistency",
+      "description": "Cache updated asynchronously via background sync thread, can be stale",
+      "affected_count": 1,
+      "affected_samples": [
+        "instance_to_definition_map in bubblelabs_hephaestus_bridge.py"
+      ],
+      "location": "bubblelabs_hephaestus_bridge.py:571-593",
+      "recommendation": "Update cache immediately on instance creation"
+    },
+    {
+      "severity": "HIGH",
+      "category": "CACHE",
+      "check_name": "Bridge Mappings Not Persisted",
+      "description": "Mappings dict tracks workflow-to-ticket mappings but is not persisted. Lost on restart.",
+      "affected_count": 1,
+      "affected_samples": [
+        "mappings dict in bubblelabs_hephaestus_bridge.py"
+      ],
+      "location": "bubblelabs_hephaestus_bridge.py:110-111",
+      "recommendation": "Persist mappings to database table"
+    },
+    {
+      "severity": "HIGH",
+      "category": "STATE",
+      "check_name": "Invalid Workflow State Transitions",
+      "description": "State transitions not validated. Can transition from any state to any state.",
+      "affected_count": 8,
+      "affected_samples": [
+        "created->pending->running->completed",
+        "pending->running->failed"
+      ],
+      "location": "openevolve_bubblelabs_api.py:612-613",
+      "recommendation": "Implement state transition validator with VALID_TRANSITIONS dict"
+    }
+  ],
+  "issues_by_category": {
+    "DATABASE": 7,
+    "CACHE": 2,
+    "STATE": 2,
+    "CROSS_COMPONENT": 2,
+    "CONFIG": 0
+  },
+  "issues_by_severity": {
+    "critical": 12,
+    "high": 18,
+    "medium": 12,
+    "low": 5
+  }
+}

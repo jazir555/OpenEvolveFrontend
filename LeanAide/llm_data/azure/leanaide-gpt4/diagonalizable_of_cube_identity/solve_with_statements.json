@@ -1,0 +1,620 @@
+{
+  "problem": "Let $A$ be a square matrix. Prove that if $A^3 = I$ then $A$ is diagonalizable.",
+  "solutions": [
+    "The statement is true. If $A^3 = I$, then the minimal polynomial of $A$ must divide $x^3 - 1$. The roots of the polynomial $x^3 - 1$ are distinct, thus the minimal polynomial of $A$ has distinct roots. It follows that $A$ is diagonalizable.",
+    "The characteristic polynomial of $A$ is a polynomial of degree $n$, where $n$ is the size of $A$, and because $A^3 - I = 0$, the polynomial has $1$ as a root of multiplicity at least $3$. Hence, the minimal polynomial of $A$ divides $x^3 - 1$, and therefore its roots are $1, e^{2\\pi i/3}$, and $e^{4\\pi i/3}$. \n\nAs a consequence, the minimal polynomial of $A$ can only have distinct roots, implying that $A$ is diagonalizable.",
+    "The polynomial $p(x) = x^3 - 1$ annihilates $A$, and its roots are simple: $1, \\omega, \\omega^2$ where $\\omega$ is a primitive third root of unity. The minimal polynomial of $A$ divides $p(x)$ and thus all of its roots are also simple. Therefore, $A$ is diagonalizable."
+  ],
+  "theories": [
+    "## Theorem 1\nGiven a square matrix $A$, if $A^3 = I$, then $A$ is diagonalizable.\n\n## Proof\nSince $A^3 = I$, it follows that the minimal polynomial of $A$ must divide $x^3 - 1$. However, the roots of $x^3 - 1$ are distinct. Given that the minimal polynomial of a matrix is the monic polynomial of least degree that annuls the matrix, it implies that the minimal polynomial of $A$ also has distinct roots. According to the criterion for diagonalizability, a matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors. Hence, $A$ is diagonalizable. QED.",
+    "{\n\"Theorems\": [\n    {\n        \"Theorem_Statement\": \"Let $A$ be a square matrix. If $A^3 = I$ then $A$ is diagonalizable.\",\n        \"Proof\": \"The characteristic polynomial of $A$ is a polynomial of degree $n$, where $n$ is the size of $A$, and because $A^3 - I = 0$, the polynomial has $1$ as a root of multiplicity at least $3$. Hence, the minimal polynomial of $A$ divides $x^3 - 1$, and therefore its roots are $1, e^{2\\pi i/3}$, and $e^{4\\pi i/3}$. As a consequence, the minimal polynomial of $A$ can only have distinct roots, implying that $A$ is diagonalizable.\"\n    }\n]\n}",
+    "{\n  \"Theorem_1\": {\n    \"Statement\": \"Let A be a square matrix. If A^3 = I, then A is diagonalizable.\",\n    \"Proof\": \"The polynomial p(x) = x^3 - 1 annihilates A, and its roots are simple: 1, ω, ω^2 where ω is a primitive third root of unity. The minimal polynomial of A divides p(x) and thus all of its roots are also simple. Therefore, A is diagonalizable.\"\n  },\n  \"Theorem_2\": {\n    \"Statement\": \"The polynomial p(x) = x^3 - 1 has simple roots.\",\n    \"Proof\": \"The roots of the polynomial p(x) = x^3 - 1 are 1, ω, ω^2 where ω is a primitive third root of unity. Since these roots are distinct, they are simple.\"\n  },\n  \"Theorem_3\": {\n    \"Statement\": \"If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x).\",\n    \"Proof\": \"Since the minimal polynomial of A divides p(x), it can be written as a product of factors that are also factors of p(x). Thus, every root of the minimal polynomial is also a root of p(x).\"\n  },\n  \"Theorem_4\": {\n    \"Statement\": \"A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots.\",\n    \"Proof\": \"If the minimal polynomial of A has only simple roots, then A is similar to a diagonal matrix, so A is diagonalizable. Conversely, if A is diagonalizable, then its minimal polynomial has only simple roots.\"\n  }\n}"
+  ],
+  "structured_texts": [
+    "```json\n[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"Given a square matrix A, if A^3 = I, then A is diagonalizable.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assumption\",\n        \"statement\": \"A is a square matrix and A^3 = I.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A must divide x^3 - 1.\",\n        \"deduced-from\": [\n          \"A^3 = I\"\n        ],\n        \"justification\": \"This follows from the definition of the minimal polynomial and the properties of polynomial division.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The roots of x^3 - 1 are distinct.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A also has distinct roots.\",\n        \"deduced-from\": [\n          \"The minimal polynomial of A must divide x^3 - 1\",\n          \"The roots of x^3 - 1 are distinct\"\n        ],\n        \"justification\": \"If a polynomial divides another polynomial with distinct roots, its roots must also be distinct.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"A matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"A is diagonalizable.\",\n        \"deduced-from\": [\n          \"The minimal polynomial of A also has distinct roots\",\n          \"A matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors\"\n        ],\n        \"justification\": \"Since the minimal polynomial of A has distinct roots, it can be factored into distinct linear factors. Hence, A is diagonalizable.\"\n      }\n    ]\n  }\n]\n```",
+    "```json\n[\n  {\n    \"type\": \"theorem\",\n    \"statement\": \"Given a square matrix A, if A^3 = I, then A is diagonalizable.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"let\",\n        \"variable\": \"A\",\n        \"value\": \"a square matrix such that A^3 = I\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The minimal polynomial of A must divide x^3 - 1.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The roots of x^3 - 1 are distinct.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A also has distinct roots.\",\n        \"deduced-from\": [\"The minimal polynomial of A divides x^3 - 1\", \"The roots of x^3 - 1 are distinct\"]\n      },\n      {\n        \"type\": \"theorem\",\n        \"statement\": \"A matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors.\",\n        \"status\": \"recalled\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"A is diagonalizable.\",\n        \"deduced-from\": [\"The minimal polynomial of A has distinct roots\", \"A matrix is diagonalizable iff its minimal polynomial can be factored into distinct linear factors\"]\n      }\n    ]\n  }\n]\n```",
+    [
+      {
+        "type": "theorem",
+        "name": "Diagonalizability of Cubic Root of Identity Matrix",
+        "statement": "Let $A$ be a square matrix. If $A^3 = I$ then $A$ is diagonalizable.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "let",
+            "variable": "$A$",
+            "value": "a square matrix"
+          },
+          {
+            "type": "assumption",
+            "statement": "$A^3=I$"
+          },
+          {
+            "type": "observation",
+            "statement": "The characteristic polynomial of $A$ is a polynomial of degree $n$, where $n$ is the size of $A$."
+          },
+          {
+            "type": "assertion",
+            "claim": "The characteristic polynomial of A has 1 as a root of multiplicity at least 3.",
+            "deduced-from": [
+              "$A^3=I$"
+            ]
+          },
+          {
+            "type": "observation",
+            "statement": "The minimal polynomial of $A$ divides $x^3 - 1$."
+          },
+          {
+            "type": "observation",
+            "statement": "The roots of the minimal polynomial of $A$ are 1, $e^{2\\pi i/3}$, and $e^{4\\pi i/3}$."
+          },
+          {
+            "type": "assertion",
+            "claim": "The minimal polynomial of $A$ can only have distinct roots.",
+            "deduced-from": [
+              "The roots of the minimal polynomial of $A$ are 1, $e^{2\\pi i/3}$, and $e^{4\\pi i/3}$."
+            ]
+          },
+          {
+            "type": "assertion",
+            "claim": "$A$ is diagonalizable",
+            "deduced-from": [
+              "The minimal polynomial of $A$ can only have distinct roots."
+            ]
+          }
+        ]
+      }
+    ],
+    "[\n    {\n        \"type\": \"theorem\",\n        \"name\": \"Theorem_Statement\",\n        \"statement\": \"Let $A$ be a square matrix. If $A^3 = I$ then $A$ is diagonalizable.\",\n        \"status\": \"proved\",\n        \"proof\": [\n            {\n                \"type\": \"let\",\n                \"variable\": \"A\",\n                \"value\": \"a square matrix\"\n            },\n            {\n                \"type\": \"assumption\",\n                \"statement\": \"$A^3 = I$\"\n            },\n            {\n                \"type\": \"observation\",\n                \"statement\": \"The characteristic polynomial of $A$ is a polynomial of degree $n$, where $n$ is the size of $A$\"\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"The polynomial has $1$ as a root of multiplicity at least $3$\",\n                \"deduced-from\": [\"$A^3 - I = 0$\"]\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"The minimal polynomial of $A$ divides $x^3 - 1$\",\n                \"deduced-from\": [\"The polynomial has $1$ as a root of multiplicity at least $3$\"]\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"The roots of the minimal polynomial of $A$ are $1, e^{2\\pi i/3}$, and $e^{4\\pi i/3}$\",\n                \"deduced-from\": [\"The minimal polynomial of $A$ divides $x^3 - 1$\"]\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"The minimal polynomial of $A$ can only have distinct roots\",\n                \"deduced-from\": [\"The roots of the minimal polynomial of $A$ are $1, e^{2\\\\pi i/3}$, and $e^{4\\\\pi i/3}$\"]\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"$A$ is diagonalizable\",\n                \"deduced-from\": [\"The minimal polynomial of $A$ can only have distinct roots\"]\n            }\n        ]\n    }\n]",
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem_1",
+        "statement": "Let A be a square matrix. If A^3 = I, then A is diagonalizable.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "let",
+            "variable": "A",
+            "value": "A square matrix such that A^3 = I"
+          },
+          {
+            "type": "observation",
+            "statement": "The polynomial p(x) = x^3 - 1 annihilates A"
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_2",
+            "statement": "The polynomial p(x) = x^3 - 1 has simple roots.",
+            "status": "proved",
+            "proof": [
+              {
+                "type": "let",
+                "variable": "ω",
+                "value": "a primitive third root of unity"
+              },
+              {
+                "type": "observation",
+                "statement": "The roots of the polynomial p(x) = x^3 - 1 are 1, ω, ω^2"
+              },
+              {
+                "type": "observation",
+                "statement": "Since these roots are distinct, they are simple."
+              }
+            ]
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_3",
+            "statement": "If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x).",
+            "status": "proved",
+            "proof": [
+              {
+                "type": "observation",
+                "statement": "Since the minimal polynomial of A divides p(x), it can be written as a product of factors that are also factors of p(x)."
+              },
+              {
+                "type": "observation",
+                "statement": "Thus, every root of the minimal polynomial is also a root of p(x)."
+              }
+            ]
+          },
+          {
+            "type": "assertion",
+            "claim": "The minimal polynomial of A divides p(x) and thus all of its roots are also simple.",
+            "deduced-from": [
+              "The polynomial p(x) = x^3 - 1 has simple roots.",
+              "If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x)."
+            ]
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_4",
+            "statement": "A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots.",
+            "status": "recalled"
+          },
+          {
+            "type": "assertion",
+            "claim": "A is diagonalizable.",
+            "deduced-from": [
+              "A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots."
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem_1",
+        "statement": "Let A be a square matrix. If A^3 = I, then A is diagonalizable.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "let",
+            "variable": "A",
+            "value": "a square matrix such that A^3 = I"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial p(x) = x^3 - 1 annihilates A.",
+            "deduced-from": [
+              "A^3 = I"
+            ]
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_2",
+            "statement": "The polynomial p(x) = x^3 - 1 has simple roots.",
+            "status": "proved earlier"
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_3",
+            "statement": "If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x).",
+            "status": "proved earlier"
+          },
+          {
+            "type": "assertion",
+            "claim": "The minimal polynomial of A divides p(x) and thus all of its roots are also simple.",
+            "deduced-from": [
+              {
+                "result": "Theorem_2",
+                "applied-to": "p(x)"
+              },
+              {
+                "result": "Theorem_3",
+                "applied-to": "A"
+              }
+            ]
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_4",
+            "statement": "A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots.",
+            "status": "proved earlier"
+          },
+          {
+            "type": "assertion",
+            "claim": "A is diagonalizable.",
+            "deduced-from": [
+              "Theorem_4"
+            ]
+          }
+        ]
+      }
+    ]
+  ],
+  "raw_structured_texts": [
+    "```json\n[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"Given a square matrix A, if A^3 = I, then A is diagonalizable.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assumption\",\n        \"statement\": \"A is a square matrix and A^3 = I.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A must divide x^3 - 1.\",\n        \"deduced-from\": [\n          \"A^3 = I\"\n        ],\n        \"justification\": \"This follows from the definition of the minimal polynomial and the properties of polynomial division.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The roots of x^3 - 1 are distinct.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A also has distinct roots.\",\n        \"deduced-from\": [\n          \"The minimal polynomial of A must divide x^3 - 1\",\n          \"The roots of x^3 - 1 are distinct\"\n        ],\n        \"justification\": \"If a polynomial divides another polynomial with distinct roots, its roots must also be distinct.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"A matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"A is diagonalizable.\",\n        \"deduced-from\": [\n          \"The minimal polynomial of A also has distinct roots\",\n          \"A matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors\"\n        ],\n        \"justification\": \"Since the minimal polynomial of A has distinct roots, it can be factored into distinct linear factors. Hence, A is diagonalizable.\"\n      }\n    ]\n  }\n]\n```",
+    "```json\n[\n  {\n    \"type\": \"theorem\",\n    \"statement\": \"Given a square matrix A, if A^3 = I, then A is diagonalizable.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"let\",\n        \"variable\": \"A\",\n        \"value\": \"a square matrix such that A^3 = I\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The minimal polynomial of A must divide x^3 - 1.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The roots of x^3 - 1 are distinct.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A also has distinct roots.\",\n        \"deduced-from\": [\"The minimal polynomial of A divides x^3 - 1\", \"The roots of x^3 - 1 are distinct\"]\n      },\n      {\n        \"type\": \"theorem\",\n        \"statement\": \"A matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors.\",\n        \"status\": \"recalled\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"A is diagonalizable.\",\n        \"deduced-from\": [\"The minimal polynomial of A has distinct roots\", \"A matrix is diagonalizable iff its minimal polynomial can be factored into distinct linear factors\"]\n      }\n    ]\n  }\n]\n```",
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Diagonalizability of Cubic Root of Identity Matrix\",\n    \"statement\": \"Let $A$ be a square matrix. If $A^3 = I$ then $A$ is diagonalizable.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"let\",\n        \"variable\": \"$A$\",\n        \"value\": \"a square matrix\"\n      },\n      {\n        \"type\": \"assumption\",\n        \"statement\": \"$A^3=I$\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The characteristic polynomial of $A$ is a polynomial of degree $n$, where $n$ is the size of $A$.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The characteristic polynomial of A has 1 as a root of multiplicity at least 3.\",\n        \"deduced-from\": [\"$A^3=I$\"]\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The minimal polynomial of $A$ divides $x^3 - 1$.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The roots of the minimal polynomial of $A$ are 1, $e^{2\\\\pi i/3}$, and $e^{4\\\\pi i/3}$.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of $A$ can only have distinct roots.\",\n        \"deduced-from\": [\"The roots of the minimal polynomial of $A$ are 1, $e^{2\\\\pi i/3}$, and $e^{4\\\\pi i/3}$.\"]\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"$A$ is diagonalizable\",\n        \"deduced-from\": [\"The minimal polynomial of $A$ can only have distinct roots.\"]\n      }\n    ]\n  }\n]",
+    "[\n    {\n        \"type\": \"theorem\",\n        \"name\": \"Theorem_Statement\",\n        \"statement\": \"Let $A$ be a square matrix. If $A^3 = I$ then $A$ is diagonalizable.\",\n        \"status\": \"proved\",\n        \"proof\": [\n            {\n                \"type\": \"let\",\n                \"variable\": \"A\",\n                \"value\": \"a square matrix\"\n            },\n            {\n                \"type\": \"assumption\",\n                \"statement\": \"$A^3 = I$\"\n            },\n            {\n                \"type\": \"observation\",\n                \"statement\": \"The characteristic polynomial of $A$ is a polynomial of degree $n$, where $n$ is the size of $A$\"\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"The polynomial has $1$ as a root of multiplicity at least $3$\",\n                \"deduced-from\": [\"$A^3 - I = 0$\"]\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"The minimal polynomial of $A$ divides $x^3 - 1$\",\n                \"deduced-from\": [\"The polynomial has $1$ as a root of multiplicity at least $3$\"]\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"The roots of the minimal polynomial of $A$ are $1, e^{2\\pi i/3}$, and $e^{4\\pi i/3}$\",\n                \"deduced-from\": [\"The minimal polynomial of $A$ divides $x^3 - 1$\"]\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"The minimal polynomial of $A$ can only have distinct roots\",\n                \"deduced-from\": [\"The roots of the minimal polynomial of $A$ are $1, e^{2\\\\pi i/3}$, and $e^{4\\\\pi i/3}$\"]\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"$A$ is diagonalizable\",\n                \"deduced-from\": [\"The minimal polynomial of $A$ can only have distinct roots\"]\n            }\n        ]\n    }\n]",
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem_1\",\n    \"statement\": \"Let A be a square matrix. If A^3 = I, then A is diagonalizable.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"let\",\n        \"variable\": \"A\",\n        \"value\": \"A square matrix such that A^3 = I\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The polynomial p(x) = x^3 - 1 annihilates A\"\n      },\n      {\n        \"type\": \"theorem\",\n        \"name\": \"Theorem_2\",\n        \"statement\": \"The polynomial p(x) = x^3 - 1 has simple roots.\",\n        \"status\": \"proved\",\n        \"proof\": [\n          {\n            \"type\": \"let\",\n            \"variable\": \"ω\",\n            \"value\": \"a primitive third root of unity\"\n          },\n          {\n            \"type\": \"observation\",\n            \"statement\": \"The roots of the polynomial p(x) = x^3 - 1 are 1, ω, ω^2\"\n          },\n          {\n            \"type\": \"observation\",\n            \"statement\": \"Since these roots are distinct, they are simple.\"\n          }\n        ]\n      },\n      {\n        \"type\": \"theorem\",\n        \"name\": \"Theorem_3\",\n        \"statement\": \"If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x).\",\n        \"status\": \"proved\",\n        \"proof\": [\n          {\n            \"type\": \"observation\",\n            \"statement\": \"Since the minimal polynomial of A divides p(x), it can be written as a product of factors that are also factors of p(x).\"\n          },\n          {\n            \"type\": \"observation\",\n            \"statement\": \"Thus, every root of the minimal polynomial is also a root of p(x).\"\n          }\n        ]\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A divides p(x) and thus all of its roots are also simple.\",\n        \"deduced-from\": [\n          \"The polynomial p(x) = x^3 - 1 has simple roots.\",\n          \"If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x).\"\n        ]\n      },\n      {\n        \"type\": \"theorem\",\n        \"name\": \"Theorem_4\",\n        \"statement\": \"A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots.\",\n        \"status\": \"recalled\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"A is diagonalizable.\",\n        \"deduced-from\": [\"A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots.\"]\n      }\n    ]\n  }\n]",
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem_1\",\n    \"statement\": \"Let A be a square matrix. If A^3 = I, then A is diagonalizable.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"let\",\n        \"variable\": \"A\",\n        \"value\": \"a square matrix such that A^3 = I\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The polynomial p(x) = x^3 - 1 annihilates A.\",\n        \"deduced-from\": [\"A^3 = I\"]\n      },\n      {\n        \"type\": \"theorem\",\n        \"name\": \"Theorem_2\",\n        \"statement\": \"The polynomial p(x) = x^3 - 1 has simple roots.\",\n        \"status\": \"proved earlier\"\n      },\n      {\n        \"type\": \"theorem\",\n        \"name\": \"Theorem_3\",\n        \"statement\": \"If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x).\",\n        \"status\": \"proved earlier\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A divides p(x) and thus all of its roots are also simple.\",\n        \"deduced-from\": [\n          {\n            \"result\": \"Theorem_2\",\n            \"applied-to\": \"p(x)\"\n          },\n          {\n            \"result\": \"Theorem_3\",\n            \"applied-to\": \"A\"\n          }\n        ]\n      },\n      {\n        \"type\": \"theorem\",\n        \"name\": \"Theorem_4\",\n        \"statement\": \"A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots.\",\n        \"status\": \"proved earlier\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"A is diagonalizable.\",\n        \"deduced-from\": [\"Theorem_4\"]\n      }\n    ]\n  }\n]"
+  ],
+  "texts_with_statements": [
+    "```json\n[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"Given a square matrix A, if A^3 = I, then A is diagonalizable.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assumption\",\n        \"statement\": \"A is a square matrix and A^3 = I.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A must divide x^3 - 1.\",\n        \"statement\": \"Given that A^3 = I, the minimal polynomial of A must divide x^3 - 1.\",\n        \"deduced-from\": [\n          \"A^3 = I\"\n        ],\n        \"justification\": \"This follows from the definition of the minimal polynomial and the properties of polynomial division.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The roots of x^3 - 1 are distinct.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A also has distinct roots.\",\n        \"statement\": \"Given that the minimal polynomial of A must divide x^3 - 1 and the roots of x^3 - 1 are distinct, the minimal polynomial of A also has distinct roots.\",\n        \"deduced-from\": [\n          \"The minimal polynomial of A must divide x^3 - 1\",\n          \"The roots of x^3 - 1 are distinct\"\n        ],\n        \"justification\": \"If a polynomial divides another polynomial with distinct roots, its roots must also be distinct.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"A matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"A is diagonalizable.\",\n        \"statement\": \"Given that the minimal polynomial of A also has distinct roots and a matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors, A is diagonalizable.\",\n        \"deduced-from\": [\n          \"The minimal polynomial of A also has distinct roots\",\n          \"A matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors\"\n        ],\n        \"justification\": \"Since the minimal polynomial of A has distinct roots, it can be factored into distinct linear factors. Hence, A is diagonalizable.\"\n      }\n    ]\n  }\n]\n```",
+    "```json\n[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"Given a square matrix A, if A^3 = I, then A is diagonalizable.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assumption\",\n        \"statement\": \"A is a square matrix and A^3 = I.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A must divide x^3 - 1.\",\n        \"deduced-from\": [\n          \"A^3 = I\"\n        ],\n        \"justification\": \"This follows from the definition of the minimal polynomial and the properties of polynomial division.\",\n        \"statement\": \"If A is a square matrix and A^3 = I, then the minimal polynomial of A must divide x^3 - 1.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The roots of x^3 - 1 are distinct.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A also has distinct roots.\",\n        \"deduced-from\": [\n          \"The minimal polynomial of A must divide x^3 - 1\",\n          \"The roots of x^3 - 1 are distinct\"\n        ],\n        \"justification\": \"If a polynomial divides another polynomial with distinct roots, its roots must also be distinct.\",\n        \"statement\": \"If the minimal polynomial of A divides x^3 - 1 and the roots of x^3 - 1 are distinct, then the minimal polynomial of A also has distinct roots.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"A matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"A is diagonalizable.\",\n        \"deduced-from\": [\n          \"The minimal polynomial of A also has distinct roots\",\n          \"A matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors\"\n        ],\n        \"justification\": \"Since the minimal polynomial of A has distinct roots, it can be factored into distinct linear factors. Hence, A is diagonalizable.\",\n        \"statement\": \"If the minimal polynomial of A has distinct roots and a matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors, then A is diagonalizable.\"\n      }\n    ]\n  }\n]\n```",
+    "```json\n[\n  {\n    \"type\": \"theorem\",\n    \"statement\": \"Given a square matrix A, if A^3 = I, then A is diagonalizable.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"let\",\n        \"variable\": \"A\",\n        \"value\": \"a square matrix such that A^3 = I\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The minimal polynomial of A must divide x^3 - 1.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The roots of x^3 - 1 are distinct.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A also has distinct roots.\",\n        \"deduced-from\": [\"The minimal polynomial of A divides x^3 - 1\", \"The roots of x^3 - 1 are distinct\"],\n        \"statement\": \"If A is a square matrix such that A^3 = I, and the minimal polynomial of A divides x^3 - 1 and the roots of x^3 - 1 are distinct, then the minimal polynomial of A also has distinct roots.\"\n      },\n      {\n        \"type\": \"theorem\",\n        \"statement\": \"A matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors.\",\n        \"status\": \"recalled\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"A is diagonalizable.\",\n        \"deduced-from\": [\"The minimal polynomial of A has distinct roots\", \"A matrix is diagonalizable iff its minimal polynomial can be factored into distinct linear factors\"],\n        \"statement\": \"If A is a square matrix such that A^3 = I, and the minimal polynomial of A has distinct roots, and a matrix is diagonalizable iff its minimal polynomial can be factored into distinct linear factors, then A is diagonalizable.\"\n      }\n    ]\n  }\n]\n```",
+    "```json\n[\n  {\n    \"type\": \"theorem\",\n    \"statement\": \"Given a square matrix A, if A^3 = I, then A is diagonalizable.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"let\",\n        \"variable\": \"A\",\n        \"value\": \"a square matrix such that A^3 = I\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The minimal polynomial of A must divide x^3 - 1.\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The roots of x^3 - 1 are distinct.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The minimal polynomial of A also has distinct roots.\",\n        \"statement\": \"If A is a square matrix such that A^3 = I, the minimal polynomial of A also has distinct roots.\",\n        \"deduced-from\": [\"The minimal polynomial of A divides x^3 - 1\", \"The roots of x^3 - 1 are distinct\"]\n      },\n      {\n        \"type\": \"theorem\",\n        \"statement\": \"A matrix is diagonalizable if and only if its minimal polynomial can be factored into distinct linear factors.\",\n        \"status\": \"recalled\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"A is diagonalizable.\",\n        \"statement\": \"If A is a square matrix such that A^3 = I, and minimal polynomial of A has distinct roots, then A is diagonalizable.\",\n        \"deduced-from\": [\"The minimal polynomial of A has distinct roots\", \"A matrix is diagonalizable iff its minimal polynomial can be factored into distinct linear factors\"]\n      }\n    ]\n  }\n]\n```",
+    [
+      {
+        "type": "theorem",
+        "name": "Diagonalizability of Cubic Root of Identity Matrix",
+        "statement": "Let $A$ be a square matrix. If $A^3 = I$ then $A$ is diagonalizable.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "let",
+            "variable": "$A$",
+            "value": "a square matrix"
+          },
+          {
+            "type": "assumption",
+            "statement": "$A^3=I$"
+          },
+          {
+            "type": "observation",
+            "statement": "The characteristic polynomial of $A$ is a polynomial of degree $n$, where $n$ is the size of $A$."
+          },
+          {
+            "type": "assertion",
+            "claim": "The characteristic polynomial of A has 1 as a root of multiplicity at least 3.",
+            "deduced-from": [
+              "$A^3=I$"
+            ],
+            "statement": "If $A$ is a square matrix and $A^3 = I$, then the characteristic polynomial of $A$ has 1 as a root of multiplicity at least 3."
+          },
+          {
+            "type": "observation",
+            "statement": "The minimal polynomial of $A$ divides $x^3 - 1$."
+          },
+          {
+            "type": "observation",
+            "statement": "The roots of the minimal polynomial of $A$ are 1, $e^{2\\pi i/3}$, and $e^{4\\pi i/3}$."
+          },
+          {
+            "type": "assertion",
+            "claim": "The minimal polynomial of $A$ can only have distinct roots.",
+            "deduced-from": [
+              "The roots of the minimal polynomial of $A$ are 1, $e^{2\\pi i/3}$, and $e^{4\\pi i/3}$."
+            ],
+            "statement": "If $A$ is a square matrix and the roots of the minimal polynomial of $A$ are 1, $e^{2\\pi i/3}$, and $e^{4\\pi i/3}$, then the minimal polynomial of $A$ can only have distinct roots."
+          },
+          {
+            "type": "assertion",
+            "claim": "$A$ is diagonalizable",
+            "deduced-from": [
+              "The minimal polynomial of $A$ can only have distinct roots."
+            ],
+            "statement": "If $A$ is a square matrix and the minimal polynomial of $A$ can only have distinct roots, then $A$ is diagonalizable."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Diagonalizability of Cubic Root of Identity Matrix",
+        "statement": "Let $A$ be a square matrix. If $A^3 = I$ then $A$ is diagonalizable.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "let",
+            "variable": "$A$",
+            "value": "a square matrix"
+          },
+          {
+            "type": "assumption",
+            "statement": "$A^3=I$"
+          },
+          {
+            "type": "observation",
+            "statement": "The characteristic polynomial of $A$ is a polynomial of degree $n$, where $n$ is the size of $A$."
+          },
+          {
+            "type": "assertion",
+            "claim": "The characteristic polynomial of A has 1 as a root of multiplicity at least 3.",
+            "deduced-from": [
+              "$A^3=I$"
+            ],
+            "statement": "If $A$ is a square matrix and $A^3 = I$, then the characteristic polynomial of $A$ has 1 as a root of multiplicity at least 3."
+          },
+          {
+            "type": "observation",
+            "statement": "The minimal polynomial of $A$ divides $x^3 - 1$."
+          },
+          {
+            "type": "observation",
+            "statement": "The roots of the minimal polynomial of $A$ are 1, $e^{2\\pi i/3}$, and $e^{4\\pi i/3}$."
+          },
+          {
+            "type": "assertion",
+            "claim": "The minimal polynomial of $A$ can only have distinct roots.",
+            "deduced-from": [
+              "The roots of the minimal polynomial of $A$ are 1, $e^{2\\pi i/3}$, and $e^{4\\pi i/3}$."
+            ],
+            "statement": "If the roots of the minimal polynomial of $A$ are 1, $e^{2\\pi i/3}$, and $e^{4\\pi i/3}$, then the minimal polynomial of $A$ can only have distinct roots."
+          },
+          {
+            "type": "assertion",
+            "claim": "$A$ is diagonalizable",
+            "deduced-from": [
+              "The minimal polynomial of $A$ can only have distinct roots."
+            ],
+            "statement": "If the minimal polynomial of $A$ can only have distinct roots, then $A$ is diagonalizable."
+          }
+        ]
+      }
+    ],
+    "\"[\n    {\n        \\\"type\\\": \\\"theorem\\\",\n        \\\"name\\\": \\\"Theorem_Statement\\\",\n        \\\"statement\\\": \\\"Let $A$ be a square matrix. If $A^3 = I$ then $A$ is diagonalizable.\\\",\n        \\\"status\\\": \\\"proved\\\",\n        \\\"proof\\\": [\n            {\n                \\\"type\\\": \\\"let\\\",\n                \\\"variable\\\": \\\"A\\\",\n                \\\"value\\\": \\\"a square matrix\\\"\n            },\n            {\n                \\\"type\\\": \\\"assumption\\\",\n                \\\"statement\\\": \\\"$A^3 = I$\\\"\n            },\n            {\n                \\\"type\\\": \\\"observation\\\",\n                \\\"statement\\\": \\\"The characteristic polynomial of $A$ is a polynomial of degree $n$, where $n$ is the size of $A$\\\"\n            },\n            {\n                \\\"type\\\": \\\"assertion\\\",\n                \\\"claim\\\": \\\"The polynomial has $1$ as a root of multiplicity at least $3$\\\",\n                \\\"statement\\\": \\\"If the characteristic polynomial of a square matrix $A$ is a polynomial of degree $n$, and $A^3 = I$, then the polynomial has $1$ as a root of multiplicity at least $3$\\\",  \n                \\\"deduced-from\\\": [\\\"$A^3 - I = 0$\\\"]\n            },\n            {\n                \\\"type\\\": \\\"assertion\\\",\n                \\\"claim\\\": \\\"The minimal polynomial of $A$ divides $x^3 - 1$\\\",\n                \\\"statement\\\": \\\"If the polynomial of a square matrix $A$ has $1$ as a root of multiplicity at least $3$, then the minimal polynomial of $A$ divides $x^3 - 1\\\",  \n                \\\"deduced-from\\\": [\\\"The polynomial has $1$ as a root of multiplicity at least $3$\\\"]\n            },\n            {\n                \\\"type\\\": \\\"assertion\\\",\n                \\\"claim\\\": \\\"The roots of the minimal polynomial of $A$ are $1, e^{2\\\\pi i/3}$, and $e^{4\\\\pi i/3}$\\\",\n                \\\"statement\\\": \\\"If the minimal polynomial of a square matrix $A$ divides $x^3 - 1$, then the roots of the minimal polynomial of $A$ are $1, e^{2\\\\pi i/3}$, and $e^{4\\\\pi i/3}$\\\",  \n                \\\"deduced-from\\\": [\\\"The minimal polynomial of $A$ divides $x^3 - 1\\\"]\n            },\n            {\n                \\\"type\\\": \\\"assertion\\\",\n                \\\"claim\\\": \\\"The minimal polynomial of $A$ can only have distinct roots\\\",\n                \\\"statement\\\": \\\"If the roots of the minimal polynomial of a square matrix $A$ are $1, e^{2\\\\pi i/3}$, and $e^{4\\\\pi i/3}$, then the minimal polynomial of $A$ can only have distinct roots\\\",  \n                \\\"deduced-from\\\": [\\\"The roots of the minimal polynomial of $A$ are $1, e^{2\\\\\\\\pi i/3}$, and $e^{4\\\\\\\\pi i/3}$\\\"]\n            },\n            {\n                \\\"type\\\": \\\"assertion\\\",\n                \\\"claim\\\": \\\"$A$ is diagonalizable\\\",\n                \\\"statement\\\": \\\"If the minimal polynomial of a square matrix $A$ can only have distinct roots, then $A$ is diagonalizable\\\",  \n                \\\"deduced-from\\\": [\\\"The minimal polynomial of $A$ can only have distinct roots\\\"]\n            }\n        ]\n    }\n]\"",
+    "[\n    {\n        \"type\": \"theorem\",\n        \"name\": \"Theorem_Statement\",\n        \"statement\": \"Let $A$ be a square matrix. If $A^3 = I$ then $A$ is diagonalizable.\",\n        \"status\": \"proved\",\n        \"proof\": [\n            {\n                \"type\": \"let\",\n                \"variable\": \"A\",\n                \"value\": \"a square matrix\"\n            },\n            {\n                \"type\": \"assumption\",\n                \"statement\": \"$A^3 = I$\"\n            },\n            {\n                \"type\": \"observation\",\n                \"statement\": \"The characteristic polynomial of $A$ is a polynomial of degree $n$, where $n$ is the size of $A$\"\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"The polynomial has $1$ as a root of multiplicity at least $3$\",\n                \"deduced-from\": [\"$A^3 - I = 0$\"],\n                \"statement\": \"If $A^3 = I$, then the polynomial $A^3 - I$ has $1$ as a root of multiplicity at least $3$\"\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"The minimal polynomial of $A$ divides $x^3 - 1$\",\n                \"deduced-from\": [\"The polynomial has $1$ as a root of multiplicity at least $3$\"],\n                \"statement\": \"If the polynomial has $1$ as a root of multiplicity at least $3$, then the minimal polynomial of $A$ divides $x^3 - 1$\"\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"The roots of the minimal polynomial of $A$ are $1, e^{2\\pi i/3}$, and $e^{4\\pi i/3}$\",\n                \"deduced-from\": [\"The minimal polynomial of $A$ divides $x^3 - 1$\"],\n                \"statement\": \"If the minimal polynomial of $A$ divides $x^3 - 1$, then the roots of the minimal polynomial of $A$ are $1, e^{2\\pi i/3}$, and $e^{4\\pi i/3}$\"\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"The minimal polynomial of $A$ can only have distinct roots\",\n                \"deduced-from\": [\"The roots of the minimal polynomial of $A$ are $1, e^{2\\\\pi i/3}$, and $e^{4\\\\pi i/3}$\"],\n                \"statement\": \"If the roots of the minimal polynomial of $A$ are $1, e^{2\\pi i/3}$, and $e^{4\\pi i/3}$, then the minimal polynomial of $A$ can only have distinct roots\"\n            },\n            {\n                \"type\": \"assertion\",\n                \"claim\": \"$A$ is diagonalizable\",\n                \"deduced-from\": [\"The minimal polynomial of $A$ can only have distinct roots\"],\n                \"statement\": \"If the minimal polynomial of $A$ can only have distinct roots, then $A$ is diagonalizable\"\n            }\n        ]\n    }\n]",
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem_1",
+        "statement": "Let A be a square matrix. If A^3 = I, then A is diagonalizable.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "let",
+            "variable": "A",
+            "value": "A square matrix such that A^3 = I"
+          },
+          {
+            "type": "observation",
+            "statement": "The polynomial p(x) = x^3 - 1 annihilates A"
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_2",
+            "statement": "The polynomial p(x) = x^3 - 1 has simple roots.",
+            "status": "proved",
+            "proof": [
+              {
+                "type": "let",
+                "variable": "ω",
+                "value": "a primitive third root of unity"
+              },
+              {
+                "type": "observation",
+                "statement": "The roots of the polynomial p(x) = x^3 - 1 are 1, ω, ω^2"
+              },
+              {
+                "type": "observation",
+                "statement": "Since these roots are distinct, they are simple."
+              }
+            ]
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_3",
+            "statement": "If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x).",
+            "status": "proved",
+            "proof": [
+              {
+                "type": "observation",
+                "statement": "Since the minimal polynomial of A divides p(x), it can be written as a product of factors that are also factors of p(x)."
+              },
+              {
+                "type": "observation",
+                "statement": "Thus, every root of the minimal polynomial is also a root of p(x)."
+              }
+            ]
+          },
+          {
+            "type": "assertion",
+            "claim": "The minimal polynomial of A divides p(x) and thus all of its roots are also simple.",
+            "statement": "If A is a square matrix such that A^3 = I and the minimal polynomial of A divides the polynomial p(x) = x^3 - 1, then the minimal polynomial of A has only simple roots.",
+            "deduced-from": [
+              "The polynomial p(x) = x^3 - 1 has simple roots.",
+              "If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x)."
+            ]
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_4",
+            "statement": "A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots.",
+            "status": "recalled"
+          },
+          {
+            "type": "assertion",
+            "claim": "A is diagonalizable.",
+            "statement": "If A is a square matrix such that A^3 = I and the minimal polynomial of A has only simple roots, then A is diagonalizable.",
+            "deduced-from": [
+              "A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots."
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem_1",
+        "statement": "Let A be a square matrix. If A^3 = I, then A is diagonalizable.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "let",
+            "variable": "A",
+            "value": "A square matrix such that A^3 = I"
+          },
+          {
+            "type": "observation",
+            "statement": "The polynomial p(x) = x^3 - 1 annihilates A"
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_2",
+            "statement": "The polynomial p(x) = x^3 - 1 has simple roots.",
+            "status": "proved",
+            "proof": [
+              {
+                "type": "let",
+                "variable": "ω",
+                "value": "a primitive third root of unity"
+              },
+              {
+                "type": "observation",
+                "statement": "The roots of the polynomial p(x) = x^3 - 1 are 1, ω, ω^2"
+              },
+              {
+                "type": "observation",
+                "statement": "Since these roots are distinct, they are simple."
+              }
+            ]
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_3",
+            "statement": "If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x).",
+            "status": "proved",
+            "proof": [
+              {
+                "type": "observation",
+                "statement": "Since the minimal polynomial of A divides p(x), it can be written as a product of factors that are also factors of p(x)."
+              },
+              {
+                "type": "observation",
+                "statement": "Thus, every root of the minimal polynomial is also a root of p(x)."
+              }
+            ]
+          },
+          {
+            "type": "assertion",
+            "claim": "The minimal polynomial of A divides p(x) and thus all of its roots are also simple.",
+            "deduced-from": [
+              "The polynomial p(x) = x^3 - 1 has simple roots.",
+              "If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x)."
+            ],
+            "statement": "If the minimal polynomial of A divides the polynomial p(x) = x^3 - 1 and the polynomial p(x) = x^3 - 1 has simple roots, then all roots of the minimal polynomial of A are also simple."
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_4",
+            "statement": "A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots.",
+            "status": "recalled"
+          },
+          {
+            "type": "assertion",
+            "claim": "A is diagonalizable.",
+            "deduced-from": [
+              "A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots."
+            ],
+            "statement": "If the square matrix A has a minimal polynomial with only simple roots, then A is diagonalizable."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem_1",
+        "statement": "Let A be a square matrix. If A^3 = I, then A is diagonalizable.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "let",
+            "variable": "A",
+            "value": "a square matrix such that A^3 = I"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial p(x) = x^3 - 1 annihilates A.",
+            "statement": "Let A be a square matrix such that A^3 = I. Then the polynomial p(x) = x^3 - 1 annihilates A.",
+            "deduced-from": [
+              "A^3 = I"
+            ]
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_2",
+            "statement": "The polynomial p(x) = x^3 - 1 has simple roots.",
+            "status": "proved earlier"
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_3",
+            "statement": "If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x).",
+            "status": "proved earlier"
+          },
+          {
+            "type": "assertion",
+            "claim": "The minimal polynomial of A divides p(x) and thus all of its roots are also simple.",
+            "statement": "Let A be a square matrix such that A^3 = I, and let the polynomial p(x) = x^3 - 1 be such that it annihilates A. Then the minimal polynomial of A divides p(x) and thus all of its roots are also simple.",
+            "deduced-from": [
+              {
+                "result": "Theorem_2",
+                "applied-to": "p(x)"
+              },
+              {
+                "result": "Theorem_3",
+                "applied-to": "A"
+              }
+            ]
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_4",
+            "statement": "A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots.",
+            "status": "proved earlier"
+          },
+          {
+            "type": "assertion",
+            "claim": "A is diagonalizable.",
+            "statement": "Let A be a square matrix such that A^3 = I, let the polynomial p(x) = x^3 - 1 be such that it annihilates A, and let the minimal polynomial of A divides p(x) and all of its roots are also simple. Then A is diagonalizable.",
+            "deduced-from": [
+              "Theorem_4"
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem_1",
+        "statement": "Let A be a square matrix. If A^3 = I, then A is diagonalizable.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "let",
+            "variable": "A",
+            "value": "a square matrix such that A^3 = I"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial p(x) = x^3 - 1 annihilates A.",
+            "deduced-from": [
+              "A^3 = I"
+            ],
+            "statement": "If A is a square matrix such that A^3 = I, then the polynomial p(x) = x^3 - 1 annihilates A."
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_2",
+            "statement": "The polynomial p(x) = x^3 - 1 has simple roots.",
+            "status": "proved earlier"
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_3",
+            "statement": "If the minimal polynomial of a square matrix A divides a polynomial p(x), then all roots of the minimal polynomial are also roots of p(x).",
+            "status": "proved earlier"
+          },
+          {
+            "type": "assertion",
+            "claim": "The minimal polynomial of A divides p(x) and thus all of its roots are also simple.",
+            "deduced-from": [
+              {
+                "result": "Theorem_2",
+                "applied-to": "p(x)"
+              },
+              {
+                "result": "Theorem_3",
+                "applied-to": "A"
+              }
+            ],
+            "statement": "If the polynomial p(x) = x^3 - 1 has simple roots and the minimal polynomial of a square matrix A divides a polynomial p(x), then the minimal polynomial of A divides p(x) and thus all of its roots are also simple."
+          },
+          {
+            "type": "theorem",
+            "name": "Theorem_4",
+            "statement": "A square matrix A is diagonalizable if and only if the minimal polynomial of A has only simple roots.",
+            "status": "proved earlier"
+          },
+          {
+            "type": "assertion",
+            "claim": "A is diagonalizable.",
+            "deduced-from": [
+              "Theorem_4"
+            ],
+            "statement": "If A is a square matrix and its minimal polynomial has only simple roots, then A is diagonalizable."
+          }
+        ]
+      }
+    ]
+  ]
+}

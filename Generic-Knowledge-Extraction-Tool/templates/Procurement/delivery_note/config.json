@@ -1,0 +1,89 @@
+{
+  "extraction_config": {
+    "configuration_mode": "text_description",
+    "use_case": "Procurement - Delivery_Note Extraction",
+    "description": "Extract delivery_note information from delivery_note documents",
+    "main_model_name": "Procurement_Delivery_NoteInfo",
+    "text_description": "Extract delivery_note information from delivery_note documents",
+    "parsed_fields": [
+      {
+        "field_name": "supplier_name",
+        "field_type": "str",
+        "description": "Name of the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "supplier_id",
+        "field_type": "str",
+        "description": "Unique identifier for the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "shipment_number",
+        "field_type": "str",
+        "description": "Unique number identifying the shipment",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "delivered_items",
+        "field_type": "list[str]",
+        "description": "List of items delivered",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "delivery_confirmation_date",
+        "field_type": "str",
+        "description": "Date confirming delivery of items",
+        "required": true,
+        "enum_values": null
+      }
+    ],
+    "fields": [
+      {
+        "field_name": "supplier_name",
+        "field_type": "str",
+        "description": "Name of the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "supplier_id",
+        "field_type": "str",
+        "description": "Unique identifier for the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "shipment_number",
+        "field_type": "str",
+        "description": "Unique number identifying the shipment",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "delivered_items",
+        "field_type": "list[str]",
+        "description": "List of items delivered",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "delivery_confirmation_date",
+        "field_type": "str",
+        "description": "Date confirming delivery of items",
+        "required": true,
+        "enum_values": null
+      }
+    ],
+    "model_generation_model": "claude-sonnet-4-20250514",
+    "extraction_model": "gpt-4.1-2025-04-14",
+    "use_azure": false,
+    "parsing_method": "fast",
+    "extraction_type": "single_type",
+    "document_type": "delivery_note"
+  }
+}

@@ -1,0 +1,103 @@
+{
+  "extraction_config": {
+    "configuration_mode": "text_description",
+    "use_case": "Procurement - Purchase_Order Extraction",
+    "description": "Extract purchase_order information from purchase_order documents",
+    "main_model_name": "Procurement_Purchase_OrderInfo",
+    "text_description": "Extract purchase_order information from purchase_order documents",
+    "parsed_fields": [
+      {
+        "field_name": "supplier_name",
+        "field_type": "str",
+        "description": "Name of the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "supplier_id",
+        "field_type": "str",
+        "description": "Unique identifier for the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "order_number",
+        "field_type": "str",
+        "description": "Unique number identifying the purchase order",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "ordered_items",
+        "field_type": "list[str]",
+        "description": "List of items ordered",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "quantities",
+        "field_type": "list[str]",
+        "description": "Quantities for each ordered item",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "delivery_dates",
+        "field_type": "list[str]",
+        "description": "Delivery dates for each ordered item",
+        "required": true,
+        "enum_values": null
+      }
+    ],
+    "fields": [
+      {
+        "field_name": "supplier_name",
+        "field_type": "str",
+        "description": "Name of the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "supplier_id",
+        "field_type": "str",
+        "description": "Unique identifier for the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "order_number",
+        "field_type": "str",
+        "description": "Unique number identifying the purchase order",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "ordered_items",
+        "field_type": "list[str]",
+        "description": "List of items ordered",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "quantities",
+        "field_type": "list[str]",
+        "description": "Quantities for each ordered item",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "delivery_dates",
+        "field_type": "list[str]",
+        "description": "Delivery dates for each ordered item",
+        "required": true,
+        "enum_values": null
+      }
+    ],
+    "model_generation_model": "claude-sonnet-4-20250514",
+    "extraction_model": "gpt-4.1-2025-04-14",
+    "use_azure": false,
+    "parsing_method": "fast",
+    "extraction_type": "single_type",
+    "document_type": "purchase_order"
+  }
+}

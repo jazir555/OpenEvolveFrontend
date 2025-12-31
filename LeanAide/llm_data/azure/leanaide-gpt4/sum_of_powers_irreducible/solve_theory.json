@@ -1,0 +1,13 @@
+{
+  "problem": "Prove that the polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+  "solutions": [
+    "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals by Eisenstein's criterion with $p=1$.",
+    "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals by Eisenstein's Criterion, taking the prime $p=1$ in the field of rational numbers $\\mathbb{Q}$.",
+    "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals. This is because it is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$, which is known to be irreducible over the rationals. The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$ (by applying the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$ for $n = 5$). Since $x - 1$ is clearly irreducible, so must be our given polynomial."
+  ],
+  "theories": [
+    "{\n  \"Theorem1\": {\n    \"Statement\": \"The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.\",\n    \"Proof\": \"The proof is by Eisenstein's criterion with p=1.\"\n  }\n}",
+    "## Theorem 1\nThe polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rational numbers $\\mathbb{Q}$.\n\n## Proof\nThis can be shown by using Eisenstein's criterion with the prime number $p = 1$.",
+    "\"Theorem 1: The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.\n\nProof: This follows from the general property of cyclotomic polynomials, which are all irreducible over the rationals.\n\nTheorem 2: The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.\n\nProof: The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$ (by applying the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$ for $n = 5$). The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$. Since the fifth cyclotomic polynomial is irreducible over the rationals (as established in Theorem 1) and $x - 1$ is clearly irreducible, it follows that $x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals.\""
+  ]
+}

@@ -1,0 +1,361 @@
+
+======================================================================
+ OPENEVOLVE TRULY THOROUGH TESTING SUITE
+======================================================================
+Starting comprehensive testing at: 2025-12-29 20:37:57.446171
+Output directory: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\test_results
+Use real LLMs: False
+Verbose: True
+======================================================================
+
+
+######################################################################
+# PHASE 1: BASIC EVOLUTION TESTS
+######################################################################
+
+======================================================================
+TEST 1.1 Simple Function Evolution
+======================================================================
+✓ Created test files
+  Program: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\test_results\phase1\program_1_1.py
+  Evaluator: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\test_results\phase1\evaluator_1_1.py
+
+✓ Testing initial code...
+✓ Successfully imported openevolve.api and openevolve.config
+⚠ No OPENAI_API_KEY found, using mock mode
+✓ Running in mock mode - validating initial code only
+✓ Initial code executes correctly
+
+======================================================================
+TEST 1.2 Code Quality Metrics
+======================================================================
+✓ Measuring good code quality...
+  Valid: True
+  Lines: 10
+  Complexity: 2
+  Performance (fib(20)): 0.0000s
+
+✓ Measuring bad code quality...
+  Valid: True
+  Lines: 7
+  Complexity: 1
+  Performance (fib(20)): 0.0010s
+
+✓ Comparing metrics...
+  Good is faster: True
+  Good is less complex: False
+  Both are valid: True
+
+======================================================================
+TEST 1.3 Evolution with Constraints
+======================================================================
+✓ Checking initial code constraints...
+  Under max length: True
+  Has math import: True
+  Has function: True
+
+✓ Initial code execution test:
+  Result: {'mean': 3.0, 'std_dev': 1.4142135623730951, 'count': 5}
+  Returns dict: True
+  Has mean: True
+
+######################################################################
+# PHASE 2: ADVERSARIAL EVOLUTION TESTS
+######################################################################
+
+======================================================================
+TEST 2.1 Red Team Bug Finding
+======================================================================
+✓ Analyzing buggy code...
+  Bugs found: 3
+    1. Potential: Function may return None implicitly
+    2. Potential: Off-by-one error in loop
+    3. Potential: No error handling
+
+======================================================================
+TEST 2.2 Blue Team Bug Fixing
+======================================================================
+✓ Testing buggy code...
+  Works: True
+  Returns None on empty: True
+
+✓ Testing fixed code...
+  Works: True
+  Returns None on empty: False
+  Empty result: []
+
+######################################################################
+# PHASE 3: ISLAND MODEL & MAP-ELITES TESTS
+######################################################################
+
+======================================================================
+TEST 3.1 Feature Diversity
+======================================================================
+✓ Created feature map with 4 bins
+  Unique complexity bins: {8, 2, 3, 7}
+  Unique performance bins: {9, 5, 6}
+  Diversity score: 0.04
+
+======================================================================
+TEST 3.2 Migration Between Islands
+======================================================================
+✓ Created 3 islands
+  Island 0: 5 programs
+  Island 1: 5 programs
+  Island 2: 5 programs
+
+✓ Simulating migration (rate=0.2)...
+  Island 0 -> 1: 1 programs
+  Island 1 -> 2: 1 programs
+  Island 2 -> 0: 1 programs
+
+✓ After migration:
+  Island 0: 5 programs
+  Island 1: 5 programs
+  Island 2: 5 programs
+
+######################################################################
+# PHASE 4: END-TO-END WORKFLOW TESTS
+######################################################################
+
+======================================================================
+TEST 4.1 Complete Evolution Pipeline
+======================================================================
+
+✓ Step 1: Define problem
+✓ Step 2: Create initial solution
+✓ Step 3: Create evaluator
+✓ Step 4: Test initial solution
+  Initial solution works: find_max([1,5,3,9,2]) = 9
+
+✓ Step 5: Verify workflow components
+  problem_defined: True
+  initial_solution_valid: True
+  evaluator_created: True
+  initial_solution_works: True
+
+######################################################################
+# PHASE 5: PERFORMANCE & QUALITY TESTS
+######################################################################
+
+======================================================================
+TEST 5.1 Performance Improvement
+======================================================================
+✓ Benchmarking slow implementation...
+  Time: 0.0405s
+
+✓ Benchmarking fast implementation...
+  Time: 0.0000s
+
+✓ Speedup: infx
+
+======================================================================
+TEST 5.2 Code Quality Metrics
+======================================================================
+✓ Measuring complex code...
+  Lines: 14
+  Complexity: 6
+  Max nesting: 6
+
+✓ Measuring simple code...
+  Lines: 11
+  Complexity: 8
+  Max nesting: 2
+
+✓ Improvements:
+  ✓ fewer_lines: True
+  ✗ less_complex: False
+  ✓ less_nesting: True
+
+######################################################################
+# PHASE 6: EDGE CASE & FAILURE MODE TESTS
+######################################################################
+
+======================================================================
+TEST 6.1 Empty Input Handling
+======================================================================
+✓ Test case: empty_string
+  Compiles: True
+✓ Test case: whitespace_only
+  Compiles: True
+✓ Test case: only_comments
+  Compiles: True
+
+======================================================================
+TEST 6.2 Large Codebase Handling
+======================================================================
+✓ Generating large code (~1000 lines)...
+✓ Measuring large code...
+  Lines: 1501
+  Characters: 26558
+  Size: 25.94 KB
+✓ Compile time: 0.0040s
+
+
+╔════════════════════════════════════════════════════════════════╗
+║           OPENEVOLVE THOROUGH TESTING RESULTS                  ║
+╠════════════════════════════════════════════════════════════════╣
+║  Total Tests:    12                                   ║
+║  Passed:         10 ( 83.3%)                        ║
+║  Failed:          2                                   ║
+║  Duration:         0.7s seconds                               ║
+╚════════════════════════════════════════════════════════════════╝
+
+
+======================================================================
+ DETAILED RESULTS
+======================================================================
+
+✓ PASS | 1.1 Simple Function Evolution (Phase 1)
+  Time: 0.59s
+  Details: {
+  "mode": "mock",
+  "initial_code_valid": true,
+  "note": "OpenEvolve API structure verified, actual evolution requires API keys"
+}...
+
+✗ FAIL | 1.2 Code Quality Metrics (Phase 1)
+  Time: 0.08s
+  Details: {
+  "good_metrics": {
+    "syntactically_valid": true,
+    "code_length": 221,
+    "line_count": 10,
+    "complexity": 2,
+    "performance_20": 0.0,
+    "correct_20": true,
+    "performance_30": 0.0,
+...
+
+✓ PASS | 1.3 Evolution with Constraints (Phase 1)
+  Time: 0.00s
+  Details: {
+  "constraints": {
+    "under_max_length": true,
+    "has_math_import": true,
+    "has_function": true,
+    "returns_dict": true,
+    "has_mean": true
+  },
+  "initial_result": {
+    "mean": 3.0,
+   ...
+
+✓ PASS | 2.1 Red Team Bug Finding (Phase 2)
+  Time: 0.00s
+  Details: {
+  "bugs_found": [
+    "Potential: Function may return None implicitly",
+    "Potential: Off-by-one error in loop",
+    "Potential: No error handling"
+  ],
+  "bug_count": 3,
+  "has_implicit_return": ...
+
+✓ PASS | 2.2 Blue Team Bug Fixing (Phase 2)
+  Time: 0.00s
+  Details: {
+  "buggy_result": {
+    "works": true,
+    "empty_result": null,
+    "normal_result": [
+      2,
+      4,
+      6
+    ],
+    "returns_none_on_empty": true
+  },
+  "fixed_result": {
+    "works": true,...
+
+✓ PASS | 3.1 Feature Diversity (Phase 3)
+  Time: 0.00s
+  Details: {
+  "feature_map_size": 4,
+  "diversity_score": 0.04,
+  "solutions": [
+    {
+      "complexity": 0.2,
+      "performance": 0.9,
+      "code": "simple_fast"
+    },
+    {
+      "complexity": 0.8,
+      ...
+
+✗ FAIL | 3.2 Migration Between Islands (Phase 3)
+  Time: 0.00s
+  Details: {
+  "num_islands": 3,
+  "migration_rate": 0.2,
+  "final_sizes": [
+    5,
+    5,
+    5
+  ],
+  "migration_happened": false
+}...
+
+✓ PASS | 4.1 Complete Evolution Pipeline (Phase 4)
+  Time: 0.00s
+  Details: {
+  "problem": "Create a function to find the maximum value in a list",
+  "components": {
+    "problem_defined": true,
+    "initial_solution_valid": true,
+    "evaluator_created": true,
+    "initial_s...
+
+✓ PASS | 5.1 Performance Improvement (Phase 5)
+  Time: 0.04s
+  Details: {
+  "slow_time": 0.04050135612487793,
+  "fast_time": 0.0,
+  "speedup": Infinity,
+  "improvement_percent": 100.0
+}...
+
+✓ PASS | 5.2 Code Quality Metrics (Phase 5)
+  Time: 0.00s
+  Details: {
+  "complex_metrics": {
+    "lines_of_code": 14,
+    "cyclomatic_complexity": 6,
+    "max_nesting": 6,
+    "total_chars": 446
+  },
+  "simple_metrics": {
+    "lines_of_code": 11,
+    "cyclomatic_compl...
+
+✓ PASS | 6.1 Empty Input Handling (Phase 6)
+  Time: 0.00s
+  Details: {
+  "test_cases": [
+    [
+      "empty_string",
+      ""
+    ],
+    [
+      "whitespace_only",
+      "   \n\n   "
+    ],
+    [
+      "only_comments",
+      "# Just a comment\n# Another comment"
+    ]
+...
+
+✓ PASS | 6.2 Large Codebase Handling (Phase 6)
+  Time: 0.00s
+  Details: {
+  "lines": 1501,
+  "characters": 26558,
+  "size_kb": 25.935546875,
+  "compile_time": 0.0039806365966796875
+}...
+
+======================================================================
+ Results saved to: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\test_results\test_results_20251229_203758.json
+======================================================================
+

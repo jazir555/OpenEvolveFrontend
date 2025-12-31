@@ -1,0 +1,509 @@
+# LeanAide-Enhanced Decomposition Configuration
+# This configuration extends the standard decomposition config with LeanAide-specific options
+
+# =============================================================================
+# LEANAIDE INTEGRATION SETTINGS
+# =============================================================================
+
+leanaide:
+  # Enable/disable LeanAide integration
+  enabled: true
+
+  # LeanAide client configuration
+  client:
+    server_url: "http://localhost:7654"
+    timeout: 300
+    enable_simulation_fallback: true
+    max_retries: 3
+    cache_enabled: true
+
+  # Decomposition settings
+  decomposition:
+    # Default decomposition strategy for mathematical problems
+    default_strategy: "hybrid"  # structural, dependency, complexity, domain, hybrid
+
+    # Enable LLM-based component extraction
+    enable_llm_extraction: true
+
+    # Minimum confidence threshold for LLM extraction
+    min_confidence: 0.7
+
+    # Fallback to heuristic decomposition if LLM fails
+    enable_fallback: true
+
+  # Mathematical problem detection
+  detection:
+    # Enable automatic mathematical problem detection
+    enabled: true
+
+    # Confidence threshold for mathematical detection
+    confidence_threshold: 0.6
+
+    # Domains to detect
+    target_domains:
+      - algebra
+      - analysis
+      - topology
+      - number_theory
+      - combinatorics
+      - geometry
+      - logic
+      - set_theory
+
+    # Minimum mathematical keyword count for detection
+    min_keyword_count: 2
+
+# =============================================================================
+# EVOLUTIONARY PROOF GENERATION SETTINGS
+# =============================================================================
+
+evolutionary:
+  # Enable evolutionary proof generation
+  enabled: true
+
+  # Minimum proof difficulty to trigger evolutionary approach
+  min_difficulty: 7
+
+  # Minimum formalization complexity to trigger evolutionary approach
+  min_formalization_complexity: 7
+
+  # Default evolutionary parameters
+  default_params:
+    # Population settings
+    population_size: 20
+    max_generations: 50
+    elitism_ratio: 0.1
+
+    # Genetic operators
+    mutation_rate: 0.1
+    crossover_rate: 0.8
+    selection_method: "tournament"  # tournament, roulette, rank, sus, truncation
+    crossover_method: "uniform"     # uniform, single_point, two_point, ordered, cycle
+
+    # Convergence settings
+    convergence_threshold: 0.001
+    stagnation_limit: 10
+    target_fitness: 8.0
+
+    # Parallel evaluation
+    parallel_evaluation: true
+    max_concurrent: 5
+
+  # Strategy-specific configurations
+  strategies:
+    # Standard genetic algorithm
+    standard_evolution:
+      population_size: 20
+      max_generations: 50
+      mutation_rate: 0.1
+
+    # Adversarial evolution (red team vs blue team)
+    adversarial_evolution:
+      population_size: 30
+      max_generations: 75
+      adversarial_epochs: 5
+      red_team_size: 10
+      blue_team_size: 10
+      adversarial_mutation_rate: 0.15
+
+    # Self-play reinforcement learning
+    self_play:
+      population_size: 25
+      max_generations: 100
+      self_play_episodes: 100
+      opponent_pool_size: 20
+      win_threshold: 0.7
+
+    # Hill climbing
+    hill_climbing:
+      population_size: 10
+      max_generations: 30
+      step_size: 0.5
+
+    # Simulated annealing
+    simulated_annealing:
+      population_size: 15
+      max_generations: 40
+      initial_temperature: 100.0
+      cooling_rate: 0.95
+      min_temperature: 0.1
+
+    # Hybrid approach
+    hybrid_evolutionary:
+      population_size: 25
+      max_generations: 60
+      phases:
+        - type: "standard_evolution"
+          generations: 30
+        - type: "adversarial_evolution"
+          generations: 20
+        - type: "hill_climbing"
+          generations: 10
+
+# =============================================================================
+# MATHEMATICAL DOMAIN SETTINGS
+# =============================================================================
+
+mathematical_domains:
+  # Domain-specific formalization complexity multipliers
+  complexity_multipliers:
+    logic: 1.3
+    set_theory: 1.4
+    topology: 1.3
+    analysis: 1.5
+    algebra: 1.2
+    number_theory: 1.0
+    combinatorics: 1.1
+    geometry: 1.2
+    general: 1.0
+
+  # Domain-specific import suggestions
+  imports:
+    algebra:
+      - "Mathlib.Algebra.*"
+      - "Mathlib.Data.*"
+    analysis:
+      - "Mathlib.Analysis.*"
+      - "Mathlib.Topology.*"
+    topology:
+      - "Mathlib.Topology.*"
+      - "Mathlib.Order.*"
+    number_theory:
+      - "Mathlib.Data.Nat.*"
+      - "Mathlib.Data.Int.*"
+      - "Mathlib.NumberTheory.*"
+    combinatorics:
+      - "Mathlib.Combinatorics.*"
+    geometry:
+      - "Mathlib.Geometry.*"
+    logic:
+      - "Mathlib.Logic.*"
+    set_theory:
+      - "Mathlib.SetTheory.*"
+      - "Mathlib.Data.Set.*"
+
+  # Domain-specific tactic suggestions
+  tactics:
+    algebra:
+      - "simp"
+      - "rw"
+      - "ring"
+      - "linarith"
+      - "apply"
+    analysis:
+      - "simp"
+      - "continuity"
+      - "tendsto"
+      - "filter"
+      - "apply"
+    topology:
+      - "isOpen"
+      - "isClosed"
+      - "compactness"
+      - "continuity"
+    number_theory:
+      - "simp"
+      - "rw"
+      - "linarith"
+      - "nat_dvd"
+      - "prime"
+    combinatorics:
+      - "simp"
+      - "rw"
+      - "card"
+      - "finset"
+    geometry:
+      - "simp"
+      - "rw"
+      - "angle"
+      - "distance"
+    logic:
+      - "simp"
+      - "rw"
+      - "apply"
+      - "exact"
+      - "intro"
+    set_theory:
+      - "simp"
+      - "rw"
+      - "set"
+      - "mem"
+      - "apply"
+
+# =============================================================================
+# PROOF DIFFICULTY ESTIMATION
+# =============================================================================
+
+proof_difficulty:
+  # Base difficulty by problem type
+  base_difficulty:
+    definition_formalization: 3
+    exercise_solution: 4
+    lemma_proof: 5
+    theorem_proof: 6
+    construction_problem: 7
+    conjecture_investigation: 9
+    computation_problem: 4
+    general_mathematics: 5
+
+  # Difficulty modifiers
+  modifiers:
+    # Length modifiers
+    long_problem:
+      threshold: 1000  # characters
+      bonus: 2
+    medium_problem:
+      threshold: 500
+      bonus: 1
+
+    # Complexity keyword modifiers
+    complexity_keywords:
+      - keyword: "infinite"
+        bonus: 1
+      - keyword: "uncountable"
+        bonus: 2
+      - keyword: "transfinite"
+        bonus: 2
+      - keyword: "non-constructive"
+        bonus: 1
+      - keyword: "axiom of choice"
+        bonus: 2
+      - keyword: "transcendental"
+        bonus: 2
+      - keyword: "non-elementary"
+        bonus: 2
+
+    # Proof technique modifiers
+    advanced_techniques:
+      - technique: "induction"
+        bonus: 1
+      - technique: "recursion"
+        bonus: 1
+      - technique: "diagonal argument"
+        bonus: 2
+      - technique: "compactness"
+        bonus: 1
+      - technique: "contradiction"
+        bonus: 1
+      - technique: "contrapositive"
+        bonus: 1
+      - technique: "invariant"
+        bonus: 1
+
+# =============================================================================
+# FORMALIZATION COMPLEXITY ESTIMATION
+# =============================================================================
+
+formalization_complexity:
+  # Domain complexity base scores
+  domain_scores:
+    logic: 7
+    set_theory: 8
+    topology: 8
+    analysis: 9
+    algebra: 7
+    number_theory: 6
+    combinatorics: 6
+    geometry: 7
+    general: 5
+
+  # Problem type modifiers
+  type_modifiers:
+    definition_formalization: -2
+    theorem_proof: +1
+    conjecture_investigation: +3
+
+  # Dependency overhead
+  dependency_overhead: 0.2  # Per dependency
+
+  # Maximum complexity
+  max_complexity: 10
+
+# =============================================================================
+# SUB-PROBLEM GENERATION
+# =============================================================================
+
+subproblem_generation:
+  # Enable Lean-friendly sub-problem generation
+  enable_lean_subproblems: true
+
+  # Include Lean code stubs in sub-problems
+  include_code_stubs: true
+
+  # Generate evolutionary configuration for difficult problems
+  include_evolutionary_config: true
+
+  # Create Hephaestus tickets for Lean sub-problems
+  create_hephaestus_tickets: true
+
+  # Ticket priority calculation
+  ticket_priority:
+    base_priority: 5
+    complexity_weight: 0.5
+    dependency_weight: 0.3
+    difficulty_weight: 0.2
+
+# =============================================================================
+# ROMA INTEGRATION
+# =============================================================================
+
+roma_integration:
+  # Enable ROMA for recursive Lean decomposition
+  enabled: true
+
+  # ROMA workflow configuration
+  workflow:
+    # Use ROMA for sub-problem decomposition
+    enable_recursive_decomposition: true
+
+    # Maximum recursion depth
+    max_recursion_depth: 3
+
+    # Minimum complexity to trigger recursive decomposition
+    min_complexity_for_recursion: 7
+
+  # ROMA knowledge extraction
+  knowledge_extraction:
+    # Extract Lean patterns from ROMA knowledge base
+    enabled: true
+
+    # Knowledge base query timeout
+    query_timeout: 30
+
+    # Maximum number of similar proofs to retrieve
+    max_similar_proofs: 5
+
+# =============================================================================
+# HEPHAESTUS INTEGRATION
+# =============================================================================
+
+hephaestus_integration:
+  # Enable Hephaestus ticket creation
+  enabled: true
+
+  # Ticket configuration
+  tickets:
+    # Ticket type for Lean sub-problems
+    ticket_type: "lean_formalization"
+
+    # Priority levels
+    priority_levels:
+      critical: 9
+      high: 7
+      medium: 5
+      low: 3
+
+    # Auto-assignment settings
+    auto_assign:
+      enabled: false
+      available_agents: []
+
+  # Ticket metadata
+  metadata:
+    include_lean_code: true
+    include_dependencies: true
+    include_complexity: true
+    include_evolutionary_config: true
+    include_domain_info: true
+
+# =============================================================================
+# DETECTION THRESHOLDS
+# =============================================================================
+
+detection_thresholds:
+  # Mathematical problem detection
+  mathematical:
+    # Minimum keyword matches
+    min_keywords: 2
+
+    # Minimum proof keyword matches
+    min_proof_keywords: 1
+
+    # Minimum math symbol count
+    min_math_symbols: 1
+
+    # Confidence threshold for classification
+    confidence_threshold: 0.6
+
+  # Evolutionary approach triggering
+  evolutionary:
+    # Minimum proof difficulty
+    min_proof_difficulty: 7
+
+    # Minimum formalization complexity
+    min_formalization_complexity: 7
+
+    # Minimum problem length (characters)
+    min_problem_length: 200
+
+# =============================================================================
+# PERFORMANCE TUNING
+# =============================================================================
+
+performance:
+  # Parallel processing
+  parallel:
+    enabled: true
+    max_workers: 4
+    chunk_size: 10
+
+  # Caching
+  cache:
+    enabled: true
+    ttl: 3600  # seconds
+    max_size: 1000
+
+  # Timeout settings
+  timeouts:
+    decomposition: 60  # seconds
+    component_extraction: 30
+    dependency_analysis: 30
+    complexity_estimation: 10
+    evolutionary_config: 5
+
+# =============================================================================
+# LOGGING AND DEBUGGING
+# =============================================================================
+
+logging:
+  # Log level for LeanAide integration
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+
+  # Log mathematical detection results
+  log_detection: true
+
+  # Log decomposition steps
+  log_decomposition: true
+
+  # Log evolutionary configuration
+  log_evolutionary_config: false
+
+  # Log ROMA integration
+  log_roma: false
+
+  # Log Hephaestus integration
+  log_hephaestus: false
+
+# =============================================================================
+# VALIDATION AND QUALITY CONTROL
+# =============================================================================
+
+validation:
+  # Validate generated Lean code
+  validate_lean_code: true
+
+  # Syntax checking
+  syntax_check:
+    enabled: true
+    strict_mode: false
+
+  # Semantic validation
+  semantic_validation:
+    enabled: true
+    check_well_formedness: true
+
+  # Quality thresholds
+  quality_thresholds:
+    min_coherence: 0.7
+    min_completeness: 0.8
+    min_feasibility: 0.6

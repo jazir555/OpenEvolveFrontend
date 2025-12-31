@@ -1,0 +1,87 @@
+{
+  "type": "theorem",
+  "name": "Origin as Source for Linear Differential Equation",
+  "hypothesis": [
+    {
+      "type": "assume",
+      "statement": "$\\dot{x} = x$"
+    },
+    {
+      "type": "assume",
+      "statement": "$\\dot{y} = y$"
+    }
+  ],
+  "conclusion": "The origin is a source.",
+  "status": "wrong proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$\\frac{dx}{dt} = x$",
+        "deduced_from": [
+          "$\\dot{x} = x$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\frac{dx}{x} = dt$",
+        "deduced_from": [
+          "$\\frac{dx}{dt} = x$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\log \\frac{x}{x_0} = t + c_1$",
+        "deduced_from": [
+          "$\\frac{dx}{x} = dt$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$x = Ae^t$",
+        "deduced_from": [
+          "$\\log \\frac{x}{x_0} = t + c_1$"
+        ],
+        "proof-method": "Exponentiating both sides"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\frac{dy}{dt} = y$",
+        "deduced_from": [
+          "$\\dot{y} = y$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\frac{dy}{y} = dt$",
+        "deduced_from": [
+          "$\\frac{dy}{dt} = y$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\log \\frac{y}{y_0} = t + c_2$",
+        "deduced_from": [
+          "$\\frac{dy}{y} = dt$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$y = Be^t$",
+        "deduced_from": [
+          "$\\log \\frac{y}{y_0} = t + c_2$"
+        ],
+        "proof-method": "Exponentiating both sides"
+      },
+      {
+        "type": "assert",
+        "claim": "It's a saddle",
+        "errors": [
+          "Incorrect conclusion. The origin is a source as both eigenvalues are positive."
+        ]
+      }
+    ]
+  },
+  "error": "The proof incorrectly concludes that the origin is a saddle instead of a source. The correct conclusion based on the given differential equations is that the origin is a source since the eigenvalues are both equal to 1, which have positive real parts."
+}

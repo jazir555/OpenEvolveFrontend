@@ -1,0 +1,696 @@
+#!/usr/bin/env python3
+"""
+MCTS-MDAP Demo Script
+
+Demonstration examples for MCTS-MDAP integration with Lean 4 theorem proving.
+
+This script provides runnable examples showing:
+1. Basic MDAP-MCTS search
+2. Custom agent voting
+3. MAKER-enhanced simulation
+4. Workflow integration
+5. Performance comparison
+
+Requirements:
+    - Python 3.8+
+    - leanaide_mcts.py
+    - mdap_engine.py
+    - mdap_maker_complete.py
+    - workflow_structures.py
+
+Usage:
+    python demo_mcts_mdap.py                    # Run all demos
+    python demo_mcts_mdap.py --demo basic       # Run specific demo
+    python demo_mcts_mdap.py --list             # List available demos
+    python demo_mcts_mdap.py --help             # Show help
+
+Author: OpenEvolve
+Created: 2025-12-30
+"""
+
+import argparse
+import asyncio
+import json
+import logging
+import os
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+# Set up logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
+
+
+# =============================================================================
+# DEMO CONFIGURATION
+# =============================================================================
+
+class DemoConfig:
+    """Configuration for demo."""
+
+    def __init__(
+        self,
+        mock_llm: bool = True,
+        verbose: bool = True,
+        save_results: bool = False
+    ):
+        self.mock_llm = mock_llm
+        self.verbose = verbose
+        self.save_results = save_results
+        self.results_dir = Path("demo_results")
+        if self.save_results:
+            self.results_dir.mkdir(exist_ok=True)
+
+
+# =============================================================================
+# DEMO 1: BASIC MDAP-MCTS SEARCH
+# =============================================================================
+
+def demo_basic_mdap_mcts(config: DemoConfig):
+    """
+    Demo 1: Basic MDAP-MCTS search.
+
+    Shows how to set up and run a basic MDAP-MCTS search for theorem proving.
+    """
+    print("\n" + "=" * 80)
+    print("DEMO 1: Basic MDAP-MCTS Search")
+    print("=" * 80)
+
+    try:
+        from leanaide_mcts import MCTSConfig, ProofState, search_proof_with_mcts
+        from mdap_engine import MDAPConfig
+        from workflow_structures import Team, ModelConfig
+        from test_leanaide_mcts_mdap import search_with_mdap_mcts
+    except ImportError as e:
+        logger.error(f"Failed to import required modules: {e}")
+        return
+
+    # Create mock team (for demonstration)
+    team = Team(
+        team_id="demo_team",
+        name="Demo Team",
+        members=[
+            ModelConfig(
+                model_id="demo_agent_1",
+                api_key="demo_key",
+                api_base="http://demo.com",
+                temperature=0.0
+            ),
+            ModelConfig(
+                model_id="demo_agent_2",
+                api_key="demo_key",
+                api_base="http://demo.com",
+                temperature=0.1
+            )
+        ]
+    )
+
+    # Configure MCTS
+    mcts_config = MCTSConfig(
+        max_iterations=100,
+        time_budget=10.0,
+        c_param=1.414,
+        rollout_depth=20
+    )
+
+    # Configure MDAP
+    mdap_config = MDAPConfig(
+        k_min=2,
+        k_max=5,
+        max_votes_per_step=10,
+        timeout_seconds=5
+    )
+
+    # Create initial proof state
+    initial_state = ProofState(
+        goals=["forall (a b : Nat), a + b = b + a"],
+        context=[],
+        depth=0
+    )
+
+    print(f"\nTheorem: {initial_state.goals[0]}")
+    print(f"MCTS config: {mcts_config.max_iterations} iterations, {mcts_config.time_budget}s budget")
+    print(f"MDAP config: k=[{mdap_config.k_min}, {mdap_config.k_max}], max_votes={mdap_config.max_votes_per_step}")
+
+    # Run search
+    print("\nRunning MDAP-MCTS search...")
+    start_time = time.time()
+
+    try:
+        result = search_with_mdap_mcts(
+            initial_state,
+            mcts_config,
+            mdap_config,
+            team
+        )
+        elapsed = time.time() - start_time
+
+        # Display results
+        print(f"\n{'=' * 60}")
+        print("RESULTS")
+        print(f"{'=' * 60}")
+        print(f"Success:         {result.success}")
+        print(f"Iterations:      {result.search_iterations}")
+        print(f"Time elapsed:    {elapsed:.2f}s")
+        print(f"Win rate:        {result.win_rate:.2%}")
+        print(f"Confidence:      {result.confidence:.2%}")
+        print(f"Tree depth:      {result.tree_depth}")
+        print(f"{'=' * 60}")
+
+        if result.success and result.best_proof:
+            print(f"\nBest proof found:")
+            print(f"  {result.best_proof}")
+
+    except Exception as e:
+        logger.error(f"Search failed: {e}")
+        import traceback
+        traceback.print_exc()
+
+    print("\nDemo 1 complete!\n")
+
+
+# =============================================================================
+# DEMO 2: CUSTOM AGENT VOTING
+# =============================================================================
+
+def demo_custom_voting(config: DemoConfig):
+    """
+    Demo 2: Custom agent voting strategies.
+
+    Shows how to implement custom voting strategies for agent selection.
+    """
+    print("\n" + "=" * 80)
+    print("DEMO 2: Custom Agent Voting")
+    print("=" * 80)
+
+    try:
+        from workflow_structures import Team, ModelConfig
+        from mdap_engine import AgentSelector, MDAPStep
+        import random
+    except ImportError as e:
+        logger.error(f"Failed to import required modules: {e}")
+        return
+
+    # Create diverse team
+    team = Team(
+        team_id="voting_demo_team",
+        name="Voting Demo Team",
+        members=[
+            ModelConfig(
+                model_id="gpt-4",
+                api_key="demo_key",
+                api_base="http://demo.com",
+                temperature=0.0,
+                performance_metrics={"success_rate": 0.85, "avg_proof_length": 15}
+            ),
+            ModelConfig(
+                model_id="claude-3-opus",
+                api_key="demo_key",
+                api_base="http://demo.com",
+                temperature=0.0,
+                performance_metrics={"success_rate": 0.82, "avg_proof_length": 12}
+            ),
+            ModelConfig(
+                model_id="gemini-pro",
+                api_key="demo_key",
+                api_base="http://demo.com",
+                temperature=0.1,
+                performance_metrics={"success_rate": 0.78, "avg_proof_length": 18}
+            )
+        ]
+    )
+
+    # Create agent selector
+    selector = AgentSelector(team, rng=random.Random(42))
+
+    # Create test step
+    step = MDAPStep(
+        step_id="test_step",
+        prompt="Select appropriate tactic",
+        task_type="theorem_proving"
+    )
+
+    print(f"\nTeam members: {len(team.members)}")
+    for member in team.members:
+        print(f"  - {member.model_id}")
+        if member.performance_metrics:
+            print(f"    Success rate: {member.performance_metrics['success_rate']:.2%}")
+
+    # Demonstrate weighted selection
+    print("\nDemonstrating weighted agent selection (10 selections):")
+    selection_counts = {}
+
+    for i in range(10):
+        selected_agent = selector.select(step)
+        selection_counts[selected_agent.model_id] = selection_counts.get(selected_agent.model_id, 0) + 1
+        print(f"  Selection {i+1}: {selected_agent.model_id}")
+
+    print("\nSelection summary:")
+    for agent_id, count in selection_counts.items():
+        print(f"  {agent_id}: {count} selections ({count/10:.1%})")
+
+    print("\nDemo 2 complete!\n")
+
+
+# =============================================================================
+# DEMO 3: MAKER-ENHANCED SIMULATION
+# =============================================================================
+
+def demo_maker_simulation(config: DemoConfig):
+    """
+    Demo 3: MAKER-enhanced simulation.
+
+    Shows how to use MAKER voting for MCTS simulation phase.
+    """
+    print("\n" + "=" * 80)
+    print("DEMO 3: MAKER-Enhanced Simulation")
+    print("=" * 80)
+
+    try:
+        from leanaide_mcts import MCTSConfig, ProofState
+        from mdap_maker_complete import MAKEREngine, MAKERRunMetrics
+        from workflow_structures import Team, ModelConfig
+        from test_leanaide_mcts_mdap import search_with_maker_mcts
+    except ImportError as e:
+        logger.error(f"Failed to import required modules: {e}")
+        return
+
+    # Create team
+    team = Team(
+        team_id="maker_demo_team",
+        name="MAKER Demo Team",
+        members=[
+            ModelConfig(
+                model_id="agent_1",
+                api_key="demo_key",
+                api_base="http://demo.com",
+                temperature=0.0
+            ),
+            ModelConfig(
+                model_id="agent_2",
+                api_key="demo_key",
+                api_base="http://demo.com",
+                temperature=0.0
+            )
+        ]
+    )
+
+    # Create MAKER engine
+    maker_engine = MAKEREngine(
+        team=team,
+        k_ahead=3,
+        max_token_length=750,
+        max_steps=50,
+        enable_first_to_ahead=True,
+        enable_red_flagging=True
+    )
+
+    print(f"\nMAKER Engine Configuration:")
+    print(f"  k_ahead:               {maker_engine.k_ahead}")
+    print(f"  max_token_length:      {maker_engine.max_token_length}")
+    print(f"  max_steps:             {maker_engine.max_steps}")
+    print(f"  enable_first_to_ahead: {maker_engine.enable_first_to_ahead}")
+    print(f"  enable_red_flagging:   {maker_engine.enable_red_flagging}")
+
+    # Create MCTS config
+    mcts_config = MCTSConfig(
+        max_iterations=50,
+        time_budget=10.0,
+        rollout_depth=15
+    )
+
+    # Create state
+    state = ProofState(
+        goals=["forall (n : Nat), n + 0 = n"],
+        context=[],
+        depth=0
+    )
+
+    print(f"\nTheorem: {state.goals[0]}")
+
+    # Run search with MAKER simulation
+    print("\nRunning MCTS with MAKER-enhanced simulation...")
+    start_time = time.time()
+
+    try:
+        result = search_with_maker_mcts(
+            state,
+            mcts_config,
+            maker_engine
+        )
+        elapsed = time.time() - start_time
+
+        print(f"\n{'=' * 60}")
+        print("RESULTS")
+        print(f"{'=' * 60}")
+        print(f"Success:         {result.success}")
+        print(f"Time elapsed:    {elapsed:.2f}s")
+        print(f"Iterations:      {result.search_iterations}")
+        print(f"Win rate:        {result.win_rate:.2%}")
+        print(f"{'=' * 60}")
+
+    except Exception as e:
+        logger.error(f"Search failed: {e}")
+        import traceback
+        traceback.print_exc()
+
+    print("\nDemo 3 complete!\n")
+
+
+# =============================================================================
+# DEMO 4: WORKFLOW INTEGRATION
+# =============================================================================
+
+def demo_workflow_integration(config: DemoConfig):
+    """
+    Demo 4: Workflow integration.
+
+    Shows how to integrate MDAP-MCTS into the decomposition workflow.
+    """
+    print("\n" + "=" * 80)
+    print("DEMO 4: Workflow Integration")
+    print("=" * 80)
+
+    try:
+        from mdap_maker_complete import RecursiveMAKERSolver, TaskDecomposition
+        from workflow_structures import Team, ModelConfig
+    except ImportError as e:
+        logger.error(f"Failed to import required modules: {e}")
+        return
+
+    # Create team
+    team = Team(
+        team_id="workflow_demo_team",
+        name="Workflow Demo Team",
+        members=[
+            ModelConfig(
+                model_id="decomposer",
+                api_key="demo_key",
+                api_base="http://demo.com",
+                temperature=0.3
+            )
+        ]
+    )
+
+    # Create recursive MAKER solver
+    solver = RecursiveMAKERSolver(
+        team=team,
+        max_depth=3,
+        k_ahead=3,
+        num_candidates=3,
+        max_token_length=500
+    )
+
+    print(f"\nRecursive MAKER Solver Configuration:")
+    print(f"  max_depth:       {solver.max_depth}")
+    print(f"  k_ahead:         {solver.k_ahead}")
+    print(f"  num_candidates:  {solver.num_candidates}")
+
+    # Define task
+    task = "Prove that addition is commutative for natural numbers"
+    context = {
+        "domain": "natural_numbers",
+        "operation": "addition",
+        "property": "commutativity"
+    }
+
+    print(f"\nTask: {task}")
+    print(f"Context: {json.dumps(context, indent=2)}")
+
+    # Demonstrate decomposition
+    print("\nDemonstrating task decomposition...")
+
+    # Simulate decomposition (would normally call LLM)
+    decomposition = TaskDecomposition(
+        subtask1={
+            "task": "Prove base case for n = 0",
+            "context": {"case": "base"}
+        },
+        subtask2={
+            "task": "Prove inductive step for n = k + 1",
+            "context": {"case": "inductive"}
+        },
+        composition_function="Combine base case and inductive step using induction principle",
+        is_atomic=False,
+        confidence=0.85
+    )
+
+    print(f"\nDecomposition result:")
+    print(f"  Subtask 1: {decomposition.subtask1['task']}")
+    print(f"  Subtask 2: {decomposition.subtask2['task']}")
+    print(f"  Composition: {decomposition.composition_function}")
+    print(f"  Confidence: {decomposition.confidence:.2%}")
+
+    print("\nDemo 4 complete!\n")
+
+
+# =============================================================================
+# DEMO 5: PERFORMANCE COMPARISON
+# =============================================================================
+
+def demo_performance_comparison(config: DemoConfig):
+    """
+    Demo 5: Performance comparison.
+
+    Compares performance of pure MCTS vs MDAP-MCTS.
+    """
+    print("\n" + "=" * 80)
+    print("DEMO 5: Performance Comparison")
+    print("=" * 80)
+
+    try:
+        from leanaide_mcts import MCTSConfig, ProofState, search_proof_with_mcts
+        from mdap_engine import MDAPConfig
+        from workflow_structures import Team, ModelConfig
+        from test_leanaide_mcts_mdap import search_with_mdap_mcts
+    except ImportError as e:
+        logger.error(f"Failed to import required modules: {e}")
+        return
+
+    # Create team
+    team = Team(
+        team_id="perf_demo_team",
+        name="Performance Demo Team",
+        members=[
+            ModelConfig(
+                model_id="agent",
+                api_key="demo_key",
+                api_base="http://demo.com",
+                temperature=0.0
+            )
+        ]
+    )
+
+    # Test theorem
+    theorem = "forall (a b : Nat), a + b = b + a"
+    state = ProofState(goals=[theorem], context=[], depth=0)
+
+    print(f"\nTheorem: {theorem}")
+    print(f"\nRunning comparison...")
+
+    # Configuration
+    mcts_config = MCTSConfig(
+        max_iterations=100,
+        time_budget=10.0
+    )
+    mdap_config = MDAPConfig(
+        k_min=2,
+        k_max=5,
+        max_votes_per_step=10
+    )
+
+    results = {}
+
+    # Test 1: Pure MCTS
+    print("\n1. Testing Pure MCTS...")
+    start = time.time()
+    try:
+        result_mcts = search_proof_with_mcts(state, mcts_config)
+        elapsed_mcts = time.time() - start
+        results["mcts"] = {
+            "success": result_mcts.success,
+            "time": elapsed_mcts,
+            "win_rate": result_mcts.win_rate,
+            "iterations": result_mcts.search_iterations
+        }
+        print(f"   Success: {result_mcts.success}")
+        print(f"   Time: {elapsed_mcts:.2f}s")
+        print(f"   Win rate: {result_mcts.win_rate:.2%}")
+    except Exception as e:
+        print(f"   ERROR: {e}")
+        results["mcts"] = None
+
+    # Test 2: MDAP-MCTS
+    print("\n2. Testing MDAP-MCTS...")
+    start = time.time()
+    try:
+        result_mdap = search_with_mdap_mcts(
+            state,
+            mcts_config,
+            mdap_config,
+            team
+        )
+        elapsed_mdap = time.time() - start
+        results["mdap_mcts"] = {
+            "success": result_mdap.success,
+            "time": elapsed_mdap,
+            "win_rate": result_mdap.win_rate,
+            "iterations": result_mdap.search_iterations
+        }
+        print(f"   Success: {result_mdap.success}")
+        print(f"   Time: {elapsed_mdap:.2f}s")
+        print(f"   Win rate: {result_mdap.win_rate:.2%}")
+    except Exception as e:
+        print(f"   ERROR: {e}")
+        results["mdap_mcts"] = None
+
+    # Comparison
+    print("\n" + "=" * 60)
+    print("COMPARISON SUMMARY")
+    print("=" * 60)
+
+    if results.get("mcts") and results.get("mdap_mcts"):
+        mcts = results["mcts"]
+        mdap = results["mdap_mcts"]
+
+        time_diff = mdap["time"] - mcts["time"]
+        overhead = (time_diff / mcts["time"]) * 100 if mcts["time"] > 0 else 0
+
+        print(f"{'Metric':<20} {'Pure MCTS':<15} {'MDAP-MCTS':<15} {'Difference':<15}")
+        print("-" * 60)
+        print(f"{'Success':<20} {str(mcts['success']):<15} {str(mdap['success']):<15} {'':<15}")
+        print(f"{'Time (s)':<20} {mcts['time']:<15.2f} {mdap['time']:<15.2f} {time_diff:>+14.2f}")
+        print(f"{'Win Rate':<20} {mcts['win_rate']:<15.2%} {mdap['win_rate']:<15.2%} {(mdap['win_rate']-mcts['win_rate'])*100:>+13.1f}%")
+        print(f"{'Iterations':<20} {mcts['iterations']:<15} {mdap['iterations']:<15} {mdap['iterations']-mcts['iterations']:+14}")
+        print("-" * 60)
+        print(f"Voting overhead: {overhead:+.1f}%")
+
+    print("=" * 60)
+
+    # Save results
+    if config.save_results:
+        results_file = config.results_dir / f"performance_comparison_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        with open(results_file, 'w') as f:
+            json.dump(results, f, indent=2)
+        print(f"\nResults saved to: {results_file}")
+
+    print("\nDemo 5 complete!\n")
+
+
+# =============================================================================
+# DEMO RUNNER
+# =============================================================================
+
+DEMOS = {
+    "basic": demo_basic_mdap_mcts,
+    "voting": demo_custom_voting,
+    "maker": demo_maker_simulation,
+    "workflow": demo_workflow_integration,
+    "performance": demo_performance_comparison
+}
+
+
+def list_demos():
+    """List available demos."""
+    print("\nAvailable demos:")
+    print("-" * 40)
+    for name, func in DEMOS.items():
+        print(f"  {name:<15} {func.__doc__.split('\n')[0].strip()}")
+    print("-" * 40)
+    print("\nUsage: python demo_mcts_mdap.py --demo <name>")
+    print()
+
+
+def run_all_demos(config: DemoConfig):
+    """Run all demos."""
+    print("\n" + "=" * 80)
+    print("MCTS-MDAP DEMO - RUNNING ALL DEMOS")
+    print("=" * 80)
+
+    for name, demo_func in DEMOS.items():
+        try:
+            demo_func(config)
+        except Exception as e:
+            logger.error(f"Demo '{name}' failed: {e}")
+            import traceback
+            traceback.print_exc()
+
+    print("\n" + "=" * 80)
+    print("ALL DEMOS COMPLETE")
+    print("=" * 80)
+    print()
+
+
+def parse_arguments():
+    """Parse command-line arguments."""
+    parser = argparse.ArgumentParser(
+        description="MCTS-MDAP Demo Script",
+        formatter_class=argparse.RawDescriptionHelpFormatter
+    )
+
+    parser.add_argument(
+        "--demo",
+        "-d",
+        choices=list(DEMOS.keys()) + ["all"],
+        help="Demo to run (default: all)"
+    )
+
+    parser.add_argument(
+        "--list",
+        "-l",
+        action="store_true",
+        help="List available demos"
+    )
+
+    parser.add_argument(
+        "--save-results",
+        "-s",
+        action="store_true",
+        help="Save demo results to files"
+    )
+
+    parser.add_argument(
+        "--quiet",
+        "-q",
+        action="store_true",
+        help="Quiet mode (less verbose)"
+    )
+
+    return parser.parse_args()
+
+
+def main():
+    """Main entry point."""
+    args = parse_arguments()
+
+    # List demos if requested
+    if args.list:
+        list_demos()
+        sys.exit(0)
+
+    # Create configuration
+    config = DemoConfig(
+        mock_llm=True,
+        verbose=not args.quiet,
+        save_results=args.save_results
+    )
+
+    # Run demo(s)
+    if args.demo == "all" or args.demo is None:
+        run_all_demos(config)
+    elif args.demo in DEMOS:
+        DEMOS[args.demo](config)
+    else:
+        logger.error(f"Unknown demo: {args.demo}")
+        list_demos()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

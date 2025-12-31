@@ -1,0 +1,8 @@
+{
+  "problem": "Suppose $f:\\mathbb{R} \\to \\mathbb{R}$ is a continuous function such that $f''(x) > 0$ for all $x \\in \\mathbb{R}$. Prove that $f$ is unbounded.",
+  "solutions": [
+    "The statement is false. The function $f(x) = x^2$ is a counterexample. It is continuous, its second derivative is positive for all $x \\in \\mathbb{R}$, but it is not unbounded. Its range is $[0, \\infty)$.",
+    "The statement is false. Consider the function $f(x) = x^2$. It is continuous on $\\mathbb{R}$ and its second derivative is $f''(x) = 2 > 0$ for all $x \\in \\mathbb{R}$. However, $f$ is not unbounded. Instead, it is unbounded only above (as $x \\rightarrow +\\infty$), but it is bounded below (specifically, $f(x) \\geq 0$ for all $x \\in \\mathbb{R}$).",
+    "The assumption $f''(x) > 0$ for all $x \\in \\mathbb{R}$ means that $f$ is a strictly convex function. From the properties of convex functions, we know that a strictly convex function cannot be bounded. Therefore, $f$ is unbounded."
+  ]
+}

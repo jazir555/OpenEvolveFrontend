@@ -1,0 +1,64 @@
+{
+  "type": "theorem",
+  "name": "Source of Linear Differential System",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "x",
+      "kind": "function of time",
+      "property": "solution to the differential equation $\\dot{x} = x$"
+    },
+    {
+      "type": "let",
+      "variable": "y",
+      "kind": "function of time",
+      "property": "solution to the differential equation $\\dot{y} = y$"
+    }
+  ],
+  "conclusion": "The origin is a source.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$\\dot{x} = x$ and $\\dot{y} = y$ can be written as $\\dot{\\mathbf{x}} = A\\mathbf{x}$ where $A = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}$",
+        "proof-method": "Direct transformation",
+        "calculation": [
+          "$\\dot{\\mathbf{x}} = \\begin{pmatrix} \\dot{x} \\\\ \\dot{y} \\end{pmatrix}$",
+          "$A \\mathbf{x} = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\begin{pmatrix} x \\\\ y \\end{pmatrix} = \\begin{pmatrix} x \\\\ y \\end{pmatrix}$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "The matrix $A = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}$ has eigenvalues $1, 1$",
+        "proof-method": "Eigenvalue computation"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvectors corresponding to the eigenvalues $1, 1$ are $\\begin{pmatrix} 1 \\\\ 0 \\end{pmatrix}$ and $\\begin{pmatrix} 0 \\\\ 1 \\end{pmatrix}$",
+        "proof-method": "Eigenvector computation"
+      },
+      {
+        "type": "conclude",
+        "statement": "Therefore, the origin is a source because the eigenvalues of $A$ are positive."
+      }
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Justify the final step that the origin is a source using the known results about the eigenvalues."
+    }
+  ],
+  "errors": [
+    {
+      "type": "remark",
+      "statement": "Incorrect vector notation in the transformation to $\\mathbf{x}$."
+    },
+    {
+      "type": "remark",
+      "statement": "Inconsistent eigenvector representation in the proof."
+    }
+  ]
+}

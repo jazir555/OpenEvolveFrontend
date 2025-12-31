@@ -1,0 +1,64 @@
+{
+  "type": "theorem",
+  "name": "Gradient of f(x,y)",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "f",
+      "value": "$f(x, y)=x^{3}-3 x+y^{2}$",
+      "kind": "function from $\\mathbb{R}^2$ to $\\mathbb{R}$"
+    }
+  ],
+  "conclusion": "The gradient of $f$ is zero at the points $(1,0)$ and $(-1,0)$.",
+  "status": "wrong proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "We first compute the gradient of $f$."
+      },
+      {
+        "type": "assert",
+        "claim": "$\\nabla f(x,y) = (2x -3) \\hat{i} + 2y \\hat{j}$",
+        "calculation": [
+          "$\\nabla f(x,y) = \\frac{\\partial f}{\\partial x} \\hat{i} + \\frac{\\partial f}{\\partial y} \\hat{j}$",
+          "$= (2x -3) \\hat{i} + 2y \\hat{j}$"
+        ],
+        "errors": [
+          {
+            "type": "remark",
+            "statement": "The partial derivative $\\frac{\\partial f}{\\partial x}$ is incorrect. The correct derivative is $\\frac{\\partial f}{\\partial x} = 3x^2 - 3$."
+          }
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "If $\\nabla f = 0$, then $x = 1$ & $y = 0$",
+        "deduced_from": [
+          "Previous step"
+        ],
+        "calculation": [
+          {
+            "step": "$3x - 3 = 0$ & $2y = 0$",
+            "justification": "Setting the components of the gradient to zero."
+          },
+          {
+            "step": "$x = 1$ & $y = 0$",
+            "justification": "Solving the equations."
+          }
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "$\\therefore \\nabla f = 0$ at $(1,0)$ & $(0,1)$",
+        "errors": [
+          {
+            "type": "remark",
+            "statement": "The conclusion is not justified since we only found a necessary condition for the gradient to be zero. Moreover, the point $(0,1)$ does not make the gradient zero even with the incorrect derivative, and the point $(-1,0)$ which does make the gradient zero is missed."
+          }
+        ]
+      }
+    ]
+  }
+}

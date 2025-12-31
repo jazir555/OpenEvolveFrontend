@@ -1,0 +1,29 @@
+{
+  "stage_name": "BOM Detail Extraction",
+  "stage_type": "secondary",
+  "document_types": [
+    "Bill of Material (BOM)"
+  ],
+  "input_keys": [],
+  "output_keys": [],
+  "extraction_fields": [
+    {
+      "field_name": "ID",
+      "field_type": "str",
+      "description": "Unique identifier for the part; matches Material Number from PO.",
+      "required": true
+    },
+    {
+      "field_name": "Type/Part Designation",
+      "field_type": "str",
+      "description": "Technical type or designation of the part.",
+      "required": true
+    },
+    {
+      "field_name": "Dimensions",
+      "field_type": "str",
+      "description": "Physical dimensions of the part.",
+      "required": true
+    }
+  ]
+}

@@ -1,0 +1,424 @@
+[{"name": "«term_%_»",
+  "doc":
+  "`a % b` computes the remainder upon dividing `a` by `b`.\nThe meaning of this notation is type-dependent.\n* For `Nat` and `Int` it satisfies `a % b + b * (a / b) = a`,\n  and `a % 0` is defined to be `a`. "},
+ {"name": "termDepIfThenElse",
+  "doc":
+  "\"Dependent\" if-then-else, normally written via the notation `if h : c then t(h) else e(h)`,\nis sugar for `dite c (fun h => t(h)) (fun h => e(h))`, and it is the same as\n`if c then t else e` except that `t` is allowed to depend on a proof `h : c`,\nand `e` can depend on `h : ¬c`. (Both branches use the same name for the hypothesis,\neven though it has different types in the two cases.)\n\nWe use this to be able to communicate the if-then-else condition to the branches.\nFor example, `Array.get arr i h` expects a proof `h : i < arr.size` in order to\navoid a bounds check, so you can write `if h : i < arr.size then arr.get i h else ...`\nto avoid the bounds check inside the if branch. (Of course in this case we have only\nlifted the check into an explicit `if`, but we could also use this proof multiple times\nor derive `i < arr.size` from some other proposition that we are checking in the `if`.)\n"},
+ {"name": "«term_⊕_»",
+  "doc":
+  "`Sum α β`, or `α ⊕ β`, is the disjoint union of types `α` and `β`.\nAn element of `α ⊕ β` is either of the form `.inl a` where `a : α`,\nor `.inr b` where `b : β`.\n"},
+ {"name": "termWithout_expected_type_",
+  "doc":
+  "`without_expected_type t` instructs Lean to elaborate `t` without an expected type.\nRecall that terms such as `match ... with ...` and `⟨...⟩` will postpone elaboration until\nexpected type is known. So, `without_expected_type` is not effective in this case.\n"},
+ {"name": "Lean.Parser.Term.tuple",
+  "doc":
+  "Tuple notation; `()` is short for `Unit.unit`, `(a, b, c)` for `Prod.mk a (Prod.mk b c)`, etc. "},
+ {"name": "«term¬_»",
+  "doc":
+  "`Not p`, or `¬p`, is the negation of `p`. It is defined to be `p → False`,\nso if your goal is `¬p` you can use `intro h` to turn the goal into\n`h : p ⊢ False`, and if you have `hn : ¬p` and `h : p` then `hn h : False`\nand `(hn h).elim` will prove anything.\nFor more information: [Propositional Logic](https://lean-lang.org/theorem_proving_in_lean4/propositions_and_proofs.html#propositional-logic)\n"},
+ {"name": "Vector.«term#v[_,]»", "doc": "Syntax for `Vector α n` "},
+ {"name": "«term_⊇_»", "doc": "Superset relation: `a ⊇ b`  "},
+ {"name": "«term_!=_»",
+  "doc":
+  "`x != y` is boolean not-equal. It is the negation of `x == y` which is supplied by\nthe `BEq` typeclass.\n\nUnlike `x ≠ y` (which is notation for `Ne x y`), this is `Bool` valued instead of\n`Prop` valued. It is mainly intended for programming applications.\n"},
+ {"name": "«term_\\/_»",
+  "doc":
+  "`Or a b`, or `a ∨ b`, is the disjunction of propositions. There are two\nconstructors for `Or`, called `Or.inl : a → a ∨ b` and `Or.inr : b → a ∨ b`,\nand you can use `match` or `cases` to destruct an `Or` assumption into the\ntwo cases.\n"},
+ {"name": "«term_-_»",
+  "doc":
+  "`a - b` computes the difference of `a` and `b`.\nThe meaning of this notation is type-dependent.\n* For natural numbers, this operator saturates at 0: `a - b = 0` when `a ≤ b`. "},
+ {"name": "Lean.Parser.Tactic.showTermElab",
+  "doc": "`show_term e` elaborates `e`, then prints the generated term.\n"},
+ {"name": "Lean.Parser.Term.paren",
+  "doc":
+  "Parentheses, used for grouping expressions (e.g., `a * (b + c)`).\nCan also be used for creating simple functions when combined with `·`. Here are some examples:\n  - `(· + 1)` is shorthand for `fun x => x + 1`\n  - `(· + ·)` is shorthand for `fun x y => x + y`\n  - `(f · a b)` is shorthand for `fun x => f x a b`\n  - `(h (· + 1) ·)` is shorthand for `fun x => h (fun y => y + 1) x`\n  - also applies to other parentheses-like notations such as `(·, 1)`\n"},
+ {"name": "«term_↔_»",
+  "doc":
+  "If and only if, or logical bi-implication. `a ↔ b` means that `a` implies `b` and vice versa.\nBy `propext`, this implies that `a` and `b` are equal and hence any expression involving `a`\nis equivalent to the corresponding expression with `b` instead.\n"},
+ {"name": "Lean.«term∀__,_»",
+  "doc":
+  "The notation `∀ x < 2, p x` is shorthand for `∀ x, x < 2 → p x`,\nand similarly for other binary operators.\n"},
+ {"name": "Lean.termThrowErrorAt____",
+  "doc":
+  "Macro for throwing error exceptions. The argument can be an interpolated string.\nIt is a convenient way of building `MessageData` objects.\nThe first argument must be a `Syntax` that provides position information for\nthe error message.\n`throwErrorAt ref msg` is equivalent to `withRef ref <| throwError msg`\n"},
+ {"name": "Lean.Parser.Term.nomatch",
+  "doc":
+  "Empty match/ex falso. `nomatch e` is of arbitrary type `α : Sort u` if\nLean can show that an empty set of patterns is exhaustive given `e`'s type,\ne.g. because it has no constructors.\n"},
+ {"name": "Lean.Parser.Term.byTactic",
+  "doc":
+  "`by tac` constructs a term of the expected type by running the tactic(s) `tac`. "},
+ {"name": "Lean.Parser.Term.let",
+  "doc":
+  "`let` is used to declare a local definition. Example:\n```\nlet x := 1\nlet y := x + 1\nx + y\n```\nSince functions are first class citizens in Lean, you can use `let` to declare\nlocal functions too.\n```\nlet double := fun x => 2*x\ndouble (double 3)\n```\nFor recursive definitions, you should use `let rec`.\nYou can also perform pattern matching using `let`. For example,\nassume `p` has type `Nat × Nat`, then you can write\n```\nlet (x, y) := p\nx + y\n```\n"},
+ {"name": "Lean.Parser.Term.dbgTrace",
+  "doc":
+  "`dbg_trace e; body` evaluates to `body` and prints `e` (which can be an\ninterpolated string literal) to stderr. It should only be used for debugging.\n"},
+ {"name": "«term%[_|_]»",
+  "doc":
+  "Auxiliary syntax for implementing `[$elem,*]` list literal syntax.\nThe syntax `%[a,b,c|tail]` constructs a value equivalent to `a::b::c::tail`.\nIt uses binary partitioning to construct a tree of intermediate let bindings as in\n`let left := [d, e, f]; a :: b :: c :: left` to avoid creating very deep expressions.\n"},
+ {"name": "termIfLet",
+  "doc":
+  "`if let pat := d then t else e` is a shorthand syntax for:\n```\nmatch d with\n| pat => t\n| _ => e\n```\nIt matches `d` against the pattern `pat` and the bindings are available in `t`.\nIf the pattern does not match, it returns `e` instead.\n"},
+ {"name": "Lean.Parser.Term.unreachable",
+  "doc": "A shorthand for `panic! \"unreachable code has been reached\"`. "},
+ {"name": "Lean.Parser.Term.binrel_no_prop",
+  "doc":
+  "`binrel_no_prop% r a b` is similar to `binrel% r a b`, but it coerces `Prop` arguments into `Bool`. "},
+ {"name": "Lean.Parser.Term.syntheticHole",
+  "doc":
+  "A *synthetic hole* (or *synthetic placeholder*), which stands for an unknown term that should be synthesized using tactics.\n- `?_` creates a fresh metavariable with an auto-generated name.\n- `?m` either refers to a pre-existing metavariable named `m` or creates a fresh metavariable with that name.\n\nIn particular, the synthetic hole syntax creates \"synthetic opaque metavariables\",\nthe same kind of metavariable used to represent goals in the tactic state.\n\nSynthetic holes are similar to holes in that `_` also creates metavariables,\nbut synthetic opaque metavariables have some different properties:\n- In tactics such as `refine`, only synthetic holes yield new goals.\n- During elaboration, unification will not solve for synthetic opaque metavariables, they are \"opaque\".\n  This is to prevent counterintuitive behavior such as disappearing goals.\n- When synthetic holes appear under binders, they capture local variables using a more complicated mechanism known as delayed assignment.\n\n## Delayed assigned metavariables\n\nThis section gives an overview of some technical details of synthetic holes, which you should feel free to skip.\nUnderstanding delayed assignments is mainly useful for those who are working on tactics and other metaprogramming.\nIt is included here until there is a suitable place for it in the reference manual.\n\nWhen a synthetic hole appears under a binding construct, such as for example `fun (x : α) (y : β) => ?s`,\nthe system creates a *delayed assignment*. This consists of\n1. A metavariable `?m` of type `(x : α) → (y : β) → γ x y` whose local context is the local context outside the `fun`,\n  where `γ x y` is the type of `?s`. Recall that `x` and `y` appear in the local context of `?s`.\n2. A delayed assigment record associating `?m` to `?s` and the variables `#[x, y]` in the local context of `?s`\n\nThen, this function elaborates as `fun (x : α) (y : β) => ?m x y`, where one should understand `x` and `y` here\nas being De Bruijn indexes, since Lean uses the locally nameless encoding of lambda calculus.\n\nOnce `?s` is fully solved for, in the sense that after metavariable instantiation it is a metavariable-free term `e`,\nthen we can make the assignment `?m := fun (x' : α) (y' : β) => e[x := x', y := y']`.\n(Implementation note: Lean only instantiates full applications `?m x' y'` of delayed assigned metavariables, to skip forming this function.)\nThis delayed assignment mechanism is essential to the operation of basic tactics like `intro`,\nand a good mental model is that it is a way to \"apply\" the metavariable `?s` by substituting values in for some of its local variables.\nWhile it would be easier to immediately assign `?s := ?m x y`,\ndelayed assigment preserves `?s` as an unsolved-for metavariable with a local context that still contains `x` and `y`,\nwhich is exactly what tactics like `intro` need.\n\nBy default, delayed assigned metavariables pretty print with what they are delayed assigned to.\nThe delayed assigned metavariables themselves can be pretty printed using `set_option pp.mvars.delayed true`.\n\nFor more information, see the \"Gruesome details\" module docstrings in `Lean.MetavarContext`.\n"},
+ {"name": "«term_++_»",
+  "doc":
+  "`a ++ b` is the result of concatenation of `a` and `b`, usually read \"append\".\nThe meaning of this notation is type-dependent. "},
+ {"name": "«term_≥_»", "doc": "`a ≥ b` is an abbreviation for `b ≤ a`. "},
+ {"name": "«term_≈_»",
+  "doc":
+  "`x ≈ y` says that `x` and `y` are equivalent. Because this is a typeclass,\nthe notion of equivalence is type-dependent. "},
+ {"name": "«term_==_»", "doc": "Boolean equality, notated as `a == b`. "},
+ {"name": "«term∅»",
+  "doc":
+  "`∅` or `{}` is the empty set or empty collection.\nIt is supported by the `EmptyCollection` typeclass. "},
+ {"name": "Lean.«term∃__,_»",
+  "doc":
+  "The notation `∃ x < 2, p x` is shorthand for `∃ x, x < 2 ∧ p x`,\nand similarly for other binary operators.\n"},
+ {"name": "Lean.Parser.Term.quotedName", "doc": "A literal of type `Name`. "},
+ {"name": "«term_+_»",
+  "doc":
+  "`a + b` computes the sum of `a` and `b`.\nThe meaning of this notation is type-dependent. "},
+ {"name": "«term_<|_»",
+  "doc":
+  "Haskell-like pipe operator `<|`. `f <| x` means the same as the same as `f x`,\nexcept that it parses `x` with lower precedence, which means that `f <| g <| x`\nis interpreted as `f (g x)` rather than `(f g) x`.\n"},
+ {"name": "«term_≠_»",
+  "doc":
+  "`a ≠ b`, or `Ne a b` is defined as `¬ (a = b)` or `a = b → False`,\nand asserts that `a` and `b` are not equal.\n"},
+ {"name": "coeSortNotation", "doc": "`↥ t` coerces `t` to a type. "},
+ {"name": "Lean.Parser.Term.anonymousCtor",
+  "doc":
+  "The *anonymous constructor* `⟨e, ...⟩` is equivalent to `c e ...` if the\nexpected type is an inductive type with a single constructor `c`.\nIf more terms are given than `c` has parameters, the remaining arguments\nare turned into a new anonymous constructor application. For example,\n`⟨a, b, c⟩ : α × (β × γ)` is equivalent to `⟨a, ⟨b, c⟩⟩`.\n"},
+ {"name": "List.«term_<:+_»",
+  "doc":
+  "`IsSuffix l₁ l₂`, or `l₁ <:+ l₂`, means that `l₁` is a suffix of `l₂`,\nthat is, `l₂` has the form `t ++ l₁` for some `t`.\n"},
+ {"name": "«termCompile_time_search_path%»",
+  "doc":
+  "Term elaborator that retrieves the current `SearchPath`.\n\nTypical usage is `searchPathRef.set compile_time_search_path%`.\n\nThis must not be used in files that are potentially compiled on another machine and then imported.\n(That is, if used in an imported file it will embed the search path from whichever machine\ncompiled the `.olean`.)\n"},
+ {"name": "Lean.Parser.Tactic.by?",
+  "doc":
+  "The command `by?` will print a suggestion for replacing the proof block with a proof term\nusing `show_term`.\n"},
+ {"name": "«term_<|>_»",
+  "doc":
+  "`a <|> b` executes `a` and returns the result, unless it fails in which\ncase it executes and returns `b`. Because `b` is not always executed, it\nis passed as a thunk so it can be forced only when needed.\nThe meaning of this notation is type-dependent. "},
+ {"name": "Lean.Parser.Term.cdot",
+  "doc":
+  "A placeholder for an implicit lambda abstraction's variable. The lambda abstraction is scoped to the surrounding parentheses.\nFor example, `(· + ·)` is equivalent to `fun x y => x + y`.\n"},
+ {"name": "Lean.Parser.Term.typeAscription",
+  "doc":
+  "Type ascription notation: `(0 : Int)` instructs Lean to process `0` as a value of type `Int`.\nAn empty type ascription `(e :)` elaborates `e` without the expected type.\nThis is occasionally useful when Lean's heuristics for filling arguments from the expected type\ndo not yield the right result.\n"},
+ {"name": "«term[_]»",
+  "doc":
+  "The syntax `[a, b, c]` is shorthand for `a :: b :: c :: []`, or\n`List.cons a (List.cons b (List.cons c List.nil))`. It allows conveniently constructing\nlist literals.\n\nFor lists of length at least 64, an alternative desugaring strategy is used\nwhich uses let bindings as intermediates as in\n`let left := [d, e, f]; a :: b :: c :: left` to avoid creating very deep expressions.\nNote that this changes the order of evaluation, although it should not be observable\nunless you use side effecting operations like `dbg_trace`.\n"},
+ {"name": "Lean.Parser.Term.omission",
+  "doc":
+  "The `⋯` term denotes a term that was omitted by the pretty printer.\nThe presence of `⋯` in pretty printer output is controlled by the `pp.deepTerms` and `pp.proofs` options,\nand these options can be further adjusted using `pp.deepTerms.threshold` and `pp.proofs.threshold`.\n\nIt is only meant to be used for pretty printing.\nHowever, in case it is copied and pasted from the Infoview, `⋯` logs a warning and elaborates like `_`.\n"},
+ {"name": "«term_<*>_»",
+  "doc":
+  "If `mf : F (α → β)` and `mx : F α`, then `mf <*> mx : F β`.\nIn a monad this is the same as `do let f ← mf; x ← mx; pure (f x)`:\nit evaluates first the function, then the argument, and applies one to the other.\n\nTo avoid surprising evaluation semantics, `mx` is taken \"lazily\", using a\n`Unit → f α` function. "},
+ {"name": "Lean.withAnnotateTerm",
+  "doc":
+  "`with_annotate_term stx e` annotates the lexical range of `stx : Syntax` with term info for `e`. "},
+ {"name": "«term‹_›»",
+  "doc":
+  "`‹t›` resolves to an (arbitrary) hypothesis of type `t`.\nIt is useful for referring to hypotheses without accessible names.\n`t` may contain holes that are solved by unification with the expected type;\nin particular, `‹_›` is a shortcut for `by assumption`.\n"},
+ {"name": "«term_>_»", "doc": "`a > b` is an abbreviation for `b < a`. "},
+ {"name": "«term__[_]'_»",
+  "doc":
+  "The syntax `arr[i]` gets the `i`'th element of the collection `arr`. If there\nare proof side conditions to the application, they will be automatically\ninferred by the `get_elem_tactic` tactic.\n"},
+ {"name": "Lean.Parser.Term.let_fun",
+  "doc":
+  "`let_fun x := v; b` is syntax sugar for `(fun x => b) v`.\nIt is very similar to `let x := v; b`, but they are not equivalent.\nIn `let_fun`, the value `v` has been abstracted away and cannot be accessed in `b`.\n"},
+ {"name": "«term_∧_»",
+  "doc":
+  "`And a b`, or `a ∧ b`, is the conjunction of propositions. It can be\nconstructed and destructed like a pair: if `ha : a` and `hb : b` then\n`⟨ha, hb⟩ : a ∧ b`, and if `h : a ∧ b` then `h.left : a` and `h.right : b`.\n"},
+ {"name": "«term_|>_»",
+  "doc":
+  "Haskell-like pipe operator `|>`. `x |> f` means the same as the same as `f x`,\nand it chains such that `x |> f |> g` is interpreted as `g (f x)`.\n"},
+ {"name": "Lean.Parser.Term.haveI",
+  "doc":
+  "`haveI` behaves like `have`, but inlines the value instead of producing a `let_fun` term. "},
+ {"name": "«term_::_»",
+  "doc":
+  "If `a : α` and `l : List α`, then `cons a l`, or `a :: l`, is the\nlist whose first element is `a` and with `l` as the rest of the list. "},
+ {"name": "«term__[_]_!»",
+  "doc":
+  "The syntax `arr[i]!` gets the `i`'th element of the collection `arr` and\npanics `i` is out of bounds.\n"},
+ {"name": "«term_<=<_»",
+  "doc": "Right-to-left composition of Kleisli arrows. "},
+ {"name": "Lean.Parser.Term.inaccessible",
+  "doc":
+  "`.(e)` marks an \"inaccessible pattern\", which does not influence evaluation of the pattern match, but may be necessary for type-checking.\nIn contrast to regular patterns, `e` may be an arbitrary term of the appropriate type.\n"},
+ {"name": "Lean.Parser.Term.rightact",
+  "doc":
+  "`rightact% f a b` elaborates `f a b` as a right action using the type propagation protocol in `Lean.Elab.Extra`.\nIn particular, it is like a unary operation with a fixed parameter `b`, where only the left argument `a` participates in the operator coercion elaborator. "},
+ {"name": "«term_$__»",
+  "doc":
+  "Alternative syntax for `<|`. `f $ x` means the same as the same as `f x`,\nexcept that it parses `x` with lower precedence, which means that `f $ g $ x`\nis interpreted as `f (g x)` rather than `(f g) x`.\n"},
+ {"name": "Lean.Parser.Term.let_tmp",
+  "doc":
+  "`let`-declaration that is only included in the elaborated term if variable is still there.\nIt is often used when building macros.\n"},
+ {"name": "«term_/_»",
+  "doc":
+  "`a / b` computes the result of dividing `a` by `b`.\nThe meaning of this notation is type-dependent.\n* For most types like `Nat`, `Int`, `Rat`, `Real`, `a / 0` is defined to be `0`.\n* For `Nat`, `a / b` rounds downwards.\n* For `Int`, `a / b` rounds downwards if `b` is positive or upwards if `b` is negative.\n  It is implemented as `Int.ediv`, the unique function satisfying\n  `a % b + b * (a / b) = a` and `0 ≤ a % b < natAbs b` for `b ≠ 0`.\n  Other rounding conventions are available using the functions\n  `Int.fdiv` (floor rounding) and `Int.div` (truncation rounding).\n* For `Float`, `a / 0` follows the IEEE 754 semantics for division,\n  usually resulting in `inf` or `nan`. "},
+ {"name": "«term_>>_»",
+  "doc":
+  "`a >> b` executes `a`, ignores the result, and then executes `b`.\nIf `a` fails then `b` is not executed. Because `b` is not always executed, it\nis passed as a thunk so it can be forced only when needed.\nThe meaning of this notation is type-dependent. "},
+ {"name": "Lean.Parser.Term.structInst",
+  "doc":
+  "Structure instance. `{ x := e, ... }` assigns `e` to field `x`, which may be\ninherited. If `e` is itself a variable called `x`, it can be elided:\n`fun y => { x := 1, y }`.\nA *structure update* of an existing value can be given via `with`:\n`{ point with x := 1 }`.\nThe structure type can be specified if not inferable:\n`{ x := 1, y := 2 : Point }`.\n"},
+ {"name": "«term_∩_»", "doc": "`a ∩ b` is the intersection of`a` and `b`. "},
+ {"name": "«term_⊃_»", "doc": "Strict superset relation: `a ⊃ b`  "},
+ {"name": "term!_",
+  "doc":
+  "`not x`, or `!x`, is the boolean \"not\" operation (not to be confused\nwith `Not : Prop → Prop`, which is the propositional connective).\n"},
+ {"name": "«term_∉_»",
+  "doc": "`a ∉ b` is negated elementhood. It is notation for `¬ (a ∈ b)`. "},
+ {"name": "Lean.Parser.Term.quot", "doc": "Syntax quotation for terms. "},
+ {"name": "Lean.Parser.Term.declName",
+  "doc":
+  "A macro which evaluates to the name of the currently elaborating declaration. "},
+ {"name": "«term_\\_»",
+  "doc":
+  "`a \\ b` is the set difference of `a` and `b`,\nconsisting of all elements in `a` that are not in `b`.\n"},
+ {"name": "Lean.modCast",
+  "doc":
+  "Normalize casts in an expression using the same method as the `norm_cast` tactic. "},
+ {"name": "Lean.Parser.Term.binrel",
+  "doc":
+  "`binrel% r a b` elaborates `r a b` as a binary relation using the type propagation protocol in `Lean.Elab.Extra`. "},
+ {"name": "«term_⊆_»", "doc": "Subset relation: `a ⊆ b`  "},
+ {"name": "Lean.Parser.Term.borrowed",
+  "doc":
+  "Indicates that an argument to a function marked `@[extern]` is borrowed.\n\nBeing borrowed only affects the ABI and runtime behavior of the function when compiled or interpreted. From the perspective of Lean's type system, this annotation has no effect. It similarly has no effect on functions not marked `@[extern]`.\n\nWhen a function argument is borrowed, the function does not consume the value. This means that the function will not decrement the value's reference count or deallocate it, and the caller is responsible for doing so.\n\nPlease see https://lean-lang.org/lean4/doc/dev/ffi.html#borrowing for a complete description.\n"},
+ {"name": "Lean.Parser.Term.termUnless",
+  "doc": "`unless e do s` is a nicer way to write `if !e do s`. "},
+ {"name": "«term_∈_»",
+  "doc": "The membership relation `a ∈ s : Prop` where `a : α`, `s : γ`. "},
+ {"name": "Lean.byElab",
+  "doc":
+  "* The `by_elab doSeq` expression runs the `doSeq` as a `TermElabM Expr` to\n  synthesize the expression.\n* `by_elab fun expectedType? => do doSeq` receives the expected type (an `Option Expr`)\n  as well.\n"},
+ {"name": "«term_^^^_»",
+  "doc":
+  "`a ^^^ b` computes the bitwise XOR of `a` and `b`.\nThe meaning of this notation is type-dependent. "},
+ {"name": "Lean.Parser.Command.quot",
+  "doc":
+  "Syntax quotation for (sequences of) commands.\nThe identical syntax for term quotations takes priority,\nso ambiguous quotations like `` `($x $y) `` will be parsed as an application,\nnot two commands. Use `` `($x:command $y:command) `` instead.\nMultiple commands will be put in a `` `null `` node,\nbut a single command will not (so that you can directly\nmatch against a quotation in a command kind's elaborator). "},
+ {"name": "«term_≤_»", "doc": "The less-equal relation: `x ≤ y` "},
+ {"name": "termMax_prec",
+  "doc":
+  "`max:prec` as a term. It is equivalent to `eval_prec max` for `eval_prec` defined at `Meta.lean`.\nWe use `max_prec` to workaround bootstrapping issues.\n"},
+ {"name": "«term_<*_»",
+  "doc":
+  "If `x : F α` and `y : F β`, then `x <* y` evaluates `x`, then `y`,\nand returns the result of `x`.\n\nTo avoid surprising evaluation semantics, `y` is taken \"lazily\", using a\n`Unit → f β` function. "},
+ {"name": "Lean.Parser.Term.binop",
+  "doc":
+  "`binop% f a b` elaborates `f a b` as a binary operation using the type propagation protocol in `Lean.Elab.Extra`. "},
+ {"name": "«term_>>=_»",
+  "doc":
+  "If `x : m α` and `f : α → m β`, then `x >>= f : m β` represents the\nresult of executing `x` to get a value of type `α` and then passing it to `f`. "},
+ {"name": "BitVec.«term__#__»",
+  "doc":
+  "Notation for bit vector literals. `i#n` is a shorthand for `BitVec.ofNat n i`. "},
+ {"name": "Lean.Parser.Term.explicitUniv",
+  "doc":
+  "`x.{u, ...}` explicitly specifies the universes `u, ...` of the constant `x`. "},
+ {"name": "«term_<->_»",
+  "doc":
+  "If and only if, or logical bi-implication. `a ↔ b` means that `a` implies `b` and vice versa.\nBy `propext`, this implies that `a` and `b` are equal and hence any expression involving `a`\nis equivalent to the corresponding expression with `b` instead.\n"},
+ {"name": "«term-_»",
+  "doc":
+  "`-a` computes the negative or opposite of `a`.\nThe meaning of this notation is type-dependent. "},
+ {"name": "Lean.Parser.Term.open",
+  "doc":
+  "`open Foo in e` is like `open Foo` but scoped to a single term.\nIt makes the given namespaces available in the term `e`.\n"},
+ {"name": "Lean.Parser.Term.explicit",
+  "doc":
+  "`@x` disables automatic insertion of implicit parameters of the constant `x`.\n`@e` for any term `e` also disables the insertion of implicit lambdas at this position.\n"},
+ {"name": "«term~~~_»", "doc": "The implementation of `~~~a : α`. "},
+ {"name": "«term_×_»",
+  "doc":
+  "Product type (aka pair). You can use `α × β` as notation for `Prod α β`.\nGiven `a : α` and `b : β`, `Prod.mk a b : Prod α β`. You can use `(a, b)`\nas notation for `Prod.mk a b`. Moreover, `(a, b, c)` is notation for\n`Prod.mk a (Prod.mk b c)`.\nGiven `p : Prod α β`, `p.1 : α` and `p.2 : β`. They are short for `Prod.fst p`\nand `Prod.snd p` respectively. You can also write `p.fst` and `p.snd`.\nFor more information: [Constructors with Arguments](https://lean-lang.org/theorem_proving_in_lean4/inductive_types.html?highlight=Prod#constructors-with-arguments)\n"},
+ {"name": "«term_⊕'_»",
+  "doc":
+  "`PSum α β`, or `α ⊕' β`, is the disjoint union of types `α` and `β`.\nIt differs from `α ⊕ β` in that it allows `α` and `β` to have arbitrary sorts\n`Sort u` and `Sort v`, instead of restricting to `Type u` and `Type v`. This means\nthat it can be used in situations where one side is a proposition, like `True ⊕' Nat`.\n\nThe reason this is not the default is that this type lives in the universe `Sort (max 1 u v)`,\nwhich can cause problems for universe level unification,\nbecause the equation `max 1 u v = ?u + 1` has no solution in level arithmetic.\n`PSum` is usually only used in automation that constructs sums of arbitrary types.\n"},
+ {"name": "«term_>=>_»",
+  "doc": "Left-to-right composition of Kleisli arrows. "},
+ {"name": "«term_∨_»",
+  "doc":
+  "`Or a b`, or `a ∨ b`, is the disjunction of propositions. There are two\nconstructors for `Or`, called `Or.inl : a → a ∨ b` and `Or.inr : b → a ∨ b`,\nand you can use `match` or `cases` to destruct an `Or` assumption into the\ntwo cases.\n"},
+ {"name": "List.«term_<+:_»",
+  "doc":
+  "`IsPrefix l₁ l₂`, or `l₁ <+: l₂`, means that `l₁` is a prefix of `l₂`,\nthat is, `l₂` has the form `l₁ ++ t` for some `t`.\n"},
+ {"name": "Lean.Parser.Syntax.exact?",
+  "doc":
+  "Searches environment for definitions or theorems that can be substituted in\nfor `exact?%` to solve the goal.\n "},
+ {"name": "«term{}»",
+  "doc":
+  "`∅` or `{}` is the empty set or empty collection.\nIt is supported by the `EmptyCollection` typeclass. "},
+ {"name": "Lean.Parser.Term.letI",
+  "doc":
+  "`letI` behaves like `let`, but inlines the value instead of producing a `let_fun` term. "},
+ {"name": "rawNatLit",
+  "doc":
+  "The `nat_lit n` macro constructs \"raw numeric literals\". This corresponds to the\n`Expr.lit (.natVal n)` constructor in the `Expr` data type.\n\nNormally, when you write a numeral like `#check 37`, the parser turns this into\nan application of `OfNat.ofNat` to the raw literal `37` to cast it into the\ntarget type, even if this type is `Nat` (so the cast is the identity function).\nBut sometimes it is necessary to talk about the raw numeral directly,\nespecially when proving properties about the `ofNat` function itself.\n"},
+ {"name": "«term{_:_//_}»",
+  "doc":
+  "`Subtype p`, usually written as `{x : α // p x}`, is a type which\nrepresents all the elements `x : α` for which `p x` is true. It is structurally\na pair-like type, so if you have `x : α` and `h : p x` then\n`⟨x, h⟩ : {x // p x}`. An element `s : {x // p x}` will coerce to `α` but\nyou can also make it explicit using `s.1` or `s.val`.\n"},
+ {"name": "«term_>=_»", "doc": "`a ≥ b` is an abbreviation for `b ≤ a`. "},
+ {"name": "Bool.«term_^^_»", "doc": "Boolean exclusive or "},
+ {"name": "«term_∘_»",
+  "doc":
+  "Function composition is the act of pipelining the result of one function, to the input of another, creating an entirely new function.\nExample:\n```\n#eval Function.comp List.reverse (List.drop 2) [3, 2, 4, 1]\n-- [1, 4]\n```\nYou can use the notation `f ∘ g` as shorthand for `Function.comp f g`.\n```\n#eval (List.reverse ∘ List.drop 2) [3, 2, 4, 1]\n-- [1, 4]\n```\nA simpler way of thinking about it, is that `List.reverse ∘ List.drop 2`\nis equivalent to `fun xs => List.reverse (List.drop 2 xs)`,\nthe benefit is that the meaning of composition is obvious,\nand the representation is compact.\n"},
+ {"name": "Lean.Parser.Term.withDeclName",
+  "doc":
+  "* `with_decl_name% id e` elaborates `e` in a context while changing the effective\n  declaration name to `id`.\n* `with_decl_name% ?id e` does the same, but resolves `id` as a new definition name\n  (appending the current namespaces).\n"},
+ {"name": "Lean.Parser.Term.leftact",
+  "doc":
+  "`leftact% f a b` elaborates `f a b` as a left action using the type propagation protocol in `Lean.Elab.Extra`.\nIn particular, it is like a unary operation with a fixed parameter `a`, where only the right argument `b` participates in the operator coercion elaborator. "},
+ {"name": "Lean.Parser.Term.sort",
+  "doc": "A specific universe in Lean's infinite hierarchy of universes. "},
+ {"name": "Lean.calc",
+  "doc":
+  "Step-wise reasoning over transitive relations.\n```\ncalc\n  a = b := pab\n  b = c := pbc\n  ...\n  y = z := pyz\n```\nproves `a = z` from the given step-wise proofs. `=` can be replaced with any\nrelation implementing the typeclass `Trans`. Instead of repeating the right-\nhand sides, subsequent left-hand sides can be replaced with `_`.\n```\ncalc\n  a = b := pab\n  _ = c := pbc\n  ...\n  _ = z := pyz\n```\nIt is also possible to write the *first* relation as `<lhs>\\n  _ = <rhs> :=\n<proof>`. This is useful for aligning relation symbols, especially on longer:\nidentifiers:\n```\ncalc abc\n  _ = bce := pabce\n  _ = cef := pbcef\n  ...\n  _ = xyz := pwxyz\n```\n\n`calc` works as a term, as a tactic or as a `conv` tactic.\n\nSee [Theorem Proving in Lean 4][tpil4] for more information.\n\n[tpil4]: https://lean-lang.org/theorem_proving_in_lean4/quantifiers_and_equality.html#calculational-proofs\n"},
+ {"name": "«term_|||_»",
+  "doc":
+  "`a ||| b` computes the bitwise OR of `a` and `b`.\nThe meaning of this notation is type-dependent. "},
+ {"name": "«term_||_»",
+  "doc":
+  "`or x y`, or `x || y`, is the boolean \"or\" operation (not to be confused\nwith `Or : Prop → Prop → Prop`, which is the propositional connective).\nIt is `@[macro_inline]` because it has C-like short-circuiting behavior:\nif `x` is true then `y` is not evaluated.\n"},
+ {"name": "boolIfThenElse",
+  "doc":
+  "`cond b x y` is the same as `if b then x else y`, but optimized for a\nboolean condition. It can also be written as `bif b then x else y`.\nThis is `@[macro_inline]` because `x` and `y` should not\nbe eagerly evaluated (see `ite`).\n"},
+ {"name": "Lean.Parser.Term.sorry",
+  "doc": "A temporary placeholder for a missing proof or value. "},
+ {"name": "«term_>>>_»",
+  "doc":
+  "`a >>> b` computes `a` shifted to the right by `b` places.\nThe meaning of this notation is type-dependent.\n* On `Nat` and fixed width unsigned types like `UInt8`,\n  this is equivalent to `a / 2 ^ b`. "},
+ {"name": "«term_∪_»", "doc": "`a ∪ b` is the union of`a` and `b`. "},
+ {"name": "«term__[_]_?»",
+  "doc":
+  "The syntax `arr[i]?` gets the `i`'th element of the collection `arr` or\nreturns `none` if `i` is out of bounds.\n"},
+ {"name": "Lean.Parser.Term.set_option",
+  "doc":
+  "`set_option opt val in e` is like `set_option opt val` but scoped to a single term.\nIt sets the option `opt` to the value `val` in the term `e`.\n"},
+ {"name": "Lean.Parser.Term.subst",
+  "doc":
+  "`h ▸ e` is a macro built on top of `Eq.rec` and `Eq.symm` definitions.\nGiven `h : a = b` and `e : p a`, the term `h ▸ e` has type `p b`.\nYou can also view `h ▸ e` as a \"type casting\" operation\nwhere you change the type of `e` by using `h`.\n\nThe macro tries both orientations of `h`. If the context provides an\nexpected type, it rewrites the expected type, else it rewrites the type of e`.\n\nSee the Chapter \"Quantifiers and Equality\" in the manual\n\"Theorem Proving in Lean\" for additional information.\n"},
+ {"name": "Lean.Parser.Term.match",
+  "doc":
+  "Pattern matching. `match e, ... with | p, ... => f | ...` matches each given\nterm `e` against each pattern `p` of a match alternative. When all patterns\nof an alternative match, the `match` term evaluates to the value of the\ncorresponding right-hand side `f` with the pattern variables bound to the\nrespective matched values.\nIf used as `match h : e, ... with | p, ... => f | ...`, `h : e = p` is available\nwithin `f`.\n\nWhen not constructing a proof, `match` does not automatically substitute variables\nmatched on in dependent variables' types. Use `match (generalizing := true) ...` to\nenforce this.\n\nSyntax quotations can also be used in a pattern match.\nThis matches a `Syntax` value against quotations, pattern variables, or `_`.\n\nQuoted identifiers only match identical identifiers - custom matching such as by the preresolved\nnames only should be done explicitly.\n\n`Syntax.atom`s are ignored during matching by default except when part of a built-in literal.\nFor users introducing new atoms, we recommend wrapping them in dedicated syntax kinds if they\nshould participate in matching.\nFor example, in\n```lean\nsyntax \"c\" (\"foo\" <|> \"bar\") ...\n```\n`foo` and `bar` are indistinguishable during matching, but in\n```lean\nsyntax foo := \"foo\"\nsyntax \"c\" (foo <|> \"bar\") ...\n```\nthey are not.\n"},
+ {"name": "Lean.Parser.Term.panic",
+  "doc":
+  "`panic! msg` formally evaluates to `@Inhabited.default α` if the expected type\n`α` implements `Inhabited`.\nAt runtime, `msg` and the file position are printed to stderr unless the C\nfunction `lean_set_panic_messages(false)` has been executed before. If the C\nfunction `lean_set_exit_on_panic(true)` has been executed before, the process is\nthen aborted.\n"},
+ {"name": "Lean.Parser.Term.pipeProj",
+  "doc":
+  "`e |>.x` is a shorthand for `(e).x`.\nIt is especially useful for avoiding parentheses with repeated applications.\n"},
+ {"name": "Lean.Parser.Term.prop",
+  "doc": "The universe of propositions. `Prop ≡ Sort 0`. "},
+ {"name": "«term_∣_»",
+  "doc":
+  "Divisibility. `a ∣ b` (typed as `\\|`) means that there is some `c` such that `b = a * c`. "},
+ {"name": "«term_=<<_»",
+  "doc": "Same as `Bind.bind` but with arguments swapped. "},
+ {"name": "«term_⊂_»", "doc": "Strict subset relation: `a ⊂ b`  "},
+ {"name": "coeNotation",
+  "doc":
+  "`↑x` represents a coercion, which converts `x` of type `α` to type `β`, using\ntypeclasses to resolve a suitable conversion function. You can often leave the\n`↑` off entirely, since coercion is triggered implicitly whenever there is a\ntype error, but in ambiguous cases it can be useful to use `↑` to disambiguate\nbetween e.g. `↑x + ↑y` and `↑(x + y)`.\n"},
+ {"name": "«term_=_»",
+  "doc":
+  "The equality relation. It has one introduction rule, `Eq.refl`.\nWe use `a = b` as notation for `Eq a b`.\nA fundamental property of equality is that it is an equivalence relation.\n```\nvariable (α : Type) (a b c d : α)\nvariable (hab : a = b) (hcb : c = b) (hcd : c = d)\n\nexample : a = d :=\n  Eq.trans (Eq.trans hab (Eq.symm hcb)) hcd\n```\nEquality is much more than an equivalence relation, however. It has the important property that every assertion\nrespects the equivalence, in the sense that we can substitute equal expressions without changing the truth value.\nThat is, given `h1 : a = b` and `h2 : p a`, we can construct a proof for `p b` using substitution: `Eq.subst h1 h2`.\nExample:\n```\nexample (α : Type) (a b : α) (p : α → Prop)\n        (h1 : a = b) (h2 : p a) : p b :=\n  Eq.subst h1 h2\n\nexample (α : Type) (a b : α) (p : α → Prop)\n    (h1 : a = b) (h2 : p a) : p b :=\n  h1 ▸ h2\n```\nThe triangle in the second presentation is a macro built on top of `Eq.subst` and `Eq.symm`, and you can enter it by typing `\\t`.\nFor more information: [Equality](https://lean-lang.org/theorem_proving_in_lean4/quantifiers_and_equality.html#equality)\n"},
+ {"name": "Lean.Parser.Term.hole",
+  "doc":
+  "A *hole* (or *placeholder term*), which stands for an unknown term that is expected to be inferred based on context.\nFor example, in `@id _ Nat.zero`, the `_` must be the type of `Nat.zero`, which is `Nat`.\n\nThe way this works is that holes create fresh metavariables.\nThe elaborator is allowed to assign terms to metavariables while it is checking definitional equalities.\nThis is often known as *unification*.\n\nNormally, all holes must be solved for. However, there are a few contexts where this is not necessary:\n* In `match` patterns, holes are catch-all patterns.\n* In some tactics, such as `refine'` and `apply`, unsolved-for placeholders become new goals.\n\nRelated concept: implicit parameters are automatically filled in with holes during the elaboration process.\n\nSee also `?m` syntax (synthetic holes).\n"},
+ {"name": "«term_^_»",
+  "doc":
+  "`a ^ b` computes `a` to the power of `b`.\nThe meaning of this notation is type-dependent. "},
+ {"name": "Lean.Parser.Term.termReturn",
+  "doc":
+  "`return` used outside of `do` blocks creates an implicit block around it\nand thus is equivalent to `pure e`, but helps with avoiding parentheses.\n"},
+ {"name": "Lean.Parser.Term.clear",
+  "doc":
+  "`clear% x; e` elaborates `x` after clearing the free variable `x` from the local context.\nIf `x` cannot be cleared (due to dependencies), it will keep `x` without failing.\n"},
+ {"name": "Lean.Parser.Term.proj",
+  "doc":
+  "The *extended field notation* `e.f` is roughly short for `T.f e` where `T` is the type of `e`.\nMore precisely,\n* if `e` is of a function type, `e.f` is translated to `Function.f (p := e)`\n  where `p` is the first explicit parameter of function type\n* if `e` is of a named type `T ...` and there is a declaration `T.f` (possibly from `export`),\n  `e.f` is translated to `T.f (p := e)` where `p` is the first explicit parameter of type `T ...`\n* otherwise, if `e` is of a structure type,\n  the above is repeated for every base type of the structure.\n\nThe field index notation `e.i`, where `i` is a positive number,\nis short for accessing the `i`-th field (1-indexed) of `e` if it is of a structure type. "},
+ {"name": "«term__[_]»",
+  "doc":
+  "The syntax `arr[i]` gets the `i`'th element of the collection `arr`. If there\nare proof side conditions to the application, they will be automatically\ninferred by the `get_elem_tactic` tactic.\n"},
+ {"name": "Lean.Json.«termJson%_»",
+  "doc": "Allows to use Json syntax in a Lean file. "},
+ {"name": "«term_&&_»",
+  "doc":
+  "`and x y`, or `x && y`, is the boolean \"and\" operation (not to be confused\nwith `And : Prop → Prop → Prop`, which is the propositional connective).\nIt is `@[macro_inline]` because it has C-like short-circuiting behavior:\nif `x` is false then `y` is not evaluated.\n"},
+ {"name": "«term_*_»",
+  "doc":
+  "`a * b` computes the product of `a` and `b`.\nThe meaning of this notation is type-dependent. "},
+ {"name": "Lean.Parser.Term.unsafe",
+  "doc":
+  "`unsafe t : α` is an expression constructor which allows using unsafe declarations inside the\nbody of `t : α`, by creating an auxiliary definition containing `t` and using `implementedBy` to\nwrap it in a safe interface. It is required that `α` is nonempty for this to be sound,\nbut even beyond that, an `unsafe` block should be carefully inspected for memory safety because\nthe compiler is unable to guarantee the safety of the operation.\n\nFor example, the `evalExpr` function is unsafe, because the compiler cannot guarantee that when\nyou call ```evalExpr Foo ``Foo e``` that the type `Foo` corresponds to the name `Foo`, but in a\nparticular use case, we can ensure this, so `unsafe (evalExpr Foo ``Foo e)` is a correct usage.\n"},
+ {"name": "Lean.includeStr",
+  "doc":
+  "When `parent_dir` contains the current Lean file, `include_str \"path\" / \"to\" / \"file\"` becomes\na string literal with the contents of the file at `\"parent_dir\" / \"path\" / \"to\" / \"file\"`. If this\nfile cannot be read, elaboration fails.\n"},
+ {"name": "List.«term_<:+:_»",
+  "doc":
+  "`IsInfix l₁ l₂`, or `l₁ <:+: l₂`, means that `l₁` is a contiguous\nsubstring of `l₂`, that is, `l₂` has the form `s ++ l₁ ++ t` for some `s, t`.\n"},
+ {"name": "«term_<<<_»",
+  "doc":
+  "`a <<< b` computes `a` shifted to the left by `b` places.\nThe meaning of this notation is type-dependent.\n* On `Nat`, this is equivalent to `a * 2 ^ b`.\n* On `UInt8` and other fixed width unsigned types, this is the same but\n  truncated to the bit width. "},
+ {"name": "«term_<=_»", "doc": "The less-equal relation: `x ≤ y` "},
+ {"name": "Lean.Parser.Term.unop",
+  "doc":
+  "`unop% f a` elaborates `f a` as a unary operation using the type propagation protocol in `Lean.Elab.Extra`. "},
+ {"name": "Lean.«termSatisfies_binder_pred%__»",
+  "doc":
+  "`satisfies_binder_pred% t pred` expands to a proposition expressing that `t` satisfies `pred`.\n"},
+ {"name": "Lean.Parser.Term.binop_lazy",
+  "doc":
+  "`binop_lazy%` is similar to `binop% f a b`, but it wraps `b` as a function from `Unit`. "},
+ {"name": "«term_/\\_»",
+  "doc":
+  "`And a b`, or `a ∧ b`, is the conjunction of propositions. It can be\nconstructed and destructed like a pair: if `ha : a` and `hb : b` then\n`⟨ha, hb⟩ : a ∧ b`, and if `h : a ∧ b` then `h.left : a` and `h.right : b`.\n"},
+ {"name": "Lean.Parser.Term.doubleQuotedName",
+  "doc":
+  "A resolved name literal. Evaluates to the full name of the given constant if\nexistent in the current context, or else fails.\n"},
+ {"name": "coeFunNotation", "doc": "`⇑ t` coerces `t` to a function. "},
+ {"name": "«term_×'_»",
+  "doc":
+  "Similar to `Prod`, but `α` and `β` can be propositions.\nYou can use `α ×' β` as notation for `PProd α β`.\nWe use this type internally to automatically generate the `brecOn` recursor.\n"},
+ {"name": "«term_&&&_»",
+  "doc":
+  "`a &&& b` computes the bitwise AND of `a` and `b`.\nThe meaning of this notation is type-dependent. "},
+ {"name": "Lean.Parser.Term.let_delayed",
+  "doc":
+  "`let_delayed x := v; b` is similar to `let x := v; b`, but `b` is elaborated before `v`.\n"},
+ {"name": "Lean.Parser.Term.namedPattern",
+  "doc":
+  "`x@e` or `x@h:e` matches the pattern `e` and binds its value to the identifier `x`.\nIf present, the identifier `h` is bound to a proof of `x = e`. "},
+ {"name": "Lean.Parser.Term.noErrorIfUnused",
+  "doc":
+  "Helper parser for marking `match`-alternatives that should not trigger errors if unused.\nWe use them to implement `macro_rules` and `elab_rules`\n"},
+ {"name": "Lean.termThrowError__",
+  "doc":
+  "Macro for throwing error exceptions. The argument can be an interpolated string.\nIt is a convenient way of building `MessageData` objects.\nThe result of `getRef` is used as position information.\nRecall that `getRef` returns the current \"reference\" syntax.\n"},
+ {"name": "termIfThenElse",
+  "doc":
+  "`if c then t else e` is notation for `ite c t e`, \"if-then-else\", which decides to\nreturn `t` or `e` depending on whether `c` is true or false. The explicit argument\n`c : Prop` does not have any actual computational content, but there is an additional\n`[Decidable c]` argument synthesized by typeclass inference which actually\ndetermines how to evaluate `c` to true or false. Write `if h : c then t else e`\ninstead for a \"dependent if-then-else\" `dite`, which allows `t`/`e` to use the fact\nthat `c` is true/false.\n"},
+ {"name": "«term_*>_»",
+  "doc":
+  "If `x : F α` and `y : F β`, then `x *> y` evaluates `x`, then `y`,\nand returns the result of `y`.\n\nTo avoid surprising evaluation semantics, `y` is taken \"lazily\", using a\n`Unit → f β` function. "},
+ {"name": "Lean.Parser.Term.assert",
+  "doc": "`assert! cond` panics if `cond` evaluates to `false`. "},
+ {"name": "Lean.Parser.Term.showTermElabImpl",
+  "doc": "Implementation of the `show_term` term elaborator.\n"},
+ {"name": "«term_<_»", "doc": "The less-than relation: `x < y` "},
+ {"name": "«term_<$>_»",
+  "doc": "If `f : α → β` and `x : F α` then `f <$> x : F β`. "},
+ {"name": "Lean.Parser.Term.type",
+  "doc": "A type universe. `Type ≡ Type 0`, `Type u ≡ Sort (u + 1)`. "}]

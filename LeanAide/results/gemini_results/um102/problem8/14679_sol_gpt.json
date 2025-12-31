@@ -1,0 +1,56 @@
+{
+  "type": "theorem",
+  "name": "Origin is a circulation",
+  "hypothesis": [
+    {
+      "type": "assume",
+      "statement": "The system of linear differential equations is given by $\\dot{x} = -y$ and $\\dot{y} = x$."
+    }
+  ],
+  "conclusion": "The origin is a circulation.",
+  "status": "wrong proof",
+  "proof": {
+    "steps": [
+      {
+        "type": "let",
+        "variable": "y",
+        "value": "r\\sin{\\theta t}",
+        "kind": "function of $t$",
+        "property": "$r \\in (0, \\infty)$"
+      },
+      {
+        "type": "let",
+        "variable": "x",
+        "value": "r\\cos{\\theta t}",
+        "kind": "function of $t$",
+        "property": "$t \\in [-\\pi, \\pi]$"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\dot{x} = -r\\sin{t} = -y$",
+        "proof-method": "Differentiation"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\dot{y} = r\\cos{t} = x$",
+        "proof-method": "Differentiation"
+      },
+      {
+        "type": "assert",
+        "claim": "The phase portrait for this is a circulation about the origin."
+      },
+      {
+        "type": "conclude",
+        "statement": "Hence, the origin is a circulation.",
+        "errors": [
+          "The proof does not demonstrate that the eigenvalues of the system are purely imaginary, which is necessary to conclude that the origin is a circulation.",
+          "The given values for $x$ and $y$ (as functions of time $t$) are not justified or derived from the differential equations."
+        ]
+      }
+    ]
+  },
+  "errors": [
+    "The proof does not show that the eigenvalues of the system matrix are purely imaginary, which is a known criterion for the origin being a circulation.",
+    "The parameterization of $x$ and $y$ in terms of $r$ and $\\theta$ is not justified from the differential equations given."
+  ]
+}

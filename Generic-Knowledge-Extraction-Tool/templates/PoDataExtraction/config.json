@@ -1,0 +1,193 @@
+{
+  "extraction_config": {
+    "use_case": "PoDataExtraction",
+    "description": "Task description: The task is to extract key fields from customer documents (Purchase Order (PO) and Bill of Material (BOM), and align them so that each PO item is enriched with the correct technical details. Start with the customer purchase order, which could have multiple items. The item is linked to its BOM via a Material Number. For every item in the PO, pull out the Material Number along with the basic item details like Quantity, Description, and Delivery Date. Use the item’s Material Number from the PO to find the BOM having the same Material Number (represented as ‘ID’). From the matching BOM, extract the part’s ‘Type/Part Designation’ and Dimensions. Once you have the Type/Part Designation and Dimensions matched back to the PO item, keep them linked together with the PO fields you already pulled out. Repeat this process for all items in the PO. The final output should therefore contain as many lines as the number of items in the PO. \nEach line should have: \n• Material Number (from PO → linked with ‘ID’ in BOM) \n• Quantity, Description, Delivery Date (from PO) \n• Type/Part Designation (from BOM) \n• Dimensions (from BOM)",
+    "extraction_type": "multi_type_with_relationships",
+    "configuration_mode": "text_description",
+    "extraction_strategy": {
+      "stages": [
+        {
+          "stage_name": "PO Item Extraction",
+          "stage_type": "initial",
+          "document_types": [
+            "Purchase Order (PO)"
+          ],
+          "key_fields": [
+            "Material Number"
+          ],
+          "input_keys": [],
+          "output_keys": [],
+          "extraction_fields": [
+            {
+              "field_name": "Material Number",
+              "field_type": "str",
+              "description": "Unique identifier for the item; used for linking with BOM.",
+              "required": true
+            },
+            {
+              "field_name": "Quantity",
+              "field_type": "int",
+              "description": "Number of units ordered.",
+              "required": true
+            },
+            {
+              "field_name": "Description",
+              "field_type": "str",
+              "description": "Description of the item.",
+              "required": true
+            },
+            {
+              "field_name": "Delivery Date",
+              "field_type": "str",
+              "description": "Required delivery date for the item.",
+              "required": true
+            }
+          ],
+          "description": "Extracts all item lines from the PO, capturing Material Number, Quantity, Description, and Delivery Date for each item."
+        },
+        {
+          "stage_name": "BOM Detail Extraction",
+          "stage_type": "secondary",
+          "document_types": [
+            "Bill of Material (BOM)"
+          ],
+          "key_fields": [
+            "ID"
+          ],
+          "input_keys": [],
+          "output_keys": [],
+          "extraction_fields": [
+            {
+              "field_name": "ID",
+              "field_type": "str",
+              "description": "Unique identifier for the part; matches Material Number from PO.",
+              "required": true
+            },
+            {
+              "field_name": "Type/Part Designation",
+              "field_type": "str",
+              "description": "Technical type or designation of the part.",
+              "required": true
+            },
+            {
+              "field_name": "Dimensions",
+              "field_type": "str",
+              "description": "Physical dimensions of the part.",
+              "required": true
+            }
+          ],
+          "description": "Extracts technical details for each part from the BOM, including ID, Type/Part Designation, and Dimensions."
+        },
+        {
+          "stage_name": "PO-BOM Alignment and Consolidation",
+          "stage_type": "final",
+          "document_types": [
+            "Purchase Order (PO)",
+            "Bill of Material (BOM)"
+          ],
+          "key_fields": [
+            "Material Number",
+            "ID"
+          ],
+          "input_keys": [],
+          "output_keys": [],
+          "extraction_fields": [
+            {
+              "field_name": "Material Number",
+              "field_type": "str",
+              "description": "Material Number from PO, linked to ID in BOM.",
+              "required": true
+            },
+            {
+              "field_name": "Quantity",
+              "field_type": "int",
+              "description": "Quantity from PO.",
+              "required": true
+            },
+            {
+              "field_name": "Description",
+              "field_type": "str",
+              "description": "Description from PO.",
+              "required": true
+            },
+            {
+              "field_name": "Delivery Date",
+              "field_type": "str",
+              "description": "Delivery Date from PO.",
+              "required": true
+            },
+            {
+              "field_name": "Type/Part Designation",
+              "field_type": "str",
+              "description": "Type/Part Designation from BOM.",
+              "required": true
+            },
+            {
+              "field_name": "Dimensions",
+              "field_type": "str",
+              "description": "Dimensions from BOM.",
+              "required": true
+            }
+          ],
+          "description": "Joins PO items with their corresponding BOM details using Material Number/ID, producing a consolidated line for each PO item enriched with technical details."
+        }
+      ],
+      "relationships": [
+        {
+          "source_stage": "PO Item Extraction",
+          "target_stage": "BOM Detail Extraction",
+          "key_field": "Material Number/ID",
+          "relationship_type": "direct_key_match",
+          "description": "Each PO item's Material Number is matched directly to the BOM's ID to retrieve technical details.",
+          "transformation_rules": null
+        },
+        {
+          "source_stage": "PO Item Extraction",
+          "target_stage": "PO-BOM Alignment and Consolidation",
+          "key_field": "Material Number",
+          "relationship_type": "aggregation",
+          "description": "PO item fields are aggregated and passed to the final consolidation stage.",
+          "transformation_rules": null
+        },
+        {
+          "source_stage": "BOM Detail Extraction",
+          "target_stage": "PO-BOM Alignment and Consolidation",
+          "key_field": "ID",
+          "relationship_type": "aggregation",
+          "description": "BOM technical fields are aggregated and passed to the final consolidation stage.",
+          "transformation_rules": null
+        }
+      ],
+      "extraction_sequence": [
+        "PO Item Extraction",
+        "BOM Detail Extraction",
+        "PO-BOM Alignment and Consolidation"
+      ],
+      "document_classifications": {
+        "Purchase Order (PO)": "PO-BOM Alignment and Consolidation",
+        "Bill of Material (BOM)": "PO-BOM Alignment and Consolidation"
+      },
+      "consolidation_rules": {
+        "final_output_format": "A tabular or structured list where each line corresponds to a PO item, enriched with its technical details from the BOM. Each line contains: Material Number, Quantity, Description, Delivery Date, Type/Part Designation, and Dimensions.",
+        "key_consolidation_fields": [
+          "Material Number",
+          "Quantity",
+          "Description",
+          "Delivery Date",
+          "Type/Part Designation",
+          "Dimensions"
+        ],
+        "aggregation_rules": "For each PO item, join with the BOM entry where Material Number (PO) matches ID (BOM). Output one consolidated line per PO item. No further aggregation or grouping is required beyond this one-to-one enrichment.",
+        "output_structure": "hierarchical"
+      }
+    },
+    "created_at": "",
+    "text_description": "Task description: The task is to extract key fields from customer documents (Purchase Order (PO) and Bill of Material (BOM), and align them so that each PO item is enriched with the correct technical details. Start with the customer purchase order, which could have multiple items. The item is linked to its BOM via a Material Number. For every item in the PO, pull out the Material Number along with the basic item details like Quantity, Description, and Delivery Date. Use the item’s Material Number from the PO to find the BOM having the same Material Number (represented as ‘ID’). From the matching BOM, extract the part’s ‘Type/Part Designation’ and Dimensions. Once you have the Type/Part Designation and Dimensions matched back to the PO item, keep them linked together with the PO fields you already pulled out. Repeat this process for all items in the PO. The final output should therefore contain as many lines as the number of items in the PO. \nEach line should have: \n• Material Number (from PO → linked with ‘ID’ in BOM) \n• Quantity, Description, Delivery Date (from PO) \n• Type/Part Designation (from BOM) \n• Dimensions (from BOM)",
+    "parsed_fields": [],
+    "description_parsing_model": "claude-sonnet-4-20250514",
+    "parsing_method": "fast",
+    "purpose_of_extraction": "",
+    "document_type": "",
+    "additional_instructions": ""
+  }
+}

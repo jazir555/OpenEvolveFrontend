@@ -1,0 +1,142 @@
+{
+  "type": "theorem",
+  "name": "Linear Differential Equation Source",
+  "hypothesis": [
+    {
+      "type": "let",
+      "Variable": "x",
+      "Kind": "function of t",
+      "Property": "solves the ODE $\\dot{x} = x$"
+    },
+    {
+      "type": "let",
+      "Variable": "y",
+      "Kind": "function of t",
+      "Property": "solves the ODE $\\dot{y} = y$"
+    }
+  ],
+  "conclusion": "The origin (0,0) is a source",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "define",
+        "term": "f",
+        "Statement": "$f(x, y) = x e^x - y e^y$"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\frac{dx}{dy} = \\frac{x}{y}$",
+        "deduced_from": [
+          "$\\dot{x} = x$",
+          "$\\dot{y} = y$"
+        ],
+        "proof-method": "Differentiation"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\frac{1}{x} dx = dy$",
+        "proof-method": "Rearranging $\\frac{dx}{dy} = \\frac{x}{y}$"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\frac{1}{y} dy = dx$",
+        "proof-method": "Rearranging $\\frac{dy}{dx} = \\frac{y}{x}$"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\ln x = y$",
+        "proof-method": "Integration",
+        "errors": [
+          "Incorrect integration procedure"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\ln y = x$",
+        "proof-method": "Integration",
+        "errors": [
+          "Incorrect integration procedure"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\ln x - y = 0$",
+        "proof-method": "Substitution"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\ln y - x = 0$",
+        "proof-method": "Substitution"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\ln x - y = \\ln y - x$",
+        "proof-method": "Equating previous expressions"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\ln x - \\ln y + x - y = 0$",
+        "proof-method": "Combining terms"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\ln(\\frac{x}{y}) + x - y = 0$",
+        "proof-method": "Logarithm properties"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\ln(\\frac{x}{y}) = y - x$",
+        "proof-method": "Isolating logarithm"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\frac{x}{y} = e^{y-x}$",
+        "proof-method": "Exponentiating both sides"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\frac{x}{y} = \\frac{e^y}{e^x}$",
+        "proof-method": "Properties of exponentiation"
+      },
+      {
+        "type": "assert",
+        "claim": "$x e^x = y e^y$",
+        "proof-method": "Cross-multiplying"
+      },
+      {
+        "type": "assert",
+        "claim": "$x e^x - y e^y = 0$",
+        "proof-method": "Rearranging"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\nabla f = e^x (x + 1) - e^y (y + 1)$",
+        "proof-method": "Differentiating $f(x, y)$"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\nabla f (0, 0) = 0$",
+        "proof-method": "Substituting $x = 0$ and $y = 0$",
+        "errors": [
+          "Incorrect conclusion that $\\nabla f = 0$ implies a saddle point"
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "The origin is a saddle",
+        "errors": [
+          "Incorrect deduction of the type of critical point"
+        ]
+      }
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Determine the eigenvalues of the system matrix to correctly classify the origin",
+      "solved": false
+    }
+  ]
+}

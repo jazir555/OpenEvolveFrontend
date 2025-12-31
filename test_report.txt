@@ -1,0 +1,403 @@
+SOVEREIGN SYSTEM - TEST REPORT
+============================================================
+
+Total Suites: 11
+Total Time: 11.94s
+
+
+============================================================
+Data Models
+============================================================
+Status: PASS
+Duration: 0.41s
+
+Output:
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\Documents\OpenEvolve\Frontend\env\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+plugins: anyio-4.11.0
+collecting ... collected 26 items
+
+test_sovereign_data_models.py::TestEnums::test_problem_type_enum PASSED  [  3%]
+test_sovereign_data_models.py::TestEnums::test_decomposition_strategy_enum PASSED [  7%]
+test_sovereign_data_models.py::TestEnums::test_status_enums PASSED       [ 11%]
+test_sovereign_data_models.py::TestConstraint::test_create_constraint PASSED [ 15%]
+test_sovereign_data_models.py::TestConstraint::test_constraint_serialization PASSED [ 19%]
+test_sovereign_data_models.py::TestSuccessCriterion::test_create_success_criterion PASSED [ 23%]
+test_sovereign_data_models.py::TestSuccessCriterion::test_success_criterion_serialization PASSED [ 26%]
+test_sovereign_data_models.py::TestComplexityScore::test_create_complexity_score PASSED [ 30%]
+test_sovereign_data_models.py::TestComplexityScore::test_complexity_score_serialization PASSED [ 34%]
+test_sovereign_data_models.py::TestDomainContext::test_create_domain_context PASSED [ 38%]
+test_sovereign_data_models.py::TestDomainContext::test_domain_context_serialization PASSED [ 42%]
+test_sovereign_data_models.py::TestProblemDefinition::test_create_problem_definition PASSED [ 46%]
+test_sovereign_data_models.py::TestProblemDefinition::test_problem_definition_serialization PASSED [ 50%]
+test_sovereign_data_models.py::TestSubProblem::test_create_sub_problem PASSED [ 53%]
+test_sovereign_data_models.py::TestSubProblem::test_sub_problem_serialization PASSED [ 57%]
+test_sovereign_data_models.py::TestDecompositionPlan::test_create_decomposition_plan PASSED [ 61%]
+test_sovereign_data_models.py::TestDecompositionPlan::test_decomposition_plan_with_sub_problems PASSED [ 65%]
+test_sovereign_data_models.py::TestDecompositionPlan::test_decomposition_plan_serialization PASSED [ 69%]
+test_sovereign_data_models.py::TestDependencyGraph::test_create_dependency_graph PASSED [ 73%]
+test_sovereign_data_models.py::TestDependencyGraph::test_dependency_graph_serialization PASSED [ 76%]
+test_sovereign_data_models.py::TestQualityScores::test_create_quality_scores PASSED [ 80%]
+test_sovereign_data_models.py::TestQualityScores::test_quality_scores_serialization PASSED [ 84%]
+test_sovereign_data_models.py::TestPattern::test_create_pattern PASSED   [ 88%]
+test_sovereign_data_models.py::TestPattern::test_pattern_serialization PASSED [ 92%]
+test_sovereign_data_models.py::TestValidationResult::test_create_validation_result PASSED [ 96%]
+test_sovereign_data_models.py::TestValidationResult::test_validation_result_serialization PASSED [100%]
+
+============================= 26 passed in 0.06s ==============================
+
+
+
+============================================================
+Gauntlets
+============================================================
+Status: PASS
+Duration: 0.37s
+
+Output:
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\Documents\OpenEvolve\Frontend\env\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+plugins: anyio-4.11.0
+collecting ... collected 17 items
+
+test_sovereign_gauntlets.py::TestCoherenceGauntlet::test_good_plan_passes PASSED [  5%]
+test_sovereign_gauntlets.py::TestCoherenceGauntlet::test_empty_plan_fails PASSED [ 11%]
+test_sovereign_gauntlets.py::TestCoherenceGauntlet::test_poor_plan_fails PASSED [ 17%]
+test_sovereign_gauntlets.py::TestCompletenessGauntlet::test_good_plan_passes PASSED [ 23%]
+test_sovereign_gauntlets.py::TestCompletenessGauntlet::test_single_subproblem_gets_penalty PASSED [ 29%]
+test_sovereign_gauntlets.py::TestCompletenessGauntlet::test_diverse_types_score_higher PASSED [ 35%]
+test_sovereign_gauntlets.py::TestFeasibilityGauntlet::test_good_plan_passes PASSED [ 41%]
+test_sovereign_gauntlets.py::TestFeasibilityGauntlet::test_high_complexity_fails PASSED [ 47%]
+test_sovereign_gauntlets.py::TestFeasibilityGauntlet::test_excessive_effort_penalized PASSED [ 52%]
+test_sovereign_gauntlets.py::TestDependencyGauntlet::test_good_plan_passes PASSED [ 58%]
+test_sovereign_gauntlets.py::TestDependencyGauntlet::test_circular_dependency_fails PASSED [ 64%]
+test_sovereign_gauntlets.py::TestDependencyGauntlet::test_invalid_dependency_reference PASSED [ 70%]
+test_sovereign_gauntlets.py::TestGauntletSystem::test_run_all_gauntlets PASSED [ 76%]
+test_sovereign_gauntlets.py::TestGauntletSystem::test_run_specific_gauntlets PASSED [ 82%]
+test_sovereign_gauntlets.py::TestGauntletSystem::test_process_feedback PASSED [ 88%]
+test_sovereign_gauntlets.py::TestGauntletSystem::test_overall_quality PASSED [ 94%]
+test_sovereign_gauntlets.py::TestGauntletSystem::test_all_passed PASSED  [100%]
+
+============================= 17 passed in 0.05s ==============================
+
+
+
+============================================================
+Team Coordination
+============================================================
+Status: PASS
+Duration: 0.36s
+
+Output:
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\Documents\OpenEvolve\Frontend\env\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+plugins: anyio-4.11.0
+collecting ... collected 16 items
+
+test_sovereign_team_coordination.py::TestTeamAssignmentManager::test_assign_to_team PASSED [  6%]
+test_sovereign_team_coordination.py::TestTeamAssignmentManager::test_track_capacity PASSED [ 12%]
+test_sovereign_team_coordination.py::TestTeamAssignmentManager::test_complete_assignment PASSED [ 18%]
+test_sovereign_team_coordination.py::TestTeamAssignmentManager::test_get_team_workload PASSED [ 25%]
+test_sovereign_team_coordination.py::TestTeamAssignmentManager::test_capacity_warning PASSED [ 31%]
+test_sovereign_team_coordination.py::TestTeamCoordinator::test_assign_decomposition_review PASSED [ 37%]
+test_sovereign_team_coordination.py::TestTeamCoordinator::test_process_red_team_feedback PASSED [ 43%]
+test_sovereign_team_coordination.py::TestTeamCoordinator::test_coordinate_refinement PASSED [ 50%]
+test_sovereign_team_coordination.py::TestTeamCoordinator::test_request_gold_evaluation PASSED [ 56%]
+test_sovereign_team_coordination.py::TestTeamCoordinator::test_record_gold_evaluation PASSED [ 62%]
+test_sovereign_team_coordination.py::TestTeamCoordinator::test_balance_workload PASSED [ 68%]
+test_sovereign_team_coordination.py::TestTeamCoordinator::test_get_plan_workflow_status PASSED [ 75%]
+test_sovereign_team_coordination.py::TestDecompositionWorkflow::test_validate_and_refine PASSED [ 81%]
+test_sovereign_team_coordination.py::TestDecompositionWorkflow::test_workflow_with_good_plan PASSED [ 87%]
+test_sovereign_team_coordination.py::TestDecompositionWorkflow::test_workflow_tracks_history PASSED [ 93%]
+test_sovereign_team_coordination.py::TestIntegration::test_complete_workflow_integration PASSED [100%]
+
+============================= 16 passed in 0.05s ==============================
+
+
+
+============================================================
+Quality Assessment
+============================================================
+Status: PASS
+Duration: 0.36s
+
+Output:
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\Documents\OpenEvolve\Frontend\env\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+plugins: anyio-4.11.0
+collecting ... collected 26 items
+
+test_sovereign_quality_assessment.py::TestQualityAssessor::test_initialization PASSED [  3%]
+test_sovereign_quality_assessment.py::TestQualityAssessor::test_calculate_coherence_score_good_plan PASSED [  7%]
+test_sovereign_quality_assessment.py::TestQualityAssessor::test_calculate_coherence_score_poor_plan PASSED [ 11%]
+test_sovereign_quality_assessment.py::TestQualityAssessor::test_calculate_completeness_score_good_plan PASSED [ 15%]
+test_sovereign_quality_assessment.py::TestQualityAssessor::test_calculate_completeness_score_single_subproblem PASSED [ 19%]
+test_sovereign_quality_assessment.py::TestQualityAssessor::test_calculate_feasibility_score_good_plan PASSED [ 23%]
+test_sovereign_quality_assessment.py::TestQualityAssessor::test_calculate_feasibility_score_high_complexity PASSED [ 26%]
+test_sovereign_quality_assessment.py::TestQualityAssessor::test_calculate_integration_score_good_plan PASSED [ 30%]
+test_sovereign_quality_assessment.py::TestQualityAssessor::test_calculate_integration_score_no_graph PASSED [ 34%]
+test_sovereign_quality_assessment.py::TestQualityAssessor::test_calculate_balance_score_good_plan PASSED [ 38%]
+test_sovereign_quality_assessment.py::TestQualityAssessor::test_calculate_clarity_score_good_plan PASSED [ 42%]
+test_sovereign_quality_assessment.py::TestQualityAssessor::test_calculate_clarity_score_poor_descriptions PASSED [ 46%]
+test_sovereign_quality_assessment.py::TestQualityReport::test_generate_quality_report_good_plan PASSED [ 50%]
+test_sovereign_quality_assessment.py::TestQualityReport::test_good_plan_has_strengths PASSED [ 53%]
+test_sovereign_quality_assessment.py::TestQualityReport::test_poor_plan_has_weaknesses PASSED [ 57%]
+test_sovereign_quality_assessment.py::TestQualityReport::test_poor_plan_has_recommendations PASSED [ 61%]
+test_sovereign_quality_assessment.py::TestQualityReport::test_overall_score_calculation PASSED [ 65%]
+test_sovereign_quality_assessment.py::TestQualityReport::test_meets_thresholds_good_plan PASSED [ 69%]
+test_sovereign_quality_assessment.py::TestQualityReport::test_meets_thresholds_poor_plan PASSED [ 73%]
+test_sovereign_quality_assessment.py::TestQualityMetrics::test_all_metrics_in_range PASSED [ 76%]
+test_sovereign_quality_assessment.py::TestQualityMetrics::test_metrics_details PASSED [ 80%]
+test_sovereign_quality_assessment.py::TestThresholdChecking::test_check_quality_thresholds_pass PASSED [ 84%]
+test_sovereign_quality_assessment.py::TestThresholdChecking::test_check_quality_thresholds_fail PASSED [ 88%]
+test_sovereign_quality_assessment.py::TestThresholdChecking::test_update_plan_quality_scores PASSED [ 92%]
+test_sovereign_quality_assessment.py::TestEdgeCases::test_empty_plan PASSED [ 96%]
+test_sovereign_quality_assessment.py::TestEdgeCases::test_single_subproblem_plan PASSED [100%]
+
+============================= 26 passed in 0.06s ==============================
+
+
+
+============================================================
+Solution Orchestration
+============================================================
+Status: PASS
+Duration: 0.35s
+
+Output:
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\Documents\OpenEvolve\Frontend\env\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+plugins: anyio-4.11.0
+collecting ... collected 16 items
+
+test_sovereign_solution_orchestration.py::TestSolutionOrchestrator::test_initialization PASSED [  6%]
+test_sovereign_solution_orchestration.py::TestSolutionOrchestrator::test_track_solution_attempt PASSED [ 12%]
+test_sovereign_solution_orchestration.py::TestSolutionOrchestrator::test_validate_solution_with_criteria PASSED [ 18%]
+test_sovereign_solution_orchestration.py::TestSolutionOrchestrator::test_validate_solution_no_criteria PASSED [ 25%]
+test_sovereign_solution_orchestration.py::TestSolutionOrchestrator::test_detect_conflicts_none PASSED [ 31%]
+test_sovereign_solution_orchestration.py::TestSolutionOrchestrator::test_detect_conflicts_low_confidence PASSED [ 37%]
+test_sovereign_solution_orchestration.py::TestSolutionOrchestrator::test_detect_conflicts_validation_failure PASSED [ 43%]
+test_sovereign_solution_orchestration.py::TestSolutionOrchestrator::test_calculate_confidence PASSED [ 50%]
+test_sovereign_solution_orchestration.py::TestSolutionOrchestrator::test_integrate_solutions PASSED [ 56%]
+test_sovereign_solution_orchestration.py::TestSolutionOrchestrator::test_integrate_solutions_with_conflicts PASSED [ 62%]
+test_sovereign_solution_orchestration.py::TestSolutionOrchestrator::test_get_solution_status_integrated PASSED [ 68%]
+test_sovereign_solution_orchestration.py::TestSolutionOrchestrator::test_get_solution_status_in_progress PASSED [ 75%]
+test_sovereign_solution_orchestration.py::TestIntegration::test_complete_workflow PASSED [ 81%]
+test_sovereign_solution_orchestration.py::TestEdgeCases::test_empty_solutions_list PASSED [ 87%]
+test_sovereign_solution_orchestration.py::TestEdgeCases::test_calculate_confidence_empty PASSED [ 93%]
+test_sovereign_solution_orchestration.py::TestEdgeCases::test_clear_attempts PASSED [100%]
+
+============================= 16 passed in 0.05s ==============================
+
+
+
+============================================================
+Knowledge Management
+============================================================
+Status: PASS
+Duration: 0.43s
+
+Output:
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\Documents\OpenEvolve\Frontend\env\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+plugins: anyio-4.11.0
+collecting ... collected 17 items
+
+test_sovereign_knowledge_manager.py::TestKnowledgeManager::test_initialization PASSED [  5%]
+test_sovereign_knowledge_manager.py::TestKnowledgeManager::test_extract_patterns_success PASSED [ 11%]
+test_sovereign_knowledge_manager.py::TestKnowledgeManager::test_extract_patterns_failure PASSED [ 17%]
+test_sovereign_knowledge_manager.py::TestKnowledgeManager::test_store_pattern PASSED [ 23%]
+test_sovereign_knowledge_manager.py::TestKnowledgeManager::test_retrieve_patterns PASSED [ 29%]
+test_sovereign_knowledge_manager.py::TestKnowledgeManager::test_retrieve_patterns_with_domain_filter PASSED [ 35%]
+test_sovereign_knowledge_manager.py::TestKnowledgeManager::test_apply_pattern PASSED [ 41%]
+test_sovereign_knowledge_manager.py::TestKnowledgeManager::test_track_strategy_performance PASSED [ 47%]
+test_sovereign_knowledge_manager.py::TestKnowledgeManager::test_get_strategy_performance PASSED [ 52%]
+test_sovereign_knowledge_manager.py::TestKnowledgeManager::test_get_strategy_performance_no_data PASSED [ 58%]
+test_sovereign_knowledge_manager.py::TestKnowledgeManager::test_adapt_strategies PASSED [ 64%]
+test_sovereign_knowledge_manager.py::TestKnowledgeManager::test_get_best_strategy PASSED [ 70%]
+test_sovereign_knowledge_manager.py::TestPatternExtraction::test_extract_strategy_pattern PASSED [ 76%]
+test_sovereign_knowledge_manager.py::TestPatternExtraction::test_extract_structural_patterns PASSED [ 82%]
+test_sovereign_knowledge_manager.py::TestPatternSimilarity::test_patterns_similar PASSED [ 88%]
+test_sovereign_knowledge_manager.py::TestPatternSimilarity::test_patterns_not_similar PASSED [ 94%]
+test_sovereign_knowledge_manager.py::TestRecommendations::test_generate_recommendations PASSED [100%]
+
+============================= 17 passed in 0.13s ==============================
+
+
+
+============================================================
+Refinement
+============================================================
+Status: PASS
+Duration: 0.36s
+
+Output:
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\Documents\OpenEvolve\Frontend\env\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+plugins: anyio-4.11.0
+collecting ... collected 20 items
+
+test_sovereign_refinement.py::TestRefinementCoordinator::test_coordinator_initialization PASSED [  5%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_process_feedback PASSED [ 10%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_feedback_categorization PASSED [ 15%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_feedback_prioritization PASSED [ 20%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_generate_improvements PASSED [ 25%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_generate_refinement_plan PASSED [ 30%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_estimate_refinement_effort PASSED [ 35%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_execute_refinement PASSED [ 40%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_track_refinement_cycles PASSED [ 45%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_refinement_history_tracking PASSED [ 50%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_convergence_metrics PASSED [ 55%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_convergence_detection PASSED [ 60%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_max_cycles_limit PASSED [ 65%]
+test_sovereign_refinement.py::TestRefinementCoordinator::test_severity_scoring PASSED [ 70%]
+test_sovereign_refinement.py::TestRefinementDataModels::test_refinement_plan_creation PASSED [ 75%]
+test_sovereign_refinement.py::TestRefinementDataModels::test_refinement_cycle_creation PASSED [ 80%]
+test_sovereign_refinement.py::TestRefinementDataModels::test_refinement_metrics_creation PASSED [ 85%]
+test_sovereign_refinement.py::TestRefinementIntegration::test_integration_with_gauntlets PASSED [ 90%]
+test_sovereign_refinement.py::TestRefinementIntegration::test_integration_with_quality_assessor PASSED [ 95%]
+test_sovereign_refinement.py::TestRefinementIntegration::test_integration_with_team_coordinator PASSED [100%]
+
+============================= 20 passed in 0.06s ==============================
+
+
+
+============================================================
+UI Components
+============================================================
+Status: PASS
+Duration: 3.34s
+
+Output:
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\Documents\OpenEvolve\Frontend\env\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+plugins: anyio-4.11.0
+collecting ... collected 16 items
+
+test_sovereign_ui.py::TestNodeLevelCalculation::test_simple_linear_dependencies PASSED [  6%]
+test_sovereign_ui.py::TestNodeLevelCalculation::test_parallel_branches PASSED [ 12%]
+test_sovereign_ui.py::TestNodeLevelCalculation::test_no_dependencies PASSED [ 18%]
+test_sovereign_ui.py::TestNodeLevelCalculation::test_complex_graph PASSED [ 25%]
+test_sovereign_ui.py::TestUIDataPreparation::test_plan_has_sub_problems PASSED [ 31%]
+test_sovereign_ui.py::TestUIDataPreparation::test_plan_has_dependencies PASSED [ 37%]
+test_sovereign_ui.py::TestUIDataPreparation::test_total_effort_calculation PASSED [ 43%]
+test_sovereign_ui.py::TestUIDataPreparation::test_complexity_data_extraction PASSED [ 50%]
+test_sovereign_ui.py::TestQualityReportData::test_metrics_extraction PASSED [ 56%]
+test_sovereign_ui.py::TestQualityReportData::test_radar_chart_data PASSED [ 62%]
+test_sovereign_ui.py::TestQualityReportData::test_strengths_and_weaknesses PASSED [ 68%]
+test_sovereign_ui.py::TestRefinementHistoryData::test_quality_progression_data PASSED [ 75%]
+test_sovereign_ui.py::TestRefinementHistoryData::test_convergence_detection PASSED [ 81%]
+test_sovereign_ui.py::TestRefinementHistoryData::test_improvement_tracking PASSED [ 87%]
+test_sovereign_ui.py::TestGraphVisualizationData::test_node_data_preparation PASSED [ 93%]
+test_sovereign_ui.py::TestGraphVisualizationData::test_edge_data_preparation PASSED [100%]
+
+============================= 16 passed in 2.99s ==============================
+
+
+
+============================================================
+Performance
+============================================================
+Status: PASS
+Duration: 0.34s
+
+Output:
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\Documents\OpenEvolve\Frontend\env\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+plugins: anyio-4.11.0
+collecting ... collected 10 items
+
+test_sovereign_performance.py::TestPerformanceCache::test_cache_basic_operations PASSED [ 10%]
+test_sovereign_performance.py::TestPerformanceCache::test_cache_eviction PASSED [ 20%]
+test_sovereign_performance.py::TestPerformanceCache::test_cache_invalidation PASSED [ 30%]
+test_sovereign_performance.py::TestCachedDecorator::test_function_caching PASSED [ 40%]
+test_sovereign_performance.py::TestPerformanceMonitor::test_record_operations PASSED [ 50%]
+test_sovereign_performance.py::TestTimedDecorator::test_function_timing PASSED [ 60%]
+test_sovereign_performance.py::TestLazyLoader::test_lazy_loading PASSED  [ 70%]
+test_sovereign_performance.py::TestBatchProcessor::test_batch_operations PASSED [ 80%]
+test_sovereign_performance.py::TestBatchProcessor::test_auto_flush PASSED [ 90%]
+test_sovereign_performance.py::TestGlobalUtilities::test_cache_utilities PASSED [100%]
+
+============================= 10 passed in 0.06s ==============================
+
+
+
+============================================================
+Reliability
+============================================================
+Status: PASS
+Duration: 4.80s
+
+Output:
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\Documents\OpenEvolve\Frontend\env\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+plugins: anyio-4.11.0
+collecting ... collected 16 items
+
+test_sovereign_reliability.py::TestRetryStrategy::test_retry_strategy_initialization PASSED [  6%]
+test_sovereign_reliability.py::TestRetryStrategy::test_get_delay_increases PASSED [ 12%]
+test_sovereign_reliability.py::TestWithRetryDecorator::test_successful_call_no_retry PASSED [ 18%]
+test_sovereign_reliability.py::TestWithRetryDecorator::test_retry_on_failure PASSED [ 25%]
+test_sovereign_reliability.py::TestWithRetryDecorator::test_fallback_on_all_failures PASSED [ 31%]
+test_sovereign_reliability.py::TestErrorHandler::test_error_handler_initialization PASSED [ 37%]
+test_sovereign_reliability.py::TestErrorHandler::test_handle_error PASSED [ 43%]
+test_sovereign_reliability.py::TestErrorHandler::test_error_stats PASSED [ 50%]
+test_sovereign_reliability.py::TestHealthMonitor::test_health_monitor_initialization PASSED [ 56%]
+test_sovereign_reliability.py::TestHealthMonitor::test_register_and_run_checks PASSED [ 62%]
+test_sovereign_reliability.py::TestHealthMonitor::test_get_health_status PASSED [ 68%]
+test_sovereign_reliability.py::TestCircuitBreaker::test_circuit_breaker_initialization PASSED [ 75%]
+test_sovereign_reliability.py::TestCircuitBreaker::test_circuit_opens_after_failures PASSED [ 81%]
+test_sovereign_reliability.py::TestCircuitBreaker::test_circuit_stays_closed_on_success PASSED [ 87%]
+test_sovereign_reliability.py::TestGlobalInstances::test_get_error_handler PASSED [ 93%]
+test_sovereign_reliability.py::TestGlobalInstances::test_get_health_monitor PASSED [100%]
+
+============================= 16 passed in 4.52s ==============================
+
+
+
+============================================================
+Integration
+============================================================
+Status: PASS
+Duration: 0.77s
+
+Output:
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\Documents\OpenEvolve\Frontend\env\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+plugins: anyio-4.11.0
+collecting ... collected 8 items
+
+test_sovereign_integration.py::TestEndToEndWorkflow::test_complete_decomposition_workflow PASSED [ 12%]
+test_sovereign_integration.py::TestEndToEndWorkflow::test_workflow_with_refinement PASSED [ 25%]
+test_sovereign_integration.py::TestEndToEndWorkflow::test_workflow_with_knowledge_learning PASSED [ 37%]
+test_sovereign_integration.py::TestIntegrationScenarios::test_research_problem_workflow PASSED [ 50%]
+test_sovereign_integration.py::TestIntegrationScenarios::test_implementation_problem_workflow PASSED [ 62%]
+test_sovereign_integration.py::TestIntegrationScenarios::test_hybrid_strategy_workflow PASSED [ 75%]
+test_sovereign_integration.py::TestSystemIntegration::test_all_components_work_together PASSED [ 87%]
+test_sovereign_integration.py::TestSystemIntegration::test_error_handling_integration PASSED [100%]
+
+============================== 8 passed in 0.44s ==============================
+
+

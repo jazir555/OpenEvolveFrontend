@@ -1,0 +1,74 @@
+{
+  "type": "theorem",
+  "name": "Origin is a source for the given linear differential equations",
+  "hypothesis": [
+    {
+      "type": "assume",
+      "statement": "$\\dot{x} = x$"
+    },
+    {
+      "type": "assume",
+      "statement": "$\\dot{y} = y$"
+    }
+  ],
+  "conclusion": "The origin is a source.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$\\dot{X} = \\begin{bmatrix} 1 & 0 \\\\ 0 & 1 \\end{bmatrix} X$",
+        "deduced_from": [
+          "$\\dot{x} = x$",
+          "$\\dot{y} = y$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "The matrix $A = \\begin{bmatrix} 1 & 0 \\\\ 0 & 1 \\end{bmatrix}$ has real, repeating eigenvalues $\\lambda = 1$",
+        "proof-method": "Eigenvalue calculation"
+      },
+      {
+        "type": "assert",
+        "claim": "Every vector $V \\in \\mathbb{R}^2$ is an eigenvector of $A$",
+        "errors": [
+          "Incorrect eigenvector calculation; correct $A$ should be $\\begin{bmatrix} 1 & 0 \\\\ 0 & 1 \\end{bmatrix}$ but $\\begin{bmatrix} 0 & 1 \\\\ 0 & 1 \\end{bmatrix}$ is used."
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "The general solution is $X(t) = \\alpha e^t V + t V e^{Rt^2}$",
+        "errors": [
+          "Incorrect general solution form; should be $X(t) = e^{At} X(0)$."
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "These are straight line solutions moving away from the origin.",
+        "errors": [
+          "Incorrect deduction due to previous errors."
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "This system is a source.",
+        "errors": [
+          "Conclusion is based on incorrect steps."
+        ]
+      }
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Correctly find the eigenvectors and general solution for $\\dot{X} = AX$",
+      "solved": false
+    },
+    {
+      "type": "problem",
+      "statement": "Correctly deduce the nature of the origin based on the eigenvalues",
+      "solved": false
+    }
+  ]
+}

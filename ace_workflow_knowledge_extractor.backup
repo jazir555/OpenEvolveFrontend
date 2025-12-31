@@ -1,0 +1,693 @@
+"""
+ACE Workflow Knowledge Extractor
+
+This module extracts knowledge artifacts from workflow executions using ACE's
+learning capabilities. It integrates with the workflow stages to capture
+reusable patterns, team performance data, and gauntlet effectiveness.
+
+This is the core component for Stage 6: Knowledge Extraction & Learning.
+"""
+
+from typing import Any, Dict, List, Optional, Tuple
+import sys
+import os
+from datetime import datetime
+import threading
+from collections import defaultdict
+import json
+import logging
+
+# Add agentic-context-engine to path
+ACE_PATH = os.path.join(os.path.dirname(__file__), "agentic-context-engine")
+if os.path.exists(ACE_PATH) and ACE_PATH not in sys.path:
+    sys.path.insert(0, ACE_PATH)
+
+# Import ACE components
+try:
+    from ace import (
+        Skillbook, Agent, Reflector, SkillManager,
+        Sample, OfflineACE, LiteLLMClient
+    )
+    from ace.prompts_v2_1 import PromptManager
+    ACE_AVAILABLE = True
+except ImportError as e:
+    ACE_AVAILABLE = False
+    logging.warning(f"ACE not available: {e}")
+
+# THREAD SAFETY FIX: Phase 2 - Import thread safety utilities
+try:
+    from ace_security_utils import get_global_lock, synchronized
+    THREAD_SAFETY_AVAILABLE = True
+except ImportError:
+    THREAD_SAFETY_AVAILABLE = False
+    def get_global_lock(name):
+        return threading.RLock()
+    def synchronized(lock=None):
+        def decorator(func):
+            return func
+        return decorator
+
+# Import knowledge artifacts
+from ace_knowledge_artifacts import (
+    KnowledgeArtifact,
+    SolutionPattern,
+    AntiPattern,
+    DecompositionStrategy,
+    TeamPerformanceData,
+    GauntletEffectivenessData,
+    WorkflowExtractionResult,
+    ArtifactType,
+    ArtifactSource,
+    create_solution_pattern,
+    create_anti_pattern,
+    create_decomposition_strategy,
+)
+
+# Logging configuration
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+class WorkflowKnowledgeExtractor:
+    """
+    Extract knowledge artifacts from workflow executions using ACE.
+
+    This class orchestrates the extraction of knowledge from all workflow
+    stages, including solution patterns, anti-patterns, team performance
+    metrics, and gauntlet effectiveness data.
+
+    Architecture:
+        1. Collect data from all workflow stages
+        2. Use ACE Reflector to analyze execution patterns
+        3. Use ACE SkillManager to extract reusable skills
+        4. Transform skills into Knowledge Artifacts
+        5. Extract team and gauntlet metrics
+        6. Store in knowledge base
+
+    Memory Management:
+    - max_artifacts: Maximum artifacts to keep in memory (default 10000)
+    - Each artifact ~1-10 KB depending on content size
+    - 10000 artifacts = ~10-100 MB
+    - Set to None for unlimited (not recommended in production)
+    """
+
+    def __init__(
+        self,
+        model: str = "gpt-4o-mini",
+        skillbook_path: Optional[str] = None,
+        enable_learning: bool = True,
+        max_artifacts: int = 10000,
+    ):
+        """
+        Initialize the workflow knowledge extractor.
+
+        Args:
+            model: LiteLLM model name for ACE
+            skillbook_path: Path to load existing skillbook
+            enable_learning: Enable ACE learning during extraction
+            max_artifacts: Maximum artifacts to keep in memory (resource limit)
+        """
+        self.model = model
+        self.enable_learning = enable_learning
+        self.max_artifacts = max_artifacts
+
+        # Initialize ACE components if available
+        self.ace_available = ACE_AVAILABLE
+        self.skillbook = None
+        self.agent = None
+        self.reflector = None
+        self.skill_manager = None
+        self.prompt_mgr = None
+
+        if self.ace_available:
+            self._initialize_ace_components(skillbook_path)
+
+        # Knowledge storage
+        self.artifacts: List[KnowledgeArtifact] = []
+        self.team_performances: Dict[str, TeamPerformanceData] = {}
+        self.gauntlet_effectiveness: Dict[str, GauntletEffectivenessData] = {}
+
+    def _initialize_ace_components(self, skillbook_path: Optional[str]):
+        """Initialize ACE components."""
+        try:
+            # Load or create skillbook
+            # THREAD SAFETY FIX: TS-6 - Remove TOCTOU
+            if skillbook_path:
+                try:
+                    self.skillbook = Skillbook.load_from_file(skillbook_path)
+                    logger.info(f"Loaded skillbook from {skillbook_path}")
+                except (FileNotFoundError, json.JSONDecodeError, IOError):
+                    self.skillbook = Skillbook()
+                    logger.info(f"Skillbook not found, created new skillbook")
+            else:
+                self.skillbook = Skillbook()
+                logger.info("Created new skillbook")
+
+            # Create LLM client
+            llm = LiteLLMClient(model=self.model)
+
+            # Get prompt templates
+            self.prompt_mgr = PromptManager()
+
+            # Create ACE roles
+            self.agent = Agent(llm, prompt_template=self.prompt_mgr.get_agent_prompt())
+            self.reflector = Reflector(llm, prompt_template=self.prompt_mgr.get_reflector_prompt())
+            self.skill_manager = SkillManager(llm, prompt_template=self.prompt_mgr.get_skill_manager_prompt())
+
+            logger.info("ACE components initialized successfully")
+
+        except Exception as e:
+            logger.error(f"Failed to initialize ACE components: {e}")
+            self.ace_available = False
+
+    def extract_from_workflow(
+        self,
+        workflow_id: str,
+        problem_statement: str,
+        workflow_results: Dict[str, Any],
+        extract_team_metrics: bool = True,
+        extract_gauntlet_metrics: bool = True,
+    ) -> WorkflowExtractionResult:
+        """
+        Extract knowledge artifacts from a complete workflow execution.
+
+        Args:
+            workflow_id: Unique identifier for the workflow
+            problem_statement: The original problem statement
+            workflow_results: Complete results from all workflow stages
+            extract_team_metrics: Extract team performance data
+            extract_gauntlet_metrics: Extract gauntlet effectiveness data
+
+        Returns:
+            WorkflowExtractionResult with all extracted artifacts
+        """
+        logger.info(f"Extracting knowledge from workflow: {workflow_id}")
+
+        result = WorkflowExtractionResult(
+            workflow_id=workflow_id,
+            problem_statement=problem_statement,
+        )
+
+        if not self.ace_available:
+            logger.warning("ACE not available - returning empty extraction")
+            return result
+
+        try:
+            # 1. Extract from each stage
+            stage_artifacts = self._extract_from_stages(workflow_results)
+            for artifact in stage_artifacts:
+                result.add_artifact(artifact)
+
+            # 2. Extract solution patterns using ACE
+            solution_patterns = self._extract_solution_patterns(workflow_results)
+            for artifact in solution_patterns:
+                result.add_artifact(artifact)
+
+            # 3. Extract anti-patterns using ACE
+            anti_patterns = self._extract_anti_patterns(workflow_results)
+            for artifact in anti_patterns:
+                result.add_artifact(artifact)
+
+            # 4. Extract decomposition strategies
+            decomposition_strategies = self._extract_decomposition_strategies(workflow_results)
+            for artifact in decomposition_strategies:
+                result.add_artifact(artifact)
+
+            # 5. Extract team performance metrics
+            if extract_team_metrics:
+                team_performances = self._extract_team_performance(workflow_results)
+                result.team_performances = team_performances
+                # THREAD SAFETY FIX: TS-11 - Synchronize internal tracking updates
+                with self._team_perf_lock:
+                    for tp in team_performances:
+                        self.team_performances[tp.team_id] = tp
+
+            # 6. Extract gauntlet effectiveness
+            if extract_gauntlet_metrics:
+                gauntlet_metrics = self._extract_gauntlet_effectiveness(workflow_results)
+                result.gauntlet_effectiveness = gauntlet_metrics
+                # THREAD SAFETY FIX: TS-11 - Synchronize internal tracking updates
+                with self._gauntlet_lock:
+                    for ge in gauntlet_metrics:
+                        self.gauntlet_effectiveness[ge.gauntlet_id] = ge
+
+            logger.info(f"Extracted {result.total_artifacts} artifacts from workflow")
+            return result
+
+        except Exception as e:
+            logger.error(f"Failed to extract knowledge from workflow: {e}")
+            return result
+
+    def _add_artifact_with_limit(self, artifact: KnowledgeArtifact):
+        """
+        RESOURCE FIX: Add artifact with size limit enforcement.
+
+        Args:
+            artifact: Artifact to add
+        """
+        self.artifacts.append(artifact)
+
+        # Enforce max_artifacts limit
+        if self.max_artifacts is not None and len(self.artifacts) > self.max_artifacts:
+            removed = len(self.artifacts) - self.max_artifacts
+            self.artifacts = self.artifacts[-self.max_artifacts:]
+            logger.warning(f"Removed {removed} old artifacts (limit: {self.max_artifacts})")
+
+    def _extract_from_stages(self, workflow_results: Dict[str, Any]) -> List[KnowledgeArtifact]:
+        """Extract knowledge from individual workflow stages."""
+        artifacts = []
+
+        # Extract from each stage
+        for stage_name, stage_result in workflow_results.get("phases", {}).items():
+            if not stage_result.get("success", False):
+                continue
+
+            # Extract learning from stage
+            stage_artifacts = self._extract_from_stage(stage_name, stage_result)
+            artifacts.extend(stage_artifacts)
+
+        return artifacts
+
+    def _extract_from_stage(self, stage_name: str, stage_result: Dict[str, Any]) -> List[KnowledgeArtifact]:
+        """Extract knowledge from a single workflow stage."""
+        artifacts = []
+
+        try:
+            # Get learning result if available
+            learning = stage_result.get("learning")
+            if not learning:
+                return artifacts
+
+            # Create artifact from learning
+            if learning.get("reflection_summary"):
+                artifact = create_solution_pattern(
+                    title=f"{stage_name} Pattern",
+                    description=f"Learning from {stage_name}",
+                    content=learning["reflection_summary"],
+                    problem_category=stage_name.replace("Phase ", "").lower(),
+                    domain="workflow",
+                )
+                artifacts.append(artifact)
+
+        except Exception as e:
+            logger.warning(f"Failed to extract from stage {stage_name}: {e}")
+
+        return artifacts
+
+    def _extract_solution_patterns(self, workflow_results: Dict[str, Any]) -> List[SolutionPattern]:
+        """Extract solution patterns using ACE reflector."""
+        patterns = []
+
+        try:
+            # Analyze successful solutions
+            for stage_name, stage_result in workflow_results.get("phases", {}).items():
+                if not stage_result.get("success"):
+                    continue
+
+                # Get solutions from stage
+                solutions = self._get_solutions_from_stage(stage_result)
+
+                for solution in solutions:
+                    # Use ACE to analyze and extract patterns
+                    if self.reflector and self.skillbook:
+                        pattern = self._extract_pattern_from_solution(
+                            solution,
+                            stage_name
+                        )
+                        if pattern:
+                            patterns.append(pattern)
+
+        except Exception as e:
+            logger.error(f"Failed to extract solution patterns: {e}")
+
+        return patterns
+
+    def _extract_pattern_from_solution(
+        self,
+        solution: Dict[str, Any],
+        stage_name: str
+    ) -> Optional[SolutionPattern]:
+        """Extract a reusable pattern from a solution."""
+        try:
+            # Create sample for ACE analysis
+            sample = Sample(
+                query=f"Extract pattern from: {solution.get('solution', '')[:500]}",
+                context=f"Stage: {stage_name}",
+            )
+
+            # Create mock agent output
+            from ace import AgentOutput
+            agent_output = AgentOutput(
+                final_answer=solution.get("solution", ""),
+                reasoning=solution.get("reasoning", ""),
+            )
+
+            # THREAD SAFETY FIX: TS-4 - Synchronize skillbook access
+            with self._skillbook_lock:
+                # Use reflector to analyze
+                reflection = self.reflector.run(
+                    sample=sample,
+                    agent_output=agent_output,
+                    skillbook=self.skillbook,
+                    environment_result=None,
+                )
+
+            # Extract pattern from reflection
+            if reflection.summary:
+                pattern = create_solution_pattern(
+                    title=f"Pattern from {stage_name}",
+                    description=f"Reusable solution pattern from {stage_name}",
+                    content=reflection.summary,
+                    problem_category=stage_name.lower(),
+                    domain="solution",
+                )
+                return pattern
+
+        except Exception as e:
+            logger.warning(f"Failed to extract pattern from solution: {e}")
+
+        return None
+
+    def _extract_anti_patterns(self, workflow_results: Dict[str, Any]) -> List[AntiPattern]:
+        """Extract anti-patterns (common mistakes) using ACE."""
+        anti_patterns = []
+
+        try:
+            # Look for failed executions and refinements
+            for stage_name, stage_result in workflow_results.get("phases", {}).items():
+                # Check for refinement loops (indicates mistakes were made)
+                if "refinement" in stage_name.lower() or "recovery" in stage_name.lower():
+                    anti_pattern = self._extract_anti_pattern_from_refinement(
+                        stage_result,
+                        stage_name
+                    )
+                    if anti_pattern:
+                        anti_patterns.append(anti_pattern)
+
+        except Exception as e:
+            logger.error(f"Failed to extract anti-patterns: {e}")
+
+        return anti_patterns
+
+    def _extract_anti_pattern_from_refinement(
+        self,
+        stage_result: Dict[str, Any],
+        stage_name: str
+    ) -> Optional[AntiPattern]:
+        """Extract an anti-pattern from a refinement stage."""
+        try:
+            # Get the issue that needed refinement
+            error_or_issue = stage_result.get("error", "") or stage_result.get("issue", "")
+
+            if error_or_issue:
+                anti_pattern = create_anti_pattern(
+                    title=f"Anti-pattern from {stage_name}",
+                    description=f"Common mistake that occurred in {stage_name}",
+                    common_mistake=error_or_issue,
+                    correct_approach=stage_result.get("fix", "See refinement solution"),
+                    severity="medium",
+                    domain="workflow",
+                )
+                return anti_pattern
+
+        except Exception as e:
+            logger.warning(f"Failed to extract anti-pattern from refinement: {e}")
+
+        return None
+
+    def _extract_decomposition_strategies(self, workflow_results: Dict[str, Any]) -> List[DecompositionStrategy]:
+        """Extract decomposition strategies from Phase 1 results."""
+        strategies = []
+
+        try:
+            # Get Phase 1 results (decomposition)
+            phase1_result = workflow_results.get("phases", {}).get("phase_1", {})
+            if not phase1_result.get("success"):
+                return strategies
+
+            # Extract decomposition strategy
+            analysis = phase1_result.get("analysis", "")
+            if analysis:
+                strategy = create_decomposition_strategy(
+                    title="Decomposition Strategy",
+                    description="Effective problem decomposition approach",
+                    strategy=analysis,
+                    decomposition_depth=2,
+                    granularity="medium",
+                )
+                strategies.append(strategy)
+
+        except Exception as e:
+            logger.error(f"Failed to extract decomposition strategies: {e}")
+
+        return strategies
+
+    def _extract_team_performance(self, workflow_results: Dict[str, Any]) -> List[TeamPerformanceData]:
+        """Extract team performance metrics from workflow."""
+        team_performances = []
+
+        try:
+            # Extract team data from workflow results
+            teams_data = workflow_results.get("teams", {})
+
+            for team_id, team_data in teams_data.items():
+                perf_data = TeamPerformanceData(
+                    team_id=team_id,
+                    team_name=team_data.get("name", team_id),
+                    team_type=team_data.get("type", "blue_team"),
+                    total_tasks=team_data.get("tasks_completed", 0),
+                    successful_tasks=team_data.get("tasks_succeeded", 0),
+                    failed_tasks=team_data.get("tasks_failed", 0),
+                    avg_execution_time=team_data.get("avg_execution_time", 0.0),
+                    avg_quality_score=team_data.get("avg_quality_score", 0.0),
+                    preferred_problem_types=team_data.get("preferred_types", []),
+                    skill_affinities=team_data.get("skill_affinities", {}),
+                    collaboration_effectiveness=team_data.get("collaboration_score", 0.0),
+                )
+                team_performances.append(perf_data)
+
+        except Exception as e:
+            logger.error(f"Failed to extract team performance: {e}")
+
+        return team_performances
+
+    def _extract_gauntlet_effectiveness(self, workflow_results: Dict[str, Any]) -> List[GauntletEffectivenessData]:
+        """Extract gauntlet effectiveness metrics from workflow."""
+        gauntlet_metrics = []
+
+        try:
+            # Extract gauntlet data from workflow results
+            gauntlets_data = workflow_results.get("gauntlets", {})
+
+            for gauntlet_id, gauntlet_data in gauntlets_data.items():
+                effectiveness = GauntletEffectivenessData(
+                    gauntlet_id=gauntlet_id,
+                    gauntlet_name=gauntlet_data.get("name", gauntlet_id),
+                    gauntlet_type=gauntlet_data.get("type", "red_team"),
+                    total_runs=gauntlet_data.get("runs", 0),
+                    issues_found=gauntlet_data.get("issues_found", 0),
+                    false_positives=gauntlet_data.get("false_positives", 0),
+                    true_positives=gauntlet_data.get("true_positives", 0),
+                    avg_execution_time=gauntlet_data.get("avg_time", 0.0),
+                    effective_problem_types=gauntlet_data.get("effective_types", []),
+                    common_violations=gauntlet_data.get("violations", {}),
+                )
+                # Calculate rates
+                effectiveness.detection_rate = effectiveness.calculate_detection_rate()
+                gauntlet_metrics.append(effectiveness)
+
+        except Exception as e:
+            logger.error(f"Failed to extract gauntlet effectiveness: {e}")
+
+        return gauntlet_metrics
+
+    def _get_solutions_from_stage(self, stage_result: Dict[str, Any]) -> List[Dict[str, Any]]:
+        """Extract solutions from a stage result."""
+        solutions = []
+
+        # Check for single solution
+        if "solution" in stage_result:
+            solutions.append({"solution": stage_result["solution"]})
+
+        # Check for multiple solutions (e.g., Phase 2)
+        elif "solutions" in stage_result:
+            solutions.extend(stage_result["solutions"])
+
+        # Check for verification results
+        elif "verifications" in stage_result:
+            solutions.extend(stage_result["verifications"])
+
+        # Check for critique results
+        elif "critiques" in stage_result:
+            solutions.extend(stage_result["critiques"])
+
+        return solutions
+
+    def save_artifacts_to_file(self, filepath: str, result: WorkflowExtractionResult):
+        """Save extraction results to JSON file."""
+        try:
+            # THREAD SAFETY FIX: TS-11 - Synchronize access to result data
+            with result._lock:
+                data = {
+                    "workflow_id": result.workflow_id,
+                    "problem_statement": result.problem_statement,
+                    "extraction_timestamp": result.extraction_timestamp.isoformat(),
+                    "summary": result.to_summary(),
+                    "artifacts": [artifact.to_dict() for artifact in result.extracted_artifacts],
+                    "team_performances": [tp.to_dict() for tp in result.team_performances],
+                    "gauntlet_effectiveness": [ge.to_dict() for ge in result.gauntlet_effectiveness],
+                }
+
+            with open(filepath, "w") as f:
+                json.dump(data, f, indent=2)
+
+            logger.info(f"Saved {result.total_artifacts} artifacts to {filepath}")
+
+        except Exception as e:
+            logger.error(f"Failed to save artifacts: {e}")
+
+    def update_skillbook_from_artifacts(self, artifacts: List[KnowledgeArtifact]):
+        """Update ACE skillbook with extracted artifacts (thread-safe)."""
+        if not self.ace_available or not self.skill_manager:
+            logger.warning("ACE not available - cannot update skillbook")
+            return
+
+        try:
+            from ace import Skill, UpdateOperation, UpdateBatch
+
+            updates = []
+            for artifact in artifacts:
+                # Convert artifact to skill
+                skill = Skill(
+                    name=artifact.title,
+                    strategy=artifact.content,
+                    helpful_count=artifact.metrics.times_helpful,
+                    harmful_count=artifact.metrics.times_harmful,
+                )
+
+                # Create update operation
+                update = UpdateOperation(
+                    operation_type="ADD",
+                    skill=skill,
+                )
+                updates.append(update)
+
+            # THREAD SAFETY FIX: TS-4 - Synchronize skillbook access
+            # Apply updates to skillbook
+            if updates:
+                with self._skillbook_lock:
+                    batch = UpdateBatch(updates=updates)
+                    for update in batch.updates:
+                        update.apply(self.skillbook)
+
+                logger.info(f"Updated skillbook with {len(updates)} artifacts")
+
+        except Exception as e:
+            logger.error(f"Failed to update skillbook: {e}")
+
+    def get_artifact_statistics(self) -> Dict[str, Any]:
+        """Get statistics about extracted artifacts (thread-safe)."""
+        # THREAD SAFETY FIX: TS-11 - Synchronize access to knowledge storage
+        with self._artifacts_lock:
+            artifact_counts = {}
+            for artifact in self.artifacts:
+                artifact_type = artifact.metadata.artifact_type.value
+                artifact_counts[artifact_type] = artifact_counts.get(artifact_type, 0) + 1
+
+            total_artifacts = len(self.artifacts)
+
+        with self._team_perf_lock:
+            team_count = len(self.team_performances)
+
+        with self._gauntlet_lock:
+            gauntlet_count = len(self.gauntlet_effectiveness)
+
+        return {
+            "total_artifacts": total_artifacts,
+            "by_type": artifact_counts,
+            "team_performances_tracked": team_count,
+            "gauntlets_tracked": gauntlet_count,
+        }
+
+    def cleanup(self):
+        """Release resources held by this object."""
+        try:
+            # Clear collections
+            self.artifacts.clear()
+            self.team_performances.clear()
+            self.gauntlet_effectiveness.clear()
+
+            # Clear ACE components
+            self.agent = None
+            self.reflector = None
+            self.skill_manager = None
+            self.prompt_mgr = None
+
+            # Handle skillbook
+            if self.skillbook:
+                self.skillbook = None
+
+            logger.info("WorkflowKnowledgeExtractor resources cleaned up")
+        except Exception as e:
+            logger.error(f"Error during cleanup: {e}")
+
+    def __del__(self):
+        """Destructor to ensure cleanup."""
+        self.cleanup()
+
+    def __enter__(self):
+        """Context manager entry."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager exit with cleanup."""
+        self.cleanup()
+        return False
+
+
+# Convenience functions
+
+def extract_knowledge_from_workflow(
+    workflow_id: str,
+    problem_statement: str,
+    workflow_results: Dict[str, Any],
+    model: str = "gpt-4o-mini",
+    skillbook_path: Optional[str] = None,
+    output_file: Optional[str] = None,
+) -> WorkflowExtractionResult:
+    """
+    Convenience function to extract knowledge from a workflow.
+
+    Args:
+        workflow_id: Unique identifier for the workflow
+        problem_statement: The original problem statement
+        workflow_results: Complete results from workflow execution
+        model: LiteLLM model name
+        skillbook_path: Path to load existing skillbook
+        output_file: Optional file to save extraction results
+
+    Returns:
+        WorkflowExtractionResult with extracted artifacts
+    """
+    extractor = WorkflowKnowledgeExtractor(
+        model=model,
+        skillbook_path=skillbook_path,
+    )
+
+    result = extractor.extract_from_workflow(
+        workflow_id=workflow_id,
+        problem_statement=problem_statement,
+        workflow_results=workflow_results,
+    )
+
+    if output_file:
+        extractor.save_artifacts_to_file(output_file, result)
+
+    return result
+
+
+# Export
+__all__ = [
+    "WorkflowKnowledgeExtractor",
+    "extract_knowledge_from_workflow",
+]

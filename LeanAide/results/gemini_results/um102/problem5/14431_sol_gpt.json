@@ -1,0 +1,89 @@
+{
+  "type": "theorem",
+  "name": "Maximum Distance on Ellipsoid",
+  "hypothesis": [
+    {
+      "type": "assume",
+      "statement": "Any continuous function on the ellipsoid $x^2 + 2y^2 + 3z^2 = 1$ attains its maximum."
+    }
+  ],
+  "conclusion": "The points $(1, 0, 0)$ and $(-1, 0, 0)$ on the ellipsoid $x^2 + 2y^2 + 3z^2 = 1$ have the largest distance from the origin.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "let",
+        "variable": "f",
+        "value": "$\\sqrt{x^2 + y^2 + z^2}$",
+        "kind": "function"
+      },
+      {
+        "type": "assert",
+        "claim": "$f = \\sqrt{1 - y^2 - 2z^2}$",
+        "deduced_from": [
+          "Ellipsoid equation: $x^2 + 2y^2 + 3z^2 = 1$"
+        ],
+        "proof-method": "Substitution from the constraint"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\nabla f = 0$",
+        "proof-method": "For $f$ to be a maximum"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\frac{1}{2 \\sqrt{1 - y^2 - 2z^2}} (-2y) \\hat{j} + \\frac{1}{2 \\sqrt{1 - y^2 - 2z^2}} (-4z) \\hat{k} = 0$",
+        "deduced_from": [
+          "Partial derivatives of $f$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$y = 0$ and $z = 0$ for extremum",
+        "proof-method": "Solving $\\nabla f = 0$"
+      },
+      {
+        "type": "assert",
+        "claim": "$x^2 = 1$",
+        "deduced_from": [
+          "Ellipsoid equation with $y = 0$ and $z = 0$"
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "The extremum points are $(1, 0, 0)$ and $(-1, 0, 0)$",
+        "error": "This only establishes that these points are extremum points, not that they are maxima."
+      },
+      {
+        "type": "assert",
+        "claim": "Points $(0, 1/\\sqrt{2}, 0)$ lie on the ellipsoid",
+        "deduced_from": [
+          "Ellipsoid equation: $x^2 + 2y^2 + 3z^2 = 1$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "Distance from origin to $(0, 1/\\sqrt{2}, 0)$ is $1/\\sqrt{2}$",
+        "proof-method": "Direct calculation"
+      },
+      {
+        "type": "assert",
+        "claim": "Distance from origin to $(1, 0, 0)$ and $(-1, 0, 0)$ is 1",
+        "proof-method": "Direct calculation"
+      },
+      {
+        "type": "conclude",
+        "statement": "The points $(1, 0, 0)$ and $(-1, 0, 0)$ have the largest distance from the origin.",
+        "error": "Need to prove that $(1, 0, 0)$ and $(-1, 0, 0)$ are indeed maxima and not just extremum points."
+      }
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Prove that $(1, 0, 0)$ and $(-1, 0, 0)$ are maxima on the ellipsoid.",
+      "solved": false
+    }
+  ]
+}

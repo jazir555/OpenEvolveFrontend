@@ -1,0 +1,76 @@
+{
+    "BlueGenGauntlet": {
+        "name": "BlueGenGauntlet",
+        "team_name": "TestBlueTeam",
+        "rounds": [
+            {
+                "round_number": 1,
+                "quorum_required_approvals": 1,
+                "quorum_from_panel_size": 1,
+                "min_overall_confidence": 0.5,
+                "max_score_variance": null,
+                "per_judge_requirements": {},
+                "collaboration_mode": "independent"
+            }
+        ],
+        "description": null,
+        "attack_modes": [],
+        "generation_mode": "single_candidate"
+    },
+    "BluePeerGauntlet": {
+        "name": "BluePeerGauntlet",
+        "team_name": "TestBlueTeam",
+        "rounds": [
+            {
+                "round_number": 1,
+                "quorum_required_approvals": 1,
+                "quorum_from_panel_size": 1,
+                "min_overall_confidence": 0.5,
+                "max_score_variance": null,
+                "per_judge_requirements": {},
+                "collaboration_mode": "independent"
+            }
+        ],
+        "description": null,
+        "attack_modes": [],
+        "generation_mode": "multi_candidate_peer_review"
+    },
+    "TestRedGauntlet": {
+        "name": "TestRedGauntlet",
+        "team_name": "TestRedTeam",
+        "rounds": [
+            {
+                "round_number": 1,
+                "quorum_required_approvals": 1,
+                "quorum_from_panel_size": 1,
+                "min_overall_confidence": 0.5,
+                "max_score_variance": null,
+                "per_judge_requirements": {},
+                "collaboration_mode": "independent"
+            }
+        ],
+        "description": null,
+        "attack_modes": [
+            "vulnerability_scan"
+        ],
+        "generation_mode": "single_candidate"
+    },
+    "TestGoldGauntlet": {
+        "name": "TestGoldGauntlet",
+        "team_name": "TestGoldTeam",
+        "rounds": [
+            {
+                "round_number": 1,
+                "quorum_required_approvals": 1,
+                "quorum_from_panel_size": 1,
+                "min_overall_confidence": 0.5,
+                "max_score_variance": null,
+                "per_judge_requirements": {},
+                "collaboration_mode": "independent"
+            }
+        ],
+        "description": null,
+        "attack_modes": [],
+        "generation_mode": "single_candidate"
+    }
+}

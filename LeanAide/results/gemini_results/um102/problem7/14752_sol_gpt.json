@@ -1,0 +1,74 @@
+{
+  "type": "theorem",
+  "name": "Theorem: For the linear differential equation \\( \\dot{x}=x \\) and \\( \\dot{y}=y \\). Prove that the origin is source.",
+  "hypothesis": [
+    {
+      "type": "assume",
+      "statement": "$\\dot{x} = x$"
+    },
+    {
+      "type": "assume",
+      "statement": "$\\dot{y} = y$"
+    }
+  ],
+  "conclusion": "The origin is a source.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$A\\mathbf{x} = \\mathbf{x}'$",
+        "calculation": [
+          "$\\begin{bmatrix} 1 & 0 \\\\ 0 & 1 \\end{bmatrix} \\begin{bmatrix} x \\\\ y \\end{bmatrix} = \\begin{bmatrix} x \\\\ y \\end{bmatrix}$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\det(A - dI) = 0$",
+        "calculation": [
+          "$\\det \\begin{bmatrix} 1-d & 0 \\\\ 0 & 1-d \\end{bmatrix} = 0$",
+          "$(1-d)(1-d)=0$",
+          "$d=1$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$d_1 = d_2 = 1$"
+      },
+      {
+        "type": "assert",
+        "claim": "$(A-I) \\begin{bmatrix} c_1 \\\\ c_2 \\end{bmatrix} = \\begin{bmatrix} 0 \\\\ 0 \\end{bmatrix}$",
+        "calculation": [
+          "$\\begin{bmatrix} 0 & 0 \\\\ 0 & 0 \\end{bmatrix} \\begin{bmatrix} c_1 \\\\ c_2 \\end{bmatrix} = \\begin{bmatrix} 0 \\\\ 0 \\end{bmatrix}$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "True for $\\forall v \\in \\mathbb{R}^2$",
+        "calculation": [
+          "$v_1 = (1,1)$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\mathbf{x(t)} = \\mathbf{x} e^t \\begin{bmatrix} 1 \\\\ 1 \\end{bmatrix}$ is a basis of all solutions and is the general solution"
+      },
+      {
+        "type": "conclude",
+        "statement": "The curve is a source.",
+        "error": "The proof lacks a rigorous argument showing that all trajectories move away from the origin, thus establishing it as a source."
+      }
+    ],
+    "errors": [
+      "The proof assumes that the form of the solution immediately implies that the origin is a source without properly demonstrating how the trajectories behave near the origin."
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Provide a rigorous argument showing that trajectories move away from the origin, thus proving it to be a source.",
+      "solved": false
+    }
+  ]
+}

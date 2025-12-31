@@ -1,0 +1,96 @@
+{
+  "type": "theorem",
+  "name": "Circulation of Origin",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "A",
+      "kind": "2x2 matrix",
+      "value": "\\begin{bmatrix} 0 & -1 \\\\ 1 & 0 \\end{bmatrix}"
+    },
+    {
+      "type": "assume",
+      "statement": "The linear differential equations are $\\dot{x} = -y$ and $\\dot{y} = x$"
+    }
+  ],
+  "conclusion": "The origin is circulation (center)",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "AX = X'",
+        "calculation": [
+          {
+            "step": "\\begin{bmatrix} 0 & -1 \\\\ 1 & 0 \\end{bmatrix} \\begin{bmatrix} x \\\\ y \\end{bmatrix} = \\begin{bmatrix} -y \\\\ x \\end{bmatrix}"
+          }
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\det(A - dI) = 0$",
+        "calculation": [
+          "$\\det\\Bigg(\\begin{bmatrix} 0 & -1 \\\\ 1 & 0 \\end{bmatrix} + \\begin{bmatrix} -d & 0 \\\\ 0 & -d \\end{bmatrix}\\Bigg) = 0$",
+          "$\\det\\Bigg(\\begin{bmatrix} -d & -1 \\\\ 1 & -d \\end{bmatrix}\\Bigg) = 0$",
+          "$d^2 +1 = 0$",
+          "$d^2 = -1$",
+          "$d = \\pm i$"
+        ]
+      },
+      {
+        "type": "let",
+        "variable": "d",
+        "value": "i"
+      },
+      {
+        "type": "assert",
+        "claim": "$(A - dI)X = 0$",
+        "calculation": [
+          "$\\begin{bmatrix} -i & -1 \\\\ 1 & -i \\end{bmatrix} \\begin{bmatrix} x \\\\ y \\end{bmatrix} = \\begin{bmatrix} 0 \\\\ 0 \\end{bmatrix}$",
+          "$-ix - y = 0$",
+          "$x - iy = 0$",
+          "$x = iy$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "Eigenvector $\\begin{bmatrix} 1 \\\\ i \\end{bmatrix}$ for $d = i$",
+        "errors": [
+          "Eigenvector not acceptable in this context"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "General solution $X(t) = e^{it} \\begin{bmatrix} i \\\\ 1 \\end{bmatrix}$",
+        "errors": [
+          "Complex solution is not acceptable for real equations"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$e^{i \\theta} = \\cos \\theta + i \\sin \\theta$",
+        "calculation": [
+          "$X(t) = \\begin{bmatrix} e^{it} \\\\ -ie^{it} \\end{bmatrix}$",
+          "$X(t) = \\begin{bmatrix} i \\sin \\theta + \\cos \\theta \\\\ \\sin \\theta - i \\cos \\theta \\end{bmatrix}$",
+          "$X(t) = \\begin{bmatrix} \\cos \\theta \\\\ \\sin \\theta \\end{bmatrix} + i \\begin{bmatrix} \\sin \\theta \\\\ -\\cos \\theta \\end{bmatrix}$",
+          "$\\theta = t$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "Real and imaginary parts: $X_{Re} = \\begin{bmatrix} \\cos \\theta \\\\ \\sin \\theta \\end{bmatrix}$, $X_{im} = \\begin{bmatrix} \\sin \\theta \\\\ -\\cos \\theta \\end{bmatrix}$"
+      },
+      {
+        "type": "conclude",
+        "statement": "Thus the equation represents circulation around the origin.",
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "Complete justification for why the origin is a center using the eigenvalues."
+          }
+        ]
+      }
+    ]
+  }
+}

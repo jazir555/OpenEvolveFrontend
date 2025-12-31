@@ -1,0 +1,46 @@
+{
+  "type": "theorem",
+  "name": "Circulation at the Origin",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "kind": "System of linear differential equations",
+      "property": "Given by $\\dot{x} = -y$ and $\\dot{y} = x$"
+    }
+  ],
+  "conclusion": "The origin is a circulation.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$\\begin{pmatrix}\\dot{x} \\\\ \\dot{y}\\end{pmatrix} = \\begin{pmatrix}0 & -1 \\\\ 1 & 0\\end{pmatrix} \\begin{pmatrix}x \\\\ y\\end{pmatrix}$",
+        "proof-method": "Rewriting the system of equations in matrix form"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of $\\begin{pmatrix}0 & -1 \\\\ 1 & 0\\end{pmatrix}$ are $\\pm i$",
+        "calculation": [
+          {
+            "step": "$\\left| \\begin{pmatrix}0 & -1 \\\\ 1 & 0\\end{pmatrix} - \\begin{pmatrix}\\lambda & 0 \\\\ 0 & \\lambda\\end{pmatrix} \\right| = \\begin{vmatrix}-\\lambda & -1 \\\\ 1 & -\\lambda\\end{vmatrix} = 0$",
+            "justification": "Setting up the characteristic equation"
+          },
+          "$\\lambda^2 + 1 = 0$",
+          "$\\lambda = \\pm i$"
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "The origin is a circulation",
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "Explicitly state the connection between the calculated eigenvalues and the conclusion of the origin being a circulation, referring to the known result about purely imaginary eigenvalues."
+          }
+        ]
+      }
+    ]
+  }
+}

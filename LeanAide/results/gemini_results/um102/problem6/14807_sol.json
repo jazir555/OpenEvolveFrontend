@@ -1,0 +1,69 @@
+{
+  "type": "theorem",
+  "name": "Saddle Point of a Linear System",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "value": "$\\dot{x} = y$",
+      "kind": "differential equation"
+    },
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "value": "$\\dot{y} = x$",
+      "kind": "differential equation"
+    }
+  ],
+  "conclusion": "The linear system defined by $\\dot{x} = y$ and $\\dot{y} = x$ has a saddle point at the origin.",
+  "status": "wrong proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "Question 5, part (a):"
+      },
+      {
+        "type": "assert",
+        "claim": "The system can be written in matrix form as $(\begin{matrix} \\dot{x} \\\\ \\dot{y} \\end{matrix}) = (\begin{matrix} 0 & 1 \\\\ 1 & 0 \\end{matrix}) (\begin{matrix} x \\\\ y \\end{matrix})$",
+        "proof-method": "Rewriting the given system of differential equations."
+      },
+      {
+        "type": "let",
+        "variable": "A",
+        "value": " $(\begin{matrix} 0 & 1 \\\\ 1 & 0 \\end{matrix})$",
+        "kind": "matrix"
+      },
+      {
+        "type": "assert",
+        "claim": "The system is equivalent to $X' = AX$",
+        "proof-method": "Using the matrix notation introduced above."
+      },
+      {
+        "type": "remark",
+        "statement": "Finding the eigenvalues of $A$:"
+      },
+      {
+        "type": "assert",
+        "claim": "The characteristic equation of $A$ is $|A-\\lambda I| = 0$",
+        "proof-method": "Definition of the characteristic equation."
+      },
+      {
+        "type": "assert",
+        "claim": "The characteristic equation is equivalent to  $|\begin{matrix} -\\lambda & 1 \\\\ 1 & -\\lambda\\end{matrix}| = \\lambda^2 - 1 = 0$",
+        "proof-method": "Computing the determinant."
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues are $\\lambda = \\pm 1$, that is, $\\lambda_1 = 1, \\lambda_2 = -1$",
+        "proof-method": "Solving the characteristic equation."
+      },
+      {
+        "type": "conclude",
+        "statement": "Since $\\lambda_1 < 0 < \\lambda_2$, the system has a saddle at the origin.",
+        "error": "The conclusion is incorrect. The eigenvalues should have opposite signs for a saddle point, but here $\\lambda_1 = 1 > 0$ and $\\lambda_2=-1 < 0$. The correct conclusion is that the origin is a saddle point."
+      }
+    ]
+  }
+}

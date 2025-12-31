@@ -1,0 +1,62 @@
+{
+  "type": "theorem",
+  "name": "Origin of a linear system",
+  "status": "wrong proof",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "kind": "system of linear ordinary differential equations",
+      "property": "given by the matrix $\\begin{pmatrix} \\dot x \\\\ \\dot y \\end{pmatrix} = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\begin{pmatrix} x \\\\ y \\end{pmatrix}$"
+    }
+  ],
+  "conclusion": "The origin is a source.",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$\\begin{pmatrix} \\dot x \\\\ \\dot y \\end{pmatrix} = \\begin{pmatrix} x \\\\ y \\end{pmatrix} = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\begin{pmatrix} x \\\\ y \\end{pmatrix}$",
+        "proof-method": "rewriting the system in matrix form"
+      },
+      {
+        "type": "let",
+        "variable": "A",
+        "value": "$\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}$"
+      },
+      {
+        "type": "assert",
+        "claim": "Eigenvalues of $A$ are $\\lambda_1 = 0$, $\\lambda_2 = 1$",
+        "errors": [
+          {
+            "type": "remark",
+            "statement": "The eigenvalues of $A$ are both 1, not 0 and 1."
+          }
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "Eigenvector is any vector $\\begin{pmatrix} a \\\\ b \\end{pmatrix}$, $a, b \\in \\mathbb{R}$",
+        "proof-method": "By the definition of eigenvectors"
+      },
+      {
+        "type": "assert",
+        "claim": "Solutions of this Diff. eqn. are\n$$X(t) = \\alpha e^t + \\beta e^t$$ \n$$\\begin{pmatrix} x \\\\ y \\end{pmatrix} = \\begin{pmatrix} e^t \\\\ e^t \\end{pmatrix}$$ \n$$X(t) = e^t \\begin{pmatrix} \\alpha \\\\ \\beta \\end{pmatrix}$$",
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "Show how the general solution is obtained from the eigenvalues and eigenvectors"
+          }
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "Origin is Source",
+        "error": {
+          "type": "remark",
+          "statement": "The conclusion that the origin is a source does not follow from the last assertion, and requires further justification. Moreover, the eigenvalues are incorrect, though the conclusion would follow from the (incorrect) eigenvalue of 0."
+        }
+      }
+    ]
+  }
+}

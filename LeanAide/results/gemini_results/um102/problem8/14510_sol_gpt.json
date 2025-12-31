@@ -1,0 +1,31 @@
+{
+  "type": "theorem",
+  "name": "Origin is a circulation",
+  "hypothesis": [
+    {
+      "type": "assume",
+      "statement": "$\\dot{x} = -y$ and $\\dot{y} = x$"
+    }
+  ],
+  "conclusion": "The origin is a circulation.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "[DIAGRAM OF CIRCULAR VECTOR FIELD]"
+      },
+      {
+        "type": "assert",
+        "claim": "origin is a circulation",
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "Eigenvalues of the matrix must be determined to check if they are purely imaginary."
+          }
+        ]
+      }
+    ]
+  }
+}

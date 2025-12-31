@@ -1,0 +1,40 @@
+{
+  "type": "theorem",
+  "name": "Origin of a Linear System",
+  "status": "wrong proof",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "kind": "linear differential equation system",
+      "property": "$\\dot{x}=x$ and $\\dot{y}=y$"
+    }
+  ],
+  "conclusion": "The origin is a source for the given system.",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "We analyze the given system using its Jacobian matrix."
+      },
+      {
+        "type": "let",
+        "variable": "A",
+        "kind": "matrix",
+        "property": "Jacobian matrix of the system",
+        "value": "$\\begin{pmatrix} 1 & 0 \\ 0 & 1 \\end{pmatrix}$"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of $A$ are both 1.",
+        "proof-method": "Direct calculation"
+      },
+      {
+        "type": "conclude",
+        "statement": "Therefore, the origin will be a saddle.",
+        "error": "The conclusion that the origin is a saddle is incorrect. Since both eigenvalues are positive, the origin is a source."
+      }
+    ]
+  }
+}

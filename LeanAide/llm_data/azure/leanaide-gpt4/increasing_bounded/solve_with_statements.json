@@ -1,0 +1,883 @@
+{
+  "problem": "Prove or disprove: Suppose $f:\\mathbb{R} \\to \\mathbb{R}$ is a continuous function such that $f'(x) > 0$ for all $x \\in \\mathbb{R}$. Then $f$ is unbounded.",
+  "solutions": [
+    "The statement is true. Since $f'(x) > 0$ for all $x \\in \\mathbb{R}$, the function $f$ is strictly increasing. Therefore, for any given $M \\in \\mathbb{R}$, there exists $x_M \\in \\mathbb{R}$ such that $f(x) > M$ for all $x > x_M$, meaning $f$ is unbounded.",
+    "The statement is true. Let's prove it:\n\nIf $f'(x) > 0$ for all $x \\in \\mathbb{R}$, then $f$ is strictly increasing. This is because the derivative of a function gives the rate of change of the function, and a positive rate of change implies an increasing function.\n\nNow, since $f$ is strictly increasing, for any $M \\in \\mathbb{R}$, there exists an $x_M \\in \\mathbb{R}$ such that $f(x) > M$ for all $x > x_M$. This is because, as $x$ increases, the value of $f(x)$ also increases without bound due to its strictly increasing nature.\n\nSimilarly, for any $M \\in \\mathbb{R}$, there exists an $x'_M \\in \\mathbb{R}$ such that $f(x) < -M$ for all $x < x'_M$.\n\nHence, $f$ is unbounded.",
+    "The statement is true. A function $f: \\mathbb{R} \\to \\mathbb{R}$ that is continuous and has $f'(x) > 0$ for all $x \\in \\mathbb{R}$ is strictly increasing. Hence, $f$ is unbounded."
+  ],
+  "theories": [
+    "{\n  \"theorem\": [{\n    \"label\": \"Theorem 1\",\n    \"statement\": \"Suppose f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R. Then, f is unbounded.\",\n    \"proof\": \"Since f'(x) > 0 for all x ∈ R, the function f is strictly increasing. Therefore, for any given M ∈ R, there exists x_M ∈ R such that f(x) > M for all x > x_M, hence f is unbounded.\"\n  }]\n}",
+    "Theorem 1: Suppose $f:\\mathbb{R} \\to \\mathbb{R}$ is a continuous function such that $f'(x) > 0$ for all $x \\in \\mathbb{R}$. Then $f$ is strictly increasing.\n\nProof 1: Since $f'(x) > 0$ for all $x \\in \\mathbb{R}$, the rate of change of $f$ is positive for all $x \\in \\mathbb{R}$. Therefore, $f$ is strictly increasing.\n\nTheorem 2: If $f:\\mathbb{R} \\to \\mathbb{R}$ is strictly increasing, then for any $M \\in \\mathbb{R}$, there exists an $x_M \\in \\mathbb{R}$ such that $f(x) > M$ for all $x > x_M$.\n\nProof 2: By the strictly increasing nature of $f$, as $x$ increases, the value of $f(x)$ also increases without bound. Hence, for any $M \\in \\mathbb{R}$, there must exist an $x_M$ such that $f(x) > M$ for all $x > x_M$.\n\nTheorem 3: If $f:\\mathbb{R} \\to \\mathbb{R}$ is strictly increasing, then for any $M \\in \\mathbb{R}$, there exists an $x'_M \\in \\mathbb{R}$ such that $f(x) < -M$ for all $x < x'_M$.\n\nProof 3: Similarly to Proof 2, the strictly increasing nature of $f$ implies that for any $M \\in \\mathbb{R}$, there must exist an $x'_M$ such that $f(x) < -M$ for all $x < x'_M$.\n\nCorollary: Suppose $f:\\mathbb{R} \\to \\mathbb{R}$ is a continuous function such that $f'(x) > 0$ for all $x \\in \\mathbb{R}$. Then $f$ is unbounded.\n\nProof of Corollary: By Theorem 1, $f$ is strictly increasing. By Theorem 2 and Theorem 3, for any $M \\in \\mathbb{R}$, there exists an $x_M$ such that $f(x) > M$ for all $x > x_M$ and an $x'_M$ such that $f(x) < -M$ for all $x < x'_M$. Hence, $f$ is unbounded.",
+    "{\n  \"Theorem 1\": {\n    \"Statement\": \"A continuous function $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ that has $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$ is strictly increasing.\",\n    \"Proof\": \"Since $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$, the function $f$ is strictly increasing by the monotonicity rule for differentiable functions.\"\n  },\n  \"Theorem 2\": {\n    \"Statement\": \"A strictly increasing function $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ is unbounded.\",\n    \"Proof\": \"By definition, a strictly increasing function $f$ becomes arbitrarily large as $x$ approaches positive infinity and arbitrarily small as $x$ approaches negative infinity. Hence $f$ is unbounded.\"\n  }\n}"
+  ],
+  "structured_texts": [
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "Suppose f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R. Then, f is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assumption",
+            "statement": "f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R."
+          },
+          {
+            "type": "assertion",
+            "claim": "The function f is strictly increasing.",
+            "deduced-from": [
+              "f'(x) > 0 for all x ∈ R"
+            ],
+            "justification": "A positive derivative implies the function is strictly increasing."
+          },
+          {
+            "type": "let",
+            "variable": "M",
+            "value": "An arbitrary number in R."
+          },
+          {
+            "type": "choose",
+            "variable": "x_M",
+            "property": "f(x) > M for all x > x_M",
+            "existence": [
+              {
+                "type": "observation",
+                "statement": "Such an x_M exists because f is strictly increasing."
+              }
+            ]
+          },
+          {
+            "type": "assertion",
+            "claim": "f is unbounded.",
+            "deduced-from": [
+              "f(x) > M for all x > x_M"
+            ],
+            "justification": "For any given real number M, there exists an x_M such that f(x) > M for all x > x_M, hence f is unbounded."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "Suppose f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R. Then, f is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "f is strictly increasing",
+            "deduced-from": [
+              {
+                "result": "f'(x) > 0 for all x ∈ R",
+                "applied-to": "f"
+              }
+            ]
+          },
+          {
+            "type": "observation",
+            "statement": "For any given M ∈ R, there exists x_M ∈ R such that f(x) > M for all x > x_M"
+          },
+          {
+            "type": "observation",
+            "statement": "Hence, f is unbounded"
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "Suppose f:R -> R is a continuous function such that f'(x) > 0 for all x in R. Then f is strictly increasing.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "f is strictly increasing.",
+            "deduced-from": [
+              "f'(x) > 0 for all x in R"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "If f:R -> R is strictly increasing, then for any M in R, there exists an x_M in R such that f(x) > M for all x > x_M.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "There exists an x_M in R such that f(x) > M for all x > x_M.",
+            "deduced-from": [
+              "f is strictly increasing"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 3",
+        "statement": "If f:R -> R is strictly increasing, then for any M in R, there exists an x'_M in R such that f(x) < -M for all x < x'_M.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "There exists an x'_M in R such that f(x) < -M for all x < x'_M.",
+            "deduced-from": [
+              "f is strictly increasing"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "corollary",
+        "name": "Corollary",
+        "statement": "Suppose f:R -> R is a continuous function such that f'(x) > 0 for all x in R. Then f is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "Theorem 1",
+            "value": "f is strictly increasing"
+          },
+          {
+            "type": "use",
+            "variable": "Theorem 2",
+            "value": "There exists an x_M in R such that f(x) > M for all x > x_M."
+          },
+          {
+            "type": "use",
+            "variable": "Theorem 3",
+            "value": "There exists an x'_M in R such that f(x) < -M for all x < x'_M."
+          },
+          {
+            "type": "assertion",
+            "claim": "f is unbounded",
+            "deduced-from": [
+              "f is strictly increasing",
+              "Theorem 2",
+              "Theorem 3"
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "Suppose $f:\\mathbb{R} \\to \\mathbb{R}$ is a continuous function such that $f'(x) > 0$ for all $x \\in \\mathbb{R}$. Then $f$ is strictly increasing.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "Since $f'(x) > 0$ for all $x \\in \\mathbb{R}$, the rate of change of $f$ is positive for all $x \\in \\mathbb{R}$."
+          },
+          {
+            "type": "assertion",
+            "claim": "$f$ is strictly increasing.",
+            "deduced-from": [
+              "The rate of change of $f$ is positive for all $x \\in \\mathbb{R}$"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "If $f:\\mathbb{R} \\to \\mathbb{R}$ is strictly increasing, then for any $M \\in \\mathbb{R}$, there exists an $x_M \\in \\mathbb{R}$ such that $f(x) > M$ for all $x > x_M$.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "By the strictly increasing nature of $f$, as $x$ increases, the value of $f(x)$ also increases without bound."
+          },
+          {
+            "type": "assertion",
+            "claim": "For any $M \\in \\mathbb{R}$, there must exist an $x_M$ such that $f(x) > M$ for all $x > x_M$.",
+            "deduced-from": [
+              "The value of $f(x)$ increases without bound as $x$ increases"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 3",
+        "statement": "If $f:\\mathbb{R} \\to \\mathbb{R}$ is strictly increasing, then for any $M \\in \\mathbb{R}$, there exists an $x'_M \\in \\mathbb{R}$ such that $f(x) < -M$ for all $x < x'_M$.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "By the strictly increasing nature of $f$, for any $M \\in \\mathbb{R}$, there must exist an $x'_M$ such that $f(x) < -M$ for all $x < x'_M$."
+          }
+        ]
+      },
+      {
+        "type": "corollary",
+        "name": "Corollary",
+        "statement": "Suppose $f:\\mathbb{R} \\to \\mathbb{R}$ is a continuous function such that $f'(x) > 0$ for all $x \\in \\mathbb{R}$. Then $f$ is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "f",
+            "value": "A strictly increasing function by Theorem 1"
+          },
+          {
+            "type": "assertion",
+            "claim": "$f$ is unbounded.",
+            "deduced-from": [
+              "Theorem 2",
+              "Theorem 3"
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "A continuous function $f: \\mathbb{R} \\to \\mathbb{R}$ that has $f'(x) > 0$ for all $x \\in \\mathbb{R}$ is strictly increasing.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "Since $f'(x) > 0$ for all $x \\in \\mathbb{R}$, the function $f$ is strictly increasing by the monotonicity rule for differentiable functions."
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "A strictly increasing function $f: \\mathbb{R} \\to \\mathbb{R}$ is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "By definition, a strictly increasing function $f$ becomes arbitrarily large as $x$ approaches positive infinity and arbitrarily small as $x$ approaches negative infinity. Hence $f$ is unbounded."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "A continuous function $f: \\mathbb{R} \\to \\mathbb{R}$ that has $f'(x) > 0$ for all $x \\in \\mathbb{R}$ is strictly increasing.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The function $f$ is strictly increasing.",
+            "deduced-from": [
+              {
+                "result": "$f'(x) > 0$ for all $x \\in \\mathbb{R}$"
+              },
+              {
+                "result": "Monotonicity rule for differentiable functions"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "A strictly increasing function $f: \\mathbb{R} \\to \\mathbb{R}$ is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The function $f$ is unbounded.",
+            "deduced-from": [
+              {
+                "result": "$f$ is strictly increasing"
+              }
+            ],
+            "justification": "By definition, a strictly increasing function $f$ becomes arbitrarily large as $x$ approaches positive infinity and arbitrarily small as $x$ approaches negative infinity."
+          }
+        ]
+      }
+    ]
+  ],
+  "raw_structured_texts": [
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"Suppose f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R. Then, f is unbounded.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assumption\",\n        \"statement\": \"f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The function f is strictly increasing.\",\n        \"deduced-from\": [\"f'(x) > 0 for all x ∈ R\"],\n        \"justification\": \"A positive derivative implies the function is strictly increasing.\"\n      },\n      {\n        \"type\": \"let\",\n        \"variable\": \"M\",\n        \"value\": \"An arbitrary number in R.\"\n      },\n      {\n        \"type\": \"choose\",\n        \"variable\": \"x_M\",\n        \"property\": \"f(x) > M for all x > x_M\",\n        \"existence\": [\n          {\n            \"type\": \"observation\",\n            \"statement\": \"Such an x_M exists because f is strictly increasing.\"\n          }\n        ]\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"f is unbounded.\",\n        \"deduced-from\": [\"f(x) > M for all x > x_M\"],\n        \"justification\": \"For any given real number M, there exists an x_M such that f(x) > M for all x > x_M, hence f is unbounded.\"\n      }\n    ]\n  }\n]",
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"Suppose f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R. Then, f is unbounded.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"f is strictly increasing\",\n        \"deduced-from\": [\n          {\n            \"result\": \"f'(x) > 0 for all x ∈ R\",\n            \"applied-to\": \"f\"\n          }\n        ]\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"For any given M ∈ R, there exists x_M ∈ R such that f(x) > M for all x > x_M\"\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"Hence, f is unbounded\"\n      }\n    ]\n  }\n]",
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"Suppose f:R -> R is a continuous function such that f'(x) > 0 for all x in R. Then f is strictly increasing.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"f is strictly increasing.\",\n        \"deduced-from\": [\"f'(x) > 0 for all x in R\"]\n      }\n    ]\n  },\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 2\",\n    \"statement\": \"If f:R -> R is strictly increasing, then for any M in R, there exists an x_M in R such that f(x) > M for all x > x_M.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"There exists an x_M in R such that f(x) > M for all x > x_M.\",\n        \"deduced-from\": [\"f is strictly increasing\"]\n      }\n    ]\n  },\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 3\",\n    \"statement\": \"If f:R -> R is strictly increasing, then for any M in R, there exists an x'_M in R such that f(x) < -M for all x < x'_M.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"There exists an x'_M in R such that f(x) < -M for all x < x'_M.\",\n        \"deduced-from\": [\"f is strictly increasing\"]\n      }\n    ]\n  },\n  {\n    \"type\": \"corollary\",\n    \"name\": \"Corollary\",\n    \"statement\": \"Suppose f:R -> R is a continuous function such that f'(x) > 0 for all x in R. Then f is unbounded.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"use\",\n        \"variable\": \"Theorem 1\",\n        \"value\": \"f is strictly increasing\"\n      },\n      {\n        \"type\": \"use\",\n        \"variable\": \"Theorem 2\",\n        \"value\": \"There exists an x_M in R such that f(x) > M for all x > x_M.\"\n      },\n      {\n        \"type\": \"use\",\n        \"variable\": \"Theorem 3\",\n        \"value\": \"There exists an x'_M in R such that f(x) < -M for all x < x'_M.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"f is unbounded\",\n        \"deduced-from\": [\"f is strictly increasing\", \"Theorem 2\", \"Theorem 3\"]\n      }\n    ]\n  }\n]\n",
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"Suppose $f:\\\\mathbb{R} \\\\to \\\\mathbb{R}$ is a continuous function such that $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$. Then $f$ is strictly increasing.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"observation\",\n        \"statement\": \"Since $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$, the rate of change of $f$ is positive for all $x \\\\in \\\\mathbb{R}$.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"$f$ is strictly increasing.\",\n        \"deduced-from\": [\"The rate of change of $f$ is positive for all $x \\\\in \\\\mathbb{R}$\"]\n      }\n    ]\n  },\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 2\",\n    \"statement\": \"If $f:\\\\mathbb{R} \\\\to \\\\mathbb{R}$ is strictly increasing, then for any $M \\\\in \\\\mathbb{R}$, there exists an $x_M \\\\in \\\\mathbb{R}$ such that $f(x) > M$ for all $x > x_M$.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"observation\",\n        \"statement\": \"By the strictly increasing nature of $f$, as $x$ increases, the value of $f(x)$ also increases without bound.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"For any $M \\\\in \\\\mathbb{R}$, there must exist an $x_M$ such that $f(x) > M$ for all $x > x_M$.\",\n        \"deduced-from\": [\"The value of $f(x)$ increases without bound as $x$ increases\"]\n      }\n    ]\n  },\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 3\",\n    \"statement\": \"If $f:\\\\mathbb{R} \\\\to \\\\mathbb{R}$ is strictly increasing, then for any $M \\\\in \\\\mathbb{R}$, there exists an $x'_M \\\\in \\\\mathbb{R}$ such that $f(x) < -M$ for all $x < x'_M$.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"observation\",\n        \"statement\": \"By the strictly increasing nature of $f$, for any $M \\\\in \\\\mathbb{R}$, there must exist an $x'_M$ such that $f(x) < -M$ for all $x < x'_M$.\"\n      }\n    ]\n  },\n  {\n    \"type\": \"corollary\",\n    \"name\": \"Corollary\",\n    \"statement\": \"Suppose $f:\\\\mathbb{R} \\\\to \\\\mathbb{R}$ is a continuous function such that $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$. Then $f$ is unbounded.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"use\",\n        \"variable\": \"f\",\n        \"value\": \"A strictly increasing function by Theorem 1\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"$f$ is unbounded.\",\n        \"deduced-from\": [\"Theorem 2\", \"Theorem 3\"]\n      }\n    ]\n  }\n]",
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"A continuous function $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ that has $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$ is strictly increasing.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"observation\",\n        \"statement\": \"Since $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$, the function $f$ is strictly increasing by the monotonicity rule for differentiable functions.\"\n      }\n    ]\n  },\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 2\",\n    \"statement\": \"A strictly increasing function $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ is unbounded.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"observation\",\n        \"statement\": \"By definition, a strictly increasing function $f$ becomes arbitrarily large as $x$ approaches positive infinity and arbitrarily small as $x$ approaches negative infinity. Hence $f$ is unbounded.\"\n      }\n    ]\n  }\n]",
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"A continuous function $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ that has $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$ is strictly increasing.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The function $f$ is strictly increasing.\",\n        \"deduced-from\": [\n          {\"result\": \"$f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$\"},\n          {\"result\": \"Monotonicity rule for differentiable functions\"}\n        ]\n      }\n    ]\n  },\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 2\",\n    \"statement\": \"A strictly increasing function $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ is unbounded.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The function $f$ is unbounded.\",\n        \"deduced-from\": [\n          {\"result\": \"$f$ is strictly increasing\"}\n        ],\n        \"justification\": \"By definition, a strictly increasing function $f$ becomes arbitrarily large as $x$ approaches positive infinity and arbitrarily small as $x$ approaches negative infinity.\"\n      }\n    ]\n  }\n]"
+  ],
+  "texts_with_statements": [
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "Suppose f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R. Then, f is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assumption",
+            "statement": "f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R."
+          },
+          {
+            "type": "assertion",
+            "statement": "If f: R → R is a continuous function and f'(x) > 0 for all x ∈ R, then the function f is strictly increasing.",
+            "claim": "The function f is strictly increasing.",
+            "deduced-from": [
+              "f'(x) > 0 for all x ∈ R"
+            ],
+            "justification": "A positive derivative implies the function is strictly increasing."
+          },
+          {
+            "type": "let",
+            "variable": "M",
+            "value": "An arbitrary number in R."
+          },
+          {
+            "type": "choose",
+            "variable": "x_M",
+            "property": "f(x) > M for all x > x_M",
+            "existence": [
+              {
+                "type": "observation",
+                "statement": "Such an x_M exists because f is strictly increasing."
+              }
+            ]
+          },
+          {
+            "type": "assertion",
+            "statement": "If f: R → R is a continuous function, f'(x) > 0 for all x ∈ R and M is an arbitrary number in R, then f is unbounded.",
+            "claim": "f is unbounded.",
+            "deduced-from": [
+              "f(x) > M for all x > x_M"
+            ],
+            "justification": "For any given real number M, there exists an x_M such that f(x) > M for all x > x_M, hence f is unbounded."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "Suppose f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R. Then, f is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assumption",
+            "statement": "f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R."
+          },
+          {
+            "type": "assertion",
+            "claim": "The function f is strictly increasing.",
+            "deduced-from": [
+              "f'(x) > 0 for all x ∈ R"
+            ],
+            "justification": "A positive derivative implies the function is strictly increasing.",
+            "statement": "Suppose f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R. Then, the function f is strictly increasing."
+          },
+          {
+            "type": "let",
+            "variable": "M",
+            "value": "An arbitrary number in R."
+          },
+          {
+            "type": "choose",
+            "variable": "x_M",
+            "property": "f(x) > M for all x > x_M",
+            "existence": [
+              {
+                "type": "observation",
+                "statement": "Such an x_M exists because f is strictly increasing."
+              }
+            ]
+          },
+          {
+            "type": "assertion",
+            "claim": "f is unbounded.",
+            "deduced-from": [
+              "f(x) > M for all x > x_M"
+            ],
+            "justification": "For any given real number M, there exists an x_M such that f(x) > M for all x > x_M, hence f is unbounded.",
+            "statement": "Suppose f: R → R is a continuous function such that f(x) > M for all x > x_M. Then, f is unbounded."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "Suppose f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R. Then, f is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "f is strictly increasing",
+            "statement": "Given that f: R → R is a continuous function and f'(x) > 0 for all x ∈ R, it follows that f is strictly increasing.",
+            "deduced-from": [
+              {
+                "result": "f'(x) > 0 for all x ∈ R",
+                "applied-to": "f"
+              }
+            ]
+          },
+          {
+            "type": "observation",
+            "statement": "For any given M ∈ R, there exists x_M ∈ R such that f(x) > M for all x > x_M"
+          },
+          {
+            "type": "observation",
+            "statement": "Hence, f is unbounded"
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "Suppose f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R. Then, f is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "f is strictly increasing",
+            "statement": "Given that f: R → R is a continuous function such that f'(x) > 0 for all x ∈ R, then f is strictly increasing",
+            "deduced-from": [
+              {
+                "result": "f'(x) > 0 for all x ∈ R",
+                "applied-to": "f"
+              }
+            ]
+          },
+          {
+            "type": "observation",
+            "statement": "For any given M ∈ R, there exists x_M ∈ R such that f(x) > M for all x > x_M"
+          },
+          {
+            "type": "observation",
+            "statement": "Hence, f is unbounded"
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "Suppose f:R -> R is a continuous function such that f'(x) > 0 for all x in R. Then f is strictly increasing.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "statement": "If f:R -> R is a continuous function such that f'(x) > 0 for all x in R, then f is strictly increasing.",
+            "claim": "f is strictly increasing.",
+            "deduced-from": [
+              "f'(x) > 0 for all x in R"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "If f:R -> R is strictly increasing, then for any M in R, there exists an x_M in R such that f(x) > M for all x > x_M.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "statement": "If f:R -> R is strictly increasing, then for any M in R, there exists an x_M in R such that f(x) > M for all x > x_M.",
+            "claim": "There exists an x_M in R such that f(x) > M for all x > x_M.",
+            "deduced-from": [
+              "f is strictly increasing"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 3",
+        "statement": "If f:R -> R is strictly increasing, then for any M in R, there exists an x'_M in R such that f(x) < -M for all x < x'_M.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "statement": "If f:R -> R is strictly increasing, then for any M in R, there exists an x'_M in R such that f(x) < -M for all x < x'_M.",
+            "claim": "There exists an x'_M in R such that f(x) < -M for all x < x'_M.",
+            "deduced-from": [
+              "f is strictly increasing"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "corollary",
+        "name": "Corollary",
+        "statement": "Suppose f:R -> R is a continuous function such that f'(x) > 0 for all x in R. Then f is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "Theorem 1",
+            "value": "f is strictly increasing"
+          },
+          {
+            "type": "use",
+            "variable": "Theorem 2",
+            "value": "There exists an x_M in R such that f(x) > M for all x > x_M."
+          },
+          {
+            "type": "use",
+            "variable": "Theorem 3",
+            "value": "There exists an x'_M in R such that f(x) < -M for all x < x'_M."
+          },
+          {
+            "type": "assertion",
+            "statement": "Suppose f:R -> R is a continuous function such that f'(x) > 0 for all x in R. Then f is unbounded.",
+            "claim": "f is unbounded",
+            "deduced-from": [
+              "f is strictly increasing",
+              "Theorem 2",
+              "Theorem 3"
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "Suppose f:R -> R is a continuous function such that f'(x) > 0 for all x in R. Then f is strictly increasing.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "f is strictly increasing.",
+            "statement": "If f:R -> R is a continuous function such that f'(x) > 0 for all x in R, then f is strictly increasing.",
+            "deduced-from": [
+              "f'(x) > 0 for all x in R"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "If f:R -> R is strictly increasing, then for any M in R, there exists an x_M in R such that f(x) > M for all x > x_M.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "There exists an x_M in R such that f(x) > M for all x > x_M.",
+            "statement": "If f:R -> R is strictly increasing, then for any M in R, there exists an x_M in R such that f(x) > M for all x > x_M.",
+            "deduced-from": [
+              "f is strictly increasing"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 3",
+        "statement": "If f:R -> R is strictly increasing, then for any M in R, there exists an x'_M in R such that f(x) < -M for all x < x'_M.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "There exists an x'_M in R such that f(x) < -M for all x < x'_M.",
+            "statement": "If f:R -> R is strictly increasing, then for any M in R, there exists an x'_M in R such that f(x) < -M for all x < x'_M.",
+            "deduced-from": [
+              "f is strictly increasing"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "corollary",
+        "name": "Corollary",
+        "statement": "Suppose f:R -> R is a continuous function such that f'(x) > 0 for all x in R. Then f is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "Theorem 1",
+            "value": "f is strictly increasing"
+          },
+          {
+            "type": "use",
+            "variable": "Theorem 2",
+            "value": "There exists an x_M in R such that f(x) > M for all x > x_M."
+          },
+          {
+            "type": "use",
+            "variable": "Theorem 3",
+            "value": "There exists an x'_M in R such that f(x) < -M for all x < x'_M."
+          },
+          {
+            "type": "assertion",
+            "claim": "f is unbounded",
+            "statement": "If f:R -> R is a continuous function such that f'(x) > 0 for all x in R, then f is unbounded.",
+            "deduced-from": [
+              "f is strictly increasing",
+              "Theorem 2",
+              "Theorem 3"
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "Suppose $f:\\mathbb{R} \\to \\mathbb{R}$ is a continuous function such that $f'(x) > 0$ for all $x \\in \\mathbb{R}$. Then $f$ is strictly increasing.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "Since $f'(x) > 0$ for all $x \\in \\mathbb{R}$, the rate of change of $f$ is positive for all $x \\in \\mathbb{R}$."
+          },
+          {
+            "type": "assertion",
+            "statement": "If the rate of change of $f$ is positive for all $x \\in \\mathbb{R}$, then $f$ is strictly increasing.",
+            "claim": "$f$ is strictly increasing.",
+            "deduced-from": [
+              "The rate of change of $f$ is positive for all $x \\in \\mathbb{R}$"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "If $f:\\mathbb{R} \\to \\mathbb{R}$ is strictly increasing, then for any $M \\in \\mathbb{R}$, there exists an $x_M \\in \\mathbb{R}$ such that $f(x) > M$ for all $x > x_M$.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "By the strictly increasing nature of $f$, as $x$ increases, the value of $f(x)$ also increases without bound."
+          },
+          {
+            "type": "assertion",
+            "statement": "If the value of $f(x)$ increases without bound as $x$ increases, then for any $M \\in \\mathbb{R}$, there exists an $x_M \\in \\mathbb{R}$ such that $f(x) > M$ for all $x > x_M$.",
+            "claim": "For any $M \\in \\mathbb{R}$, there must exist an $x_M$ such that $f(x) > M$ for all $x > x_M$.",
+            "deduced-from": [
+              "The value of $f(x)$ increases without bound as $x$ increases"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 3",
+        "statement": "If $f:\\mathbb{R} \\to \\mathbb{R}$ is strictly increasing, then for any $M \\in \\mathbb{R}$, there exists an $x'_M \\in \\mathbb{R}$ such that $f(x) < -M$ for all $x < x'_M$.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "By the strictly increasing nature of $f$, for any $M \\in \\mathbb{R}$, there must exist an $x'_M$ such that $f(x) < -M$ for all $x < x'_M$."
+          },
+          {
+            "type": "assertion",
+            "statement": "If $f:\\mathbb{R} \\to \\mathbb{R}$ is strictly increasing, then for any $M \\in \\mathbb{R}$, there exists an $x'_M \\in \\mathbb{R}$ such that $f(x) < -M$ for all $x < x'_M$.",
+            "claim": "For any $M \\in \\mathbb{R}$, there exists an $x'_M \\in \\mathbb{R}$ such that $f(x) < -M$ for all $x < x'_M$.",
+            "deduced-from": [
+              "By the strictly increasing nature of $f$, for any $M \\in \\mathbb{R}$, there must exist an $x'_M$ such that $f(x) < -M$ for all $x < x'_M$"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "corollary",
+        "name": "Corollary",
+        "statement": "Suppose $f:\\mathbb{R} \\to \\mathbb{R}$ is a continuous function such that $f'(x) > 0$ for all $x \\in \\mathbb{R}$. Then $f$ is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "f",
+            "value": "A strictly increasing function by Theorem 1"
+          },
+          {
+            "type": "assertion",
+            "statement": "If $f$ is a strictly increasing function, then $f$ is unbounded.",
+            "claim": "$f$ is unbounded.",
+            "deduced-from": [
+              "Theorem 2",
+              "Theorem 3"
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "Suppose $f:\\mathbb{R} \\to \\mathbb{R}$ is a continuous function such that $f'(x) > 0$ for all $x \\in \\mathbb{R}$. Then $f$ is strictly increasing.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "Since $f'(x) > 0$ for all $x \\in \\mathbb{R}$, the rate of change of $f$ is positive for all $x \\in \\mathbb{R}$."
+          },
+          {
+            "type": "assertion",
+            "statement": "If the rate of change of $f$ is positive for all $x \\in \\mathbb{R}$, then $f$ is strictly increasing.",
+            "claim": "$f$ is strictly increasing.",
+            "deduced-from": [
+              "The rate of change of $f$ is positive for all $x \\in \\mathbb{R}$"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "If $f:\\mathbb{R} \\to \\mathbb{R}$ is strictly increasing, then for any $M \\in \\mathbb{R}$, there exists an $x_M \\in \\mathbb{R}$ such that $f(x) > M$ for all $x > x_M$.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "By the strictly increasing nature of $f$, as $x$ increases, the value of $f(x)$ also increases without bound."
+          },
+          {
+            "type": "assertion",
+            "statement": "If $f:\\mathbb{R} \\to \\mathbb{R}$ is strictly increasing, then for any $M \\in \\mathbb{R}$, there must exist an $x_M$ such that $f(x) > M$ for all $x > x_M$.",
+            "claim": "For any $M \\in \\mathbb{R}$, there must exist an $x_M$ such that $f(x) > M$ for all $x > x_M$.",
+            "deduced-from": [
+              "The value of $f(x)$ increases without bound as $x$ increases"
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 3",
+        "statement": "If $f:\\mathbb{R} \\to \\mathbb{R}$ is strictly increasing, then for any $M \\in \\mathbb{R}$, there exists an $x'_M \\in \\mathbb{R}$ such that $f(x) < -M$ for all $x < x'_M$.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "By the strictly increasing nature of $f$, for any $M \\in \\mathbb{R}$, there must exist an $x'_M$ such that $f(x) < -M$ for all $x < x'_M$."
+          }
+        ]
+      },
+      {
+        "type": "corollary",
+        "name": "Corollary",
+        "statement": "Suppose $f:\\mathbb{R} \\to \\mathbb{R}$ is a continuous function such that $f'(x) > 0$ for all $x \\in \\mathbb{R}$. Then $f$ is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "f",
+            "value": "A strictly increasing function by Theorem 1"
+          },
+          {
+            "type": "assertion",
+            "statement": "If $f:\\mathbb{R} \\to \\mathbb{R}$ is a continuously increasing function such that $f'(x) > 0$ for all $x \\in \\mathbb{R}$, then $f$ is unbounded.",
+            "claim": "$f$ is unbounded.",
+            "deduced-from": [
+              "Theorem 2",
+              "Theorem 3"
+            ]
+          }
+        ]
+      }
+    ],
+    "The provided JSON does not contain any objects of type `assertion`, therefore no modifications are necessary. The original JSON is returned as is:\n\n[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"A continuous function $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ that has $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$ is strictly increasing.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"observation\",\n        \"statement\": \"Since $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$, the function $f$ is strictly increasing by the monotonicity rule for differentiable functions.\"\n      }\n    ]\n  },\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 2\",\n    \"statement\": \"A strictly increasing function $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ is unbounded.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"observation\",\n        \"statement\": \"By definition, a strictly increasing function $f$ becomes arbitrarily large as $x$ approaches positive infinity and arbitrarily small as $x$ approaches negative infinity. Hence $f$ is unbounded.\"\n      }\n    ]\n  }\n]",
+    "The provided JSON does not contain any objects of type `assertion`. Therefore, no modifications are required. The original JSON is:\n\n[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"A continuous function $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ that has $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$ is strictly increasing.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"observation\",\n        \"statement\": \"Since $f'(x) > 0$ for all $x \\\\in \\\\mathbb{R}$, the function $f$ is strictly increasing by the monotonicity rule for differentiable functions.\"\n      }\n    ]\n  },\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 2\",\n    \"statement\": \"A strictly increasing function $f: \\\\mathbb{R} \\\\to \\\\mathbb{R}$ is unbounded.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"observation\",\n        \"statement\": \"By definition, a strictly increasing function $f$ becomes arbitrarily large as $x$ approaches positive infinity and arbitrarily small as $x$ approaches negative infinity. Hence $f$ is unbounded.\"\n      }\n    ]\n  }\n]",
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "A continuous function $f: \\mathbb{R} \\to \\mathbb{R}$ that has $f'(x) > 0$ for all $x \\in \\mathbb{R}$ is strictly increasing.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The function $f$ is strictly increasing.",
+            "statement": "If $f'(x) > 0$ for all $x \\in \\mathbb{R}$ and the monotonicity rule for differentiable functions holds, then the function $f$ is strictly increasing.",
+            "deduced-from": [
+              {
+                "result": "$f'(x) > 0$ for all $x \\in \\mathbb{R}$"
+              },
+              {
+                "result": "Monotonicity rule for differentiable functions"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "A strictly increasing function $f: \\mathbb{R} \\to \\mathbb{R}$ is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The function $f$ is unbounded.",
+            "statement": "If $f$ is strictly increasing, then the function $f$ is unbounded.",
+            "deduced-from": [
+              {
+                "result": "$f$ is strictly increasing"
+              }
+            ],
+            "justification": "By definition, a strictly increasing function $f$ becomes arbitrarily large as $x$ approaches positive infinity and arbitrarily small as $x$ approaches negative infinity."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "A continuous function $f: \\mathbb{R} \\to \\mathbb{R}$ that has $f'(x) > 0$ for all $x \\in \\mathbb{R}$ is strictly increasing.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The function $f$ is strictly increasing.",
+            "statement": "If $f'(x) > 0$ for all $x \\in \\mathbb{R}$ and the function $f$ satisfies the monotonicity rule for differentiable functions, then the function $f$ is strictly increasing.",
+            "deduced-from": [
+              {
+                "result": "$f'(x) > 0$ for all $x \\in \\mathbb{R}$"
+              },
+              {
+                "result": "Monotonicity rule for differentiable functions"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "A strictly increasing function $f: \\mathbb{R} \\to \\mathbb{R}$ is unbounded.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The function $f$ is unbounded.",
+            "statement": "If the function $f$ is strictly increasing, then the function $f$ is unbounded.",
+            "deduced-from": [
+              {
+                "result": "$f$ is strictly increasing"
+              }
+            ],
+            "justification": "By definition, a strictly increasing function $f$ becomes arbitrarily large as $x$ approaches positive infinity and arbitrarily small as $x$ approaches negative infinity."
+          }
+        ]
+      }
+    ]
+  ]
+}

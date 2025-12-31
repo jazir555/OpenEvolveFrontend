@@ -1,103 +1,66 @@
-# OpenEvolve General Configuration
+default:
+  openevolve_base_url: "http://localhost:8000"
+  openevolve_api_key: "your-api-key"
+  model_name: "gpt-4"
+  api_base: "https://api.openai.com/v1"
+  temperature: 0.7
+  top_p: 0.95
+  max_tokens: 4096
+  max_iterations: 100
+  population_size: 10
+  num_islands: 1
+  migration_interval: 50
+  migration_rate: 0.1
+  archive_size: 100
+  elite_ratio: 0.1
+  exploration_ratio: 0.2
+  exploitation_ratio: 0.7
+  checkpoint_interval: 10
+  language: "python"
+  file_suffix: ".py"
+  reasoning_effort: "medium"
+  feature_dimensions: ["complexity", "diversity"]
+  feature_bins: 10
+  diversity_metric: "edit_distance"
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+  seed: 42
 
-llm:
-  # Default models for different providers
-  anthropic_default_model: "claude-sonnet-4-20250514"
-  openai_default_model: "gpt-4o-mini"
-  google_default_model: "gemini-2.0-flash"
+  performance_optimization:
+    caching:
+      enabled: true
+      cache_dir: "./llm_cache"
+      ttl_hours: 24
+      max_cache_size_mb: 100
+    parallelization:
+      enabled: true
+      max_workers: 8
+    async_processing:
+      enabled: true
+      max_concurrent_tasks: 100
+    memory_management:
+      enabled: true
+      max_pool_size: 100
+      memory_threshold_mb: 100
+      gc_frequency: 10
 
-  # General LLM settings for KnowledgeEngine and CodeIndexer
-  model_provider: "openai" # Can be "openai", "anthropic", "google"
-  system_prompt: "You are a helpful assistant."
-  temperature: 0.3
-  max_tokens: 1000
-  compress_max_tokens: 500
-  compress_temperature: 0.3
-  verbose_output: False # Set to True for more detailed LLM output in logs
+  reliability:
+    retry:
+      enabled: true
+      max_attempts: 3
+      initial_delay: 1.0
+      max_delay: 60.0
+      exponential_base: 2.0
+      jitter: true
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      timeout: 60.0
+    rate_limiter:
+      enabled: true
+      max_requests: 10
+      time_window: 60.0
 
-# CodeIndexer specific configurations
-indexer:
-  paths:
-    # These paths are relative to the project root unless specified otherwise
-    code_base_path: "code_base"
-    output_dir: "indexes"
-  
-  file_analysis:
-    supported_extensions:
-      - ".py"
-      - ".js"
-      - ".ts"
-      - ".java"
-      - ".cpp"
-      - ".c"
-      - ".h"
-      - ".hpp"
-      - ".cs"
-      - ".php"
-      - ".rb"
-      - ".go"
-      - ".rs"
-      - ".scala"
-      - ".kt"
-      - ".swift"
-      - ".m"
-      - ".mm"
-      - ".r"
-      - ".matlab"
-      - ".sql"
-      - ".sh"
-      - ".bat"
-      - ".ps1"
-      - ".yaml"
-      - ".yml"
-      - ".json"
-      - ".xml"
-      - ".toml"
-    skip_directories:
-      - "__pycache__"
-      - "node_modules"
-      - "target"
-      - "build"
-      - "dist"
-      - "venv"
-      - "env"
-      - ".git" # Added to prevent indexing git directory
-    max_file_size: 1048576 # 1MB
-    max_content_length: 3000 # Max characters to send to LLM for analysis
-
-  relationships:
-    min_confidence_score: 0.3
-    high_confidence_threshold: 0.7
-    relationship_types:
-      direct_match: 1.0
-      partial_match: 0.8
-      reference: 0.6
-      utility: 0.4
-
-  performance:
-    enable_concurrent_analysis: True
-    max_concurrent_files: 5
-    enable_content_caching: True
-    max_cache_size: 100
-
-  debug:
-    save_raw_responses: False
-    raw_responses_dir: "debug_responses"
-    verbose_output: False
-    mock_llm_responses: False
-
-  output:
-    generate_summary: True
-    generate_statistics: True
-    include_metadata: True
-    index_filename_pattern: "{repo_name}_index.json"
-    summary_filename: "indexing_summary.json"
-    stats_filename: "indexing_statistics.json"
-    json_indent: 2
-    ensure_ascii: False
-
-logging:
-  level: "INFO"
-  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-  log_to_file: False
-  log_file: "openevolve.log"
+production:
+  openevolve_base_url: "https://api.openevolve.com"
+  openevolve_api_key: "your-production-api-key"

@@ -1,0 +1,39 @@
+{
+  "id": "9bc5ad1709350f7e",
+  "name": "Thorough Evolution",
+  "description": "Thorough exploration with high quality for production use",
+  "version": "1.0",
+  "config": {
+    "max_iterations": 50,
+    "population_size": 50,
+    "archive_size": 200,
+    "temperature": 0.8,
+    "elite_ratio": 0.1,
+    "exploration_ratio": 0.4,
+    "exploitation_ratio": 0.5,
+    "checkpoint_interval": 10,
+    "enable_artifacts": true,
+    "enable_cascade_evaluation": true,
+    "cascade_thresholds": [
+      0.6,
+      0.8,
+      0.95
+    ],
+    "parallel_evaluations": 8,
+    "enable_quality_diversity": true,
+    "feature_dimensions": [
+      "complexity",
+      "novelty",
+      "quality"
+    ],
+    "feature_bins": 10
+  },
+  "usage_count": 0,
+  "created_at": "2025-10-22T01:52:15.548164",
+  "updated_at": "2025-10-22T01:52:15.548164",
+  "tags": [
+    "openevolve",
+    "thorough",
+    "preset"
+  ]
+}

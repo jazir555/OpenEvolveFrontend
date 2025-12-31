@@ -1,0 +1,90 @@
+{
+  "type": "theorem",
+  "name": "Circulation at the Origin",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "value": "$ \\dot{x}=-y $ and $ \\dot{y}=x$",
+      "kind": "system of linear differential equations"
+    }
+  ],
+  "conclusion": "The origin is a circulation for the given system of differential equations.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "The system of differential equations can be written in matrix form as $X' = \\begin{bmatrix} 0 & -1 \\\\ 1 & 0 \\end{bmatrix} X$.",
+        "proof-method": "Rewriting as a system of linear equations."
+      },
+      {
+        "type": "assert",
+        "claim": "The characteristic equation for this system is $\\lambda^2 + 1 = 0$.",
+        "proof-method": "Using the definition of the characteristic equation."
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues are $\\lambda = \\pm i$.",
+        "calculation": [
+          "$\\lambda^2 = -1$",
+          "$\\lambda = \\pm i$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "For $\\lambda = i$, the eigenvector is $V = \\begin{bmatrix} 1 \\\\ -i \\end{bmatrix}$.",
+        "proof-method": "Solving the equation $(A - \\lambda I) \\begin{bmatrix} x \\\\ y \\end{bmatrix} = 0$ for $\\lambda = i$."
+      },
+      {
+        "type": "assert",
+        "claim": "A solution to the differential equation is $X(t) = \\alpha e^{it}  \\begin{bmatrix} 1 \\\\ -i \\end{bmatrix}$.",
+        "proof-method": "Using the eigenvalue and eigenvector."
+      },
+      {
+        "type": "assert",
+        "claim": "This solution can be rewritten as $X(t) = \\alpha  \\begin{bmatrix}  cos t + isin t\\\\ sin t - i cos t \\end{bmatrix}$.",
+        "proof-method": "Using Euler's formula $e^{it} = cos t + isin t$."
+      },
+      {
+        "type": "let",
+        "variable": "$X_{Re}(t)$",
+        "value": "$\\alpha  \\begin{bmatrix}  cos t \\\\ sin t \\end{bmatrix}$",
+        "kind": "real part of the solution"
+      },
+      {
+        "type": "let",
+        "variable": "$X_{Im}(t)$",
+        "value": "$\\alpha  \\begin{bmatrix}  sin t \\\\ -cos t \\end{bmatrix}$",
+        "kind": "imaginary part of the solution"
+      },
+      {
+        "type": "assert",
+        "claim": "Both $X_{Re}(t)$ and $X_{Im}(t)$ are solutions to $X' = AX$.",
+        "proof-method": "By direct verification."
+      },
+      {
+        "type": "assert",
+        "claim": "The general solution is $X(t) = \\alpha  \\begin{bmatrix}  cos t \\\\ sin t \\end{bmatrix} + \\beta  \\begin{bmatrix}  sin t \\\\ - cos t \\end{bmatrix}$.",
+        "proof-method": "Using the fact that the real and imaginary parts of a complex solution are also solutions."
+      },
+      {
+        "type": "conclude",
+        "statement": "This is a circular solution as it remains at a constant distance from the origin and has a period of $2\\pi$. Thus, the origin is a circulation.",
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "Show that the general solution remains at a constant distance from the origin.",
+            "solved": false
+          },
+          {
+            "type": "problem",
+            "statement": "Show that the general solution has a period of $2\\pi$",
+            "solved": false
+          }
+        ]
+      }
+    ]
+  }
+}

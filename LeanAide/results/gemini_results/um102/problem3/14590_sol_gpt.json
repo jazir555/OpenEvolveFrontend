@@ -1,0 +1,70 @@
+{
+  "type": "theorem",
+  "name": "Gradient Zero Points",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "f(x, y)",
+      "value": "$x^{3} - 3x + y^{2}$",
+      "kind": "function",
+      "property": "$x, y \\in \\mathbb{R}$"
+    }
+  ],
+  "conclusion": "At the points $(1,0)$ and $(-1,0)$ the gradient of $f$ is zero.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$\\nabla f = (\\frac{\\partial f}{\\partial x}, \\frac{\\partial f}{\\partial y})$",
+        "proof-method": "definition of gradient"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\nabla f = (3x^{2} - 3, 2y)$",
+        "proof-method": "partial differentiation"
+      },
+      {
+        "type": "assert",
+        "claim": "For the gradient to be zero, each of the components must be zero: $3x^{2} - 3 = 0$ and $2y = 0$.",
+        "proof-method": "zero gradient condition"
+      },
+      {
+        "type": "asseit",
+        "claim": "$3x^{2} - 3 = 0 \\implies x = \\pm 1$",
+        "proof-method": "solving the equation",
+        "calculation": [
+          "3x^{2} - 3 = 0",
+          "x^{2} = 1",
+          "x = \\pm 1"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "2y = 0 \\implies y = 0",
+        "proof-method": "solving the equation",
+        "calculation": [
+          "2y = 0",
+          "y = 0"
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "The points are $(1, 0)$, $(-1, 0)$",
+        "errors": [
+          {
+            "type": "error",
+            "statement": "The proof does not rigorously verify that these points result in a zero gradient."
+          }
+        ]
+      }
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Verify that at $(1, 0)$ and $(-1, 0)$, the gradient $\\nabla f = (0, 0)$."
+    }
+  ]
+}

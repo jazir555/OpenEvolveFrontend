@@ -1,0 +1,59 @@
+{
+  "type": "theorem",
+  "name": "Origin of Linear System as Source",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "kind": "differential equations",
+      "property": "linear",
+      "value": "$\\dot{x} = x$, $\\dot{y} = y$"
+    }
+  ],
+  "conclusion": "The origin is a source for the given system of differential equations.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "We will use the eigenvalues of the matrix corresponding to this linear system to classify the origin."
+      },
+      {
+        "type": "assert",
+        "claim": "$\\dot{X} = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} X$",
+        "proof-method": "Rewriting the system in matrix form"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of the matrix $\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}$ are both 1.",
+        "calculation": [
+          {
+            "step": "trace = 2, $\\Delta = 1$",
+            "justification": "Calculating the trace and determinant of the matrix"
+          },
+          {
+            "step": "eigenvalues = (1, 1)",
+            "justification": "Solving the characteristic equation"
+          }
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvectors span all of $\\mathbb{R}^2$.",
+        "proof-method": "Direct computation, noting that the matrix is the identity matrix."
+      },
+      {
+        "type": "conclude",
+        "statement": "The origin is a source.",
+        "error": "The proof does not explicitly use the fact that the eigenvalues are positive to conclude that the origin is a source."
+      }
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Explicitly state the connection between the positive eigenvalues and the origin being a source, using known results about the classification of linear systems."
+    }
+  ]
+}

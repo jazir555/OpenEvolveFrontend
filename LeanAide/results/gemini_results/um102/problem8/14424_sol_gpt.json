@@ -1,0 +1,65 @@
+{
+  "type": "theorem",
+  "name": "Origin is a circulation for the linear differential equation",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "x",
+      "kind": "function of time",
+      "property": "satisfies the differential equation $\\dot{x} = -y$"
+    },
+    {
+      "type": "let",
+      "variable": "y",
+      "kind": "function of time",
+      "property": "satisfies the differential equation $\\dot{y} = x$"
+    }
+  ],
+  "conclusion": "The origin is a circulation.",
+  "status": "wrong proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assume",
+        "statement": "$\\dot{x} = -y$ and $\\dot{y} = x$"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\dot{x} = -y$ and $\\dot{y} = x$ can be written in matrix form.",
+        "calculation": [
+          "$(\\begin{smallmatrix} \\dot{x} \\\\ \\dot{y} \\end{smallmatrix}) = A (\\begin{smallmatrix} x \\\\ y \\end{smallmatrix})$",
+          "where $A = (\\begin{smallmatrix} 0 & -1 \\\\ 1 & 0 \\end{smallmatrix})$"
+        ],
+        "proof-method": "Matrix representation of the system"
+      },
+      {
+        "type": "assert",
+        "claim": "The matrix $A$ has purely imaginary eigenvalues.",
+        "calculation": [
+          {
+            "step": "Characteristic polynomial of $A$ is $\\det(A - \\lambda I) = \\lambda^2 + 1$",
+            "justification": "Calculation of the determinant"
+          },
+          {
+            "step": "The eigenvalues are $\\pm i$",
+            "justification": "Solving the characteristic equation"
+          }
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "The origin is a circulation.",
+        "deduced_from": {
+          "known_results": [
+            "The origin is a circulation/centre if the eigenvalues of $A$ are purely imaginary."
+          ]
+        }
+      }
+    ],
+    "errors": [
+      "Incorrect statement: '$\\dot{y} = u$' is a typo; it should be '$\\dot{y} = x$'.",
+      "The final conclusion 'origin is a circulation.' is not properly justified."
+    ]
+  }
+}

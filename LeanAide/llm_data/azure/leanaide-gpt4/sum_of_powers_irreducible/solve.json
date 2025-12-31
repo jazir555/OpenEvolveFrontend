@@ -1,0 +1,8 @@
+{
+  "problem": "Prove that the polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+  "solutions": [
+    "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals by Eisenstein's criterion with $p=1$.",
+    "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals by Eisenstein's Criterion, taking the prime $p=1$ in the field of rational numbers $\\mathbb{Q}$.",
+    "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals. This is because it is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$, which is known to be irreducible over the rationals. The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$ (by applying the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$ for $n = 5$). Since $x - 1$ is clearly irreducible, so must be our given polynomial."
+  ]
+}

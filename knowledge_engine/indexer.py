@@ -1,4 +1,5 @@
-"Code Indexer for Repository Analysis
+"""
+Code Indexer for Repository Analysis
 
 Analyzes code repositories to build comprehensive indexes for each subdirectory,
 identifying file relationships and reusable components for implementation.
@@ -10,7 +11,7 @@ Features:
 - Configurable matching strategies
 - Progress tracking and error handling
 - Automatic LLM provider selection based on API key availability
-"
+"""
 
 import asyncio
 import json
@@ -21,7 +22,12 @@ from datetime import datetime
 from pathlib import Path
 from dataclasses import dataclass, asdict
 from typing import List, Dict, Any
-from llm_utils import initialize_llm_client # Import the centralized LLM initializer
+
+# LLM client initialization - use fallback if not available
+try:
+    from llm_utils import initialize_llm_client
+except ImportError:
+    initialize_llm_client = None
 
 
 @dataclass
@@ -598,7 +604,7 @@ class CodeIndexer:
                                 size_str = f" ({size}B)"
                             tree_lines[-1] += size_str
                         except (OSError, PermissionError):
-                            pass
+                            self.logger.debug(f"Unable to read size for {item}")
 
             except PermissionError:
                 tree_lines.append(f"{prefix}├── [Permission Denied]")
@@ -1151,7 +1157,7 @@ class CodeIndexer:
                 try:
                     await asyncio.sleep(0.1)  # Brief wait for cancellation
                 except Exception:
-                    pass
+                    self.logger.debug("Cancellation sleep interrupted during concurrent processing cleanup.")
 
                 # Fallback to sequential processing
                 self.logger.info("Falling back to sequential processing...")
@@ -1175,7 +1181,7 @@ class CodeIndexer:
             try:
                 await asyncio.sleep(0.1)
             except Exception:
-                pass
+                self.logger.debug("Cancellation sleep interrupted during error handling cleanup.")
 
             self.logger.error(f"Critical error in concurrent processing: {e}")
             # Fallback to sequential processing
@@ -1609,7 +1615,7 @@ async def main():
                 print("\n🐛 Debug information:")
                 traceback.print_exc()
         except NameError:
-            pass
+            print("Debug information unavailable: indexer not initialized.")
 
 
 def print_usage_example():

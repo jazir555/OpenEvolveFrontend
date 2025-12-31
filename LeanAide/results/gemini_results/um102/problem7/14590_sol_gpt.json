@@ -1,0 +1,44 @@
+{
+  "type": "theorem",
+  "name": "Source of the origin for linear differential equations",
+  "hypothesis": [
+    {
+      "type": "assume",
+      "statement": "$\\dot{x} = x$ and $\\dot{y} = y$"
+    }
+  ],
+  "conclusion": "The origin is a source.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$\\dot{X} = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} X$"
+      },
+      {
+        "type": "assert",
+        "claim": "The trace of $\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}$ is 2 and the determinant is 1"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of $\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}$ are (1, 1)"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvectors span $\\mathbb{R}^2$ (since it is the identity matrix)"
+      },
+      {
+        "type": "conclude",
+        "statement": "Therefore, the origin is a source",
+        "error": "Step lacks justification of why eigenvalues (1,1) imply the origin is a source."
+      }
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Justify why eigenvalues (1,1) imply that the origin is a source."
+    }
+  ]
+}

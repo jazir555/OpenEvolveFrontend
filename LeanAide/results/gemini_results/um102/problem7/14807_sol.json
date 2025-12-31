@@ -1,0 +1,57 @@
+{
+  "type": "theorem",
+  "name": "Source at Origin for Linear System",
+  "status": "incomplete proof",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "kind": "System of linear ordinary differential equations",
+      "property": "Given by $\\dot{x} = x$ and $\\dot{y} = y$"
+    }
+  ],
+  "conclusion": "The origin is a source for the given system.",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "The system can be written in matrix form as $\\begin{pmatrix} \\dot{x} \\\\ \\dot{y} \\end{pmatrix} = \\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix} \\begin{pmatrix} x \\\\ y \\end{pmatrix}$",
+        "proof-method": "Rewriting the given equations in matrix form"
+      },
+      {
+        "type": "let",
+        "variable": "A",
+        "kind": "matrix",
+        "value": "$\\begin{pmatrix} 1 & 0 \\\\ 0 & 1 \\end{pmatrix}$"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of A are the solutions to the equation $|A - \\lambda I| = 0$",
+        "deduced_from": [
+          "Definition of eigenvalues"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of A are 1 and 1",
+        "calculation": [
+          "$|A - \\lambda I| = \\begin{vmatrix} (1 - \\lambda) & 0 \\\\ 0 & (1 - \\lambda) \\end{vmatrix} = 0$",
+          "$(1-\\lambda)^2 = 0$",
+          "$\\lambda = 1, 1$"
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "Since both eigenvalues are positive, the origin is a source.",
+        "error": "The conclusion should state that since the real parts of the eigenvalues are positive, the origin is a source."
+      }
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Clarify that the criterion for a source involves the real parts of the eigenvalues, not just the eigenvalues themselves."
+    }
+  ]
+}

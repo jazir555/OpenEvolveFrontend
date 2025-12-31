@@ -1,0 +1,8 @@
+{
+  "problem": "Prove or disprove: Suppose $f:\\mathbb{R} \\to \\mathbb{R}$ is a continuous function such that $f'(x) > 0$ for all $x \\in \\mathbb{R}$. Then $f$ is unbounded.",
+  "solutions": [
+    "The statement is true. Since $f'(x) > 0$ for all $x \\in \\mathbb{R}$, the function $f$ is strictly increasing. Therefore, for any given $M \\in \\mathbb{R}$, there exists $x_M \\in \\mathbb{R}$ such that $f(x) > M$ for all $x > x_M$, meaning $f$ is unbounded.",
+    "The statement is true. Let's prove it:\n\nIf $f'(x) > 0$ for all $x \\in \\mathbb{R}$, then $f$ is strictly increasing. This is because the derivative of a function gives the rate of change of the function, and a positive rate of change implies an increasing function.\n\nNow, since $f$ is strictly increasing, for any $M \\in \\mathbb{R}$, there exists an $x_M \\in \\mathbb{R}$ such that $f(x) > M$ for all $x > x_M$. This is because, as $x$ increases, the value of $f(x)$ also increases without bound due to its strictly increasing nature.\n\nSimilarly, for any $M \\in \\mathbb{R}$, there exists an $x'_M \\in \\mathbb{R}$ such that $f(x) < -M$ for all $x < x'_M$.\n\nHence, $f$ is unbounded.",
+    "The statement is true. A function $f: \\mathbb{R} \\to \\mathbb{R}$ that is continuous and has $f'(x) > 0$ for all $x \\in \\mathbb{R}$ is strictly increasing. Hence, $f$ is unbounded."
+  ]
+}

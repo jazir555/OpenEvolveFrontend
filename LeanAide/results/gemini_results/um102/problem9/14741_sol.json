@@ -1,0 +1,99 @@
+{
+  "type": "theorem",
+  "name": "Circulation of Origin",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "x",
+      "kind": "function of t"
+    },
+    {
+      "type": "let",
+      "variable": "y",
+      "kind": "function of t"
+    }
+  ],
+  "conclusion": "The origin is a circulation for the linear differential equation system \\( \\dot{x} = y \\) and \\( \\dot{y} = -x - y \\).",
+  "status": "incomplete proof",
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "The provided proof makes a claim regarding eigenvalues and eigenvectors leading to circulation behavior. However, it lacks a clear explanation of why these calculations imply circulation around the origin. Further steps are needed to connect the calculated eigenvalues and eigenvectors to the concept of circulation in the context of the system's phase portrait."
+    }
+  ],
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "We analyze the system by finding its eigenvalues and eigenvectors."
+      },
+      {
+        "type": "assert",
+        "claim": "\\( \\frac{d}{dt} \\begin{bmatrix} x \\\\ y \\end{bmatrix} = \\begin{bmatrix} 0 & 1 \\\\ -1 & -1 \\end{bmatrix} \\begin{bmatrix} x \\\\ y \\end{bmatrix} \\)",
+        "deduced_from": [
+          "\\( \\dot{x} = y \\)",
+          "\\( \\dot{y} = -x - y \\)"
+        ]
+      },
+      {
+        "type": "let",
+        "variable": "v",
+        "value": "\\( \\begin{bmatrix} x \\\\ y \\end{bmatrix} \\)",
+        "kind": "vector"
+      },
+      {
+        "type": "let",
+        "variable": "A",
+        "value": "\\( \\begin{bmatrix} 0 & 1 \\\\ -1 & -1 \\end{bmatrix} \\)",
+        "kind": "matrix"
+      },
+      {
+        "type": "assert",
+        "claim": "\\( \\dot{v} = A v \\)"
+      },
+      {
+        "type": "remark",
+        "statement": "Next, we find the characteristic equation of A."
+      },
+      {
+        "type": "assert",
+        "claim": "\\( \\lambda^2 + \\lambda + 1 = 0 \\)",
+        "proof-method": "Calculating the determinant of \\( A - \\lambda I \\) and setting it to zero."
+      },
+      {
+        "type": "assert",
+        "claim": "\\( \\lambda_1 = \\frac{-1 + i \\sqrt{3}}{2} = e^{\\frac{i 2 \\pi}{3}} \\)",
+        "proof-method": "Solving the characteristic equation using the quadratic formula."
+      },
+      {
+        "type": "assert",
+        "claim": "\\( \\lambda_2 = \\frac{-1 - i \\sqrt{3}}{2} = e^{\\frac{i 4 \\pi}{3}} \\)",
+        "proof-method": "Solving the characteristic equation using the quadratic formula."
+      },
+      {
+        "type": "remark",
+        "statement": "Now, we find the eigenvectors."
+      },
+      {
+        "type": "assert",
+        "claim": "\\( A v_1 = e^{\\frac{i 2 \\pi}{3}} v_1 \\)",
+        "proof-method": "Using the definition of eigenvectors and eigenvalues."
+      },
+      {
+        "type": "assert",
+        "claim": "\\( e^{\\frac{i 2 \\pi}{3}} \\begin{bmatrix} x \\\\ y \\end{bmatrix} = \\begin{bmatrix} 0 & 1 \\\\ -1 & -1 \\end{bmatrix} \\begin{bmatrix} x \\\\ y \\end{bmatrix} \\)"
+      },
+      {
+        "type": "assert",
+        "claim": "\\( y = x e^{\\frac{i 2 \\pi}{3}} \\) & \\( -x - y = e^{\\frac{i 2 \\pi}{3}} y \\)",
+        "errors": [
+          {
+            "type": "error",
+            "statement": "The final step derives two equations to solve for the eigenvector components. However, it abruptly ends without determining the eigenvector \\(v_1\\) or demonstrating how the derived relationships lead to the conclusion of the origin being a circulation. "
+          }
+        ]
+      }
+    ]
+  }
+}

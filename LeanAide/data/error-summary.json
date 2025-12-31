@@ -1,0 +1,1346 @@
+[
+  {
+    "main-prompt": "For every subset of the Euclidean plane, there is a line segment of unit length whose endpoints are either both inside the subset or both outside it.",
+    "answer": ": ∀ (S : Set $ EuclideanSpace ℝ (Finₓ 2)), ∃ (x y : EuclideanSpace ℝ (Finₓ 2)), (∥x - y∥ = (1 : ℝ)) → (x ∈ S ∧ y ∈ S) ∨ (x ∉ S ∧ y ∉ S) ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "∀ (s : Set ℝ²) (t : Set.Ioc 0 1), ∃ (a b : ℝ²), (a, b) ∈ (segment_def ℝ 1) ∧ (∀ (t : 𝕜",
+        "parse-message": "<input>:1:0: expected ':'"
+      },
+      {
+        "success": false,
+        "statement": "∀ (s : Setₓ ℝ²) (t : Setₓ.Ioc 0 1), ∃ (a b : ℝ²), (a, b) ∈ (segment_def ℝ 1) ∧ (∀ (t : 𝕜",
+        "parse-message": "<input>:1:0: expected ':'"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_2} [NormedGroup E] [NormedSpace ℝ E] (s : Set E) (x y : E) : ∃z, z ∈ Metric.Ball ℝ x 1 ∧ z ∈ Metric.Ball ℝ y 1 ∧ (z ∈ s ↔ x ∈ s) ",
+        "parse-message": "application type mismatch\n  Metric.Ball ℝ x\nargument\n  x\nhas type\n  E : Type u_2\nbut is expected to have type\n  ℝ : Type (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_2} [NormedGroup E] [NormedSpace ℝ E] (s : Setₓ E) (x y : E) : ∃z, z ∈ Metric.Ball ℝ x 1 ∧ z ∈ Metric.Ball ℝ y 1 ∧ (z ∈ s ↔ x ∈ s) ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.94 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{ℝ_2 : Type u_2} [InnerProductSpace ℝ ℝ_2] {s : Set ℝ_2} (T : AffineIndependent ℝ s) : ∃ x y : ℝ_2, ∥x - y∥ = 1 ∧ sign_condition ℝ s x y ",
+        "parse-message": "parsed to  {  ℝ_2 :  Type  u_2 } ->  [  InnerProductSpace   ℝ ℝ_2 ] ->  {  s :  Set  ℝ_2 } ->  (  T :  AffineIndependent   ℝ s ) ->  ∃     x  y  : ℝ_2 ,    ∥  x - y ∥ =  1 ∧  sign_condition   ℝ s x y; error while parsing as theorem: <input>:1:157: expected term"
+      },
+      {
+        "success": false,
+        "statement": "{ℝ_2 : Type u_2} [InnerProductSpace ℝ ℝ_2] {s : Setₓ ℝ_2} (T : AffineIndependent ℝ s) : ∃ x y : ℝ_2, ∥x - y∥ = 1 ∧ sign_condition ℝ s x y ",
+        "parse-message": "parsed to  {  ℝ_2 :  Type  u_2 } ->  [  InnerProductSpace   ℝ ℝ_2 ] ->  {  s :  Setₓ  ℝ_2 } ->  (  T :  AffineIndependent   ℝ s ) ->  ∃     x  y  : ℝ_2 ,    ∥  x - y ∥ =  1 ∧  sign_condition   ℝ s x y; error while parsing as theorem: <input>:1:158: expected term"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_2} {𝕜 : Type u_3} [NormedField 𝕜] [NormedGroup E] [NormedSpace 𝕜 E] {s : Set E} (hs : simplex 𝕜 s) :   ∃ x y : E , x ∈ Closure s ∧ (y ∈ Interior s ∨ y ∈ Closure (univ \\ s)) ∧ abs (y - x) = 1 ",
+        "parse-message": "unknown identifier 'simplex' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_2} {𝕜 : Type u_3} [NormedField 𝕜] [NormedGroup E] [NormedSpace 𝕜 E] {s : Setₓ E} (hs : simplex 𝕜 s) :   ∃ x y : E , x ∈ Closure s ∧ (y ∈ Interior s ∨ y ∈ Closure (univ \\ s)) ∧ abs (y - x) = 1 ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.102 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_2} {𝕜 : Type u_3} [LinearOrderedField 𝕜] [AddCommGroup E] [Module 𝕜 E] [TopologicalSpace E] [bounded_linear_ordered_field 𝕜] [TopologicalAddGroup E] [HasContinuousConstSmul 𝕜 E] {s : Set E} {x y : E} (h : ~(Interior s = ∅)) : ∃ θ : ℝ, θ ∈ Set.Ioc 0 (2 * π) ∧ (λ (t :",
+        "parse-message": "<input>:1:278: unexpected end of input"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_2} {𝕜 : Type u_3} [LinearOrderedField 𝕜] [AddCommGroupₓₓ E] [Module 𝕜 E] [TopologicalSpace E] [bounded_linear_ordered_field 𝕜] [TopologicalAddGroup E] [HasContinuousConstSmul 𝕜 E] {s : Set E} {x y : E} (h : ~(Interior s = ∅)) : ∃ θ : ℝ, θ ∈ Set.Ioc 0 (2 * π) ∧ (λ (t :",
+        "parse-message": "<input>:1:280: unexpected end of input"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_2} {𝕜 : Type u_3} [LinearOrderedField 𝕜] [AddCommGroup E] [Module 𝕜 E] [TopologicalSpace E] [bounded_linear_ordered_field 𝕜] [TopologicalAddGroup E] [HasContinuousConstSmul 𝕜 E] {s : Setₓ E} {x y : E} (h : ~(Interior s = ∅)) : ∃ θ : ℝ, θ ∈ Setₓ.Ioc 0 (2 * π) ∧ (λ (t :",
+        "parse-message": "<input>:1:280: unexpected end of input"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_2} {𝕜 : Type u_3} [LinearOrderedField 𝕜] [AddCommGroupₓₓ E] [Module 𝕜 E] [TopologicalSpace E] [bounded_linear_ordered_field 𝕜] [TopologicalAddGroup E] [HasContinuousConstSmul 𝕜 E] {s : Setₓ E} {x y : E} (h : ~(Interior s = ∅)) : ∃ θ : ℝ, θ ∈ Setₓ.Ioc 0 (2 * π) ∧ (λ (t :",
+        "parse-message": "<input>:1:282: unexpected end of input"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_2} {𝕜 : Type u_3} [LinearOrderedField 𝕜] [AddCommGroupₓ E] [Module 𝕜 E] [TopologicalSpace E] [bounded_linear_ordered_field 𝕜] [TopologicalAddGroup E] [HasContinuousConstSmul 𝕜 E] {s : Set E} {x y : E} (h : ~(Interior s = ∅)) : ∃ θ : ℝ, θ ∈ Set.Ioc 0 (2 * π) ∧ (λ (t :",
+        "parse-message": "<input>:1:279: unexpected end of input"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_2} {𝕜 : Type u_3} [LinearOrderedField 𝕜] [AddCommGroupₓ E] [Module 𝕜 E] [TopologicalSpace E] [bounded_linear_ordered_field 𝕜] [TopologicalAddGroup E] [HasContinuousConstSmul 𝕜 E] {s : Setₓ E} {x y : E} (h : ~(Interior s = ∅)) : ∃ θ : ℝ, θ ∈ Setₓ.Ioc 0 (2 * π) ∧ (λ (t :",
+        "parse-message": "<input>:1:281: unexpected end of input"
+      }
+    ],
+    "remarks": "Lot of bad syntax"
+  },
+  {
+    "main-prompt": "A finite graph in which every two vertices have precisely one common neighbour contains a vertex that is adjacent to all other vertices.",
+    "answer": "{V : Type _} [Finite V] (G : SimpleGraph V) : (∀ v w : V, ∃! x : V, G.Adj v x ∧ G.Adj w x) → (∃ c : V, ∀ v : V, G.Adj c v) ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{V : Type u} (G : SimpleGraph V) [Fintype V] [DecidableRel G.adj] : (∀ (v w : V), G.adj v w → G.degree v = 1) → ∃ (v : V), ∀ (w : V), v ≠ w → G.adj v w ",
+        "parse-message": "invalid field 'adj', the environment does not contain 'SimpleGraph.adj'\n  G\nhas type\n  SimpleGraph V (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{V : Type u} (G : SimpleGraph V) [Fintypeₓ V] [DecidableRel G.adj] : (∀ (v w : V), G.adj v w → G.degree v = 1) → ∃ (v : V), ∀ (w : V), v ≠ w → G.adj v w ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{V : Type u} (G : SimpleGraph V) [Fintype V] [DecidableRel G.adj] (h : ∀ (v w : V) (vw : G.adj v w),     G.adj_set v ∩ G.adj_set w = {vw.2.1}) : ∃ (v : V), (∀ (w : V), (G.adj_set v) ∩ (G.adj_set w) = {some (G.adj v w)} ∧ G.adj v w) ",
+        "parse-message": "invalid field 'adj', the environment does not contain 'SimpleGraph.adj'\n  G\nhas type\n  SimpleGraph V (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{V : Type u} (G : SimpleGraph V) [Fintypeₓ V] [DecidableRel G.adj] (h : ∀ (v w : V) (vw : G.adj v w),     G.adj_set v ∩ G.adj_set w = {vw.2.1}) : ∃ (v : V), (∀ (w : V), (G.adj_set v) ∩ (G.adj_set w) = {some (G.adj v w)} ∧ G.adj v w) ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{V : Type u} (G : SimpleGraph V) [Fintype V] [DecidableRel G.adj] (H : ∀ (v w : V), G.adj v w → G.degree v = G.degree w ∧ G.degree v = 2) : ∃ (v : V), ∀ (w : V), v ≠ w → G.adj v w ",
+        "parse-message": "invalid field 'adj', the environment does not contain 'SimpleGraph.adj'\n  G\nhas type\n  SimpleGraph V (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{V : Type u} (G : SimpleGraph V) [Fintypeₓ V] [DecidableRel G.adj] (H : ∀ (v w : V), G.adj v w → G.degree v = G.degree w ∧ G.degree v = 2) : ∃ (v : V), ∀ (w : V), v ≠ w → G.adj v w ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{V : Type u} (G : SimpleGraph V) [Fintype V] [DecidableRel G.adj] (h : ∀ (v w : V), v ≠ w → G.adj v w ∨ G.adj w v) : ∃ (v : V), ∀ (w : V), w ≠ v → G.adj v w ",
+        "parse-message": "invalid field 'adj', the environment does not contain 'SimpleGraph.adj'\n  G\nhas type\n  SimpleGraph V (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{V : Type u} (G : SimpleGraph V) [Fintypeₓ V] [DecidableRel G.adj] (h : ∀ (v w : V), v ≠ w → G.adj v w ∨ G.adj w v) : ∃ (v : V), ∀ (w : V), w ≠ v → G.adj v w ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{V : Type u} (G : SimpleGraph V) [Fintype V] [DecidableRel G.adj] (h : ∀ (v w : V), G.is_complete_graph {v, w}) : ∃ (v : V), G.is_vertex_cover tt = ({v} : Finset V) ",
+        "parse-message": "invalid field 'adj', the environment does not contain 'SimpleGraph.adj'\n  G\nhas type\n  SimpleGraph V (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{V : Type u} (G : SimpleGraph V) [Fintypeₓ V] [DecidableRel G.adj] (h : ∀ (v w : V), G.is_complete_graph {v, w}) : ∃ (v : V), G.is_vertex_cover tt = ({v} : Finset V) ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      }
+    ],
+    "remarks": "Seems to depend on using a field called `adj`"
+  },
+  {
+    "main-prompt": "The number of partitions with odd parts is equal to the number of partitions with distinct parts.",
+    "answer": ": ∀ n : ℕ, Finset.card (Nat.Partition.odds n) = Finset.card (Nat.Partition.distincts n) ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "partitions.equiv_oddeven_distinct {n : ℕ} : (partitions.equiv_oddeven n).card = (partitions.distinct_part_of_n_ge_2 n).card ",
+        "parse-message": "unknown identifier 'partitions.equiv_oddeven' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} (h : α → α → Prop) (h_ext : ∀ (x y z w : α), x = y → z = w → h x z → h y w) (h_refl : ∀ (x : α), h x x) (h_sym : ∀ (x y : α), h x y → h y x) (h_trans : ∀ {x y z : α}, h x y → h y z → h x z) (hrel : ∀ (a b : α) (H : h a b), h a a ∨ h b b) (h_iff : ∀ (a b",
+        "parse-message": "<input>:1:268: unexpected end of input; expected ')'"
+      },
+      {
+        "success": false,
+        "statement": "(n : ℕ) : (partition_set.filter partition.odd n).card = (partition_set.filter partition.distinct_parts n).card ",
+        "parse-message": "unknown identifier 'partition_set.filter' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {c : ℕ → Set (Set α)} (H : ∀ (n : ℕ), ∀ (a : ℕ), a ∈ c n → ∃! (b : Set α) (H : b ∈ c n), a ∈ b) : has_unique_sum_of_parts α c ",
+        "parse-message": "failed to synthesize instance\n  Membership ℕ (Set (Set α)) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {c : ℕ → Setₓ (Setₓ α)} (H : ∀ (n : ℕ), ∀ (a : ℕ), a ∈ c n → ∃! (b : Setₓ α) (H : b ∈ c n), a ∈ b) : has_unique_sum_of_parts α c ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.7 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{p : ℕ} {R : Type*} {M : Type*} [CommRing R] [AddCommGroup M] [Module R M] (Q : QuadraticForm R M) : finset.card (possible_even_odd_partitions Q p) = finset.card (Finset.filter distinct (possible_partitions Q p)) ",
+        "parse-message": "failed to synthesize instance\n  Semiringₓ R (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{p : ℕ} {R : Type*} {M : Type*} [CommRing R] [AddCommGroupₓₓ M] [Module R M] (Q : QuadraticForm R M) : finset.card (possible_even_odd_partitions Q p) = finset.card (Finset.filter distinct (possible_partitions Q p)) ",
+        "parse-message": "function expected at\n  AddCommGroupₓₓ\nterm has type\n  Type (?u.17 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{p : ℕ} {R : Type*} {M : Type*} [CommRingₓₓ R] [AddCommGroup M] [Module R M] (Q : QuadraticForm R M) : finset.card (possible_even_odd_partitions Q p) = finset.card (Finset.filter distinct (possible_partitions Q p)) ",
+        "parse-message": "function expected at\n  CommRingₓₓ\nterm has type\n  Type (?u.13 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{p : ℕ} {R : Type*} {M : Type*} [CommRingₓₓ R] [AddCommGroupₓₓ M] [Module R M] (Q : QuadraticForm R M) : finset.card (possible_even_odd_partitions Q p) = finset.card (Finset.filter distinct (possible_partitions Q p)) ",
+        "parse-message": "function expected at\n  CommRingₓₓ\nterm has type\n  Type (?u.13 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{p : ℕ} {R : Type*} {M : Type*} [CommRing R] [AddCommGroupₓ M] [Module R M] (Q : QuadraticForm R M) : finset.card (possible_even_odd_partitions Q p) = finset.card (Finset.filter distinct (possible_partitions Q p)) ",
+        "parse-message": "failed to synthesize instance\n  Semiringₓ R (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{p : ℕ} {R : Type*} {M : Type*} [CommRingₓₓ R] [AddCommGroupₓ M] [Module R M] (Q : QuadraticForm R M) : finset.card (possible_even_odd_partitions Q p) = finset.card (Finset.filter distinct (possible_partitions Q p)) ",
+        "parse-message": "function expected at\n  CommRingₓₓ\nterm has type\n  Type (?u.13 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{p : ℕ} {R : Type*} {M : Type*} [CommRingₓ R] [AddCommGroup M] [Module R M] (Q : QuadraticForm R M) : finset.card (possible_even_odd_partitions Q p) = finset.card (Finset.filter distinct (possible_partitions Q p)) ",
+        "parse-message": "failed to synthesize instance\n  AddCommMonoidₓ M (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{p : ℕ} {R : Type*} {M : Type*} [CommRingₓ R] [AddCommGroupₓₓ M] [Module R M] (Q : QuadraticForm R M) : finset.card (possible_even_odd_partitions Q p) = finset.card (Finset.filter distinct (possible_partitions Q p)) ",
+        "parse-message": "function expected at\n  AddCommGroupₓₓ\nterm has type\n  Type (?u.17 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{p : ℕ} {R : Type*} {M : Type*} [CommRingₓ R] [AddCommGroupₓ M] [Module R M] (Q : QuadraticForm R M) : finset.card (possible_even_odd_partitions Q p) = finset.card (Finset.filter distinct (possible_partitions Q p)) ",
+        "parse-message": "unknown identifier 'finset.card' (during elaboration)"
+      }
+    ],
+    "remarks": ""
+  },
+  {
+    "main-prompt": "Every non-empty poset in which every chain has an upper bound contains a maximal element.",
+    "answer": "{α : Type _} [PartialOrder α] [Nonempty α] : (∀ c : Set α, IsChain LE.le c → (∃ b : α, ∀ a ∈ c, a ≤ b)) → (∃ m : α, ∀ a : α, m ≤ a → a = m) ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [CompleteLattice α] [Nonempty α] [PartialOrder r] : (∀ (c : Set α), IsChain r c → c.nonempty → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) →  ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "application type mismatch\n  PartialOrder r\nargument\n  r\nhas type\n  α → α → Prop : Type u_1\nbut is expected to have type\n  Type ?u.20 : Type (?u.20 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [CompleteLattice α] [Nonempty α] [PartialOrderₓₓ r] : (∀ (c : Set α), IsChain r c → c.nonempty → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) →  ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "function expected at\n  PartialOrderₓₓ\nterm has type\n  Type (?u.20 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [CompleteLattice α] [Nonempty α] [PartialOrder r] : (∀ (c : Setₓ α), IsChain r c → c.nonempty → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) →  ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "application type mismatch\n  PartialOrder r\nargument\n  r\nhas type\n  α → α → Prop : Type u_1\nbut is expected to have type\n  Type ?u.20 : Type (?u.20 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [CompleteLattice α] [Nonempty α] [PartialOrderₓₓ r] : (∀ (c : Setₓ α), IsChain r c → c.nonempty → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) →  ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "function expected at\n  PartialOrderₓₓ\nterm has type\n  Type (?u.20 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [CompleteLattice α] [Nonempty α] [PartialOrderₓ r] : (∀ (c : Set α), IsChain r c → c.nonempty → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) →  ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "application type mismatch\n  PartialOrderₓ r\nargument\n  r\nhas type\n  α → α → Prop : Type u_1\nbut is expected to have type\n  Type ?u.20 : Type (?u.20 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [CompleteLattice α] [Nonempty α] [PartialOrderₓ r] : (∀ (c : Setₓ α), IsChain r c → c.nonempty → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) →  ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "application type mismatch\n  PartialOrderₓ r\nargument\n  r\nhas type\n  α → α → Prop : Type u_1\nbut is expected to have type\n  Type ?u.20 : Type (?u.20 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [CompleteLatticeₓ α] [Nonempty α] [PartialOrder r] : (∀ (c : Set α), IsChain r c → c.nonempty → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) →  ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "function expected at\n  CompleteLatticeₓ\nterm has type\n  Type (?u.12 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [CompleteLatticeₓ α] [Nonempty α] [PartialOrderₓₓ r] : (∀ (c : Set α), IsChain r c → c.nonempty → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) →  ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "function expected at\n  CompleteLatticeₓ\nterm has type\n  Type (?u.12 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [CompleteLatticeₓ α] [Nonempty α] [PartialOrder r] : (∀ (c : Setₓ α), IsChain r c → c.nonempty → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) →  ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "function expected at\n  CompleteLatticeₓ\nterm has type\n  Type (?u.12 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [CompleteLatticeₓ α] [Nonempty α] [PartialOrderₓₓ r] : (∀ (c : Setₓ α), IsChain r c → c.nonempty → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) →  ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "function expected at\n  CompleteLatticeₓ\nterm has type\n  Type (?u.12 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [CompleteLatticeₓ α] [Nonempty α] [PartialOrderₓ r] : (∀ (c : Set α), IsChain r c → c.nonempty → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) →  ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "function expected at\n  CompleteLatticeₓ\nterm has type\n  Type (?u.12 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [CompleteLatticeₓ α] [Nonempty α] [PartialOrderₓ r] : (∀ (c : Setₓ α), IsChain r c → c.nonempty → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) →  ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "function expected at\n  CompleteLatticeₓ\nterm has type\n  Type (?u.12 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [PartialOrder α] (h : ∀ (c : Set α), IsChain r c → (∃ (ub : α), ∀ (a : α), a ∈ c → a ≤ ub)) (Trans : ∀ (a b c : α), a ≤ b → b ≤ c → a ≤ c) : ∃ (m : α), is_maximal m ",
+        "parse-message": "unknown identifier 'is_maximal' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [PartialOrderₓₓ α] (h : ∀ (c : Set α), IsChain r c → (∃ (ub : α), ∀ (a : α), a ∈ c → a ≤ ub)) (Trans : ∀ (a b c : α), a ≤ b → b ≤ c → a ≤ c) : ∃ (m : α), is_maximal m ",
+        "parse-message": "function expected at\n  PartialOrderₓₓ\nterm has type\n  Type (?u.12 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [PartialOrder α] (h : ∀ (c : Setₓ α), IsChain r c → (∃ (ub : α), ∀ (a : α), a ∈ c → a ≤ ub)) (Trans : ∀ (a b c : α), a ≤ b → b ≤ c → a ≤ c) : ∃ (m : α), is_maximal m ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.17 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [PartialOrderₓₓ α] (h : ∀ (c : Setₓ α), IsChain r c → (∃ (ub : α), ∀ (a : α), a ∈ c → a ≤ ub)) (Trans : ∀ (a b c : α), a ≤ b → b ≤ c → a ≤ c) : ∃ (m : α), is_maximal m ",
+        "parse-message": "function expected at\n  PartialOrderₓₓ\nterm has type\n  Type (?u.12 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [PartialOrderₓ α] (h : ∀ (c : Set α), IsChain r c → (∃ (ub : α), ∀ (a : α), a ∈ c → a ≤ ub)) (Trans : ∀ (a b c : α), a ≤ b → b ≤ c → a ≤ c) : ∃ (m : α), is_maximal m ",
+        "parse-message": "unknown identifier 'is_maximal' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} [PartialOrderₓ α] (h : ∀ (c : Setₓ α), IsChain r c → (∃ (ub : α), ∀ (a : α), a ∈ c → a ≤ ub)) (Trans : ∀ (a b c : α), a ≤ b → b ≤ c → a ≤ c) : ∃ (m : α), is_maximal m ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.17 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} (h : ∀ {c : Set α}, c.nonempty → IsChain r c → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) : ∃ (m : α), (∀ (a : α), r m a → r a m) ∧ ∀ (n : α), (∀ (a : α), r m a → r a m) → r n m → r n n ",
+        "parse-message": "invalid field notation, type is not of the form (C ...) where C is a constant\n  c\nhas type\n  α → Prop (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} (h : ∀ {c : Setₓ α}, c.nonempty → IsChain r c → (∃ (ub : α), ∀ (a : α), a ∈ c → r a ub)) : ∃ (m : α), (∀ (a : α), r m a → r a m) ∧ ∀ (n : α), (∀ (a : α), r m a → r a m) → r n m → r n n ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.13 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{β : Type u_1} [poset β] {p : β} (h : ∀ (c : Set β), IsChain (≤) c → c.nonempty → (∃ (ub : β), ∀ (a : β), a ∈ c → a ≤ ub)) : ∃ (m : β), ∀ (a : β), p ≤ a → a ≤ p ",
+        "parse-message": "<input>:1:62: expected ')' or '↑'"
+      },
+      {
+        "success": false,
+        "statement": "{β : Type u_1} [poset β] {p : β} (h : ∀ (c : Setₓ β), IsChain (≤) c → c.nonempty → (∃ (ub : β), ∀ (a : β), a ∈ c → a ≤ ub)) : ∃ (m : β), ∀ (a : β), p ≤ a → a ≤ p ",
+        "parse-message": "<input>:1:63: expected ')' or '↑'"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} {P : Set α} (hp : ∀ (c : Set α), IsChain r c → chain_upper_bound c r P) (hc : chain_upper_bound c r P) : ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "unknown identifier 'chain_upper_bound' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_1} {r : α → α → Prop} {P : Setₓ α} (hp : ∀ (c : Setₓ α), IsChain r c → chain_upper_bound c r P) (hc : chain_upper_bound c r P) : ∃ (m : α), ∀ (a : α), r m a → r a m ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.12 + 1) (during elaboration)"
+      }
+    ],
+    "remarks": ""
+  },
+  {
+    "main-prompt": "A group whose automorphism group is cyclic is Abelian.",
+    "answer": "{G : Type _} [Groupₓ G] : CategoryTheory.Aut G → CommGroup G ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{α : Type u} [Group α] (h : IsCyclic (aut α)) : CommGroup α ",
+        "parse-message": "unknown identifier 'aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Group α] (h : IsCyclic (aut α)) : CommGroupₓₓ α ",
+        "parse-message": "unknown identifier 'aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓₓ α] (h : IsCyclic (aut α)) : CommGroup α ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓₓ α] (h : IsCyclic (aut α)) : CommGroupₓₓ α ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓ α] (h : IsCyclic (aut α)) : CommGroup α ",
+        "parse-message": "unknown identifier 'aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓ α] (h : IsCyclic (aut α)) : CommGroupₓₓ α ",
+        "parse-message": "unknown identifier 'aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Group α] (h : IsCyclic (aut α)) : CommGroupₓ α ",
+        "parse-message": "unknown identifier 'aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓₓ α] (h : IsCyclic (aut α)) : CommGroupₓ α ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓ α] (h : IsCyclic (aut α)) : CommGroupₓ α ",
+        "parse-message": "unknown identifier 'aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Group α] (h : IsCyclic (group_aut α)) : CommGroup α ",
+        "parse-message": "unknown identifier 'group_aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Group α] (h : IsCyclic (group_aut α)) : CommGroupₓₓ α ",
+        "parse-message": "unknown identifier 'group_aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓₓ α] (h : IsCyclic (group_aut α)) : CommGroup α ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓₓ α] (h : IsCyclic (group_aut α)) : CommGroupₓₓ α ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓ α] (h : IsCyclic (group_aut α)) : CommGroup α ",
+        "parse-message": "unknown identifier 'group_aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓ α] (h : IsCyclic (group_aut α)) : CommGroupₓₓ α ",
+        "parse-message": "unknown identifier 'group_aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Group α] (h : IsCyclic (group_aut α)) : CommGroupₓ α ",
+        "parse-message": "unknown identifier 'group_aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓₓ α] (h : IsCyclic (group_aut α)) : CommGroupₓ α ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓ α] (h : IsCyclic (group_aut α)) : CommGroupₓ α ",
+        "parse-message": "unknown identifier 'group_aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Group α] (H : IsCyclic (aut G)) : CommGroup α ",
+        "parse-message": "unknown identifier 'aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Group α] (H : IsCyclic (aut G)) : CommGroupₓₓ α ",
+        "parse-message": "unknown identifier 'aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓₓ α] (H : IsCyclic (aut G)) : CommGroup α ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓₓ α] (H : IsCyclic (aut G)) : CommGroupₓₓ α ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓ α] (H : IsCyclic (aut G)) : CommGroup α ",
+        "parse-message": "unknown identifier 'aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓ α] (H : IsCyclic (aut G)) : CommGroupₓₓ α ",
+        "parse-message": "unknown identifier 'aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Group α] (H : IsCyclic (aut G)) : CommGroupₓ α ",
+        "parse-message": "unknown identifier 'aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓₓ α] (H : IsCyclic (aut G)) : CommGroupₓ α ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓ α] (H : IsCyclic (aut G)) : CommGroupₓ α ",
+        "parse-message": "unknown identifier 'aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Group α] {aut : Group (group_aut α)} (h : IsCyclic aut) : is_abelian α ",
+        "parse-message": "unknown identifier 'group_aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓₓ α] {aut : Groupₓₓ (group_aut α)} (h : IsCyclic aut) : is_abelian α ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [Groupₓ α] {aut : Groupₓ (group_aut α)} (h : IsCyclic aut) : is_abelian α ",
+        "parse-message": "unknown identifier 'group_aut' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(G : Type u) [Group G] (H : Type u) [Group H] (f : G →+* H) (hf : is_group_isomorphism f)   (Hₛ : IsCyclic (group_automorphisms_of H)) : CommGroup G ",
+        "parse-message": "failed to synthesize instance\n  NonAssocSemiringₓ G (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(G : Type u) [Group G] (H : Type u) [Group H] (f : G →+* H) (hf : is_group_isomorphism f)   (Hₛ : IsCyclic (group_automorphisms_of H)) : CommGroupₓₓ G ",
+        "parse-message": "failed to synthesize instance\n  NonAssocSemiringₓ G (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(G : Type u) [Groupₓₓ G] (H : Type u) [Groupₓₓ H] (f : G →+* H) (hf : is_group_isomorphism f)   (Hₛ : IsCyclic (group_automorphisms_of H)) : CommGroup G ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(G : Type u) [Groupₓₓ G] (H : Type u) [Groupₓₓ H] (f : G →+* H) (hf : is_group_isomorphism f)   (Hₛ : IsCyclic (group_automorphisms_of H)) : CommGroupₓₓ G ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(G : Type u) [Groupₓ G] (H : Type u) [Groupₓ H] (f : G →+* H) (hf : is_group_isomorphism f)   (Hₛ : IsCyclic (group_automorphisms_of H)) : CommGroup G ",
+        "parse-message": "failed to synthesize instance\n  NonAssocSemiringₓ G (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(G : Type u) [Groupₓ G] (H : Type u) [Groupₓ H] (f : G →+* H) (hf : is_group_isomorphism f)   (Hₛ : IsCyclic (group_automorphisms_of H)) : CommGroupₓₓ G ",
+        "parse-message": "failed to synthesize instance\n  NonAssocSemiringₓ G (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(G : Type u) [Group G] (H : Type u) [Group H] (f : G →+* H) (hf : is_group_isomorphism f)   (Hₛ : IsCyclic (group_automorphisms_of H)) : CommGroupₓ G ",
+        "parse-message": "failed to synthesize instance\n  NonAssocSemiringₓ G (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(G : Type u) [Groupₓₓ G] (H : Type u) [Groupₓₓ H] (f : G →+* H) (hf : is_group_isomorphism f)   (Hₛ : IsCyclic (group_automorphisms_of H)) : CommGroupₓ G ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(G : Type u) [Groupₓ G] (H : Type u) [Groupₓ H] (f : G →+* H) (hf : is_group_isomorphism f)   (Hₛ : IsCyclic (group_automorphisms_of H)) : CommGroupₓ G ",
+        "parse-message": "failed to synthesize instance\n  NonAssocSemiringₓ G (during elaboration)"
+      }
+    ],
+    "remarks": ""
+  },
+  {
+    "main-prompt": "The image of a union of sets is the union of the images.",
+    "answer": "(f : α → β) (S : Set (Set α)) : (f <$> (⋃₀ S)) = (⋃₀ ((Functor.map f) <$> S)) ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{α : Sort u} (s t : Set α) {β : Sort v} (f : α → β) : f '' (s ∪ t) = f '' s ∪ f '' t ",
+        "parse-message": "<input>:1:56: expected end of input"
+      },
+      {
+        "success": false,
+        "statement": "{α : Sort u} (s t : Setₓ α) {β : Sort v} (f : α → β) : f '' (s ∪ t) = f '' s ∪ f '' t ",
+        "parse-message": "<input>:1:57: expected end of input"
+      },
+      {
+        "success": false,
+        "statement": "(. 𝓝(s ∪ t)) = (. 𝓝(s)) ∪ (. 𝓝(t)) ",
+        "parse-message": "<input>:1:1: expected identifier"
+      },
+      {
+        "success": false,
+        "statement": "{α β : Type u} {s : Set (α × β)} {a : Set α} {b : Set β} (h : s = {p : (α × β) | p.1 ∈ a ∧ p.2 ∈ b}) : finset.univ.image p.1 ∪ finset.univ.image p.2 = finset.univ.image (⇑h).1 ",
+        "parse-message": "function expected at\n  p\nterm has type\n  α × β (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α β : Type u} {s : Setₓ (α × β)} {a : Setₓ α} {b : Setₓ β} (h : s = {p : (α × β) | p.1 ∈ a ∧ p.2 ∈ b}) : finset.univ.image p.1 ∪ finset.univ.image p.2 = finset.univ.image (⇑h).1 ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.7 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} {β : Type v} {δ : Type w} [_inst_1 : Group δ] (f : α → δ → β) (s t : Set α) : ∀ g, f '' (s ∪ t) g = (f '' s) g ∪ (f '' t) g ",
+        "parse-message": "<input>:1:98: expected end of input"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} {β : Type v} {δ : Type w} [_inst_1 : Groupₓₓ δ] (f : α → δ → β) (s t : Set α) : ∀ g, f '' (s ∪ t) g = (f '' s) g ∪ (f '' t) g ",
+        "parse-message": "<input>:1:100: expected end of input"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} {β : Type v} {δ : Type w} [_inst_1 : Group δ] (f : α → δ → β) (s t : Setₓ α) : ∀ g, f '' (s ∪ t) g = (f '' s) g ∪ (f '' t) g ",
+        "parse-message": "<input>:1:99: expected end of input"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} {β : Type v} {δ : Type w} [_inst_1 : Groupₓₓ δ] (f : α → δ → β) (s t : Setₓ α) : ∀ g, f '' (s ∪ t) g = (f '' s) g ∪ (f '' t) g ",
+        "parse-message": "<input>:1:101: expected end of input"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} {β : Type v} {δ : Type w} [_inst_1 : Groupₓ δ] (f : α → δ → β) (s t : Set α) : ∀ g, f '' (s ∪ t) g = (f '' s) g ∪ (f '' t) g ",
+        "parse-message": "<input>:1:99: expected end of input"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} {β : Type v} {δ : Type w} [_inst_1 : Groupₓ δ] (f : α → δ → β) (s t : Setₓ α) : ∀ g, f '' (s ∪ t) g = (f '' s) g ∪ (f '' t) g ",
+        "parse-message": "<input>:1:100: expected end of input"
+      },
+      {
+        "success": false,
+        "statement": "(α : Type u) (β : Type v) (s₁ t₁ : Set α) (s₂ t₂ : Set β) (f : α → β) : f '' (s₁ ∪ t₁) = f '' s₁ ∪ f '' t₁ ↔ ∀ (a : α) (a_in_s : a ∈ s₁) (a_in_t : a ∈ t₁), f a ∈ s₂ ∨ f a ∈ t₂ ",
+        "parse-message": "<input>:1:74: expected end of input"
+      },
+      {
+        "success": false,
+        "statement": "(α : Type u) (β : Type v) (s₁ t₁ : Setₓ α) (s₂ t₂ : Setₓ β) (f : α → β) : f '' (s₁ ∪ t₁) = f '' s₁ ∪ f '' t₁ ↔ ∀ (a : α) (a_in_s : a ∈ s₁) (a_in_t : a ∈ t₁), f a ∈ s₂ ∨ f a ∈ t₂ ",
+        "parse-message": "<input>:1:76: expected end of input"
+      }
+    ],
+    "remarks": ""
+  },
+  {
+    "main-prompt": "A topological space is normal if and only if any two disjoint closed subsets can be separated by a continuous function.",
+    "answer": "{X : Type _} [TopologicalSpace X] [TopologicalSpace ℝ] : NormalSpace X ↔ ( ∀ {S T : Set X}, IsClosed S → IsClosed T → Disjoint S T → (∃ f : X → ℝ, Continuous f → (∀ x ∈ S, f x = 0) ∧ (∀ x ∈ T, f x = 1)) ) ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{X : Type u_1} [TopologicalSpace X] : ∀ (s t : Set X), IsClosed s → IsClosed t → Disjoint s t → ∃ (f : C(X, ℝ)), Set.EqOn ⇑f 0 s ∧ Set.EqOn ⇑f 1 t ",
+        "parse-message": "type class instance expected\n  Valued ℝ ?m.1449 (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{X : Type u_1} [TopologicalSpace X] : ∀ (s t : Setₓ X), IsClosed s → IsClosed t → Disjoint s t → ∃ (f : C(X, ℝ)), Setₓ.EqOn ⇑f 0 s ∧ Setₓ.EqOn ⇑f 1 t ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{X : Type u_1} [TopologicalSpace X] : NormalSpace X ↔ ∀ {s t : Set X} (hs : IsClosed s) (ht : IsClosed t) (hd : Disjoint s t), separated_by_continuous_function (Function.const X 0) s t ",
+        "parse-message": "unknown identifier 'separated_by_continuous_function' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{X : Type u_1} [TopologicalSpace X] : NormalSpace X ↔ ∀ {s t : Setₓ X} (hs : IsClosed s) (ht : IsClosed t) (hd : Disjoint s t), separated_by_continuous_function (Function.const X 0) s t ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.17 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{X : Type u_1} [TopologicalSpace X] : (is_normal X) ⇔ ∀ ⦃ s t : Set X ⦄, IsClosed s → IsClosed t → Disjoint s t → ∃ (f : X → ℝ), is_continuous f ∧ (∀ (x : X), f x ∈ Set.Icc (0 : ℝ) (1 : ℝ))   ∧ Set.EqOn f 0 s ∧ Set.EqOn f 1 t ",
+        "parse-message": "unknown identifier 'is_normal' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{X : Type u_1} [TopologicalSpace X] : (is_normal X) ⇔ ∀ ⦃ s t : Setₓ X ⦄, IsClosed s → IsClosed t → Disjoint s t → ∃ (f : X → ℝ), is_continuous f ∧ (∀ (x : X), f x ∈ Setₓ.Icc (0 : ℝ) (1 : ℝ))   ∧ Setₓ.EqOn f 0 s ∧ Setₓ.EqOn f 1 t ",
+        "parse-message": "unknown identifier 'is_normal' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{X : Type u_1} [TopologicalSpace X] : (∀ (s t : Set X), Disjoint s t → IsClosed s → IsClosed t → ∃ (f : C(X, ℝ)), Set.EqOn ⇑f 0 s ∧ Set.EqOn ⇑f 1 t ∧ ∀ (x : X), ⇑f x ∈ Set.Icc 0 1) → NormalSpace X ",
+        "parse-message": "type class instance expected\n  Valued ℝ ?m.1450 (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{X : Type u_1} [TopologicalSpace X] : (∀ (s t : Setₓ X), Disjoint s t → IsClosed s → IsClosed t → ∃ (f : C(X, ℝ)), Setₓ.EqOn ⇑f 0 s ∧ Setₓ.EqOn ⇑f 1 t ∧ ∀ (x : X), ⇑f x ∈ Setₓ.Icc 0 1) → NormalSpace X ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.10 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{X : Type u_1} [TopologicalSpace X] : NormalSpace X ↔ ∀ s t : Set X, IsClosed s → IsClosed t → Disjoint s t → ∃ (f : C(X, ℝ)), Set.EqOn ⇑f 0 s ∧ Set.EqOn ⇑f 1 t ",
+        "parse-message": "type class instance expected\n  Valued ℝ ?m.1451 (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{X : Type u_1} [TopologicalSpace X] : NormalSpace X ↔ ∀ s t : Setₓ X, IsClosed s → IsClosed t → Disjoint s t → ∃ (f : C(X, ℝ)), Setₓ.EqOn ⇑f 0 s ∧ Setₓ.EqOn ⇑f 1 t ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.17 + 1) (during elaboration)"
+      }
+    ],
+    "remarks": ""
+  },
+  {
+    "main-prompt": "The only field automorphism of the reals is the identity.",
+    "answer": ": ∀ (f : ℝ ≃+* ℝ), (∀ x : ℝ, f x = x) ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{f : ℝ →+* ℝ} (hf : Function.bijective f) : is_field_hom ⟨f, hf.injective⟩ ",
+        "parse-message": "unknown identifier 'is_field_hom' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": " : Fintype { f : ℝ → ℝ // f.aut } ",
+        "parse-message": "invalid field notation, type is not of the form (C ...) where C is a constant\n  f\nhas type\n  ℝ → ℝ (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": " : Fintypeₓ { f : ℝ → ℝ // f.aut } ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.1 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": " {f : ℝ →+* ℝ} (hf : Function.bijective f) : f = LinearMap.id ",
+        "parse-message": "failed to synthesize\n  CoeHTCT (?m.244 →ₛₗ[RingHom.id ?m.243] ?m.244) (ℝ →+* ℝ)\n(deterministic) timeout at 'typeclass', maximum number of heartbeats (20000) has been reached (use 'set_option synthInstance.maxHeartbeats <num>' to set the limit) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": " : Subsingleton {f : ℝ →+* ℝ // f.bijective} ",
+        "parse-message": "invalid field 'bijective', the environment does not contain 'RingHom.bijective'\n  f\nhas type\n  ℝ →+* ℝ (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": ": finset.univ.filter (λ (f : Π {α : Type*}, α → α), Function.Injective f ∧ (∀ a ⦃b : ℝ⦄, (f a = f b) ↔ a = b)) = {⟨id, id_inj _, λ _ _, iff.rfl⟩} ",
+        "parse-message": "<input>:1:31: expected '(' or identifier"
+      }
+    ],
+    "remarks": ""
+  },
+  {
+    "main-prompt": "A finitely-presented group containing a torsion element is finite.",
+    "answer": "{G : Type _} [Groupₓ G] : Groupₓ.Fg G → Finite G ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Group G] [Fintype G] {H : Type u_1} [Group H] [Fintype H]   (f : group_hom G H) (h : fintype.is_fin_gen G) (hT : ∃ x : G, ∃ n : ℕ, x^n = 1) : Fintype G ",
+        "parse-message": "unknown identifier 'group_hom' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓₓ G] [Fintype G] {H : Type u_1} [Groupₓₓ H] [Fintype H]   (f : group_hom G H) (h : fintype.is_fin_gen G) (hT : ∃ x : G, ∃ n : ℕ, x^n = 1) : Fintype G ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓ G] [Fintype G] {H : Type u_1} [Groupₓ H] [Fintype H]   (f : group_hom G H) (h : fintype.is_fin_gen G) (hT : ∃ x : G, ∃ n : ℕ, x^n = 1) : Fintype G ",
+        "parse-message": "unknown identifier 'group_hom' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Group G] [Fintypeₓ G] {H : Type u_1} [Group H] [Fintypeₓ H]   (f : group_hom G H) (h : fintype.is_fin_gen G) (hT : ∃ x : G, ∃ n : ℕ, x^n = 1) : Fintypeₓ G ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓₓ G] [Fintypeₓ G] {H : Type u_1} [Groupₓₓ H] [Fintypeₓ H]   (f : group_hom G H) (h : fintype.is_fin_gen G) (hT : ∃ x : G, ∃ n : ℕ, x^n = 1) : Fintypeₓ G ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓ G] [Fintypeₓ G] {H : Type u_1} [Groupₓ H] [Fintypeₓ H]   (f : group_hom G H) (h : fintype.is_fin_gen G) (hT : ∃ x : G, ∃ n : ℕ, x^n = 1) : Fintypeₓ G ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Group G] [is_fp G] : ∃ (g : G) [hg : monoid.torsion_elem G g], Fintype G ",
+        "parse-message": "<input>:1:47: expected ','"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓₓ G] [is_fp G] : ∃ (g : G) [hg : monoid.torsion_elem G g], Fintype G ",
+        "parse-message": "<input>:1:49: expected ','"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓ G] [is_fp G] : ∃ (g : G) [hg : monoid.torsion_elem G g], Fintype G ",
+        "parse-message": "<input>:1:48: expected ','"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Group G] [is_fp G] : ∃ (g : G) [hg : monoid.torsion_elem G g], Fintypeₓ G ",
+        "parse-message": "<input>:1:47: expected ','"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓₓ G] [is_fp G] : ∃ (g : G) [hg : monoid.torsion_elem G g], Fintypeₓ G ",
+        "parse-message": "<input>:1:49: expected ','"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓ G] [is_fp G] : ∃ (g : G) [hg : monoid.torsion_elem G g], Fintypeₓ G ",
+        "parse-message": "<input>:1:48: expected ','"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Group G] : group.is_f.p G → ∃ (g : G) (h : Monoidₓ.IsTorsion g), Fintype G ",
+        "parse-message": "unknown identifier 'group.is_f.p' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓₓ G] : group.is_f.p G → ∃ (g : G) (h : Monoidₓ.IsTorsion g), Fintype G ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓ G] : group.is_f.p G → ∃ (g : G) (h : Monoidₓ.IsTorsion g), Fintype G ",
+        "parse-message": "unknown identifier 'group.is_f.p' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Group G] : group.is_f.p G → ∃ (g : G) (h : Monoidₓ.IsTorsion g), Fintypeₓ G ",
+        "parse-message": "unknown identifier 'group.is_f.p' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓₓ G] : group.is_f.p G → ∃ (g : G) (h : Monoidₓ.IsTorsion g), Fintypeₓ G ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓ G] : group.is_f.p G → ∃ (g : G) (h : Monoidₓ.IsTorsion g), Fintypeₓ G ",
+        "parse-message": "unknown identifier 'group.is_f.p' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Group G] [Fintype G] (H : Subgroup G) [fin.is_fp H] : ∃ g, H.torsion g ",
+        "parse-message": "failed to synthesize instance\n  Groupₓ G (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓₓ G] [Fintype G] (H : Subgroup G) [fin.is_fp H] : ∃ g, H.torsion g ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓ G] [Fintype G] (H : Subgroup G) [fin.is_fp H] : ∃ g, H.torsion g ",
+        "parse-message": "unknown identifier 'fin.is_fp' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Group G] [Fintypeₓ G] (H : Subgroup G) [fin.is_fp H] : ∃ g, H.torsion g ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓₓ G] [Fintypeₓ G] (H : Subgroup G) [fin.is_fp H] : ∃ g, H.torsion g ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓ G] [Fintypeₓ G] (H : Subgroup G) [fin.is_fp H] : ∃ g, H.torsion g ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Group G] [h : Fintype G] (H1 : finitely_presented G) (H : ∃ a : G, a ≠ 1) : Fintype G ",
+        "parse-message": "unknown identifier 'finitely_presented' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓₓ G] [h : Fintype G] (H1 : finitely_presented G) (H : ∃ a : G, a ≠ 1) : Fintype G ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓ G] [h : Fintype G] (H1 : finitely_presented G) (H : ∃ a : G, a ≠ 1) : Fintype G ",
+        "parse-message": "unknown identifier 'finitely_presented' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Group G] [h : Fintypeₓ G] (H1 : finitely_presented G) (H : ∃ a : G, a ≠ 1) : Fintypeₓ G ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓₓ G] [h : Fintypeₓ G] (H1 : finitely_presented G) (H : ∃ a : G, a ≠ 1) : Fintypeₓ G ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓ G] [h : Fintypeₓ G] (H1 : finitely_presented G) (H : ∃ a : G, a ≠ 1) : Fintypeₓ G ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      }
+    ],
+    "remarks": ""
+  },
+  {
+    "main-prompt": "The complement of the union of two sets is the intersection of their complements.",
+    "answer": "{α : Type _} (S T : Set α) : (S ∪ T).compl = S.compl ∩ T.compl ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{α : Type u} {s t : Set α} : sᶜ ∩ tᶜ = (s ∪ t)ᶜ ",
+        "parse-message": "elaboration function for 'Order.BooleanAlgebra.«term_ᶜ»' has not been implemented\n  sᶜ (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} {s t : Setₓ α} : sᶜ ∩ tᶜ = (s ∪ t)ᶜ ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} (s t : Set α) : sᶜ ∪ tᶜ = (s ∩ t)ᶜ ",
+        "parse-message": "elaboration function for 'Order.BooleanAlgebra.«term_ᶜ»' has not been implemented\n  sᶜ (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} (s t : Setₓ α) : sᶜ ∪ tᶜ = (s ∩ t)ᶜ ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} (S T : Set α) : ((S ∪ T)ᶜ : Set α) = Sᶜ ∩ Tᶜ ",
+        "parse-message": "elaboration function for 'Order.BooleanAlgebra.«term_ᶜ»' has not been implemented\n  Union.union✝ S Tᶜ (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} (S T : Setₓ α) : ((S ∪ T)ᶜ : Setₓ α) = Sᶜ ∩ Tᶜ ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} (S T : Set α) : (S ∪ T)ᶜ = Sᶜ ∩ Tᶜ ",
+        "parse-message": "elaboration function for 'Order.BooleanAlgebra.«term_ᶜ»' has not been implemented\n  Union.union✝ S Tᶜ (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} (S T : Setₓ α) : (S ∪ T)ᶜ = Sᶜ ∩ Tᶜ ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} (U V : Set α) : (- (U ∪ V)) = (- U) ∩ (- V) ",
+        "parse-message": "failed to synthesize instance\n  Neg (Set α) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} (U V : Setₓ α) : (- (U ∪ V)) = (- U) ∩ (- V) ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      }
+    ],
+    "remarks": ""
+  },
+  {
+    "main-prompt": "Every odd degree polynomial over `ℝ` has a zero",
+    "answer": "{α : Type _} [Field α] (p : Polynomial α) : Odd (p.degree) → ∃ x, p.IsRoot x ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "(p : Polynomial ℝ) (h : p.nat_degree % 2 = 1) : ∃ x : ℝ, p.eval x = 0 ",
+        "parse-message": "invalid field 'nat_degree', the environment does not contain 'Polynomial.nat_degree'\n  p\nhas type\n  ℝ[X] (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRing R] [LinearOrderedField R] (f : Polynomial R) (hf : f.nat_degree % 2 = 1) : ∃ (a : R), Polynomial.eval f a = 0 ",
+        "parse-message": "invalid field 'nat_degree', the environment does not contain 'Polynomial.nat_degree'\n  f\nhas type\n  R[X] (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓₓ R] [LinearOrderedField R] (f : Polynomial R) (hf : f.nat_degree % 2 = 1) : ∃ (a : R), Polynomial.eval f a = 0 ",
+        "parse-message": "function expected at\n  CommRingₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓ R] [LinearOrderedField R] (f : Polynomial R) (hf : f.nat_degree % 2 = 1) : ∃ (a : R), Polynomial.eval f a = 0 ",
+        "parse-message": "invalid field 'nat_degree', the environment does not contain 'Polynomial.nat_degree'\n  f\nhas type\n  R[X] (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [discrete_field R] (f : Polynomial R) : f.nat_degree % 2 = 1 → ∃ a : R, f.eval a = 0 ",
+        "parse-message": "unknown identifier 'discrete_field' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type} [LinearOrderedField α] [Nontrivial α] (p : Polynomial α) (h : 2 ∣ p.nat_degree) : ∃ x : α, p.eval x = 0 ",
+        "parse-message": "invalid field 'nat_degree', the environment does not contain 'Polynomial.nat_degree'\n  p\nhas type\n  α[X] (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [discrete_linear_ordered_field α] (p : Polynomial α) (hp : p.nat_degree = 1 + 2 * p.nat_degree.div2) (h : p ≠ 0) : ∃ c : α, p.eval₂ c = 0 ",
+        "parse-message": "unknown identifier 'discrete_linear_ordered_field' (during elaboration)"
+      }
+    ],
+    "remarks": ""
+  },
+  {
+    "main-prompt": "Every non-empty subgroup of `ℤ` is isomorphic to `ℤ`",
+    "answer": "(H : AddSubgroup ℤ) : H.Carrier.Nonempty  →   ↥H ≃+ ℤ ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Group G] {H : Subgroup G} (h : (∃ (x : G), x ∉ H) → H ≃ₐ[r] ℤ) :   *)   end fin_mul_action",
+        "parse-message": "<input>:1:83: expected term"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓₓ G] {H : Subgroup G} (h : (∃ (x : G), x ∉ H) → H ≃ₐ[r] ℤ) :   *)   end fin_mul_action",
+        "parse-message": "<input>:1:85: expected term"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u_1} [Groupₓ G] {H : Subgroup G} (h : (∃ (x : G), x ∉ H) → H ≃ₐ[r] ℤ) :   *)   end fin_mul_action",
+        "parse-message": "<input>:1:84: expected term"
+      },
+      {
+        "success": false,
+        "statement": "{H : Subgroup ℤ} : H ≠ ⊥ → group_isomorphism ℤ H ",
+        "parse-message": "failed to synthesize instance\n  Groupₓ ℤ (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{H : Type u_1} [Group H] (h : 0 ∈ H) : @group_equiv ℤ _ _ H ",
+        "parse-message": "failed to synthesize instance\n  Membership ?m.15 (Type u_1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{H : Type u_1} [Groupₓₓ H] (h : 0 ∈ H) : @group_equiv ℤ _ _ H ",
+        "parse-message": "function expected at\n  Groupₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{H : Type u_1} [Groupₓ H] (h : 0 ∈ H) : @group_equiv ℤ _ _ H ",
+        "parse-message": "failed to synthesize instance\n  Membership ?m.15 (Type u_1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(G : ∃ (e : ℤ), e ∈ G ∧ ∀ (a : ℤ), a ∈ G → a + -[1+ a] ∈ G) :  ∃ (f : ℤ → G), IsGroupHom f ",
+        "parse-message": "unknown identifier 'G' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u} [Group G] (H : Nonempty (Subgroup G)) : @group.equiv.{u u} G G ",
+        "parse-message": "<input>:1:69: expected '}'"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u} [Groupₓₓ G] (H : Nonempty (Subgroup G)) : @group.equiv.{u u} G G ",
+        "parse-message": "<input>:1:71: expected '}'"
+      },
+      {
+        "success": false,
+        "statement": "{G : Type u} [Groupₓ G] (H : Nonempty (Subgroup G)) : @group.equiv.{u u} G G ",
+        "parse-message": "<input>:1:70: expected '}'"
+      }
+    ],
+    "remarks": "Wrong in various ways"
+  },
+  {
+    "main-prompt": "Every polynomial of positive degree over reals is unbounded.",
+    "answer": "(p: Polynomial ℝ) : p.degree > 0 → ∀ m: ℝ, ∃ x: ℝ, p.eval x  > m ∨ p.eval x < -m  ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{α : Type u_1} [discrete_linear_ordered_field α] (p : Polynomial α) : 0 < p.degree → ∃ (u v : α), u < v ∧ ∀ (n : ℕ), (polynomial.eval_on p v) n > n ",
+        "parse-message": "unknown identifier 'discrete_linear_ordered_field' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(p : ℝ[X]) : is_unbounded_left (Set p.range) ",
+        "parse-message": "unknown identifier 'is_unbounded_left' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(p : ℝ[X]) : is_unbounded_left (Setₓ p.range) ",
+        "parse-message": "unknown identifier 'is_unbounded_left' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [LinearOrderedField R] (p : Polynomial R) (hp : 0 < p.nat_degree) : ∃ x, ∀ y, y < p.nat_degree → ∃ c, p.eval ⟨y, h.lt_succ_self y⟩ ≤ c * p.eval ⟨x, h.lt_succ_self x⟩ ",
+        "parse-message": "invalid field 'nat_degree', the environment does not contain 'Polynomial.nat_degree'\n  p\nhas type\n  R[X] (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_3} [discrete_field α] (f : Polynomial α) (hf : 0 < f.degree) : ∃ (p : P(ℝ)) (q : ℝ), ∀ n : ℝ, n ≥ p → (abs(Polynomial.eval n f)) ≥ q ",
+        "parse-message": "<input>:1:83: expected ')'"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u_4} [decidable_linear_ordered_comm_ring α] {p : Polynomial α} (hp : 0 < p.degree) : ¬ (BddAbove (polynomial.range p.coeff_multiset)) ",
+        "parse-message": "unknown identifier 'decidable_linear_ordered_comm_ring' (during elaboration)"
+      }
+    ],
+    "remarks": "Wrong in various ways; imagined names, using a general case instead of reals, etc."
+  },
+  {
+    "main-prompt": "Differentiability implies continuity.",
+    "answer": "[TopologicalSpace ℝ] : ∀ f : ℝ → ℝ, Differentiable ℝ f → Continuous f ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{E : Type u_1} [NormedGroup E] [NormedSpace ℝ E] {s : Set ℝ} {a : ℝ} {f : ℝ → E} (f_diff : DifferentiableOn ℝ f s) (ha : a ∈ s) : ContinuousOn ℝ f (Set.Icc a a) ",
+        "parse-message": "function expected at\n  ContinuousOn ?m.603 ?m.634\nterm has type\n  Prop (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_1} [NormedGroup E] [NormedSpace ℝ E] {s : Setₓ ℝ} {a : ℝ} {f : ℝ → E} (f_diff : DifferentiableOn ℝ f s) (ha : a ∈ s) : ContinuousOn ℝ f (Setₓ.Icc a a) ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.94 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_1} [NormedGroup E] [NormedSpace ℝ E] {f : ℝ → E} {a : ℝ} (hf : DifferentiableAt ℝ f a) : ContinuousAt f a ",
+        "parse-message": "type class instance expected\n  Valued ℝ ?m.440 (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_1} [NormedGroup E] [NormedSpace ℝ E] {s : Set ℝ} {a : ℝ} {f : ℝ → E} (hf : ∀ (x : ℝ), x ∈ s → HasDerivAt f (f x)) (hs : IsOpen s) (hf' : continuous_restrict (Finsupp.total (univ : Finset ℝ) f) s) : Continuous (Finsupp.total (univ : Finset ℝ) f) ",
+        "parse-message": "type expected\nfailed to synthesize instance\n  CoeSort (ℝ → Prop) ?m.170 (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_1} [NormedGroup E] [NormedSpace ℝ E] {s : Setₓ ℝ} {a : ℝ} {f : ℝ → E} (hf : ∀ (x : ℝ), x ∈ s → HasDerivAt f (f x)) (hs : IsOpen s) (hf' : continuous_restrict (Finsupp.total (univ : Finset ℝ) f) s) : Continuous (Finsupp.total (univ : Finset ℝ) f) ",
+        "parse-message": "function expected at\n  Setₓ\nterm has type\n  Type (?u.94 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{E : Type u_1} [NormedGroup E] [NormedSpace ℝ E] {a : ℝ} {f : ℝ → E} (hn : is_deriv_at f a) : ContinuousAt f a ",
+        "parse-message": "unknown identifier 'is_deriv_at' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [TopologicalSpace α] [MetricSpace α] {β : Type v} {f : α → β} {x : α} (hf : DifferentiableAt α β f x) : ContinuousAt f x ",
+        "parse-message": "failed to synthesize instance\n  NondiscreteNormedField α (during elaboration)"
+      }
+    ],
+    "remarks": ""
+  },
+  {
+    "main-prompt": "In a finite commutative ring, all prime ideals are maximal.",
+    "answer": "{R : Type _} [CommRingₓ R] [Fintype R] : ∀ (Idl : Ideal R), Idl.IsPrime → Idl.IsMaximal ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRing R] [Fintype R] (I : Ideal R) (h : ∀ P : Ideal R, P ≤ I → P.is_prime → P = I ∨ P = ⊥) : I.is_maximal ",
+        "parse-message": "<input>:1:39: expected identifier"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓₓ R] [Fintype R] (I : Ideal R) (h : ∀ P : Ideal R, P ≤ I → P.is_prime → P = I ∨ P = ⊥) : I.is_maximal ",
+        "parse-message": "<input>:1:41: expected identifier"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓ R] [Fintype R] (I : Ideal R) (h : ∀ P : Ideal R, P ≤ I → P.is_prime → P = I ∨ P = ⊥) : I.is_maximal ",
+        "parse-message": "<input>:1:40: expected identifier"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRing R] [Fintypeₓ R] (I : Ideal R) (h : ∀ P : Ideal R, P ≤ I → P.is_prime → P = I ∨ P = ⊥) : I.is_maximal ",
+        "parse-message": "<input>:1:40: expected identifier"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓₓ R] [Fintypeₓ R] (I : Ideal R) (h : ∀ P : Ideal R, P ≤ I → P.is_prime → P = I ∨ P = ⊥) : I.is_maximal ",
+        "parse-message": "<input>:1:42: expected identifier"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓ R] [Fintypeₓ R] (I : Ideal R) (h : ∀ P : Ideal R, P ≤ I → P.is_prime → P = I ∨ P = ⊥) : I.is_maximal ",
+        "parse-message": "<input>:1:41: expected identifier"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRing R] (h : Fintype R) : ∀ P : Ideal R, P.is_prime → P.is_maximal ",
+        "parse-message": "failed to synthesize instance\n  Semiringₓ R (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓₓ R] (h : Fintype R) : ∀ P : Ideal R, P.is_prime → P.is_maximal ",
+        "parse-message": "function expected at\n  CommRingₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓ R] (h : Fintype R) : ∀ P : Ideal R, P.is_prime → P.is_maximal ",
+        "parse-message": "invalid field 'is_prime', the environment does not contain 'Submodule.is_prime'\n  P\nhas type\n  Submodule R R (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRing R] (h : Fintypeₓ R) : ∀ P : Ideal R, P.is_prime → P.is_maximal ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓₓ R] (h : Fintypeₓ R) : ∀ P : Ideal R, P.is_prime → P.is_maximal ",
+        "parse-message": "function expected at\n  CommRingₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓ R] (h : Fintypeₓ R) : ∀ P : Ideal R, P.is_prime → P.is_maximal ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRing R] [Fintype R] {P : Ideal R} (H : P.is_prime) : P.is_maximal ",
+        "parse-message": "failed to synthesize instance\n  Semiringₓ R (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓₓ R] [Fintype R] {P : Ideal R} (H : P.is_prime) : P.is_maximal ",
+        "parse-message": "function expected at\n  CommRingₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓ R] [Fintype R] {P : Ideal R} (H : P.is_prime) : P.is_maximal ",
+        "parse-message": "invalid field 'is_prime', the environment does not contain 'Submodule.is_prime'\n  P\nhas type\n  Submodule R R (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRing R] [Fintypeₓ R] {P : Ideal R} (H : P.is_prime) : P.is_maximal ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓₓ R] [Fintypeₓ R] {P : Ideal R} (H : P.is_prime) : P.is_maximal ",
+        "parse-message": "function expected at\n  CommRingₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓ R] [Fintypeₓ R] {P : Ideal R} (H : P.is_prime) : P.is_maximal ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRing R] [Fintype R] {P : Ideal R} (Prime : P.is_prime) : P.is_maximal ",
+        "parse-message": "failed to synthesize instance\n  Semiringₓ R (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓₓ R] [Fintype R] {P : Ideal R} (Prime : P.is_prime) : P.is_maximal ",
+        "parse-message": "function expected at\n  CommRingₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓ R] [Fintype R] {P : Ideal R} (Prime : P.is_prime) : P.is_maximal ",
+        "parse-message": "invalid field 'is_prime', the environment does not contain 'Submodule.is_prime'\n  P\nhas type\n  Submodule R R (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRing R] [Fintypeₓ R] {P : Ideal R} (Prime : P.is_prime) : P.is_maximal ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓₓ R] [Fintypeₓ R] {P : Ideal R} (Prime : P.is_prime) : P.is_maximal ",
+        "parse-message": "function expected at\n  CommRingₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓ R] [Fintypeₓ R] {P : Ideal R} (Prime : P.is_prime) : P.is_maximal ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRing R] [Fintype R] (p : Ideal R) (H : p.is_prime) : p.is_maximal ",
+        "parse-message": "failed to synthesize instance\n  Semiringₓ R (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓₓ R] [Fintype R] (p : Ideal R) (H : p.is_prime) : p.is_maximal ",
+        "parse-message": "function expected at\n  CommRingₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓ R] [Fintype R] (p : Ideal R) (H : p.is_prime) : p.is_maximal ",
+        "parse-message": "invalid field 'is_prime', the environment does not contain 'Submodule.is_prime'\n  p\nhas type\n  Submodule R R (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRing R] [Fintypeₓ R] (p : Ideal R) (H : p.is_prime) : p.is_maximal ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓₓ R] [Fintypeₓ R] (p : Ideal R) (H : p.is_prime) : p.is_maximal ",
+        "parse-message": "function expected at\n  CommRingₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [CommRingₓ R] [Fintypeₓ R] (p : Ideal R) (H : p.is_prime) : p.is_maximal ",
+        "parse-message": "function expected at\n  Fintypeₓ\nterm has type\n  Type (?u.9 + 1) (during elaboration)"
+      }
+    ],
+    "remarks": "This is a limitation of dot notation not being mapped. If it was even for single letter identifiers, then we get P.isPrime and P.isMaximal which is elaborated"
+  },
+  {
+    "main-prompt": "A topological space $X$ is Hausdorff if and only if the diagonal is a closed set in $X × X$.",
+    "answer": "{X : Type _} [TopologicalSpace X] : T2Space X ↔ IsClosed (Set.Diagonal X) ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{X : Type u} [TopologicalSpace X] : IsClosed (set.prod X X) (set.diag X) ↔ hausdorff X ",
+        "parse-message": "invalid field notation, type is not of the form (C ...) where C is a constant\n  set\nhas type\n  ?m.13 → ?m.14 PUnit (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} (X : α → Type v) [Π x, TopologicalSpace (X x)] : Π (x : X), IsClosed (set.prod X.univ X.univ.image (λ y : X, (x, y))) ↔ is_Hausdorff X ",
+        "parse-message": "<input>:1:34: expected ':'"
+      },
+      {
+        "success": false,
+        "statement": "{X : Type u} [TopologicalSpace X] : IsClosed (diagonal X) ↔ is_Hausdorff X ",
+        "parse-message": "unknown identifier 'diagonal' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "[TopologicalSpace α] (ht : T2Space α) : Hausdorff_space α ↔ IsClosed (diagonal : Set (α × α)) ",
+        "parse-message": "unknown identifier 'α' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "[TopologicalSpace α] (ht : T2Space α) : Hausdorff_space α ↔ IsClosed (diagonal : Setₓ (α × α)) ",
+        "parse-message": "unknown identifier 'α' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{α : Type u} [t : TopologicalSpace α] : t.is_Hausdorff ↔ IsClosed (diagonal α) ",
+        "parse-message": "invalid field 'is_Hausdorff', the environment does not contain 'TopologicalSpace.is_Hausdorff'\n  t\nhas type\n  TopologicalSpace α (during elaboration)"
+      }
+    ],
+    "remarks": "Used a lot of incorrect names"
+  },
+  {
+    "main-prompt": "Any sub-ring of a field that contains the identity is an integral domain",
+    "answer": "{F : Type _} [Field F] : ∀ R : Subring F, 1 ∈ R.Carrier → IsDomain ↥R ",
+    "parse-checks": [
+      {
+        "success": false,
+        "statement": "{R : Type u} [Ring R] (s : Subring R) [Field K] (homK : K → R) (h : ∀ x : K, 0 ≠ x → homK x ≠ 0) (h1 : homK 1 ∈ s) :  integral_domain s ",
+        "parse-message": "failed to synthesize instance\n  Ringₓ R (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [Ringₓₓ R] (s : Subring R) [Field K] (homK : K → R) (h : ∀ x : K, 0 ≠ x → homK x ≠ 0) (h1 : homK 1 ∈ s) :  integral_domain s ",
+        "parse-message": "function expected at\n  Ringₓₓ\nterm has type\n  Type (?u.5 + 1) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{R : Type u} [Ringₓ R] (s : Subring R) [Field K] (homK : K → R) (h : ∀ x : K, 0 ≠ x → homK x ≠ 0) (h1 : homK 1 ∈ s) :  integral_domain s ",
+        "parse-message": "unknown identifier 'K' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{K : Type u} [Field K] (s : Subring K) (H : 1 ∈ s) : integral_domain s ",
+        "parse-message": "failed to synthesize instance\n  Membership ?m.102 (Subring K) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(K : Type u) [discrete_field K] {R : Set K} [is_subring R] (One : (1:K) ∈ R) :   is_integral_domain R ",
+        "parse-message": "unknown identifier 'discrete_field' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "(K : Type u) [discrete_field K] {R : Setₓ K} [is_subring R] (One : (1:K) ∈ R) :   is_integral_domain R ",
+        "parse-message": "unknown identifier 'discrete_field' (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{K : Type u} [Field K] (s : Subring K) (H1 : ∀ (a : K), a ∈ s → a⁻¹ ∈ s) (H2 : 1 ∈ s) : integral_domain s ",
+        "parse-message": "failed to synthesize instance\n  Membership K (Subring K) (during elaboration)"
+      },
+      {
+        "success": false,
+        "statement": "{K : Type u} [Field K] (s : Subring K) (h₁ : 1 ∈ s) : integral_domain s ",
+        "parse-message": "failed to synthesize instance\n  Membership ?m.102 (Subring K) (during elaboration)"
+      }
+    ],
+    "remarks": "Wrong in various ways"
+  }
+]

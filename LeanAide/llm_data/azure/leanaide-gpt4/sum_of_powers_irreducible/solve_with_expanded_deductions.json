@@ -1,0 +1,1690 @@
+{
+  "problem": "Prove that the polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+  "solutions": [
+    "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals by Eisenstein's criterion with $p=1$.",
+    "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals by Eisenstein's Criterion, taking the prime $p=1$ in the field of rational numbers $\\mathbb{Q}$.",
+    "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals. This is because it is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$, which is known to be irreducible over the rationals. The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$ (by applying the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$ for $n = 5$). Since $x - 1$ is clearly irreducible, so must be our given polynomial."
+  ],
+  "theories": [
+    "{\n  \"Theorem1\": {\n    \"Statement\": \"The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.\",\n    \"Proof\": \"The proof is by Eisenstein's criterion with p=1.\"\n  }\n}",
+    "## Theorem 1\nThe polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rational numbers $\\mathbb{Q}$.\n\n## Proof\nThis can be shown by using Eisenstein's criterion with the prime number $p = 1$.",
+    "\"Theorem 1: The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.\n\nProof: This follows from the general property of cyclotomic polynomials, which are all irreducible over the rationals.\n\nTheorem 2: The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.\n\nProof: The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$ (by applying the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$ for $n = 5$). The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$. Since the fifth cyclotomic polynomial is irreducible over the rationals (as established in Theorem 1) and $x - 1$ is clearly irreducible, it follows that $x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals.\""
+  ],
+  "structured_texts": [
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible by Eisenstein's criterion.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "p": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "We can apply Eisenstein's criterion to prove the irreducibility of a polynomial."
+          },
+          {
+            "type": "let",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "By applying Eisenstein's criterion with p = 1, the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over Q.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "p"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "This polynomial is a cyclotomic polynomial.",
+            "deduced-from": []
+          },
+          {
+            "type": "observation",
+            "statement": "Cyclotomic polynomials are all irreducible over the rationals."
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "This polynomial is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$",
+            "deduced-from": [
+              {
+                "result": "Factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$",
+                "applied-to": {
+                  "n": "5"
+                }
+              }
+            ]
+          },
+          {
+            "type": "assertion",
+            "claim": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$",
+            "deduced-from": []
+          },
+          {
+            "type": "assertion",
+            "claim": "The fifth cyclotomic polynomial is irreducible over the rationals",
+            "deduced-from": [
+              "Theorem 1"
+            ]
+          },
+          {
+            "type": "observation",
+            "statement": "$x - 1$ is irreducible over the rationals."
+          },
+          {
+            "type": "assertion",
+            "claim": "$x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals.",
+            "deduced-from": []
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "This follows from the general property of cyclotomic polynomials, which are all irreducible over the rationals."
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$",
+            "deduced-from": [
+              {
+                "result": "factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$",
+                "applied-to": {
+                  "n": "5"
+                }
+              }
+            ]
+          },
+          {
+            "type": "observation",
+            "statement": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$."
+          },
+          {
+            "type": "assertion",
+            "claim": "$x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals",
+            "deduced-from": [
+              "Theorem 1",
+              {
+                "result": "$x - 1$ is irreducible"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  ],
+  "raw_structured_texts": [
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem1\",\n    \"statement\": \"The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"use\",\n        \"variable\": \"p\",\n        \"value\": \"1\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible by Eisenstein's criterion.\",\n        \"deduced-from\": [\n          {\n            \"result\": \"Eisenstein's criterion\",\n            \"applied-to\": {\n              \"polynomial\": \"x^4 + x^3 + x^2 + x + 1\",\n              \"prime\": \"1\"\n            }\n          }\n        ]\n      }\n    ]\n  }\n]",
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem1\",\n    \"statement\": \"The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.\",\n        \"deduced-from\": [\n          {\n            \"result\": \"Eisenstein's criterion\",\n            \"applied-to\": {\"p\": 1}\n          }\n        ]\n      }\n    ]\n  }\n]",
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"use\",\n        \"variable\": \"p\",\n        \"value\": \"1\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.\",\n        \"deduced-from\": [\n          {\n            \"result\": \"Eisenstein's criterion\",\n            \"applied-to\": {\n              \"polynomial\": \"x^4 + x^3 + x^2 + x + 1\",\n              \"prime\": \"1\"\n            }\n          }\n        ]\n      }\n    ]\n  }\n]",
+    "Here is the required ProofJSON:\n\n```json\n[\n  {\n    \"type\": \"theorem\",\n    \"statement\": \"The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"observation\",\n        \"statement\": \"We can apply Eisenstein's criterion to prove the irreducibility of a polynomial.\"\n      },\n      {\n        \"type\": \"let\",\n        \"variable\": \"p\",\n        \"value\": \"1\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"By applying Eisenstein's criterion with p = 1, the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over Q.\",\n        \"deduced-from\": [\n          {\n            \"result\": \"Eisenstein's criterion\",\n            \"applied-to\": {\n              \"polynomial\": \"x^4 + x^3 + x^2 + x + 1\",\n              \"prime\": \"p\"\n            }\n          }\n        ]\n      }\n    ]\n  }\n]\n```",
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"This polynomial is a cyclotomic polynomial.\",\n        \"deduced-from\": []\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"Cyclotomic polynomials are all irreducible over the rationals.\"\n      }\n    ]\n  },\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 2\",\n    \"statement\": \"The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"This polynomial is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$\",\n        \"deduced-from\": [\n          {\n            \"result\": \"Factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\\\cdots + x + 1)$\",\n            \"applied-to\": {\"n\": \"5\"}\n          }\n        ]\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$\",\n        \"deduced-from\": []\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The fifth cyclotomic polynomial is irreducible over the rationals\",\n        \"deduced-from\": [\"Theorem 1\"]\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"$x - 1$ is irreducible over the rationals.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"$x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals.\",\n        \"deduced-from\": []\n      }\n    ]\n  }\n]",
+    "[\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 1\",\n    \"statement\": \"The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"observation\",\n        \"statement\": \"This follows from the general property of cyclotomic polynomials, which are all irreducible over the rationals.\"\n      }\n    ]\n  },\n  {\n    \"type\": \"theorem\",\n    \"name\": \"Theorem 2\",\n    \"statement\": \"The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.\",\n    \"status\": \"proved\",\n    \"proof\": [\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$\",\n        \"deduced-from\": [\n          {\n            \"result\": \"factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$\",\n            \"applied-to\": {\n              \"n\": \"5\"\n            }\n          }\n        ]\n      },\n      {\n        \"type\": \"observation\",\n        \"statement\": \"The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$.\"\n      },\n      {\n        \"type\": \"assertion\",\n        \"claim\": \"$x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals\",\n        \"deduced-from\": [\n          \"Theorem 1\",\n          {\n            \"result\": \"$x - 1$ is irreducible\"\n          }\n        ]\n      }\n    ]\n  }\n]"
+  ],
+  "texts_with_statements": [
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible by Eisenstein's criterion.",
+            "statement": "If the polynomial is x^4 + x^3 + x^2 + x + 1 and the prime is 1, then the polynomial is irreducible by Eisenstein's criterion.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible by Eisenstein's criterion.",
+            "statement": "If the polynomial x^4 + x^3 + x^2 + x + 1 is considered and prime number 1 is applied, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible by Eisenstein's criterion.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+            "statement": "If the polynomial x^4 + x^3 + x^2 + x + 1 is considered and Eisenstein's criterion is applied with p=1, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "p": 1
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "p": 1
+                }
+              }
+            ],
+            "statement": "If p=1 is applied to Eisenstein's criterion, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "statement": "If Eisenstein's criterion is applied to the polynomial x^4 + x^3 + x^2 + x + 1 with prime 1, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "statement": "If we apply Eisenstein's criterion to the polynomial x^4 + x^3 + x^2 + x + 1 with prime 1, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "We can apply Eisenstein's criterion to prove the irreducibility of a polynomial."
+          },
+          {
+            "type": "let",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "By applying Eisenstein's criterion with p = 1, the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over Q.",
+            "statement": "Let p = 1. If we apply Eisenstein's criterion with p = 1, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over Q.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "p"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "We can apply Eisenstein's criterion to prove the irreducibility of a polynomial."
+          },
+          {
+            "type": "let",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "By applying Eisenstein's criterion with p = 1, the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over Q.",
+            "statement": "If p is 1, and we apply Eisenstein's criterion to the polynomial x^4 + x^3 + x^2 + x + 1, then the polynomial is irreducible over Q.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "p"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "This polynomial is a cyclotomic polynomial.",
+            "deduced-from": [],
+            "statement": "The polynomial $x^5 - 1 = 0$ is a cyclotomic polynomial."
+          },
+          {
+            "type": "observation",
+            "statement": "Cyclotomic polynomials are all irreducible over the rationals."
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "This polynomial is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$",
+            "deduced-from": [
+              {
+                "result": "Factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$",
+                "applied-to": {
+                  "n": "5"
+                }
+              }
+            ],
+            "statement": "Given the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$ where $n=5$, the polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$."
+          },
+          {
+            "type": "assertion",
+            "claim": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$",
+            "deduced-from": [],
+            "statement": "The factors of the polynomial $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$."
+          },
+          {
+            "type": "assertion",
+            "claim": "The fifth cyclotomic polynomial is irreducible over the rationals",
+            "deduced-from": [
+              "Theorem 1"
+            ],
+            "statement": "Based on Theorem 1, the fifth cyclotomic polynomial $x^5 - 1 = 0$ is irreducible over the rationals."
+          },
+          {
+            "type": "observation",
+            "statement": "$x - 1$ is irreducible over the rationals."
+          },
+          {
+            "type": "assertion",
+            "claim": "$x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals.",
+            "deduced-from": [],
+            "statement": "Given that $x^5 - 1 = 0$ is irreducible over the rationals and its factors are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$, and $x - 1$ is irreducible over the rationals, it follows that $x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "This polynomial is a cyclotomic polynomial.",
+            "deduced-from": [],
+            "statement": "The polynomial $x^5 - 1 = 0$ is a cyclotomic polynomial."
+          },
+          {
+            "type": "observation",
+            "statement": "Cyclotomic polynomials are all irreducible over the rationals."
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "This polynomial is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$",
+            "deduced-from": [
+              {
+                "result": "Factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$",
+                "applied-to": {
+                  "n": "5"
+                }
+              }
+            ],
+            "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$ based on the factorization formula."
+          },
+          {
+            "type": "assertion",
+            "claim": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$",
+            "deduced-from": [],
+            "statement": "The factors of the polynomial $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$."
+          },
+          {
+            "type": "assertion",
+            "claim": "The fifth cyclotomic polynomial is irreducible over the rationals",
+            "deduced-from": [
+              "Theorem 1"
+            ],
+            "statement": "Based on Theorem 1, the fifth cyclotomic polynomial is irreducible over the rationals."
+          },
+          {
+            "type": "observation",
+            "statement": "$x - 1$ is irreducible over the rationals."
+          },
+          {
+            "type": "assertion",
+            "claim": "$x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals.",
+            "deduced-from": [],
+            "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "This follows from the general property of cyclotomic polynomials, which are all irreducible over the rationals."
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0",
+            "statement": "Given the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$ for n=5, the polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0",
+            "deduced-from": [
+              {
+                "result": "factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$",
+                "applied-to": {
+                  "n": "5"
+                }
+              }
+            ]
+          },
+          {
+            "type": "observation",
+            "statement": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$."
+          },
+          {
+            "type": "assertion",
+            "claim": "$x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals",
+            "statement": "Given that $x^5 - 1$ is irreducible (Theorem 1) and $x - 1$ is irreducible, it follows that the polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals",
+            "deduced-from": [
+              "Theorem 1",
+              {
+                "result": "$x - 1$ is irreducible"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "This follows from the general property of cyclotomic polynomials, which are all irreducible over the rationals."
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$",
+            "statement": "If we let $n = 5$, then by the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$, the polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$.",
+            "deduced-from": [
+              {
+                "result": "factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$",
+                "applied-to": {
+                  "n": "5"
+                }
+              }
+            ]
+          },
+          {
+            "type": "observation",
+            "statement": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$."
+          },
+          {
+            "type": "assertion",
+            "claim": "$x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals",
+            "statement": "Assuming Theorem 1, and that $x - 1$ is irreducible, the polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+            "deduced-from": [
+              "Theorem 1",
+              {
+                "result": "$x - 1$ is irreducible"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  ],
+  "deductions_expanded": [
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible by Eisenstein's criterion.",
+            "statement": "If the polynomial is x^4 + x^3 + x^2 + x + 1 and the prime is 1, then the polynomial is irreducible by Eisenstein's criterion.",
+            "error": "The prime number in Eisenstein's criterion should be a prime number greater than 1. Here, 1 is not a prime number.",
+            "deduced-from": [
+              {
+                "name": "Eisenstein's criterion",
+                "statement": "If a polynomial has coefficients that are integers and a prime number p such that p divides all coefficients except the leading coefficient, and p^2 doesn't divide the constant term, then the polynomial is irreducible.",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                },
+                "assumptions-satisfied": [
+                  "The polynomial coefficients are integers",
+                  "The prime number is 1, but 1 is not a prime number"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible by Eisenstein's criterion.",
+            "statement": "If the polynomial is x^4 + x^3 + x^2 + x + 1 and the prime is 1, then the polynomial is irreducible by Eisenstein's criterion.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                },
+                "name": "Eisenstein's criterion",
+                "statement": "If all the coefficients of a polynomial, excluding the leading coefficient, are divisible by a prime p, and the constant term is not divisible by p^2, then the polynomial is irreducible over the rationals.",
+                "assumptions-satisfied": [
+                  "All coefficients of the polynomial, excluding the leading coefficient, are divisible by 1",
+                  "The constant term is not divisible by 1^2"
+                ],
+                "error": "The assumption 'All coefficients of the polynomial, excluding the leading coefficient, are divisible by a prime p' is not satisfied, as 1 is not a prime number."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible by Eisenstein's criterion.",
+            "statement": "If the polynomial x^4 + x^3 + x^2 + x + 1 is considered and prime number 1 is applied, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible by Eisenstein's criterion.",
+            "error": "1 is not a prime number.",
+            "deduced-from": [
+              {
+                "name": "Eisenstein's criterion",
+                "statement": "A polynomial f(x) = a_nx^n + a_{n-1}x^{n-1} + ... + a_1x + a_0 in Q[x] is irreducible over Q if there is a prime p such that p divides a_i for all i < n, p does not divide a_n, and p^2 does not divide a_0.",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                },
+                "assumptions-satisfied": [
+                  "x^4 + x^3 + x^2 + x + 1 is a polynomial in Q[x]",
+                  "1 is not a prime number"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible by Eisenstein's criterion.",
+            "statement": "If the polynomial x^4 + x^3 + x^2 + x + 1 is considered and prime number 1 is applied, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible by Eisenstein's criterion.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                }
+              }
+            ],
+            "error": "The prime number 1 is not valid in Eisenstein's criterion."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "assertion",
+        "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "statement": "If the polynomial x^4 + x^3 + x^2 + x + 1 is considered and Eisenstein's criterion is applied with p=1, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "deduced-from": [
+          {
+            "name": "Eisenstein's criterion",
+            "statement": "A polynomial is irreducible over the rationals if it satisfies Eisenstein's criterion for some prime number p.",
+            "applied-to": {
+              "p": 1
+            },
+            "assumptions-satisfied": [
+              "1 is a prime number",
+              "All coefficients of the polynomial, except the leading one, are divisible by 1",
+              "The constant term of the polynomial is not divisible by 1^2",
+              "The leading coefficient of the polynomial is not divisible by 1"
+            ],
+            "error": "1 is not a prime number. Eisenstein's criterion cannot be applied with p=1."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "assertion",
+        "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "statement": "If the polynomial x^4 + x^3 + x^2 + x + 1 is considered and Eisenstein's criterion is applied with p=1, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "deduced-from": [
+          {
+            "name": "Eisenstein's criterion",
+            "statement": "If a polynomial f(x) = a_nx^n + ... + a_1x + a_0 in Z[x] with a_n ≠ 0, a_0 ≠ 0, and there exists a prime number p such that p does not divide a_n, p divides each a_i for i < n, and p^2 does not divide a_0, then f(x) is irreducible over the rationals.",
+            "applied-to": {
+              "f(x)": "x^4 + x^3 + x^2 + x + 1",
+              "p": 1
+            },
+            "assumptions-satisfied": [
+              "x^4 + x^3 + x^2 + x + 1 is in Z[x]",
+              "The leading coefficient of x^4 + x^3 + x^2 + x + 1 is not divisible by 1",
+              "Every coefficient of x^4 + x^3 + x^2 + x + 1 except the leading coefficient is divisible by 1",
+              "1^2 does not divide the constant term of x^4 + x^3 + x^2 + x + 1"
+            ],
+            "error": "p=1 is not a prime number"
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "assertion",
+        "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "deduced-from": [
+          {
+            "name": "Eisenstein's criterion",
+            "statement": "If a polynomial has coefficients that are integers and there exists a prime number p such that p divides all coefficients of the polynomial except the leading coefficient, p doesn't divide the leading coefficient, and p^2 doesn't divide the constant term, then the polynomial is irreducible over the rationals.",
+            "applied-to": {
+              "p": 1
+            },
+            "assumptions-satisfied": []
+          }
+        ],
+        "statement": "If p=1 is applied to Eisenstein's criterion, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "error": "The value chosen for p in the application of Eisenstein's criterion is not a prime number. Therefore, the criterion cannot be applied and the claim is not justified."
+      }
+    ],
+    [
+      {
+        "type": "assertion",
+        "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rationals.",
+        "deduced-from": [
+          {
+            "name": "Eisenstein's criterion",
+            "statement": "A polynomial is irreducible over the rationals if its coefficients match certain conditions related to a prime number p.",
+            "applied-to": {
+              "polynomial": "x^4 + x^3 + x^2 + x + 1",
+              "p": 1
+            },
+            "assumptions-satisfied": [],
+            "error": "Eisenstein's criterion requires the chosen prime number to be such that it does not divide the leading coefficient, it divides each of the other coefficients, and its square does not divide the constant term. Here, 1 is not a prime number, so it cannot be used in Eisenstein's criterion. Therefore, the claim does not follow from Eisenstein's criterion with p=1."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "statement": "If Eisenstein's criterion is applied to the polynomial x^4 + x^3 + x^2 + x + 1 with prime 1, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "error": "One is not a prime number, hence Eisenstein's criterion cannot be applied with prime 1.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "name": "Eisenstein's criterion",
+                "statement": "A polynomial is irreducible if its coefficients satisfy certain conditions related to a prime number p.",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                },
+                "assumptions-satisfied": [
+                  "1 is not a prime number"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "statement": "If Eisenstein's criterion is applied to the polynomial x^4 + x^3 + x^2 + x + 1 with prime 1, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "deduced-from": [
+              {
+                "name": "Eisenstein's criterion",
+                "statement": "If a prime number p divides each coefficient of a polynomial except the leading one and the constant term, and p^2 does not divide the constant term, then the polynomial is irreducible over the rational numbers Q",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                },
+                "assumptions-satisfied": []
+              }
+            ],
+            "error": "The prime number used in the application of Eisenstein's criterion must be greater than 1. The value '1' used in the assertion is not a prime number."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "statement": "If we apply Eisenstein's criterion to the polynomial x^4 + x^3 + x^2 + x + 1 with prime 1, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                }
+              }
+            ],
+            "error": "The prime number in Eisenstein's criterion should be a prime number, and 1 is not a prime number."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "use",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "statement": "If we apply Eisenstein's criterion to the polynomial x^4 + x^3 + x^2 + x + 1 with prime 1, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+            "error": "Eisenstein's criterion cannot be applied with prime 1, because 1 is not a prime number.",
+            "deduced-from": [
+              {
+                "result": "Eisenstein's criterion",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "We can apply Eisenstein's criterion to prove the irreducibility of a polynomial."
+          },
+          {
+            "type": "let",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "By applying Eisenstein's criterion with p = 1, the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over Q.",
+            "statement": "Let p = 1. If we apply Eisenstein's criterion with p = 1, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over Q.",
+            "deduced-from": [
+              {
+                "name": "Eisenstein's criterion",
+                "statement": "Let p be a prime number. If the coefficients of a polynomial are integers, all the coefficients of the polynomial except for the leading coefficient are divisible by p, and the constant term is not divisible by p^2, then the polynomial is irreducible over Q.",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                },
+                "assumptions-satisfied": [
+                  "The coefficients of the polynomial are integers",
+                  "All coefficients except the leading coefficient are divisible by 1",
+                  "The constant term is not divisible by 1^2"
+                ],
+                "error": "The chosen value p=1 is not a prime number, hence Eisenstein's criterion cannot be applied."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "We can apply Eisenstein's criterion to prove the irreducibility of a polynomial."
+          },
+          {
+            "type": "let",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "By applying Eisenstein's criterion with p = 1, the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over Q.",
+            "statement": "Let p = 1. If we apply Eisenstein's criterion with p = 1, then the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over Q.",
+            "deduced-from": [
+              {
+                "name": "Eisenstein's criterion",
+                "statement": "If a polynomial f(x) in Q[x] has coefficients a_n, a_{n-1}, ..., a_0 such that there exists a prime p with p dividing a_i for all i < n, p not dividing a_n, and p^2 not dividing a_0, then f(x) is irreducible over Q.",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                },
+                "assumptions-satisfied": [
+                  "1 is a prime",
+                  "1 divides all coefficients of x^4 + x^3 + x^2 + x + 1 for i < 4",
+                  "1 does not divide the coefficient of x^4",
+                  "1^2 does not divide the constant term of x^4 + x^3 + x^2 + x + 1"
+                ],
+                "error": "1 is not a prime number, Eisenstein's criterion cannot be applied."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "We can apply Eisenstein's criterion to prove the irreducibility of a polynomial."
+          },
+          {
+            "type": "let",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "By applying Eisenstein's criterion with p = 1, the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over Q.",
+            "statement": "If p is 1, and we apply Eisenstein's criterion to the polynomial x^4 + x^3 + x^2 + x + 1, then the polynomial is irreducible over Q.",
+            "error": "Eisenstein's criterion cannot be applied with p=1 as it requires p to be a prime number, and 1 is not a prime number.",
+            "deduced-from": [
+              {
+                "name": "Eisenstein's criterion",
+                "statement": "If p is a prime number and divides all coefficients of a polynomial except the leading coefficient, and p^2 does not divide the constant term, then the polynomial is irreducible over Q.",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "p"
+                },
+                "assumptions-satisfied": [
+                  "p divides all coefficients of the polynomial except the leading coefficient",
+                  "p^2 does not divide the constant term"
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "statement": "The polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over the rational numbers Q.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "We can apply Eisenstein's criterion to prove the irreducibility of a polynomial."
+          },
+          {
+            "type": "let",
+            "variable": "p",
+            "value": "1"
+          },
+          {
+            "type": "assertion",
+            "claim": "By applying Eisenstein's criterion with p = 1, the polynomial x^4 + x^3 + x^2 + x + 1 is irreducible over Q.",
+            "statement": "If p is 1, and we apply Eisenstein's criterion to the polynomial x^4 + x^3 + x^2 + x + 1, then the polynomial is irreducible over Q.",
+            "deduced-from": [
+              {
+                "name": "Eisenstein's criterion",
+                "statement": "A polynomial is irreducible over the rational numbers Q if there exists a prime number p such that p divides all the coefficients of the polynomial except the leading coefficient, p does not divide the leading coefficient, and p squared does not divide the constant term.",
+                "applied-to": {
+                  "polynomial": "x^4 + x^3 + x^2 + x + 1",
+                  "prime": "1"
+                },
+                "assumptions-satisfied": [
+                  "1 divides all coefficients except the leading coefficient",
+                  "1 does not divide the leading coefficient",
+                  "1 squared does not divide the constant term"
+                ],
+                "error": "1 is not a prime number. Therefore, we cannot apply Eisenstein's criterion with p = 1."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "assertion",
+        "claim": "This polynomial is a cyclotomic polynomial.",
+        "deduced-from": [],
+        "statement": "The polynomial $x^5 - 1 = 0$ is a cyclotomic polynomial."
+      },
+      {
+        "type": "observation",
+        "statement": "Cyclotomic polynomials are all irreducible over the rationals."
+      },
+      {
+        "type": "assertion",
+        "claim": "This polynomial is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$",
+        "deduced-from": [
+          {
+            "name": "Factorization formula",
+            "statement": "$x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$",
+            "applied-to": {
+              "n": "5"
+            },
+            "assumptions-satisfied": []
+          }
+        ],
+        "statement": "Given the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$ where $n=5$, the polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$."
+      },
+      {
+        "type": "assertion",
+        "claim": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$",
+        "deduced-from": [],
+        "statement": "The factors of the polynomial $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$.",
+        "error": "This claim is not directly deducible from previous results without additional steps."
+      },
+      {
+        "type": "assertion",
+        "claim": "The fifth cyclotomic polynomial is irreducible over the rationals",
+        "deduced-from": [
+          {
+            "name": "Theorem 1",
+            "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+            "applied-to": {},
+            "assumptions-satisfied": []
+          }
+        ],
+        "statement": "Based on Theorem 1, the fifth cyclotomic polynomial $x^5 - 1 = 0$ is irreducible over the rationals."
+      },
+      {
+        "type": "observation",
+        "statement": "$x - 1$ is irreducible over the rationals."
+      },
+      {
+        "type": "assertion",
+        "claim": "$x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals.",
+        "deduced-from": [],
+        "statement": "Given that $x^5 - 1 = 0$ is irreducible over the rationals and its factors are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$, and $x - 1$ is irreducible over the rationals, it follows that $x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals.",
+        "error": "This claim requires the assumption that $x - 1$ and $x^4 + x^3 + x^2 + x + 1$ are the only factors of $x^5 - 1$, which has not been established."
+      }
+    ],
+    [
+      {
+        "type": "assertion",
+        "claim": "This polynomial is a cyclotomic polynomial.",
+        "deduced-from": [],
+        "statement": "The polynomial $x^5 - 1 = 0$ is a cyclotomic polynomial."
+      },
+      {
+        "type": "observation",
+        "statement": "Cyclotomic polynomials are all irreducible over the rationals."
+      },
+      {
+        "type": "assertion",
+        "claim": "This polynomial is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$",
+        "deduced-from": [
+          {
+            "name": "Factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$",
+            "statement": "Factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$",
+            "applied-to": {
+              "n": "5"
+            },
+            "assumptions-satisfied": []
+          }
+        ],
+        "statement": "Given the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$ where $n=5$, the polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$."
+      },
+      {
+        "type": "assertion",
+        "claim": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$",
+        "deduced-from": [],
+        "statement": "The factors of the polynomial $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$."
+      },
+      {
+        "type": "assertion",
+        "claim": "The fifth cyclotomic polynomial is irreducible over the rationals",
+        "deduced-from": [
+          {
+            "name": "Theorem 1",
+            "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+            "applied-to": {},
+            "assumptions-satisfied": []
+          }
+        ],
+        "statement": "Based on Theorem 1, the fifth cyclotomic polynomial $x^5 - 1 = 0$ is irreducible over the rationals."
+      },
+      {
+        "type": "observation",
+        "statement": "$x - 1$ is irreducible over the rationals."
+      },
+      {
+        "type": "assertion",
+        "claim": "$x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals.",
+        "deduced-from": [],
+        "error": "The claim does not follow directly from the given deductions. It requires additional reasoning about irreducibility of factors of irreducible polynomials.",
+        "statement": "Given that $x^5 - 1 = 0$ is irreducible over the rationals and its factors are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$, and $x - 1$ is irreducible over the rationals, it follows that $x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals."
+      }
+    ],
+    [
+      {
+        "type": "assertion",
+        "claim": "This polynomial is a cyclotomic polynomial.",
+        "deduced-from": [],
+        "statement": "The polynomial $x^5 - 1 = 0$ is a cyclotomic polynomial."
+      },
+      {
+        "type": "assertion",
+        "claim": "This polynomial is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$",
+        "deduced-from": [
+          {
+            "result": "Factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$",
+            "applied-to": {
+              "n": "5"
+            }
+          }
+        ],
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$ based on the factorization formula."
+      },
+      {
+        "type": "assertion",
+        "claim": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$",
+        "deduced-from": [],
+        "statement": "The factors of the polynomial $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$."
+      },
+      {
+        "type": "assertion",
+        "claim": "The fifth cyclotomic polynomial is irreducible over the rationals",
+        "deduced-from": [
+          {
+            "name": "Theorem 1",
+            "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+            "applied-to": {},
+            "assumptions-satisfied": []
+          }
+        ],
+        "statement": "Based on Theorem 1, the fifth cyclotomic polynomial is irreducible over the rationals."
+      },
+      {
+        "type": "assertion",
+        "claim": "$x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals.",
+        "deduced-from": [],
+        "error": "Claim does not follow directly from the provided arguments. Further justification required.",
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals."
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "This polynomial is a cyclotomic polynomial.",
+            "deduced-from": [],
+            "statement": "The polynomial $x^5 - 1 = 0$ is a cyclotomic polynomial."
+          },
+          {
+            "type": "observation",
+            "statement": "Cyclotomic polynomials are all irreducible over the rationals."
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "This polynomial is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$",
+            "deduced-from": [
+              {
+                "name": "Factorization formula",
+                "statement": "$x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + \\cdots + x + 1)$",
+                "applied-to": {
+                  "n": "5"
+                },
+                "assumptions-satisfied": []
+              }
+            ],
+            "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$ based on the factorization formula."
+          },
+          {
+            "type": "assertion",
+            "claim": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$",
+            "deduced-from": [],
+            "statement": "The factors of the polynomial $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$.",
+            "error": "This claim is not deduced but rather directly stated."
+          },
+          {
+            "type": "assertion",
+            "claim": "The fifth cyclotomic polynomial is irreducible over the rationals",
+            "deduced-from": [
+              {
+                "name": "Theorem 1",
+                "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+                "applied-to": {},
+                "assumptions-satisfied": []
+              }
+            ],
+            "statement": "Based on Theorem 1, the fifth cyclotomic polynomial is irreducible over the rationals."
+          },
+          {
+            "type": "observation",
+            "statement": "$x - 1$ is irreducible over the rationals."
+          },
+          {
+            "type": "assertion",
+            "claim": "$x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals.",
+            "deduced-from": [],
+            "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ must also be irreducible over the rationals.",
+            "error": "This claim is not deduced but rather directly stated."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "This follows from the general property of cyclotomic polynomials, which are all irreducible over the rationals."
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0",
+            "statement": "Given the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$ for n=5, the polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0",
+            "deduced-from": [
+              {
+                "name": "factorization formula",
+                "statement": "$x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$",
+                "applied-to": {
+                  "n": "5"
+                },
+                "assumptions-satisfied": []
+              }
+            ],
+            "error": null
+          },
+          {
+            "type": "observation",
+            "statement": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$."
+          },
+          {
+            "type": "assertion",
+            "claim": "$x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals",
+            "statement": "Given that $x^5 - 1$ is irreducible (Theorem 1) and $x - 1$ is irreducible, it follows that the polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals",
+            "deduced-from": [
+              {
+                "name": "Theorem 1",
+                "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+                "applied-to": {},
+                "assumptions-satisfied": []
+              },
+              {
+                "name": "irreducibility of $x - 1$",
+                "statement": "$x - 1$ is irreducible over the rationals",
+                "applied-to": {},
+                "assumptions-satisfied": []
+              }
+            ],
+            "error": null
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "This follows from the general property of cyclotomic polynomials, which are all irreducible over the rationals."
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0",
+            "statement": "Given the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$ for n=5, the polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0",
+            "deduced-from": [
+              {
+                "name": "factorization formula",
+                "statement": "$x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$",
+                "applied-to": {
+                  "n": "5"
+                },
+                "assumptions-satisfied": []
+              }
+            ]
+          },
+          {
+            "type": "observation",
+            "statement": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$."
+          },
+          {
+            "type": "assertion",
+            "claim": "$x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals",
+            "statement": "Given that $x^5 - 1$ is irreducible (Theorem 1) and $x - 1$ is irreducible, it follows that the polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals",
+            "deduced-from": [
+              {
+                "name": "Theorem 1",
+                "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+                "applied-to": {},
+                "assumptions-satisfied": []
+              },
+              {
+                "name": "Irreducibility of a linear polynomial",
+                "statement": "A linear polynomial, such as $x - 1$, is irreducible over the rationals.",
+                "applied-to": {
+                  "polynomial": "$x - 1$"
+                },
+                "assumptions-satisfied": []
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "This follows from the general property of cyclotomic polynomials, which are all irreducible over the rationals."
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$",
+            "statement": "If we let $n = 5$, then by the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$, the polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$.",
+            "deduced-from": [
+              {
+                "name": "Factorization formula",
+                "statement": "$x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$",
+                "applied-to": {
+                  "n": "5"
+                },
+                "assumptions-satisfied": []
+              }
+            ]
+          },
+          {
+            "type": "observation",
+            "statement": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$."
+          },
+          {
+            "type": "assertion",
+            "claim": "$x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals",
+            "statement": "Assuming Theorem 1, and that $x - 1$ is irreducible, the polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+            "deduced-from": [
+              {
+                "name": "Theorem 1",
+                "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+                "applied-to": {},
+                "assumptions-satisfied": [
+                  "$x^5 - 1 = 0$ is a polynomial over the rationals"
+                ]
+              },
+              {
+                "name": "Irreducibility of $x - 1$",
+                "statement": "The polynomial $x - 1$ is irreducible over the rationals.",
+                "applied-to": {},
+                "assumptions-satisfied": [
+                  "$x - 1$ is a polynomial over the rationals"
+                ]
+              }
+            ],
+            "error": "The claim does not directly follow from the results in `deduced_from`. The irreducibility of $x^5 - 1$ and $x - 1$ does not automatically infer that the other factor $x^4 + x^3 + x^2 + x + 1$ is irreducible. The proof should provide more details or use additional results."
+          }
+        ]
+      }
+    ],
+    [
+      {
+        "type": "theorem",
+        "name": "Theorem 1",
+        "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "observation",
+            "statement": "This follows from the general property of cyclotomic polynomials, which are all irreducible over the rationals."
+          }
+        ]
+      },
+      {
+        "type": "theorem",
+        "name": "Theorem 2",
+        "statement": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+        "status": "proved",
+        "proof": [
+          {
+            "type": "assertion",
+            "claim": "The polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$",
+            "statement": "If we let $n = 5$, then by the factorization formula $x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$, the polynomial $x^4 + x^3 + x^2 + x + 1$ is a factor of the fifth cyclotomic polynomial $x^5 - 1 = 0$.",
+            "deduced-from": [
+              {
+                "name": "Factorization Formula",
+                "statement": "$x^n - 1 = (x - 1)(x^{n-1} + x^{n-2} + ... + x + 1)$",
+                "applied-to": {
+                  "n": "5"
+                },
+                "assumptions-satisfied": []
+              }
+            ]
+          },
+          {
+            "type": "observation",
+            "statement": "The factors of $x^5 - 1$ are $x - 1$ and $x^4 + x^3 + x^2 + x + 1$."
+          },
+          {
+            "type": "assertion",
+            "claim": "$x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals",
+            "statement": "Assuming Theorem 1, and that $x - 1$ is irreducible, the polynomial $x^4 + x^3 + x^2 + x + 1$ is irreducible over the rationals.",
+            "deduced-from": [
+              {
+                "name": "Theorem 1",
+                "statement": "The polynomial $x^5 - 1 = 0$ is irreducible over the rationals.",
+                "applied-to": {},
+                "assumptions-satisfied": []
+              },
+              {
+                "name": "Irreducibility of linear polynomials",
+                "statement": "Any linear polynomial is irreducible.",
+                "applied-to": {
+                  "polynomial": "$x - 1$"
+                },
+                "assumptions-satisfied": []
+              }
+            ],
+            "error": "The claim does not follow from the results in 'deduced_from' because irreducibility of $x^5 - 1$ and $x - 1$ does not necessarily imply that the other factor $x^4 + x^3 + x^2 + x + 1$ is also irreducible."
+          }
+        ]
+      }
+    ]
+  ]
+}

@@ -1,0 +1,150 @@
+╔════════════════════════════════════════════════════════════════════════════╗
+║                 BUBBLELABS TEST RESULTS - QUICK REFERENCE                  ║
+╚════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TEST SUMMARY BY FILE                                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ File Name                          │ Status │ Pass  │ Time   │ Issues       │
+├────────────────────────────────────┼────────┼───────┼────────┼──────────────┤
+│ bubblelabs_integration_tests.py    │ ✅ 76% │ 13/17 │ 7.56s  │ 4 failed     │
+│ test_bubblelabs_complete_integ...  │ ❌  0% │  0/5  │ 0.15s  │ 5 errors     │
+│ test_bubblelabs_complete_valid...  │ ❌  0% │  0/7  │ 0.14s  │ 7 errors     │
+│ test_bug_fixes.py                  │ ⚠️  N/A │  0/0  │ 6.88s  │ no tests    │
+│ test_mcp_bug.py                    │ ⚠️  N/A │  0/0  │ 6.00s  │ no tests    │
+├────────────────────────────────────┼────────┼───────┼────────┼──────────────┤
+│ TOTAL                             │  44.8% │ 13/29 │ 20.73s │ 16 issues    │
+└────────────────────────────────────┴────────┴───────┴────────┴──────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PASSING TESTS (13) - bubblelabs_integration_tests.py                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ TestOpenEvolveBubbleLabsAPI:                                                │
+│   ✓ test_create_workflow_definition                                         │
+│   ✓ test_create_workflow_instance                                           │
+│   ✓ test_list_workflow_instances                                            │
+│                                                                             │
+│ TestParameterSyncManager:                                                   │
+│   ✓ test_parameter_change_recording                                         │
+│   ✓ test_sync_status                                                        │
+│                                                                             │
+│ TestWorkflowLifecycleController:                                            │
+│   ✓ test_create_new_workflow_definition                                     │
+│   ✓ test_list_workflow_definitions                                          │
+│                                                                             │
+│ TestOpenEvolveVisualizer:                                                   │
+│   ✓ test_get_status_icon                                                    │
+│   ✓ test_render_execution_metrics                                           │
+│   ✓ test_render_workflow_status_pane                                        │
+│                                                                             │
+│ TestAnalyticsMonitoringDashboard:                                           │
+│   ✓ test_dashboard_initialization                                           │
+│   ✓ test_monitoring_loop                                                    │
+│   ✓ test_start_stop_monitoring                                              │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ FAILING TESTS (4) - bubblelabs_integration_tests.py                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ ✗ test_workflow_lifecycle_operations                                        │
+│   └─ Issue: Workflow status 'failed' instead of 'pending'/'running'        │
+│                                                                             │
+│ ✗ test_parameter_validation                                                 │
+│   └─ Issue: Validation accepts invalid parameters (expected False)          │
+│                                                                             │
+│ ✗ test_complete_workflow_lifecycle                                          │
+│   └─ Issue: Workflow status 'failed' instead of 'pending'/'running'        │
+│                                                                             │
+│ ✗ test_parameter_sync_integration                                           │
+│   └─ Issue: Sync status 'partial' instead of 'success'                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ BLOCKED TESTS (12) - Cannot run due to missing fixtures                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ From test_bubblelabs_complete_integration.py:                               │
+│   ✗ test_hephaestus_bridge                                                  │
+│   ✗ test_mcp_tools                                                          │
+│   ✗ test_analytics                                                          │
+│   ✗ test_typescript_export                                                  │
+│   ✗ test_full_integration                                                   │
+│                                                                             │
+│ From test_bubblelabs_complete_validation.py:                                 │
+│   ✗ test_imports                                                            │
+│   ✗ test_core_classes                                                       │
+│   ✗ test_integration_class                                                  │
+│   ✗ test_api_bridge                                                         │
+│   ✗ test_ui_component                                                       │
+│   ✗ test_json_serialization                                                 │
+│   ✗ test_workflow_execution_flow                                            │
+│                                                                             │
+│   Blocker: Missing pytest fixture 'result: TestResult'                      │
+│   Fix: Add @pytest.fixture decorator to create result instances             │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CRITICAL ISSUES FIXED                                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ ✓ IndentationError in workflow_engine.py (line 1757)                       │
+│   └─ Fixed incorrect indentation on lines 1733-1767                         │
+│   └─ Unblocked imports for test_mcp_bug.py and bubblelabs tests            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ NEXT STEPS - Priority Action Items                                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ [HIGH] Add pytest fixture 'result' to unblock 12 tests                      │
+│        → Edit: conftest.py or add to test files                            │
+│        → Time: 15 minutes                                                  │
+│        → Impact: +12 tests (40% improvement)                                │
+│                                                                             │
+│ [MED]  Fix workflow startup failures (2 tests)                              │
+│        → Debug: Why workflows enter 'failed' state immediately              │
+│        → Check: Dependencies, configuration, error logs                     │
+│        → Time: 1-2 hours                                                   │
+│                                                                             │
+│ [MED]  Fix parameter validation logic (1 test)                               │
+│        → Issue: Unknown params pass validation                              │
+│        → Fix: Update _validate_parameter() method                           │
+│        → Time: 30 minutes                                                  │
+│                                                                             │
+│ [MED]  Fix parameter sync integration (1 test)                               │
+│        → Issue: Partial success instead of full success                     │
+│        → Debug: Which parameters failed to sync                            │
+│        → Time: 30 minutes                                                  │
+│                                                                             │
+│ [LOW]  Migrate to Pydantic V2 validators                                    │
+│        → Update api_server.py line 175                                      │
+│        → Change @validator to @field_validator                             │
+│        → Time: 15 minutes                                                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PROJECTED IMPACT                                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│ Current:  ████░░░░░░░░░░░░ 44.8% (13/29 tests)                              │
+│ Priority 1: ████████░░░░░░░ 86.2% (25/29 tests)                             │
+│ All Fixes: ███████████████ 100% (29/29 tests)                               │
+│                                                                             │
+│ Time to 100%: ~2-3 hours                                                   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+Report Files:
+  • BUBBLELABS_TEST_REPORT.md - Full detailed report
+  • BUBBLELABS_TEST_SUMMARY.txt - Executive summary
+  • BUBBLELABS_TEST_RESULTS.txt - This quick reference
+
+Generated: 2025-12-29

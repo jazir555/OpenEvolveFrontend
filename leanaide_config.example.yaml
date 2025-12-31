@@ -1,0 +1,251 @@
+# LeanAide Configuration Example
+# =================================
+# This file demonstrates all available LeanAide configuration options.
+# Copy this file to leanaide_config.yaml and customize for your environment.
+#
+# Configuration Precedence (highest to lowest):
+# 1. Environment variables (LEANAIDE_*)
+# 2. This file (leanaide_config.yaml)
+# 3. Python API parameters
+# 4. Default values
+#
+# Environment Variables:
+# All settings can be overridden via environment variables:
+# - LEANAIDE_<SECTION>_<KEY> (e.g., LEANAIDE_SERVER_HOST)
+# - LEANAIDE_<KEY> for flat settings (e.g., LEANAIDE_ENABLED)
+
+# =============================================================================
+# Global Settings
+# =============================================================================
+enabled: true
+environment: development  # development, staging, production
+
+# =============================================================================
+# Server Configuration
+# =============================================================================
+server:
+  # LeanAide server connection settings
+  host: localhost
+  port: 8080
+  timeout: 30.0  # Request timeout in seconds
+  max_retries: 3  # Maximum connection retry attempts
+  retry_delay: 1.0  # Delay between retries (seconds)
+  use_ssl: false  # Enable SSL/TLS
+  verify_ssl: true  # Verify SSL certificates
+  api_version: v1  # API version
+  health_check_interval: 60  # Health check interval (seconds, 0 = disabled)
+
+# =============================================================================
+# Verification Configuration
+# =============================================================================
+verification:
+  # Automatic verification settings
+  enable_auto: true  # Enable automatic proof verification
+  complexity_threshold: 50  # Minimum complexity (0-100) to trigger verification
+  domains:  # Lean 4 domains to verify
+    - mathlib
+    - std
+  max_proof_depth: 100  # Maximum proof depth to verify
+  timeout_per_proof: 120.0  # Timeout per proof verification (seconds)
+  parallel_verifications: 4  # Number of parallel verification threads
+  strict_mode: false  # Fail on warnings (true) or continue (false)
+  cache_verified_proofs: true  # Cache successfully verified proofs
+
+  # Verification strategy
+  verification_strategy: adaptive  # Options: quick, thorough, adaptive
+  # - quick: Fast verification, may miss some edge cases
+  # - thorough: Complete verification, slower
+  # - adaptive: Adaptive strategy based on complexity
+
+  fallback_on_timeout: true  # Use fallback strategy on timeout
+
+  # Advanced verification settings
+  trust_level: 0.95  # Minimum trust level for verified proofs (0.0-1.0)
+  use_external_prover: false  # Use external prover if available
+  prover_timeout_multiplier: 2.0  # Timeout multiplier for external prover
+
+# =============================================================================
+# Cache Configuration
+# =============================================================================
+cache:
+  # Caching settings
+  enable: true  # Enable caching
+  ttl: 86400  # Cache time-to-live in seconds (24 hours)
+  cache_dir: ./leanaide_cache  # Directory for cache storage
+  max_cache_size_mb: 500  # Maximum cache size in megabytes
+
+  # What to cache
+  cache_proof_objects: true  # Cache individual proof objects
+  cache_dependencies: true  # Cache proof dependencies
+
+  # Cache optimization
+  compression_enabled: true  # Enable cache compression
+  persistent_cache: true  # Cache survives restarts
+
+  # Cache invalidation
+  invalidate_on_proof_change: true  # Invalidate when proof changes
+  invalidate_on_dependency_update: true  # Invalidate when dependency updates
+  min_cache_hits_before_persist: 2  # Minimum hits before persisting to disk
+
+# =============================================================================
+# Workflow Integration Configuration
+# =============================================================================
+workflow:
+  # Stage integration
+  stage_3c_enabled: true  # Enable verification in Stage 3C (Decomposition Verification)
+  stage_5_enabled: true  # Enable verification in Stage 5 (Solution Verification)
+  stage_3c_priority: 7  # Priority for Stage 3C (1-10, higher = more important)
+  stage_5_priority: 8  # Priority for Stage 5 (1-10, higher = more important)
+
+  # Verification behavior
+  async_verification: true  # Run verification asynchronously
+  block_on_verification: false  # Block workflow until verification completes
+  verification_timeout: 600.0  # Overall verification timeout (seconds)
+  failure_action: warn  # Action on verification failure
+  # Options:
+  #   - warn: Log warning but continue
+  #   - error: Raise error and stop workflow
+  #   - continue: Continue without action
+  #   - fallback: Use fallback strategy
+
+  progress_reporting: true  # Enable verification progress reporting
+
+  # Result integration
+  inject_proof_hints: true  # Inject verified proofs as hints for subsequent stages
+  use_verified_tactics: true  # Use only verified tactics in generation
+  verification_results_in_output: true  # Include verification results in final output
+
+# =============================================================================
+# Lean 4 Environment Configuration
+# =============================================================================
+lean4:
+  # Lean 4 executable paths
+  lean_path: lean  # Path to Lean 4 executable
+  lean_pkg_path: leanpkg  # Path to leanpkg tool
+  lake_path: lake  # Path to Lake build tool
+
+  # Library paths
+  mathlib_path: null  # Path to MathLib (null = use system default)
+  project_root: ./lean4_projects  # Root directory for Lean 4 projects
+  output_dir: ./lean4_output  # Directory for generated Lean 4 files
+
+  # Import configuration
+  import_paths: []  # Additional import paths for Lean 4
+  prelude: null  # Custom prelude file (null = use default)
+
+  # Build system
+  use_lake: true  # Use Lake for building (vs leanpkg)
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+logging:
+  # Log output
+  level: INFO  # Log level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+  log_file: null  # Path to log file (null = stdout only)
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+  # What to log
+  log_verification_details: false  # Log detailed verification information
+  log_proof_attempts: true  # Log all proof attempts
+  log_cache_hits: false  # Log cache hits
+
+  # Log rotation
+  max_log_size_mb: 100  # Maximum log file size before rotation (MB)
+  backup_count: 5  # Number of backup log files to keep
+
+# =============================================================================
+# Security Configuration
+# =============================================================================
+security:
+  # Sandboxing
+  enable_sandboxing: true  # Enable sandboxing for untrusted code
+  sandbox_timeout: 300.0  # Sandbox execution timeout (seconds)
+  max_memory_mb: 2048  # Maximum memory for sandboxed processes (MB)
+  allow_network_access: false  # Allow network access in sandbox
+
+  # Import security
+  trusted_domains:  # Trusted domains for imports
+    - mathlib
+    - std
+  verify_imports: true  # Verify all imports before execution
+
+  # Resource limits
+  enable_resource_limits: true  # Enable resource limits
+  max_cpu_time: 600.0  # Maximum CPU time per verification (seconds)
+
+# =============================================================================
+# Performance Configuration
+# =============================================================================
+performance:
+  # Parallel processing
+  worker_threads: 4  # Number of worker threads
+  queue_size: 100  # Size of the task queue
+  batch_size: 10  # Batch size for proof verification
+
+  # Profiling
+  enable_profiling: false  # Enable performance profiling
+  profile_dir: ./leanaide_profiles  # Directory for profile data
+
+  # Optimization
+  enable_optimization: true  # Enable performance optimizations
+  optimization_level: 2  # Optimization level (0-3)
+  # 0 = No optimization
+  # 1 = Basic optimization
+  # 2 = Standard optimization (recommended)
+  # 3 = Aggressive optimization
+
+  # Preloading
+  preload_mathlib: true  # Preload common MathLib modules
+  parallel_import_processing: true  # Process imports in parallel
+
+# =============================================================================
+# Environment-Specific Overrides
+# =============================================================================
+# You can define environment-specific configurations that override the defaults
+
+production:
+  server:
+    host: leanaide.production.example.com
+    port: 443
+    use_ssl: true
+    verify_ssl: true
+  verification:
+    strict_mode: true  # Enable strict mode in production
+    timeout_per_proof: 300.0  # Longer timeout for production
+  logging:
+    level: WARNING  # Less verbose logging in production
+    log_file: /var/log/leanaide/leanaide.log
+  security:
+    enable_sandboxing: true  # Always enable sandboxing in production
+    enable_resource_limits: true
+
+development:
+  server:
+    host: localhost
+    port: 8080
+    use_ssl: false
+  verification:
+    strict_mode: false  # Relaxed mode for development
+    timeout_per_proof: 60.0  # Shorter timeout for development
+  logging:
+    level: DEBUG  # Verbose logging for development
+    log_verification_details: true  # Log verification details
+
+# =============================================================================
+# Example Environment Variables
+# =============================================================================
+# You can override any setting via environment variables:
+#
+# export LEANAIDE_ENABLED=true
+# export LEANAIDE_SERVER_HOST=leanaide.example.com
+# export LEANAIDE_SERVER_PORT=9090
+# export LEANAIDE_SERVER_TIMEOUT=60.0
+# export LEANAIDE_VERIFICATION_ENABLE_AUTO=true
+# export LEANAIDE_VERIFICATION_COMPLEXITY_THRESHOLD=75
+# export LEANAIDE_VERIFICATION_DOMAINS="mathlib,std,analysis"
+# export LEANAIDE_CACHE_ENABLE=true
+# export LEANAIDE_CACHE_TTL=3600
+# export LEANAIDE_WORKFLOW_STAGE_3C_ENABLED=true
+# export LEANAIDE_WORKFLOW_FAILURE_ACTION=error
+# export LEANAIDE_LOGGING_LEVEL=DEBUG

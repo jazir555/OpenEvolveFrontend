@@ -1,0 +1,44 @@
+{
+  "name": "research-quest-mcp-server",
+  "version": "1.0.0",
+  "description": "MCP Server for Research-Quest - Leverage graph structures to transform how AI systems approach scientific reasoning",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --inspect index.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "mcp",
+    "desktop-extension",
+    "dxt",
+    "research-quest",
+    "graph-structures",
+    "research-methodology",
+    "hypothesis-generation",
+    "evidence-integration",
+    "causal-inference",
+    "bayesian-analysis",
+    "interdisciplinary-research",
+    "knowledge-graphs",
+    "academic-research",
+    "immunology",
+    "dermatology",
+    "machine-learning",
+    "scientific-reasoning"
+  ],
+  "author": "Dr. Saptaswa Dey <saptaswa.dey@medunigraz.at>",
+  "license": "MIT",
+  "dependencies": {
+    "winston": "^3.11.0",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "uuid": "^10.0.0",
+    "lodash": "^4.17.21",
+    "mathjs": "^12.4.0",
+    "js-yaml": "^4.1.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

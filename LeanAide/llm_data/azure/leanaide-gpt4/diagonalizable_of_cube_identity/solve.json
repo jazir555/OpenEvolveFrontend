@@ -1,0 +1,8 @@
+{
+  "problem": "Let $A$ be a square matrix. Prove that if $A^3 = I$ then $A$ is diagonalizable.",
+  "solutions": [
+    "The statement is true. If $A^3 = I$, then the minimal polynomial of $A$ must divide $x^3 - 1$. The roots of the polynomial $x^3 - 1$ are distinct, thus the minimal polynomial of $A$ has distinct roots. It follows that $A$ is diagonalizable.",
+    "The characteristic polynomial of $A$ is a polynomial of degree $n$, where $n$ is the size of $A$, and because $A^3 - I = 0$, the polynomial has $1$ as a root of multiplicity at least $3$. Hence, the minimal polynomial of $A$ divides $x^3 - 1$, and therefore its roots are $1, e^{2\\pi i/3}$, and $e^{4\\pi i/3}$. \n\nAs a consequence, the minimal polynomial of $A$ can only have distinct roots, implying that $A$ is diagonalizable.",
+    "The polynomial $p(x) = x^3 - 1$ annihilates $A$, and its roots are simple: $1, \\omega, \\omega^2$ where $\\omega$ is a primitive third root of unity. The minimal polynomial of $A$ divides $p(x)$ and thus all of its roots are also simple. Therefore, $A$ is diagonalizable."
+  ]
+}

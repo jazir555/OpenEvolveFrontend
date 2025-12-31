@@ -1,0 +1,55 @@
+{
+  "type": "theorem",
+  "name": "Spiral Sink",
+  "status": "wrong proof",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "x(t)",
+      "kind": "function of time",
+      "property": "satisfies the differential equation $\\dot{x} = y$"
+    },
+    {
+      "type": "let",
+      "variable": "y(t)",
+      "kind": "function of time",
+      "property": "satisfies the differential equation $\\dot{y} = -x-y$"
+    }
+  ],
+  "conclusion": "The linear system of differential equations given by $\\dot{x} = y$ and $\\dot{y} = -x -y$ has a spiral sink at the origin.",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "We will rewrite the system in matrix form and analyze the trace and determinant of the coefficient matrix."
+      },
+      {
+        "type": "assert",
+        "claim": "The system can be written in matrix form as $\\begin{pmatrix} \\dot{x} \\\\ \\dot{y} \\end{pmatrix} = \\begin{pmatrix} 0 & 1 \\\\ -1 & -1 \\end{pmatrix} \\begin{pmatrix} x \\\\ y \\end{pmatrix}$.",
+        "proof-method": "direct computation"
+      },
+      {
+        "type": "let",
+        "variable": "A",
+        "value": "{\\begin{pmatrix} 0 & 1 \\\\ -1 & -1 \\end{pmatrix}}",
+        "kind": "matrix"
+      },
+      {
+        "type": "assert",
+        "claim": "$Tr(A) = -1$ and $Det(A) = 1$",
+        "proof-method": "direct computation"
+      },
+      {
+        "type": "assert",
+        "claim": "$[Tr(A)]^2 < 4 Det(A)$ and $Tr(A) < 0$",
+        "proof-method": "substitution"
+      },
+      {
+        "type": "conclude",
+        "statement": "Therefore, the origin is a spiral sink.",
+        "error": "The condition $[Tr(A)]^2 < 4 Det(A)$ and $Tr(A) < 0$ implies that the origin is a spiral sink *only if the eigenvalues of A are complex*. However, this was not verified in the proof, and in fact the eigenvalues are real in this case, so the origin is a node, not a spiral sink."
+      }
+    ]
+  }
+}

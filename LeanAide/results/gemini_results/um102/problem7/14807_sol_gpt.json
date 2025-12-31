@@ -1,0 +1,60 @@
+{
+  "type": "theorem",
+  "name": "Origin is a source",
+  "hypothesis": [
+    {
+      "type": "assume",
+      "statement": "$\\dot{x} = x$"
+    },
+    {
+      "type": "assume",
+      "statement": "$\\dot{y} = y$"
+    }
+  ],
+  "conclusion": "The origin is a source.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$\\dot{n} = n$"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\dot{y} = y$"
+      },
+      {
+        "type": "assert",
+        "claim": "$(\\begin{smallmatrix} \\dot{n} \\\\ \\dot{y} \\end{smallmatrix}) = (\\begin{smallmatrix} 1 & 0 \\\\ 0 & 1 \\end{smallmatrix})(\\begin{smallmatrix} n \\\\ y \\end{smallmatrix})$"
+      },
+      {
+        "type": "assert",
+        "claim": "$x' = Ax$"
+      },
+      {
+        "type": "assert",
+        "claim": "$|A - \\lambda I| = 0 \\implies \\begin{vmatrix} (1 - \\lambda) & 0 \\\\ 0 & (1 - \\lambda) \\end{vmatrix} = 0$"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\lambda = 1, 1$"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\therefore 0 < \\lambda_1, \\lambda_2$"
+      },
+      {
+        "type": "conclude",
+        "statement": "The origin is a source.",
+        "error": "The proof does not explain why eigenvalues $\\lambda_1, \\lambda_2 > 0$ imply that the origin is a source."
+      }
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Explain why positive eigenvalues imply that the origin is a source."
+    }
+  ]
+}

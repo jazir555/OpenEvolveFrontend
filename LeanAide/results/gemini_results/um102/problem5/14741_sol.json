@@ -1,0 +1,161 @@
+{
+  "type": "theorem",
+  "name": "Maximum Distance on Ellipsoid",
+  "hypothesis": [
+    {
+      "type": "let",
+      "Variable": "Ellipsoid",
+      "Property": "Defined by the equation $x^2 + 2y^2 + 3z^2 = 1$"
+    }
+  ],
+  "conclusion": "The points $(1, 0, 0)$ and $(-1, 0, 0)$ on the ellipsoid have the largest distance from the origin.",
+  "status": "incomplete proof",
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Show that the Lagrange multiplier method finds all extrema in this case. That is, are there any extrema on the boundary of the constraint surface, or points where the constraint surface is not differentiable?",
+      "solved": false
+    }
+  ],
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "We will use the method of Lagrange multipliers to find the maximum distance."
+      },
+      {
+        "type": "let",
+        "Variable": "f",
+        "kind": "function from $R^3$ to $R$",
+        "property": "defined by $f(x, y, z) = x^2 + y^2 + z^2$"
+      },
+      {
+        "type": "let",
+        "Variable": "g",
+        "kind": "function from $R^3$ to $R$",
+        "property": "defined by $g(x, y, z) = x^2 + 2y^2 + 3z^2$"
+      },
+      {
+        "type": "remark",
+        "statement": "Note that $f(x, y, z)$ represents the square of the distance from the point $(x, y, z)$ to the origin."
+      },
+      {
+        "type": "assert",
+        "claim": "Maximizing $f(x, y, z)$ is equivalent to maximizing the distance from $(x, y, z)$ to the origin.",
+        "proof-method": "Since the distance is a non-negative function and taking the square is a monotonically increasing function for non-negative numbers."
+      },
+      {
+        "type": "assert",
+        "claim": "The problem is equivalent to maximizing $f(x, y, z)$ subject to the constraint $g(x, y, z) = 1$.",
+        "proof-method": "This is because we are looking for points on the ellipsoid defined by  $g(x, y, z) = 1$."
+      },
+      {
+        "type": "assert",
+        "claim": "At an extremum of $f$ subject to the constraint $g(x,y,z) = 1$, the gradients of $f$ and $g$ are parallel, provided that the gradient of $g$ is nonzero.",
+        "deduced_from": [
+          "Lagrange multipliers"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\nabla f(x,y,z) = (2x, 2y, 2z)$",
+        "proof-method": "Direct computation."
+      },
+      {
+        "type": "assert",
+        "claim": "$\\nabla g(x,y,z) = (2x, 4y, 6z)$",
+        "proof-method": "Direct computation."
+      },
+      {
+        "type": "assert",
+        "claim": "We need to find all points $(x,y,z)$ and scalars $\\lambda$ such that $(2x, 4y, 6z) = \\lambda (2x, 2y, 2z)$.",
+        "proof-method": "By the Lagrange multiplier method."
+      },
+      {
+        "type": "cases",
+        "on": "$\\lambda$",
+        "split-kind": "match",
+        "proof-cases": [
+          {
+            "type": "case",
+            "condition": "$\\lambda = 1$",
+            "proof": {
+              "type": "proof",
+              "steps": [
+                {
+                  "type": "assert",
+                  "claim": "$y = z = 0$",
+                  "proof-method": "From the equation $(2x, 4y, 6z) = \\lambda (2x, 2y, 2z)$ and $\\lambda=1$"
+                },
+                {
+                  "type": "assert",
+                  "claim": "The points $(1, 0, 0)$ and $(-1, 0, 0)$ satisfy the constraint $g(x, y, z) = 1$ and the condition $y=z=0$.",
+                  "proof-method": "Substitution."
+                },
+                {
+                  "type": "assert",
+                  "claim": "$f(1, 0, 0) = f(-1, 0, 0) = 1$",
+                  "proof-method": "Direct calculation."
+                }
+              ]
+            }
+          },
+          {
+            "type": "case",
+            "condition": "$\\lambda = 2$",
+            "proof": {
+              "type": "proof",
+              "steps": [
+                {
+                  "type": "assert",
+                  "claim": "$x = z = 0$",
+                  "proof-method": "From the equation $(2x, 4y, 6z) = \\lambda (2x, 2y, 2z)$ and $\\lambda = 2$."
+                },
+                {
+                  "type": "assert",
+                  "claim": "The points $(0, \\frac{1}{\\sqrt{2}}, 0)$ and $(0, -\\frac{1}{\\sqrt{2}}, 0)$ satisfy the constraint $g(x, y, z) = 1$ and the condition $x=z=0$.",
+                  "proof-method": "Substitution."
+                },
+                {
+                  "type": "assert",
+                  "claim": "$f(0, \\frac{1}{\\sqrt{2}}, 0) = f(0, -\\frac{1}{\\sqrt{2}}, 0) = \\frac{1}{2}$",
+                  "proof-method": "Direct calculation."
+                }
+              ]
+            }
+          },
+          {
+            "type": "case",
+            "condition": "$\\lambda = 3$",
+            "proof": {
+              "type": "proof",
+              "steps": [
+                {
+                  "type": "assert",
+                  "claim": "$x = y = 0$",
+                  "proof-method": "From the equation $(2x, 4y, 6z) = \\lambda (2x, 2y, 2z)$ and $\\lambda = 3$."
+                },
+                {
+                  "type": "assert",
+                  "claim": "The points $(0, 0, \\frac{1}{\\sqrt{3}})$ and $(0, 0, -\\frac{1}{\\sqrt{3}})$ satisfy the constraint $g(x, y, z) = 1$ and the condition $x = y = 0$",
+                  "proof-method": "Substitution."
+                },
+                {
+                  "type": "assert",
+                  "claim": "$f(0, 0, \\frac{1}{\\sqrt{3}}) = f(0, 0, -\\frac{1}{\\sqrt{3}}) = \\frac{1}{3}$",
+                  "proof-method": "Direct calculation."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "The points $(1, 0, 0)$ and $(-1, 0, 0)$ yield the maximum value of $f$, which is 1. Therefore, these points are farthest from the origin among the candidate points.",
+        "error": "This conclusion is not fully justified. While the Lagrange multiplier method finds local extrema, it doesn't guarantee that these are global extrema. We need to address the missing points in the 'missing' field of the theorem to complete the proof."
+      }
+    ]
+  }
+}

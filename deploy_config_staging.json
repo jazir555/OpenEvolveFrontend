@@ -1,0 +1,36 @@
+{
+  "python_version": "3.11",
+  "required_packages": [
+    "streamlit>=1.28.0",
+    "pytest>=7.4.0",
+    "psutil>=5.9.0",
+    "requests>=2.31.0"
+  ],
+  "database_path": "sovereign_system_staging.db",
+  "log_level": "DEBUG",
+  "health_check_port": 8001,
+  "api_port": 8502,
+  "cache_size": 500,
+  "cache_ttl_seconds": 1800,
+  "max_concurrent_problems": 50,
+  "max_refinement_cycles": 3,
+  "quality_thresholds": {
+    "coherence": 0.80,
+    "completeness": 0.85,
+    "feasibility": 0.75,
+    "overall": 0.80
+  },
+  "performance_targets": {
+    "simple_decomposition_seconds": 15,
+    "complex_decomposition_seconds": 45,
+    "concurrent_capacity": 50
+  },
+  "monitoring": {
+    "enabled": true,
+    "health_check_interval_seconds": 30,
+    "metrics_retention_days": 7
+  },
+  "backup": {
+    "enabled": false
+  }
+}

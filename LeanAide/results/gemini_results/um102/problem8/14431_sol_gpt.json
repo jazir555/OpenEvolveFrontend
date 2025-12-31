@@ -1,0 +1,77 @@
+{
+  "type": "theorem",
+  "name": "Origin is circulation",
+  "hypothesis": [
+    {
+      "type": "assume",
+      "statement": "$\\dot{x} = -y$ and $\\dot{y} = x$"
+    }
+  ],
+  "conclusion": "The origin is a circulation.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$(\\begin{matrix} \\dot{x} \\\\ \\dot{y} \\end{matrix}) = A (\\begin{matrix} x \\\\ y \\end{matrix}) = (\\begin{matrix} -y \\\\ x \\end{matrix})$",
+        "proof-method": "Matrix form of the system"
+      },
+      {
+        "type": "let",
+        "variable": "A",
+        "value": "$\\begin{bmatrix} 0 & -1 \\\\ 1 & 0 \\end{bmatrix}$",
+        "kind": "2x2 matrix"
+      },
+      {
+        "type": "assert",
+        "claim": "$Tr(A) = 0$",
+        "proof-method": "Calculation",
+        "calculation": [
+          "Tr(A) = 0 + 0 = 0"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$Det(A) = 1$",
+        "proof-method": "Calculation",
+        "calculation": [
+          "Det(A) = (0)(0) - (-1)(1) = 1"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of $A$ are $i$ and $-i$",
+        "proof-method": "Calculation",
+        "calculation": [
+          "$\\lambda^2 + 1 = 0$",
+          "$\\lambda = i, -i$"
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "The origin is a circulation.",
+        "deduced_from": {
+          "known_results": [
+            "The origin is a circulation/centre if the eigenvalues of $A$ are purely imaginary."
+          ]
+        }
+      }
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Justify the step from $\\dot{x} = -y$ and $\\dot{y} = x$ to $(\\begin{matrix} \\dot{x} \\\\ \\dot{y} \\end{matrix}) = A (\\begin{matrix} x \\\\ y \\end{matrix})$"
+    }
+  ],
+  "errors": [
+    {
+      "type": "assert",
+      "claim": "The origin is a circulation.",
+      "errors": [
+        "The proof does not justify the step from $\\dot{x} = -y$ and $\\dot{y} = x$ to $(\\begin{matrix} \\dot{x} \\\\ \\dot{y} \\end{matrix}) = A (\\begin{matrix} x \\\\ y \\end{matrix})$"
+      ]
+    }
+  ]
+}

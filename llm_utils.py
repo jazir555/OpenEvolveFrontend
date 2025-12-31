@@ -1,10 +1,6 @@
 
 import requests
 from typing import Dict, Any, Optional, List
-import asyncio
-import logging
-from anthropic import AsyncAnthropic
-from openai import AsyncOpenAI
 
 def _compose_messages(system_message: str, user_message: str) -> List[Dict[str, str]]:
     """Helper function to compose messages in the format expected by OpenAI-compatible chat APIs.
@@ -161,12 +157,12 @@ def _request_openai_compatible_chat(
             "repetition_penalty": repetition_penalty,
             "length_penalty": length_penalty,
             "early_stopping": early_stopping,
-            "num_beams: Optional[int] = None,
-    do_sample: Optional[bool] = None,
-    temperature_fallback: Optional[float] = None,
-    top_p_fallback: Optional[float] = None,
-    max_time: Optional[int] = None,
-    return_full_text: Optional[bool] = None,
+            "num_beams": num_beams,
+            "do_sample": do_sample,
+            "temperature_fallback": temperature_fallback,
+            "top_p_fallback": top_p_fallback,
+            "max_time": max_time,
+            "return_full_text": return_full_text,
         }
         # Filter out None values
         data = {k: v for k, v in data.items() if v is not None}
@@ -220,67 +216,3 @@ def call_openevolve_ensemble(content: str, api_key: str, num_models: int) -> Dic
         return result
     except Exception as e:
         return {'error': str(e)}
-
-async def initialize_llm_client(
-    api_config: Dict[str, Any],
-    default_models: Dict[str, str],
-    logger: logging.Logger,
-    verbose_output: bool = False
-) -> tuple[Any, str]:
-    """
-    Initializes and returns an LLM client (Anthropic or OpenAI) based on API key availability.
-    Tests the connection before returning.
-    """
-    # Check which API has available key and try that first
-    anthropic_key = api_config.get("anthropic", {}).get("api_key", "")
-    openai_key = api_config.get("openai", {}).get("api_key", "")
-
-    # Try Anthropic API first if key is available
-    if anthropic_key and anthropic_key.strip():
-        try:
-            client = AsyncAnthropic(api_key=anthropic_key)
-            # Test connection with default model from config
-            await client.messages.create(
-                model=default_models["anthropic"],
-                max_tokens=10,
-                messages=[{"role": "user", "content": "test"}],
-            )
-            if verbose_output:
-                logger.info(
-                    f"Using Anthropic API with model: {default_models['anthropic']}"
-                )
-            return client, "anthropic"
-        except Exception as e:
-            logger.warning(f"Anthropic API unavailable: {e}")
-
-    # Try OpenAI API if Anthropic failed or key not available
-    if openai_key and openai_key.strip():
-        try:
-            # Handle custom base_url if specified
-            openai_provider_config = api_config.get("openai", {})
-            base_url = openai_provider_config.get("base_url")
-
-            if base_url:
-                client = AsyncOpenAI(api_key=openai_key, base_url=base_url)
-            else:
-                client = AsyncOpenAI(api_key=openai_key)
-
-            # Test connection with default model from config
-            await client.chat.completions.create(
-                model=default_models["openai"],
-                max_tokens=10,
-                messages=[{"role": "user", "content": "test"}],
-            )
-            if verbose_output:
-                logger.info(
-                    f"Using OpenAI API with model: {default_models['openai']}"
-                )
-                if base_url:
-                    logger.info(f"Using custom base URL: {base_url}")
-            return client, "openai"
-        except Exception as e:
-            logger.warning(f"OpenAI API unavailable: {e}")
-
-    raise ValueError(
-        "No available LLM API - please check your API keys in configuration"
-    )

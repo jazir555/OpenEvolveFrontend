@@ -1,0 +1,19 @@
+{
+    "Compliance Report": {
+        "title": "Compliance Report",
+        "sections": [
+            {
+                "title": "Summary",
+                "content": "This report summarizes the compliance of the protocol with the specified requirements."
+            },
+            {
+                "title": "Compliance Requirements",
+                "content": "{compliance_requirements}"
+            },
+            {
+                "title": "Compliance Status",
+                "content": "{compliance_status}"
+            }
+        ]
+    }
+}

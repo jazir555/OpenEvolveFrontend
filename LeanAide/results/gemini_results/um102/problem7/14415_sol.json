@@ -1,0 +1,69 @@
+{
+  "type": "theorem",
+  "name": "Source at Origin",
+  "status": "wrong proof",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "kind": "differential equation system",
+      "property": "linear",
+      "value": "$\\dot{x} = x$, $\\dot{y} = y$"
+    }
+  ],
+  "conclusion": "The origin is a source for the given system of differential equations.",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "We will solve the given system of differential equations and analyze the behavior of solutions near the origin."
+      },
+      {
+        "type": "assert",
+        "claim": "$x = Ae^t$",
+        "proof-method": "Solving the first differential equation.",
+        "calculation": [
+          "$\\dot{x} = x$",
+          "$\\implies \\frac{dx}{dt} = x$",
+          "$\\implies  \\frac{dx}{x} = dt$",
+          "$\\implies  \\int \\frac{dx}{x} = \\int dt$",
+          "$\\implies  log \\frac{x}{x_0} = t + c_1$",
+          "$\\implies x = Ae^t$",
+          {
+            "step": "where $x_0$ is the initial value of $x$ and $A = x_0e^{c_1}$ is a constant.",
+            "justification": "Applying initial conditions and defining a new constant A"
+          }
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$y = Be^t$",
+        "proof-method": "Solving the second differential equation.",
+        "calculation": [
+          "$\\dot{y} = y$",
+          "$\\implies \\frac{dy}{dt} = y$",
+          "$\\implies \\frac{dy}{y} = dt$",
+          "$\\implies \\int \\frac{dy}{y} = \\int dt$",
+          "$\\implies log \\frac{y}{y_0} = t + c_2$",
+          "$\\implies \\frac{y}{y_0} = e^{t + c_2}$",
+          {
+            "step": "$y = Be^t$",
+            "justification": "where $y_0$ is the initial value of $y$ and $B = y_0e^{c_2}$ is a constant."
+          }
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "The solutions are of the form $x = Ae^t$ and $y = Be^t$, hence the origin is a saddle.",
+        "error": "Incorrect conclusion. While the solutions are correctly derived, they indicate that the origin is a source, not a saddle. Both x and y grow exponentially as t increases, meaning trajectories move away from the origin."
+      }
+    ],
+    "errors": [
+      {
+        "type": "error",
+        "statement": "The proof incorrectly identifies the origin as a saddle. The solutions obtained indicate that the origin is a source, as both x and y increase exponentially with time."
+      }
+    ]
+  }
+}

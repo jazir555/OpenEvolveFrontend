@@ -1,0 +1,1507 @@
+{
+  "summary": {
+    "total_issues": 83,
+    "by_severity": {
+      "medium": 50,
+      "low": 33
+    },
+    "by_category": {
+      "resource_leak": 24,
+      "bug": 33,
+      "code_quality": 26
+    },
+    "by_file": {
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py": 17,
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py": 36,
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_typescript_export.py": 6,
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py": 16,
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_integration.py": 4,
+      "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_bubblelabs_api.py": 4
+    }
+  },
+  "files": {
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py": {
+      "issues": [
+        {
+          "line": 515,
+          "column": 19,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    513:         \"\"\"\n    514:         try:\n>>> 515:             conn = sqlite3.connect(self._mappings_db_path)\n    516:             cursor = conn.cursor()\n    517: "
+        },
+        {
+          "line": 570,
+          "column": 19,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    568:         \"\"\"\n    569:         try:\n>>> 570:             conn = sqlite3.connect(self._mappings_db_path)\n    571:             cursor = conn.cursor()\n    572: "
+        },
+        {
+          "line": 617,
+          "column": 19,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    615:         \"\"\"\n    616:         try:\n>>> 617:             conn = sqlite3.connect(self._mappings_db_path)\n    618:             cursor = conn.cursor()\n    619: "
+        },
+        {
+          "line": 662,
+          "column": 19,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    660:         \"\"\"\n    661:         try:\n>>> 662:             conn = sqlite3.connect(self._mappings_db_path)\n    663:             cursor = conn.cursor()\n    664: "
+        },
+        {
+          "line": 1106,
+          "column": 19,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    1104:         \"\"\"\n    1105:         try:\n>>> 1106:             conn = sqlite3.connect(self._mappings_db_path)\n    1107:             cursor = conn.cursor()\n    1108: "
+        },
+        {
+          "line": 1252,
+          "column": 19,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    1250:             cutoff_time = time.time() - (max_age_days * 86400)\n    1251: \n>>> 1252:             conn = sqlite3.connect(self._mappings_db_path)\n    1253:             cursor = conn.cursor()\n    1254: "
+        },
+        {
+          "line": 1299,
+          "column": 19,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    1297:         \"\"\"\n    1298:         try:\n>>> 1299:             conn = sqlite3.connect(self._mappings_db_path)\n    1300:             cursor = conn.cursor()\n    1301: "
+        },
+        {
+          "line": 176,
+          "column": 7,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    174: def validate_not_none(value: Any, param_name: str) -> Any:\n    175:     \"\"\"Validate that a value is not None.\"\"\"\n>>> 176:     if value is None:\n    177:         raise ValueError(f\"{param_name} cannot be None\")\n    178:     return value"
+        },
+        {
+          "line": 425,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    423: \n    424:     def __post_init__(self):\n>>> 425:         if self.default_labels is None:\n    426:             self.default_labels = [\"bubblelabs\", \"workflow\"]\n    427: "
+        },
+        {
+          "line": 462,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    460:         \"\"\"\n    461:         # Input validation\n>>> 462:         if batch_size is not None:\n    463:             validate_range(batch_size, 1, MAX_BATCH_SIZE, \"batch_size\")\n    464: "
+        },
+        {
+          "line": 1039,
+          "column": 15,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    1037: \n    1038:             # CRITICAL FIX: Explicit None check instead of truthy check\n>>> 1039:             if workflow is None:\n    1040:                 logger.error(f\"Workflow {workflow_definition_id} not found (returned None)\")\n    1041:                 return False"
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'create_ticket_from_workflow': 12",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'update_ticket_progress': 18",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'sync_workflow_to_ticket': 14",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in '_sync_all_active_workflows': 13",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in '_map_workflow_status_to_ticket_status': 12",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 825,
+          "column": 4,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "Function 'update_ticket_progress' is too long (112 lines)",
+          "suggestion": "Consider breaking into smaller functions",
+          "code_snippet": "    823:             return None\n    824: \n>>> 825:     def update_ticket_progress(\n    826:         self,\n    827:         workflow_instance_id: str,"
+        }
+      ],
+      "metrics": {
+        "total_lines": 1722,
+        "code_lines": 1238,
+        "blank_lines": 330,
+        "comment_lines": 154,
+        "functions": 39,
+        "classes": 5,
+        "imports": 17
+      },
+      "imports": [
+        "json",
+        "dataclasses",
+        "collections",
+        "enum",
+        "sqlite3",
+        "time",
+        "bubblelabs_integration",
+        "threading",
+        "io",
+        "os",
+        "uuid",
+        "functools",
+        "hephaestus_integration",
+        "typing",
+        "logging",
+        "datetime",
+        "openevolve_bubblelabs_api"
+      ],
+      "unused_imports": [
+        "RLock",
+        "json",
+        "asdict",
+        "wraps",
+        "BubbleWorkflowInstance",
+        "Generator"
+      ],
+      "circular_dependencies": [
+        "Circular dependency detected: bubblelabs_hephaestus_bridge -> bubblelabs_integration -> bubblelabs_hephaestus_bridge",
+        "Circular dependency detected: bubblelabs_hephaestus_bridge"
+      ]
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py": {
+      "issues": [
+        {
+          "line": 1390,
+          "column": 4,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    1388: \n    1389:     # Clean up\n>>> 1390:     analytics.close_all_connections()\n    1391: "
+        },
+        {
+          "line": 303,
+          "column": 13,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    301:         \"\"\"\n    302:         # PERFORMANCE FIX: Use context manager (FIXES ISSUE #3)\n>>> 303:         with self.get_connection() as conn:\n    304:             cursor = conn.cursor()\n    305: "
+        },
+        {
+          "line": 1304,
+          "column": 12,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    1302:             results[\"analytics\"] = analytics.cleanup_old_workflows(max_age_days=retention_days)\n    1303:             results[\"analytics_size\"] = analytics.get_database_size()\n>>> 1304:             analytics.close_all_connections()\n    1305:         else:\n    1306:             results[\"analytics\"] = {\"skipped\": \"Database not found\"}"
+        },
+        {
+          "line": 1316,
+          "column": 19,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    1314:         if os.path.exists(mappings_db):\n    1315:             import sqlite3\n>>> 1316:             conn = sqlite3.connect(mappings_db)\n    1317:             cursor = conn.cursor()\n    1318: "
+        },
+        {
+          "line": 228,
+          "column": 23,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    226:                 # check_same_thread=False allows connections to be used across threads\n    227:                 # This is safe because we're using connection pooling with proper locking\n>>> 228:                 conn = sqlite3.connect(self.db_path, check_same_thread=False)\n    229: \n    230:                 # CRITICAL DATA CONSISTENCY FIX: Enable foreign key constraints!"
+        },
+        {
+          "line": 447,
+          "column": 17,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    445:             # This prevents nested lock acquisition: get_connection() -> _pool_lock -> self.lock\n    446:             # Lock hierarchy: _pool_lock \u2192 self.lock (never the reverse)\n>>> 447:             with self.get_connection() as conn:\n    448:                 cursor = conn.cursor()\n    449: "
+        },
+        {
+          "line": 544,
+          "column": 17,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    542:             # CRITICAL FIX #10: Acquire connection FIRST (outside self.lock)\n    543:             # Lock hierarchy: _pool_lock \u2192 self.lock (never the reverse)\n>>> 544:             with self.get_connection() as conn:\n    545:                 cursor = conn.cursor()\n    546: "
+        },
+        {
+          "line": 629,
+          "column": 17,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    627:             # CRITICAL FIX #10: Acquire connection FIRST (outside self.lock)\n    628:             # Lock hierarchy: _pool_lock \u2192 self.lock (never the reverse)\n>>> 629:             with self.get_connection() as conn:\n    630:                 cursor = conn.cursor()\n    631: "
+        },
+        {
+          "line": 671,
+          "column": 17,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    669:         try:\n    670:             # PERFORMANCE FIX: Use context manager (FIXES ISSUE #3)\n>>> 671:             with self.get_connection() as conn:\n    672:                 cursor = conn.cursor()\n    673: "
+        },
+        {
+          "line": 750,
+          "column": 17,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    748:         try:\n    749:             # PERFORMANCE FIX: Use context manager (FIXES ISSUE #3)\n>>> 750:             with self.get_connection() as conn:\n    751:                 cursor = conn.cursor()\n    752: "
+        },
+        {
+          "line": 956,
+          "column": 17,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    954: \n    955:         try:\n>>> 956:             with self.get_connection() as conn:\n    957:                 cursor = conn.cursor()\n    958: "
+        },
+        {
+          "line": 1004,
+          "column": 30,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    1002: \n    1003:                 # Create new connection exclusively for VACUUM\n>>> 1004:                 vacuum_conn = sqlite3.connect(self.db_path)\n    1005:                 try:\n    1006:                     vacuum_conn.execute(\"VACUUM\")"
+        },
+        {
+          "line": 1040,
+          "column": 17,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    1038: \n    1039:         try:\n>>> 1040:             with self.get_connection() as conn:\n    1041:                 cursor = conn.cursor()\n    1042: "
+        },
+        {
+          "line": 1073,
+          "column": 17,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    1071: \n    1072:             # Get record counts\n>>> 1073:             with self.get_connection() as conn:\n    1074:                 cursor = conn.cursor()\n    1075: "
+        },
+        {
+          "line": 1127,
+          "column": 17,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Database connection without context manager",
+          "suggestion": "Use context manager or ensure explicit close() in finally block",
+          "code_snippet": "    1125: \n    1126:         try:\n>>> 1127:             with self.get_connection() as conn:\n    1128:                 cursor = conn.cursor()\n    1129: "
+        },
+        {
+          "line": 84,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    82: \n    83:     def __post_init__(self):\n>>> 84:         if self.node_metrics is None:\n    85:             self.node_metrics = []\n    86:         if self.provider_metrics is None:"
+        },
+        {
+          "line": 86,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    84:         if self.node_metrics is None:\n    85:             self.node_metrics = []\n>>> 86:         if self.provider_metrics is None:\n    87:             self.provider_metrics = {}\n    88: "
+        },
+        {
+          "line": 142,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    140:             pool_size: Maximum number of connections to keep in pool (FIXES ISSUE #4)\n    141:         \"\"\"\n>>> 142:         if db_path is None:\n    143:             db_path = \"bubblelabs_analytics.db\"\n    144: "
+        },
+        {
+          "line": 224,
+          "column": 15,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    222: \n    223:             # Create new connection if pool was empty or connection was invalid\n>>> 224:             if conn is None:\n    225:                 # CONCURRENCY FIX (Issue #6): Enable thread-safe SQLite connections\n    226:                 # check_same_thread=False allows connections to be used across threads"
+        },
+        {
+          "line": 268,
+          "column": 15,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    266:         finally:\n    267:             # Close connection if not returned to pool or if invalid\n>>> 268:             if conn is not None:\n    269:                 try:\n    270:                     conn.close()"
+        },
+        {
+          "line": 431,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    429:         \"\"\"\n    430:         # INPUT VALIDATION: Validate all parameters\n>>> 431:         if workflow_id is None or not workflow_id.strip():\n    432:             logger.error(\"workflow_id cannot be None or empty\")\n    433:             raise ValueError(\"workflow_id cannot be None or empty\")"
+        },
+        {
+          "line": 435,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    433:             raise ValueError(\"workflow_id cannot be None or empty\")\n    434: \n>>> 435:         if workflow_name is None or not workflow_name.strip():\n    436:             logger.error(\"workflow_name cannot be None or empty\")\n    437:             raise ValueError(\"workflow_name cannot be None or empty\")"
+        },
+        {
+          "line": 439,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    437:             raise ValueError(\"workflow_name cannot be None or empty\")\n    438: \n>>> 439:         if instance_id is None or not instance_id.strip():\n    440:             logger.error(\"instance_id cannot be None or empty\")\n    441:             raise ValueError(\"instance_id cannot be None or empty\")"
+        },
+        {
+          "line": 513,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    511:         \"\"\"\n    512:         # INPUT VALIDATION: Validate required parameters\n>>> 513:         if workflow_id is None or not workflow_id.strip():\n    514:             logger.error(\"workflow_id cannot be None or empty\")\n    515:             raise ValueError(\"workflow_id cannot be None or empty\")"
+        },
+        {
+          "line": 517,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    515:             raise ValueError(\"workflow_id cannot be None or empty\")\n    516: \n>>> 517:         if node_id is None or not node_id.strip():\n    518:             logger.error(\"node_id cannot be None or empty\")\n    519:             raise ValueError(\"node_id cannot be None or empty\")"
+        },
+        {
+          "line": 521,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    519:             raise ValueError(\"node_id cannot be None or empty\")\n    520: \n>>> 521:         if node_type is None or not node_type.strip():\n    522:             logger.error(\"node_type cannot be None or empty\")\n    523:             raise ValueError(\"node_type cannot be None or empty\")"
+        },
+        {
+          "line": 525,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    523:             raise ValueError(\"node_type cannot be None or empty\")\n    524: \n>>> 525:         if provider is None or not provider.strip():\n    526:             logger.error(\"provider cannot be None or empty\")\n    527:             raise ValueError(\"provider cannot be None or empty\")"
+        },
+        {
+          "line": 613,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    611:         \"\"\"\n    612:         # INPUT VALIDATION: Validate required parameters\n>>> 613:         if workflow_id is None or not workflow_id.strip():\n    614:             logger.error(\"workflow_id cannot be None or empty\")\n    615:             raise ValueError(\"workflow_id cannot be None or empty\")"
+        },
+        {
+          "line": 617,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    615:             raise ValueError(\"workflow_id cannot be None or empty\")\n    616: \n>>> 617:         if status is None or not status.strip():\n    618:             logger.error(\"status cannot be None or empty\")\n    619:             raise ValueError(\"status cannot be None or empty\")"
+        },
+        {
+          "line": 1260,
+          "column": 8,
+          "severity": "medium",
+          "category": "bug",
+          "message": "Empty except block (silences all errors)",
+          "suggestion": "Add proper error handling or at least logging",
+          "code_snippet": "    1258:         try:\n    1259:             self.stop_cleanup_thread()\n>>> 1260:         except Exception:\n    1261:             pass  # Ignore errors during destruction\n    1262: "
+        },
+        {
+          "line": 218,
+          "column": 24,
+          "severity": "medium",
+          "category": "bug",
+          "message": "Empty except block (silences all errors)",
+          "suggestion": "Add proper error handling or at least logging",
+          "code_snippet": "    216:                         try:\n    217:                             conn.close()\n>>> 218:                         except Exception:\n    219:                             pass\n    220:                         conn = None"
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'get_connection': 11",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'track_node_execution': 12",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 294,
+          "column": 4,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "Function '_init_database' is too long (103 lines)",
+          "suggestion": "Consider breaking into smaller functions",
+          "code_snippet": "    292:             logger.debug(\"All database connections closed\")\n    293: \n>>> 294:     def _init_database(self):\n    295:         \"\"\"\n    296:         Initialize SQLite database for analytics storage."
+        },
+        {
+          "line": 471,
+          "column": 4,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "Function 'track_node_execution' is too long (114 lines)",
+          "suggestion": "Consider breaking into smaller functions",
+          "code_snippet": "    469:             return False\n    470: \n>>> 471:     def track_node_execution(\n    472:         self,\n    473:         workflow_id: str,"
+        },
+        {
+          "line": 471,
+          "column": 4,
+          "severity": "low",
+          "category": "code_quality",
+          "message": "Function 'track_node_execution' has too many arguments (11)",
+          "suggestion": "Consider using a config object or dataclass",
+          "code_snippet": "    469:             return False\n    470: \n>>> 471:     def track_node_execution(\n    472:         self,\n    473:         workflow_id: str,"
+        }
+      ],
+      "metrics": {
+        "total_lines": 1391,
+        "code_lines": 1020,
+        "blank_lines": 248,
+        "comment_lines": 123,
+        "functions": 26,
+        "classes": 4,
+        "imports": 15
+      },
+      "imports": [
+        "decimal",
+        "json",
+        "dataclasses",
+        "collections",
+        "csv",
+        "sqlite3",
+        "time",
+        "pathlib",
+        "threading",
+        "os",
+        "contextlib",
+        "typing",
+        "logging",
+        "datetime"
+      ],
+      "unused_imports": [
+        "Path",
+        "Tuple",
+        "defaultdict",
+        "datetime",
+        "asdict"
+      ],
+      "circular_dependencies": []
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_typescript_export.py": {
+      "issues": [
+        {
+          "line": 169,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    167: \n    168:     def __post_init__(self):\n>>> 169:         if self.warnings is None:\n    170:             self.warnings = []\n    171: "
+        },
+        {
+          "line": 213,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    211:         \"\"\"\n    212:         # CRITICAL FIX: Validate input before use\n>>> 213:         if workflow_definition is None:\n    214:             logger.error(\"workflow_definition cannot be None\")\n    215:             return ExportResult("
+        },
+        {
+          "line": 656,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    654: \n    655:         # CRITICAL FIX: Validate workflows list\n>>> 656:         if definitions is None:\n    657:             logger.error(\"workflows list cannot be None\")\n    658:             return 0, [ExportResult(success=False, error=\"Workflows list is None\")]"
+        },
+        {
+          "line": 675,
+          "column": 15,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    673:         for i, definition in enumerate(definitions):\n    674:             # CRITICAL FIX: Check if workflow is None before processing\n>>> 675:             if definition is None:\n    676:                 logger.error(f\"Workflow at index {i} is None, skipping\")\n    677:                 results.append(ExportResult(success=False, error=f\"Workflow at index {i} is None\"))"
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'export_workflow': 11",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'export_all_workflows': 12",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        }
+      ],
+      "metrics": {
+        "total_lines": 787,
+        "code_lines": 555,
+        "blank_lines": 151,
+        "comment_lines": 81,
+        "functions": 21,
+        "classes": 3,
+        "imports": 8
+      },
+      "imports": [
+        "json",
+        "dataclasses",
+        "pathlib",
+        "bubblelabs_integration",
+        "os",
+        "typing",
+        "logging",
+        "datetime"
+      ],
+      "unused_imports": [
+        "Path",
+        "asdict"
+      ],
+      "circular_dependencies": []
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py": {
+      "issues": [
+        {
+          "line": 54,
+          "column": 7,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    52: def validate_string_length(value: str, max_length: int, param_name: str) -> str:\n    53:     \"\"\"Validate string length.\"\"\"\n>>> 54:     if value is None:\n    55:         raise ValueError(f\"{param_name} cannot be None\")\n    56:     if len(value) > max_length:"
+        },
+        {
+          "line": 63,
+          "column": 7,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    61: def validate_dict_size(value: Dict[str, Any], max_size: int, param_name: str) -> Dict[str, Any]:\n    62:     \"\"\"Validate dictionary size.\"\"\"\n>>> 63:     if value is None:\n    64:         return {}\n    65:     if len(value) > max_size:"
+        },
+        {
+          "line": 72,
+          "column": 7,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    70: def validate_range(value: int, min_value: int, max_value: int, param_name: str) -> int:\n    71:     \"\"\"Validate numeric range.\"\"\"\n>>> 72:     if value is None:\n    73:         raise ValueError(f\"{param_name} cannot be None\")\n    74:     if value < min_value or value > max_value:"
+        },
+        {
+          "line": 143,
+          "column": 7,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    141: \n    142:     # First check (no lock) - fast path for already-initialized singleton\n>>> 143:     if _shared_bubblelabs_integration is not None:\n    144:         return _shared_bubblelabs_integration\n    145: "
+        },
+        {
+          "line": 169,
+          "column": 7,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    167: \n    168:     # First check (no lock) - fast path for already-initialized singleton\n>>> 169:     if _shared_api_instance is not None:\n    170:         return _shared_api_instance\n    171: "
+        },
+        {
+          "line": 149,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    147:     with _singleton_lock:\n    148:         # Second check (with lock) - prevent race condition\n>>> 149:         if _shared_bubblelabs_integration is None:\n    150:             _shared_bubblelabs_integration = BubbleLabsIntegration()\n    151:             logger.info(\"Created shared BubbleLabs integration instance (thread-safe)\")"
+        },
+        {
+          "line": 175,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    173:     with _singleton_lock:\n    174:         # Second check (with lock) - prevent race condition\n>>> 175:         if _shared_api_instance is None:\n    176:             _shared_api_instance = OpenEvolveBubbleLabsIntegration()\n    177:             logger.info(\"Created shared BubbleLabs API instance (thread-safe)\")"
+        },
+        {
+          "line": 199,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    197:     with _singleton_lock:\n    198:         # Cleanup BubbleLabs integration instance\n>>> 199:         if _shared_bubblelabs_integration is not None:\n    200:             try:\n    201:                 # Call cleanup if the instance has a close/cleanup method"
+        },
+        {
+          "line": 220,
+          "column": 11,
+          "severity": "low",
+          "category": "bug",
+          "message": "Comparison with None using ==/!=",
+          "suggestion": "Use 'is None' or 'is not None' instead",
+          "code_snippet": "    218: \n    219:         # Cleanup API instance\n>>> 220:         if _shared_api_instance is not None:\n    221:             try:\n    222:                 # Call cleanup if the instance has a close/cleanup method"
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'cleanup_shared_instances': 12",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'create_bubblelabs_workflow': 12",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'execute_bubblelabs_workflow': 11",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'control_bubblelabs_workflow': 12",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'get_bubblelabs_workflow_results': 11",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 304,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "Function 'create_bubblelabs_workflow' is too long (110 lines)",
+          "suggestion": "Consider breaking into smaller functions",
+          "code_snippet": "    302: @mcp_tool(\"create_bubblelabs_workflow\")\n    303: @validate_input(workflow_type=validate_workflow_type if SECURITY_AVAILABLE else lambda x: x)\n>>> 304: def create_bubblelabs_workflow(\n    305:     problem_statement: str,\n    306:     team_config: Optional[Dict[str, str]] = None,"
+        },
+        {
+          "line": 419,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "Function 'execute_bubblelabs_workflow' is too long (102 lines)",
+          "suggestion": "Consider breaking into smaller functions",
+          "code_snippet": "    417: @mcp_tool(\"execute_bubblelabs_workflow\")\n    418: @validate_input(workflow_id=validate_uuid if SECURITY_AVAILABLE else lambda x: x)\n>>> 419: def execute_bubblelabs_workflow(\n    420:     workflow_id: str,\n    421:     parameters: Optional[Dict[str, Any]] = None,"
+        }
+      ],
+      "metrics": {
+        "total_lines": 961,
+        "code_lines": 699,
+        "blank_lines": 177,
+        "comment_lines": 85,
+        "functions": 22,
+        "classes": 0,
+        "imports": 12
+      },
+      "imports": [
+        "json",
+        "dataclasses",
+        "bubblelabs_integration",
+        "time",
+        "threading",
+        "uuid",
+        "typing",
+        "logging",
+        "datetime",
+        "openevolve_bubblelabs_api",
+        "atexit",
+        "bubblelabs_security"
+      ],
+      "unused_imports": [
+        "require_auth",
+        "BubbleWorkflowDefinition",
+        "dataclass",
+        "SecurityContext",
+        "WorkflowStatus",
+        "WorkflowMetrics",
+        "validate_workflow_action",
+        "uuid",
+        "datetime",
+        "asdict"
+      ],
+      "circular_dependencies": []
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_integration.py": {
+      "issues": [
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'control_workflow_local': 30",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 72,
+          "column": 4,
+          "severity": "low",
+          "category": "code_quality",
+          "message": "Function '__init__' has too many arguments (9)",
+          "suggestion": "Consider using a config object or dataclass",
+          "code_snippet": "    70: class BubbleWorkflowInstance:\n    71:     \"\"\"Represents a running instance of a BubbleLabs workflow.\"\"\"\n>>> 72:     def __init__(self, id: str, definition_id: str, status: str, created_at: float, updated_at: float, \n    73:                  progress: float, current_node: str = None, data: Dict[str, Any] = None):\n    74:         self.id = id"
+        },
+        {
+          "line": 176,
+          "column": 4,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "Function 'create_workflow_definition_from_openevolve' is too long (109 lines)",
+          "suggestion": "Consider breaking into smaller functions",
+          "code_snippet": "    174:                 logger.info(f\"Periodic cleanup: removed {removed} old instances\")\n    175: \n>>> 176:     def create_workflow_definition_from_openevolve(\n    177:         self, \n    178:         problem_statement: str, "
+        },
+        {
+          "line": 316,
+          "column": 4,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "Function 'control_workflow_local' is too long (182 lines)",
+          "suggestion": "Consider breaking into smaller functions",
+          "code_snippet": "    314:             return list(self.workflow_instances.values())\n    315:     \n>>> 316:     def control_workflow_local(self, instance_id: str, action: str) -> Dict[str, Any]:\n    317:         \"\"\"\n    318:         Control a running workflow instance locally with state machine validation."
+        }
+      ],
+      "metrics": {
+        "total_lines": 508,
+        "code_lines": 384,
+        "blank_lines": 81,
+        "comment_lines": 43,
+        "functions": 12,
+        "classes": 5,
+        "imports": 12
+      },
+      "imports": [
+        "json",
+        "team_manager",
+        "asyncio",
+        "gauntlet_manager",
+        "bubblelabs_hephaestus_bridge",
+        "time",
+        "threading",
+        "workflow_structures",
+        "api_server",
+        "uuid",
+        "typing",
+        "logging"
+      ],
+      "unused_imports": [
+        "json",
+        "team_manager",
+        "asyncio",
+        "gauntlet_manager",
+        "WorkflowState"
+      ],
+      "circular_dependencies": [
+        "Circular dependency detected: bubblelabs_hephaestus_bridge -> bubblelabs_integration -> bubblelabs_hephaestus_bridge",
+        "Circular dependency detected: bubblelabs_integration"
+      ]
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_bubblelabs_api.py": {
+      "issues": [
+        {
+          "line": 668,
+          "column": 8,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Thread started without visible join() call",
+          "suggestion": "Ensure thread.join() is called to prevent resource leaks",
+          "code_snippet": "    666:         thread = threading.Thread(target=self._execute_workflow_thread, args=(workflow_state,))\n    667:         thread.daemon = True\n>>> 668:         thread.start()\n    669: \n    670:         self.running_threads[instance_id] = thread"
+        },
+        {
+          "line": 872,
+          "column": 8,
+          "severity": "medium",
+          "category": "resource_leak",
+          "message": "Thread started without visible join() call",
+          "suggestion": "Ensure thread.join() is called to prevent resource leaks",
+          "code_snippet": "    870:         thread = threading.Thread(target=self._execute_workflow_thread, args=(workflow_state,))\n    871:         thread.daemon = True\n>>> 872:         thread.start()\n    873: \n    874:         self.running_threads[instance_id] = thread"
+        },
+        {
+          "line": 0,
+          "column": 0,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "High cyclomatic complexity in 'create_workflow_instance': 18",
+          "suggestion": "Consider refactoring into smaller functions",
+          "code_snippet": null
+        },
+        {
+          "line": 282,
+          "column": 4,
+          "severity": "medium",
+          "category": "code_quality",
+          "message": "Function '_generate_nodes_for_workflow_type' is too long (210 lines)",
+          "suggestion": "Consider breaking into smaller functions",
+          "code_snippet": "    280:         return definition_id\n    281: \n>>> 282:     def _generate_nodes_for_workflow_type(self, workflow_type: str, parameters: Dict[str, Any]) -> List[Dict[str, Any]]:\n    283:         \"\"\"Generate workflow nodes based on workflow type.\"\"\"\n    284:         if workflow_type == \"evolution\":"
+        }
+      ],
+      "metrics": {
+        "total_lines": 1246,
+        "code_lines": 989,
+        "blank_lines": 183,
+        "comment_lines": 74,
+        "functions": 23,
+        "classes": 3,
+        "imports": 22
+      },
+      "imports": [
+        "workflow_engine",
+        "json",
+        "asyncio",
+        "dataclasses",
+        "time",
+        "threading",
+        "workflow_structures",
+        "evolution",
+        "typing",
+        "adversarial",
+        "enum",
+        "api_server",
+        "parameter_manager",
+        "team_manager",
+        "gauntlet_manager",
+        "bubblelabs_hephaestus_bridge",
+        "analytics_manager",
+        "os",
+        "uuid",
+        "sys",
+        "logging"
+      ],
+      "unused_imports": [
+        "json",
+        "team_manager",
+        "asyncio",
+        "gauntlet_manager",
+        "run_evolution_loop",
+        "asdict"
+      ],
+      "circular_dependencies": []
+    }
+  },
+  "issues_by_severity": {
+    "medium": [
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 515,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 570,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 617,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 662,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 1106,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 1252,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 1299,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'create_ticket_from_workflow': 12",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'update_ticket_progress': 18",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'sync_workflow_to_ticket': 14",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in '_sync_all_active_workflows': 13",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in '_map_workflow_status_to_ticket_status': 12",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 825,
+        "message": "Function 'update_ticket_progress' is too long (112 lines)",
+        "suggestion": "Consider breaking into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 1390,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 303,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 1304,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 1316,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 228,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 447,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 544,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 629,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 671,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 750,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 956,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 1004,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 1040,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 1073,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 1127,
+        "message": "Database connection without context manager",
+        "suggestion": "Use context manager or ensure explicit close() in finally block"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 1260,
+        "message": "Empty except block (silences all errors)",
+        "suggestion": "Add proper error handling or at least logging"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 218,
+        "message": "Empty except block (silences all errors)",
+        "suggestion": "Add proper error handling or at least logging"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'get_connection': 11",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'track_node_execution': 12",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 294,
+        "message": "Function '_init_database' is too long (103 lines)",
+        "suggestion": "Consider breaking into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 471,
+        "message": "Function 'track_node_execution' is too long (114 lines)",
+        "suggestion": "Consider breaking into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_typescript_export.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'export_workflow': 11",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_typescript_export.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'export_all_workflows': 12",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'cleanup_shared_instances': 12",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'create_bubblelabs_workflow': 12",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'execute_bubblelabs_workflow': 11",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'control_bubblelabs_workflow': 12",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'get_bubblelabs_workflow_results': 11",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 304,
+        "message": "Function 'create_bubblelabs_workflow' is too long (110 lines)",
+        "suggestion": "Consider breaking into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 419,
+        "message": "Function 'execute_bubblelabs_workflow' is too long (102 lines)",
+        "suggestion": "Consider breaking into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_integration.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'control_workflow_local': 30",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_integration.py",
+        "line": 176,
+        "message": "Function 'create_workflow_definition_from_openevolve' is too long (109 lines)",
+        "suggestion": "Consider breaking into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_integration.py",
+        "line": 316,
+        "message": "Function 'control_workflow_local' is too long (182 lines)",
+        "suggestion": "Consider breaking into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_bubblelabs_api.py",
+        "line": 668,
+        "message": "Thread started without visible join() call",
+        "suggestion": "Ensure thread.join() is called to prevent resource leaks"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_bubblelabs_api.py",
+        "line": 872,
+        "message": "Thread started without visible join() call",
+        "suggestion": "Ensure thread.join() is called to prevent resource leaks"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_bubblelabs_api.py",
+        "line": 0,
+        "message": "High cyclomatic complexity in 'create_workflow_instance': 18",
+        "suggestion": "Consider refactoring into smaller functions"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\openevolve_bubblelabs_api.py",
+        "line": 282,
+        "message": "Function '_generate_nodes_for_workflow_type' is too long (210 lines)",
+        "suggestion": "Consider breaking into smaller functions"
+      }
+    ],
+    "low": [
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 176,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 425,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 462,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_hephaestus_bridge.py",
+        "line": 1039,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 84,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 86,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 142,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 224,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 268,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 431,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 435,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 439,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 513,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 517,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 521,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 525,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 613,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 617,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_analytics.py",
+        "line": 471,
+        "message": "Function 'track_node_execution' has too many arguments (11)",
+        "suggestion": "Consider using a config object or dataclass"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_typescript_export.py",
+        "line": 169,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_typescript_export.py",
+        "line": 213,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_typescript_export.py",
+        "line": 656,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_typescript_export.py",
+        "line": 675,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 54,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 63,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 72,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 143,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 169,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 149,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 175,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 199,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_mcp_tools.py",
+        "line": 220,
+        "message": "Comparison with None using ==/!=",
+        "suggestion": "Use 'is None' or 'is not None' instead"
+      },
+      {
+        "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\bubblelabs_integration.py",
+        "line": 72,
+        "message": "Function '__init__' has too many arguments (9)",
+        "suggestion": "Consider using a config object or dataclass"
+      }
+    ]
+  }
+}

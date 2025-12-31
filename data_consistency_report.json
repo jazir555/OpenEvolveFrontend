@@ -1,0 +1,28 @@
+{
+  "timestamp": "2025-12-29T21:37:05.913728",
+  "database_path": "bubblelabs_analytics.db",
+  "statistics": {
+    "checks_performed": 10,
+    "issues_found": 0,
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+  },
+  "issues": [],
+  "issues_by_category": {
+    "DATABASE": 0,
+    "CACHE": 0,
+    "STATE": 0,
+    "CROSS_COMPONENT": 0,
+    "CONFIG": 0
+  },
+  "issues_by_severity": {
+    "checks_performed": 10,
+    "issues_found": 0,
+    "critical": 0,
+    "high": 0,
+    "medium": 0,
+    "low": 0
+  }
+}

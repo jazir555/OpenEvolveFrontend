@@ -1,0 +1,106 @@
+# vim temporary files
+*.swp
+*.swo
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+pypirc
+
+# C extensions
+*.so
+
+# Distribution / packaging
+.Python
+env/
+.venv/
+.hypothesis/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+data/
+*.egg-info/
+.installed.cfg
+*.egg
+.pypirc
+
+# PyInstaller
+#  Usually these files are written by a python script from a template
+#  before PyInstaller builds the exe, so as to inject date/other infos into it.
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*,cover
+.pytest_cache
+
+# Translations
+*.mo
+*.pot
+
+# Django stuff:
+*.log
+
+# Sphinx documentation
+docs/_build/
+docs/doctrees/
+docs/source/demos/
+
+# PyBuilder
+target/
+.DS_Store
+
+demos/.ipynb_checkpoints/
+demos/data/BIOGRID-ALL-3.3.123.tab2.txt
+demos/data/BIOGRID-IDENTIFIERS-3.3.123.tab.txt
+
+# Ignore local Python virtualenv folders (used by Jenkins when running tests, etc.)
+/.pyenv*/
+.venv/
+
+# Ignore IDE stuff
+.idea
+.ipynb_checkpoints
+.ipython
+.jupyter
+.local/share/jupyter
+.pycharmenv
+.vscode
+
+# Pyre type checker cache
+.pyre/
+
+# Ignore the 'test_results' folder, which is where Jenkins, et al, writes `nose` test results
+/test_results
+
+# local jupyter dev
+jupyter_dev/
+docs/source/demos
+
+# AI assistant working directories
+# Legacy - kept for backward compatibility
+AI_PROGRESS/
+/PLAN.md
+plans/
+tmp/
+test_env/

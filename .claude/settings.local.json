@@ -1,0 +1,29 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(dir:*)",
+      "Bash(findstr:*)",
+      "Bash(echo:*)",
+      "Bash(pip install:*)",
+      "Bash(pip show:*)",
+      "Bash(pip uninstall:*)",
+      "Bash(test:*)",
+      "Bash(find:*)",
+      "Bash(timeout 60 python:*)",
+      "Bash(grep:*)",
+      "Bash(cat:*)",
+      "Bash(ls:*)",
+      "Bash(tee:*)",
+      "Bash(git add:*)",
+      "Bash(sqlite3:*)",
+      "Bash(iconv:*)",
+      "Bash(1)",
+      "Bash(set PYTHONIOENCODING=utf-8:*)",
+      "Bash(timeout:*)",
+      "Bash(mkdir:*)",
+      "Bash(wc:*)",
+      "Bash(tree:*)"
+    ]
+  }
+}

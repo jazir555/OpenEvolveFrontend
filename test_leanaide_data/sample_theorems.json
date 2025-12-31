@@ -1,0 +1,56 @@
+{
+  "simple_theorems": [
+    {
+      "id": "thm_001",
+      "name": "infinitely_many_primes",
+      "statement": "There are infinitely many prime numbers",
+      "lean_code": "theorem infinitely_many_primes : Infinite {p : Nat | Nat.Prime p}",
+      "domain": "number_theory",
+      "complexity": 0.3
+    },
+    {
+      "id": "thm_002",
+      "name": "add_commutativity",
+      "statement": "Addition is commutative for natural numbers",
+      "lean_code": "theorem add_comm (a b : Nat) : a + b = b + a",
+      "domain": "algebra",
+      "complexity": 0.2
+    },
+    {
+      "id": "thm_003",
+      "name": "sqrt2_irrational",
+      "statement": "The square root of 2 is irrational",
+      "lean_code": "theorem sqrt2_irrational : Irrational (Real.sqrt 2)",
+      "domain": "analysis",
+      "complexity": 0.5
+    }
+  ],
+  "medium_theorems": [
+    {
+      "id": "thm_004",
+      "name": "prime_factorization",
+      "statement": "Every natural number greater than 1 has a unique prime factorization",
+      "lean_code": "theorem prime_factorization_unique (n : Nat) (h : n > 1) : ...",
+      "domain": "number_theory",
+      "complexity": 0.6
+    },
+    {
+      "id": "thm_005",
+      "name": "intermediate_value_theorem",
+      "statement": "A continuous function on a closed interval takes all intermediate values",
+      "lean_code": "theorem intermediate_value {f : ℝ → ℝ} (hf : Continuous f) ...",
+      "domain": "analysis",
+      "complexity": 0.7
+    }
+  ],
+  "complex_theorems": [
+    {
+      "id": "thm_006",
+      "name": "fundamental_theorem_algebra",
+      "statement": "Every non-constant polynomial with complex coefficients has a complex root",
+      "lean_code": "theorem exists_root {p : Polynomial ℂ} (hp : degree p > 0) : ∃ z, p.eval z = 0",
+      "domain": "algebra",
+      "complexity": 0.9
+    }
+  ]
+}

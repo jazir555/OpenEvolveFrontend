@@ -1,0 +1,216 @@
+{
+  "extraction_config": {
+    "use_case": "Procurement",
+    "description": "To extract key information from various documents",
+    "main_model_name": "ProcurementInfo",
+    "purpose_of_extraction": "To extract information from multiple documents",
+    "document_type": "purchase orders, invoices, delivery notes",
+    "additional_instructions": "",
+    "created_at": "2025-10-15T00:11:57.220286",
+    "extraction_type": "multi_type",
+    "fields": [
+      {
+        "field_name": "suppliername",
+        "field_type": "str",
+        "description": "The name of the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "supplierid",
+        "field_type": "str",
+        "description": "The unique identifier for the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "ordernumber",
+        "field_type": "str",
+        "description": "The purchase order number",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "ordereditems",
+        "field_type": "list[str]",
+        "description": "List of items ordered in the purchase order",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "quantities",
+        "field_type": "list[str]",
+        "description": "List of quantities for each ordered item",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "deliverydates",
+        "field_type": "list[str]",
+        "description": "List of delivery dates for ordered items",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "invoicenumber",
+        "field_type": "str",
+        "description": "The invoice number",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "invoicedate",
+        "field_type": "str",
+        "description": "The date the invoice was issued",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "totalamount",
+        "field_type": "float",
+        "description": "The total amount on the invoice",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "currency",
+        "field_type": "str",
+        "description": "The currency of the invoice amount",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "paymentduedate",
+        "field_type": "str",
+        "description": "The date payment is due for the invoice",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "shipmentnumber",
+        "field_type": "str",
+        "description": "The shipment number from delivery notes",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "delivereditems",
+        "field_type": "list[str]",
+        "description": "List of items delivered according to delivery notes",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "deliveryconfirmationdate",
+        "field_type": "str",
+        "description": "The date delivery was confirmed",
+        "required": true,
+        "enum_values": null
+      }
+    ],
+    "configuration_mode": "text_description",
+    "text_description": "Extract information from procurement documents, including purchase orders, invoices, and delivery notes.\nFrom purchase orders, extract the supplier name, supplier ID, order number, ordered items, quantities, and delivery dates.\nFrom invoices, extract the supplier name, supplier ID, invoice number, invoice date, total amount, currency, and payment due date.\nFrom delivery notes, extract supplier name, supplier ID, shipment number, delivered items, and delivery confirmation date.",
+    "parsed_fields": [
+      {
+        "field_name": "suppliername",
+        "field_type": "str",
+        "description": "The name of the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "supplierid",
+        "field_type": "str",
+        "description": "The unique identifier for the supplier",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "ordernumber",
+        "field_type": "str",
+        "description": "The purchase order number",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "ordereditems",
+        "field_type": "list[str]",
+        "description": "List of items ordered in the purchase order",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "quantities",
+        "field_type": "list[str]",
+        "description": "List of quantities for each ordered item",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "deliverydates",
+        "field_type": "list[str]",
+        "description": "List of delivery dates for ordered items",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "invoicenumber",
+        "field_type": "str",
+        "description": "The invoice number",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "invoicedate",
+        "field_type": "str",
+        "description": "The date the invoice was issued",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "totalamount",
+        "field_type": "float",
+        "description": "The total amount on the invoice",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "currency",
+        "field_type": "str",
+        "description": "The currency of the invoice amount",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "paymentduedate",
+        "field_type": "str",
+        "description": "The date payment is due for the invoice",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "shipmentnumber",
+        "field_type": "str",
+        "description": "The shipment number from delivery notes",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "delivereditems",
+        "field_type": "list[str]",
+        "description": "List of items delivered according to delivery notes",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "deliveryconfirmationdate",
+        "field_type": "str",
+        "description": "The date delivery was confirmed",
+        "required": true,
+        "enum_values": null
+      }
+    ],
+    "description_parsing_model": "claude-sonnet-4-20250514",
+    "parsing_method": "fast"
+  }
+}

@@ -1,0 +1,264 @@
+{
+  "extraction_config": {
+    "use_case": "AI Consultancy Reports",
+    "description": "to extract structured information from AI consultancy reports",
+    "main_model_name": "AIConsultancyReportsInfo",
+    "purpose_of_extraction": "To extract structured information from AI consultancy reports",
+    "document_type": "AI consultancy reports",
+    "additional_instructions": "The recommendations should be concise phrases",
+    "created_at": "2025-10-15T00:15:23.053989",
+    "extraction_type": "single_type",
+    "fields": [
+      {
+        "field_name": "companyname",
+        "field_type": "str",
+        "description": "The name of the company receiving consultancy",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "expertnames",
+        "field_type": "list[str]",
+        "description": "Names of the experts who provided consultancy",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "customermanagername",
+        "field_type": "str",
+        "description": "Name of the customer manager",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "consultancydate",
+        "field_type": "str",
+        "description": "Date when the consultancy took place",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "companytype",
+        "field_type": "enum",
+        "description": "Type of company based on maturity",
+        "required": true,
+        "enum_values": [
+          "startup",
+          "established"
+        ]
+      },
+      {
+        "field_name": "aimaturitylevel",
+        "field_type": "enum",
+        "description": "Company's current AI maturity level",
+        "required": true,
+        "enum_values": [
+          "low",
+          "moderate",
+          "high"
+        ]
+      },
+      {
+        "field_name": "aifield",
+        "field_type": "enum",
+        "description": "The AI field the company is interested in",
+        "required": true,
+        "enum_values": [
+          "Generative AI",
+          "machine learning",
+          "predictive analytics",
+          "Rule-based systems",
+          "Other"
+        ]
+      },
+      {
+        "field_name": "intendedaiidea",
+        "field_type": "str",
+        "description": "Company's intended AI idea described in a concise phrase",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "companydomain",
+        "field_type": "enum",
+        "description": "The domain in which the company operates",
+        "required": true,
+        "enum_values": [
+          "Arts & entertainment",
+          "Automotive",
+          "Business enhancement",
+          "Construction",
+          "Cultural & creative industries",
+          "Defense",
+          "Education & training",
+          "Environment & sustainability",
+          "Finance",
+          "Healthcare & wellbeing",
+          "Immigration",
+          "Manufacturing",
+          "Property and real estate sector",
+          "Security",
+          "Smart cities",
+          "Transport & logistics",
+          "Travel & tourism"
+        ]
+      },
+      {
+        "field_name": "targetgroups",
+        "field_type": "list[str]",
+        "description": "Company's target groups or customer segments",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "servicessought",
+        "field_type": "list[enum]",
+        "description": "Services that the company is seeking from the consultancy",
+        "required": true,
+        "enum_values": [
+          "AI roadmap design",
+          "technical guidance",
+          "proof of concept development",
+          "student thesis project",
+          "networking support",
+          "data collection"
+        ]
+      },
+      {
+        "field_name": "keyrecommendations",
+        "field_type": "list[str]",
+        "description": "Key recommendations provided by the experts",
+        "required": true,
+        "enum_values": null
+      }
+    ],
+    "configuration_mode": "text_description",
+    "text_description": "Extract the following information from AI consultancy reports:\n- company name\n- names of the experts\n- name of the customer manager\n- date of consultancy\n- company type [startup, established]\n- company's AI maturity level [low, moderate, high]\n- company's AI field (Generative AI, machine learning, predictive analytics, Rule-based systems, Other]\n- company's intended AI idea in a concise phrase \n- the domain company operates in [\"Arts & entertainment\", \"Automotive\", \"Business enhancement\", \"Construction\", \"Cultural & creative industries\", \"Defense\", \"Education & training\", \"Environment & sustainability\", \"Finance\", \"Healthcare & wellbeing\", \"Immigration\", \"Manufacturing\", \"Property and real estate sector\", \"Security\", \"Smart cities\", \"Transport & logistics\", \"Travel & tourism\"]\n- company's target groups\n- services sought [AI roadmap design, technical guidance, proof of concept development, student thesis project, networking support, data collection]\n- key recommendations from experts\n",
+    "parsed_fields": [
+      {
+        "field_name": "companyname",
+        "field_type": "str",
+        "description": "The name of the company receiving consultancy",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "expertnames",
+        "field_type": "list[str]",
+        "description": "Names of the experts who provided consultancy",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "customermanagername",
+        "field_type": "str",
+        "description": "Name of the customer manager",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "consultancydate",
+        "field_type": "str",
+        "description": "Date when the consultancy took place",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "companytype",
+        "field_type": "enum",
+        "description": "Type of company based on maturity",
+        "required": true,
+        "enum_values": [
+          "startup",
+          "established"
+        ]
+      },
+      {
+        "field_name": "aimaturitylevel",
+        "field_type": "enum",
+        "description": "Company's current AI maturity level",
+        "required": true,
+        "enum_values": [
+          "low",
+          "moderate",
+          "high"
+        ]
+      },
+      {
+        "field_name": "aifield",
+        "field_type": "enum",
+        "description": "The AI field the company is interested in",
+        "required": true,
+        "enum_values": [
+          "Generative AI",
+          "machine learning",
+          "predictive analytics",
+          "Rule-based systems",
+          "Other"
+        ]
+      },
+      {
+        "field_name": "intendedaiidea",
+        "field_type": "str",
+        "description": "Company's intended AI idea described in a concise phrase",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "companydomain",
+        "field_type": "enum",
+        "description": "The domain in which the company operates",
+        "required": true,
+        "enum_values": [
+          "Arts & entertainment",
+          "Automotive",
+          "Business enhancement",
+          "Construction",
+          "Cultural & creative industries",
+          "Defense",
+          "Education & training",
+          "Environment & sustainability",
+          "Finance",
+          "Healthcare & wellbeing",
+          "Immigration",
+          "Manufacturing",
+          "Property and real estate sector",
+          "Security",
+          "Smart cities",
+          "Transport & logistics",
+          "Travel & tourism"
+        ]
+      },
+      {
+        "field_name": "targetgroups",
+        "field_type": "list[str]",
+        "description": "Company's target groups or customer segments",
+        "required": true,
+        "enum_values": null
+      },
+      {
+        "field_name": "servicessought",
+        "field_type": "list[enum]",
+        "description": "Services that the company is seeking from the consultancy",
+        "required": true,
+        "enum_values": [
+          "AI roadmap design",
+          "technical guidance",
+          "proof of concept development",
+          "student thesis project",
+          "networking support",
+          "data collection"
+        ]
+      },
+      {
+        "field_name": "keyrecommendations",
+        "field_type": "list[str]",
+        "description": "Key recommendations provided by the experts",
+        "required": true,
+        "enum_values": null
+      }
+    ],
+    "description_parsing_model": "claude-sonnet-4-20250514",
+    "parsing_method": "fast"
+  }
+}

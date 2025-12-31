@@ -1,0 +1,55 @@
+{
+  "type": "theorem",
+  "name": "Circulation at the Origin",
+  "status": "incomplete proof",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "kind": "differential equations",
+      "property": "linear",
+      "value": "$\\dot{x}=-y$, $\\dot{y}=x$"
+    }
+  ],
+  "conclusion": "The origin is a circulation for the given system of differential equations.",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "let",
+        "variable": "A",
+        "kind": "matrix",
+        "value": "$\\begin{bmatrix} 0 & -1 \\ 1 & 0 \\end{bmatrix}$"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of $A$ are $\\lambda = \\pm i$.",
+        "proof-method": "calculation"
+      },
+      {
+        "type": "assert",
+        "claim": "An eigenvector corresponding to $\\lambda = i$ is $\\begin{bmatrix} 1 \\ i \\end{bmatrix}$.",
+        "proof-method": "calculation"
+      },
+      {
+        "type": "assert",
+        "claim": "The general solution is $X(t) = e^{it} \\begin{bmatrix} 1 \\ i \\end{bmatrix} = \\begin{bmatrix} \\cos t + i \\sin t \\ i \\cos t - \\sin t \\end{bmatrix} = \\begin{bmatrix} \\cos t \\ - \\sin t \\end{bmatrix} + i \\begin{bmatrix} \\sin t \\ \\cos t \\end{bmatrix}$.",
+        "proof-method": "calculation"
+      },
+      {
+        "type": "assert",
+        "claim": "The origin is a saddle.",
+        "errors": [
+          "The conclusion that the origin is a saddle is incorrect. The eigenvalues are purely imaginary, so the origin should be a circulation/centre."
+        ]
+      }
+    ],
+    "missing": [
+      {
+        "type": "problem",
+        "statement": "Show that the general solution corresponds to a circulation/centre at the origin.",
+        "solved": false
+      }
+    ]
+  }
+}

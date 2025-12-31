@@ -1,0 +1,63 @@
+{
+  "type": "theorem",
+  "name": "For the linear differential equation \\( \\dot{x}=-y \\) and \\( \\dot{y}=x \\). Prove that the origin is circulation.",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "x",
+      "kind": "function of time"
+    },
+    {
+      "type": "let",
+      "variable": "y",
+      "kind": "function of time"
+    },
+    {
+      "type": "assume",
+      "statement": "The system of differential equations is given by \\( \\dot{x}=-y \\) and \\( \\dot{y}=x \\)"
+    }
+  ],
+  "conclusion": "The origin is circulation.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "let",
+        "variable": "A",
+        "value": "\\begin{bmatrix} 0 & -1 \\\\ 1 & 0 \\end{bmatrix}",
+        "kind": "matrix"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of $A$ are $\\lambda = \\pm i$",
+        "proof-method": "characteristic polynomial"
+      },
+      {
+        "type": "let",
+        "variable": "v",
+        "value": "\\begin{bmatrix} 1 \\\\ i \\end{bmatrix}",
+        "kind": "eigenvector",
+        "property": "corresponding to $\\lambda = i$"
+      },
+      {
+        "type": "assert",
+        "claim": "The general solution is \\[X(t) = e^{it} \\begin{bmatrix} 1 \\\\ i \\end{bmatrix} = \\begin{bmatrix} \\cos t + i \\sin t \\\\ i \\cos t - \\sin t \\end{bmatrix} = \\begin{bmatrix} \\cos t \\\\ - \\sin t \\end{bmatrix} + i \\begin{bmatrix} \\sin t \\\\ \\cos t \\end{bmatrix}.\\]",
+        "proof-method": "solving linear systems using eigenvalues and eigenvectors"
+      },
+      {
+        "type": "conclude",
+        "statement": "This is a saddle.",
+        "errors": [
+          "Incorrect conclusion: The eigenvalues are purely imaginary, so the origin is a circulation/centre."
+        ]
+      }
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Prove that the origin is a circulation/centre using the correct known result."
+    }
+  ]
+}

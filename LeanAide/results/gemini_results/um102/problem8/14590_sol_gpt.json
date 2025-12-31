@@ -1,0 +1,60 @@
+{
+  "type": "theorem",
+  "name": "Circulation of the origin for a linear differential equation",
+  "hypothesis": [
+    {
+      "type": "assume",
+      "statement": "$\\dot{x} = -y$"
+    },
+    {
+      "type": "assume",
+      "statement": "$\\dot{y} = x$"
+    }
+  ],
+  "conclusion": "The origin is a circulation.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$\\dot{X} = \\begin{pmatrix} 0 & -1 \\\\ 1 & 0 \\end{pmatrix} X$",
+        "proof-method": "Matrix form of the system"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\Delta = 1$",
+        "proof-method": "Calculation of determinant"
+      },
+      {
+        "type": "assert",
+        "claim": "trace = 0",
+        "proof-method": "Calculation of trace"
+      },
+      {
+        "type": "assert",
+        "claim": "Eigenvalues are $i$ and $-i$",
+        "proof-method": "Calculation of eigenvalues"
+      },
+      {
+        "type": "assert",
+        "claim": "The origin is a circulation",
+        "deduced_from": {
+          "known_results": [
+            "The origin is a circulation/centre if the eigenvalues of $A$ are purely imaginary."
+          ]
+        }
+      }
+    ],
+    "errors": [
+      "Incorrect assumption: $\\dot{y} = 2x$ instead of $\\dot{y} = x$",
+      "Inconsistent steps: The eigenvalues calculation and conclusion are inconsistent with the incorrect system."
+    ]
+  },
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Correct the assumption and recompute the eigenvalues."
+    }
+  ]
+}

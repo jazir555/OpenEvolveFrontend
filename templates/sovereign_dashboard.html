@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sovereign Decomposition System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/sovereign.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="#">
+                <i class="bi bi-braces-asterisk me-2"></i>
+                <span class="fs-4 fw-bold">Sovereign Decomposition System</span>
+            </a>
+            <div class="d-flex">
+                <div class="dropdown">
+                    <button class="btn btn-light dropdown-toggle" type="button" id="systemMenu" data-bs-toggle="dropdown">
+                        <i class="bi bi-gear me-1"></i> System
+                    </button>
+                    <ul class="dropdown-menu">
+                        <li><a class="dropdown-item" href="#" id="healthCheckBtn"><i class="bi bi-heart-pulse me-2"></i> Health Check</a></li>
+                        <li><a class="dropdown-item" href="#" id="systemStatsBtn"><i class="bi bi-graph-up me-2"></i> System Stats</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item" href="#" id="exportBtn"><i class="bi bi-download me-2"></i> Export Data</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 sidebar p-3">
+                <div class="mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-journal-text me-2"></i> Problems</h5>
+                    <div class="mb-3">
+                        <button class="btn btn-primary w-100 mb-2" id="newProblemBtn">
+                            <i class="bi bi-plus-circle me-1"></i> New Problem
+                        </button>
+                        <button class="btn btn-outline-primary w-100" id="refreshProblemsBtn">
+                            <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="problemsList" class="list-group">
+                        <!-- Problems will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-diagram-3 me-2"></i> Plans</h5>
+                    <div id="plansList" class="list-group">
+                        <!-- Plans will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <h5 class="fw-bold mb-3"><i class="bi bi-activity me-2"></i> Active Workflows</h5>
+                    <div id="workflowsList" class="list-group">
+                        <!-- Workflows will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 main-content">
+                <!-- Dashboard Overview -->
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card metric-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1">Total Problems</h6>
+                                        <h3 id="totalProblems">0</h3>
+                                    </div>
+                                    <div class="bg-primary bg-opacity-10 rounded-circle p-3">
+                                        <i class="bi bi-journal-text text-primary h4 mb-0"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card metric-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1">Active Plans</h6>
+                                        <h3 id="activePlans">0</h3>
+                                    </div>
+                                    <div class="bg-success bg-opacity-10 rounded-circle p-3">
+                                        <i class="bi bi-diagram-3 text-success h4 mb-0"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card metric-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1">Solutions</h6>
+                                        <h3 id="totalSolutions">0</h3>
+                                    </div>
+                                    <div class="bg-info bg-opacity-10 rounded-circle p-3">
+                                        <i class="bi bi-check-circle text-info h4 mb-0"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card metric-card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h6 class="text-muted mb-1">System Health</h6>
+                                        <h3 id="systemHealth">Unknown</h3>
+                                    </div>
+                                    <div class="bg-warning bg-opacity-10 rounded-circle p-3">
+                                        <i class="bi bi-heart-pulse text-warning h4 mb-0"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-body">
+                                <div class="d-flex flex-wrap gap-2">
+                                    <button class="btn btn-primary action-btn" id="decomposeBtn" disabled>
+                                        <i class="bi bi-braces me-1"></i> Decompose Selected
+                                    </button>
+                                    <button class="btn btn-success action-btn" id="runGauntletsBtn" disabled>
+                                        <i class="bi bi-shield-check me-1"></i> Run Gauntlets
+                                    </button>
+                                    <button class="btn btn-info action-btn" id="validatePlanBtn" disabled>
+                                        <i class="bi bi-clipboard-check me-1"></i> Validate
+                                    </button>
+                                    <button class="btn btn-warning action-btn" id="integrateSolutionsBtn" disabled>
+                                        <i class="bi bi-diagram-2 me-1"></i> Integrate Solutions
+                                    </button>
+                                    <button class="btn btn-secondary action-btn" id="executePlanBtn" disabled>
+                                        <i class="bi bi-play-circle me-1"></i> Execute Plan
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem Details Panel -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header bg-white py-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <h5 class="mb-0"><i class="bi bi-info-circle me-2"></i> Problem Details</h5>
+                                    <div>
+                                        <span class="badge bg-primary" id="problemStatus">No Problem Selected</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>Problem Information</h6>
+                                        <p><strong>Title:</strong> <span id="problemTitle">-</span></p>
+                                        <p><strong>Type:</strong> <span id="problemType">-</span></p>
+                                        <p><strong>Domain:</strong> <span id="problemDomain">-</span></p>
+                                        <p><strong>Complexity:</strong> <span id="problemComplexity">-</span></p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h6>Analysis Results</h6>
+                                        <p><strong>Constraints:</strong> <span id="problemConstraints">-</span></p>
+                                        <p><strong>Success Criteria:</strong> <span id="problemCriteria">-</span></p>
+                                        <p><strong>Created:</strong> <span id="problemCreated">-</span></p>
+                                    </div>
+                                </div>
+                                <div class="mt-3">
+                                    <h6>Description</h6>
+                                    <p id="problemDescription" class="text-muted">Select a problem to view details</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Visualization Section -->
+                <div class="row">
+                    <div class="col-md-8 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0"><i class="bi bi-bar-chart me-2"></i> Decomposition Visualization</h5>
+                            </div>
+                            <div class="card-body">
+                                <canvas id="decompositionGraph"></canvas>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0"><i class="bi bi-clipboard-check me-2"></i> Gauntlet Results</h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="gauntletResults">
+                                    <p class="text-muted">No results to display</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Team Coordination Section -->
+                <div class="row mt-4">
+                    <div class="col-md-4 mb-4">
+                        <div class="card team-card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0"><i class="bi bi-shield me-2"></i> Red Team</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Performs adversarial analysis and identifies potential issues and vulnerabilities in the decomposition.</p>
+                                <div class="progress mb-3">
+                                    <div class="progress-bar" id="redTeamProgress" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <p><small class="text-muted">Status: <span id="redTeamStatus">Idle</span></small></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card team-card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0"><i class="bi bi-tools me-2"></i> Blue Team</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Addresses issues identified by Red Team and refines the decomposition to improve quality and robustness.</p>
+                                <div class="progress mb-3">
+                                    <div class="progress-bar bg-success" id="blueTeamProgress" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <p><small class="text-muted">Status: <span id="blueTeamStatus">Idle</span></small></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card team-card">
+                            <div class="card-header bg-white">
+                                <h5 class="mb-0"><i class="bi bi-star me-2"></i> Gold Team</h5>
+                            </div>
+                            <div class="card-body">
+                                <p class="card-text">Performs final evaluation and approval of the decomposition to ensure it meets all requirements.</p>
+                                <div class="progress mb-3">
+                                    <div class="progress-bar bg-warning" id="goldTeamProgress" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <p><small class="text-muted">Status: <span id="goldTeamStatus">Idle</span></small></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Problem Modal -->
+    <div class="modal fade" id="newProblemModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create New Problem</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newProblemForm">
+                        <div class="mb-3">
+                            <label for="problemTitle" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="problemTitle" placeholder="Enter problem title">
+                        </div>
+                        <div class="mb-3">
+                            <label for="problemDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="problemDescription" rows="5" placeholder="Describe the problem to be decomposed..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="decompositionStrategy" class="form-label">Decomposition Strategy</label>
+                            <select class="form-control" id="decompositionStrategy">
+                                <option value="hybrid">Hybrid (Recommended)</option>
+                                <option value="semantic">Semantic</option>
+                                <option value="dependency">Dependency</option>
+                                <option value="complexity">Complexity</option>
+                                <option value="research">Research</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="createProblemBtn">Create Problem</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container position-fixed bottom-0 end-0 p-3">
+        <div id="toastPlaceholder"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{{ url_for('static', filename='js/sovereign_viz.js') }}"></script>
+    <script>
+        // Global state
+        let selectedProblem = null;
+        let selectedPlan = null;
+        let decompositionGraph = null;
+
+        // DOM Elements
+        const elements = {
+            totalProblems: document.getElementById('totalProblems'),
+            activePlans: document.getElementById('activePlans'),
+            totalSolutions: document.getElementById('totalSolutions'),
+            systemHealth: document.getElementById('systemHealth'),
+            problemsList: document.getElementById('problemsList'),
+            plansList: document.getElementById('plansList'),
+            workflowsList: document.getElementById('workflowsList'),
+            problemTitle: document.getElementById('problemTitle'),
+            problemType: document.getElementById('problemType'),
+            problemDomain: document.getElementById('problemDomain'),
+            problemComplexity: document.getElementById('problemComplexity'),
+            problemConstraints: document.getElementById('problemConstraints'),
+            problemCriteria: document.getElementById('problemCriteria'),
+            problemCreated: document.getElementById('problemCreated'),
+            problemDescription: document.getElementById('problemDescription'),
+            problemStatus: document.getElementById('problemStatus'),
+            decomposeBtn: document.getElementById('decomposeBtn'),
+            runGauntletsBtn: document.getElementById('runGauntletsBtn'),
+            validatePlanBtn: document.getElementById('validatePlanBtn'),
+            integrateSolutionsBtn: document.getElementById('integrateSolutionsBtn'),
+            executePlanBtn: document.getElementById('executePlanBtn'),
+            gauntletResults: document.getElementById('gauntletResults'),
+            redTeamProgress: document.getElementById('redTeamProgress'),
+            blueTeamProgress: document.getElementById('blueTeamProgress'),
+            goldTeamProgress: document.getElementById('goldTeamProgress'),
+            redTeamStatus: document.getElementById('redTeamStatus'),
+            blueTeamStatus: document.getElementById('blueTeamStatus'),
+            goldTeamStatus: document.getElementById('goldTeamStatus')
+        };
+
+        // Initialize the dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboardData();
+            initEventListeners();
+            
+            // Set up auto-refresh
+            setInterval(loadDashboardData, 30000);
+        });
+
+        // Initialize event listeners
+        function initEventListeners() {
+            document.getElementById('newProblemBtn').addEventListener('click', () => {
+                document.getElementById('newProblemModal').querySelector('.modal').classList.add('show');
+                document.getElementById('newProblemModal').style.display = 'block';
+            });
+            
+            document.getElementById('createProblemBtn').addEventListener('click', createNewProblem);
+            
+            document.getElementById('refreshProblemsBtn').addEventListener('click', loadProblems);
+            
+            document.getElementById('decomposeBtn').addEventListener('click', decomposeSelectedProblem);
+            
+            document.getElementById('runGauntletsBtn').addEventListener('click', runGauntletsOnPlan);
+            
+            document.getElementById('validatePlanBtn').addEventListener('click', validatePlan);
+            
+            document.getElementById('integrateSolutionsBtn').addEventListener('click', integrateSolutions);
+            
+            document.getElementById('executePlanBtn').addEventListener('click', executePlan);
+            
+            document.getElementById('healthCheckBtn').addEventListener('click', runHealthCheck);
+            
+            document.getElementById('systemStatsBtn').addEventListener('click', getSystemStats);
+        }
+
+        // Load dashboard data
+        async function loadDashboardData() {
+            try {
+                await Promise.all([
+                    loadProblems(),
+                    loadSystemHealth(),
+                    loadSystemStats()
+                ]);
+            } catch (error) {
+                console.error('Error loading dashboard data:', error);
+                showToast('Error loading dashboard data', 'danger');
+            }
+        }
+
+        // Load problems list
+        async function loadProblems() {
+            try {
+                const response = await fetch('/api/problems');
+                const problems = await response.json();
+                
+                elements.totalProblems.textContent = problems.length;
+                
+                elements.problemsList.innerHTML = '';
+                problems.forEach(problem => {
+                    const isActive = selectedProblem && selectedProblem.id === problem.id;
+                    const problemCard = document.createElement('div');
+                    problemCard.className = `list-group-item list-group-item-action problem-card ${isActive ? 'active' : ''}`;
+                    problemCard.dataset.problemId = problem.id;
+                    problemCard.innerHTML = `
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <h6 class="mb-1">${problem.title || 'Untitled Problem'}</h6>
+                                <small class="text-muted">${problem.domain_context?.domain || 'General'} • ${problem.problem_type}</small>
+                            </div>
+                            <div>
+                                <span class="badge bg-${getComplexityBadge(problem.complexity_score?.overall_complexity)}">
+                                    ${problem.complexity_score?.overall_complexity?.toFixed(1) || '0.0'}
+                                </span>
+                            </div>
+                        </div>
+                    `;
+                    
+                    problemCard.addEventListener('click', () => selectProblem(problem));
+                    elements.problemsList.appendChild(problemCard);
+                });
+                
+                // If no problem is selected and we have problems, select the first one
+                if (!selectedProblem && problems.length > 0) {
+                    selectProblem(problems[0]);
+                }
+            } catch (error) {
+                console.error('Error loading problems:', error);
+                showToast('Error loading problems', 'danger');
+            }
+        }
+
+        // Select a problem
+        function selectProblem(problem) {
+            selectedProblem = problem;
+            
+            // Update UI
+            elements.problemTitle.textContent = problem.title || 'Untitled Problem';
+            elements.problemType.textContent = problem.problem_type;
+            elements.problemDomain.textContent = problem.domain_context?.domain || 'General';
+            elements.problemComplexity.textContent = `${problem.complexity_score?.overall_complexity?.toFixed(1) || '0.0'}/10`;
+            elements.problemConstraints.textContent = problem.constraints?.length || 0;
+            elements.problemCriteria.textContent = problem.success_criteria?.length || 0;
+            elements.problemCreated.textContent = new Date(problem.created_at).toLocaleString();
+            elements.problemDescription.textContent = problem.description || 'No description available';
+            elements.problemStatus.className = `badge ${getProblemStatusClass(problem)}`;
+            elements.problemStatus.textContent = getProblemStatusText(problem);
+            
+            // Highlight selected problem in list
+            document.querySelectorAll('.problem-card').forEach(card => {
+                card.classList.remove('active');
+                if (card.dataset.problemId === problem.id) {
+                    card.classList.add('active');
+                }
+            });
+            
+            // Enable/disable buttons based on selection
+            elements.decomposeBtn.disabled = !problem;
+            if (problem) {
+                // Check if a plan exists for this problem
+                checkPlanExists(problem.id);
+            }
+        }
+
+        // Check if a plan exists for the selected problem
+        async function checkPlanExists(problemId) {
+            try {
+                const response = await fetch(`/api/plans/${problemId}`);
+                if (response.ok) {
+                    const plan = await response.json();
+                    selectedPlan = plan;
+                    elements.runGauntletsBtn.disabled = false;
+                    elements.validatePlanBtn.disabled = false;
+                    elements.integrateSolutionsBtn.disabled = false;
+                    elements.executePlanBtn.disabled = false;
+                    
+                    // Load plan details
+                    loadPlanDetails(plan);
+                    
+                    // Update plans list
+                    updatePlansList([plan]);
+                } else {
+                    selectedPlan = null;
+                    elements.runGauntletsBtn.disabled = true;
+                    elements.validatePlanBtn.disabled = true;
+                    elements.integrateSolutionsBtn.disabled = true;
+                    elements.executePlanBtn.disabled = true;
+                }
+            } catch (error) {
+                console.error('Error checking plan:', error);
+            }
+        }
+
+        // Load plan details
+        function loadPlanDetails(plan) {
+            // Update plans list
+            elements.plansList.innerHTML = '';
+            const planCard = document.createElement('div');
+            planCard.className = 'list-group-item';
+            planCard.innerHTML = `
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h6 class="mb-1">${plan.strategy} Plan</h6>
+                        <small class="text-muted">${plan.sub_problems?.length || 0} sub-problems</small>
+                    </div>
+                    <div>
+                        <span class="badge bg-${getPlanStatusClass(plan.status)}">${plan.status}</span>
+                    </div>
+                </div>
+            `;
+            elements.plansList.appendChild(planCard);
+        }
+
+        // Update plans list
+        function updatePlansList(plans) {
+            elements.plansList.innerHTML = '';
+            plans.forEach(plan => {
+                const planCard = document.createElement('div');
+                planCard.className = 'list-group-item';
+                planCard.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <div>
+                            <h6 class="mb-1">${plan.strategy} Plan</h6>
+                            <small class="text-muted">${plan.sub_problems?.length || 0} sub-problems</small>
+                        </div>
+                        <div>
+                            <span class="badge bg-${getPlanStatusClass(plan.status)}">${plan.status}</span>
+                        </div>
+                    </div>
+                `;
+                elements.plansList.appendChild(planCard);
+            });
+        }
+
+        // Get complexity badge class
+        function getComplexityBadge(complexity) {
+            if (complexity >= 8) return 'bg-danger';
+            if (complexity >= 6) return 'bg-warning';
+            if (complexity >= 4) return 'bg-info';
+            return 'bg-success';
+        }
+
+        // Get problem status class
+        function getProblemStatusClass(problem) {
+            // In a real implementation, this would check the actual status
+            return 'bg-success';
+        }
+
+        // Get problem status text
+        function getProblemStatusText(problem) {
+            // In a real implementation, this would check the actual status
+            return 'Ready';
+        }
+
+        // Get plan status class
+        function getPlanStatusClass(status) {
+            switch (status) {
+                case 'completed': return 'bg-success';
+                case 'in_execution': return 'bg-info';
+                case 'under_review': return 'bg-warning';
+                case 'failed': return 'bg-danger';
+                default: return 'bg-secondary';
+            }
+        }
+
+        // Create a new problem
+        async function createNewProblem() {
+            const title = document.getElementById('problemTitle').value;
+            const description = document.getElementById('problemDescription').value;
+            const strategy = document.getElementById('decompositionStrategy').value;
+
+            if (!title || !description) {
+                showToast('Please provide both title and description', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/problems', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        problem_text: description
+                    })
+                });
+
+                if (response.ok) {
+                    const problem = await response.json();
+                    showToast('Problem created successfully', 'success');
+                    
+                    // Close modal
+                    document.getElementById('newProblemModal').querySelector('.modal').classList.remove('show');
+                    document.getElementById('newProblemModal').style.display = 'none';
+                    
+                    // Reset form
+                    document.getElementById('newProblemForm').reset();
+                    
+                    // Reload problems list
+                    await loadProblems();
+                    
+                    // Select the new problem
+                    selectProblem(problem);
+                } else {
+                    const error = await response.text();
+                    showToast(`Error creating problem: ${error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Error creating problem:', error);
+                showToast('Error creating problem', 'danger');
+            }
+        }
+
+        // Decompose selected problem
+        async function decomposeSelectedProblem() {
+            if (!selectedProblem) {
+                showToast('Please select a problem first', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/problems/${selectedProblem.id}/decompose`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        strategy: 'hybrid' // Use selected strategy in the future
+                    })
+                });
+
+                if (response.ok) {
+                    const plan = await response.json();
+                    selectedPlan = plan;
+                    showToast('Problem decomposed successfully', 'success');
+                    
+                    // Enable plan-related buttons
+                    elements.runGauntletsBtn.disabled = false;
+                    elements.validatePlanBtn.disabled = false;
+                    elements.integrateSolutionsBtn.disabled = false;
+                    elements.executePlanBtn.disabled = false;
+                    
+                    // Update plans list
+                    updatePlansList([plan]);
+                    
+                    // Load plan details
+                    loadPlanDetails(plan);
+                } else {
+                    const error = await response.text();
+                    showToast(`Error decomposing problem: ${error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Error decomposing problem:', error);
+                showToast('Error decomposing problem', 'danger');
+            }
+        }
+
+        // Run gauntlets on plan
+        async function runGauntletsOnPlan() {
+            if (!selectedPlan) {
+                showToast('Please select a plan first', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/gauntlets/run', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        plan_id: selectedPlan.id
+                    })
+                });
+
+                if (response.ok) {
+                    const results = await response.json();
+                    showToast('Gauntlets completed successfully', 'success');
+                    
+                    // Display results
+                    displayGauntletResults(results.results);
+                } else {
+                    const error = await response.text();
+                    showToast(`Error running gauntlets: ${error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Error running gauntlets:', error);
+                showToast('Error running gauntlets', 'danger');
+            }
+        }
+
+        // Display gauntlet results
+        function displayGauntletResults(results) {
+            elements.gauntletResults.innerHTML = '';
+            
+            if (!results || Object.keys(results).length === 0) {
+                elements.gauntletResults.innerHTML = '<p class="text-muted">No results to display</p>';
+                return;
+            }
+            
+            Object.entries(results).forEach(([name, result]) => {
+                const resultEl = document.createElement('div');
+                resultEl.className = 'mb-2';
+                resultEl.innerHTML = `
+                    <div class="d-flex justify-content-between">
+                        <span>${name}:</span>
+                        <span class="badge bg-${result.passed ? 'success' : 'danger'}">${result.passed ? 'PASS' : 'FAIL'}</span>
+                    </div>
+                    <div class="progress" style="height: 5px;">
+                        <div class="progress-bar bg-${result.passed ? 'success' : 'danger'}" 
+                             style="width: ${result.score * 100}%"></div>
+                    </div>
+                `;
+                elements.gauntletResults.appendChild(resultEl);
+            });
+        }
+
+        // Validate plan
+        async function validatePlan() {
+            if (!selectedPlan) {
+                showToast('Please select a plan first', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/plans/${selectedPlan.id}/execute`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showToast('Plan validation completed', 'success');
+                    
+                    // Update team status
+                    updateTeamStatus(result);
+                } else {
+                    const error = await response.text();
+                    showToast(`Error validating plan: ${error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Error validating plan:', error);
+                showToast('Error validating plan', 'danger');
+            }
+        }
+
+        // Update team status
+        function updateTeamStatus(result) {
+            // This is a simplified version - in a real implementation, 
+            // you would have more detailed status updates from the validation process
+            elements.redTeamStatus.textContent = 'Completed';
+            elements.redTeamProgress.style.width = '100%';
+            
+            elements.blueTeamStatus.textContent = 'Completed';
+            elements.blueTeamProgress.style.width = '100%';
+            
+            elements.goldTeamStatus.textContent = 'Completed';
+            elements.goldTeamProgress.style.width = '100%';
+        }
+
+        // Integrate solutions
+        async function integrateSolutions() {
+            if (!selectedPlan) {
+                showToast('Please select a plan first', 'warning');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/plans/${selectedPlan.id}/integrate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({})
+                });
+
+                if (response.ok) {
+                    const result = await response.json();
+                    showToast('Solutions integrated successfully', 'success');
+                    
+                    // Update metrics
+                    elements.totalSolutions.textContent = parseInt(elements.totalSolutions.textContent) + 1;
+                } else {
+                    const error = await response.text();
+                    showToast(`Error integrating solutions: ${error}`, 'danger');
+                }
+            } catch (error) {
+                console.error('Error integrating solutions:', error);
+                showToast('Error integrating solutions', 'danger');
+            }
+        }
+
+        // Execute plan
+        async function executePlan() {
+            if (!selectedProblem) {
+                showToast('Please select a problem first', 'warning');
+                return;
+            }
+
+            if (!selectedPlan) {
+                showToast('Plan not found for selected problem', 'warning');
+                return;
+            }
+
+            // This would trigger the full execution workflow in a real implementation
+            showToast('Plan execution initiated', 'info');
+        }
+
+        // Run health check
+        async function runHealthCheck() {
+            try {
+                const response = await fetch('/api/health');
+                if (response.ok) {
+                    const health = await response.json();
+                    showToast(`System health: ${health.overall_healthy ? 'Good' : 'Issues detected'}`, 
+                              health.overall_healthy ? 'success' : 'warning');
+                } else {
+                    showToast('Error checking system health', 'danger');
+                }
+            } catch (error) {
+                console.error('Error checking health:', error);
+                showToast('Error checking system health', 'danger');
+            }
+        }
+
+        // Get system stats
+        async function getSystemStats() {
+            try {
+                const response = await fetch('/api/stats');
+                if (response.ok) {
+                    const stats = await response.json();
+                    showToast('System stats updated', 'success');
+                    
+                    // In a real implementation, you could display these stats in a modal
+                    console.log('System Stats:', stats);
+                } else {
+                    showToast('Error getting system stats', 'danger');
+                }
+            } catch (error) {
+                console.error('Error getting stats:', error);
+                showToast('Error getting system stats', 'danger');
+            }
+        }
+
+        // Load system health
+        async function loadSystemHealth() {
+            try {
+                const response = await fetch('/api/health');
+                if (response.ok) {
+                    const health = await response.json();
+                    elements.systemHealth.textContent = health.overall_healthy ? 'Healthy' : 'Issues';
+                    elements.systemHealth.className = `badge ${health.overall_healthy ? 'bg-success' : 'bg-warning'}`;
+                } else {
+                    elements.systemHealth.textContent = 'Unknown';
+                    elements.systemHealth.className = 'badge bg-secondary';
+                }
+            } catch (error) {
+                console.error('Error loading health:', error);
+                elements.systemHealth.textContent = 'Error';
+                elements.systemHealth.className = 'badge bg-danger';
+            }
+        }
+
+        // Load system stats
+        async function loadSystemStats() {
+            try {
+                const response = await fetch('/api/stats');
+                if (response.ok) {
+                    const stats = await response.json();
+                    elements.totalSolutions.textContent = stats.database?.solution_attempts_count || 0;
+                    elements.activePlans.textContent = stats.database?.decomposition_plans_count || 0;
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'info') {
+            const toastDiv = document.createElement('div');
+            toastDiv.className = `toast align-items-center text-white bg-${type} border-0`;
+            toastDiv.setAttribute('role', 'alert');
+            toastDiv.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            
+            document.getElementById('toastPlaceholder').appendChild(toastDiv);
+            
+            const toast = new bootstrap.Toast(toastDiv);
+            toast.show();
+            
+            // Remove toast after it's hidden
+            toastDiv.addEventListener('hidden.bs.toast', function() {
+                toastDiv.remove();
+            });
+        }
+    </script>
+</body>
+</html>

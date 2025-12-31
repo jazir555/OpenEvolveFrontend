@@ -1,0 +1,74 @@
+{
+  "type": "theorem",
+  "name": "Circulation of Linear System",
+  "status": "incomplete proof",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "x",
+      "kind": "function of t"
+    },
+    {
+      "type": "let",
+      "variable": "y",
+      "kind": "function of t"
+    },
+    {
+      "type": "assume",
+      "statement": "$\\dot{x} = y$"
+    },
+    {
+      "type": "assume",
+      "statement": "$\\dot{y}=-x-y$"
+    }
+  ],
+  "conclusion": "The origin is a circulation for the system of differential equations $\\dot{x} = y$, $\\dot{y}=-x-y$.",
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Explain what 'circulation' means in this context. Does it refer to a specific type of fixed point or limit cycle behavior?",
+      "solved": false
+    },
+    {
+      "type": "problem",
+      "statement": "Prove that a spiral sink cannot be a circulation, or revise the conclusion if necessary.",
+      "solved": false
+    }
+  ],
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "It seems like the proof attempts to analyze the stability of the origin by expressing the system in matrix form and finding eigenvalues."
+      },
+      {
+        "type": "assert",
+        "claim": "$\\dot{X} = \\begin{pmatrix} 0 & 1 \\\\ -1 & -1 \\end{pmatrix} X$",
+        "proof-method": "Rewriting the system of equations in matrix form"
+      },
+      {
+        "type": "let",
+        "variable": "\\Delta",
+        "value": "1",
+        "kind": "discriminant of the characteristic polynomial"
+      },
+      {
+        "type": "let",
+        "variable": "trace",
+        "value": "-1",
+        "kind": "trace of the matrix"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of the matrix are  $-\\frac{1}{2}+\\frac{\\sqrt{3}}{2}i$ and $-\\frac{1}{2}-\\frac{\\sqrt{3}}{2}i$",
+        "proof-method": "Solving the characteristic equation"
+      },
+      {
+        "type": "conclude",
+        "statement": "The origin is a spiral sink.",
+        "error": "The conclusion that the origin is a spiral sink is correct based on the eigenvalues. However, this does not directly prove or disprove that the origin is a circulation. Further analysis or clarification of the term 'circulation' is needed."
+      }
+    ]
+  }
+}

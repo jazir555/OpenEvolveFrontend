@@ -1,0 +1,71 @@
+{
+  "type": "theorem",
+  "name": "Circulation at the origin for a specific linear differential equation",
+  "hypothesis": [
+    {
+      "type": "assume",
+      "statement": "$\\dot{x} = -y$"
+    },
+    {
+      "type": "assume",
+      "statement": "$\\dot{y} = x$"
+    }
+  ],
+  "conclusion": "The origin is circulation.",
+  "status": "incomplete proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$\\begin{pmatrix} \\dot{x} \\\\ \\dot{y} \\end{pmatrix} = \\begin{pmatrix} 0 & -1 \\\\ 1 & 0 \\end{pmatrix} \\begin{pmatrix} x \\\\ y \\end{pmatrix}$",
+        "proof-method": "Matrix form of the system"
+      },
+      {
+        "type": "assert",
+        "claim": "$|A - \\lambda I| = 0$",
+        "proof-method": "Eigenvalue problem"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\left| \\begin{pmatrix} -\\lambda & -1 \\\\ 1 & -\\lambda \\end{pmatrix} \\right| = 0$",
+        "proof-method": "Substitution of $A$ and $\\lambda I$ into the determinant"
+      },
+      {
+        "type": "assert",
+        "claim": "$\\lambda^2 + 1 = 0$",
+        "calculation": [
+          {
+            "step": "$(-\\lambda)(-\\lambda) - (-1)(1) = 0$",
+            "justification": "Expansion of the determinant"
+          }
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\lambda = \\pm i$",
+        "proof-method": "Solving the quadratic equation $\\lambda^2 + 1 = 0$"
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues are complex and purely imaginary.",
+        "proof-method": "Eigenvalue analysis"
+      },
+      {
+        "type": "assert",
+        "claim": "The origin is circulation.",
+        "deduced_from": {
+          "known_results": [
+            "For a system of linear ordinary differential equations in two variables given by the $2 \\times 2$ matrix $A$, the origin is a circulation/centre if the eigenvalues of $A$ are purely imaginary."
+          ]
+        },
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "Justify why $Re(\\lambda) = 0$ implies circulation and not spiral in this context."
+          }
+        ]
+      }
+    ]
+  }
+}

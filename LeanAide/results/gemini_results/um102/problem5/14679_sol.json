@@ -1,0 +1,103 @@
+{
+  "type": "theorem",
+  "name": "Points on Ellipsoid with Largest Distance from Origin",
+  "hypothesis": [],
+  "conclusion": "The points $(1, 0, 0)$ and $(-1, 0, 0)$ on the ellipsoid $x^{2}+2 y^{2}+3 z^{2}=1$ have the largest distance from the origin.",
+  "status": "incomplete proof",
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "Prove that when $f(x,y,z)$ attains maxima or minima subject to the constraint $g(x,y,z)=0$, $\\nabla f$ is in the same direction as $\\nabla g$.",
+      "solved": false
+    }
+  ],
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "let",
+        "variable": "f(x,y,z)",
+        "value": "$x^2 + 2y^2 + 3z^2 - 1$",
+        "kind": "function"
+      },
+      {
+        "type": "let",
+        "variable": "g(x,y,z)",
+        "value": "$x^2 + y^2 + z^2 - r^2$",
+        "kind": "spherical function"
+      },
+      {
+        "type": "assert",
+        "claim": "When $f(x,y,z)$ attains maxima or minima, $\\nabla f$ is in the same direction as $\\nabla g$",
+        "proof-method": "This is a standard result in multivariable calculus subject to constraints. A proof is omitted here."
+      },
+      {
+        "type": "assert",
+        "claim": "$(2x \\hat{i} + 4y \\hat{j} + 6z \\hat{k}) = \\lambda (2x \\hat{i} + 2y \\hat{j} + 2z \\hat{k})$",
+        "deduced_from": [
+          "$\\nabla f = \\lambda \\nabla g$"
+        ],
+        "proof-method": "By calculating $\\nabla f$ and $\\nabla g$"
+      },
+      {
+        "type": "cases",
+        "on": "Equating individual components of the previous equation",
+        "split-kind": "match",
+        "proof-cases": [
+          {
+            "type": "case",
+            "condition": "$2 = \\lambda$",
+            "proof": {
+              "type": "proof",
+              "steps": [
+                {
+                  "type": "assert",
+                  "claim": "$x=1$, $y=0$, $z=0$",
+                  "errors": [
+                    "The conclusion that $\\lambda = 2$ implies $x=1$ is not justified, since we also require $2x = \\lambda 2x$ which holds for any $x$ if $\\lambda = 1$"
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "type": "case",
+            "condition": "$4 = \\lambda$",
+            "proof": {
+              "type": "proof",
+              "steps": [
+                {
+                  "type": "assert",
+                  "claim": "$y=1$, $x=0$, $z=0$",
+                  "errors": [
+                    "Similar to the previous case, the implication from $\\lambda$ to the values of $x, y, z$ is not justified and in fact wrong."
+                  ]
+                }
+              ]
+            }
+          },
+          {
+            "type": "case",
+            "condition": "$6 = \\lambda$",
+            "proof": {
+              "type": "proof",
+              "steps": [
+                {
+                  "type": "assert",
+                  "claim": "$z=1$, $x=0$, $y=0$",
+                  "errors": [
+                    "Similar to the previous case, the implication from $\\lambda$ to the values of $x, y, z$ is not justified and in fact wrong."
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "type": "remark",
+        "statement": "The rest of the proof proceeds to analyze these cases, but since the cases are incorrect the rest of the proof is also incorrect."
+      }
+    ]
+  }
+}

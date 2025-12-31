@@ -1,0 +1,35 @@
+{
+  "type": "theorem",
+  "name": "Circulation at the Origin",
+  "status": "incomplete proof",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "kind": "differential equations",
+      "property": "linear",
+      "value": "$\\dot{x}=-y$, $\\dot{y}=x$"
+    }
+  ],
+  "conclusion": "The origin is a circulation for the given system of differential equations.",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "See attached diagram."
+      },
+      {
+        "type": "conclude",
+        "statement": "The origin is a circulation.",
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "Show that the eigenvalues of the matrix $A = \\begin{pmatrix} 0 & -1 \\\\ 1 & 0 \\end{pmatrix}$ are purely imaginary.",
+            "solved": false
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "type": "theorem",
+  "name": "Circulation of Linear System",
+  "status": "wrong proof",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "x",
+      "kind": "function of t"
+    },
+    {
+      "type": "let",
+      "variable": "y",
+      "kind": "function of t"
+    },
+    {
+      "type": "assume",
+      "statement": "$\\dot{x}=-y$"
+    },
+    {
+      "type": "assume",
+      "statement": "$\\dot{y}=x$"
+    }
+  ],
+  "conclusion": "The origin is a circulation for the system of differential equations $\\dot{x}=-y$, $\\dot{y}=x$.",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$\\dot{X} = \\begin{pmatrix} 0 & -1 \\\\ 1 & 0 \\end{pmatrix} X$",
+        "proof-method": "Rewriting the system in matrix form",
+        "errors": [
+          "The statement is wrong: it should be $\\dot{X}=\\begin{pmatrix}0&-1\\\\1&0\\end{pmatrix}X$."
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\Delta = 1$, $trace = 0$",
+        "proof-method": "Calculating the determinant and trace of the matrix $\\begin{pmatrix} 0 & -1 \\\\ 1 & 0 \\end{pmatrix}$."
+      },
+      {
+        "type": "assert",
+        "claim": "The eigenvalues of $\\begin{pmatrix} 0 & -1 \\\\ 1 & 0 \\end{pmatrix}$ are $i$ and $-i$",
+        "deduced_from": {
+          "known_results": [
+            "The eigenvalues of a $2 \\times 2$ matrix $\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}$ are the roots of the quadratic equation $\\lambda^2-(a+d)\\lambda+(ad-bc)=0$."
+          ]
+        }
+      },
+      {
+        "type": "conclude",
+        "statement": "The origin is a circulation.",
+        "deduced_from": {
+          "known_results": [
+            "For a system of linear ordinary differential equations in two variables given by the $2 \\times 2$ matrix $A$, the origin is a circulation/centre if the eigenvalues of $A$ are purely imaginary."
+          ]
+        }
+      }
+    ]
+  }
+}

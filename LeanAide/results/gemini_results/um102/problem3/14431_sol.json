@@ -1,0 +1,39 @@
+{
+  "type": "theorem",
+  "name": "Gradient of f(x,y) at (1,0) and (-1,0)",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "f",
+      "value": "$f(x, y) = x^{3} - 3x + y^{2}$",
+      "kind": "function from $\\mathbb{R}^2$ to $\\mathbb{R}$"
+    }
+  ],
+  "conclusion": "The gradient of $f$ is zero at the points $(1,0)$ and $(-1,0)$.",
+  "status": "wrong proof",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "remark",
+        "statement": "The proof seems to be trying to find the points where the gradient is zero, instead of proving it is zero at the given points."
+      },
+      {
+        "type": "assert",
+        "claim": "$\\nabla f = (3x^2 - 3)\\hat{i} + 2y\\hat{j}$",
+        "proof-method": "Direct calculation of partial derivatives."
+      },
+      {
+        "type": "assert",
+        "claim": "If $\\nabla f = 0$, then $(x,y) = (1,0)$ or $(-1,0)$",
+        "proof-method": "Solving the equations obtained by setting the components of the gradient to zero.",
+        "errors": [
+          {
+            "type": "remark",
+            "statement": "The proof derives the condition for the gradient to be zero, but it does not directly prove that the gradient is actually zero at those points."
+          }
+        ]
+      }
+    ]
+  }
+}

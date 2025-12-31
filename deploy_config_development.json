@@ -1,0 +1,36 @@
+{
+  "python_version": "3.9",
+  "required_packages": [
+    "streamlit",
+    "pytest",
+    "psutil",
+    "requests"
+  ],
+  "database_path": "sovereign_system_dev.db",
+  "log_level": "DEBUG",
+  "health_check_port": 8002,
+  "api_port": 8503,
+  "cache_size": 100,
+  "cache_ttl_seconds": 600,
+  "max_concurrent_problems": 10,
+  "max_refinement_cycles": 2,
+  "quality_thresholds": {
+    "coherence": 0.70,
+    "completeness": 0.75,
+    "feasibility": 0.70,
+    "overall": 0.70
+  },
+  "performance_targets": {
+    "simple_decomposition_seconds": 20,
+    "complex_decomposition_seconds": 60,
+    "concurrent_capacity": 10
+  },
+  "monitoring": {
+    "enabled": true,
+    "health_check_interval_seconds": 10,
+    "metrics_retention_days": 1
+  },
+  "backup": {
+    "enabled": false
+  }
+}

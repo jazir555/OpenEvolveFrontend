@@ -1,0 +1,76 @@
+{
+  "type": "theorem",
+  "name": "Origin of Linear System",
+  "status": "wrong proof",
+  "hypothesis": [
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "kind": "differential equation",
+      "property": "linear",
+      "value": "$\\dot{x} = x$"
+    },
+    {
+      "type": "let",
+      "variable": "<anonymous>",
+      "kind": "differential equation",
+      "property": "linear",
+      "value": "$\\dot{y} = y$"
+    }
+  ],
+  "conclusion": "The origin is a source for the given system of differential equations.",
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "The system can be written in matrix form as $\\dot{X'} = \\begin{bmatrix} 1 & 0\\\\0 & 1\\end{bmatrix} X$",
+        "proof-method": "converting system to matrix form"
+      },
+      {
+        "type": "assert",
+        "claim": "The matrix $\\begin{bmatrix} 1 & 0\\\\0 & 1\\end{bmatrix}$ has repeating real eigenvalues $\\lambda = 1$",
+        "proof-method": "calculating eigenvalues"
+      },
+      {
+        "type": "assert",
+        "claim": "Every vector $V \\in \\mathbb{R}^2$ is an eigenvector of the matrix $\\begin{bmatrix} 1 & 0\\\\0 & 1\\end{bmatrix}$",
+        "calculation": [
+          {
+            "type": "remark",
+            "statement": "This calculation contains an error. The matrix multiplication is incorrect, and not all vectors are eigenvectors."
+          },
+          "$\\begin{bmatrix} 0 & 1 \\\\ 0 & 1 \\end{bmatrix} V = V$"
+        ],
+        "errors": [
+          "The matrix used in the calculation is incorrect. It should be $\\begin{bmatrix} 1 & 0 \\\\ 0 & 1 \\end{bmatrix}$.",
+          "The conclusion that every vector in $\\mathbb{R}^2$ is an eigenvector is incorrect."
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "The solution of the system is $X(t) = \\alpha e^t V + t V e^{Rt^2}$",
+        "proof-method": "using the eigenvalues and eigenvectors to write the general solution",
+        "errors": [
+          "The variable R is undefined.",
+          "The term $tVe^{Rt^2}$ is incorrect for this system."
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "The solutions are straight lines moving away from the origin.",
+        "deduced_from": [
+          "The form of the solution $X(t)$"
+        ],
+        "errors": [
+          "This statement is not justified, as the solution provided is incorrect."
+        ]
+      },
+      {
+        "type": "conclude",
+        "statement": "Therefore, the system is a source.",
+        "error": "The conclusion is not justified, as the proof contains errors."
+      }
+    ]
+  }
+}

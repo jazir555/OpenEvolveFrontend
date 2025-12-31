@@ -1,0 +1,101 @@
+{
+  "type": "theorem",
+  "name": "Maximum Distance on Ellipsoid",
+  "hypothesis": [],
+  "conclusion": "The points $(1, 0, 0)$ and $(-1, 0, 0)$ on the ellipsoid $x^{2}+2 y^{2}+3 z^{2}=1$ have the largest distance from the origin.",
+  "status": "incomplete proof",
+  "missing": [
+    {
+      "type": "problem",
+      "statement": "It is not clear what the variable $n$ represents and how it relates to the distance from the origin.",
+      "solved": false
+    },
+    {
+      "type": "problem",
+      "statement": "The connection between the provided inequalities and the goal of maximizing the distance from the origin on the ellipsoid is not established.",
+      "solved": false
+    },
+    {
+      "type": "problem",
+      "statement": "The introduction of variables $y$ and $z$ in the final inequality is abrupt and lacks context within the proof's structure.",
+      "solved": false
+    }
+  ],
+  "proof": {
+    "type": "proof",
+    "steps": [
+      {
+        "type": "assert",
+        "claim": "$x^2 + 2x^3 + 3x^5 \\leq n$",
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "The validity of this initial inequality and its relevance to the theorem's objective are unclear.",
+            "solved": false
+          }
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\frac{x^2}{5} + \\frac{1-x^2}{5}  + \\frac{x^2+x^3}{5} + \\frac{x^3+x^5}{5} + \\frac{2x^4+x^5}{5} \\leq n$",
+        "deduced_from": [
+          "Previous inequality"
+        ],
+        "proof-method": "Algebraic manipulation"
+      },
+      {
+        "type": "let",
+        "variable": "x",
+        "kind": "Real number",
+        "property": "$x \\in [0,1]$"
+      },
+      {
+        "type": "let",
+        "variable": "$x^2$",
+        "kind": "Real number",
+        "property": "$x^2 \\in [0,\\frac{1}{2}]$"
+      },
+      {
+        "type": "let",
+        "variable": "$x^3$",
+        "kind": "Real number",
+        "property": "$x^3 \\in [0,1]$"
+      },
+      {
+        "type": "let",
+        "variable": "$x^5$",
+        "kind": "Real number",
+        "property": "$x^5 \\in [0,\\frac{1}{2}]$"
+      },
+      {
+        "type": "assert",
+        "claim": "$x^2 + 2x^3 + 3x^5 \\leq n$",
+        "errors": [
+          "This step merely restates the initial inequality without providing new information or advancing the proof."
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$\\forall x \\quad \\leq 2.9$",
+        "errors": [
+          "The notation is unclear. It seems to imply that all values of  'x' are less than or equal to 2.9, which contradicts the previously established range of  $x \\in [0,1]$."
+        ]
+      },
+      {
+        "type": "assert",
+        "claim": "$2(x^2 + 2x^3 + 3x^5) \\leq 2(2) \\leq (-(x^4) + 4y^3 + 6z^5)(2)$",
+        "errors": [
+          "The variables 'y' and 'z' appear without prior introduction or justification.",
+          "The relationship between this inequality and the previous steps or the theorem's statement is unclear."
+        ],
+        "missing": [
+          {
+            "type": "problem",
+            "statement": "Explain the relevance and derivation of this final inequality.",
+            "solved": false
+          }
+        ]
+      }
+    ]
+  }
+}
