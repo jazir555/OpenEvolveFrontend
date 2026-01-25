@@ -1,0 +1,23 @@
+{
+  "problem": {
+    "id": "context_test",
+    "statement": "Test context preservation"
+  },
+  "context": {
+    "level": 2,
+    "stage": "complete",
+    "user_id": "test_user",
+    "metadata": {
+      "key": "value"
+    },
+    "current_checkpoint_id": "context_test_2_starting_20260124_073303_136599"
+  },
+  "solutions": {},
+  "decomposition_tree": null,
+  "execution_status": {},
+  "metrics": {},
+  "metadata": {
+    "checkpoint_count": 1
+  },
+  "serialized_at": "2026-01-24T07:33:03.148123"
+}

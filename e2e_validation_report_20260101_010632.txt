@@ -1,0 +1,38 @@
+================================================================================
+RESE-E2E END-TO-END VALIDATION REPORT
+================================================================================
+
+Test Case: High-Temperature Superconducting Wire Invention
+Execution Time: 2026-01-01T01:06:31.009079
+Duration: 1.53 seconds
+
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+Overall Status: FAIL
+Stages Validated: 1
+Errors: 1
+Warnings: 0
+
+STAGE VALIDATION RESULTS
+--------------------------------------------------------------------------------
+
+Stage 1: Epistemic Audit
+  Status: FAIL
+  Result: N/A
+
+PERFORMANCE METRICS
+--------------------------------------------------------------------------------
+  initial_memory_mb: 23.203
+  pipeline_execution_time: 1.506
+  final_memory_mb: 209.207
+  memory_delta_mb: 186.004
+  cpu_percent: 0.000
+
+ERRORS
+--------------------------------------------------------------------------------
+  1. Stage 2 failed: ["Domain.__init__() got an unexpected keyword argument 'variables'", 'Traceback (most recent call last):\n  File "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\rese_pipeline.py", line 403, in execute\n    source_domain = Domain(\n                    ^^^^^^^\nTypeError: Domain.__init__() got an unexpected keyword argument \'variables\'\n']
+
+================================================================================
+CONCLUSION: VALIDATION FAILED
+Some validations did not pass. Review errors above.
+================================================================================

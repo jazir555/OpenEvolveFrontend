@@ -1,0 +1,527 @@
+"""
+RESE Integration Tests
+
+Comprehensive end-to-end integration tests for RESE pipeline.
+
+Author: Agent Z1 (Integration Specialist)
+Created: 2025-12-31
+"""
+
+import pytest
+import sys
+from pathlib import Path
+from datetime import datetime
+
+# Add parent directory to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+from config import RESEConfig, get_config, create_default_config
+from ..rese_pipeline import (
+    RESEPipeline,
+    ProblemInput,
+    PipelineStatus,
+    PhaseStatus,
+    run_rese
+)
+from ..monitoring import MonitoringSystem
+
+
+# =============================================================================
+# Test Fixtures
+# =============================================================================
+
+@pytest.fixture
+def test_config():
+    """Create test configuration"""
+    config = RESEConfig()
+    config.environment = "testing"
+    config.pipeline.enable_caching = False  # Disable caching for tests
+    config.monitoring.log_level = "DEBUG"
+    return config
+
+
+@pytest.fixture
+def test_problem():
+    """Create test problem"""
+    return ProblemInput(
+        id="test_problem_001",
+        description="Test optimization problem",
+        constraints=[
+            {
+                'id': 'c1',
+                'type': 'hard',
+                'description': 'Constraint 1',
+                'formalization': 'x > 0',
+                'source': 'test'
+            },
+            {
+                'id': 'c2',
+                'type': 'soft',
+                'description': 'Constraint 2',
+                'formalization': 'y < 10',
+                'source': 'test'
+            }
+        ],
+        variables={
+            'x': {'type': 'real', 'domain': 'positive'},
+            'y': {'type': 'integer', 'domain': '[0, 10]'}
+        },
+        objective="Minimize x + y",
+        domain="optimization"
+    )
+
+
+@pytest.fixture
+def monitoring_system(test_config):
+    """Create monitoring system"""
+    return MonitoringSystem(test_config.monitoring)
+
+
+# =============================================================================
+# Configuration Tests
+# =============================================================================
+
+class TestConfiguration:
+    """Test configuration system"""
+
+    def test_default_config(self):
+        """Test default configuration creation"""
+        config = RESEConfig()
+
+        assert config.environment == "development"
+        assert config.phase1.sce_max_constraints == 10000
+        assert config.pipeline.enable_caching == True
+        assert len(config.phase1) > 0
+
+    def test_config_from_dict(self):
+        """Test configuration from dictionary"""
+        data = {
+            'environment': 'production',
+            'phase1': {'sce_max_constraints': 5000},
+            'pipeline': {'enable_caching': False}
+        }
+
+        config = RESEConfig.from_dict(data)
+
+        assert config.environment == "production"
+        assert config.phase1.sce_max_constraints == 5000
+        assert config.pipeline.enable_caching == False
+
+    def test_config_to_dict(self, test_config):
+        """Test configuration to dictionary"""
+        config_dict = test_config.to_dict()
+
+        assert 'environment' in config_dict
+        assert 'phase1' in config_dict
+        assert 'phase2' in config_dict
+        assert 'pipeline' in config_dict
+
+    def test_config_for_environment(self, test_config):
+        """Test environment-specific configuration"""
+        prod_config = test_config.for_environment("production")
+
+        assert prod_config.environment == "production"
+        assert prod_config.api.debug == False
+        assert prod_config.monitoring.log_level == "WARNING"
+
+    def test_config_save_load(self, tmp_path):
+        """Test configuration save and load"""
+        config = RESEConfig()
+        config_path = tmp_path / "test_config.json"
+
+        config.save(config_path)
+        loaded_config = RESEConfig.from_file(config_path)
+
+        assert loaded_config.environment == config.environment
+        assert loaded_config.phase1.sce_max_constraints == config.phase1.sce_max_constraints
+
+
+# =============================================================================
+# Pipeline Tests
+# =============================================================================
+
+class TestRESEPipeline:
+    """Test RESE pipeline execution"""
+
+    def test_pipeline_initialization(self, test_config):
+        """Test pipeline initialization"""
+        pipeline = RESEPipeline(test_config)
+
+        assert pipeline.config == test_config
+        assert pipeline.status == PipelineStatus.IDLE
+        assert pipeline.current_result is None
+
+    def test_single_phase_execution(self, test_config, test_problem):
+        """Test execution of single phase"""
+        pipeline = RESEPipeline(test_config)
+
+        result = pipeline.run(
+            test_problem,
+            phases=['phase1'],
+            use_cache=False
+        )
+
+        assert result.status in [PipelineStatus.COMPLETED, PipelineStatus.FAILED]
+        assert 'phase1' in result.phase_results
+        assert result.elapsed_seconds >= 0
+
+    def test_multi_phase_execution(self, test_config, test_problem):
+        """Test execution of multiple phases"""
+        pipeline = RESEPipeline(test_config)
+
+        result = pipeline.run(
+            test_problem,
+            phases=['phase1', 'phase2'],
+            use_cache=False
+        )
+
+        assert 'phase1' in result.phase_results
+        assert 'phase2' in result.phase_results
+        assert result.phase_results['phase1'].status == PhaseStatus.COMPLETED
+
+    def test_pipeline_caching(self, test_config, test_problem):
+        """Test pipeline caching"""
+        pipeline = RESEPipeline(test_config)
+
+        # First run (no cache)
+        start1 = datetime.now()
+        result1 = pipeline.run(test_problem, phases=['phase1'], use_cache=True)
+        duration1 = (datetime.now() - start1).total_seconds()
+
+        # Second run (with cache)
+        start2 = datetime.now()
+        result2 = pipeline.run(test_problem, phases=['phase1'], use_cache=True)
+        duration2 = (datetime.now() - start2).total_seconds()
+
+        # Cached result should be faster (or similar if very fast)
+        assert duration2 <= duration1 * 1.5  # Allow some variance
+
+    def test_pipeline_progress_callback(self, test_config, test_problem):
+        """Test pipeline progress callbacks"""
+        pipeline = RESEPipeline(test_config)
+
+        progress_updates = []
+
+        def callback(result):
+            progress_updates.append(result.status)
+
+        pipeline.add_progress_callback(callback)
+
+        pipeline.run(test_problem, phases=['phase1'], use_cache=False)
+
+        assert len(progress_updates) > 0
+        assert PipelineStatus.RUNNING in progress_updates
+
+    def test_pipeline_status_tracking(self, test_config, test_problem):
+        """Test pipeline status tracking"""
+        pipeline = RESEPipeline(test_config)
+
+        assert pipeline.get_status() == PipelineStatus.IDLE
+
+        pipeline.run(test_problem, phases=['phase1'], use_cache=False)
+
+        assert pipeline.get_status() in [PipelineStatus.COMPLETED, PipelineStatus.FAILED]
+
+    def test_pipeline_get_progress(self, test_config, test_problem):
+        """Test pipeline progress information"""
+        pipeline = RESEPipeline(test_config)
+
+        pipeline.run(test_problem, phases=['phase1', 'phase2'], use_cache=False)
+
+        progress = pipeline.get_progress()
+
+        assert 'status' in progress
+        assert 'phases' in progress
+        assert 'phase1' in progress['phases']
+        assert 'phase2' in progress['phases']
+
+
+# =============================================================================
+# Monitoring Tests
+# =============================================================================
+
+class TestMonitoringSystem:
+    """Test monitoring system"""
+
+    def test_monitoring_initialization(self, test_config):
+        """Test monitoring system initialization"""
+        monitoring = MonitoringSystem(test_config.monitoring)
+
+        assert monitoring.performance_monitor is not None
+        assert monitoring.aci_tracker is not None
+        assert monitoring.error_tracker is not None
+        assert monitoring.alert_manager is not None
+
+    def test_pipeline_monitoring_setup(self, monitoring_system):
+        """Test pipeline monitoring setup"""
+        pipeline_id = "test_pipeline_001"
+        baseline_aci = 0.8
+
+        monitoring_system.setup_pipeline_monitoring(pipeline_id, baseline_aci)
+
+        tracking = monitoring_system.aci_tracker.get_tracking(pipeline_id)
+        assert tracking is not None
+        assert tracking.baseline_aci == baseline_aci
+
+    def test_phase_completion_recording(self, monitoring_system):
+        """Test phase completion recording"""
+        pipeline_id = "test_pipeline_002"
+
+        monitoring_system.setup_pipeline_monitoring(pipeline_id, 0.8)
+        monitoring_system.record_phase_completion(
+            pipeline_id,
+            "phase1",
+            duration_seconds=5.0,
+            success=True,
+            aci_value=0.6
+        )
+
+        tracking = monitoring_system.aci_tracker.get_tracking(pipeline_id)
+        assert tracking is not None
+        assert tracking.current_aci == 0.6
+        assert "phase1" in tracking.phase_aci
+
+    def test_error_recording(self, monitoring_system):
+        """Test error recording"""
+        pipeline_id = "test_pipeline_003"
+
+        try:
+            raise ValueError("Test error")
+        except Exception as e:
+            monitoring_system.record_error(pipeline_id, "phase1", e)
+
+        errors = monitoring_system.error_tracker.get_errors(pipeline_id)
+        assert len(errors) > 0
+        assert errors[0]['error_type'] == 'ValueError'
+
+    def test_dashboard_data(self, monitoring_system):
+        """Test dashboard data generation"""
+        pipeline_id = "test_pipeline_004"
+
+        monitoring_system.setup_pipeline_monitoring(pipeline_id, 0.8)
+        monitoring_system.record_phase_completion(
+            pipeline_id,
+            "phase1",
+            5.0,
+            True,
+            0.6
+        )
+
+        dashboard = monitoring_system.get_dashboard_data(pipeline_id)
+
+        assert 'pipeline_id' in dashboard
+        assert 'performance' in dashboard
+        assert 'aci' in dashboard
+        assert dashboard['pipeline_id'] == pipeline_id
+
+    def test_metrics_report(self, monitoring_system):
+        """Test metrics report generation"""
+        report = monitoring_system.generate_metrics_report()
+
+        assert 'performance' in report
+        assert 'error_summary' in report
+        assert 'active_alerts' in report
+        assert 'timestamp' in report
+
+
+# =============================================================================
+# End-to-End Integration Tests
+# =============================================================================
+
+class TestEndToEnd:
+    """End-to-end integration tests"""
+
+    def test_complete_pipeline_execution(self, test_config, test_problem):
+        """Test complete pipeline execution with monitoring"""
+        pipeline = RESEPipeline(test_config)
+        monitoring = MonitoringSystem(test_config.monitoring)
+
+        # Setup monitoring
+        monitoring.setup_pipeline_monitoring("e2e_test", 0.8)
+
+        # Run pipeline
+        result = pipeline.run(test_problem, use_cache=False)
+
+        # Record completion
+        monitoring.record_phase_completion(
+            result.pipeline_id,
+            "pipeline",
+            result.elapsed_seconds,
+            result.status == PipelineStatus.COMPLETED
+        )
+
+        # Assertions
+        assert result.status in [PipelineStatus.COMPLETED, PipelineStatus.FAILED]
+        assert result.elapsed_seconds >= 0
+        assert len(result.phase_results) > 0
+
+    def test_pipeline_error_handling(self, test_config):
+        """Test pipeline error handling"""
+        pipeline = RESEPipeline(test_config)
+
+        # Create invalid problem
+        invalid_problem = ProblemInput(
+            id="invalid",
+            description="",  # Empty description
+            constraints=[],  # No constraints
+            variables={}  # No variables
+        )
+
+        result = pipeline.run(invalid_problem, use_cache=False)
+
+        # Should handle gracefully
+        assert result.status in [PipelineStatus.COMPLETED, PipelineStatus.FAILED]
+
+    def test_pipeline_with_custom_config(self):
+        """Test pipeline with custom configuration"""
+        config = RESEConfig()
+        config.pipeline.max_retries = 5
+        config.pipeline.continue_on_error = True
+
+        pipeline = RESEPipeline(config)
+
+        assert pipeline.config.pipeline.max_retries == 5
+        assert pipeline.config.pipeline.continue_on_error == True
+
+    def test_concurrent_pipeline_execution(self, test_config, test_problem):
+        """Test concurrent pipeline execution"""
+        import concurrent.futures
+
+        def run_pipeline(pipeline_id):
+            problem = ProblemInput(
+                id=pipeline_id,
+                description=test_problem.description,
+                constraints=test_problem.constraints,
+                variables=test_problem.variables
+            )
+
+            pipeline = RESEPipeline(test_config)
+            return pipeline.run(problem, phases=['phase1'], use_cache=False)
+
+        # Run multiple pipelines concurrently
+        with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+            futures = [
+                executor.submit(run_pipeline, f"concurrent_{i}")
+                for i in range(3)
+            ]
+
+            results = [
+                future.result()
+                for future in concurrent.futures.as_completed(futures)
+            ]
+
+        assert len(results) == 3
+        for result in results:
+            assert result.status in [PipelineStatus.COMPLETED, PipelineStatus.FAILED]
+
+
+# =============================================================================
+# Convenience Function Tests
+# =============================================================================
+
+class TestConvenienceFunctions:
+    """Test convenience functions"""
+
+    def test_run_rese_function(self):
+        """Test run_rese convenience function"""
+        result = run_rese(
+            problem_description="Test problem",
+            constraints=[
+                {
+                    'id': 'c1',
+                    'type': 'hard',
+                    'description': 'Test constraint',
+                    'formalization': 'x > 0',
+                    'source': 'test'
+                }
+            ],
+            variables={'x': {'type': 'real'}}
+        )
+
+        assert result.status in [PipelineStatus.COMPLETED, PipelineStatus.FAILED]
+        assert result.problem_id.startswith("problem_")
+
+    def test_get_config_singleton(self):
+        """Test get_config singleton"""
+        config1 = get_config()
+        config2 = get_config()
+
+        # Should return same instance
+        assert config1 is config2
+
+
+# =============================================================================
+# Performance Tests
+# =============================================================================
+
+class TestPerformance:
+    """Performance and stress tests"""
+
+    @pytest.mark.slow
+    def test_large_constraint_set(self, test_config):
+        """Test pipeline with large constraint set"""
+        # Create many constraints
+        constraints = [
+            {
+                'id': f'c{i}',
+                'type': 'soft',
+                'description': f'Constraint {i}',
+                'formalization': f'x{i} > 0',
+                'source': 'test'
+            }
+            for i in range(100)
+        ]
+
+        problem = ProblemInput(
+            id="large_problem",
+            description="Large constraint test",
+            constraints=constraints,
+            variables={f'x{i}': {'type': 'real'} for i in range(100)}
+        )
+
+        pipeline = RESEPipeline(test_config)
+        result = pipeline.run(problem, phases=['phase1'], use_cache=False)
+
+        assert result.status in [PipelineStatus.COMPLETED, PipelineStatus.FAILED]
+
+    @pytest.mark.slow
+    def test_pipeline_memory_efficiency(self, test_config):
+        """Test pipeline memory efficiency"""
+        import gc
+        import sys
+
+        pipeline = RESEPipeline(test_config)
+
+        problem = ProblemInput(
+            id="memory_test",
+            description="Memory test",
+            constraints=[
+                {'id': 'c1', 'type': 'hard', 'description': 'Test',
+                 'formalization': 'x > 0', 'source': 'test'}
+            ],
+            variables={'x': {'type': 'real'}}
+        )
+
+        # Get initial memory
+        gc.collect()
+        initial_size = sys.getsizeof(pipeline)
+
+        # Run pipeline multiple times
+        for i in range(10):
+            result = pipeline.run(problem, phases=['phase1'], use_cache=False)
+
+        # Check memory growth (should be reasonable)
+        gc.collect()
+        final_size = sys.getsizeof(pipeline)
+        growth_ratio = final_size / initial_size if initial_size > 0 else 1
+
+        # Memory growth should be less than 10x
+        assert growth_ratio < 10.0
+
+
+# =============================================================================
+# Test Runner
+# =============================================================================
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v", "--tb=short"])

@@ -1,0 +1,108 @@
+2026-01-06 16:52:33,597 - __main__ - ERROR - Failed to import test modules: No module named 'test_leanaide_mcts_mdap'
+2026-01-06 16:52:33,597 - __main__ - ERROR - Make sure test_leanaide_mcts_mdap.py is in the current directory
+2026-01-06 17:05:24,595 - steer_mcp_tools - WARNING - Steer not available: No module named 'steer.core'
+2026-01-06 17:05:24,595 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_json_output
+2026-01-06 17:05:24,595 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_slop_filter
+2026-01-06 17:05:24,595 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_pii_safety
+2026-01-06 17:05:24,596 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_citations
+2026-01-06 17:05:24,596 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_sql_security
+2026-01-06 17:05:24,596 - steer_mcp_tools - INFO - Registered Steer MCP tool: run_all_verifications
+2026-01-06 17:05:24,597 - steer_mcp_tools - INFO - Registered Steer MCP tool: get_steer_status
+2026-01-06 17:05:24,597 - steer_mcp_tools - INFO - Initializing Steer MCP tools...
+2026-01-06 17:05:24,597 - steer_mcp_tools - INFO - Registered 7 Steer MCP tools
+2026-01-06 17:05:24,597 - steer_mcp_tools - INFO -   - verify_json_output
+2026-01-06 17:05:24,597 - steer_mcp_tools - INFO -   - verify_slop_filter
+2026-01-06 17:05:24,597 - steer_mcp_tools - INFO -   - verify_pii_safety
+2026-01-06 17:05:24,598 - steer_mcp_tools - INFO -   - verify_citations
+2026-01-06 17:05:24,598 - steer_mcp_tools - INFO -   - verify_sql_security
+2026-01-06 17:05:24,598 - steer_mcp_tools - INFO -   - run_all_verifications
+2026-01-06 17:05:24,598 - steer_mcp_tools - INFO -   - get_steer_status
+2026-01-06 17:05:24,598 - steer_hephaestus_bridge - INFO - Steer-Hephaestus workflow bridge initialized (available: False)
+2026-01-06 17:05:25,078 - configuration_manager - INFO - Configuration loaded for environment: default
+2026-01-06 17:05:25,288 - openevolve_imports - WARNING - Unexpected error during import initialization: name 'Tuple' is not defined
+2026-01-06 17:05:25,432 - generic_maker_integration - WARNING - MAKER core not available - using fallback implementations
+2026-01-06 17:05:25,432 - openevolve_imports - WARNING - Unexpected error during import initialization: partially initialized module 'mdap_engine' has no attribute 'MDAPConfig' (most likely due to a circular import)
+2026-01-06 17:05:27,615 - __main__ - ERROR - 
+Unexpected error: name 'Tuple' is not defined
+Traceback (most recent call last):
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\run_mcts_mdap_tests.py", line 527, in main
+    suite = build_test_suite(config)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\run_mcts_mdap_tests.py", line 89, in build_test_suite
+    from test_leanaide_mcts_mdap import (
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\test_leanaide_mcts_mdap.py", line 8, in <module>
+    from mdap_maker_mcts_unified import MDAPMAKERMCTSConfig, MCTSApproach
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\mdap_maker_mcts_unified.py", line 126, in <module>
+    from mcts_evolved_policies import (
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\mcts_evolved_policies.py", line 59, in <module>
+    from leanaide_mcts import (
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\leanaide_mcts.py", line 61, in <module>
+    from leanaide_client import LeanAideClient as AsyncLeanAideClient
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\leanaide_client.py", line 112, in <module>
+    class LeanAideClient:
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\leanaide_client.py", line 1003, in LeanAideClient
+    time_span: Tuple[float, float],
+               ^^^^^
+NameError: name 'Tuple' is not defined
+2026-01-06 17:05:58,472 - steer_mcp_tools - WARNING - Steer not available: No module named 'steer.core'
+2026-01-06 17:05:58,472 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_json_output
+2026-01-06 17:05:58,472 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_slop_filter
+2026-01-06 17:05:58,472 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_pii_safety
+2026-01-06 17:05:58,473 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_citations
+2026-01-06 17:05:58,473 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_sql_security
+2026-01-06 17:05:58,473 - steer_mcp_tools - INFO - Registered Steer MCP tool: run_all_verifications
+2026-01-06 17:05:58,473 - steer_mcp_tools - INFO - Registered Steer MCP tool: get_steer_status
+2026-01-06 17:05:58,473 - steer_mcp_tools - INFO - Initializing Steer MCP tools...
+2026-01-06 17:05:58,474 - steer_mcp_tools - INFO - Registered 7 Steer MCP tools
+2026-01-06 17:05:58,474 - steer_mcp_tools - INFO -   - verify_json_output
+2026-01-06 17:05:58,475 - steer_mcp_tools - INFO -   - verify_slop_filter
+2026-01-06 17:05:58,475 - steer_mcp_tools - INFO -   - verify_pii_safety
+2026-01-06 17:05:58,475 - steer_mcp_tools - INFO -   - verify_citations
+2026-01-06 17:05:58,475 - steer_mcp_tools - INFO -   - verify_sql_security
+2026-01-06 17:05:58,475 - steer_mcp_tools - INFO -   - run_all_verifications
+2026-01-06 17:05:58,475 - steer_mcp_tools - INFO -   - get_steer_status
+2026-01-06 17:05:58,476 - steer_hephaestus_bridge - INFO - Steer-Hephaestus workflow bridge initialized (available: False)
+2026-01-06 17:05:58,946 - configuration_manager - INFO - Configuration loaded for environment: default
+2026-01-06 17:05:59,197 - generic_maker_integration - WARNING - MAKER core not available - using fallback implementations
+2026-01-06 17:05:59,197 - openevolve_imports - WARNING - Unexpected error during import initialization: partially initialized module 'mdap_engine' has no attribute 'MDAPConfig' (most likely due to a circular import)
+2026-01-06 17:06:01,272 - leanaide_evolution - WARNING - MCTS not available - MCTS integration features disabled
+2026-01-06 17:06:01,299 - leanaide_evolution - WARNING - MDAP+MCTS integration not available
+2026-01-06 17:06:01,314 - root - WARNING - Evolution module not available
+2026-01-06 17:06:01,371 - __main__ - INFO - Adding unit tests...
+2026-01-06 17:06:01,372 - __main__ - INFO - Adding integration tests...
+2026-01-06 17:06:01,372 - __main__ - INFO - Adding workflow tests...
+2026-01-06 17:06:01,373 - __main__ - INFO - Adding edge case tests...
+2026-01-06 17:06:01,376 - __main__ - INFO - 
+Test report saved to: test_results\test_report_20260106_170601.json
+2026-01-06 17:06:01,376 - __main__ - INFO - 
+Total time: 13.81s
+2026-01-06 17:31:13,844 - steer_mcp_tools - WARNING - Steer not available: No module named 'steer.core'
+2026-01-06 17:31:13,844 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_json_output
+2026-01-06 17:31:13,844 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_slop_filter
+2026-01-06 17:31:13,844 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_pii_safety
+2026-01-06 17:31:13,844 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_citations
+2026-01-06 17:31:13,845 - steer_mcp_tools - INFO - Registered Steer MCP tool: verify_sql_security
+2026-01-06 17:31:13,845 - steer_mcp_tools - INFO - Registered Steer MCP tool: run_all_verifications
+2026-01-06 17:31:13,845 - steer_mcp_tools - INFO - Registered Steer MCP tool: get_steer_status
+2026-01-06 17:31:13,845 - steer_mcp_tools - INFO - Initializing Steer MCP tools...
+2026-01-06 17:31:13,845 - steer_mcp_tools - INFO - Registered 7 Steer MCP tools
+2026-01-06 17:31:13,845 - steer_mcp_tools - INFO -   - verify_json_output
+2026-01-06 17:31:13,845 - steer_mcp_tools - INFO -   - verify_slop_filter
+2026-01-06 17:31:13,845 - steer_mcp_tools - INFO -   - verify_pii_safety
+2026-01-06 17:31:13,845 - steer_mcp_tools - INFO -   - verify_citations
+2026-01-06 17:31:13,845 - steer_mcp_tools - INFO -   - verify_sql_security
+2026-01-06 17:31:13,845 - steer_mcp_tools - INFO -   - run_all_verifications
+2026-01-06 17:31:13,845 - steer_mcp_tools - INFO -   - get_steer_status
+2026-01-06 17:31:13,845 - steer_hephaestus_bridge - INFO - Steer-Hephaestus workflow bridge initialized (available: False)
+2026-01-06 17:31:13,864 - configuration_manager - INFO - Configuration loaded for environment: default
+2026-01-06 17:31:13,880 - leanaide_evolution - WARNING - MCTS not available - MCTS integration features disabled
+2026-01-06 17:31:13,883 - leanaide_evolution - WARNING - MDAP+MCTS integration not available
+2026-01-06 17:31:13,885 - root - WARNING - Evolution module not available
+2026-01-06 17:31:13,969 - __main__ - INFO - Adding unit tests...
+2026-01-06 17:31:13,969 - __main__ - INFO - Adding integration tests...
+2026-01-06 17:31:13,969 - __main__ - INFO - Adding workflow tests...
+2026-01-06 17:31:13,969 - __main__ - INFO - Adding edge case tests...
+2026-01-06 17:31:13,970 - __main__ - INFO - 
+Test report saved to: test_results\test_report_20260106_173113.json
+2026-01-06 17:31:13,970 - __main__ - INFO - 
+Total time: 5.34s

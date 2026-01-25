@@ -1,0 +1,58 @@
+============================================================
+BATCH 3 UNIFIEDCONFIGURATION MIGRATION VALIDATION
+============================================================
+
+SUMMARY:
+  Complete: 1 files
+  Partial: 5 files
+  Not Started: 0 files
+  Errors: 0 files
+
+FILE DETAILS:
+------------------------------------------------------------
+[PART] sidebar.py
+  Status: PARTIAL
+  Size: 68,751 bytes
+  ParameterManager usage: 0 imports, 12 usages
+  UnifiedConfiguration usage: 1 imports, 78 usages
+  Uses create_unified_config(): ✓
+
+[PART] openevolve_client.py
+  Status: PARTIAL
+  Size: 23,397 bytes
+  ParameterManager usage: 0 imports, 4 usages
+  UnifiedConfiguration usage: 1 imports, 37 usages
+  Uses create_unified_config(): ✓
+
+[PART] base_configuration.py
+  Status: PARTIAL
+  Size: 20,149 bytes
+  ParameterManager usage: 3 imports, 6 usages
+  UnifiedConfiguration usage: 4 imports, 20 usages
+  Uses create_unified_config(): ✓
+
+[OK] integrated_workflow.py
+  Status: COMPLETE
+  Size: 92,319 bytes
+  UnifiedConfiguration usage: 1 imports, 89 usages
+  Uses create_unified_config(): ✓
+
+[PART] adversarial_adapter.py
+  Status: PARTIAL
+  Size: 18,681 bytes
+  ParameterManager usage: 0 imports, 1 usages
+  UnifiedConfiguration usage: 1 imports, 35 usages
+  Uses create_unified_config(): ✓
+
+[PART] evolution_adapter.py
+  Status: PARTIAL
+  Size: 15,437 bytes
+  ParameterManager usage: 0 imports, 1 usages
+  UnifiedConfiguration usage: 1 imports, 10 usages
+  Uses create_unified_config(): ✓
+
+RECOMMENDATIONS:
+------------------------------------------------------------
+• Complete migration for 5 file(s)
+
+============================================================

@@ -1,0 +1,10 @@
+{
+  "checkpoint_id": "checkpoint_test_1_0_starting_20260124_073303_043317",
+  "problem_id": "checkpoint_test_1",
+  "timestamp": "2026-01-24T07:33:03.043317",
+  "level": 0,
+  "stage": "starting",
+  "state_size": 586,
+  "compressed": false,
+  "parent_checkpoint_id": null
+}

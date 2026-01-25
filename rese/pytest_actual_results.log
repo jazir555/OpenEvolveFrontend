@@ -1,0 +1,1521 @@
+C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\pytest_asyncio\plugin.py:247: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts =============================
+platform win32 -- Python 3.11.0, pytest-8.2.2, pluggy-1.6.0 -- C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\python.exe
+cachedir: .pytest_cache
+metadata: {'Python': '3.11.0', 'Platform': 'Windows-10-10.0.26200-SP0', 'Packages': {'pytest': '8.2.2', 'pluggy': '1.6.0'}, 'Plugins': {'anyio': '4.11.0', 'Faker': '38.2.0', 'asyncio': '1.3.0', 'cov': '7.0.0', 'html': '4.1.1', 'metadata': '3.1.1', 'timeout': '2.4.0'}}
+rootdir: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese
+configfile: pytest.ini
+plugins: anyio-4.11.0, Faker-38.2.0, asyncio-1.3.0, cov-7.0.0, html-4.1.1, metadata-3.1.1, timeout-2.4.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 1051 items
+
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_constraint_creation PASSED [  0%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_constraint_empty_vars_raises PASSED [  0%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_create_dense_csp PASSED [  0%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_create_test_csp PASSED [  0%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_create_tree_csp PASSED [  0%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_csp_avg_domain_size PASSED [  0%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_csp_constraint_density PASSED [  0%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_csp_constraint_graph PASSED [  0%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_csp_get_variable PASSED [  0%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_csp_instance_creation PASSED [  0%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_csp_is_connected PASSED [  1%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_csp_tree_width_approximation PASSED [  1%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_variable_creation PASSED [  1%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_variable_empty_domain_raises PASSED [  1%]
+rese\tests\gamma1\test_aci_complete.py::TestCSPModels::test_variable_empty_name_raises PASSED [  1%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_calculate_entropy_dense_csp PASSED [  1%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_calculate_entropy_test_csp PASSED [  1%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_calculate_entropy_tree_csp PASSED [  1%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_constraint_entropy_no_constraints PASSED [  1%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_constraint_entropy_restrictive PASSED [  1%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_entropy_bounds PASSED [  1%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_entropy_components_bounds PASSED [  2%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_entropy_components_creation PASSED [  2%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_entropy_deterministic PASSED [  2%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_entropy_initialization PASSED [  2%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_entropy_invalid_weights_raises PASSED [  2%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_kolmogorov_approximation PASSED [  2%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_local_domain_entropy_empty_csp PASSED [  2%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_local_domain_entropy_single_value PASSED [  2%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_local_domain_entropy_uniform PASSED [  2%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_structural_entropy_empty_graph PASSED [  2%]
+rese\tests\gamma1\test_aci_complete.py::TestEntropyEngine::test_structural_entropy_tree PASSED [  3%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_calculate_coherence_dense_csp PASSED [  3%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_calculate_coherence_test_csp PASSED [  3%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_calculate_coherence_tree_csp PASSED [  3%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_coherence_bounds PASSED [  3%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_coherence_components_bounds PASSED [  3%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_coherence_components_creation PASSED [  3%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_coherence_initialization PASSED [  3%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_coherence_invalid_weights_raises PASSED [  3%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_coherence_tree_higher_than_dense PASSED [  3%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_flow_coherence_no_constraints PASSED [  3%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_flow_coherence_tree PASSED [  4%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_graph_coherence_dense PASSED [  4%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_graph_coherence_empty_csp PASSED [  4%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_graph_coherence_tree PASSED [  4%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_stability_coherence_empty_csp PASSED [  4%]
+rese\tests\gamma1\test_aci_complete.py::TestCoherenceEngine::test_stability_coherence_single_var PASSED [  4%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_calculate_solvability_test_csp PASSED [  4%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_calculate_solvability_tree_csp PASSED [  4%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_heuristic_effectiveness_empty_csp PASSED [  4%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_phase_distance_no_constraints PASSED [  4%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_phase_distance_tree PASSED [  5%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_propagation_effectiveness_empty_csp PASSED [  5%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_propagation_effectiveness_no_constraints PASSED [  5%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_propagation_effectiveness_restrictive PASSED [  5%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_solvability_bounds PASSED [  5%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_solvability_components_bounds PASSED [  5%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_solvability_components_creation PASSED [  5%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_solvability_initialization PASSED [  5%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_solvability_invalid_weights_raises PASSED [  5%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_structure_quality_empty_csp PASSED [  5%]
+rese\tests\gamma1\test_aci_complete.py::TestSolvabilityEngine::test_structure_quality_tree PASSED [  5%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_bounds PASSED [  6%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_cache_clear PASSED [  6%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_cache_disabled PASSED [  6%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_cache_enabled PASSED [  6%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_calculator_initialization PASSED [  6%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_calculator_invalid_weights_raises PASSED [  6%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_components_present PASSED [  6%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_computation_time_reasonable PASSED [  6%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_confidence_in_bounds PASSED [  6%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_interpretation_categories PASSED [  6%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_interpretation_present PASSED [  7%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_recommendation_present PASSED [  7%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_result_creation PASSED [  7%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_result_str PASSED [  7%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_aci_tree_higher_than_dense PASSED [  7%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_calculate_aci_dense_csp PASSED [  7%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_calculate_aci_test_csp PASSED [  7%]
+rese\tests\gamma1\test_aci_complete.py::TestACICalculator::test_calculate_aci_tree_csp PASSED [  7%]
+rese\tests\gamma1\test_aci_complete.py::TestSignalExtractor::test_classification_metrics_calculation PASSED [  7%]
+rese\tests\gamma1\test_aci_complete.py::TestSignalExtractor::test_correlation_calculation PASSED [  7%]
+rese\tests\gamma1\test_aci_complete.py::TestSignalExtractor::test_extract_signal_both_classes PASSED [  7%]
+rese\tests\gamma1\test_aci_complete.py::TestSignalExtractor::test_extract_signal_empty_lists PASSED [  8%]
+rese\tests\gamma1\test_aci_complete.py::TestSignalExtractor::test_extract_signal_mismatched_lengths_raises PASSED [  8%]
+rese\tests\gamma1\test_aci_complete.py::TestSignalExtractor::test_extract_signal_single_class PASSED [  8%]
+rese\tests\gamma1\test_aci_complete.py::TestSignalExtractor::test_meets_target_false PASSED [  8%]
+rese\tests\gamma1\test_aci_complete.py::TestSignalExtractor::test_meets_target_true PASSED [  8%]
+rese\tests\gamma1\test_aci_complete.py::TestSignalExtractor::test_separation_assessment PASSED [  8%]
+rese\tests\gamma1\test_aci_complete.py::TestSignalExtractor::test_signal_quality_creation PASSED [  8%]
+rese\tests\gamma1\test_aci_complete.py::TestSignalExtractor::test_signal_to_noise_calculation PASSED [  8%]
+rese\tests\gamma1\test_aci_complete.py::TestIntegration::test_cache_performance PASSED [  8%]
+rese\tests\gamma1\test_aci_complete.py::TestIntegration::test_end_to_end_calculation PASSED [  8%]
+rese\tests\gamma1\test_aci_complete.py::TestIntegration::test_full_signal_extraction_pipeline PASSED [  9%]
+rese\tests\gamma1\test_aci_complete.py::TestIntegration::test_multiple_csp_comparison PASSED [  9%]
+rese\tests\gamma1\test_aci_complete.py::TestIntegration::test_performance_benchmark PASSED [  9%]
+rese\tests\gamma1\test_aci_complete.py::TestIntegration::test_stress_test_many_calculations PASSED [  9%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetection::test_confirmation_bias_detection PASSED [  9%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetection::test_overconfidence_detection PASSED [  9%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetection::test_anchoring_bias_detection PASSED [  9%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetection::test_unbiased_constraint_low_score PASSED [  9%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetection::test_multiple_bias_types PASSED [  9%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetection::test_severity_levels PASSED [  9%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetection::test_bias_report_calculation PASSED [  9%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetection::test_statistics_tracking PASSED [ 10%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetection::test_specific_bias_detection PASSED [ 10%]
+rese\tests\phase1\test_cognitive_biases.py::TestDebiasingStrategies::test_consider_the_opposite PASSED [ 10%]
+rese\tests\phase1\test_cognitive_biases.py::TestDebiasingStrategies::test_devils_advocate PASSED [ 10%]
+rese\tests\phase1\test_cognitive_biases.py::TestDebiasingStrategies::test_pre_mortem_analysis PASSED [ 10%]
+rese\tests\phase1\test_cognitive_biases.py::TestDebiasingStrategies::test_forced_reformulation PASSED [ 10%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetectionAccuracy::test_illusion_of_control_detection PASSED [ 10%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetectionAccuracy::test_framing_effect_detection PASSED [ 10%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetectionAccuracy::test_availability_bias_detection PASSED [ 10%]
+rese\tests\phase1\test_cognitive_biases.py::TestBiasDetectionAccuracy::test_authority_bias_detection PASSED [ 10%]
+rese\tests\phase1\test_cognitive_biases.py::TestEdgeCases::test_empty_constraint_list PASSED [ 11%]
+rese\tests\phase1\test_cognitive_biases.py::TestEdgeCases::test_single_constraint PASSED [ 11%]
+rese\tests\phase1\test_cognitive_biases.py::TestEdgeCases::test_very_long_description PASSED [ 11%]
+rese\tests\phase1\test_cognitive_biases.py::TestEdgeCases::test_special_characters PASSED [ 11%]
+rese\tests\phase1\test_cognitive_biases.py::TestEdgeCases::test_mixed_languages PASSED [ 11%]
+rese\tests\phase1\test_cognitive_biases.py::TestRecommendationGeneration::test_high_bias_recommendations PASSED [ 11%]
+rese\tests\phase1\test_cognitive_biases.py::TestRecommendationGeneration::test_low_bias_recommendations PASSED [ 11%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_database_initialization PASSED [ 11%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_database_creates_tables PASSED [ 11%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_add_failure PASSED [ 11%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_add_failure_with_features PASSED [ 11%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_add_failure_features PASSED [ 12%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_get_failure PASSED [ 12%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_get_failures_since PASSED [ 12%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_get_recent_failures PASSED [ 12%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_get_unprocessed_failures PASSED [ 12%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_mark_as_processed PASSED [ 12%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_get_failure_count PASSED [ 12%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_add_assumption PASSED [ 12%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_get_assumption PASSED [ 12%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_get_recent_assumptions PASSED [ 12%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_get_high_confidence_assumptions PASSED [ 13%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_update_assumption_confidence PASSED [ 13%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_add_paradigm_shift PASSED [ 13%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_get_recent_paradigm_shifts PASSED [ 13%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_load_historical_paradigm_shifts PASSED [ 13%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_find_similar_historical_shifts PASSED [ 13%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_cache_functionality PASSED [ 13%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_clear_cache PASSED [ 13%]
+rese\tests\phase1\test_failure_database.py::TestFailureDatabase::test_context_manager PASSED [ 13%]
+rese\tests\phase1\test_failure_database.py::TestDatabaseManager::test_manager_initialization PASSED [ 13%]
+rese\tests\phase1\test_failure_database.py::TestDatabaseManager::test_add_null_results PASSED [ 13%]
+rese\tests\phase1\test_failure_database.py::TestDatabaseManager::test_get_statistics PASSED [ 14%]
+rese\tests\phase1\test_failure_database.py::TestDatabaseManager::test_cleanup_old_data PASSED [ 14%]
+rese\tests\phase1\test_failure_database.py::TestDatabaseManager::test_export_to_json PASSED [ 14%]
+rese\tests\phase1\test_failure_database.py::TestDatabaseManager::test_manager_close PASSED [ 14%]
+rese\tests\phase1\test_failure_database.py::TestEdgeCases::test_empty_database PASSED [ 14%]
+rese\tests\phase1\test_failure_database.py::TestEdgeCases::test_duplicate_failure PASSED [ 14%]
+rese\tests\phase1\test_failure_database.py::TestEdgeCases::test_duplicate_assumption PASSED [ 14%]
+rese\tests\phase1\test_failure_database.py::TestEdgeCases::test_very_long_strings PASSED [ 14%]
+rese\tests\phase1\test_failure_database.py::TestEdgeCases::test_special_characters PASSED [ 14%]
+rese\tests\phase1\test_failure_database.py::TestEdgeCases::test_unicode_characters PASSED [ 14%]
+rese\tests\phase1\test_failure_database.py::TestEdgeCases::test_none_metadata PASSED [ 15%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestDataClasses::test_null_result_creation PASSED [ 15%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestDataClasses::test_null_result_to_dict PASSED [ 15%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestDataClasses::test_null_result_from_dict PASSED [ 15%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestDataClasses::test_failure_features PASSED [ 15%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestDataClasses::test_failure_features_to_dict PASSED [ 15%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestDataClasses::test_tacit_assumption_creation PASSED [ 15%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestDataClasses::test_tacit_assumption_to_sce_constraint PASSED [ 15%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestDataClasses::test_paradigm_shift_recommendation PASSED [ 15%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestFailurePreprocessor::test_extract_features PASSED [ 15%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestFailurePreprocessor::test_extract_keywords PASSED [ 15%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestFailurePreprocessor::test_compute_time_to_failure PASSED [ 16%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestFailurePreprocessor::test_compute_error_magnitude PASSED [ 16%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestFailurePreprocessor::test_compute_resource_usage PASSED [ 16%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestAnomalyDetector::test_detector_initialization PASSED [ 16%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestAnomalyDetector::test_detect_anomalies PASSED [ 16%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestAnomalyDetector::test_detect_anomalies_insufficient_data PASSED [ 16%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestFailureClusterer::test_clusterer_initialization PASSED [ 16%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestFailureClusterer::test_cluster_failures PASSED [ 16%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestFailureClusterer::test_cluster_failures_insufficient_data PASSED [ 16%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestFailureClusterer::test_cluster_quality_checks PASSED [ 16%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestAssumptionGenerator::test_generate_assumptions_from_cluster PASSED [ 17%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestAssumptionGenerator::test_generate_assumptions_small_cluster PASSED [ 17%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestConfidenceScorer::test_score_assumption PASSED [ 17%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestConfidenceScorer::test_score_weights PASSED [ 17%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestParadigmShiftDetector::test_detect_no_crisis PASSED [ 17%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestParadigmShiftDetector::test_detect_crisis PASSED [ 17%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestPhi15Engine::test_engine_initialization PASSED [ 17%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestPhi15Engine::test_engine_custom_config PASSED [ 17%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestPhi15Engine::test_process_null_results PASSED [ 17%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestPhi15Engine::test_get_top_assumptions PASSED [ 17%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestPhi15Engine::test_save_and_load_state FAILED [ 17%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestPhi15Engine::test_classify_assumption_type PASSED [ 18%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestPhi15Engine::test_formalize_assumption PASSED [ 18%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestPhi15Engine::test_generate_assumption_id PASSED [ 18%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestConvenienceFunctions::test_create_phi15_engine PASSED [ 18%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestEdgeCases::test_empty_null_results PASSED [ 18%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestEdgeCases::test_single_null_result PASSED [ 18%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestEdgeCases::test_large_dataset PASSED [ 18%]
+rese\tests\phase1\test_tacit_assumption_miner.py::TestEdgeCases::test_none_values PASSED [ 18%]
+rese\tests\phase2\test_ontology_mapper.py::TestMappingResult::test_mapping_result_creation PASSED [ 18%]
+rese\tests\phase2\test_ontology_mapper.py::TestMappingResult::test_mapping_result_defaults PASSED [ 18%]
+rese\tests\phase2\test_ontology_mapper.py::TestMappingResult::test_mapping_result_repr PASSED [ 19%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_mapper_initialization PASSED [ 19%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_mapper_default_config PASSED [ 19%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_normalize_concept PASSED [ 19%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_jaro_winkler_similarity PASSED [ 19%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_cosine_similarity PASSED [ 19%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_preprocess_domain PASSED [ 19%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_generate_candidates PASSED [ 19%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_compute_semantic_similarity PASSED [ 19%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_compute_graph_similarity PASSED [ 19%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_aggregate_confidence PASSED [ 19%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_map_ontologies PASSED [ 20%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_map_ontologies_selective_stages PASSED [ 20%]
+rese\tests\phase2\test_ontology_mapper.py::TestOntologyMapper::test_save_and_load_mapping PASSED [ 20%]
+rese\tests\phase2\test_ontology_mapper.py::TestConvenienceFunctions::test_create_mapper PASSED [ 20%]
+rese\tests\phase2\test_ontology_mapper.py::TestConvenienceFunctions::test_create_mapper_with_config PASSED [ 20%]
+rese\tests\phase2\test_ontology_mapper.py::TestConvenienceFunctions::test_map_domains_function PASSED [ 20%]
+rese\tests\phase2\test_ontology_mapper.py::TestEdgeCases::test_empty_domains PASSED [ 20%]
+rese\tests\phase2\test_ontology_mapper.py::TestEdgeCases::test_very_long_concept_names PASSED [ 20%]
+rese\tests\phase2\test_ontology_mapper.py::TestEdgeCases::test_special_characters_in_concepts PASSED [ 20%]
+rese\tests\phase2\test_ontology_mapper.py::TestEdgeCases::test_unicode_concepts PASSED [ 20%]
+rese\tests\phase2\test_ontology_mapper.py::TestEdgeCases::test_similar_but_not_identical PASSED [ 21%]
+rese\tests\phase2\test_ontology_mapper.py::TestEdgeCases::test_single_character_concepts PASSED [ 21%]
+rese\tests\phase2\test_ontology_mapper.py::TestEdgeCases::test_config_validation PASSED [ 21%]
+rese\tests\phase2\test_ontology_mapper.py::TestEdgeCases::test_cache_disabled PASSED [ 21%]
+rese\tests\phase2\test_ontology_mapper.py::TestEdgeCases::test_kg_disabled PASSED [ 21%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Theorem::test_theorem_creation PASSED [ 21%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Theorem::test_theorem_with_contradictions PASSED [ 21%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_bridge_initialization PASSED [ 21%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_bridge_with_path PASSED [ 21%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_constraint_to_lean4_basic PASSED [ 21%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_constraint_to_lean4_with_forall PASSED [ 21%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_sanitize_name PASSED [ 22%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_sanitize_name_starts_with_digit PASSED [ 22%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_formalization_to_lean4_already_lean4 PASSED [ 22%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_formalization_to_lean4_convert_operators PASSED [ 22%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_extract_variables PASSED [ 22%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_batch_convert_constraints PASSED [ 22%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_export_to_lean4_file PASSED [ 22%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_generate_lean4_file_structure PASSED [ 22%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_detect_contradictions_lean4 PASSED [ 22%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_theorems_contradict PASSED [ 22%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_get_theorem PASSED [ 23%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_get_theorem_not_exists PASSED [ 23%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_get_all_theorems PASSED [ 23%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_get_statistics PASSED [ 23%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_generate_proof_sketch_hard PASSED [ 23%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestLean4Bridge::test_generate_proof_sketch_soft PASSED [ 23%]
+rese\tests\test_core\test_constraint_lean4_bridge.py::TestConvenienceFunctions::test_create_bridge_from_constraints PASSED [ 23%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLSpecification::test_specification_creation PASSED [ 23%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLSpecification::test_specification_defaults PASSED [ 23%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestHandoffPackage::test_package_creation PASSED [ 23%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestHandoffPackage::test_package_defaults PASSED [ 23%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_handoff_initialization PASSED [ 24%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_handoff_with_sce PASSED [ 24%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_prepare_handoff_empty PASSED [ 24%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_prepare_handoff_with_constraints PASSED [ 24%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_constraint_to_lltl_safety PASSED [ 24%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_constraint_to_lltl_liveness PASSED [ 24%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_select_template_safety PASSED [ 24%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_select_template_default PASSED [ 24%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_generate_lltl_formula_safety PASSED [ 24%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_generate_lltl_formula_liveness PASSED [ 24%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_extract_proposition PASSED [ 25%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_split_reactivity PASSED [ 25%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_split_bounded_response PASSED [ 25%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_extract_variables PASSED [ 25%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_generate_assumptions_guarantees PASSED [ 25%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_calculate_priority PASSED [ 25%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_get_template_distribution PASSED [ 25%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_export_to_json PASSED [ 25%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLHandoff::test_create_example_translations PASSED [ 25%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestLLTLTemplate::test_template_values PASSED [ 25%]
+rese\tests\test_core\test_constraint_lltl_handoff.py::TestConvenienceFunctions::test_prepare_lltl_handoff PASSED [ 25%]
+rese\tests\test_core\test_constraint_optimizer.py::TestOptimizationResult::test_optimization_result_creation PASSED [ 26%]
+rese\tests\test_core\test_constraint_optimizer.py::TestOptimizationResult::test_optimization_result_defaults PASSED [ 26%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_optimizer_initialization PASSED [ 26%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_optimizer_with_sce PASSED [ 26%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_check_satisfiability_no_constraints PASSED [ 26%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_check_satisfiability_simple PASSED [ 26%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_check_satisfiability_contradictory PASSED [ 26%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_find_solution PASSED [ 26%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_extract_variables_from_formal PASSED [ 26%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_parse_formalization_less_than PASSED [ 26%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_parse_formalization_greater_than PASSED [ 27%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_prioritize_constraints PASSED [ 27%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_prioritize_constraints_with_dependencies PASSED [ 27%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_resolve_by_priority PASSED [ 27%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConstraintOptimizer::test_get_statistics PASSED [ 27%]
+rese\tests\test_core\test_constraint_optimizer.py::TestResolutionStrategy::test_strategy_values PASSED [ 27%]
+rese\tests\test_core\test_constraint_optimizer.py::TestConvenienceFunctions::test_optimize_constraints PASSED [ 27%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestPromptAnalysis::test_prompt_analysis_creation PASSED [ 27%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestPromptAnalysis::test_prompt_analysis_with_data PASSED [ 27%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_integrator_initialization PASSED [ 27%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_integrator_with_sce PASSED [ 27%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_analyze_prompt_simple PASSED [ 28%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_analyze_prompt_with_hard_constraint PASSED [ 28%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_analyze_prompt_with_soft_constraint PASSED [ 28%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_analyze_prompt_mixed_constraints PASSED [ 28%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_extract_constraints_of_type PASSED [ 28%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_text_to_formal_less_than PASSED [ 28%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_text_to_formal_greater_than PASSED [ 28%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_text_to_formal_at_most PASSED [ 28%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_text_to_formal_at_least PASSED [ 28%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_detect_domain_temperature PASSED [ 28%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_detect_domain_pressure PASSED [ 29%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_detect_domain_default PASSED [ 29%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_generate_constraint_id PASSED [ 29%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_same_domain_check PASSED [ 29%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_extract_domain_from_formal PASSED [ 29%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_calculate_confidence PASSED [ 29%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_identify_missing_info PASSED [ 29%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_get_constraints PASSED [ 29%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestStage1Integrator::test_get_statistics PASSED [ 29%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestConvenienceFunctions::test_analyze_invention_prompt PASSED [ 29%]
+rese\tests\test_core\test_constraint_stage1_integration.py::TestConvenienceFunctions::test_batch_analyze_prompts PASSED [ 29%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_initialization PASSED [ 30%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_insert_single PASSED [ 30%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_insert_multiple PASSED [ 30%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_query_overlapping PASSED [ 30%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_query_empty PASSED [ 30%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_spatial_extent_overlaps PASSED [ 30%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_spatial_extent_union PASSED [ 30%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_spatial_extent_center PASSED [ 30%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_bulk_insert PASSED [ 30%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_query_all_overlapping PASSED [ 30%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_node_splitting PASSED [ 31%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_spatial_extent_dimension_mismatch PASSED [ 31%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_duplicate_insert PASSED [ 31%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_query_no_overlap PASSED [ 31%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_high_volume PASSED [ 31%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_query_performance PASSED [ 31%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_area_computation PASSED [ 31%]
+rese\tests\test_core\test_dito_optimizer.py::TestRTree::test_rtree_extent_from_data PASSED [ 31%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_initialization PASSED [ 31%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_insert PASSED [ 31%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_query PASSED [ 31%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_empty_query PASSED [ 32%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_multiple_inserts_same_bucket PASSED [ 32%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_different_tables PASSED [ 32%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_hash_deterministic PASSED [ 32%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_hash_different PASSED [ 32%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_high_volume PASSED [ 32%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_query_performance PASSED [ 32%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_collision_probability PASSED [ 32%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_unique_signatures PASSED [ 32%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_hash_range PASSED [ 32%]
+rese\tests\test_core\test_dito_optimizer.py::TestLSHTable::test_lsh_seed_affects_hash PASSED [ 33%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_initialization PASSED [ 33%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_build_level_0 PASSED [ 33%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_build_multiple_levels PASSED [ 33%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_node_members PASSED [ 33%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_get_nodes_at_level PASSED [ 33%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_get_root PASSED [ 33%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_empty_hierarchy PASSED [ 33%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_signature_computation PASSED [ 33%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_build_performance PASSED [ 33%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_extent_union PASSED [ 33%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_max_level_respected PASSED [ 34%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_children_tracking PASSED [ 34%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_statistics PASSED [ 34%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_single_constraint PASSED [ 34%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_large_hierarchy PASSED [ 34%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_level_separation PASSED [ 34%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_signature_uniqueness PASSED [ 34%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_build_deterministic PASSED [ 34%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_incremental_update PASSED [ 34%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_contradiction_propagation PASSED [ 34%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_memory_efficiency PASSED [ 35%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_empty_constraints PASSED [ 35%]
+rese\tests\test_core\test_dito_optimizer.py::TestHierarchicalAbstraction::test_hag_clustering_behavior PASSED [ 35%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_initialization PASSED [ 35%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_build PASSED [ 35%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_build_empty PASSED [ 35%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_detect_contradictions_none PASSED [ 35%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_detect_contradictions_targeted PASSED [ 35%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_add_constraint PASSED [ 35%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_remove_constraint PASSED [ 35%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_modify_constraint PASSED [ 35%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_statistics PASSED [ 36%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_invalid_update PASSED [ 36%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_remove_nonexistent PASSED [ 36%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_extent_computation PASSED [ 36%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_signature_computation PASSED [ 36%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_variable_extraction PASSED [ 36%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_contradiction_check PASSED [ 36%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_cache_invalidation PASSED [ 36%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_build_performance PASSED [ 36%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_query_performance PASSED [ 36%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_update_performance PASSED [ 37%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_contradiction_pair_creation PASSED [ 37%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_contradiction_pair_fields PASSED [ 37%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_statistics_tracking PASSED [ 37%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_rtree_integration PASSED [ 37%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_lsh_integration PASSED [ 37%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_hag_integration PASSED [ 37%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_cd_graph_integration PASSED [ 37%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_pv_graph_integration PASSED [ 37%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_version_counter PASSED [ 37%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_multiple_updates PASSED [ 37%]
+rese\tests\test_core\test_dito_optimizer.py::TestDITOOptimizer::test_dito_build_twice PASSED [ 38%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_cd_graph_initialization PASSED [ 38%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_cd_graph_add_node PASSED [ 38%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_cd_graph_add_edge PASSED [ 38%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_cd_graph_get_dependencies PASSED [ 38%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_cd_graph_get_dependents PASSED [ 38%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_cd_graph_remove_node PASSED [ 38%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_cd_graph_mark_dirty_region PASSED [ 38%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_pv_graph_initialization PASSED [ 38%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_pv_graph_add_predicate PASSED [ 38%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_pv_graph_get_related_constraints PASSED [ 39%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_pv_graph_statistics PASSED [ 39%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_bfs_traversal PASSED [ 39%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_priority_traversal PASSED [ 39%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_bidirectional_search PASSED [ 39%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_hag_build_with_graphs PASSED [ 39%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_graph_integration PASSED [ 39%]
+rese\tests\test_core\test_dito_optimizer.py::TestGraphStructures::test_watched_literals PASSED [ 39%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_build_scaling_100 PASSED [ 39%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_build_scaling_1000 PASSED [ 39%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_query_scaling_100 PASSED [ 39%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_update_scaling_100 PASSED [ 40%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_full_check_scaling PASSED [ 40%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_rtree_performance_1000 PASSED [ 40%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_lsh_performance_1000 PASSED [ 40%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_hag_build_performance PASSED [ 40%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_memory_efficiency PASSED [ 40%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_batch_updates PASSED [ 40%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_complexity_verification_build PASSED [ 40%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_contradiction_detection_accuracy PASSED [ 40%]
+rese\tests\test_core\test_dito_optimizer.py::TestPerformanceBenchmarks::test_stress_test_large_dataset PASSED [ 40%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossFunction::test_loss_function_call PASSED [ 41%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossFunction::test_loss_function_creation PASSED [ 41%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossFunction::test_loss_function_fuzzy_type PASSED [ 41%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossFunction::test_loss_function_weight_modification PASSED [ 41%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossFunction::test_loss_function_with_pytorch PASSED [ 41%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossTranslationResult::test_failed_result PASSED [ 41%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossTranslationResult::test_result_constraint_id PASSED [ 41%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossTranslationResult::test_result_warnings_default PASSED [ 41%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossTranslationResult::test_result_with_warnings PASSED [ 41%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossTranslationResult::test_successful_result PASSED [ 41%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLogicToLossTranslatorInit::test_basic_initialization PASSED [ 41%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLogicToLossTranslatorInit::test_initialization_with_aggregation_method PASSED [ 42%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLogicToLossTranslatorInit::test_initialization_with_device PASSED [ 42%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLogicToLossTranslatorInit::test_initialization_with_fuzzy_type PASSED [ 42%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLogicToLossTranslatorInit::test_statistics_initialization PASSED [ 42%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestConstraintWeightDetermination::test_hard_constraint_weight PASSED [ 42%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestConstraintWeightDetermination::test_preference_constraint_weight PASSED [ 42%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestConstraintWeightDetermination::test_soft_constraint_weight PASSED [ 42%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFormalizationParsing::test_parse_equality_operator PASSED [ 42%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFormalizationParsing::test_parse_exists_quantifier PASSED [ 42%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFormalizationParsing::test_parse_forall_quantifier PASSED [ 42%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFormalizationParsing::test_parse_greater_equal_operator PASSED [ 43%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFormalizationParsing::test_parse_greater_than_operator PASSED [ 43%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFormalizationParsing::test_parse_inequality_operator PASSED [ 43%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFormalizationParsing::test_parse_less_equal_operator PASSED [ 43%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFormalizationParsing::test_parse_less_than_operator PASSED [ 43%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFormalizationParsing::test_parse_unicode_operators PASSED [ 43%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFormalizationParsing::test_parse_unknown_formalization PASSED [ 43%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestHardConstraintTranslation::test_cached_translation PASSED [ 43%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestHardConstraintTranslation::test_hard_constraint_has_high_weight PASSED [ 43%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestHardConstraintTranslation::test_hard_constraint_increments_stats PASSED [ 43%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestHardConstraintTranslation::test_hard_constraint_is_differentiable PASSED [ 43%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestHardConstraintTranslation::test_hard_constraint_loss_callable PASSED [ 44%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestHardConstraintTranslation::test_invalid_hard_constraint PASSED [ 44%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestHardConstraintTranslation::test_translate_equality_hard_constraint PASSED [ 44%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestHardConstraintTranslation::test_translate_inequality_hard_constraint PASSED [ 44%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestHardConstraintTranslation::test_translate_multiple_hard_constraints PASSED [ 44%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSoftConstraintTranslation::test_multiple_soft_constraints PASSED [ 44%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSoftConstraintTranslation::test_soft_constraint_differentiable PASSED [ 44%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSoftConstraintTranslation::test_soft_constraint_increments_stats PASSED [ 44%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSoftConstraintTranslation::test_soft_constraint_weight PASSED [ 44%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSoftConstraintTranslation::test_translate_soft_constraint PASSED [ 44%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestPreferenceConstraintTranslation::test_multiple_preferences PASSED [ 45%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestPreferenceConstraintTranslation::test_preference_constraint_weight PASSED [ 45%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestPreferenceConstraintTranslation::test_preference_differentiable PASSED [ 45%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestPreferenceConstraintTranslation::test_preference_increments_stats PASSED [ 45%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestPreferenceConstraintTranslation::test_translate_preference_constraint PASSED [ 45%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSCEIntegration::test_create_lltl_from_sce PASSED [ 45%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSCEIntegration::test_create_lltl_with_aggregation PASSED [ 45%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSCEIntegration::test_failed_translation_in_sce PASSED [ 45%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSCEIntegration::test_sce_with_dependencies PASSED [ 45%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSCEIntegration::test_translate_all_constraints PASSED [ 45%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSCEIntegration::test_translate_empty_sce PASSED [ 45%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSCEIntegration::test_translate_sce_creates_loss_functions PASSED [ 46%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSCEIntegration::test_translate_with_filter PASSED [ 46%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestSCEIntegration::test_translation_stats_after_sce PASSED [ 46%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossComputation::test_compute_loss_consistency PASSED [ 46%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossComputation::test_compute_loss_empty_inputs PASSED [ 46%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossComputation::test_compute_loss_mixed_types PASSED [ 46%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossComputation::test_compute_loss_no_constraints PASSED [ 46%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossComputation::test_compute_loss_with_numpy PASSED [ 46%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossComputation::test_compute_loss_with_pytorch PASSED [ 46%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossComputation::test_compute_loss_with_specific_constraints PASSED [ 46%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossComputation::test_compute_loss_with_violations PASSED [ 47%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossComputation::test_compute_loss_without_violations PASSED [ 47%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossViolationDetection::test_get_violations_with_numpy PASSED [ 47%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossViolationDetection::test_multiple_constraint_violations PASSED [ 47%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossViolationDetection::test_no_violation PASSED [ 47%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_description PASSED [ 47%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_detected FAILED [ 47%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_loss_value PASSED [ 47%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_severity FAILED [ 47%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_type PASSED [ 47%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_with_pytorch_tensor FAILED [ 47%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossAggregation::test_adaptive_aggregation PASSED [ 48%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossAggregation::test_aggregation_consistency PASSED [ 48%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossAggregation::test_aggregation_with_no_losses PASSED [ 48%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossAggregation::test_aggregation_with_specific_constraints PASSED [ 48%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossAggregation::test_lexicographic_aggregation PASSED [ 48%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossAggregation::test_max_aggregation PASSED [ 48%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossAggregation::test_product_aggregation PASSED [ 48%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossAggregation::test_weighted_sum_aggregation PASSED [ 48%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLossAggregation::test_weighted_sum_uses_weights PASSED [ 48%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLLTLStatistics::test_initial_statistics PASSED [ 48%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLLTLStatistics::test_statistics_after_translation PASSED [ 49%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLLTLStatistics::test_statistics_include_aggregation_method PASSED [ 49%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLLTLStatistics::test_statistics_include_fuzzy_type PASSED [ 49%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestLLTLStatistics::test_statistics_include_pytorch_availability PASSED [ 49%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestCacheManagement::test_cache_cleared_on_clear_cache PASSED [ 49%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestCacheManagement::test_cache_with_multiple_constraints PASSED [ 49%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestCacheManagement::test_clear_cache_resets_statistics PASSED [ 49%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestCacheManagement::test_translation_cache_attribute_exists PASSED [ 49%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestCacheManagement::test_translation_is_cached PASSED [ 49%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestExportLossFunctions::test_export_contains_constraints PASSED [ 49%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestExportLossFunctions::test_export_creates_file PASSED [ 49%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestExportLossFunctions::test_export_with_no_constraints PASSED [ 50%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGenerationState::test_generation_state_creation PASSED [ 50%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGenerationState::test_generation_state_timestamp PASSED [ 50%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGenerationState::test_generation_state_to_dict PASSED [ 50%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGenerationState::test_generation_state_violations PASSED [ 50%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGenerationState::test_generation_state_with_pytorch PASSED [ 50%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFeedbackSignal::test_feedback_signal_defaults PASSED [ 50%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFeedbackSignal::test_feedback_signal_with_gradients PASSED [ 50%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFeedbackSignal::test_feedback_signal_with_stop PASSED [ 50%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestStage5IntegrationInit::test_basic_initialization PASSED [ 50%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestStage5IntegrationInit::test_initialization_statistics PASSED [ 50%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestStage5IntegrationInit::test_initialization_with_feedback_mode PASSED [ 51%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestStage5IntegrationInit::test_initialization_with_strategy PASSED [ 51%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestStage5IntegrationInit::test_initialization_with_threshold PASSED [ 51%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGenerationMonitoring::test_monitor_generation_creates_state PASSED [ 51%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGenerationMonitoring::test_monitor_generation_increments_step PASSED [ 51%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGenerationMonitoring::test_monitor_generation_updates_history PASSED [ 51%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGenerationMonitoring::test_monitor_generation_updates_statistics PASSED [ 51%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGenerationMonitoring::test_monitor_generation_with_step_arg PASSED [ 51%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFeedbackGeneration::test_feedback_increments_stats PASSED [ 51%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFeedbackGeneration::test_feedback_on_hard_violation PASSED [ 51%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFeedbackGeneration::test_feedback_with_stop_strategy PASSED [ 52%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFeedbackGeneration::test_feedback_without_violations PASSED [ 52%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestFeedbackGeneration::test_generate_feedback_returns_signal PASSED [ 52%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGeneratorValidator::test_create_validator_from_constraints PASSED [ 52%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGeneratorValidator::test_validate_batch PASSED [ 52%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGeneratorValidator::test_validate_step PASSED [ 52%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGeneratorValidator::test_validator_initialization PASSED [ 52%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestGeneratorValidator::test_validator_reset PASSED [ 52%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestIntegrationSummary::test_export_history PASSED [ 52%]
+rese\tests\test_core\test_logic_to_loss_translation.py::TestIntegrationSummary::test_get_summary PASSED [ 52%]
+rese\tests\test_core\test_sce_edge_cases.py::TestSCEEdgeCases::test_get_dependents_nonexistent_constraint PASSED [ 52%]
+rese\tests\test_core\test_sce_edge_cases.py::TestSCEEdgeCases::test_validate_dependencies_with_complex_cycle PASSED [ 53%]
+rese\tests\test_core\test_sce_edge_cases.py::TestSCEEdgeCases::test_topological_sort_empty_dependencies PASSED [ 53%]
+rese\tests\test_core\test_sce_edge_cases.py::TestSCEEdgeCases::test_complex_conflict_scenarios PASSED [ 53%]
+rese\tests\test_core\test_sce_edge_cases.py::TestSCEEdgeCases::test_contradiction_cache_hit PASSED [ 53%]
+rese\tests\test_core\test_sce_edge_cases.py::TestSCEEdgeCases::test_get_all_constraints_immutable PASSED [ 53%]
+rese\tests\test_core\test_sce_edge_cases.py::TestSCEEdgeCases::test_mixed_constraint_types_statistics PASSED [ 53%]
+rese\tests\test_core\test_sce_edge_cases.py::TestSCEEdgeCases::test_dependency_chain_statistics PASSED [ 53%]
+rese\tests\test_core\test_sce_edge_cases.py::TestSCEEdgeCases::test_topological_sort_with_multiple_roots PASSED [ 53%]
+rese\tests\test_core\test_sce_edge_cases.py::TestSCEEdgeCases::test_explain_contradiction_various_cases PASSED [ 53%]
+rese\tests\test_core\test_sce_edge_cases.py::TestSCEEdgeCases::test_get_statistics_empty_engine PASSED [ 53%]
+rese\tests\test_core\test_sce_edge_cases.py::TestConvenienceFunctions::test_create_constraint_from_dict_minimal PASSED [ 54%]
+rese\tests\test_core\test_sce_edge_cases.py::TestConvenienceFunctions::test_create_constraint_from_dict_all_fields PASSED [ 54%]
+rese\tests\test_core\test_sce_edge_cases.py::TestConvenienceFunctions::test_create_constraint_from_dict_with_type_string PASSED [ 54%]
+rese\tests\test_core\test_sce_edge_cases.py::TestConstraintValidation::test_constraint_empty_id_raises_error PASSED [ 54%]
+rese\tests\test_core\test_sce_edge_cases.py::TestConstraintValidation::test_constraint_whitespace_id_raises_error PASSED [ 54%]
+rese\tests\test_core\test_sce_edge_cases.py::TestConstraintValidation::test_constraint_empty_description_raises_error PASSED [ 54%]
+rese\tests\test_core\test_sce_edge_cases.py::TestConstraintValidation::test_constraint_empty_formalization_raises_error PASSED [ 54%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceLargeScale::test_add_1000_constraints PASSED [ 54%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceLargeScale::test_add_1000_constraints_with_dependencies PASSED [ 54%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceLargeScale::test_get_all_constraints_1000 PASSED [ 54%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceLargeScale::test_get_constraints_by_type_1000 PASSED [ 54%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceDeepDependencies::test_dependency_chain_100_levels PASSED [ 55%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceDeepDependencies::test_topological_sort_100_levels PASSED [ 55%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceDeepDependencies::test_diamond_structure_performance PASSED [ 55%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceConflictDetection::test_conflict_detection_100_constraints PASSED [ 55%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceConflictDetection::test_conflict_detection_1000_no_conflicts PASSED [ 55%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceConflictDetection::test_conflict_cache_performance PASSED [ 55%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceMemory::test_memory_usage_1000_constraints PASSED [ 55%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceMemory::test_memory_usage_dependency_chain_100 PASSED [ 55%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceStatistics::test_statistics_1000_constraints PASSED [ 55%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceComplexScenarios::test_real_world_scenario_mixed_constraints PASSED [ 55%]
+rese\tests\test_core\test_sce_performance.py::TestPerformanceComplexScenarios::test_iterative_operations_performance PASSED [ 56%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConstraint::test_constraint_creation_basic PASSED [ 56%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConstraint::test_constraint_with_dependencies PASSED [ 56%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConstraint::test_constraint_verified PASSED [ 56%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConstraint::test_constraint_empty_id_raises_error PASSED [ 56%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConstraint::test_constraint_whitespace_id_raises_error PASSED [ 56%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConstraint::test_constraint_empty_description_raises_error PASSED [ 56%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConstraint::test_constraint_empty_formalization_raises_error PASSED [ 56%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConstraint::test_constraint_is_hard PASSED [ 56%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConstraint::test_constraint_is_verified PASSED [ 56%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConstraint::test_constraint_hashable PASSED [ 56%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConstraint::test_constraint_equality PASSED [ 57%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConstraint::test_all_constraint_types PASSED [ 57%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_sce_initialization PASSED [ 57%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_add_single_constraint PASSED [ 57%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_add_multiple_constraints PASSED [ 57%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_add_constraint_with_dependencies PASSED [ 57%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_add_duplicate_constraint_raises_error PASSED [ 57%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_add_constraint_with_nonexistent_dependency_raises_error PASSED [ 57%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_get_constraint_exists PASSED [ 57%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_get_constraint_not_exists PASSED [ 57%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_get_all_constraints PASSED [ 58%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_get_constraints_by_type_hard PASSED [ 58%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_get_constraints_by_type_soft PASSED [ 58%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_get_dependencies_exists PASSED [ 58%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_get_dependencies_no_dependencies PASSED [ 58%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_get_dependencies_nonexistent_constraint PASSED [ 58%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_get_dependents PASSED [ 58%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_detect_conflicts_none PASSED [ 58%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_detect_conflicts_less_greater PASSED [ 58%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_detect_conflicts_always_never PASSED [ 58%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_detect_conflicts_required_forbidden PASSED [ 58%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_detect_conflicts_multiple PASSED [ 59%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_validate_dependencies_acyclic PASSED [ 59%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_validate_dependencies_cyclic PASSED [ 59%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_topological_sort_acyclic PASSED [ 59%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_topological_sort_cyclic_raises_error PASSED [ 59%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_get_statistics_empty PASSED [ 59%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_get_statistics_populated PASSED [ 59%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestSymbolicConstraintEngine::test_get_statistics_with_dependencies PASSED [ 59%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConvenienceFunctions::test_create_constraint_from_dict_basic PASSED [ 59%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConvenienceFunctions::test_create_constraint_from_dict_with_all_fields PASSED [ 59%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestConvenienceFunctions::test_create_constraint_from_dict_with_defaults PASSED [ 60%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestEdgeCases::test_constraint_with_many_dependencies PASSED [ 60%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestEdgeCases::test_long_dependency_chain PASSED [ 60%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestEdgeCases::test_diamond_dependency_structure PASSED [ 60%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestEdgeCases::test_multiple_constraints_same_type PASSED [ 60%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestEdgeCases::test_complex_conflict_scenario PASSED [ 60%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestEdgeCases::test_statistics_comprehensive PASSED [ 60%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestEdgeCases::test_empty_string_handling PASSED [ 60%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestEdgeCases::test_constraint_id_case_sensitivity PASSED [ 60%]
+rese\tests\test_core\test_symbolic_constraint_engine.py::TestEdgeCases::test_get_all_constraints_returns_copy PASSED [ 60%]
+rese\tests\test_imech\test_algorithms.py::TestWeisfeilerLehman::test_identical_graphs PASSED [ 60%]
+rese\tests\test_imech\test_algorithms.py::TestWeisfeilerLehman::test_isomorphic_graphs PASSED [ 61%]
+rese\tests\test_imech\test_algorithms.py::TestWeisfeilerLehman::test_different_sizes PASSED [ 61%]
+rese\tests\test_imech\test_algorithms.py::TestWeisfeilerLehman::test_empty_graphs PASSED [ 61%]
+rese\tests\test_imech\test_algorithms.py::TestWeisfeilerLehman::test_are_isomorphic_true PASSED [ 61%]
+rese\tests\test_imech\test_algorithms.py::TestWeisfeilerLehman::test_are_isomorphic_false PASSED [ 61%]
+rese\tests\test_imech\test_algorithms.py::TestVF2Matcher::test_exact_isomorphism PASSED [ 61%]
+rese\tests\test_imech\test_algorithms.py::TestVF2Matcher::test_different_sizes PASSED [ 61%]
+rese\tests\test_imech\test_algorithms.py::TestVF2Matcher::test_different_structure PASSED [ 61%]
+rese\tests\test_imech\test_algorithms.py::TestVF2Matcher::test_node_matching PASSED [ 61%]
+rese\tests\test_imech\test_algorithms.py::TestVF2Matcher::test_edge_matching PASSED [ 61%]
+rese\tests\test_imech\test_algorithms.py::TestSubgraphMatcher::test_exact_match PASSED [ 62%]
+rese\tests\test_imech\test_algorithms.py::TestSubgraphMatcher::test_partial_match PASSED [ 62%]
+rese\tests\test_imech\test_algorithms.py::TestSubgraphMatcher::test_no_match PASSED [ 62%]
+rese\tests\test_imech\test_algorithms.py::TestSubgraphMatcher::test_maximum_common_subgraph PASSED [ 62%]
+rese\tests\test_imech\test_algorithms.py::TestInterventionSimulator::test_simulate_intervention PASSED [ 62%]
+rese\tests\test_imech\test_algorithms.py::TestInterventionSimulator::test_compare_intervention_responses_identical PASSED [ 62%]
+rese\tests\test_imech\test_algorithms.py::TestInterventionSimulator::test_compute_causal_effect PASSED [ 62%]
+rese\tests\test_imech\test_algorithms.py::TestInterventionSimulator::test_compare_effects PASSED [ 62%]
+rese\tests\test_imech\test_algorithms.py::TestInterventionSimulator::test_compare_effects_different PASSED [ 62%]
+rese\tests\test_imech\test_fdg.py::TestNode::test_node_creation PASSED   [ 62%]
+rese\tests\test_imech\test_fdg.py::TestNode::test_node_with_metadata PASSED [ 62%]
+rese\tests\test_imech\test_fdg.py::TestNode::test_node_hash PASSED       [ 63%]
+rese\tests\test_imech\test_fdg.py::TestNode::test_node_serialization PASSED [ 63%]
+rese\tests\test_imech\test_fdg.py::TestEdge::test_edge_creation PASSED   [ 63%]
+rese\tests\test_imech\test_fdg.py::TestEdge::test_edge_with_weight PASSED [ 63%]
+rese\tests\test_imech\test_fdg.py::TestEdge::test_edge_serialization PASSED [ 63%]
+rese\tests\test_imech\test_fdg.py::TestFunctionalDependencyGraph::test_fdg_creation PASSED [ 63%]
+rese\tests\test_imech\test_fdg.py::TestFunctionalDependencyGraph::test_add_node PASSED [ 63%]
+rese\tests\test_imech\test_fdg.py::TestFunctionalDependencyGraph::test_add_multiple_nodes PASSED [ 63%]
+rese\tests\test_imech\test_fdg.py::TestFunctionalDependencyGraph::test_add_edge PASSED [ 63%]
+rese\tests\test_imech\test_fdg.py::TestFunctionalDependencyGraph::test_causal_subgraph PASSED [ 63%]
+rese\tests\test_imech\test_fdg.py::TestFunctionalDependencyGraph::test_feedback_loops PASSED [ 64%]
+rese\tests\test_imech\test_fdg.py::TestFunctionalDependencyGraph::test_descendants PASSED [ 64%]
+rese\tests\test_imech\test_fdg.py::TestFunctionalDependencyGraph::test_ancestors PASSED [ 64%]
+rese\tests\test_imech\test_fdg.py::TestFunctionalDependencyGraph::test_serialization PASSED [ 64%]
+rese\tests\test_imech\test_fdg.py::TestFunctionalDependencyGraph::test_equality PASSED [ 64%]
+rese\tests\test_imech\test_fdg.py::TestFunctionalDependencyGraph::test_repr PASSED [ 64%]
+rese\tests\test_imech\test_integration.py::TestFullPipeline::test_full_pipeline_isomorphic_domains PASSED [ 64%]
+rese\tests\test_imech\test_integration.py::TestFullPipeline::test_full_pipeline_partial_isomorphism PASSED [ 64%]
+rese\tests\test_imech\test_integration.py::TestFullPipeline::test_full_pipeline_with_solution_transfer PASSED [ 64%]
+rese\tests\test_imech\test_integration.py::TestFullPipeline::test_find_analogous_domains_pipeline PASSED [ 64%]
+rese\tests\test_imech\test_integration.py::TestHistoricalAnalogies::test_thomas_edison_light_bulb PASSED [ 64%]
+rese\tests\test_imech\test_integration.py::TestHistoricalAnalogies::test_steam_engine_to_internal_combustion PASSED [ 65%]
+rese\tests\test_imech\test_integration.py::TestHistoricalAnalogies::test_telegraph_to_telephone PASSED [ 65%]
+rese\tests\test_imech\test_integration.py::TestPerformance::test_small_graphs_performance PASSED [ 65%]
+rese\tests\test_imech\test_integration.py::TestPerformance::test_medium_graphs_performance PASSED [ 65%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestIMechValidator::test_validator_initialization_default PASSED [ 65%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestIMechValidator::test_validator_initialization_custom PASSED [ 65%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestIMechValidator::test_compare_identical_domains PASSED [ 65%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestIMechValidator::test_compare_different_domains PASSED [ 65%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestIMechValidator::test_compare_with_solution_transfer PASSED [ 65%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestIMechValidator::test_compare_early_termination PASSED [ 65%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestIMechValidator::test_find_analogous_domains PASSED [ 66%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestIMechValidator::test_validate_transfer_success PASSED [ 66%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestIMechValidator::test_caching PASSED [ 66%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestIMechValidator::test_cache_disabled PASSED [ 66%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestIMechValidator::test_generate_mapping PASSED [ 66%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestConvenienceFunction::test_compare_domains_function PASSED [ 66%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestEdgeCases::test_empty_domains PASSED [ 66%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestEdgeCases::test_domain_without_fdg PASSED [ 66%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestEdgeCases::test_single_node_domains PASSED [ 66%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestEdgeCases::test_very_large_domains PASSED [ 66%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestEdgeCases::test_no_solution_available PASSED [ 66%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestEdgeCases::test_mixed_constraint_types PASSED [ 67%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestEdgeCases::test_densely_connected_graphs PASSED [ 67%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestEdgeCases::test_directed_vs_undirected PASSED [ 67%]
+rese\tests\test_imech\test_isomorphism_validator.py::TestEdgeCases::test_self_loops PASSED [ 67%]
+rese\tests\test_imech\test_transfer.py::TestSolutionMapper::test_transfer_simple_solution PASSED [ 67%]
+rese\tests\test_imech\test_transfer.py::TestSolutionMapper::test_transfer_with_structure PASSED [ 67%]
+rese\tests\test_imech\test_transfer.py::TestSolutionMapper::test_transfer_none_solution PASSED [ 67%]
+rese\tests\test_imech\test_transfer.py::TestSolutionMapper::test_transfer_empty_mapping PASSED [ 67%]
+rese\tests\test_imech\test_transfer.py::TestSolutionMapper::test_extract_solution_structure PASSED [ 67%]
+rese\tests\test_imech\test_transfer.py::TestSolutionMapper::test_map_structure PASSED [ 67%]
+rese\tests\test_imech\test_transfer.py::TestSolutionValidator::test_validate_valid_solution PASSED [ 68%]
+rese\tests\test_imech\test_transfer.py::TestSolutionValidator::test_validate_invalid_solution PASSED [ 68%]
+rese\tests\test_imech\test_transfer.py::TestSolutionValidator::test_evaluate_string_constraint PASSED [ 68%]
+rese\tests\test_imech\test_transfer.py::TestSolutionValidator::test_evaluate_structured_constraint_equality PASSED [ 68%]
+rese\tests\test_imech\test_transfer.py::TestSolutionValidator::test_evaluate_structured_constraint_range PASSED [ 68%]
+rese\tests\test_imech\test_transfer.py::TestSolutionRepair::test_repair_solution PASSED [ 68%]
+rese\tests\test_imech\test_transfer.py::TestSolutionRepair::test_evaluate_solution PASSED [ 68%]
+rese\tests\test_imech\test_transfer.py::TestSolutionRepair::test_perturb_solution PASSED [ 68%]
+rese\tests\test_imech\test_validation.py::TestHistoricalAnalogiesValidation::test_all_analogies PASSED [ 68%]
+rese\tests\test_imech\test_validator.py::TestIMechValidator::test_validator_creation PASSED [ 68%]
+rese\tests\test_imech\test_validator.py::TestIMechValidator::test_compare_identical_domains PASSED [ 68%]
+rese\tests\test_imech\test_validator.py::TestIMechValidator::test_compare_different_domains PASSED [ 69%]
+rese\tests\test_imech\test_validator.py::TestIMechValidator::test_compare_with_solution PASSED [ 69%]
+rese\tests\test_imech\test_validator.py::TestIMechValidator::test_find_analogous_domains PASSED [ 69%]
+rese\tests\test_imech\test_validator.py::TestIMechValidator::test_validate_transfer_success PASSED [ 69%]
+rese\tests\test_imech\test_validator.py::TestIMechValidator::test_caching PASSED [ 69%]
+rese\tests\test_imech\test_validator.py::TestCompareDomains::test_compare_domains_function PASSED [ 69%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage1Integration::test_prompt_analysis_basic PASSED [ 69%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage1Integration::test_sce_integration PASSED [ 69%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage1Integration::test_confidence_calculation PASSED [ 69%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage1Integration::test_feedback_loop PASSED [ 69%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage2Integration::test_domain_analysis FAILED [ 70%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage2Integration::test_ontology_mapping PASSED [ 70%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage3Integration::test_mcts_search PASSED [ 70%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage3Integration::test_aci_guidance PASSED [ 70%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage3Integration::test_batch_search PASSED [ 70%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage5Integration::test_solution_validation PASSED [ 70%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage5Integration::test_physics_check PASSED [ 70%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage5Integration::test_bias_detection PASSED [ 70%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage6Integration::test_error_analysis PASSED [ 70%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage6Integration::test_feedback_loops PASSED [ 70%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage6Integration::test_diagnosis PASSED [ 70%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage7Integration::test_adversarial_validation PASSED [ 71%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage7Integration::test_red_blue_team PASSED [ 71%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage7Integration::test_security_score PASSED [ 71%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage8Integration::test_architecture_assembly PASSED [ 71%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage8Integration::test_predictive_models PASSED [ 71%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage8Integration::test_model_validation PASSED [ 71%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage9Integration::test_convergence_prediction PASSED [ 71%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage9Integration::test_final_validation PASSED [ 71%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestStage9Integration::test_overall_validity PASSED [ 71%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestEndToEndPipeline::test_full_pipeline_execution FAILED [ 71%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestEndToEndPipeline::test_pipeline_performance PASSED [ 72%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestDataFlow::test_stage1_to_stage3_data_flow PASSED [ 72%]
+rese\tests\test_integration\test_all_stage_integrations.py::TestDataFlow::test_stage3_to_stage5_data_flow PASSED [ 72%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15EndToEnd::test_complete_pipeline_systematic_pattern PASSED [ 72%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15EndToEnd::test_complete_pipeline_diverse_pattern ERROR [ 72%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15EndToEnd::test_get_top_assumptions PASSED [ 72%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15EndToEnd::test_paradigm_shift_detection PASSED [ 72%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15ComponentIntegration::test_preprocessor_to_detector_integration PASSED [ 72%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15ComponentIntegration::test_detector_to_clusterer_integration PASSED [ 72%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15ComponentIntegration::test_clusterer_to_generator_integration PASSED [ 72%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15ComponentIntegration::test_generator_to_scorer_integration PASSED [ 72%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15ComponentIntegration::test_full_pipeline_integration PASSED [ 73%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15DataFlow::test_null_result_serialization_roundtrip PASSED [ 73%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15DataFlow::test_assumption_serialization_roundtrip PASSED [ 73%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15DataFlow::test_feature_vector_consistency PASSED [ 73%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15Performance::test_large_dataset_performance PASSED [ 73%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15Performance::test_incremental_processing PASSED [ 73%]
+rese\tests\test_integration\test_phase1_integration.py::TestPhi15Validation::test_phi15_accuracy_validation PASSED [ 73%]
+rese\tests\test_ontology_mapper\test_ontology_integration.py::TestRealWorldMappings::test_fluid_to_electrical_mapping FAILED [ 73%]
+rese\tests\test_ontology_mapper\test_ontology_integration.py::TestRealWorldMappings::test_mechanical_to_electrical_mapping FAILED [ 73%]
+rese\tests\test_ontology_mapper\test_ontology_integration.py::TestRealWorldMappings::test_symmetric_mapping FAILED [ 73%]
+rese\tests\test_ontology_mapper\test_ontology_integration.py::TestRealWorldMappings::test_mapping_consistency FAILED [ 74%]
+rese\tests\test_ontology_mapper\test_ontology_integration.py::TestPerformance::test_mapping_latency FAILED [ 74%]
+rese\tests\test_ontology_mapper\test_ontology_integration.py::TestPerformance::test_large_domain_mapping FAILED [ 74%]
+rese\tests\test_ontology_mapper\test_ontology_integration.py::TestI_mechIntegration::test_realtime_mapping_for_isomorphism FAILED [ 74%]
+rese\tests\test_ontology_mapper\test_ontology_integration.py::TestI_mechIntegration::test_similarity_scoring_for_imech FAILED [ 74%]
+rese\tests\test_ontology_mapper\test_ontology_integration.py::TestEdgeCases::test_empty_domains PASSED [ 74%]
+rese\tests\test_ontology_mapper\test_ontology_integration.py::TestEdgeCases::test_single_node_domains FAILED [ 74%]
+rese\tests\test_ontology_mapper\test_ontology_integration.py::TestEdgeCases::test_no_fdg PASSED [ 74%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestLexicalMatcher::test_init PASSED [ 74%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestLexicalMatcher::test_jaro_winkler_identical PASSED [ 74%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestLexicalMatcher::test_jaro_winkler_similar PASSED [ 74%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestLexicalMatcher::test_jaro_winkler_different PASSED [ 75%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestLexicalMatcher::test_jaro_winkler_empty PASSED [ 75%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestLexicalMatcher::test_levenshtein_similarity PASSED [ 75%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestLexicalMatcher::test_ngram_similarity PASSED [ 75%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestLexicalMatcher::test_match_best PASSED [ 75%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestLexicalMatcher::test_match_all PASSED [ 75%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestSemanticMatcher::test_init PASSED [ 75%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestSemanticMatcher::test_encode SKIPPED [ 75%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestSemanticMatcher::test_similarity SKIPPED [ 75%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestSemanticMatcher::test_similarity_different SKIPPED [ 75%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestSemanticMatcher::test_fallback_matcher PASSED [ 76%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestGraphEmbedder::test_init PASSED [ 76%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestGraphEmbedder::test_fit_transform FAILED [ 76%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestGraphEmbedder::test_fallback_embedder PASSED [ 76%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestGraphEmbedder::test_similarity PASSED [ 76%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestKGValidator::test_init PASSED [ 76%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestKGValidator::test_fallback_validator FAILED [ 76%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestKGValidator::test_is_synonym_fallback FAILED [ 76%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestOntologyMapper::test_init PASSED [ 76%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestOntologyMapper::test_normalize_concept PASSED [ 76%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestOntologyMapper::test_jaro_winkler_similarity PASSED [ 76%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestOntologyMapper::test_cosine_similarity PASSED [ 77%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestOntologyMapper::test_map_ontologies_simple PASSED [ 77%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestOntologyMapper::test_save_load_mapping PASSED [ 77%]
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestIntegration::test_full_pipeline FAILED [ 77%]
+rese\tests\test_performance\test_load_testing.py::TestLoadTesting::test_phi15_load_500_failures SKIPPED [ 77%]
+rese\tests\test_performance\test_load_testing.py::TestLoadTesting::test_sce_load_1000_constraints SKIPPED [ 77%]
+rese\tests\test_performance\test_load_testing.py::TestLoadTesting::test_dito_load_optimization SKIPPED [ 77%]
+rese\tests\test_performance\test_load_testing.py::TestStressTesting::test_extreme_constraint_complexity SKIPPED [ 77%]
+rese\tests\test_performance\test_load_testing.py::TestStressTesting::test_memory_stress_test SKIPPED [ 77%]
+rese\tests\test_performance\test_load_testing.py::TestStressTesting::test_rapid_incremental_loading SKIPPED [ 77%]
+rese\tests\test_performance\test_load_testing.py::TestStressTesting::test_concurrent_load_simulation SKIPPED [ 78%]
+rese\tests\test_performance\test_load_testing.py::TestBenchmarkSuite::test_benchmark_phi15_scalability SKIPPED [ 78%]
+rese\tests\test_performance\test_load_testing.py::TestBenchmarkSuite::test_benchmark_constraint_processing SKIPPED [ 78%]
+rese\tests\test_performance\test_load_testing.py::TestBenchmarkSuite::test_benchmark_memory_usage SKIPPED [ 78%]
+rese\tests\test_performance\test_load_testing.py::TestBenchmarkSuite::test_benchmark_dito_speedup SKIPPED [ 78%]
+rese\tests\test_performance\test_load_testing.py::TestPerformanceRegression::test_processing_time_regression SKIPPED [ 78%]
+rese\tests\test_performance\test_load_testing.py::TestPerformanceRegression::test_memory_regression SKIPPED [ 78%]
+rese\tests\test_performance\test_load_testing.py::TestPerformanceReporting::test_generate_performance_report SKIPPED [ 78%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSState::test_state_creation PASSED [ 78%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSState::test_state_with_data PASSED [ 78%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSState::test_state_terminal PASSED [ 78%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSState::test_state_hashable PASSED [ 79%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSNode::test_node_creation PASSED [ 79%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSNode::test_node_statistics PASSED [ 79%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSNode::test_node_parent_child PASSED [ 79%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSNode::test_leaf_detection PASSED [ 79%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSSearch::test_mcts_initialization PASSED [ 79%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSSearch::test_mcts_basic_search PASSED [ 79%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSSearch::test_mcts_finds_better_solution PASSED [ 79%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSSearch::test_mcts_convergence_detection PASSED [ 79%]
+rese\tests\test_phase3\test_mcts_search.py::TestMCTSSearch::test_mucs_early_stopping PASSED [ 79%]
+rese\tests\test_phase3\test_mcts_search.py::TestACIGuidedSearch::test_adaptive_c_parameter PASSED [ 80%]
+rese\tests\test_phase3\test_mcts_search.py::TestACIGuidedSearch::test_adaptive_playout_depth PASSED [ 80%]
+rese\tests\test_phase3\test_mcts_search.py::TestACIGuidedSearch::test_progressive_widening PASSED [ 80%]
+rese\tests\test_phase3\test_mcts_search.py::TestParallelMCTS::test_parallel_mcts_initialization PASSED [ 80%]
+rese\tests\test_phase3\test_mcts_search.py::TestParallelMCTS::test_parallel_search PASSED [ 80%]
+rese\tests\test_phase3\test_mcts_search.py::TestParallelMCTS::test_parallel_vs_sequential PASSED [ 80%]
+rese\tests\test_phase3\test_mcts_search.py::TestUtilities::test_quick_mcts_search PASSED [ 80%]
+rese\tests\test_phase3\test_mcts_search.py::TestPerformance::test_large_search_tree PASSED [ 80%]
+rese\tests\test_phase3\test_mcts_search.py::TestPerformance::test_mcts_scalability PASSED [ 80%]
+rese\tests\test_phase3\test_stage3_integration.py::TestMonteCarloNest::test_nest_initialization PASSED [ 80%]
+rese\tests\test_phase3\test_stage3_integration.py::TestMonteCarloNest::test_basic_search PASSED [ 80%]
+rese\tests\test_phase3\test_stage3_integration.py::TestMonteCarloNest::test_agent_diversity PASSED [ 81%]
+rese\tests\test_phase3\test_stage3_integration.py::TestMonteCarloNest::test_aggregation PASSED [ 81%]
+rese\tests\test_phase3\test_stage3_integration.py::TestMonteCarloNest::test_parallel_vs_sequential PASSED [ 81%]
+rese\tests\test_phase3\test_stage3_integration.py::TestAgentStrategies::test_exploit_strategy PASSED [ 81%]
+rese\tests\test_phase3\test_stage3_integration.py::TestAgentStrategies::test_explore_strategy PASSED [ 81%]
+rese\tests\test_phase3\test_stage3_integration.py::TestAgentStrategies::test_mixed_strategies PASSED [ 81%]
+rese\tests\test_phase3\test_stage3_integration.py::TestNestValidation::test_validation_enabled PASSED [ 81%]
+rese\tests\test_phase3\test_stage3_integration.py::TestNestValidation::test_validation_disabled PASSED [ 81%]
+rese\tests\test_phase3\test_stage3_integration.py::TestNestValidation::test_confident_result_selection PASSED [ 81%]
+rese\tests\test_phase3\test_stage3_integration.py::TestNestPerformance::test_scalability_with_agents PASSED [ 81%]
+rese\tests\test_phase3\test_stage3_integration.py::TestNestPerformance::test_large_search PASSED [ 82%]
+rese\tests\test_phase3\test_stage3_integration.py::TestResultAnalysis::test_result_summary PASSED [ 82%]
+rese\tests\test_phase3\test_stage3_integration.py::TestResultAnalysis::test_metadata PASSED [ 82%]
+rese\tests\test_phase3\test_stage3_integration.py::TestConvenienceFunctions::test_quick_nest_search PASSED [ 82%]
+rese\tests\test_phase3\test_stage3_integration.py::TestEndToEnd::test_complete_pipeline PASSED [ 82%]
+rese\tests\test_phase3\test_statistical_validator.py::TestBootstrapCI::test_percentile_ci PASSED [ 82%]
+rese\tests\test_phase3\test_statistical_validator.py::TestBootstrapCI::test_bca_ci PASSED [ 82%]
+rese\tests\test_phase3\test_statistical_validator.py::TestBootstrapCI::test_normal_ci PASSED [ 82%]
+rese\tests\test_phase3\test_statistical_validator.py::TestBootstrapCI::test_confidence_levels PASSED [ 82%]
+rese\tests\test_phase3\test_statistical_validator.py::TestBootstrapCI::test_ci_width_correlation PASSED [ 82%]
+rese\tests\test_phase3\test_statistical_validator.py::TestBootstrapCI::test_empty_data_error PASSED [ 82%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSignificanceTest::test_t_test PASSED [ 83%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSignificanceTest::test_wilcoxon_test PASSED [ 83%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSignificanceTest::test_mann_whitney_test PASSED [ 83%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSignificanceTest::test_significant_difference PASSED [ 83%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSignificanceTest::test_no_significant_difference PASSED [ 83%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSignificanceTest::test_alpha_levels PASSED [ 83%]
+rese\tests\test_phase3\test_statistical_validator.py::TestConvergenceDetection::test_moving_window_convergence PASSED [ 83%]
+rese\tests\test_phase3\test_statistical_validator.py::TestConvergenceDetection::test_gradient_convergence PASSED [ 83%]
+rese\tests\test_phase3\test_statistical_validator.py::TestConvergenceDetection::test_spc_convergence PASSED [ 83%]
+rese\tests\test_phase3\test_statistical_validator.py::TestConvergenceDetection::test_combined_convergence PASSED [ 83%]
+rese\tests\test_phase3\test_statistical_validator.py::TestConvergenceDetection::test_no_convergence_short_history PASSED [ 84%]
+rese\tests\test_phase3\test_statistical_validator.py::TestConvergenceDetection::test_converged_data PASSED [ 84%]
+rese\tests\test_phase3\test_statistical_validator.py::TestConvergenceDetection::test_non_converged_data PASSED [ 84%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSampleSize::test_required_sample_size PASSED [ 84%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSampleSize::test_effect_size_impact PASSED [ 84%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSampleSize::test_power_impact PASSED [ 84%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSampleSize::test_alpha_impact PASSED [ 84%]
+rese\tests\test_phase3\test_statistical_validator.py::TestCompleteValidation::test_validate_mcts_results PASSED [ 84%]
+rese\tests\test_phase3\test_statistical_validator.py::TestCompleteValidation::test_validation_with_comparison PASSED [ 84%]
+rese\tests\test_phase3\test_statistical_validator.py::TestCompleteValidation::test_is_confident PASSED [ 84%]
+rese\tests\test_phase3\test_statistical_validator.py::TestCompleteValidation::test_validation_summary PASSED [ 84%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSequentialAnalyzer::test_sequential_analyzer_initialization PASSED [ 85%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSequentialAnalyzer::test_minimum_simulations PASSED [ 85%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSequentialAnalyzer::test_maximum_simulations PASSED [ 85%]
+rese\tests\test_phase3\test_statistical_validator.py::TestSequentialAnalyzer::test_ci_width_stopping PASSED [ 85%]
+rese\tests\test_phase3\test_statistical_validator.py::TestConvenienceFunctions::test_quick_validation PASSED [ 85%]
+rese\tests\test_phase3\test_statistical_validator.py::TestConvenienceFunctions::test_compare_mcts_runs PASSED [ 85%]
+rese\tests\test_phase3\test_statistical_validator.py::TestDiagnostics::test_diagnostics_calculation PASSED [ 85%]
+rese\tests\test_phase3\test_statistical_validator.py::TestDiagnostics::test_skewness_kurtosis PASSED [ 85%]
+rese\tests\test_phase3\test_statistical_validator.py::TestEdgeCases::test_single_value PASSED [ 85%]
+rese\tests\test_phase3\test_statistical_validator.py::TestEdgeCases::test_identical_values PASSED [ 85%]
+rese\tests\test_phase3\test_statistical_validator.py::TestEdgeCases::test_outliers PASSED [ 86%]
+rese\tests\test_phase3\test_statistical_validator.py::TestEdgeCases::test_very_wide_distribution PASSED [ 86%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestComponentRegistration::test_register_component PASSED [ 86%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestComponentRegistration::test_register_duplicate_component PASSED [ 86%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestComponentRegistration::test_get_component PASSED [ 86%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestComponentRegistration::test_get_nonexistent_component PASSED [ 86%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestComponentRegistration::test_get_available_components PASSED [ 86%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestDependencyResolution::test_no_dependencies PASSED [ 86%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestDependencyResolution::test_single_dependency PASSED [ 86%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestDependencyResolution::test_multiple_dependencies PASSED [ 86%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestDependencyResolution::test_dependency_order PASSED [ 86%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestDependencyResolution::test_missing_dependency PASSED [ 87%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestDependencyResolution::test_circular_dependency_detection PASSED [ 87%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestArchitectureBuilding::test_assemble_single_component PASSED [ 87%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestArchitectureBuilding::test_assemble_multiple_components PASSED [ 87%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestArchitectureBuilding::test_auto_select_components PASSED [ 87%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestArchitectureBuilding::test_architecture_id_generation PASSED [ 87%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestArchitectureBuilding::test_architecture_pattern_detection PASSED [ 87%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestArchitectureBuilding::test_architecture_metadata PASSED [ 87%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestArchitectureBuilding::test_assembly_time_tracking PASSED [ 87%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestCompatibility::test_compatible_components PASSED [ 87%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestCompatibility::test_incompatible_components_circular PASSED [ 88%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestCompatibility::test_architecture_add_compatible PASSED [ 88%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestCompatibility::test_architecture_reject_incompatible PASSED [ 88%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestACIEstimation::test_aci_improvement_estimation PASSED [ 88%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestACIEstimation::test_no_components_zero_aci PASSED [ 88%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestACIEstimation::test_multiple_components_higher_aci PASSED [ 88%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestRuntimeEstimation::test_runtime_estimation PASSED [ 88%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestRuntimeEstimation::test_more_components_longer_runtime PASSED [ 88%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestDependencyLayers::test_layers_constructed PASSED [ 88%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestDependencyLayers::test_layer_ordering PASSED [ 88%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestFingerprinting::test_fingerprint_generation PASSED [ 88%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestFingerprinting::test_fingerprint_consistency PASSED [ 89%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestFingerprinting::test_fingerprint_uniqueness PASSED [ 89%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestSerialization::test_to_dict PASSED [ 89%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestSerialization::test_serialized_data_types PASSED [ 89%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestBeamSearch::test_beam_search_assembler PASSED [ 89%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestBeamSearch::test_beam_width_parameter PASSED [ 89%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestArchitectureMethods::test_has_component_true PASSED [ 89%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestArchitectureMethods::test_has_component_false PASSED [ 89%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestArchitectureMethods::test_get_component_found PASSED [ 89%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestArchitectureMethods::test_get_component_not_found PASSED [ 89%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestAssemblyIntegration::test_full_assembly_pipeline PASSED [ 90%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestAssemblyIntegration::test_assembly_with_all_validated_components PASSED [ 90%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestAssemblyIntegration::test_assembly_statistics PASSED [ 90%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestErrorHandling::test_unknown_component PASSED [ 90%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestErrorHandling::test_empty_component_list PASSED [ 90%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestErrorHandling::test_invalid_component_id PASSED [ 90%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestPerformance::test_assembly_speed PASSED [ 90%]
+rese\tests\test_phase4\test_architecture_assembler.py::TestPerformance::test_large_assembly PASSED [ 90%]
+rese\tests\test_phase4\test_integration_assembly.py::TestPhaseIIntegration::test_phi15_assembly PASSED [ 90%]
+rese\tests\test_phase4\test_integration_assembly.py::TestPhaseIIntegration::test_phi15_with_gamma1 PASSED [ 90%]
+rese\tests\test_phase4\test_integration_assembly.py::TestPhaseIIIntegration::test_psi3_assembly PASSED [ 90%]
+rese\tests\test_phase4\test_integration_assembly.py::TestPhaseIIIntegration::test_imech_assembly PASSED [ 91%]
+rese\tests\test_phase4\test_integration_assembly.py::TestPhaseIIIntegration::test_psi3_with_imech PASSED [ 91%]
+rese\tests\test_phase4\test_integration_assembly.py::TestPhaseIIIIntegration::test_gamma1_assembly PASSED [ 91%]
+rese\tests\test_phase4\test_integration_assembly.py::TestPhaseIIIIntegration::test_gamma2_assembly PASSED [ 91%]
+rese\tests\test_phase4\test_integration_assembly.py::TestPhaseIIIIntegration::test_gamma1_with_gamma2 PASSED [ 91%]
+rese\tests\test_phase4\test_integration_assembly.py::TestCrossPhaseIntegration::test_phase_i_with_phase_ii PASSED [ 91%]
+rese\tests\test_phase4\test_integration_assembly.py::TestCrossPhaseIntegration::test_phase_ii_with_phase_iii PASSED [ 91%]
+rese\tests\test_phase4\test_integration_assembly.py::TestCrossPhaseIntegration::test_all_phases PASSED [ 91%]
+rese\tests\test_phase4\test_integration_assembly.py::TestValidationIntegration::test_validate_simple_architecture PASSED [ 91%]
+rese\tests\test_phase4\test_integration_assembly.py::TestValidationIntegration::test_validate_complex_architecture PASSED [ 91%]
+rese\tests\test_phase4\test_integration_assembly.py::TestValidationIntegration::test_validate_with_errors PASSED [ 92%]
+rese\tests\test_phase4\test_integration_assembly.py::TestBatchValidation::test_batch_validate_multiple PASSED [ 92%]
+rese\tests\test_phase4\test_integration_assembly.py::TestBatchValidation::test_batch_get_best PASSED [ 92%]
+rese\tests\test_phase4\test_integration_assembly.py::TestAutoSelection::test_auto_select_validated PASSED [ 92%]
+rese\tests\test_phase4\test_integration_assembly.py::TestAutoSelection::test_auto_select_includes_core PASSED [ 92%]
+rese\tests\test_phase4\test_integration_assembly.py::TestAssemblyPatterns::test_sequential_pattern PASSED [ 92%]
+rese\tests\test_phase4\test_integration_assembly.py::TestAssemblyPatterns::test_parallel_pattern PASSED [ 92%]
+rese\tests\test_phase4\test_integration_assembly.py::TestACIImprovement::test_aci_improvement_increases PASSED [ 92%]
+rese\tests\test_phase4\test_integration_assembly.py::TestACIImprovement::test_phase_diversity_bonus PASSED [ 92%]
+rese\tests\test_phase4\test_integration_assembly.py::TestDependencyLayersIntegration::test_gamma2_creates_two_layers PASSED [ 92%]
+rese\tests\test_phase4\test_integration_assembly.py::TestDependencyLayersIntegration::test_parallel_execution_in_layer PASSED [ 92%]
+rese\tests\test_phase4\test_integration_assembly.py::TestEndToEndPipeline::test_full_pipeline PASSED [ 93%]
+rese\tests\test_phase4\test_integration_assembly.py::TestEndToEndPipeline::test_pipeline_with_auto_selection PASSED [ 93%]
+rese\tests\test_phase4\test_integration_assembly.py::TestEndToEndPipeline::test_pipeline_error_handling PASSED [ 93%]
+rese\tests\test_phase4\test_integration_assembly.py::TestPerformanceIntegration::test_assembly_performance PASSED [ 93%]
+rese\tests\test_phase4\test_integration_assembly.py::TestPerformanceIntegration::test_validation_performance PASSED [ 93%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestSolutionAnalyzer::test_initialization PASSED [ 93%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestSolutionAnalyzer::test_analyze_solution PASSED [ 93%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestSolutionAnalyzer::test_extract_features PASSED [ 93%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestSolutionAnalyzer::test_extract_patterns PASSED [ 93%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestSolutionAnalyzer::test_estimate_complexity PASSED [ 93%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestSolutionAnalyzer::test_determine_prediction_type PASSED [ 94%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestSolutionAnalyzer::test_needs_interpretability PASSED [ 94%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestTreeModelGenerator::test_initialization PASSED [ 94%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestTreeModelGenerator::test_generate_decision_tree PASSED [ 94%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestTreeModelGenerator::test_generate_random_forest PASSED [ 94%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestTreeModelGenerator::test_train_tree_model PASSED [ 94%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestPredictiveModelGenerator::test_initialization PASSED [ 94%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestPredictiveModelGenerator::test_generate_with_auto_model_type PASSED [ 94%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestPredictiveModelGenerator::test_generate_decision_tree PASSED [ 94%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestPredictiveModelGenerator::test_generate_random_forest PASSED [ 94%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestPredictiveModelGenerator::test_model_falsifiability_validation PASSED [ 94%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestPredictiveModelGenerator::test_model_predictions PASSED [ 95%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestPredictiveModelGenerator::test_uncertainty_quantification PASSED [ 95%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestPredictiveModelGenerator::test_model_type_selection PASSED [ 95%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestPredictiveModelGenerator::test_error_on_invalid_model_type PASSED [ 95%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestPublicAPI::test_generate_predictive_model PASSED [ 95%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestPublicAPI::test_generate_with_default_config PASSED [ 95%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestIntegration::test_full_pipeline PASSED [ 95%]
+rese\tests\test_phase4\test_predictive_model_generator.py::TestIntegration::test_multiple_solutions PASSED [ 95%]
+rese\tests\test_phase4\test_predictive_model_integration.py::TestDelta1Integration::test_generate_from_architecture PASSED [ 95%]
+rese\tests\test_phase4\test_predictive_model_integration.py::TestDelta1Integration::test_architecture_guided_model_structure PASSED [ 95%]
+rese\tests\test_phase4\test_predictive_model_integration.py::TestStage8Integration::test_generate_for_stage8 PASSED [ 96%]
+rese\tests\test_phase4\test_predictive_model_integration.py::TestStage8Integration::test_stage8_predictions PASSED [ 96%]
+rese\tests\test_phase4\test_predictive_model_integration.py::TestStage8Integration::test_stage8_metadata_compatibility PASSED [ 96%]
+rese\tests\test_phase4\test_predictive_model_integration.py::TestEndToEndIntegration::test_full_rese_to_model_pipeline PASSED [ 96%]
+rese\tests\test_phase4\test_predictive_model_integration.py::TestEndToEndIntegration::test_multi_domain_generation PASSED [ 96%]
+rese\tests\test_phase4\test_predictive_model_integration.py::TestErrorHandling::test_handle_missing_architecture PASSED [ 96%]
+rese\tests\test_phase4\test_predictive_model_integration.py::TestErrorHandling::test_handle_incomplete_aci_history PASSED [ 96%]
+rese\tests\test_phi15.py::TestDataStructures::test_null_result_creation PASSED [ 96%]
+rese\tests\test_phi15.py::TestDataStructures::test_tacit_assumption_creation PASSED [ 96%]
+rese\tests\test_phi15.py::TestFailurePreprocessor::test_extract_features PASSED [ 96%]
+rese\tests\test_phi15.py::TestFailurePreprocessor::test_keyword_extraction PASSED [ 96%]
+rese\tests\test_phi15.py::TestFailurePreprocessor::test_time_to_failure_computation PASSED [ 97%]
+rese\tests\test_phi15.py::TestAnomalyDetector::test_anomaly_detection PASSED [ 97%]
+rese\tests\test_phi15.py::TestAnomalyDetector::test_insufficient_data PASSED [ 97%]
+rese\tests\test_phi15.py::TestFailureClusterer::test_clustering PASSED   [ 97%]
+rese\tests\test_phi15.py::TestFailureClusterer::test_insufficient_data_for_clustering PASSED [ 97%]
+rese\tests\test_phi15.py::TestAssumptionGenerator::test_generate_assumptions ERROR [ 97%]
+rese\tests\test_phi15.py::TestConfidenceScorer::test_score_assumption PASSED [ 97%]
+rese\tests\test_phi15.py::TestParadigmShiftDetector::test_no_crisis PASSED [ 97%]
+rese\tests\test_phi15.py::TestParadigmShiftDetector::test_crisis_detected PASSED [ 97%]
+rese\tests\test_phi15.py::TestPhi15Engine::test_engine_initialization PASSED [ 97%]
+rese\tests\test_phi15.py::TestPhi15Engine::test_process_null_results PASSED [ 98%]
+rese\tests\test_phi15.py::TestPhi15Engine::test_get_top_assumptions PASSED [ 98%]
+rese\tests\test_phi15.py::TestIntegration::test_end_to_end_pipeline PASSED [ 98%]
+rese\tests\test_phi15.py::TestIntegration::test_sce_constraint_conversion PASSED [ 98%]
+rese\tests\test_validation\test_key_innovations.py::TestPhi15Validation::test_phi15_accuracy_threshold PASSED [ 98%]
+rese\tests\test_validation\test_key_innovations.py::TestPhi15Validation::test_phi15_binary_classification_metrics PASSED [ 98%]
+rese\tests\test_validation\test_key_innovations.py::TestImechValidation::test_imech_transfer_rate_threshold FAILED [ 98%]
+rese\tests\test_validation\test_key_innovations.py::TestImechValidation::test_imech_mapping_quality_distribution PASSED [ 98%]
+rese\tests\test_validation\test_key_innovations.py::TestGamma1Validation::test_gamma1_correlation_threshold PASSED [ 98%]
+rese\tests\test_validation\test_key_innovations.py::TestGamma1Validation::test_gamma1_pareto_optimality FAILED [ 98%]
+rese\tests\test_validation\test_key_innovations.py::TestDelta3Validation::test_delta3_correlation_threshold PASSED [ 98%]
+rese\tests\test_validation\test_key_innovations.py::TestDelta3Validation::test_delta3_prediction_error_distribution PASSED [ 99%]
+rese\tests\test_validation\test_key_innovations.py::TestPsi3Validation::test_psi3_reduction_threshold PASSED [ 99%]
+rese\tests\test_validation\test_key_innovations.py::TestPsi3Validation::test_psi3_redundancy_elimination PASSED [ 99%]
+rese\tests\test_validation\test_key_innovations.py::TestDitoValidation::test_dito_speedup_threshold PASSED [ 99%]
+rese\tests\test_validation\test_key_innovations.py::TestDitoValidation::test_dito_scalability FAILED [ 99%]
+rese\tests\test_validation\test_key_innovations.py::TestValidationReport::test_all_innovations_validated PASSED [ 99%]
+rese\tests\test_validation\test_key_innovations.py::TestValidationReport::test_generate_validation_json PASSED [ 99%]
+rese\tests\test_validation\test_key_innovations.py::TestValidationRegression::test_phi15_no_regression PASSED [ 99%]
+rese\tests\test_validation\test_key_innovations.py::TestValidationRegression::test_imech_no_regression PASSED [ 99%]
+rese\tests\test_validation\test_key_innovations.py::TestValidationRegression::test_gamma1_no_regression PASSED [ 99%]
+rese\tests\test_validation\test_key_innovations.py::TestValidationRegression::test_dito_no_regression PASSED [100%]
+
+=================================== ERRORS ====================================
+_ ERROR at setup of TestPhi15EndToEnd.test_complete_pipeline_diverse_pattern __
+rese\tests\test_integration\test_phase1_integration.py:89: in diverse_failure_dataset
+    ErrorType.INFEASIBLE,
+..\..\..\AppData\Local\Programs\Python\Python311\Lib\enum.py:767: in __getattr__
+    raise AttributeError(name) from None
+E   AttributeError: INFEASIBLE
+_____ ERROR at setup of TestAssumptionGenerator.test_generate_assumptions _____
+file C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\tests\test_phi15.py, line 354
+      def test_generate_assumptions(self, generator, sample_cluster):
+file C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\tests\test_phi15.py, line 328
+      @pytest.fixture
+      def sample_cluster(self, sample_features_for_clustering):
+E       fixture 'sample_features_for_clustering' not found
+>       available fixtures: _class_scoped_runner, _function_scoped_runner, _module_scoped_runner, _package_scoped_runner, _session_faker, _session_scoped_runner, anyio_backend, anyio_backend_name, anyio_backend_options, benchmark_results, cache, capfd, capfdbinary, caplog, capsys, capsysbinary, cov, dito_optimizer, doctest_namespace, event_loop_policy, extra, extras, faker, free_tcp_port, free_tcp_port_factory, free_udp_port, free_udp_port_factory, full_rese_pipeline, generator, include_metadata_in_junit_xml, innovation_validators, integration_test_scenarios, lean4_bridge, mcts_search_engine, metadata, mock_constraint_generator, mock_failure_generator, monkeypatch, no_cover, performance_thresholds, phi15_engine, psi3_constraint_set, pytestconfig, record_property, record_testsuite_property, record_xml_attribute, recwarn, rese_root, sample_cluster, sample_constraint_pool, sample_failure_features, sample_fdg, sample_null_result, sample_null_results, sample_pareto_front, sample_sce_constraints, sample_source_domain, sample_target_domain, sample_validation_data, sce_engine, temp_dir, test_data_dir, test_db_dir, test_db_path, test_failure_db, test_utils, tmp_path, tmp_path_factory, tmpdir, tmpdir_factory, unused_tcp_port, unused_tcp_port_factory, unused_udp_port, unused_udp_port_factory
+>       use 'pytest --fixtures [testpath]' for help on them.
+
+C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\tests\test_phi15.py:328
+================================== FAILURES ===================================
+__________________ TestPhi15Engine.test_save_and_load_state ___________________
+rese\tests\phase1\test_tacit_assumption_miner.py:853: in test_save_and_load_state
+    engine2.load_state(temp_path)
+rese\phase1\tacit_assumption_miner.py:1257: in load_state
+    self.paradigm_history.append(ParadigmShiftRecommendation(**filtered_data))
+E   TypeError: ParadigmShiftRecommendation.__init__() missing 2 required positional arguments: 'primary_assumptions' and 'suggested_alternatives'
+_____________ TestLossViolationDetection.test_violation_detected ______________
+rese\tests\test_core\test_logic_to_loss_translation.py:991: in test_violation_detected
+    self.assertTrue(
+E   AssertionError: False is not true
+---------------------------- Captured stderr call -----------------------------
+2026-01-01 01:34:20,865 - core.logic_to_loss_translation - INFO - LLTL initialized with aggregation=weighted_sum
+2026-01-01 01:34:20,865 - core.logic_to_loss_translation - INFO - Translated constraint temp_limit to loss function
+------------------------------ Captured log call ------------------------------
+INFO     core.logic_to_loss_translation:logic_to_loss_translation.py:168 LLTL initialized with aggregation=weighted_sum
+INFO     core.logic_to_loss_translation:logic_to_loss_translation.py:241 Translated constraint temp_limit to loss function
+_____________ TestLossViolationDetection.test_violation_severity ______________
+rese\tests\test_core\test_logic_to_loss_translation.py:1019: in test_violation_severity
+    self.assertGreater(severity, 0.0)
+E   AssertionError: 0.0 not greater than 0.0
+---------------------------- Captured stderr call -----------------------------
+2026-01-01 01:34:20,929 - core.logic_to_loss_translation - INFO - LLTL initialized with aggregation=weighted_sum
+2026-01-01 01:34:20,929 - core.logic_to_loss_translation - INFO - Translated constraint temp_limit to loss function
+------------------------------ Captured log call ------------------------------
+INFO     core.logic_to_loss_translation:logic_to_loss_translation.py:168 LLTL initialized with aggregation=weighted_sum
+INFO     core.logic_to_loss_translation:logic_to_loss_translation.py:241 Translated constraint temp_limit to loss function
+________ TestLossViolationDetection.test_violation_with_pytorch_tensor ________
+rese\tests\test_core\test_logic_to_loss_translation.py:1090: in test_violation_with_pytorch_tensor
+    self.assertTrue(violations["temp_limit"]["violated"])
+E   AssertionError: False is not true
+---------------------------- Captured stderr call -----------------------------
+2026-01-01 01:34:20,957 - core.logic_to_loss_translation - INFO - LLTL initialized with aggregation=weighted_sum
+2026-01-01 01:34:20,957 - core.logic_to_loss_translation - INFO - Translated constraint temp_limit to loss function
+------------------------------ Captured log call ------------------------------
+INFO     core.logic_to_loss_translation:logic_to_loss_translation.py:168 LLTL initialized with aggregation=weighted_sum
+INFO     core.logic_to_loss_translation:logic_to_loss_translation.py:241 Translated constraint temp_limit to loss function
+_________________ TestStage2Integration.test_domain_analysis __________________
+rese\tests\test_integration\test_all_stage_integrations.py:169: in test_domain_analysis
+    assert result.status in [MappingStatus.VALIDATED, MappingStatus.ISOMORPHISM_CHECKED, MappingStatus.FAILED]
+E   AssertionError: assert <MappingStatus.COMPLETED: 'completed'> in [<MappingStatus.VALIDATED: 'validated'>, <MappingStatus.ISOMORPHISM_CHECKED: 'isomorphism_checked'>, <MappingStatus.FAILED: 'failed'>]
+E    +  where <MappingStatus.COMPLETED: 'completed'> = IsomorphicMappingResult(status=<MappingStatus.COMPLETED: 'completed'>, domain_pair=DomainPair(source_domain=Domain(id='source', name='Source Domain', constraints=0), target_domain=Domain(id='target', name='Target Domain', constraints=0), metadata={}), ontology_mappings=[OntologyMapping(source_concept='x', target_concept='x', similarity_score=1.0, mapping_type=None, confidence=1.0, rationale='Lexical similarity: 1.00')], inversion_results=[], isomorphism_score=0.0, transfer_confidence=0.05, suggested_transfers=[], validation_results=None, analysis_time=0.001003, metadata={}, errors=[]).status
+______________ TestEndToEndPipeline.test_full_pipeline_execution ______________
+rese\tests\test_integration\test_all_stage_integrations.py:575: in test_full_pipeline_execution
+    assert result2.status in [MappingStatus.VALIDATED, MappingStatus.ISOMORPHISM_CHECKED, MappingStatus.ONTOLOGY_MAPPED, MappingStatus.FAILED]
+E   AssertionError: assert <MappingStatus.COMPLETED: 'completed'> in [<MappingStatus.VALIDATED: 'validated'>, <MappingStatus.ISOMORPHISM_CHECKED: 'isomorphism_checked'>, <MappingStatus.ONTOLOGY_MAPPED: 'ontology_mapped'>, <MappingStatus.FAILED: 'failed'>]
+E    +  where <MappingStatus.COMPLETED: 'completed'> = IsomorphicMappingResult(status=<MappingStatus.COMPLETED: 'completed'>, domain_pair=DomainPair(source_domain=Domain(id='s1', name='Source', constraints=0), target_domain=Domain(id='t1', name='Target', constraints=0), metadata={}), ontology_mappings=[OntologyMapping(source_concept='x', target_concept='x', similarity_score=1.0, mapping_type='exact', confidence=1.0, rationale='Lexical similarity: 1.00')], inversion_results=[], isomorphism_score=0.0, transfer_confidence=0.05, suggested_transfers=[], validation_results=None, analysis_time=0.0, metadata={}, errors=[]).status
+---------------------------- Captured stdout call -----------------------------
+\n=== Testing Full Pipeline ===\nStage 1: Prompt Analysis\n  \u2713 Constraints extracted: 0\nStage 2: Domain Mapping
+___________ TestRealWorldMappings.test_fluid_to_electrical_mapping ____________
+rese\tests\test_ontology_mapper\test_ontology_integration.py:115: in test_fluid_to_electrical_mapping
+    result = mapper.map_ontologies(
+rese\phase2\ontology_mapper.py:217: in map_ontologies
+    source_graph, source_concepts = self._preprocess_domain(source_domain)
+rese\phase2\ontology_mapper.py:300: in _preprocess_domain
+    graph = domain.fdg.to_networkx()
+E   TypeError: TestRealWorldMappings.fluid_dynamics_domain.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+---------------------------- Captured stderr call -----------------------------
+2026-01-01 01:34:39,152 - phase2.ontology_mapper - INFO - Lexical matcher initialized\n2026-01-01 01:34:39,152 - phase2.ontology_mapper - INFO - Semantic matcher initialized\n2026-01-01 01:34:39,152 - phase2.ontology_mapper - INFO - Graph embedder initialized\n2026-01-01 01:34:53,397 - phase2.ontology_components.kg_validator - INFO - WordNet initialized\n2026-01-01 01:34:53,398 - phase2.ontology_mapper - INFO - KG validator initialized\n2026-01-01 01:34:53,399 - phase2.ontology_mapper - INFO - Cache initialized at rese\\phase2\\ontology_cache\n2026-01-01 01:34:53,399 - phase2.ontology_mapper - INFO - Ontology Mapper initialized\n2026-01-01 01:34:53,399 - phase2.ontology_mapper - INFO - Mapping Fluid Dynamics \u2192 Electrical Circuits
+------------------------------ Captured log call ------------------------------
+INFO     phase2.ontology_mapper:ontology_mapper.py:125 Lexical matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:135 Semantic matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:148 Graph embedder initialized\nINFO     phase2.ontology_components.kg_validator:kg_validator.py:73 WordNet initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:159 KG validator initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:176 Cache initialized at rese\\phase2\\ontology_cache\nINFO     phase2.ontology_mapper:ontology_mapper.py:115 Ontology Mapper initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:210 Mapping Fluid Dynamics \u2192 Electrical Circuits
+_________ TestRealWorldMappings.test_mechanical_to_electrical_mapping _________
+rese\tests\test_ontology_mapper\test_ontology_integration.py:140: in test_mechanical_to_electrical_mapping
+    result = mapper.map_ontologies(
+rese\phase2\ontology_mapper.py:217: in map_ontologies
+    source_graph, source_concepts = self._preprocess_domain(source_domain)
+rese\phase2\ontology_mapper.py:300: in _preprocess_domain
+    graph = domain.fdg.to_networkx()
+E   TypeError: TestRealWorldMappings.mechanical_domain.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+---------------------------- Captured stderr call -----------------------------
+2026-01-01 01:34:53,476 - phase2.ontology_mapper - INFO - Lexical matcher initialized\n2026-01-01 01:34:53,476 - phase2.ontology_mapper - INFO - Semantic matcher initialized\n2026-01-01 01:34:53,476 - phase2.ontology_mapper - INFO - Graph embedder initialized\n2026-01-01 01:34:53,477 - phase2.ontology_components.kg_validator - INFO - WordNet initialized\n2026-01-01 01:34:53,477 - phase2.ontology_mapper - INFO - KG validator initialized\n2026-01-01 01:34:53,478 - phase2.ontology_mapper - INFO - Cache initialized at rese\\phase2\\ontology_cache\n2026-01-01 01:34:53,478 - phase2.ontology_mapper - INFO - Ontology Mapper initialized\n2026-01-01 01:34:53,478 - phase2.ontology_mapper - INFO - Mapping Mechanical System \u2192 Electrical Circuits
+------------------------------ Captured log call ------------------------------
+INFO     phase2.ontology_mapper:ontology_mapper.py:125 Lexical matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:135 Semantic matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:148 Graph embedder initialized\nINFO     phase2.ontology_components.kg_validator:kg_validator.py:73 WordNet initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:159 KG validator initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:176 Cache initialized at rese\\phase2\\ontology_cache\nINFO     phase2.ontology_mapper:ontology_mapper.py:115 Ontology Mapper initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:210 Mapping Mechanical System \u2192 Electrical Circuits
+________________ TestRealWorldMappings.test_symmetric_mapping _________________
+rese\tests\test_ontology_mapper\test_ontology_integration.py:162: in test_symmetric_mapping
+    forward = mapper.map_ontologies(
+rese\phase2\ontology_mapper.py:217: in map_ontologies
+    source_graph, source_concepts = self._preprocess_domain(source_domain)
+rese\phase2\ontology_mapper.py:300: in _preprocess_domain
+    graph = domain.fdg.to_networkx()
+E   TypeError: TestRealWorldMappings.fluid_dynamics_domain.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+---------------------------- Captured stderr call -----------------------------
+2026-01-01 01:34:53,553 - phase2.ontology_mapper - INFO - Lexical matcher initialized\n2026-01-01 01:34:53,553 - phase2.ontology_mapper - INFO - Semantic matcher initialized\n2026-01-01 01:34:53,553 - phase2.ontology_mapper - INFO - Graph embedder initialized\n2026-01-01 01:34:53,553 - phase2.ontology_components.kg_validator - INFO - WordNet initialized\n2026-01-01 01:34:53,554 - phase2.ontology_mapper - INFO - KG validator initialized\n2026-01-01 01:34:53,554 - phase2.ontology_mapper - INFO - Cache initialized at rese\\phase2\\ontology_cache\n2026-01-01 01:34:53,555 - phase2.ontology_mapper - INFO - Ontology Mapper initialized\n2026-01-01 01:34:53,555 - phase2.ontology_mapper - INFO - Mapping Fluid Dynamics \u2192 Electrical Circuits
+------------------------------ Captured log call ------------------------------
+INFO     phase2.ontology_mapper:ontology_mapper.py:125 Lexical matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:135 Semantic matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:148 Graph embedder initialized\nINFO     phase2.ontology_components.kg_validator:kg_validator.py:73 WordNet initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:159 KG validator initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:176 Cache initialized at rese\\phase2\\ontology_cache\nINFO     phase2.ontology_mapper:ontology_mapper.py:115 Ontology Mapper initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:210 Mapping Fluid Dynamics \u2192 Electrical Circuits
+_______________ TestRealWorldMappings.test_mapping_consistency ________________
+rese\tests\test_ontology_mapper\test_ontology_integration.py:189: in test_mapping_consistency
+    result1 = mapper.map_ontologies(
+rese\phase2\ontology_mapper.py:217: in map_ontologies
+    source_graph, source_concepts = self._preprocess_domain(source_domain)
+rese\phase2\ontology_mapper.py:300: in _preprocess_domain
+    graph = domain.fdg.to_networkx()
+E   TypeError: TestRealWorldMappings.fluid_dynamics_domain.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+---------------------------- Captured stderr call -----------------------------
+2026-01-01 01:34:53,632 - phase2.ontology_mapper - INFO - Lexical matcher initialized\n2026-01-01 01:34:53,632 - phase2.ontology_mapper - INFO - Semantic matcher initialized\n2026-01-01 01:34:53,632 - phase2.ontology_mapper - INFO - Graph embedder initialized\n2026-01-01 01:34:53,632 - phase2.ontology_components.kg_validator - INFO - WordNet initialized\n2026-01-01 01:34:53,633 - phase2.ontology_mapper - INFO - KG validator initialized\n2026-01-01 01:34:53,634 - phase2.ontology_mapper - INFO - Cache initialized at rese\\phase2\\ontology_cache\n2026-01-01 01:34:53,634 - phase2.ontology_mapper - INFO - Ontology Mapper initialized\n2026-01-01 01:34:53,634 - phase2.ontology_mapper - INFO - Mapping Fluid Dynamics \u2192 Electrical Circuits
+------------------------------ Captured log call ------------------------------
+INFO     phase2.ontology_mapper:ontology_mapper.py:125 Lexical matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:135 Semantic matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:148 Graph embedder initialized\nINFO     phase2.ontology_components.kg_validator:kg_validator.py:73 WordNet initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:159 KG validator initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:176 Cache initialized at rese\\phase2\\ontology_cache\nINFO     phase2.ontology_mapper:ontology_mapper.py:115 Ontology Mapper initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:210 Mapping Fluid Dynamics \u2192 Electrical Circuits
+____________________ TestPerformance.test_mapping_latency _____________________
+rese\tests\test_ontology_mapper\test_ontology_integration.py:248: in test_mapping_latency
+    result = mapper.map_ontologies(
+rese\phase2\ontology_mapper.py:217: in map_ontologies
+    source_graph, source_concepts = self._preprocess_domain(source_domain)
+rese\phase2\ontology_mapper.py:300: in _preprocess_domain
+    graph = domain.fdg.to_networkx()
+E   TypeError: TestPerformance.test_mapping_latency.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+---------------------------- Captured stderr call -----------------------------
+2026-01-01 01:34:53,710 - phase2.ontology_mapper - INFO - Lexical matcher initialized\n2026-01-01 01:34:53,710 - phase2.ontology_mapper - INFO - Semantic matcher initialized\n2026-01-01 01:34:53,710 - phase2.ontology_mapper - INFO - Graph embedder initialized\n2026-01-01 01:34:53,711 - phase2.ontology_components.kg_validator - INFO - WordNet initialized\n2026-01-01 01:34:53,711 - phase2.ontology_mapper - INFO - KG validator initialized\n2026-01-01 01:34:53,712 - phase2.ontology_mapper - INFO - Cache initialized at rese\\phase2\\ontology_cache\n2026-01-01 01:34:53,712 - phase2.ontology_mapper - INFO - Ontology Mapper initialized\n2026-01-01 01:34:53,712 - phase2.ontology_mapper - INFO - Mapping Test Domain 1 \u2192 Test Domain 2
+------------------------------ Captured log call ------------------------------
+INFO     phase2.ontology_mapper:ontology_mapper.py:125 Lexical matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:135 Semantic matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:148 Graph embedder initialized\nINFO     phase2.ontology_components.kg_validator:kg_validator.py:73 WordNet initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:159 KG validator initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:176 Cache initialized at rese\\phase2\\ontology_cache\nINFO     phase2.ontology_mapper:ontology_mapper.py:115 Ontology Mapper initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:210 Mapping Test Domain 1 \u2192 Test Domain 2
+__________________ TestPerformance.test_large_domain_mapping __________________
+rese\tests\test_ontology_mapper\test_ontology_integration.py:294: in test_large_domain_mapping
+    result = mapper.map_ontologies(
+rese\phase2\ontology_mapper.py:217: in map_ontologies
+    source_graph, source_concepts = self._preprocess_domain(source_domain)
+rese\phase2\ontology_mapper.py:300: in _preprocess_domain
+    graph = domain.fdg.to_networkx()
+E   TypeError: TestPerformance.test_large_domain_mapping.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+---------------------------- Captured stderr call -----------------------------
+2026-01-01 01:34:53,787 - phase2.ontology_mapper - INFO - Lexical matcher initialized\n2026-01-01 01:34:53,788 - phase2.ontology_mapper - INFO - Semantic matcher initialized\n2026-01-01 01:34:53,788 - phase2.ontology_mapper - INFO - Graph embedder initialized\n2026-01-01 01:34:53,788 - phase2.ontology_components.kg_validator - INFO - WordNet initialized\n2026-01-01 01:34:53,789 - phase2.ontology_mapper - INFO - KG validator initialized\n2026-01-01 01:34:53,789 - phase2.ontology_mapper - INFO - Cache initialized at rese\\phase2\\ontology_cache\n2026-01-01 01:34:53,789 - phase2.ontology_mapper - INFO - Ontology Mapper initialized\n2026-01-01 01:34:53,790 - phase2.ontology_mapper - INFO - Mapping Large Domain 1 \u2192 Large Domain 2
+------------------------------ Captured log call ------------------------------
+INFO     phase2.ontology_mapper:ontology_mapper.py:125 Lexical matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:135 Semantic matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:148 Graph embedder initialized\nINFO     phase2.ontology_components.kg_validator:kg_validator.py:73 WordNet initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:159 KG validator initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:176 Cache initialized at rese\\phase2\\ontology_cache\nINFO     phase2.ontology_mapper:ontology_mapper.py:115 Ontology Mapper initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:210 Mapping Large Domain 1 \u2192 Large Domain 2
+_________ TestI_mechIntegration.test_realtime_mapping_for_isomorphism _________
+rese\tests\test_ontology_mapper\test_ontology_integration.py:323: in test_realtime_mapping_for_isomorphism
+    fdg1.add_path(['a', 'b', 'c', 'd'])
+E   AttributeError: 'DiGraph' object has no attribute 'add_path'
+___________ TestI_mechIntegration.test_similarity_scoring_for_imech ___________
+rese\tests\test_ontology_mapper\test_ontology_integration.py:358: in test_similarity_scoring_for_imech
+    result = mapper.map_ontologies(
+rese\phase2\ontology_mapper.py:217: in map_ontologies
+    source_graph, source_concepts = self._preprocess_domain(source_domain)
+rese\phase2\ontology_mapper.py:300: in _preprocess_domain
+    graph = domain.fdg.to_networkx()
+E   TypeError: TestI_mechIntegration.test_similarity_scoring_for_imech.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+---------------------------- Captured stderr call -----------------------------
+2026-01-01 01:34:53,893 - phase2.ontology_mapper - INFO - Lexical matcher initialized\n2026-01-01 01:34:53,894 - phase2.ontology_mapper - INFO - Semantic matcher initialized\n2026-01-01 01:34:53,894 - phase2.ontology_mapper - INFO - Graph embedder initialized\n2026-01-01 01:34:53,894 - phase2.ontology_components.kg_validator - INFO - WordNet initialized\n2026-01-01 01:34:53,894 - phase2.ontology_mapper - INFO - KG validator initialized\n2026-01-01 01:34:53,895 - phase2.ontology_mapper - INFO - Cache initialized at rese\\phase2\\ontology_cache\n2026-01-01 01:34:53,895 - phase2.ontology_mapper - INFO - Ontology Mapper initialized\n2026-01-01 01:34:53,896 - phase2.ontology_mapper - INFO - Mapping D1 \u2192 D2
+------------------------------ Captured log call ------------------------------
+INFO     phase2.ontology_mapper:ontology_mapper.py:125 Lexical matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:135 Semantic matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:148 Graph embedder initialized\nINFO     phase2.ontology_components.kg_validator:kg_validator.py:73 WordNet initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:159 KG validator initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:176 Cache initialized at rese\\phase2\\ontology_cache\nINFO     phase2.ontology_mapper:ontology_mapper.py:115 Ontology Mapper initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:210 Mapping D1 \u2192 D2
+___________________ TestEdgeCases.test_single_node_domains ____________________
+rese\tests\test_ontology_mapper\test_ontology_integration.py:399: in test_single_node_domains
+    result = mapper.map_ontologies(
+rese\phase2\ontology_mapper.py:217: in map_ontologies
+    source_graph, source_concepts = self._preprocess_domain(source_domain)
+rese\phase2\ontology_mapper.py:300: in _preprocess_domain
+    graph = domain.fdg.to_networkx()
+E   TypeError: TestEdgeCases.test_single_node_domains.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+---------------------------- Captured stderr call -----------------------------
+2026-01-01 01:34:54,004 - phase2.ontology_mapper - INFO - Lexical matcher initialized\n2026-01-01 01:34:54,004 - phase2.ontology_mapper - INFO - Semantic matcher initialized\n2026-01-01 01:34:54,004 - phase2.ontology_mapper - INFO - Graph embedder initialized\n2026-01-01 01:34:54,005 - phase2.ontology_components.kg_validator - INFO - WordNet initialized\n2026-01-01 01:34:54,005 - phase2.ontology_mapper - INFO - KG validator initialized\n2026-01-01 01:34:54,006 - phase2.ontology_mapper - INFO - Cache initialized at rese\\phase2\\ontology_cache\n2026-01-01 01:34:54,006 - phase2.ontology_mapper - INFO - Ontology Mapper initialized\n2026-01-01 01:34:54,006 - phase2.ontology_mapper - INFO - Mapping Single 1 \u2192 Single 2
+------------------------------ Captured log call ------------------------------
+INFO     phase2.ontology_mapper:ontology_mapper.py:125 Lexical matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:135 Semantic matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:148 Graph embedder initialized\nINFO     phase2.ontology_components.kg_validator:kg_validator.py:73 WordNet initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:159 KG validator initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:176 Cache initialized at rese\\phase2\\ontology_cache\nINFO     phase2.ontology_mapper:ontology_mapper.py:115 Ontology Mapper initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:210 Mapping Single 1 \u2192 Single 2
+____________________ TestGraphEmbedder.test_fit_transform _____________________
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py:166: in test_fit_transform
+    assert len(emb) == 32  # Correct dimension
+E   assert 4 == 32
+E    +  where 4 = len(array([-3.75801749,  1.69780647,  4.42477421,  3.58033176]))
+---------------------------- Captured stdout call -----------------------------
+WARNING: gensim not installed
+Install with: pip install gensim
+___________________ TestKGValidator.test_fallback_validator ___________________
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py:221: in test_fallback_validator
+    assert score2 is not None
+E   assert None is not None
+__________________ TestKGValidator.test_is_synonym_fallback ___________________
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py:228: in test_is_synonym_fallback
+    result = validator.is_synonym("velocity", "velocity_x")
+E   AttributeError: 'FallbackKGValidator' object has no attribute 'is_synonym'
+_____________________ TestIntegration.test_full_pipeline ______________________
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py:392: in test_full_pipeline
+    result = mapper.map_ontologies(
+rese\phase2\ontology_mapper.py:217: in map_ontologies
+    source_graph, source_concepts = self._preprocess_domain(source_domain)
+rese\phase2\ontology_mapper.py:300: in _preprocess_domain
+    graph = domain.fdg.to_networkx()
+E   TypeError: TestIntegration.test_full_pipeline.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+---------------------------- Captured stderr call -----------------------------
+2026-01-01 01:34:54,347 - phase2.ontology_mapper - INFO - Lexical matcher initialized\n2026-01-01 01:34:54,348 - phase2.ontology_mapper - INFO - Semantic matcher initialized\n2026-01-01 01:34:54,348 - phase2.ontology_mapper - INFO - Graph embedder initialized\n2026-01-01 01:34:54,348 - phase2.ontology_components.kg_validator - INFO - WordNet initialized\n2026-01-01 01:34:54,348 - phase2.ontology_mapper - INFO - KG validator initialized\n2026-01-01 01:34:54,349 - phase2.ontology_mapper - INFO - Cache initialized at rese\\phase2\\ontology_cache\n2026-01-01 01:34:54,349 - phase2.ontology_mapper - INFO - Ontology Mapper initialized\n2026-01-01 01:34:54,350 - phase2.ontology_mapper - INFO - Mapping Mechanical System \u2192 Electrical Circuit
+------------------------------ Captured log call ------------------------------
+INFO     phase2.ontology_mapper:ontology_mapper.py:125 Lexical matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:135 Semantic matcher initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:148 Graph embedder initialized\nINFO     phase2.ontology_components.kg_validator:kg_validator.py:73 WordNet initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:159 KG validator initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:176 Cache initialized at rese\\phase2\\ontology_cache\nINFO     phase2.ontology_mapper:ontology_mapper.py:115 Ontology Mapper initialized\nINFO     phase2.ontology_mapper:ontology_mapper.py:210 Mapping Mechanical System \u2192 Electrical Circuit
+___________ TestImechValidation.test_imech_transfer_rate_threshold ____________
+rese\tests\test_validation\test_key_innovations.py:138: in test_imech_transfer_rate_threshold
+    assert transfer_rate >= 0.80, f"I_mech transfer {transfer_rate:.2%} below threshold 80%"
+E   AssertionError: I_mech transfer 60.00% below threshold 80%
+E   assert 0.6 >= 0.8
+---------------------------- Captured stdout call -----------------------------
+
+=== I_mech Transfer Rate Validation ===
+Source constraints: 20
+Successful transfers: 12
+Transfer rate: 60.00%
+Threshold: 80%
+Status: FAILED
+_____________ TestGamma1Validation.test_gamma1_pareto_optimality ______________
+rese\tests\test_validation\test_key_innovations.py:240: in test_gamma1_pareto_optimality
+    assert optimality_rate >= 0.90, \
+E   AssertionError: Pareto optimality rate 68.00% should be >= 90%
+E   assert 0.6799999999999999 >= 0.9
+---------------------------- Captured stdout call -----------------------------
+\n=== \u0393\u2081 Pareto Optimality ===\nTotal points: 50\nDominated points: 16\nOptimality rate: 68.00%
+__________________ TestDitoValidation.test_dito_scalability ___________________
+rese\tests\test_validation\test_key_innovations.py:430: in test_dito_scalability
+    assert results[-1]["speedup"] > results[0]["speedup"], \
+E   AssertionError: Speedup should scale with constraint count
+E   assert 1000.0 > 1000.0
+---------------------------- Captured stdout call -----------------------------
+
+=== DITO Scalability Analysis ===
+Constraints:  100, Speedup:     1000x
+Constraints:  500, Speedup:     1000x
+Constraints: 1000, Speedup:     1000x
+============================== warnings summary ===============================
+rese\phase3\statistical_validator.py:40
+  C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\phase3\statistical_validator.py:40: PytestCollectionWarning: cannot collect test class 'TestType' because it has a __init__ constructor (from: tests/test_phase3/test_statistical_validator.py)
+    class TestType(Enum):
+
+rese\tests\test_utils.py:521
+  C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\tests\test_utils.py:521: PytestCollectionWarning: cannot collect test class 'TestDataManager' because it has a __init__ constructor (from: tests/test_utils.py)
+    class TestDataManager:
+
+tests/test_core/test_logic_to_loss_translation.py::TestLossViolationDetection::test_get_violations_with_numpy
+tests/test_core/test_logic_to_loss_translation.py::TestLossViolationDetection::test_multiple_constraint_violations
+tests/test_core/test_logic_to_loss_translation.py::TestLossViolationDetection::test_no_violation
+tests/test_core/test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_description
+tests/test_core/test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_detected
+tests/test_core/test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_loss_value
+tests/test_core/test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_type
+  C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\core\logic_to_loss_translation.py:603: RuntimeWarning: invalid value encountered in log
+    barrier_values = -np.log(1.0 - violations / (threshold + epsilon) + epsilon)
+
+tests/test_phase3/test_stage3_integration.py: 15 warnings
+  C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\numpy\_core\_methods.py:222: RuntimeWarning: Degrees of freedom <= 0 for slice
+    ret = _var(a, axis=axis, dtype=dtype, out=out, ddof=ddof,
+
+tests/test_phase3/test_stage3_integration.py: 15 warnings
+  C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\numpy\_core\_methods.py:214: RuntimeWarning: invalid value encountered in scalar divide
+    ret = ret.dtype.type(ret / rcount)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.11.0-final-0 _______________
+
+Name                                                            Stmts   Miss  Cover   Missing
+---------------------------------------------------------------------------------------------
+rese\PERFORMANCE_VALIDATION.py                                    314    314     0%   11-595
+rese\__init__.py                                                    1      0   100%
+rese\api.py                                                       226    226     0%   14-676
+rese\benchmarks\__init__.py                                         2      2     0%   11-13
+rese\benchmarks\benchmark_dito.py                                 217    217     0%   11-412
+rese\config.py                                                    248    248     0%   11-567
+rese\core\__init__.py                                              10      0   100%
+rese\core\constraint_lean4_bridge.py                              189     75    60%   228, 302-339, 396-399, 415-439, 478-543
+rese\core\constraint_lltl_handoff.py                              233     73    69%   273, 305-325, 385, 411, 487, 616-714
+rese\core\constraint_optimizer.py                                 273    118    57%   23-28, 94, 109, 126, 133-139, 155, 177, 196-203, 303-304, 311-312, 317-320, 325-330, 348-364, 389-392, 444, 468-509, 584-585, 594-687
+rese\core\constraint_stage1_integration.py                        167     40    76%   40, 256, 259-262, 449-510
+rese\core\dito_graphs.py                                          433    127    71%   118, 139, 146-148, 157, 168, 191, 206, 209-213, 225, 233, 240-242, 253, 353, 369, 382-391, 481, 498, 526, 534-561, 566-575, 579-601, 609-623, 627-636, 682, 693, 717, 747, 805, 833-917
+rese\core\dito_optimizer.py                                       504     86    83%   95, 144, 218, 262-279, 284-285, 298-303, 308, 316, 325-332, 438, 484, 681-702, 715, 737, 773, 783, 876, 921, 931-947, 992-1053
+rese\core\logic_to_loss_translation.py                            462    170    63%   41-43, 224, 243-247, 313-314, 320-322, 363, 379-381, 456, 485, 516-522, 549-562, 623-642, 652-667, 680-692, 709-712, 722, 733-752, 761-778, 787-802, 820, 833, 877, 885-889, 899, 915-918, 947, 1042-1134
+rese\core\stage5_integration.py                                   244     92    62%   41-42, 239-242, 291-296, 311-313, 321-323, 348, 353-367, 380-392, 409-415, 558, 564, 605-710
+rese\core\symbolic_constraint_engine.py                           182     64    65%   270, 300-301, 331-349, 379-463
+rese\core\test_rese_core.py                                       246    246     0%   11-578
+rese\e2e_invention_validation.py                                  334    334     0%   12-721
+rese\fix_imports.py                                                33     33     0%   6-64
+rese\fix_source_imports.py                                         28     28     0%   6-49
+rese\gamma1\__init__.py                                             7      0   100%
+rese\gamma1\core\__init__.py                                        6      0   100%
+rese\gamma1\core\aci_calculator.py                                154     60    61%   88, 221, 233, 243-245, 266, 274, 298, 326, 335, 375-446
+rese\gamma1\core\coherence_engine.py                              251    142    43%   119-120, 125-126, 137, 146, 186-188, 211, 216, 279-281, 322-382, 407-465, 481-521, 525-565
+rese\gamma1\core\csp_models.py                                    164     28    83%   42, 71, 80, 145, 161, 172, 180, 186, 196, 211, 384-410
+rese\gamma1\core\entropy_engine.py                                223    120    46%   119, 165, 175-178, 208, 217, 224-225, 237-238, 277, 290-292, 311-315, 334-359, 377-417, 435-460, 473-480, 484-525
+rese\gamma1\core\solvability_engine.py                            190     44    77%   128, 137, 179, 194, 225, 275, 281-282, 291, 324-326, 346, 365-408
+rese\gamma1\signal\__init__.py                                      4      0   100%
+rese\gamma1\signal\signal_extractor.py                            121     49    60%   140, 171, 202, 212-214, 239-304
+rese\gamma1\signal\threshold_learner.py                            56     49    12%   38-60, 79-85, 89-131
+rese\gamma1\signal\validator.py                                    62     53    15%   28-30, 51-99, 108-131, 135-156
+rese\gamma1\test_gamma1_complete.py                               270    270     0%   11-441
+rese\integrations\__init__.py                                      13      0   100%
+rese\integrations\stage1.py                                       174     29    83%   94, 232-234, 282-285, 297-300, 339-341, 364-367, 466-467, 520, 548-555, 578-585
+rese\integrations\stage2.py                                       198     61    69%   102, 250, 258-263, 272-274, 319-320, 363, 395-408, 430-446, 465-493, 512-534, 558-562, 581-591, 608-615, 638-640
+rese\integrations\stage3.py                                       176     56    68%   38-42, 47-49, 54-57, 115, 237-243, 247-249, 295, 324, 375-413, 429-439, 483-498, 517-524, 549-558
+rese\integrations\stage5.py                                       199     38    81%   34-39, 45-48, 116, 249-251, 288-298, 411-412, 435, 439-442, 447, 469, 485, 522, 541-548
+rese\integrations\stage6.py                                       177     30    83%   35-47, 52-53, 87, 126, 198-200, 257-259, 392-399, 515-522
+rese\integrations\stage7.py                                       193     26    87%   34, 117, 186, 259-261, 324, 328, 355-356, 368-370, 403-404, 406-407, 453, 468, 478, 505-512
+rese\integrations\stage8.py                                       172     16    91%   101, 238-240, 259, 297, 377, 384-385, 420, 437-444
+rese\integrations\stage9.py                                       212     45    79%   37, 109, 181, 184, 187, 253-255, 274, 305, 312-316, 335-340, 348-356, 368, 384, 404, 421, 423, 425, 470, 488, 490-491, 501-503, 513-520
+rese\integrations\test_e2e_pipeline.py                            223    223     0%   12-577
+rese\integrations\validate_integrations.py                         80     80     0%   7-102
+rese\monitoring.py                                                275    275     0%   15-825
+rese\performance\__init__.py                                       12     12     0%   10-50
+rese\performance\benchmarks.py                                    213    213     0%   9-512
+rese\performance\cache_manager.py                                 157    157     0%   9-322
+rese\performance\dito_optimizer.py                                 27     27     0%   9-64
+rese\performance\gamma1_optimizer.py                               28     28     0%   11-82
+rese\performance\imech_optimizer.py                                37     37     0%   11-104
+rese\performance\mcts_optimizer.py                                 41     41     0%   11-143
+rese\performance\optimizer.py                                       8      8     0%   10-18
+rese\performance\phi15_optimizer.py                                29     29     0%   11-74
+rese\performance\sce_optimizer.py                                 121    121     0%   11-267
+rese\phase1\__init__.py                                             2      0   100%
+rese\phase1\cognitive_biases.py                                   588    128    78%   76, 78, 86, 244, 332, 397-398, 401-402, 406, 476, 525, 561, 631-636, 691-692, 703, 707, 815-816, 819-820, 824, 826, 830-839, 879-880, 884, 886, 888, 892-901, 936, 953-954, 957-958, 962, 964, 968-977, 1041-1044, 1094-1096, 1155, 1161, 1181, 1260-1265, 1321, 1331-1462
+rese\phase1\failure_database.py                                   235     23    90%   80-81, 265, 318-325, 411, 435, 554-556, 668-669, 741-752
+rese\phase1\final_validation.py                                    52     52     0%   6-100
+rese\phase1\phi2_integration.py                                   242    204    16%   76-86, 91-122, 128, 140-142, 151-154, 169-184, 199-216, 225-241, 245-256, 275-278, 298-336, 345, 357-380, 396-422, 434-461, 465-477, 496-646
+rese\phase1\phi15_interfaces.py                                   209    209     0%   16-629
+rese\phase1\tacit_assumption_miner.py                             466     64    86%   336, 355, 601-603, 644-651, 738-739, 745, 764, 772-789, 806, 814, 826-835, 893, 895, 897, 901, 1206-1217, 1259, 1281-1307
+rese\phase1\validate_phi15.py                                     147    147     0%   13-484
+rese\phase2\__init__.py                                             2      0   100%
+rese\phase2\imech\__init__.py                                       9      0   100%
+rese\phase2\imech\algorithms\__init__.py                            5      0   100%
+rese\phase2\imech\algorithms\intervention.py                       96     31    68%   44, 55, 119, 125, 159, 173-174, 189-227
+rese\phase2\imech\algorithms\subgraph.py                           63     24    62%   73-74, 111-146
+rese\phase2\imech\algorithms\vf2.py                                37     12    68%   49, 64-67, 104-120
+rese\phase2\imech\algorithms\weisfeiler_lehman.py                  48      2    96%   56, 135
+rese\phase2\imech\core\__init__.py                                  4      0   100%
+rese\phase2\imech\core\causality.py                                69      4    94%   43, 159-160, 190
+rese\phase2\imech\core\domain.py                                   21      0   100%
+rese\phase2\imech\core\fdg.py                                     101      8    92%   137-138, 144-145, 151-152, 174, 187
+rese\phase2\imech\core\fdg_extractor.py                           117     43    63%   64, 88, 104-105, 143-146, 160-173, 227-253, 278-309
+rese\phase2\imech\core\result.py                                   32      6    81%   47, 53-54, 58, 73, 76
+rese\phase2\imech\core\scoring.py                                  56     11    80%   88, 128-134, 146, 174-180
+rese\phase2\imech\isomorphism_validator.py                         90      5    94%   134, 169-175, 292
+rese\phase2\imech\lean4\__init__.py                                 2      0   100%
+rese\phase2\imech\lean4\proof_generator.py                         38     24    37%   41-62, 73, 98, 120, 148, 170-205, 217-235
+rese\phase2\imech\transfer\__init__.py                              4      0   100%
+rese\phase2\imech\transfer\mapper.py                               48      8    83%   87-92, 142, 158-171
+rese\phase2\imech\transfer\repair.py                               45     11    76%   43, 50, 60-66, 82-83, 94, 100
+rese\phase2\imech\transfer\validator.py                            67     13    81%   82-90, 124-125, 163-170
+rese\phase2\ontology_components\__init__.py                         5      0   100%
+rese\phase2\ontology_components\graph_embedder.py                 166     43    74%   138, 192, 224-239, 322, 342, 416-417, 422-423, 439, 462-474, 479-524
+rese\phase2\ontology_components\kg_validator.py                   171    127    26%   58, 67-70, 75-77, 94-113, 130-167, 184-211, 224-237, 254-264, 281-313, 328-335, 352-355, 370-384, 423-424, 434, 439-466
+rese\phase2\ontology_components\lexical_matcher.py                111     18    84%   54, 70, 75, 97, 145, 161, 164, 203, 205, 274-293
+rese\phase2\ontology_components\semantic_matcher.py               140    108    23%   50-67, 79-114, 127-128, 141-147, 164-173, 191-205, 222-235, 244-249, 258-263, 298, 300, 319-342, 347-380
+rese\phase2\ontology_imech_integration.py                         130    130     0%   10-430
+rese\phase2\ontology_mapper.py                                    268     45    83%   360, 397-411, 446-460, 479, 485-507, 548-556, 745-755
+rese\phase2\test_phase2_debug.py                                  179    179     0%   7-269
+rese\phase3\__init__.py                                             2      0   100%
+rese\phase3\aci_analyzer\__init__.py                                2      0   100%
+rese\phase3\aci_analyzer\aci_analyzer.py                          124     82    34%   38, 59, 83-84, 109-120, 139-155, 170-191, 204-214, 223-243, 251-262, 270-288, 292-301, 306-315, 324-332, 351-354, 385-386, 405-406
+rese\phase3\convergence_controller.py                             421    351    17%   32-35, 40-43, 48-50, 117, 123, 128, 135, 141, 145-146, 151-155, 159-206, 210-213, 218-226, 239-272, 287-304, 319-349, 364-398, 413-462, 466-488, 492-498, 510-560, 563-583, 587-659, 665-666, 668-704, 709-713, 717-759, 765-875, 879-936, 938-946, 949-955, 965, 973-990, 999-1094
+rese\phase3\mcts_search.py                                        367    211    43%   31-34, 39-40, 105, 116, 143, 146, 149, 156-161, 164, 167, 170-186, 195, 199-200, 208-210, 232, 239, 245, 251-256, 261, 269-271, 275-282, 284-291, 293, 295-328, 333, 336, 339-342, 347-350, 353, 360-368, 377-384, 387-390, 401-416, 418-425, 436-440, 443-449, 457-460, 464, 477-492, 497-506, 510-512, 521-528, 530-532, 536-569, 578-591, 596-612, 614, 634, 638-640, 664-666, 668, 672, 704, 708, 715-716, 761-762, 776, 782-880
+rese\phase3\stage3_integration.py                                 230     54    77%   31-35, 41-44, 48-49, 192, 232, 242-248, 327, 349, 388, 444, 538-587
+rese\phase3\statistical_validator.py                              350     88    75%   26-29, 104-105, 146, 274-278, 336, 388-425, 451, 470, 556, 659-668, 737, 749-754, 799-868
+rese\phase4\__init__.py                                             2      0   100%
+rese\phase4\aci_reduction_validator.py                            271    262     3%   30-698
+rese\phase4\architecture_assembler.py                             404     77    81%   31-34, 39-42, 507-546, 565, 648, 678-679, 681, 714, 780, 842, 871, 942-943, 952-998
+rese\phase4\assembly_validator.py                                 215     66    69%   25-31, 229, 247, 267, 277, 296, 310, 353-360, 365, 382, 393, 438, 442, 446, 450, 477-482, 486-491, 505, 547, 552-585, 599-601, 610-638
+rese\phase4\demo_predictive_model_generator.py                    152    152     0%   11-369
+rese\phase4\independence_checker.py                               161    157     2%   34-458
+rese\phase4\phase_transition.py                                    65     65     0%   16-281
+rese\phase4\predictive_model_generator.py                         431    127    71%   29-30, 38-39, 283-284, 323, 412, 421-432, 436-445, 449-461, 465-478, 482-490, 500-562, 575, 587, 609, 651-654, 739, 757, 778-779, 789, 794-801, 814-818, 822, 832, 842-857, 874-877, 902-903, 918, 968
+rese\phase4\stage8_integration.py                                 205    205     0%   15-646
+rese\phase4\statistical_tests.py                                  123    103    16%   54, 75-88, 108-125, 152-169, 193-225, 248-274, 299-305, 318-325, 338-345, 368-371, 390-393, 407-408, 422-437
+rese\phase4\tests\__init__.py                                       0      0   100%
+rese\phase4\tests\test_aci_reduction_validator.py                 211    211     0%   11-812
+rese\phase4\tests\test_architecture_assembler.py                  295    295     0%   11-870
+rese\phase4\tests\test_predictive_model_generator.py              238    238     0%   11-669
+rese\phase4\types.py                                               28      3    89%   36-37, 65
+rese\quickstart.py                                                161    161     0%   11-302
+rese\rese_pipeline.py                                             302    302     0%   14-813
+rese\security\__init__.py                                          58     58     0%   41-301
+rese\security\error_handler.py                                    277    277     0%   10-723
+rese\security\input_validator.py                                  224    224     0%   10-741
+rese\security\integration.py                                       77     77     0%   10-360
+rese\security\resource_limiter.py                                 266    266     0%   10-751
+rese\security\security_audit.py                                   216    216     0%   10-720
+rese\security\security_tests.py                                   277    277     0%   15-676
+rese\tests\conftest.py                                            251    155    38%   47, 53-55, 61-63, 69-71, 81-82, 88-143, 153-155, 173-191, 197-198, 208-224, 230-239, 245-254, 260-266, 276-286, 292-293, 303-315, 321-322, 332-333, 339-352, 358-359, 369-394, 400-432, 442, 457-478, 488-493, 504, 532-544, 550-576, 604-650, 670
+rese\tests\gamma1\test_aci_complete.py                            597     26    96%   930-961, 965-966
+rese\tests\phase1\test_cognitive_biases.py                        159      2    99%   477, 500
+rese\tests\phase1\test_failure_database.py                        303      1    99%   824
+rese\tests\phase1\test_tacit_assumption_miner.py                  315      5    98%   836-837, 856-857, 997
+rese\tests\phase2\test_ontology_mapper.py                         230      2    99%   307, 456
+rese\tests\test_core\test_constraint_lean4_bridge.py              155      1    99%   395
+rese\tests\test_core\test_constraint_lltl_handoff.py              175      1    99%   476
+rese\tests\test_core\test_constraint_optimizer.py                 124      1    99%   366
+rese\tests\test_core\test_constraint_stage1_integration.py        147      1    99%   347
+rese\tests\test_core\test_dito_optimizer.py                       844      1    99%   1787
+rese\tests\test_core\test_logic_to_loss_translation.py            715     31    96%   31-33, 106, 860, 921, 1010, 1020, 1082, 1483, 1535, 1946-1994, 1998-1999
+rese\tests\test_core\test_sce_edge_cases.py                       159      0   100%
+rese\tests\test_core\test_sce_performance.py                      270     24    91%   464, 668-705, 710-714
+rese\tests\test_core\test_symbolic_constraint_engine.py           391      1    99%   1243
+rese\tests\test_imech\__init__.py                                   5      0   100%
+rese\tests\test_imech\test_algorithms.py                          184      0   100%
+rese\tests\test_imech\test_fdg.py                                 143      0   100%
+rese\tests\test_imech\test_integration.py                         103      6    94%   59-60, 93-98
+rese\tests\test_imech\test_isomorphism_validator.py               270      9    97%   169-170, 234-235, 245-246, 351-353, 522
+rese\tests\test_imech\test_transfer.py                            100      0   100%
+rese\tests\test_imech\test_validation.py                           84      0   100%
+rese\tests\test_imech\test_validator.py                            83      0   100%
+rese\tests\test_integration\test_all_stage_integrations.py        273     47    83%   32-34, 39-41, 46-48, 53-55, 60-62, 67-69, 74-76, 81-83, 170, 576-615, 673, 698
+rese\tests\test_integration\test_phase1_integration.py            201     24    88%   92-113, 131-137, 141-154, 166-167, 618
+rese\tests\test_ontology_mapper\test_ontology_integration.py      152     35    77%   122-131, 146-151, 169-178, 196-204, 253-257, 301, 325-341, 365-367, 406, 421
+rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py     194     16    92%   105-109, 117-119, 127-129, 230, 399-401, 406
+rese\tests\test_performance\test_load_testing.py                  254    213    16%   53-58, 63-86, 90-104, 108-127, 131-153, 166-188, 192-211, 215-244, 249-281, 294-295, 299-358, 362-400, 404-445, 449-499, 512-530, 535-552, 565-598, 602
+rese\tests\test_phase3\test_mcts_search.py                        192      7    96%   53, 59, 86, 95-97, 498
+rese\tests\test_phase3\test_stage3_integration.py                 167      7    96%   47, 76, 85-87, 353, 533
+rese\tests\test_phase3\test_statistical_validator.py              243      1    99%   631
+rese\tests\test_phase4\test_architecture_assembler.py             262      2    99%   571, 614
+rese\tests\test_phase4\test_integration_assembly.py               211      1    99%   519
+rese\tests\test_phase4\test_predictive_model_generator.py         194      6    97%   356-357, 360-363, 465
+rese\tests\test_phase4\test_predictive_model_integration.py       104      1    99%   400
+rese\tests\test_phi15.py                                          225     22    90%   89, 331-352, 356-364, 538-539, 582-587, 618
+rese\tests\test_utils.py                                          267    153    43%   59, 65-72, 77-86, 110-139, 155-208, 224-252, 268-281, 294-296, 301-310, 315-328, 338, 349-351, 362-375, 390, 392, 401, 403, 412, 424, 437, 444, 477-480, 525-526, 530-544, 548-567, 578-579, 590-598, 602-604, 608-612, 620-641
+rese\tests\test_validation\test_key_innovations.py                239      2    99%   467, 542
+---------------------------------------------------------------------------------------------
+TOTAL                                                           27824  11948    57%
+Coverage HTML written to dir htmlcov
+- Generated html report: file:///C:/Users/mmeadow/Documents/OpenEvolve/Frontend/test_reports.html -
+=========================== short test summary info ===========================
+FAILED rese\tests\phase1\test_tacit_assumption_miner.py::TestPhi15Engine::test_save_and_load_state - TypeError: ParadigmShiftRecommendation.__init__() missing 2 required positional arguments: 'primary_assumptions' and 'suggested_alternatives'
+FAILED rese\tests\test_core\test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_detected - AssertionError: False is not true
+FAILED rese\tests\test_core\test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_severity - AssertionError: 0.0 not greater than 0.0
+FAILED rese\tests\test_core\test_logic_to_loss_translation.py::TestLossViolationDetection::test_violation_with_pytorch_tensor - AssertionError: False is not true
+FAILED rese\tests\test_integration\test_all_stage_integrations.py::TestStage2Integration::test_domain_analysis - AssertionError: assert <MappingStatus.COMPLETED: 'completed'> in [<MappingStatus.VALIDATED: 'validated'>, <MappingStatus.ISOMORPHISM_CHECKED: 'isomorphism_checked'>, <MappingStatus.FAILED: 'failed'>]
+ +  where <MappingStatus.COMPLETED: 'completed'> = IsomorphicMappingResult(status=<MappingStatus.COMPLETED: 'completed'>, domain_pair=DomainPair(source_domain=Domain(id='source', name='Source Domain', constraints=0), target_domain=Domain(id='target', name='Target Domain', constraints=0), metadata={}), ontology_mappings=[OntologyMapping(source_concept='x', target_concept='x', similarity_score=1.0, mapping_type=None, confidence=1.0, rationale='Lexical similarity: 1.00')], inversion_results=[], isomorphism_score=0.0, transfer_confidence=0.05, suggested_transfers=[], validation_results=None, analysis_time=0.001003, metadata={}, errors=[]).status
+FAILED rese\tests\test_integration\test_all_stage_integrations.py::TestEndToEndPipeline::test_full_pipeline_execution - AssertionError: assert <MappingStatus.COMPLETED: 'completed'> in [<MappingStatus.VALIDATED: 'validated'>, <MappingStatus.ISOMORPHISM_CHECKED: 'isomorphism_checked'>, <MappingStatus.ONTOLOGY_MAPPED: 'ontology_mapped'>, <MappingStatus.FAILED: 'failed'>]
+ +  where <MappingStatus.COMPLETED: 'completed'> = IsomorphicMappingResult(status=<MappingStatus.COMPLETED: 'completed'>, domain_pair=DomainPair(source_domain=Domain(id='s1', name='Source', constraints=0), target_domain=Domain(id='t1', name='Target', constraints=0), metadata={}), ontology_mappings=[OntologyMapping(source_concept='x', target_concept='x', similarity_score=1.0, mapping_type='exact', confidence=1.0, rationale='Lexical similarity: 1.00')], inversion_results=[], isomorphism_score=0.0, transfer_confidence=0.05, suggested_transfers=[], validation_results=None, analysis_time=0.0, metadata={}, errors=[]).status
+FAILED rese\tests\test_ontology_mapper\test_ontology_integration.py::TestRealWorldMappings::test_fluid_to_electrical_mapping - TypeError: TestRealWorldMappings.fluid_dynamics_domain.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+FAILED rese\tests\test_ontology_mapper\test_ontology_integration.py::TestRealWorldMappings::test_mechanical_to_electrical_mapping - TypeError: TestRealWorldMappings.mechanical_domain.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+FAILED rese\tests\test_ontology_mapper\test_ontology_integration.py::TestRealWorldMappings::test_symmetric_mapping - TypeError: TestRealWorldMappings.fluid_dynamics_domain.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+FAILED rese\tests\test_ontology_mapper\test_ontology_integration.py::TestRealWorldMappings::test_mapping_consistency - TypeError: TestRealWorldMappings.fluid_dynamics_domain.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+FAILED rese\tests\test_ontology_mapper\test_ontology_integration.py::TestPerformance::test_mapping_latency - TypeError: TestPerformance.test_mapping_latency.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+FAILED rese\tests\test_ontology_mapper\test_ontology_integration.py::TestPerformance::test_large_domain_mapping - TypeError: TestPerformance.test_large_domain_mapping.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+FAILED rese\tests\test_ontology_mapper\test_ontology_integration.py::TestI_mechIntegration::test_realtime_mapping_for_isomorphism - AttributeError: 'DiGraph' object has no attribute 'add_path'
+FAILED rese\tests\test_ontology_mapper\test_ontology_integration.py::TestI_mechIntegration::test_similarity_scoring_for_imech - TypeError: TestI_mechIntegration.test_similarity_scoring_for_imech.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+FAILED rese\tests\test_ontology_mapper\test_ontology_integration.py::TestEdgeCases::test_single_node_domains - TypeError: TestEdgeCases.test_single_node_domains.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+FAILED rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestGraphEmbedder::test_fit_transform - assert 4 == 32
+ +  where 4 = len(array([-3.75801749,  1.69780647,  4.42477421,  3.58033176]))
+FAILED rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestKGValidator::test_fallback_validator - assert None is not None
+FAILED rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestKGValidator::test_is_synonym_fallback - AttributeError: 'FallbackKGValidator' object has no attribute 'is_synonym'
+FAILED rese\tests\test_ontology_mapper\test_ontology_mapper_tests.py::TestIntegration::test_full_pipeline - TypeError: TestIntegration.test_full_pipeline.<locals>.<lambda>() takes 0 positional arguments but 1 was given
+FAILED rese\tests\test_validation\test_key_innovations.py::TestImechValidation::test_imech_transfer_rate_threshold - AssertionError: I_mech transfer 60.00% below threshold 80%
+assert 0.6 >= 0.8
+FAILED rese\tests\test_validation\test_key_innovations.py::TestGamma1Validation::test_gamma1_pareto_optimality - AssertionError: Pareto optimality rate 68.00% should be >= 90%
+assert 0.6799999999999999 >= 0.9
+FAILED rese\tests\test_validation\test_key_innovations.py::TestDitoValidation::test_dito_scalability - AssertionError: Speedup should scale with constraint count
+assert 1000.0 > 1000.0
+ERROR rese\tests\test_integration\test_phase1_integration.py::TestPhi15EndToEnd::test_complete_pipeline_diverse_pattern - AttributeError: INFEASIBLE
+ERROR rese\tests\test_phi15.py::TestAssumptionGenerator::test_generate_assumptions
+= 22 failed, 1010 passed, 17 skipped, 39 warnings, 2 errors in 370.10s (0:06:10) =

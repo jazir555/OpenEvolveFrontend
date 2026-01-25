@@ -1,0 +1,33 @@
+{
+  "problem": {
+    "id": "dot_viz_test",
+    "statement": "Test DOT visualization",
+    "subproblems": [
+      {
+        "id": "child_1",
+        "statement": "Child 1"
+      }
+    ]
+  },
+  "context": {
+    "current_checkpoint_id": "dot_viz_test_0_starting_20260124_073505_905474",
+    "level": 0,
+    "stage": "complete"
+  },
+  "solutions": [
+    {
+      "problem_id": "child_1",
+      "success": true,
+      "score": 0.85,
+      "solution": "Solution for child_1",
+      "timestamp": "2026-01-24T07:35:05.918008"
+    }
+  ],
+  "decomposition_tree": null,
+  "execution_status": {},
+  "metrics": {},
+  "metadata": {
+    "checkpoint_count": 1
+  },
+  "serialized_at": "2026-01-24T07:35:05.918008"
+}

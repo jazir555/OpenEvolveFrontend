@@ -1,0 +1,19 @@
+{
+  "problem": {
+    "id": "resume_test",
+    "statement": "Test resume functionality",
+    "value": 42
+  },
+  "context": {
+    "level": 0,
+    "stage": "starting"
+  },
+  "solutions": {},
+  "decomposition_tree": null,
+  "execution_status": {},
+  "metrics": {},
+  "metadata": {
+    "checkpoint_count": 0
+  },
+  "serialized_at": "2026-01-24T07:33:03.070402"
+}

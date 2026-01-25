@@ -1,0 +1,288 @@
+{
+  "summary": {
+    "total_source_files": 176,
+    "total_test_files": 91,
+    "files_without_tests": 129,
+    "coverage_percentage": 51.7
+  },
+  "prioritized_files": [
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\file-processor-tool.ts",
+      "priority": 343
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\google-drive.ts",
+      "priority": 233
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\json-validator-tool.ts",
+      "priority": 231
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\gmail.ts",
+      "priority": 223
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\notion-bubble.ts",
+      "priority": 220
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\metrics-collector-tool.ts",
+      "priority": 193
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\pdf-generator-tool.ts",
+      "priority": 183
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\log-parser-tool.ts",
+      "priority": 181
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\airtable-bubble.ts",
+      "priority": 159
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\csv-processor-tool.ts",
+      "priority": 156
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\data-transformer-tool.ts",
+      "priority": 147
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\xml-parser-tool.ts",
+      "priority": 142
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\github-bubble.ts",
+      "priority": 132
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\gmail-bubble.ts",
+      "priority": 126
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\hephaestus-bubble.ts",
+      "priority": 125
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\postgresql-bubble.ts",
+      "priority": 123
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\workflow-orchestrator-bubble.ts",
+      "priority": 122
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\ace-tools-bubble.ts",
+      "priority": 121
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\utils\\security-utils.ts",
+      "priority": 121
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\slack-bubble.ts",
+      "priority": 118
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\workflow-bubble\\backup-restore.workflow.ts",
+      "priority": 117
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\elasticsearch-bubble.ts",
+      "priority": 114
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\agi-inc.ts",
+      "priority": 113
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\google-calendar.ts",
+      "priority": 113
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\redis-bubble.ts",
+      "priority": 113
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\utils\\bubbleflow-parser.ts",
+      "priority": 110
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\sendgrid-bubble.ts",
+      "priority": 107
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\utils\\source-bubble-parser.ts",
+      "priority": 107
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\email-validator-tool.ts",
+      "priority": 105
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\twilio-bubble.ts",
+      "priority": 101
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\google-sheets\\google-sheets.utils.ts",
+      "priority": 101
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\qdrant-bubble.ts",
+      "priority": 96
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\image-processor-tool.ts",
+      "priority": 93
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\workflow-bubble\\pdf-form-operations.workflow.ts",
+      "priority": 91
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\workflow-bubble\\slack-formatter-agent.ts",
+      "priority": 91
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\utils\\bubbleflow-validation.ts",
+      "priority": 89
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\reddit-scrape-tool.ts",
+      "priority": 88
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\text-analyzer-tool.ts",
+      "priority": 88
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\insforge-db.ts",
+      "priority": 87
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\url-validator-tool.ts",
+      "priority": 86
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\code-formatter-tool.ts",
+      "priority": 85
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\tracing\\examples.ts",
+      "priority": 85
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\utils\\error-handler.ts",
+      "priority": 82
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\health\\health-check.ts",
+      "priority": 81
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\google-sheets\\google-sheets.integration.flow.ts",
+      "priority": 80
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\http-fix-validation.ts",
+      "priority": 78
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\workflow-bubble\\data-enrichment.workflow.ts",
+      "priority": 78
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\vector-search-tool.ts",
+      "priority": 75
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\youtube-tool.ts",
+      "priority": 74
+    },
+    {
+      "file": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble\\code-edit-tool.ts",
+      "priority": 72
+    }
+  ],
+  "by_directory": {
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src": {
+      "with_tests": 0,
+      "without_tests": 2
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubble-flow": {
+      "with_tests": 0,
+      "without_tests": 1
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubble-flow\\sample": {
+      "with_tests": 0,
+      "without_tests": 6
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\common": {
+      "with_tests": 6,
+      "without_tests": 2
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble": {
+      "with_tests": 20,
+      "without_tests": 20
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\apify": {
+      "with_tests": 1,
+      "without_tests": 3
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\apify\\actors": {
+      "with_tests": 0,
+      "without_tests": 10
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\google-sheets": {
+      "with_tests": 1,
+      "without_tests": 4
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\notion": {
+      "with_tests": 1,
+      "without_tests": 2
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\tool-bubble": {
+      "with_tests": 14,
+      "without_tests": 19
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\workflow-bubble": {
+      "with_tests": 0,
+      "without_tests": 17
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\health": {
+      "with_tests": 0,
+      "without_tests": 1
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\logging": {
+      "with_tests": 0,
+      "without_tests": 4
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\metrics": {
+      "with_tests": 0,
+      "without_tests": 2
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\tests": {
+      "with_tests": 0,
+      "without_tests": 1
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\tests\\mocks": {
+      "with_tests": 0,
+      "without_tests": 1
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\tracing": {
+      "with_tests": 0,
+      "without_tests": 11
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\types": {
+      "with_tests": 0,
+      "without_tests": 8
+    },
+    "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\utils": {
+      "with_tests": 4,
+      "without_tests": 15
+    }
+  }
+}

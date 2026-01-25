@@ -1,0 +1,102 @@
+# Knowledge Graph Benchmark Configuration
+# OpenEvolve Framework
+
+# Knowledge Addition Benchmarks
+knowledge_addition:
+  # Number of artifacts to test with
+  num_artifacts: [100, 500, 1000, 5000]
+  # Batch sizes to test
+  batch_sizes: [1, 10, 50, 100]
+
+# Knowledge Retrieval Benchmarks
+knowledge_retrieval:
+  # Number of queries to execute
+  num_queries: [10, 50, 100, 500]
+  # Search types to benchmark
+  query_types:
+    - hybrid      # Combined vector + keyword
+    - vector      # Pure similarity search
+    - keyword     # Traditional keyword search
+    - graph       # Graph traversal search
+
+# Deduplication Benchmarks
+deduplication:
+  # Number of entities to test
+  num_entities: [100, 500, 1000, 5000]
+  # Rate of duplicates (0.0 to 1.0)
+  duplicate_rates: [0.1, 0.3, 0.5]
+  # Deduplication strategies to test
+  strategies:
+    - semhash           # Semantic hashing
+    - standardization   # Entity standardization
+    - lm_cluster        # Language model clustering
+    - semantic          # Semantic similarity
+
+# Graph Algorithm Benchmarks
+graph_algorithms:
+  # Graph sizes (number of nodes) to test
+  graph_sizes: [100, 500, 1000, 5000, 10000]
+  # Algorithms to benchmark
+  algorithms:
+    - louvain       # Community detection
+    - leiden        # Improved community detection
+    - node2vec      # Node embedding
+    - deepwalk      # Random walk embedding
+    - graph2vec     # Graph embedding
+
+# Concurrent Operations Benchmarks
+concurrent_operations:
+  # Number of concurrent clients
+  num_concurrent: [5, 10, 20, 50]
+  # Operations per client
+  operations_per_client: [10, 50, 100]
+
+# End-to-End Workflow Benchmarks
+end_to_end_workflows:
+  # Scenarios to test
+  scenarios:
+    - entity_relationship_workflow    # Add entities and relationships
+    - batch_processing_workflow       # Batch processing
+    - query_workflow                  # Query and retrieval
+    - document_processing_workflow    # Document to knowledge graph
+    - temporal_workflow               # Temporal knowledge operations
+    - extraction_pipeline_workflow    # Multi-stage extraction
+
+# Output Configuration
+output:
+  # Report format: markdown, html, json
+  report_format: markdown
+
+  # Include visualization charts
+  include_charts: true
+
+  # Save raw metric data
+  save_raw_data: true
+
+  # Output directory
+  output_dir: benchmark_results
+
+# Performance Thresholds (for validation)
+thresholds:
+  knowledge_addition:
+    min_throughput: 100  # artifacts per second
+    max_memory: 2.0      # GB
+
+  knowledge_retrieval:
+    max_latency_p95: 500  # milliseconds
+    min_throughput: 50    # queries per second
+
+  deduplication:
+    min_accuracy: 0.85
+    min_f1_score: 0.80
+    max_duration: 300  # seconds
+
+  concurrent_operations:
+    max_error_rate: 0.05  # 5%
+    min_throughput: 25    # ops per second
+
+# Logging Configuration
+logging:
+  level: INFO
+  file: benchmark_execution.log
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

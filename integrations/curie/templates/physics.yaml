@@ -1,0 +1,309 @@
+# Physics Experiment Templates for Curie
+# Domain: Physics
+# Covers quantum mechanics, relativity, thermodynamics, electromagnetism, classical mechanics
+
+domain: physics
+name: Physics Experiments
+description: Automated experimentation framework for physics domains
+
+# Experiment subfields
+subfields:
+  - quantum_mechanics
+  - relativity
+  - thermodynamics
+  - electromagnetism
+  - classical_mechanics
+
+# Standard equipment for physics experiments
+standard_equipment:
+  - measurement_devices
+  - vacuum_chamber
+  - lasers
+  - detectors
+  - spectrometers
+  - oscilloscopes
+  - power_supplies
+  - magnets
+
+# Common materials
+common_materials:
+  - samples
+  - gases
+  - optical_components
+  - electronic_components
+  - sensors
+
+# Protocol template for physics experiments
+protocol_template:
+  - step_number: 1
+    title: Experimental Setup
+    description: Configure experimental apparatus and verify initial conditions
+    action: setup_apparatus
+    parameters:
+      temperature: 298  # Kelvin
+      pressure: 101325  # Pascal
+      humidity: 50  # Percent
+    materials: []
+    equipment:
+      - measurement_devices
+    duration: 600  # 10 minutes
+    safety_notes:
+      - Verify all connections are secure
+      - Check emergency stop functionality
+      - Ensure proper ventilation
+    validation_criteria:
+      setup_complete: true
+      initial_conditions_verified: true
+
+  - step_number: 2
+    title: Calibration
+    description: Calibrate measurement devices against known standards
+    action: calibrate_instruments
+    parameters:
+      calibration_standards: ["primary", "secondary"]
+      calibration_tolerance: 0.01
+    materials:
+      - calibration_standards
+    equipment:
+      - measurement_devices
+    duration: 900  # 15 minutes
+    safety_notes:
+      - Handle calibration standards carefully
+      - Document all calibration data
+    validation_criteria:
+      calibration_complete: true
+      within_tolerance: true
+
+  - step_number: 3
+    title: Data Collection - Initial
+    description: Collect baseline measurements before experimental manipulation
+    action: collect_baseline_data
+    parameters:
+      measurement_duration: 300  # 5 minutes
+      sampling_rate: 10  # Hz
+      number_of_readings: 3000
+    materials:
+      - samples
+    equipment:
+      - measurement_devices
+      - detectors
+    duration: 1800  # 30 minutes
+    safety_notes:
+      - Monitor equipment for anomalies
+      - Record environmental conditions
+    validation_criteria:
+      baseline_stable: true
+      sufficient_data_points: true
+
+  - step_number: 4
+    title: Experimental Manipulation
+    description: Perform experimental intervention according to hypothesis
+    action: apply_experimental_conditions
+    parameters:
+      intervention_type: "variable"
+      intervention_duration: 600  # 10 minutes
+      control_parameters: {}
+    materials:
+      - samples
+    equipment:
+      - power_supplies
+      - magnets
+    duration: 1800  # 30 minutes
+    safety_notes:
+      - Gradually increase experimental parameters
+      - Monitor for unexpected behavior
+      - Be prepared to stop if anomalies occur
+    validation_criteria:
+      intervention_applied: true
+      conditions_stable: true
+
+  - step_number: 5
+    title: Data Collection - Experimental
+    description: Collect measurements during experimental manipulation
+    action: collect_experimental_data
+    parameters:
+      measurement_duration: 600  # 10 minutes
+      sampling_rate: 10  # Hz
+      number_of_readings: 6000
+    materials:
+      - samples
+    equipment:
+      - measurement_devices
+      - detectors
+      - oscilloscopes
+    duration: 1800  # 30 minutes
+    safety_notes:
+      - Maintain experimental conditions
+      - Record all observations
+      - Monitor equipment status
+    validation_criteria:
+      data_collected: true
+      experimental_conditions_maintained: true
+
+  - step_number: 6
+    title: Recovery Measurements
+    description: Collect data as system returns to baseline conditions
+    action: collect_recovery_data
+    parameters:
+      measurement_duration: 300  # 5 minutes
+      sampling_rate: 10  # Hz
+      number_of_readings: 3000
+    materials:
+      - samples
+    equipment:
+      - measurement_devices
+      - detectors
+    duration: 1800  # 30 minutes
+    safety_notes:
+      - Allow system to return to equilibrium
+      - Document recovery behavior
+    validation_criteria:
+      recovery_data_collected: true
+      system_returned_to_baseline: true
+
+  - step_number: 7
+    title: Data Analysis
+    description: Analyze collected data and extract results
+    action: analyze_data
+    parameters:
+      analysis_methods:
+        - statistical_analysis
+        - error_analysis
+        - uncertainty_quantification
+      significance_level: 0.05
+    materials: []
+    equipment:
+      - computers
+    duration: 3600  # 1 hour
+    safety_notes: []
+    validation_criteria:
+      analysis_complete: true
+      results_significant: true
+      uncertainty_quantified: true
+
+  - step_number: 8
+    title: Validation and Documentation
+    description: Validate results against theoretical predictions and document findings
+    action: validate_and_document
+    parameters:
+      comparison_method: theoretical
+      documentation_format: standard
+    materials: []
+    equipment:
+      - computers
+    duration: 1800  # 30 minutes
+    safety_notes: []
+    validation_criteria:
+      validation_complete: true
+      documentation_complete: true
+
+# Domain-specific parameter templates
+parameter_templates:
+  quantum_mechanics:
+    common_parameters:
+      - wave_function
+      - energy_levels
+      - probability_amplitude
+      - quantum_numbers
+    measurement_types:
+      - spectroscopic_measurements
+      - interference_patterns
+      - quantum_state_detection
+    uncertainty_principle_considerations: true
+
+  relativity:
+    common_parameters:
+      - velocity
+      - gravitational_potential
+      - spacetime_curvature
+      - time_dilation
+    measurement_types:
+      - time_measurements
+      - length_measurements
+      - gravitational_effects
+    relativistic_corrections: true
+
+  thermodynamics:
+    common_parameters:
+      - temperature
+      - pressure
+      - volume
+      - entropy
+      - enthalpy
+    measurement_types:
+      - thermal_measurements
+      - phase_transitions
+      - heat_transfer
+    equilibrium_considerations: true
+
+  electromagnetism:
+    common_parameters:
+      - electric_field
+      - magnetic_field
+      - charge
+      - current
+      - voltage
+    measurement_types:
+      - electrical_measurements
+      - magnetic_measurements
+      - electromagnetic_waves
+    maxwell_equations_considerations: true
+
+  classical_mechanics:
+    common_parameters:
+      - position
+      - velocity
+      - acceleration
+      - force
+      - momentum
+      - energy
+    measurement_types:
+      - motion_measurements
+      - force_measurements
+      - energy_measurements
+    newton_laws_considerations: true
+
+# Validation templates
+validation_templates:
+  reproducibility_checks:
+    - Verify equipment calibration
+    - Document environmental conditions
+    - Repeat critical measurements
+    - Compare with known values
+    - Calculate uncertainty
+
+  statistical_validation:
+    - Perform appropriate statistical tests
+    - Calculate confidence intervals
+    - Determine statistical power
+    - Check for systematic errors
+    - Quantify measurement uncertainty
+
+  theoretical_validation:
+    - Compare with theoretical predictions
+    - Check consistency with physical laws
+    - Verify dimensional consistency
+    - Validate approximations made
+    - Compare with literature values
+
+# Common analysis methods
+analysis_methods:
+  - error_analysis
+  - uncertainty_propagation
+  - statistical_hypothesis_testing
+  - regression_analysis
+  - fourier_analysis
+  - numerical_integration
+  - numerical_differentiation
+
+# Documentation requirements
+documentation_requirements:
+  - experimental_setup
+  - equipment_used
+  - measurement_procedures
+  - raw_data
+  - analysis_methods
+  - results
+  - uncertainty_analysis
+  - conclusions
+  - recommendations

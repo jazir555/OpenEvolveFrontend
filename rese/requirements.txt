@@ -1,0 +1,162 @@
+# RESE (Recursive Epistemic Solvability Engine) - Requirements
+# Complete dependency list for production deployment
+#
+# Python >= 3.9 required
+
+# =============================================================================
+# Core Dependencies
+# =============================================================================
+
+# Data processing
+numpy>=1.21.0
+pandas>=1.3.0
+
+# Configuration
+pydantic>=2.0.0
+python-dotenv>=1.0.0
+
+# =============================================================================
+# API Server Dependencies
+# =============================================================================
+
+# Web framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+websockets>=12.0
+
+# CORS middleware
+python-multipart>=0.0.6
+
+# =============================================================================
+# Monitoring Dependencies
+# =============================================================================
+
+# System monitoring
+psutil>=5.9.0
+
+# Metrics (optional)
+prometheus-client>=0.19.0
+
+# =============================================================================
+# Phase-specific Dependencies
+# =============================================================================
+
+# Phase I: Symbolic constraints
+z3-solver>=4.12.0
+
+# Phase II: Graph isomorphism and analysis
+networkx>=3.0
+scipy>=1.9.0
+matplotlib>=3.5.0
+
+# Phase III: Monte Carlo and optimization
+scikit-learn>=1.2.0
+
+# Phase IV: Statistical tests
+statsmodels>=0.14.0
+
+# =============================================================================
+# Machine Learning (Optional but recommended)
+# =============================================================================
+
+# For advanced optimization and learning
+torch>=2.0.0
+tensorboard>=2.12.0
+
+# =============================================================================
+# Lean 4 Integration (Optional)
+# =============================================================================
+
+# Uncomment if using Lean 4 integration
+# lean4>=0.1.0
+
+# =============================================================================
+# Caching Dependencies (Optional)
+# =============================================================================
+
+# Uncomment for Redis caching
+# redis>=5.0.0
+# redis-py-cluster>=2.1.0
+
+# =============================================================================
+# Database Dependencies (Optional)
+# =============================================================================
+
+# Uncomment for PostgreSQL persistence
+# psycopg2-binary>=2.9.0
+# sqlalchemy>=2.0.0
+# alembic>=1.12.0
+
+# =============================================================================
+# Development Dependencies
+# =============================================================================
+
+# Testing
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-asyncio>=0.21.0
+pytest-mock>=3.12.0
+
+# Code quality
+black>=23.12.0
+flake8>=6.1.0
+mypy>=1.7.0
+isort>=5.13.0
+
+# Documentation
+sphinx>=7.2.0
+sphinx-rtd-theme>=2.0.0
+
+# =============================================================================
+# Production Dependencies
+# =============================================================================
+
+# Logging
+structlog>=23.2.0
+
+# Security
+cryptography>=41.0.0
+python-jose[cryptography]>=3.3.0
+passlib[bcrypt]>=1.7.4
+
+# =============================================================================
+# Utilities
+# =============================================================================
+
+# HTTP client
+httpx>=0.25.0
+requests>=2.31.0
+
+# Date/time
+python-dateutil>=2.8.2
+
+# Progress bars
+tqdm>=4.66.0
+
+# =============================================================================
+# Additional Scientific Computing
+# =============================================================================
+
+# For numerical optimization
+sympy>=1.11
+
+# For algorithmic complexity analysis
+lzma
+
+# =============================================================================
+# Optional Visualization
+# =============================================================================
+
+# Graph visualization (optional but recommended)
+# pygraphistry>=2023.0
+
+# Plotting
+# plotly>=5.14.0
+
+# =============================================================================
+# Minimum Versions
+# =============================================================================
+
+# Python >= 3.9
+# See: https://docs.python.org/3/whatsnew/3.9.html
+

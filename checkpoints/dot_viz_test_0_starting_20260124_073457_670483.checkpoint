@@ -1,0 +1,24 @@
+{
+  "problem": {
+    "id": "dot_viz_test",
+    "statement": "Test DOT visualization",
+    "subproblems": [
+      {
+        "id": "child_1",
+        "statement": "Child 1"
+      }
+    ]
+  },
+  "context": {
+    "level": 0,
+    "stage": "starting"
+  },
+  "solutions": {},
+  "decomposition_tree": null,
+  "execution_status": {},
+  "metrics": {},
+  "metadata": {
+    "checkpoint_count": 0
+  },
+  "serialized_at": "2026-01-24T07:34:57.670483"
+}

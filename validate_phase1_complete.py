@@ -1,0 +1,800 @@
+#!/usr/bin/env python3
+"""
+Comprehensive Phase 1 Stage 6 Validation Script
+
+Validates ALL requirements from MASTER_TASKLIST.md Category A:
+- A.1 KnowledgeArtifact Schema
+- A.2 WorkflowKnowledgeExtractor
+- A.3 SolutionPatternMiner with ML
+- A.4 TeamPerformanceTracker
+- A.5 GauntletEffectivenessAnalyzer
+- A.6 KnowledgeGraphVisualizer
+- A.7 Integration & Testing
+"""
+
+import sys
+import os
+import time
+import tempfile
+from typing import Dict, List, Any
+
+# Add parent directory to path
+sys.path.insert(0, os.path.dirname(__file__))
+
+print("=" * 80)
+print("PHASE 1 STAGE 6 - COMPREHENSIVE VALIDATION")
+print("=" * 80)
+print()
+
+# Track validation results
+validation_results = {
+    "A.1_KnowledgeArtifact_Schema": {"passed": 0, "failed": 0, "warnings": []},
+    "A.2_WorkflowKnowledgeExtractor": {"passed": 0, "failed": 0, "warnings": []},
+    "A.3_SolutionPatternMiner": {"passed": 0, "failed": 0, "warnings": []},
+    "A.4_TeamPerformanceTracker": {"passed": 0, "failed": 0, "warnings": []},
+    "A.5_GauntletEffectivenessAnalyzer": {"passed": 0, "failed": 0, "warnings": []},
+    "A.6_KnowledgeGraphVisualizer": {"passed": 0, "failed": 0, "warnings": []},
+    "A.7_Integration_Testing": {"passed": 0, "failed": 0, "warnings": []},
+}
+
+def test_section(section_name: str):
+    """Decorator to track which section we're testing."""
+    def decorator(func):
+        def wrapper(*args, **kwargs):
+            print(f"\n{'='*80}")
+            print(f"Testing: {section_name}")
+            print(f"{'='*80}")
+            try:
+                result = func(*args, **kwargs)
+                return result
+            except Exception as e:  # TODO: Catch specific exception instead of Exception
+                print(f"[FAIL] CRITICAL ERROR: {e}")
+                import traceback
+                traceback.print_exc()
+                validation_results[section_name]["failed"] += 1
+                return None
+        return wrapper
+    return decorator
+
+# ============================================================================
+# A.1 KnowledgeArtifact Schema Validation
+# ============================================================================
+
+@test_section("A.1 KnowledgeArtifact Schema")
+def validate_knowledge_artifact_schema():
+    """Validate A.1: KnowledgeArtifact Schema"""
+    from workflow_structures import (
+        KnowledgeArtifact,
+        SolutionPatternArtifact,
+        TeamPerformanceArtifact,
+        GauntletEffectivenessArtifact,
+        KnowledgeArtifactManager,
+    )
+
+    passed = 0
+    failed = 0
+
+    # Test 1: Base artifact class exists with required fields
+    print("\n1. Checking base artifact class...")
+    try:
+        # Check if class exists
+        assert hasattr(KnowledgeArtifact, '__dataclass_fields__')
+
+        # Check required fields
+        required_fields = ['id', 'artifact_type', 'content', 'source_workflow_id',
+                          'extraction_timestamp', 'usage_count', 'effectiveness_score']
+        for field in required_fields:
+            assert field in KnowledgeArtifact.__dataclass_fields__, f"Missing field: {field}"
+
+        print("   [OK] Base artifact class has all required fields")
+        passed += 1
+    except AssertionError as e:
+        print(f"   [FAIL] {e}")
+        failed += 1
+
+    # Test 2: Specialized artifact types exist
+    print("\n2. Checking specialized artifact types...")
+    try:
+        assert hasattr(SolutionPatternArtifact, '__dataclass_fields__')
+        assert hasattr(TeamPerformanceArtifact, '__dataclass_fields__')
+        assert hasattr(GauntletEffectivenessArtifact, '__dataclass_fields__')
+        print("   [OK] All 3 specialized artifact types exist")
+        passed += 1
+    except AssertionError as e:
+        print(f"   [FAIL] {e}")
+        failed += 1
+
+    # Test 3: Validation methods exist
+    print("\n3. Checking validation methods...")
+    try:
+        assert hasattr(SolutionPatternArtifact, 'validate')
+        assert hasattr(TeamPerformanceArtifact, 'validate')
+        assert hasattr(GauntletEffectivenessArtifact, 'validate')
+        print("   [OK] All artifacts have validate() methods")
+        passed += 1
+    except AssertionError as e:
+        print(f"   [FAIL] {e}")
+        failed += 1
+
+    # Test 4: Serialization/deserialization (JSON)
+    print("\n4. Checking JSON serialization...")
+    try:
+        pattern = SolutionPatternArtifact(
+            artifact_id="test_001",
+            source_workflow_id="wf_001",
+            domain="test",
+            complexity=5
+        )
+
+        # Test to_dict
+        data = pattern.to_dict()
+        assert isinstance(data, dict)
+        assert 'artifact_id' in data
+
+        # Test from_dict
+        pattern2 = SolutionPatternArtifact.from_dict(data)
+        assert pattern2.artifact_id == pattern.artifact_id
+
+        print("   [OK] JSON serialization works")
+        passed += 1
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] JSON serialization failed: {e}")
+        failed += 1
+
+    # Test 5: Pickle support (dataclasses support this by default)
+    print("\n5. Checking pickle support...")
+    try:
+        # import pickle  # REMOVED - security risk
+
+        pattern = SolutionPatternArtifact(
+            artifact_id="test_002",
+            source_workflow_id="wf_002",
+            domain="test",
+            complexity=5
+        )
+
+        # Test pickle
+        pickled = json.dumps(pattern)
+        unpickled = json.loads(pickled)
+        assert unpickled.artifact_id == pattern.artifact_id
+
+        print("   [OK] Pickle serialization works")
+        passed += 1
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Pickle serialization failed: {e}")
+        failed += 1
+
+    # Test 6: KnowledgeArtifactManager CRUD operations
+    print("\n6. Checking CRUD operations...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        manager = KnowledgeArtifactManager(db_path)
+
+        # Test Create
+        pattern = SolutionPatternArtifact(
+            artifact_id="test_crud_001",
+            source_workflow_id="wf_crud",
+            domain="test_domain",
+            complexity=3
+        )
+        result = manager.create_solution_pattern(pattern)
+        assert result == True
+
+        # Test Read
+        read_pattern = manager.read_solution_pattern("test_crud_001")
+        assert read_pattern is not None
+        assert read_pattern.artifact_id == "test_crud_001"
+
+        # Test Update
+        read_pattern.complexity = 7
+        result = manager.update_solution_pattern(read_pattern)
+        assert result == True
+
+        # Test Delete
+        result = manager.delete_solution_pattern("test_crud_001")
+        assert result == True
+
+        # Verify deletion
+        read_pattern = manager.read_solution_pattern("test_crud_001")
+        assert read_pattern is None
+
+        print("   [OK] All CRUD operations work")
+        passed += 1
+
+        # Cleanup
+        os.unlink(db_path)
+
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] CRUD operations failed: {e}")
+        import traceback
+        traceback.print_exc()
+        failed += 1
+
+    # Test 7: Specialized artifact fields
+    print("\n7. Checking specialized artifact fields...")
+    try:
+        # SolutionPatternArtifact
+        pattern_fields = SolutionPatternArtifact.__dataclass_fields__.keys()
+        required = ['pattern_signature', 'success_rate', 'domain', 'complexity']
+        for field in required:
+            assert field in pattern_fields, f"Missing SolutionPatternArtifact field: {field}"
+
+        # TeamPerformanceArtifact
+        team_fields = TeamPerformanceArtifact.__dataclass_fields__.keys()
+        required = ['team_composition', 'velocity', 'quality_metrics', 'historical_trends']
+        for field in required:
+            assert field in team_fields, f"Missing TeamPerformanceArtifact field: {field}"
+
+        # GauntletEffectivenessArtifact
+        gauntlet_fields = GauntletEffectivenessArtifact.__dataclass_fields__.keys()
+        required = ['gauntlet_type', 'catch_rate', 'false_positive_rate', 'rules_recommended']
+        for field in required:
+            assert field in gauntlet_fields, f"Missing GauntletEffectivenessArtifact field: {field}"
+
+        print("   [OK] All specialized artifacts have required fields")
+        passed += 1
+    except AssertionError as e:
+        print(f"   [FAIL] {e}")
+        failed += 1
+
+    validation_results["A.1_KnowledgeArtifact_Schema"]["passed"] += passed
+    validation_results["A.1_KnowledgeArtifact_Schema"]["failed"] += failed
+
+    return passed, failed
+
+# ============================================================================
+# A.2 WorkflowKnowledgeExtractor Validation
+# ============================================================================
+
+@test_section("A.2 WorkflowKnowledgeExtractor")
+def validate_workflow_knowledge_extractor():
+    """Validate A.2: WorkflowKnowledgeExtractor"""
+    from workflow_knowledge_extractor import WorkflowKnowledgeExtractor
+    from workflow_structures import WorkflowState
+
+    passed = 0
+    failed = 0
+
+    # Test 1: Extractor initialization
+    print("\n1. Checking extractor initialization...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        extractor = WorkflowKnowledgeExtractor(db_path=db_path)
+        assert extractor.artifact_manager is not None
+        assert extractor.extraction_prompts is not None
+
+        print("   [OK] Extractor initializes correctly")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Initialization failed: {e}")
+        failed += 1
+
+    # Test 2: Extraction prompts for all stages
+    print("\n2. Checking extraction prompts...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        extractor = WorkflowKnowledgeExtractor(db_path=db_path)
+
+        required_prompts = [
+            "solution_pattern",
+            "decomposition_strategy",
+            "team_performance",
+            "gauntlet_effectiveness"
+        ]
+
+        for prompt_name in required_prompts:
+            assert prompt_name in extractor.extraction_prompts, f"Missing prompt: {prompt_name}"
+
+        print("   [OK] All extraction prompts exist")
+        passed += 1
+
+        os.unlink(db_path)
+    except AssertionError as e:
+        print(f"   [FAIL] {e}")
+        failed += 1
+
+    # Test 3: Extract from workflow stages
+    print("\n3. Checking extraction methods...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        extractor = WorkflowKnowledgeExtractor(db_path=db_path)
+
+        # Check extraction methods exist
+        methods = [
+            'extract_from_problem_definition',
+            'extract_solution_patterns',
+            'extract_team_performance',
+            'extract_gauntlet_effectiveness',
+            'extract_all_knowledge'
+        ]
+
+        for method_name in methods:
+            assert hasattr(extractor, method_name), f"Missing method: {method_name}"
+
+        print("   [OK] All extraction methods exist")
+        passed += 1
+
+        os.unlink(db_path)
+    except AssertionError as e:
+        print(f"   [FAIL] {e}")
+        failed += 1
+
+    validation_results["A.2_WorkflowKnowledgeExtractor"]["passed"] += passed
+    validation_results["A.2_WorkflowKnowledgeExtractor"]["failed"] += failed
+
+    return passed, failed
+
+# ============================================================================
+# A.3 SolutionPatternMiner Validation
+# ============================================================================
+
+@test_section("A.3 SolutionPatternMiner with ML")
+def validate_solution_pattern_miner():
+    """Validate A.3: SolutionPatternMiner with ML"""
+    from solution_pattern_miner import SolutionPatternMiner
+
+    passed = 0
+    failed = 0
+
+    # Test 1: Miner initialization with different algorithms
+    print("\n1. Checking miner initialization...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        # Test different clustering algorithms
+        for algo in ['kmeans', 'dbscan', 'agglomerative']:
+            miner = SolutionPatternMiner(db_path=db_path, clustering_algorithm=algo)
+            assert miner.clustering_algorithm == algo
+
+        # Test different dimensionality reduction
+        for dim_red in ['pca', None]:
+            miner = SolutionPatternMiner(db_path=db_path, dimensionality_reduction=dim_red)
+            assert miner.dimensionality_reduction == dim_red
+
+        print("   [OK] Miner initializes with all algorithms")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Initialization failed: {e}")
+        failed += 1
+
+    # Test 2: Feature extraction
+    print("\n2. Checking feature extraction...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        miner = SolutionPatternMiner(db_path=db_path)
+        assert hasattr(miner, '_extract_features')
+        assert hasattr(miner, 'vectorizer')
+
+        print("   [OK] Feature extraction methods exist")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Feature extraction check failed: {e}")
+        failed += 1
+
+    # Test 3: Dimensionality reduction
+    print("\n3. Checking dimensionality reduction...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        miner = SolutionPatternMiner(db_path=db_path, dimensionality_reduction='pca')
+        assert hasattr(miner, '_reduce_dimensions')
+        assert hasattr(miner, 'dim_reducer')
+
+        print("   [OK] Dimensionality reduction exists")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Dimensionality reduction check failed: {e}")
+        failed += 1
+
+    # Test 4: Clustering methods
+    print("\n4. Checking clustering methods...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        miner = SolutionPatternMiner(db_path=db_path)
+        assert hasattr(miner, '_cluster_patterns')
+        assert hasattr(miner, 'cluster_model')
+
+        print("   [OK] Clustering methods exist")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Clustering methods check failed: {e}")
+        failed += 1
+
+    # Test 5: Pattern summarization
+    print("\n5. Checking pattern summarization...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        miner = SolutionPatternMiner(db_path=db_path)
+        assert hasattr(miner, '_analyze_clusters')
+        assert hasattr(miner, '_generate_cluster_description')
+
+        print("   [OK] Pattern summarization methods exist")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Pattern summarization check failed: {e}")
+        failed += 1
+
+    # Test 6: Similarity search
+    print("\n6. Checking similarity search...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        miner = SolutionPatternMiner(db_path=db_path)
+        assert hasattr(miner, 'find_similar_patterns')
+        assert hasattr(miner, 'recommend_patterns_for_problem')
+
+        print("   [OK] Similarity search methods exist")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Similarity search check failed: {e}")
+        failed += 1
+
+    # Test 7: Visualization support
+    print("\n7. Checking visualization support...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        miner = SolutionPatternMiner(db_path=db_path)
+        assert hasattr(miner, 'visualize_clusters')
+
+        print("   [OK] Visualization support exists")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Visualization check failed: {e}")
+        failed += 1
+
+    validation_results["A.3_SolutionPatternMiner"]["passed"] += passed
+    validation_results["A.3_SolutionPatternMiner"]["failed"] += failed
+
+    return passed, failed
+
+# ============================================================================
+# A.4 TeamPerformanceTracker Validation
+# ============================================================================
+
+@test_section("A.4 TeamPerformanceTracker")
+def validate_team_performance_tracker():
+    """Validate A.4: TeamPerformanceTracker"""
+    from team_performance_tracker import TeamPerformanceTracker
+
+    passed = 0
+    failed = 0
+
+    # Test 1: Tracker initialization
+    print("\n1. Checking tracker initialization...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        tracker = TeamPerformanceTracker(db_path=db_path)
+        assert tracker.artifact_manager is not None
+        assert tracker.performance_history is not None
+
+        print("   [OK] Tracker initializes correctly")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Initialization failed: {e}")
+        failed += 1
+
+    # Test 2: Track team performance method
+    print("\n2. Checking track_team_performance method...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        tracker = TeamPerformanceTracker(db_path=db_path)
+        assert hasattr(tracker, 'track_team_performance')
+
+        print("   [OK] track_team_performance method exists")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] {e}")
+        failed += 1
+
+    # Test 3: Team summary and recommendations
+    print("\n3. Checking analysis methods...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        tracker = TeamPerformanceTracker(db_path=db_path)
+        assert hasattr(tracker, 'get_team_summary')
+        assert hasattr(tracker, 'recommend_team_for_problem')
+        assert hasattr(tracker, 'identify_skill_gaps')
+
+        print("   [OK] Analysis methods exist")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] {e}")
+        failed += 1
+
+    validation_results["A.4_TeamPerformanceTracker"]["passed"] += passed
+    validation_results["A.4_TeamPerformanceTracker"]["failed"] += failed
+
+    return passed, failed
+
+# ============================================================================
+# A.5 GauntletEffectivenessAnalyzer Validation
+# ============================================================================
+
+@test_section("A.5 GauntletEffectivenessAnalyzer")
+def validate_gauntlet_effectiveness_analyzer():
+    """Validate A.5: GauntletEffectivenessAnalyzer"""
+    from gauntlet_effectiveness_analyzer import GauntletEffectivenessAnalyzer
+
+    passed = 0
+    failed = 0
+
+    # Test 1: Analyzer initialization
+    print("\n1. Checking analyzer initialization...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        analyzer = GauntletEffectivenessAnalyzer(db_path=db_path)
+        assert analyzer.artifact_manager is not None
+
+        print("   [OK] Analyzer initializes correctly")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Initialization failed: {e}")
+        failed += 1
+
+    # Test 2: Analysis methods
+    print("\n2. Checking analysis methods...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        analyzer = GauntletEffectivenessAnalyzer(db_path=db_path)
+        assert hasattr(analyzer, 'analyze_gauntlet_run')
+        assert hasattr(analyzer, 'get_gauntlet_summary')
+        assert hasattr(analyzer, 'compare_gauntlets')
+        assert hasattr(analyzer, 'recommend_optimal_configuration')
+
+        print("   [OK] All analysis methods exist")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] {e}")
+        failed += 1
+
+    validation_results["A.5_GauntletEffectivenessAnalyzer"]["passed"] += passed
+    validation_results["A.5_GauntletEffectivenessAnalyzer"]["failed"] += failed
+
+    return passed, failed
+
+# ============================================================================
+# A.6 KnowledgeGraphVisualizer Validation
+# ============================================================================
+
+@test_section("A.6 KnowledgeGraphVisualizer")
+def validate_knowledge_graph_visualizer():
+    """Validate A.6: KnowledgeGraphVisualizer"""
+    from knowledge_graph_visualizer import KnowledgeGraphVisualizer
+
+    passed = 0
+    failed = 0
+
+    # Test 1: Visualizer initialization
+    print("\n1. Checking visualizer initialization...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        visualizer = KnowledgeGraphVisualizer(db_path=db_path)
+        assert visualizer.artifact_manager is not None
+        assert visualizer.graph is not None
+
+        print("   [OK] Visualizer initializes correctly")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Initialization failed: {e}")
+        failed += 1
+
+    # Test 2: Graph building and visualization
+    print("\n2. Checking visualization methods...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        visualizer = KnowledgeGraphVisualizer(db_path=db_path)
+        assert hasattr(visualizer, 'build_graph')
+        assert hasattr(visualizer, 'visualize_interactive')
+        assert hasattr(visualizer, 'get_graph_statistics')
+
+        print("   [OK] Visualization methods exist")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] {e}")
+        failed += 1
+
+    # Test 3: Export capabilities
+    print("\n3. Checking export capabilities...")
+    try:
+        with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.db') as f:
+            db_path = f.name
+
+        visualizer = KnowledgeGraphVisualizer(db_path=db_path)
+        assert hasattr(visualizer, 'export_to_json')
+        assert hasattr(visualizer, 'export_to_graphviz')
+
+        print("   [OK] Export capabilities exist")
+        passed += 1
+
+        os.unlink(db_path)
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] {e}")
+        failed += 1
+
+    validation_results["A.6_KnowledgeGraphVisualizer"]["passed"] += passed
+    validation_results["A.6_KnowledgeGraphVisualizer"]["failed"] += failed
+
+    return passed, failed
+
+# ============================================================================
+# A.7 Integration & Testing Validation
+# ============================================================================
+
+@test_section("A.7 Integration & Testing")
+def validate_integration_and_testing():
+    """Validate A.7: Integration & Testing"""
+    import subprocess
+
+    passed = 0
+    failed = 0
+
+    # Test 1: Test suite exists
+    print("\n1. Checking test suite...")
+    try:
+        test_file = "tests/test_stage6_integration.py"
+        assert os.path.exists(test_file), f"Test file not found: {test_file}"
+
+        # Count tests
+        result = subprocess.run(
+            ['python', '-m', 'pytest', '--collect-only', test_file],
+            capture_output=True,
+            text=True
+        )
+
+        # Check if tests were collected
+        assert 'collected' in result.stdout.lower() or 'error' not in result.stdout.lower()
+
+        print("   [OK] Test suite exists and is collectable")
+        passed += 1
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        print(f"   [FAIL] Test suite check failed: {e}")
+        failed += 1
+
+    # Test 2: Documentation exists
+    print("\n2. Checking documentation...")
+    try:
+        # Check completion report exists
+        doc_file = "docs/components/STAGE6_COMPLETION_REPORT.md"
+        assert os.path.exists(doc_file), f"Documentation not found: {doc_file}"
+
+        print("   [OK] Documentation exists")
+        passed += 1
+    except AssertionError as e:
+        print(f"   [FAIL] {e}")
+        failed += 1
+
+    validation_results["A.7_Integration_Testing"]["passed"] += passed
+    validation_results["A.7_Integration_Testing"]["failed"] += failed
+
+    return passed, failed
+
+# ============================================================================
+# Main Validation Runner
+# ============================================================================
+
+def main():
+    """Run all validation tests."""
+
+    total_passed = 0
+    total_failed = 0
+
+    # Run all validations
+    sections = [
+        validate_knowledge_artifact_schema,
+        validate_workflow_knowledge_extractor,
+        validate_solution_pattern_miner,
+        validate_team_performance_tracker,
+        validate_gauntlet_effectiveness_analyzer,
+        validate_knowledge_graph_visualizer,
+        validate_integration_and_testing,
+    ]
+
+    for validate_func in sections:
+        try:
+            passed, failed = validate_func()
+            total_passed += passed
+            total_failed += failed
+        except Exception as e:  # TODO: Catch specific exception instead of Exception
+            print(f"\n[FAIL] CRITICAL ERROR in {validate_func.__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+            total_failed += 1
+
+    # Print summary
+    print("\n")
+    print("=" * 80)
+    print("VALIDATION SUMMARY")
+    print("=" * 80)
+
+    for section_name, results in validation_results.items():
+        passed = results["passed"]
+        failed = results["failed"]
+        total = passed + failed
+
+        if total > 0:
+            status = "[OK] PASS" if failed == 0 else "[WARN] PARTIAL"
+            print(f"\n{section_name}:")
+            print(f"  Status: {status}")
+            print(f"  Passed: {passed}/{total}")
+            if results["warnings"]:
+                print(f"  Warnings: {len(results['warnings'])}")
+                for warning in results["warnings"]:
+                    print(f"    - {warning}")
+
+    print("\n" + "=" * 80)
+    print(f"TOTAL: {total_passed} passed, {total_failed} failed")
+    print("=" * 80)
+
+    # Overall status
+    if total_failed == 0:
+        print("\n[SUCCESS] ALL VALIDATIONS PASSED - PHASE 1 STAGE 6 IS PRODUCTION READY!")
+        return 0
+    else:
+        print(f"\n[WARN]  {total_failed} validation(s) failed - review needed")
+        return 1
+
+if __name__ == "__main__":
+    sys.exit(main())

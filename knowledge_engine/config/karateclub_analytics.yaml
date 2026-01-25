@@ -1,0 +1,249 @@
+# KarateClub Analytics Configuration
+# Follows CLAUDE.md principles: Configuration Explicitness
+
+# Community Detection Settings
+community_detection:
+  default_algorithm: "label_propagation"  # Options: label_propagation, gemsec, edmot, scd, danmf, etc.
+  resolution: 1.0
+  random_seed: 42
+
+  # Algorithm-specific parameters
+  algorithms:
+    label_propagation:
+      seed: 42
+
+    gemsec:
+      dimensions: 32
+      walk_number: 10
+      walk_length: 80
+      seed: 42
+
+    edmot:
+      component_number: 10
+      seed: 42
+
+    danmf:
+      layers: [32, 16]
+      iterations: 100
+      seed: 42
+
+# Node Embedding Settings
+node_embeddings:
+  default_algorithm: "node2vec"  # Options: deepwalk, node2vec, walklets, grarep, etc.
+  dimensions: 128
+  walk_number: 10
+  walk_length: 80
+  window_size: 5
+
+  # Algorithm-specific parameters
+  algorithms:
+    deepwalk:
+      dimensions: 128
+      walk_length: 80
+      walk_number: 10
+      window_size: 5
+      seed: 42
+
+    node2vec:
+      dimensions: 128
+      walk_length: 80
+      walk_number: 10
+      p: 1.0
+      q: 1.0
+      window_size: 5
+      seed: 42
+
+    walklets:
+      dimensions: 128
+      walk_length: 80
+      walk_number: 10
+      seed: 42
+
+    grarep:
+      dimensions: 128
+      order: 5
+      seed: 42
+
+    hope:
+      dimensions: 128
+      seed: 42
+
+    netmf:
+      dimensions: 128
+      order: 2
+      window_size: 5
+      seed: 42
+      negative_samples: 10
+
+    graphwave:
+      dimensions: 128
+      scales: [5, 10, 15]
+      seed: 42
+
+    role2vec:
+      dimensions: 128
+      walk_length: 80
+      walk_number: 10
+      seed: 42
+
+# Graph Embedding Settings
+graph_embeddings:
+  default_algorithm: "graph2vec"  # Options: graph2vec, feather_g, netlsd, gl2vec, etc.
+  dimensions: 128
+  wl_iterations: 5
+  epochs: 10
+
+  # Algorithm-specific parameters
+  algorithms:
+    graph2vec:
+      dimensions: 128
+      wl_iterations: 5
+      epochs: 10
+      learning_rate: 0.025
+      seed: 42
+
+    feather_g:
+      dimensions: 128
+      seed: 42
+
+    netlsd:
+      scale_min: -4.0
+      scale_max: 2.0
+      scale_steps: 256
+
+    gl2vec:
+      dimensions: 128
+      wl_iterations: 5
+      seed: 42
+
+# Metrics Settings
+metrics:
+  compute_centrality: true
+  compute_clustering: true
+  compute_connectivity: true
+  compute_density: true
+  compute_assortativity: true
+
+  # Centrality measures to compute
+  centrality_measures:
+    - degree
+    - betweenness
+    - eigenvector
+    - closeness
+    - pagerank
+
+# Retrieval Settings
+retrieval:
+  enabled: true
+  embedding_model: "node2vec"
+  similarity_metric: "cosine"  # Options: cosine, euclidean, dot
+  index_type: "brute"  # Options: faiss, annoy, brute
+  top_k: 10
+
+  # Cache settings
+  cache_embeddings: true
+  cache_dir: "/tmp/karateclub_embeddings"
+
+  # Index settings
+  faiss:
+    index_type: "IndexFlatIP"  # Inner Product (cosine for normalized)
+
+  annoy:
+    n_trees: 10
+    metric: "angular"
+
+# Output Settings
+output:
+  save_embeddings: true
+  save_metrics: true
+  save_communities: true
+  formats:
+    - json
+    - csv
+
+  # Output directory
+  output_dir: "./karateclub_output"
+
+  # Visualization settings
+  visualization:
+    enabled: true
+    max_nodes: 1000  # Limit for performance
+    default_format: "html"  # Options: html, json, png
+
+# Performance Settings
+performance:
+  max_graph_size: 100000  # Maximum nodes for analysis
+  parallel_processing: true
+  num_workers: 4  # Number of parallel workers
+
+  # Memory management
+  chunk_size: 10000  # Process large graphs in chunks
+  cache_size_mb: 512  # Maximum cache size in MB
+
+# Logging Settings
+logging:
+  level: "INFO"  # Options: DEBUG, INFO, WARNING, ERROR
+  log_file: "karateclub_analytics.log"
+  log_format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Algorithm Availability
+# Toggle algorithms on/off based on availability
+available_algorithms:
+  community_detection:
+    label_propagation: true
+    gemsec: true
+    edmot: true
+    scd: true
+    danmf: true
+    m_nmf: true
+    ego_splitting: true
+    nnsed: true
+    bigclam: true
+    symmnmf: true
+
+  node_embedding:
+    deepwalk: true
+    node2vec: true
+    walklets: true
+    grarep: true
+    hope: true
+    netmf: true
+    boostne: true
+    randne: true
+    nodesketch: true
+    diff2vec: true
+    sociodim: true
+    glee: true
+    laplacian_eigenmaps: true
+    line: true
+    graphwave: true
+    role2vec: true
+    sinr: true
+    feather_n: true
+    tadw: true
+    musae: true
+    ae: true
+    fscnmf: true
+    sine: true
+    bane: true
+    tene: true
+    asne: true
+    neu: true
+
+  graph_embedding:
+    graph2vec: true
+    feather_g: true
+    netlsd: true
+    geoscattering: true
+    wavelet_characteristic: true
+    ige: true
+    ldp: true
+    gl2vec: true
+    sf: true
+    fgsd: true
+
+# Experimental Features
+experimental:
+  enable_gpu: false  # GPU acceleration (requires CUDA)
+  enable_mixed_precision: false  # Mixed precision training
+  enable_distributed: false  # Distributed processing

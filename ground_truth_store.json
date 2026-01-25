@@ -1,0 +1,69 @@
+{
+  "timestamp": 1768085782.6173007,
+  "count": 3,
+  "sub_solutions": {
+    "sol_1": {
+      "sub_problem_id": "sol_1",
+      "description": "\n    Create a Python function to calculate the Fibonacci sequence up to n terms.\n    Include error handling for negative inputs and a docstring.\n    ",
+      "dependencies": [],
+      "content_hash": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "solution_content": "",
+      "metadata": {
+        "description": "\n    Create a Python function to calculate the Fibonacci sequence up to n terms.\n    Include error handling for negative inputs and a docstring.\n    ",
+        "solution_content": "",
+        "confidence_score": 0.8,
+        "metadata": {
+          "description": "\n    Create a Python function to calculate the Fibonacci sequence up to n terms.\n    Include error handling for negative inputs and a docstring.\n    ",
+          "subtasks": [],
+          "context": {
+            "requirements": [
+              "Python",
+              "Error handling",
+              "Docstring"
+            ]
+          }
+        }
+      },
+      "timestamp": 1768085782.6173007,
+      "source": "llm"
+    },
+    "sol_2": {
+      "sub_problem_id": "sol_2",
+      "description": "User Profile Management",
+      "dependencies": [
+        "sol_1"
+      ],
+      "content_hash": "d58fea2684113d105618c49b225f3262e1389a5718533b464d2e4c1aa6a8bc87",
+      "solution_content": "```python\nfrom typing import Dict, Any, Optional\nfrom datetime import datetime\n\nclass UserProfile:\n    \"\"\"User profile data model.\"\"\"\n\n    def __init__(self, user_id: int):\n        self.user_id = user_id\n        self.email = None\n        self.full_name = None\n        self.preferences = {}\n        self.created_at = datetime.utcnow()\n        self.updated_at = datetime.utcnow()\n\n    def update_profile(self, data: Dict[str, Any]) -> None:\n        \"\"\"Update user profile fields.\"\"\"\n        for key, value in data.items():\n            if hasattr(self, key):\n                setattr(self, key, value)\n        self.updated_at = datetime.utcnow()\n\n    def to_dict(self) -> Dict[str, Any]:\n        \"\"\"Convert profile to dictionary.\"\"\"\n        return {\n            'user_id': self.user_id,\n            'email': self.email,\n            'full_name': self.full_name,\n            'preferences': self.preferences,\n            'created_at': self.created_at.isoformat(),\n            'updated_at': self.updated_at.isoformat()\n        }\n```",
+      "metadata": {
+        "description": "User Profile Management",
+        "dependencies": [
+          "sol_1"
+        ],
+        "confidence_score": 0.9,
+        "solution_content": "```python\nfrom typing import Dict, Any, Optional\nfrom datetime import datetime\n\nclass UserProfile:\n    \"\"\"User profile data model.\"\"\"\n\n    def __init__(self, user_id: int):\n        self.user_id = user_id\n        self.email = None\n        self.full_name = None\n        self.preferences = {}\n        self.created_at = datetime.utcnow()\n        self.updated_at = datetime.utcnow()\n\n    def update_profile(self, data: Dict[str, Any]) -> None:\n        \"\"\"Update user profile fields.\"\"\"\n        for key, value in data.items():\n            if hasattr(self, key):\n                setattr(self, key, value)\n        self.updated_at = datetime.utcnow()\n\n    def to_dict(self) -> Dict[str, Any]:\n        \"\"\"Convert profile to dictionary.\"\"\"\n        return {\n            'user_id': self.user_id,\n            'email': self.email,\n            'full_name': self.full_name,\n            'preferences': self.preferences,\n            'created_at': self.created_at.isoformat(),\n            'updated_at': self.updated_at.isoformat()\n        }\n```"
+      },
+      "timestamp": 1768044539.4839659,
+      "source": "llm"
+    },
+    "sol_3": {
+      "sub_problem_id": "sol_3",
+      "description": "Role-Based Access Control",
+      "dependencies": [
+        "sol_1"
+      ],
+      "content_hash": "4dd496e4a9d8f5a14cecf25b0a22561b90a2c8801a3228b0ac892297c8922db7",
+      "solution_content": "```python\nfrom functools import wraps\nfrom typing import Callable, List\n\ndef require_roles(allowed_roles: List[str]):\n    \"\"\"Decorator to require specific roles for endpoint access.\"\"\"\n    def decorator(func: Callable):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            # Get token from request\n            token = get_token_from_request()\n            if not token:\n                return {'error': 'No token provided'}, 401\n\n            # Verify token and get user roles\n            payload = verify_token(token, SECRET_KEY)\n            if not payload:\n                return {'error': 'Invalid token'}, 401\n\n            user_roles = get_user_roles(payload['user_id'])\n            if not any(role in allowed_roles for role in user_roles):\n                return {'error': 'Insufficient permissions'}, 403\n\n            return func(*args, **kwargs)\n        return wrapper\n    return decorator\n```",
+      "metadata": {
+        "description": "Role-Based Access Control",
+        "dependencies": [
+          "sol_1"
+        ],
+        "confidence_score": 0.88,
+        "solution_content": "```python\nfrom functools import wraps\nfrom typing import Callable, List\n\ndef require_roles(allowed_roles: List[str]):\n    \"\"\"Decorator to require specific roles for endpoint access.\"\"\"\n    def decorator(func: Callable):\n        @wraps(func)\n        def wrapper(*args, **kwargs):\n            # Get token from request\n            token = get_token_from_request()\n            if not token:\n                return {'error': 'No token provided'}, 401\n\n            # Verify token and get user roles\n            payload = verify_token(token, SECRET_KEY)\n            if not payload:\n                return {'error': 'Invalid token'}, 401\n\n            user_roles = get_user_roles(payload['user_id'])\n            if not any(role in allowed_roles for role in user_roles):\n                return {'error': 'Insufficient permissions'}, 403\n\n            return func(*args, **kwargs)\n        return wrapper\n    return decorator\n```"
+      },
+      "timestamp": 1768044539.4849656,
+      "source": "llm"
+    }
+  }
+}

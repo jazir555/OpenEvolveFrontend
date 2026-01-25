@@ -1,0 +1,10 @@
+{
+  "checkpoint_id": "dot_viz_test_0_starting_20260124_073457_670483",
+  "problem_id": "dot_viz_test",
+  "timestamp": "2026-01-24T07:34:57.670483",
+  "level": 0,
+  "stage": "starting",
+  "state_size": 438,
+  "compressed": false,
+  "parent_checkpoint_id": null
+}

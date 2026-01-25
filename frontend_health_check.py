@@ -1,0 +1,282 @@
+#!/usr/bin/env python3
+"""
+OpenEvolve Frontend Health Check
+================================
+
+Quick health check for the Frontend directory migration status.
+Validates ONLY files in the Frontend directory, no external scanning.
+
+Usage:
+    python frontend_health_check.py
+"""
+
+import ast
+import sys
+from pathlib import Path
+from typing import Dict, List, Optional
+from dataclasses import dataclass, field
+
+
+@dataclass
+class HealthCheckResult:
+    """Results of health check"""
+    total_files: int = 0
+    syntax_valid: int = 0
+    syntax_errors: List[str] = field(default_factory=list)
+    imports_clean: int = 0
+    import_issues: List[Dict] = field(default_factory=list)
+    config_clean: int = 0
+    config_issues: List[Dict] = field(default_factory=list)
+    overall_health: float = 0.0
+
+
+def check_syntax(filepath: Path) -> tuple[bool, Optional[str]]:
+    """Check if file has valid Python syntax."""
+    try:
+        with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+            content = f.read()
+        ast.parse(content)
+        return True, None
+    except SyntaxError as e:
+        return False, str(e)
+
+
+def check_import_patterns(filepath: Path) -> List[Dict]:
+    """Check for problematic import patterns."""
+    issues = []
+
+    try:
+        with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+            lines = f.readlines()
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        return issues
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error: {e}", exc_info=True)
+
+    # Check for direct imports without guards
+    has_import_guards = False
+    uses_openevolve_imports = False
+
+    for i, line in enumerate(lines, 1):
+        # Check for centralized import system usage
+        if 'from openevolve_imports import' in line:
+            uses_openevolve_imports = True
+
+        # Check for availability guards
+        if 'EVOLUTION_AVAILABLE' in line or 'ADVERSARIAL_AVAILABLE' in line:
+            has_import_guards = True
+
+        # Direct evolution import without guard
+        if 'from evolution import' in line:
+            if not has_import_guards and not uses_openevolve_imports:
+                issues.append({
+                    'line': i,
+                    'type': 'direct_import',
+                    'severity': 'warning',
+                    'message': 'Direct evolution import without guard'
+                })
+
+        # Direct adversarial import without guard
+        if 'from adversarial import' in line:
+            if not has_import_guards and not uses_openevolve_imports:
+                issues.append({
+                    'line': i,
+                    'type': 'direct_import',
+                    'severity': 'warning',
+                    'message': 'Direct adversarial import without guard'
+                })
+
+    return issues
+
+
+def check_config_patterns(filepath: Path) -> List[Dict]:
+    """Check for configuration pattern issues."""
+    issues = []
+
+    try:
+        with open(filepath, 'r', encoding='utf-8', errors='ignore') as f:
+            lines = f.readlines()
+    except Exception as e:  # TODO: Catch specific exception instead of Exception
+        return issues
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Error: {e}", exc_info=True)
+
+    for i, line in enumerate(lines, 1):
+        # Check for ParameterManager usage
+        if 'ParameterManager()' in line and 'unified_configuration' not in line:
+            # Skip if it's in a comment or string
+            stripped = line.strip()
+            if not stripped.startswith('#') and 'ParameterManager()' in stripped:
+                issues.append({
+                    'line': i,
+                    'type': 'old_config',
+                    'severity': 'info',
+                    'message': 'Using ParameterManager instead of unified config'
+                })
+
+    return issues
+
+
+def run_health_check(frontend_dir: Path) -> HealthCheckResult:
+    """Run comprehensive health check on Frontend directory."""
+    result = HealthCheckResult()
+
+    # Exclude directories
+    exclude_dirs = {
+        '__pycache__', '.git', 'node_modules', '.venv', 'venv', 'env',
+        'site-packages', 'dist', 'build', '.pytest_cache', '.next',
+        'out', 'coverage', '.nyc_output', 'tmp', 'temp'
+    }
+
+    # Get all Python files
+    all_py_files = list(frontend_dir.rglob('*.py'))
+
+    # Filter out excluded directories
+    py_files = [
+        f for f in all_py_files
+        if not any(excluded in str(f) for excluded in exclude_dirs)
+    ]
+
+    result.total_files = len(py_files)
+
+    print(f"Scanning {result.total_files} Python files in {frontend_dir}...")
+    print("=" * 70)
+
+    for filepath in py_files:
+        rel_path = filepath.relative_to(frontend_dir)
+
+        # Check 1: Syntax
+        syntax_ok, syntax_error = check_syntax(filepath)
+        if syntax_ok:
+            result.syntax_valid += 1
+        else:
+            result.syntax_errors.append(f"{rel_path}:{syntax_error}")
+
+        # Check 2: Import patterns
+        import_issues = check_import_patterns(filepath)
+        if not import_issues:
+            result.imports_clean += 1
+        else:
+            for issue in import_issues:
+                issue['file'] = str(rel_path)
+                result.import_issues.append(issue)
+
+        # Check 3: Configuration patterns
+        config_issues = check_config_patterns(filepath)
+        if not config_issues:
+            result.config_clean += 1
+        else:
+            for issue in config_issues:
+                issue['file'] = str(rel_path)
+                result.config_issues.append(issue)
+
+    # Calculate overall health score
+    syntax_score = (result.syntax_valid / result.total_files * 100) if result.total_files > 0 else 100
+    imports_score = (result.imports_clean / result.total_files * 100) if result.total_files > 0 else 100
+    config_score = (result.config_clean / result.total_files * 100) if result.total_files > 0 else 100
+
+    result.overall_health = (syntax_score + imports_score + config_score) / 3
+
+    return result
+
+
+def print_health_report(result: HealthCheckResult):
+    """Print formatted health report."""
+    print("\n" + "=" * 70)
+    print("OPENEREVOLVE FRONTEND HEALTH CHECK REPORT")
+    print("=" * 70)
+
+    # Overall health
+    print(f"\nOVERALL HEALTH: {result.overall_health:.1f}%")
+    health_grade = "A" if result.overall_health >= 90 else "B" if result.overall_health >= 80 else "C"
+    print(f"   Grade: {health_grade}")
+    status = "HEALTHY" if result.overall_health >= 80 else "NEEDS ATTENTION"
+    print(f"   Status: {status}")
+
+    # Syntax check
+    print(f"\nSYNTAX VALIDATION")
+    print(f"   Valid: {result.syntax_valid}/{result.total_files}")
+    if result.syntax_errors:
+        print(f"   Errors: {len(result.syntax_errors)}")
+        print(f"\n   Syntax Errors:")
+        for error in result.syntax_errors[:5]:  # Show first 5
+            print(f"   - {error}")
+
+    # Import patterns
+    print(f"\nIMPORT PATTERNS")
+    print(f"   Clean: {result.imports_clean}/{result.total_files}")
+    if result.import_issues:
+        print(f"   Issues: {len(result.import_issues)}")
+        print(f"\n   Import Issues (showing first 5):")
+        for issue in result.import_issues[:5]:
+            print(f"   - {issue['file']}:{issue['line']}")
+            print(f"     {issue['message']}")
+
+    # Configuration patterns
+    print(f"\nCONFIGURATION PATTERNS")
+    print(f"   Clean: {result.config_clean}/{result.total_files}")
+    if result.config_issues:
+        print(f"   Issues: {len(result.config_issues)}")
+        print(f"\n   Configuration Issues (showing first 5):")
+        for issue in result.config_issues[:5]:
+            print(f"   - {issue['file']}:{issue['line']}")
+            print(f"     {issue['message']}")
+
+    # Summary
+    print("\n" + "=" * 70)
+    print("SUMMARY")
+    print("=" * 70)
+
+    total_issues = (
+        len(result.syntax_errors) +
+        len(result.import_issues) +
+        len(result.config_issues)
+    )
+
+    if total_issues == 0:
+        print("\n[PASS] All checks passed! Frontend is healthy.")
+    elif result.overall_health >= 90:
+        print(f"\n[PASS] Frontend is healthy with {total_issues} minor issues.")
+    elif result.overall_health >= 80:
+        print(f"\n[WARN] Frontend needs attention: {total_issues} issues found.")
+    else:
+        print(f"\n[FAIL] Frontend needs immediate attention: {total_issues} issues found.")
+
+    print("\n" + "=" * 70)
+
+
+def main():
+    """Main entry point."""
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
+
+    # Frontend directory
+    frontend_dir = Path(r'C:\Users\mmeadow\Documents\OpenEvolve\Frontend')
+
+    if not frontend_dir.exists():
+        print(f"Error: Frontend directory not found: {frontend_dir}")
+        sys.exit(1)
+
+    print(f"OpenEvolve Frontend Health Check")
+    print(f"Scanning: {frontend_dir}")
+    print()
+
+    # Run health check
+    result = run_health_check(frontend_dir)
+
+    # Print report
+    print_health_report(result)
+
+    # Exit with appropriate code
+    if result.overall_health >= 90:
+        sys.exit(0)  # Healthy
+    elif result.overall_health >= 80:
+        sys.exit(1)  # Warning
+    else:
+        sys.exit(2)  # Critical
+
+
+if __name__ == "__main__":
+    main()

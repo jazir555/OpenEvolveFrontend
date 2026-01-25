@@ -1,0 +1,182 @@
+{
+  "timestamp": "2026-01-22T11:28:25.016095+00:00",
+  "summary": {
+    "total_tests": 24,
+    "passed": 19,
+    "failed": 5,
+    "skipped": 0,
+    "duration_seconds": 21.123613119125366,
+    "success_rate": 79.16666666666666,
+    "coverage_estimate": 0.85
+  },
+  "tests": [
+    {
+      "name": "Quality Control Import",
+      "passed": true,
+      "duration_ms": 12.000083923339844,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Quality Control Checker Initialization",
+      "passed": true,
+      "duration_ms": 4.999876022338867,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Quality Control Code Smells",
+      "passed": true,
+      "duration_ms": 5.99217414855957,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Test Suite Import",
+      "passed": true,
+      "duration_ms": 218.72711181640625,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Test Suite Config",
+      "passed": true,
+      "duration_ms": 0.0,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Test Suite Creation",
+      "passed": true,
+      "duration_ms": 4.98509407043457,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Sovereign Persistence Import",
+      "passed": true,
+      "duration_ms": 203.0923366546631,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Sovereign Database Initialization",
+      "passed": true,
+      "duration_ms": 3.000020980834961,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Sovereign Database CRUD",
+      "passed": false,
+      "duration_ms": 1.9998550415039062,
+      "error_message": "QueryError: Problem insertion failed: Failed to get connection: no such table: problems",
+      "error_type": "AssertionError"
+    },
+    {
+      "name": "CrewAI State Import",
+      "passed": true,
+      "duration_ms": 0.0,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "CrewAI Workflow State Creation",
+      "passed": true,
+      "duration_ms": 0.0,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "CrewAI State Manager",
+      "passed": true,
+      "duration_ms": 11.534690856933594,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "CI/CD Pipeline Import",
+      "passed": false,
+      "duration_ms": 1.9996166229248047,
+      "error_message": "ci_cd_pipeline should have main class or function",
+      "error_type": "AssertionError"
+    },
+    {
+      "name": "Bridge Modules Exist",
+      "passed": true,
+      "duration_ms": 1.0004043579101562,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "CrewAI Bridge Import",
+      "passed": true,
+      "duration_ms": 35.99214553833008,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Database Connectivity",
+      "passed": false,
+      "duration_ms": 2.000093460083008,
+      "error_message": "QueryError: Analytics retrieval failed: Failed to get connection: no such table: problems",
+      "error_type": "AssertionError"
+    },
+    {
+      "name": "Workflow Integrations",
+      "passed": true,
+      "duration_ms": 20596.23670578003,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Environment Configuration",
+      "passed": true,
+      "duration_ms": 2.0143985748291016,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Logging Infrastructure",
+      "passed": true,
+      "duration_ms": 0.9920597076416016,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Async Support",
+      "passed": true,
+      "duration_ms": 13.03720474243164,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Pydantic Validation",
+      "passed": false,
+      "duration_ms": 0.0,
+      "error_message": "Invalid state should not pass validation",
+      "error_type": "AssertionError"
+    },
+    {
+      "name": "Type Hints Present",
+      "passed": false,
+      "duration_ms": 0.0,
+      "error_message": "CodeQualityChecker should have type annotations",
+      "error_type": "AssertionError"
+    },
+    {
+      "name": "Error Handling",
+      "passed": true,
+      "duration_ms": 1.0020732879638672,
+      "error_message": null,
+      "error_type": null
+    },
+    {
+      "name": "Coverage Estimation",
+      "passed": true,
+      "duration_ms": 0.0,
+      "error_message": null,
+      "error_type": null
+    }
+  ]
+}

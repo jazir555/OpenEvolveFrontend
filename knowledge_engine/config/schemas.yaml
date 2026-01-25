@@ -1,0 +1,292 @@
+# Schema Configuration for Knowledge Engine
+# Defines available schemas, their settings, and cross-project mappings
+
+# Default schema to use when none is specified
+default_schema: knowledge_engine
+
+# Schema definitions and their configurations
+schemas:
+  # Software Engineering Schema
+  software_engineering:
+    enabled: true
+    validation_strict: true
+    auto_mapping: true
+    description: "Schema for software engineering entities including code, dependencies, APIs, and bug patterns"
+    version: "1.0.0"
+
+    # Entity type configurations
+    entity_types:
+      CodeEntity:
+        extract: true
+        confidence_threshold: 0.7
+
+      DependencyEntity:
+        extract: true
+        confidence_threshold: 0.6
+
+      APISchema:
+        extract: true
+        confidence_threshold: 0.8
+
+      BugPattern:
+        extract: false  # Only extract if explicitly requested
+        confidence_threshold: 0.9
+
+    # Validation settings
+    validation:
+      check_orphans: true
+      check_duplicates: true
+      enforce_required: true
+
+  # Mathematical Reasoning Schema
+  mathematical_reasoning:
+    enabled: true
+    validation_strict: true
+    auto_mapping: true
+    description: "Schema for mathematical reasoning including theorems, concepts, techniques, and proofs"
+    version: "1.0.0"
+
+    entity_types:
+      TheoremEntity:
+        extract: true
+        confidence_threshold: 0.8
+
+      ConceptEntity:
+        extract: true
+        confidence_threshold: 0.7
+
+      TechniqueEntity:
+        extract: true
+        confidence_threshold: 0.7
+
+      ProofStepEntity:
+        extract: false
+        confidence_threshold: 0.9
+
+    validation:
+      check_orphans: true
+      check_duplicates: true
+      enforce_required: true
+
+  # Workflow/Provenance Schema
+  workflow_provenance:
+    enabled: true
+    validation_strict: false  # Less strict for workflow tracking
+    auto_mapping: true
+    description: "Schema for workflow and provenance tracking"
+    version: "1.0.0"
+
+    entity_types:
+      WorkflowEntity:
+        extract: true
+        confidence_threshold: 0.8
+
+      TaskEntity:
+        extract: true
+        confidence_threshold: 0.7
+
+      AgentEntity:
+        extract: true
+        confidence_threshold: 0.9
+
+      ExecutionEntity:
+        extract: true
+        confidence_threshold: 0.9
+
+    validation:
+      check_orphans: false  # Workflows may have incomplete data
+      check_duplicates: true
+      enforce_required: false
+
+# Cross-project entity mappings
+mappings:
+  # Knowledge Engine to Graphiti mappings
+  knowledge_engine_to_graphiti:
+    enabled: true
+    auto_apply: true
+    description: "Map Knowledge Engine entities to Graphiti schema"
+
+    # Entity type mappings
+    entity_mappings:
+      CodeEntity: Activity
+      DependencyEntity: Relation
+      APISchema: Activity
+      TheoremEntity: Requirement
+      ConceptEntity: Requirement
+      TechniqueEntity: Procedure
+      ProofStepEntity: Activity
+      WorkflowEntity: Document
+      TaskEntity: Activity
+      AgentEntity: Organization
+      ExecutionEntity: Event
+
+  # Graphiti to Knowledge Engine mappings
+  graphiti_to_knowledge_engine:
+    enabled: true
+    auto_apply: true
+    description: "Map Graphiti entities to Knowledge Engine schema"
+
+    entity_mappings:
+      Activity: CodeEntity
+      Relation: DependencyEntity
+      Requirement: TheoremEntity
+      Procedure: TechniqueEntity
+      Document: WorkflowEntity
+      Event: ExecutionEntity
+      Organization: AgentEntity
+
+  # Knowledge Engine to OneKE mappings
+  knowledge_engine_to_oneke:
+    enabled: true
+    auto_apply: false  # Manual application
+    description: "Map Knowledge Engine entities to OneKE schema"
+
+    entity_mappings:
+      CodeEntity: Class
+      DependencyEntity: Relation
+      APISchema: Method
+      TheoremEntity: Concept
+      ConceptEntity: Concept
+      TechniqueEntity: Method
+      WorkflowEntity: Process
+      TaskEntity: Activity
+      AgentEntity: Actor
+      ExecutionEntity: Event
+
+  # OneKE to Knowledge Engine mappings
+  oneke_to_knowledge_engine:
+    enabled: true
+    auto_apply: false
+    description: "Map OneKE entities to Knowledge Engine schema"
+
+    entity_mappings:
+      Class: CodeEntity
+      Relation: DependencyEntity
+      Method: CodeEntity
+      Concept: ConceptEntity
+      Process: WorkflowEntity
+      Activity: TaskEntity
+      Actor: AgentEntity
+      Event: ExecutionEntity
+
+  # OpenEvolve to Neo4j mappings
+  openevolve_to_neo4j:
+    enabled: true
+    auto_apply: false
+    description: "Map OpenEvolve entities to Neo4j property graph model"
+
+    entity_mappings:
+      CodeEntity: Node
+      DependencyEntity: Relationship
+      APISchema: Node
+      BugPattern: Node
+      TheoremEntity: Node
+      ConceptEntity: Node
+      TechniqueEntity: Node
+      ProofStepEntity: Node
+      WorkflowEntity: Node
+      TaskEntity: Node
+      AgentEntity: Node
+      ExecutionEntity: Node
+
+# Cross-domain integration settings
+cross_domain:
+  enabled: true
+
+  # Which domains can be merged
+  mergeable_domains:
+    - software_engineering
+    - mathematical_reasoning
+    - workflow_provenance
+
+  # Merge strategies
+  merge_strategy: "union"  # Options: union, intersection, prefer_first, prefer_second
+
+  # Entity ID deconfliction
+  id_deconfliction: "prefix"  # Options: prefix, suffix, hash, uuid
+
+  # Property merge strategy
+  property_merge: "deep_merge"  # Options: overwrite, deep_merge, keep_both
+
+# Validation settings
+validation:
+  # Global validation strictness
+  strict_mode: false
+
+  # Enable schema validation on entity creation
+  auto_validate: true
+
+  # Validation failure action: error, warning, ignore
+  on_validation_failure: warning
+
+  # Enable consistency checks
+  consistency_checks:
+    - check_duplicate_ids
+    - check_orphaned_entities
+    - check_circular_relationships
+    - check_missing_properties
+
+# Performance settings
+performance:
+  # Batch size for entity validation
+  validation_batch_size: 100
+
+  # Enable schema caching
+  cache_schemas: true
+
+  # Cache size (number of schemas)
+  cache_size: 10
+
+  # Enable lazy loading of schemas
+  lazy_loading: false
+
+# Logging settings
+logging:
+  # Log schema operations
+  log_operations: true
+
+  # Log validation results
+  log_validation: true
+
+  # Log mapping operations
+  log_mappings: true
+
+  # Log level: debug, info, warning, error
+  level: info
+
+# Schema evolution and migration
+evolution:
+  # Automatic schema migration
+  auto_migrate: false
+
+  # Schema version checking
+  check_versions: true
+
+  # Backup schemas before migration
+  backup_before_migration: true
+
+  # Migration backup location
+  backup_location: "knowledge_engine/config/schema_backups"
+
+# Integration settings
+integration:
+  # Graphiti integration
+  graphiti:
+    enabled: false
+    endpoint: "http://localhost:8000"
+    auto_sync: false
+    sync_interval: 300  # seconds
+
+  # OneKE integration
+  oneke:
+    enabled: false
+    endpoint: "http://localhost:8001"
+    auto_sync: false
+    sync_interval: 300
+
+  # Neo4j integration
+  neo4j:
+    enabled: false
+    uri: "bolt://localhost:7687"
+    auto_sync: false
+    sync_interval: 60

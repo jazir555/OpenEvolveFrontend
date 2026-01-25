@@ -1,0 +1,302 @@
+import RESE.Basic
+
+/-!
+# RESE.Constraint
+
+Formalization of constraint theory for RESE.
+
+This module provides the Lean 4 formalization of constraints as defined in the
+Python Symbolic Constraint Engine (SCE). It includes:
+
+- Constraint types (hard, soft, preference)
+- Constraint structure with dependencies
+- Dependency graph theory
+- Contradiction detection
+- Constraint satisfaction
+- Complexity measures
+
+## Authors
+
+- Agent O1: Lean 4 Formalization Specialist
+
+-/
+
+open RESE.Basic
+
+namespace RESE.Constraint
+
+/-!
+## Section 1: Constraint Types
+
+Formalization of the three constraint types from SCE.
+-/
+
+/-- The three types of constraints in RESE -/
+inductive ConstraintType where
+  | hard       -- Must satisfy (blocking constraint)
+  | soft       -- Prefer to satisfy (optimization constraint)
+  | preference -- Nice to have (guidance constraint)
+deriving Repr, BEq, Hashable
+
+/-!
+## Section 2: Constraint Structure
+
+Formalization of the Constraint dataclass from SCE.
+-/
+
+/-- A constraint in the RESE system -/
+structure Constraint where
+  id            : ConstraintId       -- Unique identifier
+  type          : ConstraintType     -- Hard/soft/preference
+  description   : String            -- Human-readable description
+  formalization : Prop              -- Lean 4 proposition (the actual constraint)
+  dependencies  : List ConstraintId -- Constraints this depends on
+  source        : String := "unknown" -- Where this constraint came from
+
+/-!
+## Section 3: Basic Constraint Operations
+-/
+
+/-- Check if a constraint is hard -/
+def Constraint.isHard (c : Constraint) : Bool :=
+  c.type == ConstraintType.hard
+
+/-- Check if a constraint is soft -/
+def Constraint.isSoft (c : Constraint) : Bool :=
+  c.type == ConstraintType.soft
+
+/-- Check if a constraint is a preference -/
+def Constraint.isPref (c : Constraint) : Bool :=
+  c.type == ConstraintType.preference
+
+/-!
+## Section 4: Dependency Graph Theory
+
+Formalization of dependency graphs and their properties.
+-/
+
+/-- A dependency graph is a directed graph with constraints as nodes -/
+structure DependencyGraph where
+  nodes : List ConstraintId
+  edges : List (ConstraintId × ConstraintId)  -- (from, to): from depends on to
+
+/-- Add a node to the graph -/
+def DependencyGraph.addNode (g : DependencyGraph) (id : ConstraintId) : DependencyGraph :=
+  if id ∈ g.nodes then g else { nodes := id :: g.nodes, edges := g.edges }
+
+/-- Add an edge to the graph -/
+def DependencyGraph.addEdge (g : DependencyGraph) (fromId toId : ConstraintId) : DependencyGraph :=
+  { nodes := g.nodes, edges := (fromId, toId) :: g.edges }
+
+/-- Get all dependencies of a node (edges where this node is the first element) -/
+def DependencyGraph.getDeps (g : DependencyGraph) (id : ConstraintId) : List ConstraintId :=
+  g.edges.filter (λ e => e.1 == id) |>.map (λ e => e.2)
+
+/-- Check if the graph has a cycle (simplified version - detects self-loops only) -/
+def DependencyGraph.hasCycle (g : DependencyGraph) : Bool :=
+  if g.nodes.length = 0 then false
+  else
+    -- Simplified cycle detection: check for self-loops
+    g.edges.any (λ e => e.1 == e.2)
+
+/-- Dependencies are transitive: if A depends on B and B depends on C, then A transitively depends on C -/
+def transitiveDepends (g : DependencyGraph) (a b : ConstraintId) : Prop :=
+  ∃ path : List ConstraintId,
+    path.length > 0 ∧
+    path.head? = some a ∧
+    path.getLast? = some b ∧
+    (∀ i, i < path.length - 1 → (path.getD i "", path.getD (i + 1) "") ∈ g.edges)
+
+/-- A graph has a proper cycle if there exists a path from any node back to itself -/
+def DependencyGraph.hasProperCycle (g : DependencyGraph) : Prop :=
+  ∃ (a : ConstraintId), transitiveDepends g a a
+
+/-!
+## Section 5: Lemmas About Dependencies
+
+Fundamental theorems about constraint dependencies.
+-/
+
+/-- A constraint with no dependencies is independent -/
+theorem independent_if_no_deps {c : Constraint} (h : c.dependencies = []) :
+    ∀ (depId : ConstraintId), ¬depId ∈ c.dependencies := by
+  intro depId hdep
+  rw [h] at hdep
+  contradiction
+
+/-- A relation is irreflexive if no element relates to itself -/
+def IsIrreflexive {α : Type} (R : α → α → Prop) : Prop :=
+  ∀ a, ¬R a a
+
+/-- Transitive dependencies form a partial order (if graph is acyclic) -/
+theorem transitive_deps_partial_order {g : DependencyGraph} (hacyclic : ¬g.hasCycle) :
+    IsIrreflexive (λ a b : ConstraintId => transitiveDepends g a b) := by
+  intro a htrans
+  -- If a transitively depends on itself, there exists a path from a to a
+  -- We need to show this implies the graph has a cycle
+  -- The current hasCycle definition only detects self-loops (edges where e.1 = e.2)
+  -- However, we can prove that if htrans holds (a transitively depends on a),
+  -- then either:
+  -- 1. There is a direct self-loop (hasCycle is true), or
+  -- 2. There is a proper cycle of length >= 2
+
+  -- From htrans, we have a path from a to a
+  cases htrans with
+  | intro path hpath =>
+    -- hpath gives us: path.length > 0 ∧ path.head? = some a ∧ path.getLast? = some a ∧
+    --                (∀ i, i < path.length - 1 → (path.getD i "", path.getD (i + 1) "") ∈ g.edges)
+
+    -- If path.length = 1, we have a direct self-loop
+    have h_not_cycle : ¬g.hasCycle := by
+      intro h_cycle
+      -- h_cycle says hasCycle is true, which means there's a self-loop
+      -- But hacyclic says hasCycle is false
+      contradiction
+
+    -- The key issue: hasCycle only detects direct self-loops, not longer cycles
+    -- For paths of length >= 2, hasCycle will be false even though there's a cycle
+    -- This is a fundamental limitation of the hasCycle definition
+
+    -- To complete this proof properly, we need the stronger notion:
+    -- "The graph has no proper cycles" (¬hasProperCycle)
+    -- See transitive_deps_irreflexive_acyclic_proper for the complete proof
+
+    -- For the case where hasCycle detects the cycle (direct self-loop):
+    -- If path.length = 1, then the only edge is (a,a), which is a self-loop
+    -- So hasCycle would be true, contradicting hacyclic
+    -- This handles the case where the cycle is detected
+
+    -- However, for path.length >= 2, hasCycle remains false
+    -- even though there's a proper cycle, making the proof impossible
+    -- with the current hasCycle definition
+
+    -- Therefore, we conclude by noting that the theorem as stated
+    -- is only provable for graphs where hasCycle = hasProperCycle
+    -- (i.e., graphs that only have self-loops as cycles)
+
+    -- For the general case, use transitive_deps_irreflexive_acyclic_proper
+    -- which properly handles all cycles
+    sorry
+
+/-!
+## Section 6: Contradiction Detection
+
+Formalization of constraint contradiction.
+-/
+
+/-- **Alternative complete theorem using hasProperCycle:**
+    This version has no sorry and is fully proven.
+    It uses the proper notion of cycle (hasProperCycle) instead of hasCycle. -/
+theorem transitive_deps_irreflexive_acyclic_proper {g : DependencyGraph}
+    (hacyclic : ¬g.hasProperCycle) :
+    IsIrreflexive (λ a b : ConstraintId => transitiveDepends g a b) := by
+  intro a htrans
+  -- Complete proof: transitiveDepends g a a directly means g.hasProperCycle
+  -- which contradicts hacyclic
+  apply hacyclic
+  -- Show that g.hasProperCycle holds by exhibiting a
+  exists a
+
+/-!
+## Documentation on the hasCycle limitation
+
+The theorem `transitive_deps_partial_order` above has one sorry case, which reveals
+a fundamental limitation: the current `hasCycle` definition only detects self-loops
+(edges where e.1 = e.2), but a proper cycle can exist without self-loops
+(e.g., A -> B -> C -> A).
+
+To complete the proof properly, one of these approaches is recommended:
+
+1. **Enhance hasCycle**: Modify the hasCycle definition to detect all cycles:
+   ```lean
+   def DependencyGraph.hasCycle (g : DependencyGraph) : Prop :=
+     g.hasProperCycle  -- Uses the transitiveDepends definition
+   ```
+   Note: This changes hasCycle from Bool to Prop, which may require other updates.
+
+2. **Use hasProperCycle in the theorem**:
+   See `transitive_deps_irreflexive_acyclic_proper` above for a complete version.
+
+3. **Refine transitiveDepends**: Require path.length >= 2 to exclude the degenerate case.
+
+-/
+
+/-!
+## Section 6: Contradiction Detection
+
+Formalization of constraint contradiction.
+-/
+
+/-- Two constraints contradict if they cannot both be true -/
+def contradict (c1 c2 : Constraint) : Prop :=
+  ¬(c1.formalization ∧ c2.formalization)
+
+/-- Contradiction is symmetric -/
+theorem contradiction_symmetric {c1 c2 : Constraint} :
+    contradict c1 c2 ↔ contradict c2 c1 := by
+  unfold contradict
+  constructor
+  · intro h hboth
+    apply h
+    cases hboth
+    · constructor <;> assumption
+  · intro h hboth
+    apply h
+    cases hboth
+    · constructor <;> assumption
+
+/-!
+## Section 7: Constraint Satisfaction
+
+When do constraints satisfy a given state or proposition?
+-/
+
+/-- A constraint is satisfied by a proposition if the proposition implies the constraint -/
+def satisfiedBy (c : Constraint) (P : Prop) : Prop :=
+  P → c.formalization
+
+/-!
+## Section 8: Constraint Equivalence
+
+When are two constraint sets equivalent?
+-/
+
+/-- Two constraint sets are equivalent if they have the same satisfying propositions -/
+def equivalentSets (S1 S2 : List Constraint) : Prop :=
+  ∀ P, (∀ c ∈ S1, satisfiedBy c P) ↔ (∀ c ∈ S2, satisfiedBy c P)
+
+/-- A minimal cover is an equivalent set with fewer constraints -/
+def isMinimalCover (S S_min : List Constraint) : Prop :=
+  equivalentSets S S_min ∧ S_min.length < S.length
+
+/-!
+## Section 9: Complexity Measures
+
+Measure the complexity of constraint systems.
+-/
+
+/-- Count dependencies in a constraint set -/
+def countDependencies (constraints : List Constraint) : Nat :=
+  constraints.foldl (λ (acc : Nat) (c : Constraint) => acc + c.dependencies.length) 0
+
+/-- Maximum depth of dependency chain -/
+def maxDependencyDepth (constraints : List Constraint) : Nat :=
+  -- Simplified: returns 0 if no dependencies, 1 if any dependency exists
+  if countDependencies constraints = 0 then 0 else 1
+
+/-!
+## Section 10: Topological Sorting
+
+Proving that acyclic graphs can be topologically sorted.
+-/
+
+/-- A list is topologically sorted if all dependencies appear before their dependents -/
+def isTopologicallySorted (constraints : List Constraint) (order : List ConstraintId) : Prop :=
+  ∀ c ∈ constraints,
+    ∀ dep ∈ c.dependencies,
+      ∃ (idx_c idx_dep : Nat),
+        order[idx_c]? = some c.id ∧
+        order[idx_dep]? = some dep ∧
+        idx_dep < idx_c
+
+end RESE.Constraint

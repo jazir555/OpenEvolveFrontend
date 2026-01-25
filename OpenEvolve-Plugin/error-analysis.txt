@@ -1,0 +1,16 @@
+# TypeScript Error Analysis
+
+## Error Code Breakdown:
+
+TS2339 (366 errors): Property does not exist on type
+TS2484 (222 errors): Export declaration conflicts with exported declaration  
+TS2323 (72 errors): Cannot redeclare exported variable
+TS2322 (71 errors): Type is not assignable to type
+TS2304 (67 errors): Cannot find name/module
+TS2307 (53 errors): Cannot find module
+TS18004 (38 errors): No value exists in scope for shorthand property
+TS1205 (36 errors): Module has no exported member
+TS2353 (29 errors): Object literal may only specify known properties
+TS2551 (14 errors): Property does not exist on type (suggesting alternatives)
+TS2560 (13 errors): Value of type is not callable
+TS2724 (12 errors): Module has no exported member (suggesting alternatives)

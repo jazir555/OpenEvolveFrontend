@@ -1,0 +1,66 @@
+{
+  "problem": {
+    "id": "complex_viz_test",
+    "statement": "Complex hierarchy for visualization",
+    "subproblems": [
+      {
+        "id": "branch_1",
+        "statement": "Branch 1",
+        "subproblems": [
+          {
+            "id": "branch_1_1",
+            "statement": "Branch 1.1",
+            "subproblems": [
+              {
+                "id": "branch_1_1_1",
+                "statement": "Branch 1.1.1"
+              },
+              {
+                "id": "branch_1_1_2",
+                "statement": "Branch 1.1.2"
+              }
+            ]
+          },
+          {
+            "id": "branch_1_2",
+            "statement": "Branch 1.2"
+          }
+        ]
+      },
+      {
+        "id": "branch_2",
+        "statement": "Branch 2",
+        "subproblems": [
+          {
+            "id": "branch_2_1",
+            "statement": "Branch 2.1"
+          },
+          {
+            "id": "branch_2_2",
+            "statement": "Branch 2.2"
+          },
+          {
+            "id": "branch_2_3",
+            "statement": "Branch 2.3"
+          }
+        ]
+      },
+      {
+        "id": "branch_3",
+        "statement": "Branch 3"
+      }
+    ]
+  },
+  "context": {
+    "level": 0,
+    "stage": "starting"
+  },
+  "solutions": {},
+  "decomposition_tree": null,
+  "execution_status": {},
+  "metrics": {},
+  "metadata": {
+    "checkpoint_count": 0
+  },
+  "serialized_at": "2026-01-24T07:35:05.933563"
+}

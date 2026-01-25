@@ -1,0 +1,132 @@
+{
+  "schema_name": "general_extraction",
+  "schema_type": "entity_extraction",
+  "description": "General-purpose schema for bilingual entity and relation extraction",
+  "version": "1.0",
+  "languages": ["en", "zh"],
+  "entity_types": [
+    {
+      "type": "PERSON",
+      "description": "Person, including individuals",
+      "examples_en": ["Steve Jobs", "Barack Obama"],
+      "examples_zh": ["史蒂夫·乔布斯", "巴拉克·奥巴马"]
+    },
+    {
+      "type": "ORGANIZATION",
+      "description": "Companies, institutions, organizations",
+      "examples_en": ["Apple Inc.", "Microsoft", "Google"],
+      "examples_zh": ["苹果公司", "微软", "谷歌"]
+    },
+    {
+      "type": "LOCATION",
+      "description": "Geographical locations, cities, countries",
+      "examples_en": ["San Francisco", "United States", "New York"],
+      "examples_zh": ["旧金山", "美国", "纽约"]
+    },
+    {
+      "type": "PRODUCT",
+      "description": "Products, services, applications",
+      "examples_en": ["iPhone", "Windows", "Android"],
+      "examples_zh": ["iPhone", "Windows", "安卓"]
+    },
+    {
+      "type": "EVENT",
+      "description": "Named events, conferences, meetings",
+      "examples_en": ["WWDC", "CES", "Olympic Games"],
+      "examples_zh": ["WWDC", "CES", "奥运会"]
+    },
+    {
+      "type": "DATE",
+      "description": "Dates, times, durations",
+      "examples_en": ["January 9, 2007", "2025-01-08", "Q4 2024"],
+      "examples_zh": ["2007年1月9日", "2025-01-08", "2024年第四季度"]
+    },
+    {
+      "type": "MONEY",
+      "description": "Monetary values, currency amounts",
+      "examples_en": ["$1 billion", "¥100 million", "€50"],
+      "examples_zh": ["10亿美元", "1亿人民币", "50欧元"]
+    }
+  ],
+  "relation_types": [
+    {
+      "type": "WORKS_FOR",
+      "description": "Employment relationship",
+      "inverse": "EMPLOYS",
+      "examples_en": ["Steve Jobs WORKS_FOR Apple"],
+      "examples_zh": ["史蒂夫·乔布斯 工作于 苹果公司"]
+    },
+    {
+      "type": "FOUNDED_BY",
+      "description": "Founder relationship",
+      "inverse": "FOUNDED",
+      "examples_en": ["Apple FOUNDED_BY Steve Jobs"],
+      "examples_zh": ["苹果公司 由 史蒂夫·乔布斯 创立"]
+    },
+    {
+      "type": "LOCATED_IN",
+      "description": "Location containment",
+      "inverse": "CONTAINS",
+      "examples_en": ["Apple LOCATED_IN Cupertino"],
+      "examples_zh": ["苹果公司 位于 库比蒂诺"]
+    },
+    {
+      "type": "ACQUIRED",
+      "description": "Acquisition relationship",
+      "inverse": "ACQUIRED_BY",
+      "examples_en": ["Microsoft ACQUIRED LinkedIn"],
+      "examples_zh": ["微软 收购 了 领英"]
+    },
+    {
+      "type": "LAUNCHED",
+      "description": "Product launch",
+      "inverse": "LAUNCHED_BY",
+      "examples_en": ["Apple LAUNCHED iPhone"],
+      "examples_zh": ["苹果公司 发布 了 iPhone"]
+    },
+    {
+      "type": "PARTNERED_WITH",
+      "description": "Partnership relationship",
+      "inverse": "PARTNERED_WITH",
+      "examples_en": ["Google PARTNERED_WITH NASA"],
+      "examples_zh": ["谷歌 与 NASA 合作"]
+    }
+  ],
+  "event_types": [
+    {
+      "type": "ACQUISITION",
+      "description": "Company acquisition or merger",
+      "triggers_en": ["acquired", "bought", "purchased", "merged", "acquisition"],
+      "triggers_zh": ["收购", "并购", "收购了", "合并"],
+      "arguments": ["subject", "object", "time", "location", "amount"]
+    },
+    {
+      "type": "LAUNCH",
+      "description": "Product or service launch",
+      "triggers_en": ["launched", "released", "introduced", "announced", "unveiled"],
+      "triggers_zh": ["发布", "推出", "宣布", "亮相"],
+      "arguments": ["subject", "object", "time", "location"]
+    },
+    {
+      "type": "APPOINTMENT",
+      "description": "Person appointment to position",
+      "triggers_en": ["appointed", "named", "hired", "joined"],
+      "triggers_zh": ["任命", "聘用", "加入"],
+      "arguments": ["subject", "position", "organization", "time"]
+    },
+    {
+      "type": "LEGAL",
+      "description": "Legal proceedings, lawsuits",
+      "triggers_en": ["sued", "lawsuit", "litigation", "court"],
+      "triggers_zh": ["起诉", "诉讼", "法庭"],
+      "arguments": ["plaintiff", "defendant", "time", "location", "reason"]
+    }
+  ],
+  "extraction_rules": {
+    "minimum_confidence": 0.6,
+    "max_entities_per_document": 100,
+    "max_relations_per_document": 150,
+    "require_entity_types": true,
+    "allow_overlapping_entities": false
+  }
+}

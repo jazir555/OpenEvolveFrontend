@@ -1,0 +1,16 @@
+# Prometheus configuration for collecting metrics from Jaeger
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'jaeger'
+    static_configs:
+      - targets: ['jaeger:16686']  # Jaeger UI metrics endpoint
+        labels:
+          service: 'jaeger'
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

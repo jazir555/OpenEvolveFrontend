@@ -1,0 +1,5 @@
+Problem Hierarchy Tree (4 nodes, 1 levels)
+└── test_problem [⏳pending]
+    ├── child_1 [⏳pending]
+    │   └── grandchild_1 [⏳pending]
+    └── child_2 [⏳pending]

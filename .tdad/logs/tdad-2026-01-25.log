@@ -1,0 +1,67 @@
+
+================================================================================
+TDAD Session Started: 2026-01-25T04:36:07.537Z
+================================================================================
+[2026-01-25T04:36:07.710Z] [EXTENSION] 🚀 TDAD extension is now ACTIVATED! Version with comprehensive logging
+[2026-01-25T04:36:07.711Z] [EXTENSION] 📁 Log file location: c:\Users\mmeadow\Documents\OpenEvolve\Frontend\.tdad\logs\tdad-2026-01-25.log
+[2026-01-25T04:36:07.711Z] [EXTENSION] 📊 Workspace folders: c:\Users\mmeadow\Documents\OpenEvolve\Frontend
+[2026-01-25T04:36:07.712Z] [EXTENSION] Creating WorkflowController...
+[2026-01-25T04:36:07.714Z] [EXTENSION] MVP: Using simple JSON storage (.tdad/workflows/workflow.json)
+[2026-01-25T04:36:07.715Z] [EXTENSION] TDAD Extension activated successfully
+[2026-01-25T04:36:07.715Z] [EXTENSION] Registering commands...
+[2026-01-25T04:36:07.801Z] [EXTENSION] TDAD structure already initialized
+[2026-01-25T04:36:07.801Z] [EXTENSION] Auto-opening TDAD Canvas...
+[2026-01-25T04:36:07.803Z] [CANVAS] Sprint 13: Agent Orchestrator initialized
+[2026-01-25T04:36:07.804Z] [CANVAS] [AUTOPILOT DEBUG] Loading beta code from config: none
+[2026-01-25T04:36:07.805Z] [CANVAS] [AUTOPILOT DEBUG] Sending autopilot settings with loadNodes: no
+[2026-01-25T04:36:07.917Z] [CANVAS] WEBVIEW
+Data: Using stylesheets: index-CqP4kAre.css
+[2026-01-25T04:36:07.918Z] [CANVAS] MVP: Canvas initialized with simple JSON storage
+[2026-01-25T04:36:08.471Z] [CANVAS] [FitView] isLoading=true, nodes.length=0, folderId=null
+[2026-01-25T04:36:08.767Z] [CANVAS] [FitView] isLoading=false, nodes.length=0, folderId=null
+[2026-01-25T04:41:55.122Z] [EXTENSION] Blueprint workflow changed (suppressed - internal save): c:\Users\mmeadow\Documents\OpenEvolve\Frontend\.tdad\workflows\root.workflow.json
+
+================================================================================
+TDAD Session Started: 2026-01-25T04:49:36.277Z
+================================================================================
+[2026-01-25T04:49:36.386Z] [EXTENSION] 🚀 TDAD extension is now ACTIVATED! Version with comprehensive logging
+[2026-01-25T04:49:36.387Z] [EXTENSION] 📁 Log file location: c:\Users\mmeadow\Documents\OpenEvolve\Frontend\.tdad\logs\tdad-2026-01-25.log
+[2026-01-25T04:49:36.387Z] [EXTENSION] 📊 Workspace folders: c:\Users\mmeadow\Documents\OpenEvolve\Frontend
+[2026-01-25T04:49:36.387Z] [EXTENSION] Creating WorkflowController...
+[2026-01-25T04:49:36.388Z] [EXTENSION] MVP: Using simple JSON storage (.tdad/workflows/workflow.json)
+[2026-01-25T04:49:36.388Z] [EXTENSION] TDAD Extension activated successfully
+[2026-01-25T04:49:36.388Z] [EXTENSION] Registering commands...
+[2026-01-25T04:49:36.437Z] [EXTENSION] TDAD structure already initialized
+[2026-01-25T04:49:36.438Z] [EXTENSION] Auto-opening TDAD Canvas...
+[2026-01-25T04:49:36.440Z] [CANVAS] Sprint 13: Agent Orchestrator initialized
+[2026-01-25T04:49:36.441Z] [CANVAS] [AUTOPILOT DEBUG] Loading beta code from config: none
+[2026-01-25T04:49:36.441Z] [CANVAS] [AUTOPILOT DEBUG] Sending autopilot settings with loadNodes: no
+[2026-01-25T04:49:37.469Z] [CANVAS] WEBVIEW
+Data: Using stylesheets: index-CqP4kAre.css
+[2026-01-25T04:49:37.470Z] [CANVAS] MVP: Canvas initialized with simple JSON storage
+[2026-01-25T04:49:37.798Z] [CANVAS] [FitView] isLoading=true, nodes.length=0, folderId=null
+[2026-01-25T04:49:37.799Z] [CANVAS] [AUTOPILOT DEBUG] Loading beta code from config: none
+[2026-01-25T04:49:37.799Z] [CANVAS] [AUTOPILOT DEBUG] Sending autopilot settings with loadNodes: no
+[2026-01-25T04:49:38.185Z] [CANVAS] [FitView] isLoading=false, nodes.length=0, folderId=null
+[2026-01-25T04:49:42.543Z] [EXTENSION] Blueprint workflow changed (suppressed - internal save): c:\Users\mmeadow\Documents\OpenEvolve\Frontend\.tdad\workflows\root.workflow.json
+
+================================================================================
+TDAD Session Started: 2026-01-25T06:25:07.385Z
+================================================================================
+[2026-01-25T06:25:07.500Z] [EXTENSION] 🚀 TDAD extension is now ACTIVATED! Version with comprehensive logging
+[2026-01-25T06:25:07.500Z] [EXTENSION] 📁 Log file location: c:\Users\mmeadow\Documents\OpenEvolve\Frontend\.tdad\logs\tdad-2026-01-25.log
+[2026-01-25T06:25:07.500Z] [EXTENSION] 📊 Workspace folders: c:\Users\mmeadow\Documents\OpenEvolve\Frontend
+[2026-01-25T06:25:07.501Z] [EXTENSION] Creating WorkflowController...
+[2026-01-25T06:25:07.501Z] [EXTENSION] MVP: Using simple JSON storage (.tdad/workflows/workflow.json)
+[2026-01-25T06:25:07.501Z] [EXTENSION] TDAD Extension activated successfully
+[2026-01-25T06:25:07.501Z] [EXTENSION] Registering commands...
+[2026-01-25T06:25:07.719Z] [EXTENSION] TDAD structure already initialized
+[2026-01-25T06:25:07.720Z] [EXTENSION] Auto-opening TDAD Canvas...
+[2026-01-25T06:25:07.721Z] [CANVAS] Sprint 13: Agent Orchestrator initialized
+[2026-01-25T06:25:07.723Z] [CANVAS] [AUTOPILOT DEBUG] Loading beta code from config: none
+[2026-01-25T06:25:07.723Z] [CANVAS] [AUTOPILOT DEBUG] Sending autopilot settings with loadNodes: no
+[2026-01-25T06:25:07.863Z] [CANVAS] WEBVIEW
+Data: Using stylesheets: index-CqP4kAre.css
+[2026-01-25T06:25:07.864Z] [CANVAS] MVP: Canvas initialized with simple JSON storage
+[2026-01-25T06:25:07.967Z] [CANVAS] [FitView] isLoading=true, nodes.length=0, folderId=null
+[2026-01-25T06:25:08.750Z] [CANVAS] [FitView] isLoading=false, nodes.length=0, folderId=null

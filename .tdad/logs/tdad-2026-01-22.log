@@ -1,0 +1,25 @@
+
+================================================================================
+TDAD Session Started: 2026-01-22T23:48:13.935Z
+================================================================================
+[2026-01-22T23:48:13.993Z] [EXTENSION] 🚀 TDAD extension is now ACTIVATED! Version with comprehensive logging
+[2026-01-22T23:48:13.993Z] [EXTENSION] 📁 Log file location: c:\Users\mmeadow\Documents\OpenEvolve\Frontend\.tdad\logs\tdad-2026-01-22.log
+[2026-01-22T23:48:13.994Z] [EXTENSION] 📊 Workspace folders: c:\Users\mmeadow\Documents\OpenEvolve\Frontend
+[2026-01-22T23:48:13.994Z] [EXTENSION] Creating WorkflowController...
+[2026-01-22T23:48:14.000Z] [EXTENSION] MVP: Using simple JSON storage (.tdad/workflows/workflow.json)
+[2026-01-22T23:48:14.000Z] [EXTENSION] TDAD Extension activated successfully
+[2026-01-22T23:48:14.000Z] [EXTENSION] Registering commands...
+[2026-01-22T23:48:14.005Z] [EXTENSION] TDAD structure already initialized
+[2026-01-22T23:48:14.005Z] [EXTENSION] Auto-opening TDAD Canvas...
+[2026-01-22T23:48:14.007Z] [CANVAS] Created directory: c:\Users\mmeadow\Documents\OpenEvolve\Frontend\.tdad\workflows
+[2026-01-22T23:48:14.007Z] [CANVAS] Sprint 13: Agent Orchestrator initialized
+[2026-01-22T23:48:14.008Z] [CANVAS] [AUTOPILOT DEBUG] Loading beta code from config: none
+[2026-01-22T23:48:14.009Z] [CANVAS] [AUTOPILOT DEBUG] Sending autopilot settings with loadNodes: no
+[2026-01-22T23:48:14.092Z] [CANVAS] WEBVIEW
+Data: Using stylesheets: index-CqP4kAre.css
+[2026-01-22T23:48:14.093Z] [CANVAS] MVP: Canvas initialized with simple JSON storage
+[2026-01-22T23:48:14.202Z] [CANVAS] [FitView] isLoading=true, nodes.length=0, folderId=null
+[2026-01-22T23:48:14.361Z] [CANVAS] [FitView] isLoading=false, nodes.length=0, folderId=null
+[2026-01-23T00:32:21.995Z] [CANVAS] Navigated to breadcrumb: root
+[2026-01-23T00:32:21.996Z] [CANVAS] [AUTOPILOT DEBUG] Loading beta code from config: none
+[2026-01-23T00:32:21.996Z] [CANVAS] [AUTOPILOT DEBUG] Sending autopilot settings with loadNodes: no

@@ -1,0 +1,74 @@
+/* Optimized CSS for Mitosis Plugin Animations */
+
+.mitosis-bubble {
+  position: absolute;
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  z-index: 1000;
+  /* Use hardware acceleration for better performance */
+  transform: translateZ(0);
+  will-change: transform;
+  /* Optimize rendering */
+  backface-visibility: hidden;
+}
+
+.mitosis-bubble-label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+/* Motion trail effect */
+.mitosis-bubble-trail {
+  position: absolute;
+  border-radius: 50%;
+  box-sizing: border-box;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0;
+  animation: fadeOut 0.5s forwards;
+}
+
+@keyframes fadeOut {
+  0% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+
+/* Particle effect */
+.mitosis-particle {
+  position: absolute;
+  border-radius: 50%;
+  background-color: currentColor;
+  pointer-events: none;
+  z-index: 998;
+}
+
+/* Alternative animation using CSS transitions for fallback */
+.mitosis-bubble-transition {
+  transition: transform var(--animation-duration, 1500ms) var(--easing-function, cubic-bezier(0.25, 0.1, 0.25, 1));
+}
+
+/* Generic keyframes for animation when custom properties aren't used */
+@keyframes mitosisSimpleSplit {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: var(--initial-opacity, 1);
+  }
+  80% {
+    transform: translate(var(--final-dx, 0), var(--final-dy, 0)) scale(1) rotate(var(--rotation-deg, 0deg));
+    opacity: var(--mid-opacity, 0.8);
+  }
+  90% {
+    transform: translate(var(--final-dx, 0), var(--final-dy, 0)) scale(calc(1 + var(--bounce-intensity, 0) * 0.2)) rotate(var(--rotation-deg, 0deg));
+    opacity: var(--end-opacity, 1);
+  }
+  100% {
+    transform: translate(var(--final-dx, 0), var(--final-dy, 0)) scale(1) rotate(var(--rotation-deg, 0deg));
+    opacity: var(--end-opacity, 1);
+  }
+}

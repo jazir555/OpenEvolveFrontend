@@ -1,0 +1,7 @@
+Problem Hierarchy Tree (6 nodes, 1 levels)
+└── root_problem [✅complete] Score: 95/100 (1250ms) Teams: Blue→Red→Gold Attempt #1
+    ├── subproblem_1 [✅complete] Score: 88/100 (450ms) Teams: Blue→Red→Gold Attempt #1
+    │   ├── subproblem_1_1 [✅complete] Score: 90/100 (200ms) Teams: Blue→Red→Gold Attempt #1
+    │   └── subproblem_1_2 [✅complete] Score: 85/100 (250ms) Teams: Blue→Red→Gold Attempt #1
+    ├── subproblem_2 [✅complete] Score: 92/100 (380ms) Teams: Blue→Red→Gold Attempt #1
+    └── subproblem_3 [❌failed] Score: 45/100 (420ms) Teams: Blue→Red Attempt #3

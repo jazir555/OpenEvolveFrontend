@@ -1,0 +1,46 @@
+================================================================================
+RESE-E2E END-TO-END VALIDATION REPORT
+================================================================================
+
+Test Case: High-Temperature Superconducting Wire Invention
+Execution Time: 2026-01-01T01:07:19.616153
+Duration: 1.98 seconds
+
+EXECUTIVE SUMMARY
+--------------------------------------------------------------------------------
+Overall Status: FAIL
+Stages Validated: 3
+Errors: 1
+Warnings: 0
+
+STAGE VALIDATION RESULTS
+--------------------------------------------------------------------------------
+
+Stage 1: Epistemic Audit
+  Status: FAIL
+  Result: N/A
+
+Stage 2: Isomorphic Resonance
+  Status: FAIL
+  Result: N/A
+
+Stage 3: Monte Carlo Refinement
+  Status: FAIL
+  Result: N/A
+
+PERFORMANCE METRICS
+--------------------------------------------------------------------------------
+  initial_memory_mb: 23.496
+  pipeline_execution_time: 1.965
+  final_memory_mb: 260.980
+  memory_delta_mb: 237.484
+  cpu_percent: 0.000
+
+ERRORS
+--------------------------------------------------------------------------------
+  1. Stage 4 failed: ["cannot import name 'Problem' from partially initialized module 'phase4.aci_reduction_validator' (most likely due to a circular import) (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\phase4\\aci_reduction_validator.py)", 'Traceback (most recent call last):\n  File "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\rese_pipeline.py", line 521, in execute\n    from phase4.aci_reduction_validator import (\n  File "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\phase4\\aci_reduction_validator.py", line 29, in <module>\n    from .independence_checker import IndependenceChecker\n  File "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\phase4\\independence_checker.py", line 21, in <module>\n    from .aci_reduction_validator import (\nImportError: cannot import name \'Problem\' from partially initialized module \'phase4.aci_reduction_validator\' (most likely due to a circular import) (C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\phase4\\aci_reduction_validator.py)\n']
+
+================================================================================
+CONCLUSION: VALIDATION FAILED
+Some validations did not pass. Review errors above.
+================================================================================

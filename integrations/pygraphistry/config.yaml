@@ -1,0 +1,122 @@
+# Pygraphistry Integration Configuration
+# This file configures the pygraphistry adapter for interactive graph visualization and ML analytics
+
+project:
+  name: pygraphistry
+  version: 0.1.0
+  enabled: true
+
+# Connection settings for pygraphistry
+connection:
+  # API key (can also be set via GRAPHISTRY_API_KEY environment variable)
+  api_key: ${GRAPHISTRY_API_KEY}
+
+  # Optional username/password authentication
+  username: ${GRAPHISTRY_USERNAME}
+  password: ${GRAPHISTRY_PASSWORD}
+
+# Feature flags
+features:
+  # Enable interactive web-based visualization
+  interactive_viz: true
+
+  # Enable GPU acceleration with cuML (requires CUDA)
+  gpu_acceleration: false  # Set to true if you have NVIDIA GPU and cuML installed
+
+  # Enable UMAP dimensionality reduction
+  umap_clustering: true
+
+  # Enable DBSCAN clustering
+  dbscan_clustering: true
+
+  # Enable Streamlit iframe embedding
+  streamlit_embedding: true
+
+# Integration settings
+integration:
+  # Auto-start visualization server
+  auto_start: true
+
+  # Cache visualization results
+  cache_enabled: true
+
+  # Cache TTL in seconds (1 hour default)
+  cache_ttl: 3600
+
+  # Fallback to basic visualization on error
+  fallback_on_error: true
+
+# Performance settings
+performance:
+  # Maximum parallel workers
+  max_workers: 4
+
+  # Request timeout in seconds
+  timeout: 30
+
+  # Batch size for processing nodes
+  batch_size: 100
+
+  # GPU device (cuda or cpu)
+  gpu_device: cuda  # Change to 'cpu' if no GPU available
+
+# Clustering pipeline settings
+clustering:
+  # UMAP settings
+  umap:
+    n_neighbors: 15
+    min_dist: 0.1
+    n_components: 2
+    metric: euclidean
+
+  # DBSCAN settings
+  dbscan:
+    eps: 0.5
+    min_samples: 5
+    algorithm: auto
+
+  # K-means settings (alternative to DBSCAN)
+  kmeans:
+    n_clusters: 3
+    max_iter: 300
+    random_state: 42
+
+# Visualization settings
+visualization:
+  # Default layout algorithm (force_directed, circular, hierarchical)
+  default_layout: force_directed
+
+  # Node size scaling
+  min_node_size: 10
+  max_node_size: 50
+
+  # Edge width
+  edge_width: 0.5
+
+  # Color scheme
+  color_scheme: Viridis
+
+  # Show node labels
+  show_labels: true
+
+# Export settings
+export:
+  # Default export format (html, json)
+  default_format: html
+
+  # Include clusters in export
+  include_clusters: true
+
+  # Include embeddings in export
+  include_embeddings: true
+
+# Logging settings
+logging:
+  # Log level (DEBUG, INFO, WARNING, ERROR)
+  level: INFO
+
+  # Log visualization URLs
+  log_urls: true
+
+  # Log performance metrics
+  log_performance: false

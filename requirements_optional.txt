@@ -1,0 +1,28 @@
+# Optional Dependencies for OpenEvolve Frontend
+# These packages enhance functionality but are not required for core operation
+#
+# Install with: pip install -r requirements_optional.txt
+
+# Verification & Testing
+steer-framework>=0.1.0  # Deterministic verification for LLM outputs
+
+# Knowledge Graph & Decomposition
+roma-dspy>=0.1.0  # ROMA decomposition system (if available as package)
+
+# Multi-Agent Systems
+datapizza>=0.1.0  # DataPizza multi-agent framework
+
+# Formal Verification
+leanaide>=0.1.0  # Lean proof assistant integration
+
+# Machine Learning (optional)
+torch>=2.0.0  # PyTorch for ML features
+torchvision>=0.15.0
+opencv-python>=4.8.0  # Computer vision features
+
+# Advanced NLP
+transformers>=4.30.0  # HuggingFace transformers
+sentence-transformers>=2.2.0
+
+# Note: Some of these may be internal projects not available on PyPI.
+# Check if they should be installed from local paths or Git repositories.

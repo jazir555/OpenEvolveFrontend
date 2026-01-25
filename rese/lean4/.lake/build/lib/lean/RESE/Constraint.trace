@@ -1,0 +1,71 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"o": ["664a6eda96075ba9.olean"],
+  "i": "93fe20275bdf50a6.ilean",
+  "c": "3e469e5f173af3a6.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\Cli\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\Qq\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\proofwidgets\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\importGraph\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\LeanSearchClient\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\plausible\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\build\\lib\\lean c:\\Users\\mmeadow\\.elan\\toolchains\\leanprover--lean4---v4.27.0-rc1\\bin\\lean.exe C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\RESE\\Constraint.lean -o C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\build\\lib\\lean\\RESE\\Constraint.olean -i C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\build\\lib\\lean\\RESE\\Constraint.ilean -c C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\build\\ir\\RESE\\Constraint.c --setup C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\build\\ir\\RESE\\Constraint.setup.json --json",
+   "level": "trace"},
+  {"message":
+   "RESE/Constraint.lean:52:2: The namespace 'Constraint' is duplicated in the declaration 'RESE.Constraint.Constraint.formalization'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:49:2: The namespace 'Constraint' is duplicated in the declaration 'RESE.Constraint.Constraint.id'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:51:2: The namespace 'Constraint' is duplicated in the declaration 'RESE.Constraint.Constraint.description'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:53:2: The namespace 'Constraint' is duplicated in the declaration 'RESE.Constraint.Constraint.dependencies'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:50:2: The namespace 'Constraint' is duplicated in the declaration 'RESE.Constraint.Constraint.type'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:48:10: The namespace 'Constraint' is duplicated in the declaration 'RESE.Constraint.Constraint.mk'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:54:2: The namespace 'Constraint' is duplicated in the declaration 'RESE.Constraint.Constraint.source'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:48:10: The namespace 'Constraint' is duplicated in the declaration 'RESE.Constraint.Constraint'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:61:4: The namespace 'Constraint' is duplicated in the declaration 'RESE.Constraint.Constraint.isHard'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:65:4: The namespace 'Constraint' is duplicated in the declaration 'RESE.Constraint.Constraint.isSoft'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:69:4: The namespace 'Constraint' is duplicated in the declaration 'RESE.Constraint.Constraint.isPref'\n\nNote: This linter can be disabled with `set_option linter.dupNamespace false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:165:17: This simp argument is unused:\n  Prod.fst\n\nHint: Omit it from the simp argument list.\n  simp only [̵P̵r̵o̵d̵.̵f̵s̵t̵,̵ ̵P̵r̵o̵d̵.̵s̵n̵d̵]̵[̲P̲r̲o̲d̲.̲s̲n̲d̲]̲\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:165:27: This simp argument is unused:\n  Prod.snd\n\nHint: Omit it from the simp argument list.\n  simp only [Prod.fst,̵ ̵P̵r̵o̵d̵.̵s̵n̵d̵]\n\nNote: This linter can be disabled with `set_option linter.unusedSimpArgs false`",
+   "level": "warning"},
+  {"message":
+   "RESE/Constraint.lean:248:15: unused variable `assignment`\n\nNote: This linter can be disabled with `set_option linter.unusedVariables false`",
+   "level": "warning"}],
+ "inputs":
+ [["RESE.Constraint:deps",
+   [["deps",
+     [["rese/RESE:extraDep", [["@rese:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["RESE.Basic transitive imports (legacy)", "7580e4f9225331c3"],
+        ["RESE.Basic:importAllArts", "3b5615ed42577e15"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\RESE\\Constraint.lean",
+   "0cba1c1ef92fee5c"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "fdbff809a756da94"}

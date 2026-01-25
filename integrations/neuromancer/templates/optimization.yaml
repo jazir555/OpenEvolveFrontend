@@ -1,0 +1,377 @@
+# Optimization Problem Template
+# This template defines common optimization problem types
+
+template_name: optimization_problems
+description: Optimization problem templates for constrained and unconstrained problems
+
+# Example problems
+examples:
+
+  # Unconstrained: Simple quadratic minimization
+  quadratic_minimization:
+    type: optimization
+    category: unconstrained
+    name: Quadratic Minimization
+    description: Minimize a simple quadratic function
+    objective: minimize f(x) = xᵀAx + bᵀx + c
+    variables:
+      - name: x
+        dimensions: 5
+        initial_value: [0, 0, 0, 0, 0]
+    parameters:
+      A:
+        type: matrix
+        value: identity  # Can be specified
+      b:
+        type: vector
+        value: [1, 1, 1, 1, 1]
+      c:
+        type: scalar
+        value: 0
+    method: gradient_descent
+    analytical_solution: x* = -A⁻¹b
+
+  # Constrained: Linear programming
+  linear_programming:
+    type: optimization
+    category: constrained
+    name: Linear Programming
+    description: Linear objective with linear constraints
+    objective: minimize f(x) = cᵀx
+    variables:
+      - name: x
+        dimensions: 3
+        bounds: [[0, None], [0, None], [0, None]]  # x ≥ 0
+    constraints:
+      - type: inequality
+        description: Ax ≤ b
+        A: [[1, 1, 1], [2, 1, 0]]
+        b: [10, 8]
+    parameters:
+      c: [1, 2, 3]
+    method: interior_point
+    notes: "Standard LP form"
+
+  # Constrained: Quadratic programming
+  quadratic_programming:
+    type: optimization
+    category: constrained
+    name: Quadratic Programming
+    description: Quadratic objective with linear constraints
+    objective: minimize f(x) = 0.5xᵀQx + cᵀx
+    variables:
+      - name: x
+        dimensions: 4
+        initial_value: [0, 0, 0, 0]
+    constraints:
+      - type: equality
+        description: Ax = b
+        A: [[1, 1, 1, 1]]
+        b: [1]
+      - type: inequality
+        description: x ≥ 0
+        bounds: [[0, None]] * 4
+    parameters:
+      Q:
+        type: matrix
+        value: identity
+      c: [1, 1, 1, 1]
+    method: interior_point
+    notes: "QP is common in control and finance"
+
+  # Nonlinear optimization: Rosenbrock function
+  rosenbrock:
+    type: optimization
+    category: unconstrained
+    name: Rosenbrock Function
+    description: Classic non-convex test function
+    objective: minimize f(x,y) = (a-x)² + b(y-x²)²
+    variables:
+      - name: x
+        initial_value: -1.5
+      - name: y
+        initial_value: 2.0
+    parameters:
+      a: 1
+      b: 100
+    method: lbfgs
+    global_minimum: [1, 1]
+    notes: "Challenging due to curved valley"
+
+  # Constrained nonlinear: Engineering design
+  tension_compression_spring:
+    type: optimization
+    category: constrained_nonlinear
+    name: Tension/Compression Spring Design
+    description: Minimize weight subject to constraints
+    objective: minimize f(x) = (N+2)Dw²
+    variables:
+      - name: wire_diameter
+        symbol: d
+        initial_value: 0.05
+        bounds: [0.01, 0.5]
+      - name: mean_coil_diameter
+        symbol: D
+        initial_value: 0.25
+        bounds: [0.1, 1.0]
+      - name: number_of_coils
+        symbol: N
+        initial_value: 10
+        bounds: [2, 20]
+    constraints:
+      - type: inequality
+        description: Surge wave frequency constraint
+        function: 1 - cf/freq ≥ 0
+      - type: inequality
+        description: Deflection constraint
+        function: 1 - deflection/δmax ≥ 0
+      - type: inequality
+        description: Shear stress constraint
+        function: 1 - stress/σmax ≥ 0
+      - type: inequality
+        description: Geometry constraint
+        function: D - (D+d) ≤ 0
+    method: interior_point
+    notes: "Classic engineering optimization problem"
+
+  # Multi-objective optimization
+  multi_objective:
+    type: optimization
+    category: multi_objective
+    name: Multi-Objective Optimization
+    description: Optimize multiple conflicting objectives
+    objectives:
+      - name: cost
+        function: minimize cᵀx
+      - name: quality
+        function: maximize Q(x)
+    variables:
+      - name: x
+        dimensions: 5
+        bounds: [[0, 10]] * 5
+    constraints:
+      - type: inequality
+        description: Budget constraint
+        function: sum(x) ≤ budget
+    method:
+      type: weighted_sum
+      weights: [0.5, 0.5]  # Cost vs quality
+    notes: "Returns Pareto frontier"
+
+  # Optimal control: Double integrator
+  optimal_control_double_integrator:
+    type: optimization
+    category: optimal_control
+    name: Double Integrator Optimal Control
+    description: Minimize control effort for position control
+    objective: minimize J = ∫(u(t)² + x(t)²)dt
+    variables:
+      - name: position
+        symbol: x
+        initial_value: 0
+      - name: velocity
+        symbol: v
+        initial_value: 0
+      - name: control
+        symbol: u
+        bounds: [-1, 1]
+    dynamics:
+      - dx/dt = v
+      - dv/dt = u
+    constraints:
+      - type: terminal
+        description: Final position constraint
+        x(T) = 1
+      - type: terminal
+        description: Final velocity constraint
+        v(T) = 0
+    time_span: [0, 1]
+    method: direct_collocation
+    notes: "Simple optimal control benchmark"
+
+  # Portfolio optimization
+  portfolio_optimization:
+    type: optimization
+    category: constrained_nonlinear
+    name: Portfolio Optimization
+    description: Maximize return subject to risk constraints
+    objective: minimize f(w) = wᵀΣw - μᵀw  # Risk - Return
+    variables:
+      - name: weights
+        symbol: w
+        dimensions: n
+        bounds: [[0, 1]] * n  # No short selling
+    constraints:
+      - type: equality
+        description: Full investment
+        function: sum(w) = 1
+      - type: inequality
+        description: Maximum weight per asset
+        function: w_i ≤ 0.4  # Diversification
+    parameters:
+      Sigma:
+        description: Covariance matrix
+        type: matrix
+      mu:
+        description: Expected returns
+        type: vector
+    method: interior_point
+    notes: "Markowitz portfolio theory"
+
+  # Physics-informed optimization
+  physics_informed_optimization:
+    type: optimization
+    category: physics_informed
+    name: Physics-Informed Optimization
+    description: Optimization with physics constraints
+    objective: minimize design_objective(x)
+    variables:
+      - name: design_variables
+        symbol: x
+        dimensions: 10
+    constraints:
+      - type: physics
+        description: Conservation laws
+        equations:
+          - ∇·v = 0  # Mass conservation
+          - ρ(v·∇)v = -∇p + μ∇²v  # Momentum
+      - type: inequality
+        description: Performance constraints
+        functions:
+          - efficiency(x) ≥ 0.9
+          - stress(x) ≤ yield_strength
+    method: augmented_lagrangian
+    notes: "Requires solving PDE constraints"
+
+# Problem categories
+categories:
+  unconstrained:
+    description: No constraints on variables
+    examples: [quadratic_minimization, rosenbrock]
+    methods: [gradient_descent, newton, lbfgs, adam]
+
+  constrained:
+    description: Linear or nonlinear constraints
+    examples: [linear_programming, quadratic_programming]
+    methods: [interior_point, penalty_method, augmented_lagrangian]
+
+  multi_objective:
+    description: Multiple conflicting objectives
+    examples: [multi_objective]
+    methods: [weighted_sum, epsilon_constraint, pareto_front]
+
+  optimal_control:
+    description: Optimize control trajectories
+    examples: [optimal_control_double_integrator]
+    methods: [direct_collocation, shooting_methods, dynamic_programming]
+
+  physics_informed:
+    description: Optimization with physics constraints
+    examples: [physics_informed_optimization]
+    methods: [augmented_lagrangian, penalty_method]
+
+# Solver methods
+solvers:
+  gradient_descent:
+    description: Basic gradient-based optimization
+    use_cases: "Simple unconstrained problems"
+    parameters:
+      learning_rate: 0.01
+      momentum: 0.9
+
+  newton:
+    description: Second-order method using Hessian
+    use_cases: "Fast convergence for well-behaved problems"
+    parameters:
+      damping: 1.0e-3
+
+  lbfgs:
+    description: Limited-memory BFGS (quasi-Newton)
+    use_cases: "Medium-scale unconstrained/constrained problems"
+    parameters:
+      memory: 10
+      tolerance: 1.0e-5
+
+  adam:
+    description: Adaptive moment estimation
+    use_cases: "Large-scale stochastic optimization"
+    parameters:
+      learning_rate: 0.001
+      beta1: 0.9
+      beta2: 0.999
+
+  interior_point:
+    description: Barrier method for constrained optimization
+    use_cases: "Linear and nonlinear programming"
+    parameters:
+      barrier_parameter: 0.1
+      tolerance: 1.0e-6
+
+  penalty_method:
+    description: Convert constraints to penalty terms
+    use_cases: "General constrained optimization"
+    parameters:
+      penalty_coefficient: 1000.0
+      schedule: exponential
+
+  augmented_lagrangian:
+    description: Lagrangian with penalty terms
+    use_cases: "Constrained optimization with good convergence"
+    parameters:
+      initial_penalty: 1.0
+      penalty_multiplier: 10.0
+
+  direct_collocation:
+    description: Transcribe optimal control to NLP
+    use_cases: "Optimal control problems"
+    parameters:
+      num_collocation_points: 100
+      method: trapezoidal
+
+# Constraint types
+constraint_types:
+  equality:
+    description: h(x) = 0
+    penalty: quadratic  # penalty = λh(x) + ρh(x)²
+
+  inequality:
+    description: g(x) ≤ 0
+    penalty: hinge  # penalty = max(0, g(x))²
+
+  bound:
+    description: x_min ≤ x ≤ x_max
+    penalty: quadratic_outside  # Only penalize violations
+
+  physics:
+    description: Differential equation constraints
+    method: residual_minimization  # Minimize PDE residual
+
+  terminal:
+    description: Constraints at final time
+    penalty: quadratic
+
+# Performance metrics
+metrics:
+  convergence_rate: "How fast solver converges"
+  iterations: "Number of iterations"
+  function_evaluations: "Number of objective evaluations"
+  constraint_violation: "Maximum constraint violation"
+  optimality_gap: "Gap from optimal solution"
+  computation_time: "Wall-clock time"
+
+# Common pitfalls
+pitfalls:
+  - Local minima in non-convex problems
+  - Ill-conditioned Hessian matrices
+  - Poor scaling of variables/constraints
+  - Infeasible constraints
+  - Numerical precision issues
+
+# Best practices
+best_practices:
+  - Scale variables to similar magnitudes
+  - Use analytical gradients when available
+  - Start from multiple initial points
+  - Monitor constraint violations
+  - Check KKT conditions for optimality
+  - Validate with known solutions

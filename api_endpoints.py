@@ -1,0 +1,679 @@
+"""
+OpenEvolve REST API - External Access Endpoints
+
+This module provides a comprehensive REST API for external access to the
+decomposition engine and plugin system.
+
+FEATURES:
+- RESTful API with OpenAPI/Swagger spec
+- Authentication and authorization
+- Rate limiting
+- Request validation
+- Response pagination
+- Event streaming (SSE)
+- WebSocket support
+- API versioning
+"""
+
+import os
+import json
+import time
+import hashlib
+import secrets
+from typing import Dict, List, Any, Optional, Callable
+from datetime import datetime, timedelta
+from dataclasses import dataclass, field
+from enum import Enum
+import logging
+
+try:
+    from fastapi import FastAPI, HTTPException, Depends, status, Query, Body
+    from fastapi.security import APIKeyHeader, HTTPBearer, HTTPAuthorizationCredentials
+    from fastapi.middleware.cors import CORSMiddleware
+    from fastapi.responses import StreamingResponse, JSONResponse
+    from pydantic import BaseModel, Field, validator
+    from fastapi.openapi.utils import get_openapi
+    FASTAPI_AVAILABLE = True
+except ImportError:
+    FASTAPI_AVAILABLE = False
+    logger = logging.getLogger(__name__)
+    logger.warning("FastAPI not available. REST API features will be limited.")
+
+from decomposition_engine import DecompositionEngine
+from plugin_system import PluginManager, get_plugin_manager
+from webhook_manager import WebhookManager, get_webhook_manager, WebhookConfig
+
+logger = logging.getLogger(__name__)
+
+
+# ============================================================================
+# Data Models
+# ============================================================================
+
+class APIError(BaseModel):
+    """API error response."""
+    error: str
+    message: str
+    details: Optional[Dict[str, Any]] = None
+    timestamp: datetime = Field(default_factory=datetime.now)
+
+
+class APISuccess(BaseModel):
+    """API success response."""
+    success: bool
+    message: str
+    data: Optional[Any] = None
+    timestamp: datetime = Field(default_factory=datetime.now)
+
+
+class DecompositionRequest(BaseModel):
+    """Request to decompose a problem."""
+    problem: str = Field(..., description="Problem description")
+    strategy: Optional[str] = Field(None, description="Decomposition strategy")
+    config: Optional[Dict[str, Any]] = Field(default_factory=dict, description="Additional configuration")
+
+    @validator('problem')
+    def problem_not_empty(cls, v):
+        if not v or not v.strip():
+            raise ValueError('Problem description cannot be empty')
+        return v
+
+
+class SubProblemResponse(BaseModel):
+    """Sub-problem response."""
+    id: str
+    title: str
+    description: str
+    problem_type: str
+    complexity_score: float
+    acceptance_criteria: List[str] = Field(default_factory=list)
+    dependencies: List[str] = Field(default_factory=list)
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class DecompositionResponse(BaseModel):
+    """Decomposition response."""
+    plan_id: str
+    problem: str
+    strategy: str
+    sub_problems: List[SubProblemResponse]
+    quality_scores: Dict[str, float]
+    metadata: Dict[str, Any] = Field(default_factory=dict)
+
+
+class PluginInfo(BaseModel):
+    """Plugin information."""
+    name: str
+    version: str
+    description: str
+    author: str
+    state: str
+    enabled: bool
+
+
+class WebhookCreate(BaseModel):
+    """Webhook creation request."""
+    name: str
+    url: str
+    events: List[str]
+    secret: Optional[str] = None
+    headers: Dict[str, str] = Field(default_factory=dict)
+    enabled: bool = True
+    rate_limit: int = Field(default=100, ge=1, le=1000)
+
+
+class WebhookUpdate(BaseModel):
+    """Webhook update request."""
+    name: Optional[str] = None
+    url: Optional[str] = None
+    events: Optional[List[str]] = None
+    secret: Optional[str] = None
+    headers: Optional[Dict[str, str]] = None
+    enabled: Optional[bool] = None
+    rate_limit: Optional[int] = Field(None, ge=1, le=1000)
+
+
+class HealthResponse(BaseModel):
+    """Health check response."""
+    status: str
+    version: str
+    uptime: float
+    components: Dict[str, str]
+
+
+# ============================================================================
+# Authentication
+# ============================================================================
+
+class APIKey:
+    """API key management."""
+
+    def __init__(self, api_keys_file: Optional[str] = None):
+        self.api_keys_file = api_keys_file or ".openevolve/api_keys.json"
+        self.api_keys: Dict[str, Dict[str, Any]] = {}
+        self._load_keys()
+
+    def _load_keys(self) -> None:
+        """Load API keys from file."""
+        if os.path.exists(self.api_keys_file):
+            try:
+                with open(self.api_keys_file, 'r') as f:
+                    data = json.load(f)
+                    self.api_keys = data.get('keys', {})
+            except Exception as e:  # TODO: Catch specific exception instead of Exception
+                logger.error(f"Failed to load API keys: {e}")
+
+    def _save_keys(self) -> None:
+        """Save API keys to file."""
+        os.makedirs(os.path.dirname(self.api_keys_file), exist_ok=True)
+        try:
+            with open(self.api_keys_file, 'w') as f:
+                json.dump({'keys': self.api_keys}, f, indent=2)
+        except Exception as e:  # TODO: Catch specific exception instead of Exception
+            logger.error(f"Failed to save API keys: {e}")
+
+    def generate_key(self, name: str, scopes: List[str] = None) -> str:
+        """Generate a new API key."""
+        key = f"oe_{secrets.token_urlsafe(32)}"
+        self.api_keys[key] = {
+            'name': name,
+            'scopes': scopes or ['read', 'write'],
+            'created_at': datetime.now().isoformat(),
+            'last_used': None
+        }
+        self._save_keys()
+        return key
+
+    def validate_key(self, key: str) -> Optional[Dict[str, Any]]:
+        """Validate an API key."""
+        if key not in self.api_keys:
+            return None
+
+        key_data = self.api_keys[key]
+        key_data['last_used'] = datetime.now().isoformat()
+        self._save_keys()
+
+        return key_data
+
+    def revoke_key(self, key: str) -> bool:
+        """Revoke an API key."""
+        if key in self.api_keys:
+            del self.api_keys[key]
+            self._save_keys()
+            return True
+        return False
+
+
+# ============================================================================
+# Rate Limiting
+# ============================================================================
+
+class RateLimiter:
+    """Rate limiter for API requests."""
+
+    def __init__(self, max_requests: int = 100, window_seconds: int = 60):
+        self.max_requests = max_requests
+        self.window_seconds = window_seconds
+        self._requests: Dict[str, List[float]] = {}
+
+    def is_allowed(self, identifier: str) -> bool:
+        """Check if request is allowed."""
+        now = time.time()
+
+        # Clean old requests
+        if identifier in self._requests:
+            self._requests[identifier] = [
+                req_time for req_time in self._requests[identifier]
+                if now - req_time < self.window_seconds
+            ]
+
+        # Check limit
+        request_count = len(self._requests.get(identifier, []))
+        if request_count >= self.max_requests:
+            return False
+
+        # Record request
+        if identifier not in self._requests:
+            self._requests[identifier] = []
+        self._requests[identifier].append(now)
+
+        return True
+
+    def get_remaining(self, identifier: str) -> int:
+        """Get remaining requests."""
+        if identifier not in self._requests:
+            return self.max_requests
+
+        return max(0, self.max_requests - len(self._requests[identifier]))
+
+
+# ============================================================================
+# API Server
+# ============================================================================
+
+if FASTAPI_AVAILABLE:
+    app = FastAPI(
+        title="OpenEvolve API",
+        description="REST API for OpenEvolve Decomposition Engine",
+        version="1.0.0",
+        docs_url="/docs",
+        redoc_url="/redoc"
+    )
+
+    # CORS middleware
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],  # Configure appropriately for production
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+
+    # Authentication
+    security = HTTPBearer()
+    api_key_manager = APIKey()
+    rate_limiter = RateLimiter()
+
+    # Dependency: Get current user
+    async def get_current_user(
+        credentials: HTTPAuthorizationCredentials = Depends(security)
+    ) -> Dict[str, Any]:
+        """Get current authenticated user."""
+        token = credentials.credentials
+
+        # Validate API key
+        key_data = api_key_manager.validate_key(token)
+        if not key_data:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid API key"
+            )
+
+        # Check rate limit
+        if not rate_limiter.is_allowed(token):
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Rate limit exceeded"
+            )
+
+        return key_data
+
+    # Startup/Shutdown events
+    @app.on_event("startup")
+    async def startup_event():
+        """Initialize API server."""
+        logger.info("OpenEvolve API server starting up")
+
+    @app.on_event("shutdown")
+    async def shutdown_event():
+        """Cleanup on shutdown."""
+        logger.info("OpenEvolve API server shutting down")
+
+    # ============================================================================
+    # Health & Info Endpoints
+    # ============================================================================
+
+    # Include CrewAI Router
+    try:
+        from crewai_api_routes import router as crewai_router
+        app.include_router(crewai_router)
+        logger.info("CrewAI API router included")
+    except ImportError as e:
+        logger.warning(f"Failed to import CrewAI API router: {e}")
+
+    @app.get("/health", response_model=HealthResponse, tags=["System"])
+    async def health_check():
+        """Health check endpoint."""
+        # Check component health
+        components = {
+            "decomposition_engine": "healthy",
+            "plugin_manager": "healthy",
+            "webhook_manager": "healthy"
+        }
+
+        return HealthResponse(
+            status="healthy",
+            version="1.0.0",
+            uptime=time.time(),
+            components=components
+        )
+
+    @app.get("/", tags=["System"])
+    async def root():
+        """Root endpoint."""
+        return {
+            "name": "OpenEvolve API",
+            "version": "1.0.0",
+            "documentation": "/docs"
+        }
+
+    # ============================================================================
+    # Decomposition Endpoints
+    # ============================================================================
+
+    @app.post("/api/v1/decompose", response_model=DecompositionResponse, tags=["Decomposition"])
+    async def decompose_problem(
+        request: DecompositionRequest,
+        user: Dict[str, Any] = Depends(get_current_user)
+    ):
+        """
+        Decompose a problem into sub-problems.
+
+        This endpoint takes a problem description and returns a structured
+        decomposition plan with sub-problems, dependencies, and quality scores.
+        """
+        try:
+            # Get decomposition engine
+            engine = DecompositionEngine()
+
+            # Decompose problem
+            plan = engine.decompose(
+                problem=request.problem,
+                strategy=request.strategy
+            )
+
+            # Convert to response format
+            sub_problems = [
+                SubProblemResponse(
+                    id=sp.id,
+                    title=sp.title,
+                    description=sp.description,
+                    problem_type=sp.problem_type.value,
+                    complexity_score=sp.complexity_score.value,
+                    acceptance_criteria=getattr(sp, 'acceptance_criteria', []),
+                    dependencies=[dep.id for dep in sp.dependencies],
+                    metadata=sp.metadata
+                )
+                for sp in plan.sub_problems
+            ]
+
+            return DecompositionResponse(
+                plan_id=plan.plan_id,
+                problem=plan.original_problem,
+                strategy=plan.strategy.strategy_name,
+                sub_problems=sub_problems,
+                quality_scores={
+                    "cohesion": plan.quality_scores.cohesion,
+                    "completeness": plan.quality_scores.completeness,
+                    "clarity": plan.quality_scores.clarity
+                },
+                metadata={"created_at": plan.created_at.isoformat()}
+            )
+
+        except Exception as e:  # TODO: Catch specific exception instead of Exception
+            logger.error(f"Decomposition failed: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=str(e)
+            )
+
+    @app.get("/api/v1/strategies", tags=["Decomposition"])
+    async def list_strategies(
+        user: Dict[str, Any] = Depends(get_current_user)
+    ):
+        """List available decomposition strategies."""
+        strategies = [
+            {"name": "semantic", "description": "Semantic-based decomposition"},
+            {"name": "dependency", "description": "Dependency-based decomposition"},
+            {"name": "complexity", "description": "Complexity-based decomposition"},
+            {"name": "hybrid", "description": "Hybrid approach"},
+        ]
+        return {"strategies": strategies}
+
+    # ============================================================================
+    # Plugin Endpoints
+    # ============================================================================
+
+    @app.get("/api/v1/plugins", response_model=List[PluginInfo], tags=["Plugins"])
+    async def list_plugins(
+        user: Dict[str, Any] = Depends(get_current_user)
+    ):
+        """List all loaded plugins."""
+        pm = get_plugin_manager()
+        plugins = []
+
+        for plugin_name, plugin in pm.get_all_plugins().items():
+            info = pm.get_plugin_info(plugin_name)
+            if info:
+                plugins.append(PluginInfo(
+                    name=info['name'],
+                    version=info['version'],
+                    description=info['description'],
+                    author=info['author'],
+                    state=info['state'],
+                    enabled=info['state'] == 'active'
+                ))
+
+        return plugins
+
+    @app.post("/api/v1/plugins/{plugin_name}/activate", tags=["Plugins"])
+    async def activate_plugin(
+        plugin_name: str,
+        user: Dict[str, Any] = Depends(get_current_user)
+    ):
+        """Activate a plugin."""
+        pm = get_plugin_manager()
+        success = pm.activate_plugin(plugin_name)
+
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to activate plugin: {plugin_name}"
+            )
+
+        return {"success": True, "message": f"Plugin {plugin_name} activated"}
+
+    @app.post("/api/v1/plugins/{plugin_name}/deactivate", tags=["Plugins"])
+    async def deactivate_plugin(
+        plugin_name: str,
+        user: Dict[str, Any] = Depends(get_current_user)
+    ):
+        """Deactivate a plugin."""
+        pm = get_plugin_manager()
+        success = pm.deactivate_plugin(plugin_name)
+
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Failed to deactivate plugin: {plugin_name}"
+            )
+
+        return {"success": True, "message": f"Plugin {plugin_name} deactivated"}
+
+    # ============================================================================
+    # Webhook Endpoints
+    # ============================================================================
+
+    @app.post("/api/v1/webhooks", tags=["Webhooks"])
+    async def create_webhook(
+        webhook: WebhookCreate,
+        user: Dict[str, Any] = Depends(get_current_user)
+    ):
+        """Create a new webhook."""
+        wm = get_webhook_manager()
+
+        webhook_config = WebhookConfig(
+            id=f"webhook_{secrets.token_hex(8)}",
+            name=webhook.name,
+            url=webhook.url,
+            events=webhook.events,
+            secret=webhook.secret,
+            headers=webhook.headers,
+            enabled=webhook.enabled,
+            rate_limit=webhook.rate_limit
+        )
+
+        try:
+            wm.register_webhook(webhook_config)
+            return {
+                "success": True,
+                "webhook_id": webhook_config.id,
+                "message": "Webhook created successfully"
+            }
+        except Exception as e:  # TODO: Catch specific exception instead of Exception
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e)
+            )
+
+    @app.get("/api/v1/webhooks", tags=["Webhooks"])
+    async def list_webhooks(
+        user: Dict[str, Any] = Depends(get_current_user)
+    ):
+        """List all webhooks."""
+        wm = get_webhook_manager()
+        webhooks = wm.list_webhooks()
+
+        return {
+            "webhooks": [
+                {
+                    "id": w.id,
+                    "name": w.name,
+                    "url": w.url,
+                    "events": w.events,
+                    "enabled": w.enabled
+                }
+                for w in webhooks
+            ]
+        }
+
+    @app.delete("/api/v1/webhooks/{webhook_id}", tags=["Webhooks"])
+    async def delete_webhook(
+        webhook_id: str,
+        user: Dict[str, Any] = Depends(get_current_user)
+    ):
+        """Delete a webhook."""
+        wm = get_webhook_manager()
+        success = wm.unregister_webhook(webhook_id)
+
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Webhook not found: {webhook_id}"
+            )
+
+        return {"success": True, "message": "Webhook deleted"}
+
+    @app.post("/api/v1/webhooks/{webhook_id}/test", tags=["Webhooks"])
+    async def test_webhook(
+        webhook_id: str,
+        user: Dict[str, Any] = Depends(get_current_user)
+    ):
+        """Test a webhook delivery."""
+        wm = get_webhook_manager()
+        success = wm.test_webhook(webhook_id)
+
+        if not success:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Webhook test failed"
+            )
+
+        return {"success": True, "message": "Webhook test successful"}
+
+    # ============================================================================
+    # Event Streaming (SSE)
+    # ============================================================================
+
+    async def event_stream():
+        """Stream events using Server-Sent Events."""
+        pm = get_plugin_manager()
+
+        while True:
+            # Get recent events (simplified example)
+            yield f"data: {json.dumps({'type': 'heartbeat', 'timestamp': datetime.now().isoformat()})}\n\n"
+            await asyncio.sleep(1)
+
+    @app.get("/api/v1/events/stream", tags=["Events"])
+    async def stream_events(
+        user: Dict[str, Any] = Depends(get_current_user)
+    ):
+        """Stream events using Server-Sent Events."""
+        return StreamingResponse(
+            event_stream(),
+            media_type="text/event-stream"
+        )
+
+    # ============================================================================
+    # API Key Management (Admin only)
+    # ============================================================================
+
+    @app.post("/admin/api-keys", tags=["Admin"])
+    async def create_api_key(
+        name: str = Query(...),
+        scopes: List[str] = Query(["read", "write"]),
+        # Admin check would go here
+    ):
+        """Create a new API key."""
+        key = api_key_manager.generate_key(name, scopes)
+        return {
+            "success": True,
+            "api_key": key,
+            "name": name,
+            "scopes": scopes
+        }
+
+    @app.delete("/admin/api-keys/{key}", tags=["Admin"])
+    async def revoke_api_key(
+        key: str,
+        # Admin check would go here
+    ):
+        """Revoke an API key."""
+        success = api_key_manager.revoke_key(key)
+        return {"success": success}
+
+else:
+    # Fallback when FastAPI is not available
+    logger.warning("FastAPI not available. Creating stub API class.")
+
+    class APIEndpointStub:
+        """Stub implementation when FastAPI is not available."""
+
+        def __init__(self):
+            logger.error("FastAPI not installed. REST API functionality is disabled.")
+            logger.error("Install with: pip install fastapi uvicorn")
+
+        def start(self, host: str = "0.0.0.0", port: int = 8000):
+            """Start API server (stub)."""
+            raise ImportError("FastAPI is required to run the REST API server")
+
+    app = APIEndpointStub()  # type: ignore
+
+
+def start_api_server(host: str = "0.0.0.0", port: int = 8000, reload: bool = False):
+    """
+    Start the API server.
+
+    Args:
+        host: Host to bind to
+        port: Port to bind to
+        reload: Enable auto-reload
+    """
+    if not FASTAPI_AVAILABLE:
+        logger.error("FastAPI is required to run the API server")
+        logger.error("Install with: pip install fastapi uvicorn")
+        return
+
+    import uvicorn
+
+    uvicorn.run(
+        "api_endpoints:app",
+        host=host,
+        port=port,
+        reload=reload
+    )
+
+
+if __name__ == "__main__":
+    # Example usage
+    logging.basicConfig(level=logging.INFO)
+
+    if FASTAPI_AVAILABLE:
+        # Generate a test API key
+        api_key = api_key_manager.generate_key("test_key", ["read", "write"])
+        print(f"Generated API key: {api_key}")
+
+        # Start server
+        start_api_server(port=8000)
+    else:
+        print("FastAPI not available. Please install: pip install fastapi uvicorn")

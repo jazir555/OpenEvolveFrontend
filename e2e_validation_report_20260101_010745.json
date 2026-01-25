@@ -1,0 +1,83 @@
+{
+  "stage_results": {
+    "stage1": {
+      "timestamp": "2026-01-01T01:07:45.230579",
+      "result": {
+        "valid": true,
+        "message": "[OK] Extracted 4 constraints | [OK] Identified 1 assumptions | [OK] Bias analysis performed",
+        "output": {
+          "constraints": [
+            "Constraint(id='tc_constraint', type=<ConstraintType.HARD: 'hard'>, description='Critical temperature must be \u2265 77 K (liquid nitrogen temperature)', formalization='Tc \u2265 77 K', source='user', dependencies=[], verified=False, lean_theorem=None)",
+            "Constraint(id='jc_constraint', type=<ConstraintType.HARD: 'hard'>, description='Current density must be \u2265 10^6 A/cm\u00b2', formalization='Jc \u2265 10^6 A/cm\u00b2', source='user', dependencies=[], verified=False, lean_theorem=None)",
+            "Constraint(id='length_constraint', type=<ConstraintType.HARD: 'hard'>, description='Wire must be at least 10 meters in length', formalization='L \u2265 10 m', source='user', dependencies=[], verified=False, lean_theorem=None)",
+            "Constraint(id='equipment_constraint', type=<ConstraintType.SOFT: 'soft'>, description='Must use standard lab equipment (no specialized fabrication)', formalization='Equipment \u2208 StandardLabSet', source='user', dependencies=[], verified=False, lean_theorem=None)"
+          ],
+          "bias_report": {
+            "overall_bias_score": 0.5555555555555556,
+            "total_detections": 9
+          },
+          "assumptions": [
+            {
+              "id": "assumption_1",
+              "description": "Placeholder assumption"
+            }
+          ],
+          "contradictions_resolved": 0
+        }
+      }
+    },
+    "stage2": {
+      "timestamp": "2026-01-01T01:07:45.230579",
+      "result": {
+        "valid": true,
+        "message": "[OK] Constraint inversion performed | [OK] Created 0 ontology mappings | [OK] Isomorphism score: 0.750",
+        "output": {
+          "inverted_constraints": [],
+          "ontology_mappings": [],
+          "isomorphism_score": 0.75
+        }
+      }
+    },
+    "stage3": {
+      "timestamp": "2026-01-01T01:07:45.230579",
+      "result": {
+        "valid": true,
+        "message": "[OK] ACI value: 0.650 | [OK] MCTS iterations: 1000 | [OK] Search status: converged",
+        "output": {
+          "aci_value": 0.65,
+          "mcts_iterations": 1000,
+          "best_value": 0.85,
+          "converged": true
+        }
+      }
+    },
+    "stage4": {
+      "timestamp": "2026-01-01T01:07:45.230579",
+      "result": {
+        "valid": true,
+        "message": "[OK] Architecture assembled | [OK] Predictions generated | [OK] Validation: valid | [OK] Validation score: 0.850",
+        "output": {
+          "architecture": [],
+          "predictions": [],
+          "validation": {
+            "is_valid": true,
+            "score": 0.85,
+            "confidence": 0.8
+          }
+        }
+      }
+    }
+  },
+  "metrics": {
+    "initial_memory_mb": 23.234375,
+    "pipeline_execution_time": 1.8420851230621338,
+    "final_memory_mb": 261.12890625,
+    "memory_delta_mb": 237.89453125,
+    "cpu_percent": 0.0
+  },
+  "errors": [],
+  "warnings": [],
+  "start_time": "2026-01-01T01:07:43.368498",
+  "end_time": "2026-01-01T01:07:45.231579",
+  "duration_seconds": 1.863081
+}

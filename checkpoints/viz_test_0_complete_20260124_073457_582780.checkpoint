@@ -1,0 +1,65 @@
+{
+  "problem": {
+    "id": "viz_test",
+    "statement": "Test visualization integration",
+    "subproblems": [
+      {
+        "id": "child_1",
+        "statement": "First child",
+        "subproblems": [
+          {
+            "id": "grandchild_1",
+            "statement": "Deep child 1"
+          },
+          {
+            "id": "grandchild_2",
+            "statement": "Deep child 2"
+          }
+        ]
+      },
+      {
+        "id": "child_2",
+        "statement": "Second child"
+      },
+      {
+        "id": "child_3",
+        "statement": "Third child"
+      }
+    ]
+  },
+  "context": {
+    "current_checkpoint_id": "viz_test_0_starting_20260124_073457_556665",
+    "level": 0,
+    "stage": "complete"
+  },
+  "solutions": [
+    {
+      "problem_id": "child_1",
+      "success": true,
+      "score": 0.85,
+      "solution": "Solution for child_1",
+      "timestamp": "2026-01-24T07:34:57.582780"
+    },
+    {
+      "problem_id": "child_2",
+      "success": true,
+      "score": 0.85,
+      "solution": "Solution for child_2",
+      "timestamp": "2026-01-24T07:34:57.582780"
+    },
+    {
+      "problem_id": "child_3",
+      "success": true,
+      "score": 0.85,
+      "solution": "Solution for child_3",
+      "timestamp": "2026-01-24T07:34:57.582780"
+    }
+  ],
+  "decomposition_tree": null,
+  "execution_status": {},
+  "metrics": {},
+  "metadata": {
+    "checkpoint_count": 1
+  },
+  "serialized_at": "2026-01-24T07:34:57.582780"
+}

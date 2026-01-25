@@ -1,0 +1,55 @@
+{
+  "problem": {
+    "id": "checkpoint_test_1",
+    "statement": "Test problem with checkpointing",
+    "subproblems": [
+      {
+        "id": "sub_1",
+        "statement": "Sub 1"
+      },
+      {
+        "id": "sub_2",
+        "statement": "Sub 2"
+      },
+      {
+        "id": "sub_3",
+        "statement": "Sub 3"
+      }
+    ]
+  },
+  "context": {
+    "current_checkpoint_id": "checkpoint_test_1_0_starting_20260124_073303_043317",
+    "level": 0,
+    "stage": "complete"
+  },
+  "solutions": [
+    {
+      "problem_id": "sub_1",
+      "success": true,
+      "score": 0.85,
+      "solution": "Solution for sub_1",
+      "timestamp": "2026-01-24T07:33:03.061345"
+    },
+    {
+      "problem_id": "sub_2",
+      "success": true,
+      "score": 0.85,
+      "solution": "Solution for sub_2",
+      "timestamp": "2026-01-24T07:33:03.061345"
+    },
+    {
+      "problem_id": "sub_3",
+      "success": true,
+      "score": 0.85,
+      "solution": "Solution for sub_3",
+      "timestamp": "2026-01-24T07:33:03.061345"
+    }
+  ],
+  "decomposition_tree": null,
+  "execution_status": {},
+  "metrics": {},
+  "metadata": {
+    "checkpoint_count": 1
+  },
+  "serialized_at": "2026-01-24T07:33:03.061345"
+}

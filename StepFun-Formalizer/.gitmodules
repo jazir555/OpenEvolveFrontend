@@ -1,0 +1,3 @@
+[submodule "src/kimina-lean-server"]
+	path = src/kimina-lean-server
+	url = https://github.com/wyt2000/kimina-lean-server.git

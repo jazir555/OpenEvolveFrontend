@@ -1,0 +1,260 @@
+# Causal-learn Integration Configuration
+# This file configures the causal-learn adapter and bridge for OpenEvolve
+
+project:
+  name: causal-learn
+  version: 0.1.4.4
+  description: Causal discovery and reasoning library
+  enabled: true
+  repository: https://github.com/py-why/causal-learn
+  documentation: https://causal-learn.readthedocs.io/
+
+# Algorithm Configuration
+algorithms:
+  # Default algorithm to use
+  default: pc  # Options: pc, pc_stable, ges, direct_lingam, ica_lingam, fci
+
+  # PC (Peter-Clark) Algorithm Configuration
+  # Constraint-based causal discovery for continuous Gaussian data
+  pc:
+    alpha: 0.05  # Significance level for independence tests
+    indep_test: fisherz  # Independence test: fisherz, chisq, gsq, kci, mv_fisherz
+    stable: true  # Use stable version (more reproducible)
+    uc_rule: 0  # Unshielded collider orientation rule: 0=uc_sepset, 1=maxP, 2=definiteMaxP
+    uc_priority: 2  # Orientation priority: 0=overwrite, 1=orient_bidirected, 2=prioritize_existing_colliders
+
+  # PC-stable Configuration
+  pc_stable:
+    alpha: 0.05
+    indep_test: fisherz
+    stable: true  # Always stable for pc_stable
+
+  # GES (Greedy Equivalence Search) Configuration
+  # Score-based causal discovery (faster for large datasets)
+  ges:
+    score_func: local_score_BIC  # Score function: local_score_BIC, local_score_BDeu, local_score_CV_general
+    max_degree: 10  # Maximum graph degree
+    penalty: 1  # Complexity penalty
+
+  # DirectLiNGAM Configuration
+  # Non-Gaussian causal discovery (linear non-Gaussian acyclic model)
+  directlingam:
+    bootstrap: false  # Use bootstrap for confidence intervals
+    n_repeats: 100  # Number of bootstrap repetitions
+
+  # ICA-LiNGAM Configuration
+  ica_lingam:
+    max_iter: 1000  # Maximum ICA iterations
+
+  # FCI (Fast Causal Inference) Configuration
+  # For latent confounder detection
+  fci:
+    alpha: 0.05
+    indep_test: fisherz
+    max_degree: 10  # Maximum graph degree
+    conflict_resolution: true  # Resolve conflicts in orientation
+
+# Independence Test Configuration
+independence_tests:
+  # Fisher's Z test (for continuous Gaussian data)
+  fisherz:
+    default_alpha: 0.05
+    correlation_threshold: 0.01
+
+  # Chi-square test (for discrete data)
+  chisq:
+    default_alpha: 0.05
+    min_expected_frequency: 5
+
+  # G-square test (for discrete data)
+  gsq:
+    default_alpha: 0.05
+
+  # Kernel-based conditional independence (for nonlinear relationships)
+  kci:
+    default_alpha: 0.05
+    kernel_type: 'gaussian'  # Kernel type
+    approx: true  # Use approximation (faster)
+
+  # Fisher's Z with missing values
+  mv_fisherz:
+    default_alpha: 0.05
+
+# Score Function Configuration
+score_functions:
+  # Bayesian Information Criterion
+  bic:
+    penalty_dim: 1.0  # Dimensionality penalty
+
+  # BDeu score (for discrete data)
+  bdeu:
+    sample_size: 10  # Equivalent sample size
+    prior: 1.0  # Dirichlet prior
+
+  # Cross-validation score
+  cv_general:
+    k_folds: 5  # Number of cross-validation folds
+
+# Feature Flags
+features:
+  causal_discovery: true  # Enable causal structure discovery
+  causal_effect_estimation: true  # Enable causal effect estimation
+  independence_testing: true  # Enable conditional independence testing
+  counterfactual_analysis: false  # Enable counterfactual prediction (experimental)
+  intervention_optimization: false  # Enable intervention optimization (future)
+  latent_confounder_detection: true  # Enable FCI for latent confounders
+  causal_validation: true  # Enable causal claim validation
+
+# Integration Settings
+integration:
+  # Auto-start on initialization
+  auto_start: true
+
+  # Cache configuration
+  cache_enabled: true
+  cache_ttl: 3600  # Cache time-to-live in seconds
+  cache_size: 100  # Maximum number of cached results
+
+  # Fallback behavior
+  fallback_on_error: true  # Return degraded results on error
+  fallback_to_correlation: true  # Fall back to correlation if causal discovery fails
+
+  # Integration points
+  sop_generator_integration: true  # Integrate with SOP Generator
+  problem_analyzer_integration: true  # Integrate with Problem Analyzer
+  knowledge_engine_integration: true  # Integrate with Knowledge Engine
+  roma_integration: true  # Integrate with ROMA/MDAP
+
+# Performance Configuration
+performance:
+  # Parallel processing
+  max_workers: 4  # Maximum number of parallel workers
+  use_multiprocessing: false  # Use multiprocessing (experimental)
+
+  # Timeouts
+  timeout: 300  # Default timeout in seconds (5 minutes)
+  pc_timeout: 60  # PC algorithm timeout (1 minute)
+  ges_timeout: 120  # GES algorithm timeout (2 minutes)
+  lingam_timeout: 180  # LiNGAM algorithm timeout (3 minutes)
+  fci_timeout: 300  # FCI algorithm timeout (5 minutes)
+
+  # Memory management
+  max_data_size: 1000000  # Maximum data size (samples * features)
+  chunk_size: 10000  # Chunk size for large datasets
+
+  # Optimization
+  use_cache: true
+  lazy_loading: false  # Load data on-demand
+
+# Visualization Settings
+visualization:
+  # Output format
+  output_format: pydot  # Options: pydot, graphviz, networkx
+
+  # Save settings
+  save_graphs: true
+  graph_output_dir: /tmp/causal_graphs
+
+  # Graph settings
+  show_labels: true
+  show_edge_weights: false
+  show_confidence: false
+
+  # Layout
+  layout: 'dot'  # Graph layout: dot, neato, fdp, sfdp, circo
+  rankdir: 'TB'  # Direction: TB (top-bottom), LR (left-right)
+
+# Pre-Experiment Validation Settings (SOP Generator Integration)
+pre_experiment_validation:
+  # Enable pre-experiment causal validation
+  enabled: true
+
+  # Validation steps
+  discover_complete_structure: true  # Discover complete causal structure
+  identify_all_variables: true  # Identify all causal variables
+  reveal_latent_confounders: true  # Reveal latent confounders using FCI
+  validate_hypotheses: true  # Validate causal hypotheses
+  predict_counterfactuals: true  # Predict outcomes before experiments
+  design_sop_control: true  # Design SOP with all variables controlled
+
+  # Readiness threshold
+  readiness_threshold: 80  # Minimum readiness score to proceed (0-100)
+
+  # Error tolerance
+  zero_uncontrolled_required: true  # Require zero uncontrolled variables
+  allow_unmeasured_confounders: false  # Allow experiments with latent confounders
+
+# Validation Settings
+validation:
+  # Health check interval
+  health_check_interval: 3600  # Seconds between health checks
+
+  # Validation tests
+  test_pc_algorithm: true
+  test_ges_algorithm: true
+  test_lingam_algorithm: true
+  test_independence_tests: true
+
+  # Synthetic data for validation
+  validation_samples: 100  # Number of samples for validation
+  validation_variables: 3  # Number of variables for validation
+
+# Logging Configuration
+logging:
+  level: INFO  # Logging level: DEBUG, INFO, WARNING, ERROR
+  log_file: /tmp/causal_learn.log
+  log_format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+  # Log details
+  log_algorithm_parameters: true
+  log_performance_metrics: true
+  log_cache_operations: false
+
+# Error Handling
+error_handling:
+  # Retry configuration
+  max_retries: 3  # Maximum number of retries
+  retry_delay: 1  # Delay between retries (seconds)
+
+  # Error reporting
+  verbose_errors: true
+  include_traceback: true
+
+  # Graceful degradation
+  return_partial_results: true  # Return partial results on error
+  continue_on_error: false  # Continue processing on error
+
+# Advanced Settings
+advanced:
+  # Algorithm auto-selection
+  auto_select_algorithm: true  # Automatically select algorithm based on data characteristics
+  auto_select_test: true  # Automatically select independence test based on data type
+
+  # Data preprocessing
+  normalize_data: false  # Normalize data before discovery
+  handle_missing_values: false  # Use MVPC algorithm for missing values
+
+  # Graph post-processing
+  prune_weak_edges: false  # Prune edges with weak confidence
+  confidence_threshold: 0.5  # Threshold for weak edges
+
+  # Causal effect estimation
+  effect_estimation_method: direct_lingam  # Method for causal effect estimation
+  bootstrap_samples: 1000  # Number of bootstrap samples for confidence intervals
+
+# Security and Privacy
+security:
+  # Data privacy
+  anonymize_data: false  # Anonymize variable names in logs
+  encrypt_cache: false  # Encrypt cached results
+
+  # Access control
+  restrict_to_domains: []  # Restrict to specific domains (empty = all domains)
+
+# Environment Variables (Optional)
+# These can override settings via environment variables
+env_vars:
+  CAUSAL_LEARN_CONFIG_PATH: null  # Path to config file
+  CAUSAL_LEARN_CACHE_DIR: /tmp/causal_learn_cache  # Cache directory
+  CAUSAL_LEARN_LOG_DIR: /tmp/causal_learn_logs  # Log directory
+  CAUSAL_LEARN_TIMEOUT: 300  # Default timeout

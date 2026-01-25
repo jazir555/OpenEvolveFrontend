@@ -1,0 +1,19 @@
+======================================================================
+RESE PERFORMANCE VALIDATION REPORT
+======================================================================
+
+Generated: 2026-01-01 02:01:53
+
+Module Results:
+----------------------------------------------------------------------
+SCE       : PASS     | Time:   0.0557s | Target: <1s for 10K constraints
+DITO      : PASS     | Time:   0.5843s | Target: <1.0s for 10000 constraints (scaled from 100K)
+Phi15     : PASS     | Time:   0.2579s | Target: <10s for 1K null results
+Imech     : PASS     | Time:   0.0004s | Target: <30s for domain comparison
+Gamma1    : PASS     | Time:   0.0064s | Target: <5s for ACI calculation
+MCTS      : PASS     | Time:   0.0001s | Target: <60s for 1K iterations
+
+======================================================================
+SUMMARY
+======================================================================
+Total: 6, Passed: 6, Failed: 0, Errors: 0
