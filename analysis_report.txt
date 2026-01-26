@@ -1,0 +1,606 @@
+PHP Warning:  Undefined array key 2634 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 2634 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 1272 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 1272 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 4884 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 4884 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 847 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 847 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 5542 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 5542 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 4857 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 4857 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 6301 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 6301 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 4038 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 4038 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 17628 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 17628 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 3198 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 3198 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 13741 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 13741 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 3122 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 3122 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 2868 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 2868 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 8003 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 8003 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 3997 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 3997 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 1674 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 1674 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 18768 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 18768 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 949 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 949 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 2147 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 2147 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 423 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 423 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 5079 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 5079 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 4919 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 4919 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 22806 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 22806 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 38816 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 38816 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 1347 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 1347 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 7882 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 7882 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 1674 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 1674 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 26742 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 26742 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+PHP Warning:  Undefined array key 35 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 425
+PHP Warning:  Undefined array key 35 in C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\code_quality_analyzer.php on line 428
+
+================================================================================
+CODE QUALITY ANALYSIS REPORT
+================================================================================
+
+STATISTICS:
+--------------------------------------------------------------------------------
+Files analyzed: 495
+Total classes: 506
+Total interfaces: 80
+Total functions: 6777
+Functions with return types: 3904 (57.6%)
+Functions with param types: 0 (parameters)
+Functions with PHPDoc: 2412 (35.6%)
+
+PHPDOC MISMATCHES
+================================================================================
+Count: 3810
+
+  - ActionSchedulerHelper.php:66 - get_version()
+    PHPDoc @return type 'string|null' doesn't match actual return type 'string'
+
+  - ActionSchedulerHelper.php:385 - get_admin_url()
+    PHPDoc @return type 'string|null' doesn't match actual return type 'string'
+
+  - ActionSchedulerTaskProcessor.php:165 - schedule_task()
+    PHPDoc missing @param tag for parameter 'task_id'
+
+  - ActionSchedulerTaskProcessor.php:165 - schedule_task()
+    PHPDoc missing @param tag for parameter 'task'
+
+  - ActionSchedulerTaskProcessor.php:165 - schedule_task()
+    PHPDoc missing @param tag for parameter 'priority'
+
+  - ActionSchedulerTaskProcessor.php:165 - schedule_task()
+    PHPDoc missing @param tag for parameter 'delay'
+
+  - ActionSchedulerTaskProcessor.php:230 - schedule_batch_processor()
+    PHPDoc missing @param tag for parameter 'interval'
+
+  - ActionSchedulerTaskProcessor.php:577 - unschedule_task()
+    PHPDoc missing @param tag for parameter 'task_id'
+
+  - ActionSchedulerTaskProcessor.php:664 - is_task_scheduled()
+    PHPDoc missing @param tag for parameter 'task_id'
+
+  - ActionSchedulerTaskProcessor.php:821 - force_processor()
+    PHPDoc @return type 'void' doesn't match actual return type '\LHA\Interfaces\TaskProcessorInterface'
+
+  - ActionSchedulerTaskProcessor.php:902 - add_custom_schedules()
+    PHPDoc @return type 'array' doesn't match actual return type 'void'
+
+  - Admin\AdminAssets.php:36 - enqueue_admin_assets()
+    PHPDoc missing @param tag for parameter 'plugin_url'
+
+  - Admin\AdminAssets.php:70 - is_manage_assets_page()
+    PHPDoc missing @param tag for parameter 'screen_id'
+
+  - Admin\AdminAssets.php:70 - is_manage_assets_page()
+    PHPDoc missing @param tag for parameter 'hook_suffix'
+
+  - Admin\AdminAssets.php:70 - is_manage_assets_page()
+    PHPDoc missing @param tag for parameter 'manage_assets_hook'
+
+  - Admin\AdminAssets.php:160 - enqueue_classic_meta_scripts()
+    PHPDoc missing @param tag for parameter 'plugin_url'
+
+  - Admin\AdminAssets.php:160 - enqueue_classic_meta_scripts()
+    PHPDoc missing @param tag for parameter 'plugin_dir'
+
+  - Admin\AdminAssets.php:160 - enqueue_classic_meta_scripts()
+    PHPDoc missing @param tag for parameter 'plugin_version'
+
+  - Admin\AdminAssets.php:160 - enqueue_classic_meta_scripts()
+    PHPDoc missing @param tag for parameter 'pagenow'
+
+  - Admin\AdminAssets.php:160 - enqueue_classic_meta_scripts()
+    PHPDoc missing @param tag for parameter 'pagenow'
+
+  ... and 3790 more
+
+
+NAMING CONVENTION VIOLATIONS
+================================================================================
+Count: 1764
+
+  - ActionSchedulerHelper.php:66 - get_version()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerHelper.php:84 - get_status()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerHelper.php:111 - get_source()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerHelper.php:172 - get_lha_stats()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerHelper.php:227 - get_recent_actions()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerHelper.php:278 - cancel_all_pending()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerHelper.php:335 - retry_action()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerHelper.php:385 - get_admin_url()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerHelper.php:399 - has_admin_page()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerHelper.php:424 - get_tasks_with_details()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerHelper.php:511 - cancel_task()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerTaskProcessor.php:71 - set_task_callback()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerTaskProcessor.php:81 - set_batch_callback()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerTaskProcessor.php:88 - is_available()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerTaskProcessor.php:132 - get_name()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerTaskProcessor.php:165 - schedule_task()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerTaskProcessor.php:230 - schedule_batch_processor()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerTaskProcessor.php:277 - supports_json_functions()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerTaskProcessor.php:349 - get_group_id()
+    Method name should be camelCase, not snake_case
+
+  - ActionSchedulerTaskProcessor.php:372 - get_actions_table_name()
+    Method name should be camelCase, not snake_case
+
+  ... and 1744 more
+
+
+MISSING PARAMETER TYPE HINTS
+================================================================================
+Count: 8931
+
+  - ActionSchedulerHelper.php:227 - get_recent_actions()
+    Parameter '$limit' is missing type hint
+
+  - ActionSchedulerHelper.php:227 - get_recent_actions()
+    Parameter '$status' is missing type hint
+
+  - ActionSchedulerHelper.php:335 - retry_action()
+    Parameter '$action_id' is missing type hint
+
+  - ActionSchedulerHelper.php:424 - get_tasks_with_details()
+    Parameter '$args' is missing type hint
+
+  - ActionSchedulerHelper.php:511 - cancel_task()
+    Parameter '$task_id' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:71 - set_task_callback()
+    Parameter '$callback' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:81 - set_batch_callback()
+    Parameter '$callback' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:165 - schedule_task()
+    Parameter '$task_id' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:165 - schedule_task()
+    Parameter '$task' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:165 - schedule_task()
+    Parameter '$priority' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:165 - schedule_task()
+    Parameter '$delay' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:230 - schedule_batch_processor()
+    Parameter '$interval' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:413 - query_action_ids_by_task_id()
+    Parameter '$task_id' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:413 - query_action_ids_by_task_id()
+    Parameter '$limit' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:413 - query_action_ids_by_task_id()
+    Parameter '$offset' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:471 - query_action_ids_by_task_id_fallback()
+    Parameter '$task_id' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:471 - query_action_ids_by_task_id_fallback()
+    Parameter '$limit' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:471 - query_action_ids_by_task_id_fallback()
+    Parameter '$offset' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:577 - unschedule_task()
+    Parameter '$task_id' is missing type hint
+
+  - ActionSchedulerTaskProcessor.php:664 - is_task_scheduled()
+    Parameter '$task_id' is missing type hint
+
+  ... and 8911 more
+
+
+MISSING RETURN TYPE DECLARATIONS
+================================================================================
+Count: 3367
+
+  - ActionSchedulerHelper.php:424 - get_tasks_with_details()
+    Function is missing return type declaration
+
+  - ActionSchedulerHelper.php:511 - cancel_task()
+    Function is missing return type declaration
+
+  - Admin\AdminAssets.php:36 - enqueue_admin_assets()
+    Function is missing return type declaration
+
+  - Admin\AdminAssets.php:70 - is_manage_assets_page()
+    Function is missing return type declaration
+
+  - Admin\AdminAssets.php:160 - enqueue_classic_meta_scripts()
+    Function is missing return type declaration
+
+  - Admin\AdminAssets.php:250 - enqueue_admin_manage_styles()
+    Function is missing return type declaration
+
+  - Admin\AdminAssets.php:303 - enqueue_common_admin_styles()
+    Function is missing return type declaration
+
+  - Admin\AdminPagesWrapper.php:167 - enqueue_admin_scripts()
+    Function is missing return type declaration
+
+  - Admin\AdminPagesWrapper.php:215 - add_plugin_action_links()
+    Function is missing return type declaration
+
+  - Admin\AdminPagesWrapper.php:256 - is_plugin_admin_page()
+    Function is missing return type declaration
+
+  - Admin\AdminPagesWrapper.php:320 - get_admin_page_menu_title()
+    Function is missing return type declaration
+
+  - Admin\AdminPagesWrapper.php:414 - get_admin_page_notices()
+    Function is missing return type declaration
+
+  - Admin\AssetRestController.php:110 - get_post_assets()
+    Function is missing return type declaration
+
+  - Admin\AssetRestController.php:156 - save_asset_order()
+    Function is missing return type declaration
+
+  - Admin\AssetRestController.php:234 - delete_asset()
+    Function is missing return type declaration
+
+  - Admin\AssetRestController.php:286 - get_assets()
+    Function is missing return type declaration
+
+  - Admin\AssetRestController.php:332 - create_asset()
+    Function is missing return type declaration
+
+  - Admin\AssetRestController.php:379 - update_asset()
+    Function is missing return type declaration
+
+  - Admin\AssetRestController.php:432 - get_asset_stats()
+    Function is missing return type declaration
+
+  - Admin\AssetStatusPage.php:171 - render_statistics()
+    Function is missing return type declaration
+
+  ... and 3347 more
+
+
+POTENTIAL CODE DUPLICATION
+================================================================================
+Count: 4708
+
+  - ActionSchedulerHelper.php:111 - get_source()
+    Function has same signature as 'get_version', consider if this is duplicated code
+
+  - ActionSchedulerHelper.php:172 - get_lha_stats()
+    Function has same signature as 'get_status', consider if this is duplicated code
+
+  - ActionSchedulerHelper.php:385 - get_admin_url()
+    Function has same signature as 'get_source', consider if this is duplicated code
+
+  - ActionSchedulerHelper.php:399 - has_admin_page()
+    Function has same signature as 'load', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:81 - set_batch_callback()
+    Function has same signature as 'set_task_callback', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:277 - supports_json_functions()
+    Function has same signature as 'is_available', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:372 - get_actions_table_name()
+    Function has same signature as 'get_name', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:471 - query_action_ids_by_task_id_fallback()
+    Function has same signature as 'query_action_ids_by_task_id', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:636 - unschedule_all()
+    Function has same signature as 'get_group_id', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:664 - is_task_scheduled()
+    Function has same signature as 'unschedule_task', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:709 - is_batch_processor_scheduled()
+    Function has same signature as 'supports_json_functions', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:732 - get_scheduled_tasks_count()
+    Function has same signature as 'unschedule_all', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:791 - has_native_retry()
+    Function has same signature as 'is_batch_processor_scheduled', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:802 - get_max_retry_attempts()
+    Function has same signature as 'get_scheduled_tasks_count', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:841 - is_using_action_scheduler()
+    Function has same signature as 'has_native_retry', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:850 - is_using_wp_cron()
+    Function has same signature as 'is_using_action_scheduler', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:859 - get_processor_name()
+    Function has same signature as 'get_actions_table_name', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:870 - should_use_external_retry()
+    Function has same signature as 'is_using_wp_cron', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:880 - migrate_to_action_scheduler()
+    Function has same signature as 'should_use_external_retry', consider if this is duplicated code
+
+  - ActionSchedulerTaskProcessor.php:890 - migrate_to_wp_cron()
+    Function has same signature as 'migrate_to_action_scheduler', consider if this is duplicated code
+
+  ... and 4688 more
+
+
+FUNCTIONS WITH TOO MANY PARAMETERS
+================================================================================
+Count: 439
+
+  - Admin\AdminAssets.php:250 - enqueue_admin_manage_styles()
+    Function has too many parameters (6), consider using an array or object
+
+  - Admin\AdminPagesWrapper.php:414 - get_admin_page_notices()
+    Function has too many parameters (6), consider using an array or object
+
+  - Admin\AssetRestController.php:432 - get_asset_stats()
+    Function has too many parameters (6), consider using an array or object
+
+  - Admin\AssetStatusPage.php:612 - get_total_count()
+    Function has too many parameters (11), consider using an array or object
+
+  - Admin\AssetStatusPage.php:1449 - is_asset_download_enabled()
+    Function has too many parameters (9), consider using an array or object
+
+  - Admin\ExternalAssetsLogPage.php:310 - get_assets()
+    Function has too many parameters (14), consider using an array or object
+
+  - Admin\ExternalAssetsLogPage.php:398 - get_assets_count()
+    Function has too many parameters (12), consider using an array or object
+
+  - Admin\ExternalAssetsLogPage.php:505 - truncate_url()
+    Function has too many parameters (18), consider using an array or object
+
+  - Admin\GranularSelfHostControl.php:346 - sanitize_settings()
+    Function has too many parameters (9), consider using an array or object
+
+  - Admin\GranularSelfHostControl.php:491 - is_file_type_enabled()
+    Function has too many parameters (7), consider using an array or object
+
+  - Admin\SelfHostSettings.php:483 - render_number_field()
+    Function has too many parameters (8), consider using an array or object
+
+  - Admin\SelfHostSettings.php:509 - render_checkbox_field()
+    Function has too many parameters (8), consider using an array or object
+
+  - Admin\SelfHostSettings.php:531 - render_select_field()
+    Function has too many parameters (8), consider using an array or object
+
+  - Admin\SelfHostSettings.php:559 - sanitize_settings()
+    Function has too many parameters (7), consider using an array or object
+
+  - Admin\SelfHostSettings.php:659 - get_setting()
+    Function has too many parameters (10), consider using an array or object
+
+  - AssetActionHandler.php:152 - handle_redirect()
+    Function has too many parameters (7), consider using an array or object
+
+  - AssetActionHandler.php:1195 - get_asset_form_data()
+    Function has too many parameters (6), consider using an array or object
+
+  - AssetActionHandler.php:1536 - get_asset_processing_status()
+    Function has too many parameters (6), consider using an array or object
+
+  - AssetActionHandlerWrapper.php:29 - delete_asset_by_id()
+    Function has too many parameters (12), consider using an array or object
+
+  - AssetActionHandlerWrapper.php:65 - update_asset_metadata()
+    Function has too many parameters (14), consider using an array or object
+
+  ... and 419 more
+
+
+MISSING PHPDOC COMMENTS
+================================================================================
+Count: 2954
+
+  - Admin\AdminPagesWrapper.php:20 - get_manage_page_hook()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:25 - get_plugin_page_hooks()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:30 - register_admin_pages()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:36 - render_manage_assets_page()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:57 - render_settings_page()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:78 - render_maintenance_page()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:99 - render_logs_page()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:120 - add_admin_menu()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:135 - add_admin_submenu_pages()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:167 - enqueue_admin_scripts()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:215 - add_plugin_action_links()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:239 - handle_admin_post_requests()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:245 - display_admin_notices()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:251 - get_current_page_hook()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:256 - is_plugin_admin_page()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:320 - get_admin_page_menu_title()
+    Public function is missing PHPDoc comment
+
+  - Admin\AdminPagesWrapper.php:414 - get_admin_page_notices()
+    Public function is missing PHPDoc comment
+
+  - Ajax.php:177 - initialize()
+    Public function is missing PHPDoc comment
+
+  - AjaxHelpers\AssetManagementAjaxHelper.php:725 - ajax_save_asset_management()
+    Public function is missing PHPDoc comment
+
+  - AjaxHelpers\AssetManagementAjaxHelper.php:894 - ajax_get_asset_meta()
+    Public function is missing PHPDoc comment
+
+  ... and 2934 more
+
+
+GOD CLASSES (TOO LARGE)
+================================================================================
+Count: 12
+
+  - RUJS\Extracted\CLIExample.php:14 - CLIExample
+    Class has too many methods (22), consider splitting into smaller classes
+
+  - RUJS\Extracted\UnusedJavaScriptRemover.php:43 - UnusedJavaScriptRemover
+    Class has too many properties (27), consider splitting into smaller classes
+
+  - RUJS\RUJS.php:275 - UnusedJavaScriptRemover
+    Class has too many properties (27), consider splitting into smaller classes
+
+  - unit\CleanupComprehensiveTest.php:8 - CleanupComprehensiveTest
+    Class has too many methods (206), consider splitting into smaller classes
+
+  - unit\CleanupStandaloneTest.php:7 - CleanupStandaloneTest
+    Class has too many methods (28), consider splitting into smaller classes
+
+  - unit\ExtractTest.php:6 - ExtractTest
+    Class has too many methods (203), consider splitting into smaller classes
+
+  - unit\FileLockTest.php:6 - FileLockTest
+    Class has too many methods (21), consider splitting into smaller classes
+
+  - unit\GetDataComprehensiveUnitTest.php:7 - GetDataComprehensiveUnitTest
+    Class has too many methods (92), consider splitting into smaller classes
+
+  - unit\RenderBugScanTest.php:21 - RenderBugScanTest
+    Class has too many methods (110), consider splitting into smaller classes
+
+  - unit\ReplaceTest.php:6 - ReplaceTest
+    Class has too many methods (93), consider splitting into smaller classes
+
+  - unit\SimpleTestBase.php:7 - SimpleTestBase
+    Class has too many methods (29), consider splitting into smaller classes
+
+  - unit\SimpleUnitTestBase.php:8 - SimpleUnitTestBase
+    Class has too many methods (21), consider splitting into smaller classes
+
+
+CLASSES WITH MULTIPLE RESPONSIBILITIES
+================================================================================
+Count: 6
+
+  - RUJS\Extracted\EnterpriseInit.php:43 - EnterpriseInit
+    Class seems to have multiple responsibilities (detected prefixes: get, check, initialize, register, ajax, add)
+
+  - RUJS\Extracted\OptimizationEngine.php:18 - OptimizationEngine
+    Class seems to have multiple responsibilities (detected prefixes: remove, perform, inline, generate, validate, get, clear)
+
+  - RUJS\Extracted\UnusedJavaScriptAdmin.php:43 - UnusedJavaScriptAdmin
+    Class seems to have multiple responsibilities (detected prefixes: get, is, set, initialize, cleanup, register, load, validate, add)
+
+  - RUJS\Extracted\UnusedJavaScriptDiagnostics.php:47 - UnusedJavaScriptDiagnostics
+    Class seems to have multiple responsibilities (detected prefixes: get, ajax, verify, analyze, format, test, extract)
+
+  - RUJS\Extracted\UnusedJavaScriptRemover.php:43 - UnusedJavaScriptRemover
+    Class seems to have multiple responsibilities (detected prefixes: get, initialize, check, load, validate, detect, apply)
+
+  - RUJS\RUJS.php:275 - UnusedJavaScriptRemover
+    Class seems to have multiple responsibilities (detected prefixes: get, initialize, check, load, validate, detect, apply)
+
+

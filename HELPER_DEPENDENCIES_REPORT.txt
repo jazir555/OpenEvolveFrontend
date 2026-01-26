@@ -1,0 +1,823 @@
+
+====================================================================
+              HELPER DEPENDENCY ANALYSIS                            
+====================================================================
+
+Instance-based helpers with dependencies: 49
+Instance-based helpers without dependencies: 0
+Static helpers: 71
+
+====================================================================
+         INSTANCE HELPERS WITH DEPENDENCIES                        
+====================================================================
+
+LHA\AjaxHelpers\AssetManagementAjaxHelper
+  File: AjaxHelpers/AssetManagementAjaxHelper.php
+  Constructor params: LoggerInterface $logger,
+        AssetOrderInterface $assetOrder,
+        TaskQueueInterface $taskQueue,
+        RetryInterface $retry,
+        ?DiagnosticsInterface $diagnostics,
+        ScannerInterface $scanner,
+        SettingsInterface $settings,
+        OptionsInterface $options,
+        DatabaseInterface $database,
+        CacheInterface $cache,
+        InitializeInterface $initialize,
+        GetdataInterface $getdata,
+        \wpdb $wpdb,
+        ?ActionSchedulerHelperInterface $actionSchedulerHelper = null,
+        ?AssetDataInterface $assetData = null,
+        ?ReplaceInterface $replace = null,
+        ?NormalizeInterface $normalize = null
+
+LHA\AjaxHelpers\CacheAjaxHelper
+  File: AjaxHelpers/CacheAjaxHelper.php
+  Constructor params: LoggerInterface $logger,
+        AssetOrderInterface $assetOrder,
+        TaskQueueInterface $taskQueue,
+        RetryInterface $retry,
+        ?DiagnosticsInterface $diagnostics,
+        ScannerInterface $scanner,
+        SettingsInterface $settings,
+        OptionsInterface $options,
+        DatabaseInterface $database,
+        CacheInterface $cache,
+        InitializeInterface $initialize,
+        GetdataInterface $getdata,
+        \wpdb $wpdb,
+        ?ActionSchedulerHelperInterface $actionSchedulerHelper = null,
+        ?AssetDataInterface $assetData = null,
+        ?ReplaceInterface $replace = null,
+        ?NormalizeInterface $normalize = null
+
+LHA\AjaxHelpers\DiagnosticsAjaxHelper
+  File: AjaxHelpers/DiagnosticsAjaxHelper.php
+  Constructor params: LoggerInterface $logger,
+        AssetOrderInterface $assetOrder,
+        TaskQueueInterface $taskQueue,
+        RetryInterface $retry,
+        ?DiagnosticsInterface $diagnostics,
+        ScannerInterface $scanner,
+        SettingsInterface $settings,
+        OptionsInterface $options,
+        DatabaseInterface $database,
+        CacheInterface $cache,
+        InitializeInterface $initialize,
+        GetdataInterface $getdata,
+        \wpdb $wpdb,
+        ?ActionSchedulerHelperInterface $actionSchedulerHelper = null,
+        ?AssetDataInterface $assetData = null,
+        ?ReplaceInterface $replace = null,
+        ?NormalizeInterface $normalize = null
+
+LHA\AjaxHelpers\LogAjaxHelper
+  File: AjaxHelpers/LogAjaxHelper.php
+  Constructor params: LoggerInterface $logger,
+        AssetOrderInterface $assetOrder,
+        TaskQueueInterface $taskQueue,
+        RetryInterface $retry,
+        ?DiagnosticsInterface $diagnostics,
+        ScannerInterface $scanner,
+        SettingsInterface $settings,
+        OptionsInterface $options,
+        DatabaseInterface $database,
+        CacheInterface $cache,
+        InitializeInterface $initialize,
+        GetdataInterface $getdata,
+        \wpdb $wpdb,
+        ?ActionSchedulerHelperInterface $actionSchedulerHelper = null,
+        ?AssetDataInterface $assetData = null,
+        ?ReplaceInterface $replace = null,
+        ?NormalizeInterface $normalize = null
+
+LHA\AjaxHelpers\ScanAjaxHelper
+  File: AjaxHelpers/ScanAjaxHelper.php
+  Constructor params: LoggerInterface $logger,
+        AssetOrderInterface $assetOrder,
+        TaskQueueInterface $taskQueue,
+        RetryInterface $retry,
+        ?DiagnosticsInterface $diagnostics,
+        ScannerInterface $scanner,
+        SettingsInterface $settings,
+        OptionsInterface $options,
+        DatabaseInterface $database,
+        CacheInterface $cache,
+        InitializeInterface $initialize,
+        GetdataInterface $getdata,
+        \wpdb $wpdb,
+        ?ActionSchedulerHelperInterface $actionSchedulerHelper = null,
+        ?AssetDataInterface $assetData = null,
+        ?ReplaceInterface $replace = null,
+        ?NormalizeInterface $normalize = null
+
+LHA\AjaxHelpers\SettingsAjaxHelper
+  File: AjaxHelpers/SettingsAjaxHelper.php
+  Constructor params: LoggerInterface $logger,
+        AssetOrderInterface $assetOrder,
+        TaskQueueInterface $taskQueue,
+        RetryInterface $retry,
+        ?DiagnosticsInterface $diagnostics,
+        ScannerInterface $scanner,
+        SettingsInterface $settings,
+        OptionsInterface $options,
+        DatabaseInterface $database,
+        CacheInterface $cache,
+        InitializeInterface $initialize,
+        GetdataInterface $getdata,
+        \wpdb $wpdb,
+        ?ActionSchedulerHelperInterface $actionSchedulerHelper = null,
+        ?AssetDataInterface $assetData = null,
+        ?ReplaceInterface $replace = null,
+        ?NormalizeInterface $normalize = null
+
+LHA\AjaxHelpers\TaskManagementAjaxHelper
+  File: AjaxHelpers/TaskManagementAjaxHelper.php
+  Constructor params: LoggerInterface $logger,
+        AssetOrderInterface $assetOrder,
+        TaskQueueInterface $taskQueue,
+        RetryInterface $retry,
+        ?DiagnosticsInterface $diagnostics,
+        ScannerInterface $scanner,
+        SettingsInterface $settings,
+        OptionsInterface $options,
+        DatabaseInterface $database,
+        CacheInterface $cache,
+        InitializeInterface $initialize,
+        GetdataInterface $getdata,
+        \wpdb $wpdb,
+        ?ActionSchedulerHelperInterface $actionSchedulerHelper = null,
+        ?AssetDataInterface $assetData = null,
+        ?ReplaceInterface $replace = null,
+        ?NormalizeInterface $normalize = null
+
+LHA\AjaxHelpers\TriggerAjaxHelper
+  File: AjaxHelpers/TriggerAjaxHelper.php
+  Constructor params: LoggerInterface $logger,
+        AssetOrderInterface $assetOrder,
+        TaskQueueInterface $taskQueue,
+        RetryInterface $retry,
+        ?DiagnosticsInterface $diagnostics,
+        ScannerInterface $scanner,
+        SettingsInterface $settings,
+        OptionsInterface $options,
+        DatabaseInterface $database,
+        CacheInterface $cache,
+        InitializeInterface $initialize,
+        GetdataInterface $getdata,
+        \wpdb $wpdb,
+        ?ActionSchedulerHelperInterface $actionSchedulerHelper = null,
+        ?AssetDataInterface $assetData = null,
+        ?ReplaceInterface $replace = null,
+        ?NormalizeInterface $normalize = null
+
+LHA\AjaxHelpers\UtilityAjaxHelper
+  File: AjaxHelpers/UtilityAjaxHelper.php
+  Constructor params: LoggerInterface $logger,
+        AssetOrderInterface $assetOrder,
+        TaskQueueInterface $taskQueue,
+        RetryInterface $retry,
+        ?DiagnosticsInterface $diagnostics,
+        ScannerInterface $scanner,
+        SettingsInterface $settings,
+        OptionsInterface $options,
+        DatabaseInterface $database,
+        CacheInterface $cache,
+        InitializeInterface $initialize,
+        GetdataInterface $getdata,
+        \wpdb $wpdb,
+        ?ActionSchedulerHelperInterface $actionSchedulerHelper = null,
+        ?AssetDataInterface $assetData = null,
+        ?ReplaceInterface $replace = null,
+        ?NormalizeInterface $normalize = null
+
+LHA\AjaxHelpers\ValidationAjaxHelper
+  File: AjaxHelpers/ValidationAjaxHelper.php
+  Constructor params: LoggerInterface $logger,
+        AssetOrderInterface $assetOrder,
+        TaskQueueInterface $taskQueue,
+        RetryInterface $retry,
+        ?DiagnosticsInterface $diagnostics,
+        ScannerInterface $scanner,
+        SettingsInterface $settings,
+        OptionsInterface $options,
+        DatabaseInterface $database,
+        CacheInterface $cache,
+        InitializeInterface $initialize,
+        GetdataInterface $getdata,
+        \wpdb $wpdb,
+        ?ActionSchedulerHelperInterface $actionSchedulerHelper = null,
+        ?AssetDataInterface $assetData = null,
+        ?ReplaceInterface $replace = null,
+        ?NormalizeInterface $normalize = null
+
+LHA\DatabaseHelpers\DatabaseAssetHelper
+  File: DatabaseHelpers/DatabaseAssetHelper.php
+<<<<<<< HEAD
+  Constructor params: \wpdb $wpdb,
+        ?\LHA\ServiceContainer $container = null,
+        ?\LHA\Interfaces\LoggerInterface $logger = null,
+=======
+  Constructor params: \wpdb $wpdb,
+        ?\LHA\ServiceContainer $container = null,
+        ?\LHA\Interfaces\LoggerInterface $logger = null,
+>>>>>>> 1cb9c5e35 (update)
+        ?\LHA\Interfaces\UrlProcessorInterface $urlProcessor = null
+
+LHA\DatabaseHelpers\DatabaseIndexHelper
+  File: DatabaseHelpers/DatabaseIndexHelper.php
+<<<<<<< HEAD
+  Constructor params: \wpdb $wpdb,
+=======
+  Constructor params: \wpdb $wpdb,
+>>>>>>> 1cb9c5e35 (update)
+        ?\LHA\Interfaces\LoggerInterface $logger = null
+
+LHA\DatabaseHelpers\DatabaseMappingHelper
+  File: DatabaseHelpers/DatabaseMappingHelper.php
+<<<<<<< HEAD
+  Constructor params: \wpdb $wpdb,
+        ?\LHA\ServiceContainer $container = null,
+=======
+  Constructor params: \wpdb $wpdb,
+        ?\LHA\ServiceContainer $container = null,
+>>>>>>> 1cb9c5e35 (update)
+        ?\LHA\Interfaces\LoggerInterface $logger = null
+
+LHA\DatabaseHelpers\DatabaseProgressHelper
+  File: DatabaseHelpers/DatabaseProgressHelper.php
+<<<<<<< HEAD
+  Constructor params: \wpdb $wpdb,
+=======
+  Constructor params: \wpdb $wpdb,
+>>>>>>> 1cb9c5e35 (update)
+        ?\LHA\Interfaces\LoggerInterface $logger = null
+
+LHA\DatabaseHelpers\DatabaseQueryHelper
+  File: DatabaseHelpers/DatabaseQueryHelper.php
+<<<<<<< HEAD
+  Constructor params: \wpdb $wpdb,
+=======
+  Constructor params: \wpdb $wpdb,
+>>>>>>> 1cb9c5e35 (update)
+        ?\LHA\Interfaces\LoggerInterface $logger = null
+
+LHA\DatabaseHelpers\DatabaseStaticHelper
+  File: DatabaseHelpers/DatabaseStaticHelper.php
+  Constructor params: \wpdb $wpdb, ?\LHA\ServiceContainer $container = null
+
+LHA\DatabaseHelpers\DatabaseStatsHelper
+  File: DatabaseHelpers/DatabaseStatsHelper.php
+<<<<<<< HEAD
+  Constructor params: \wpdb $wpdb,
+=======
+  Constructor params: \wpdb $wpdb,
+>>>>>>> 1cb9c5e35 (update)
+        ?\LHA\Interfaces\LoggerInterface $logger = null
+
+LHA\DatabaseHelpers\DatabaseTableHelper
+  File: DatabaseHelpers/DatabaseTableHelper.php
+<<<<<<< HEAD
+  Constructor params: \wpdb $wpdb,
+=======
+  Constructor params: \wpdb $wpdb,
+>>>>>>> 1cb9c5e35 (update)
+        ?\LHA\Interfaces\LoggerInterface $logger = null
+
+LHA\DatabaseHelpers\DatabaseTaskHelper
+  File: DatabaseHelpers/DatabaseTaskHelper.php
+<<<<<<< HEAD
+  Constructor params: \wpdb $wpdb,
+=======
+  Constructor params: \wpdb $wpdb,
+>>>>>>> 1cb9c5e35 (update)
+        ?\LHA\Interfaces\LoggerInterface $logger = null
+
+LHA\DatabaseHelpers\DatabaseTransactionHelper
+  File: DatabaseHelpers/DatabaseTransactionHelper.php
+<<<<<<< HEAD
+  Constructor params: \wpdb $wpdb,
+=======
+  Constructor params: \wpdb $wpdb,
+>>>>>>> 1cb9c5e35 (update)
+        ?\LHA\Interfaces\LoggerInterface $logger = null
+
+LHA\DatabaseHelpers\DatabaseValidationHelper
+  File: DatabaseHelpers/DatabaseValidationHelper.php
+  Constructor params: \wpdb $wpdb,
+        ?\LHA\Interfaces\LoggerInterface $logger = null
+
+LHA\ExtractHelpers\ExtractCssHelper
+  File: ExtractHelpers/ExtractCssHelper.php
+  Constructor params: ExtractUtilityHelper $utilityHelper, ?callable $logCallback = null
+
+LHA\ExtractHelpers\ExtractSvgHelper
+  File: ExtractHelpers/ExtractSvgHelper.php
+  Constructor params: array $regexPatterns = [], ?callable $logCallback = null
+
+LHA\ExtractHelpers\ExtractUrlHelper
+  File: ExtractHelpers/ExtractUrlHelper.php
+  Constructor params: ExtractValidationHelper $validationHelper
+
+LHA\ExtractHelpers\ExtractUtilityHelper
+  File: ExtractHelpers/ExtractUtilityHelper.php
+  Constructor params: ?\LHA\Interfaces\LoggerInterface $logger = null
+
+LHA\ExtractHelpers\ExtractValidationHelper
+  File: ExtractHelpers/ExtractValidationHelper.php
+  Constructor params: \LHA\Interfaces\UrlProcessorInterface $urlProcessor,
+        ExtractUtilityHelper $utilityHelper,
+        array $regexPatterns = []
+
+LHA\ProcessHelpers\ProcessCleanupHelper
+  File: ProcessHelpers/ProcessCleanupHelper.php
+  Constructor params: \LHA\Interfaces\LoggerInterface $logger,
+        \LHA\Interfaces\DatabaseInterface $database
+
+LHA\ProcessHelpers\ProcessExtractionHelper
+  File: ProcessHelpers/ProcessExtractionHelper.php
+  Constructor params: \LHA\Interfaces\LoggerInterface $logger,
+        \LHA\Interfaces\AssetValidatorInterface $assetValidator,
+        \LHA\Interfaces\NormalizeInterface $normalize,
+        \LHA\Interfaces\GetDataInterface $getdata,
+        \LHA\Interfaces\GenerateInterface $generate
+
+LHA\ProcessHelpers\ProcessQueryHelper
+  File: ProcessHelpers/ProcessQueryHelper.php
+  Constructor params: \LHA\Interfaces\LoggerInterface $logger,
+        \LHA\Interfaces\DatabaseInterface $database
+
+LHA\ProcessHelpers\ProcessQueueHelper
+  File: ProcessHelpers/ProcessQueueHelper.php
+  Constructor params: \LHA\Interfaces\LoggerInterface $logger,
+        \LHA\Interfaces\DatabaseInterface $database,
+        \LHA\Interfaces\LockInterface $lock,
+        \LHA\Interfaces\AssetValidatorInterface $assetValidator
+
+LHA\ProcessHelpers\ProcessTaskHelper
+  File: ProcessHelpers/ProcessTaskHelper.php
+  Constructor params: \LHA\Interfaces\LoggerInterface $logger,
+        \LHA\Interfaces\DatabaseInterface $database,
+        \LHA\Interfaces\AssetValidatorInterface $assetValidator,
+        \LHA\Interfaces\AssetUtilsInterface $assetUtils
+
+LHA\ProcessHelpers\ProcessUtilityHelper
+  File: ProcessHelpers/ProcessUtilityHelper.php
+  Constructor params: \LHA\Interfaces\LoggerInterface $logger,
+        \LHA\Interfaces\DatabaseInterface $database,
+        \LHA\Interfaces\LockInterface $lock,
+        \LHA\Interfaces\AssetValidatorInterface $assetValidator,
+        \LHA\Interfaces\NormalizeInterface $normalize,
+        \LHA\Interfaces\GetDataInterface $getdata,
+        \LHA\Interfaces\GenerateInterface $generate
+
+LHA\ProcessHelpers\ProcessValidationHelper
+  File: ProcessHelpers/ProcessValidationHelper.php
+  Constructor params: \LHA\Interfaces\LoggerInterface $logger,
+        \LHA\Interfaces\AssetValidatorInterface $assetValidator,
+        \LHA\Interfaces\AssetUtilsInterface $assetUtils
+
+LHA\RetryHelpers\RetryDatabaseHelper
+  File: RetryHelpers/RetryDatabaseHelper.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+LHA\RetryHelpers\RetryDeadLetterQueue
+  File: RetryHelpers/RetryDeadLetterQueue.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+LHA\RetryHelpers\RetryDependencyManager
+  File: RetryHelpers/RetryDependencyManager.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+LHA\RetryHelpers\RetryExecutor
+  File: RetryHelpers/RetryExecutor.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+LHA\RetryHelpers\RetryHelper
+  File: RetryHelpers/RetryHelper.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+LHA\RetryHelpers\RetryHistoryLogger
+  File: RetryHelpers/RetryHistoryLogger.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+LHA\RetryHelpers\RetryNoticeHelper
+  File: RetryHelpers/RetryNoticeHelper.php
+  Constructor params: LoggerInterface $logger
+
+LHA\RetryHelpers\RetryOperationHelper
+  File: RetryHelpers/RetryOperationHelper.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+LHA\RetryHelpers\RetryOperationHelperRefactored
+  File: RetryHelpers/RetryOperationHelperRefactored.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+LHA\RetryHelpers\RetryPolicyManager
+  File: RetryHelpers/RetryPolicyManager.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+LHA\RetryHelpers\RetryQueryHelper
+  File: RetryHelpers/RetryQueryHelper.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb,
+        TaskQueueInterface $tasks
+
+LHA\RetryHelpers\RetryQueue
+  File: RetryHelpers/RetryQueue.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+LHA\RetryHelpers\RetryScheduleHelper
+  File: RetryHelpers/RetryScheduleHelper.php
+  Constructor params: LoggerInterface $logger,
+        Initialize $initialize
+
+LHA\RetryHelpers\RetryScheduler
+  File: RetryHelpers/RetryScheduler.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+LHA\RetryHelpers\RetryStateManager
+  File: RetryHelpers/RetryStateManager.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+LHA\RetryHelpers\RetryUtilityHelper
+  File: RetryHelpers/RetryUtilityHelper.php
+  Constructor params: LoggerInterface $logger,
+        DatabaseInterface $database,
+        \wpdb $wpdb
+
+
+====================================================================
+         SERVICE CONTAINER REGISTRATIONS                            
+====================================================================
+
+// LHA\AjaxHelpers\AssetManagementAjaxHelper
+LHA\AjaxHelpers\AssetManagementAjaxHelper::class => function ($container) {
+    return new LHA\AjaxHelpers\AssetManagementAjaxHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\AjaxHelpers\CacheAjaxHelper
+LHA\AjaxHelpers\CacheAjaxHelper::class => function ($container) {
+    return new LHA\AjaxHelpers\CacheAjaxHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\AjaxHelpers\DiagnosticsAjaxHelper
+LHA\AjaxHelpers\DiagnosticsAjaxHelper::class => function ($container) {
+    return new LHA\AjaxHelpers\DiagnosticsAjaxHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\AjaxHelpers\LogAjaxHelper
+LHA\AjaxHelpers\LogAjaxHelper::class => function ($container) {
+    return new LHA\AjaxHelpers\LogAjaxHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\AjaxHelpers\ScanAjaxHelper
+LHA\AjaxHelpers\ScanAjaxHelper::class => function ($container) {
+    return new LHA\AjaxHelpers\ScanAjaxHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\AjaxHelpers\SettingsAjaxHelper
+LHA\AjaxHelpers\SettingsAjaxHelper::class => function ($container) {
+    return new LHA\AjaxHelpers\SettingsAjaxHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\AjaxHelpers\TaskManagementAjaxHelper
+LHA\AjaxHelpers\TaskManagementAjaxHelper::class => function ($container) {
+    return new LHA\AjaxHelpers\TaskManagementAjaxHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\AjaxHelpers\TriggerAjaxHelper
+LHA\AjaxHelpers\TriggerAjaxHelper::class => function ($container) {
+    return new LHA\AjaxHelpers\TriggerAjaxHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\AjaxHelpers\UtilityAjaxHelper
+LHA\AjaxHelpers\UtilityAjaxHelper::class => function ($container) {
+    return new LHA\AjaxHelpers\UtilityAjaxHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\AjaxHelpers\ValidationAjaxHelper
+LHA\AjaxHelpers\ValidationAjaxHelper::class => function ($container) {
+    return new LHA\AjaxHelpers\ValidationAjaxHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\DatabaseHelpers\DatabaseAssetHelper
+LHA\DatabaseHelpers\DatabaseAssetHelper::class => function ($container) {
+    return new LHA\DatabaseHelpers\DatabaseAssetHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\DatabaseHelpers\DatabaseIndexHelper
+LHA\DatabaseHelpers\DatabaseIndexHelper::class => function ($container) {
+    return new LHA\DatabaseHelpers\DatabaseIndexHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\DatabaseHelpers\DatabaseMappingHelper
+LHA\DatabaseHelpers\DatabaseMappingHelper::class => function ($container) {
+    return new LHA\DatabaseHelpers\DatabaseMappingHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\DatabaseHelpers\DatabaseProgressHelper
+LHA\DatabaseHelpers\DatabaseProgressHelper::class => function ($container) {
+    return new LHA\DatabaseHelpers\DatabaseProgressHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\DatabaseHelpers\DatabaseQueryHelper
+LHA\DatabaseHelpers\DatabaseQueryHelper::class => function ($container) {
+    return new LHA\DatabaseHelpers\DatabaseQueryHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\DatabaseHelpers\DatabaseStaticHelper
+LHA\DatabaseHelpers\DatabaseStaticHelper::class => function ($container) {
+    return new LHA\DatabaseHelpers\DatabaseStaticHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\DatabaseHelpers\DatabaseStatsHelper
+LHA\DatabaseHelpers\DatabaseStatsHelper::class => function ($container) {
+    return new LHA\DatabaseHelpers\DatabaseStatsHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\DatabaseHelpers\DatabaseTableHelper
+LHA\DatabaseHelpers\DatabaseTableHelper::class => function ($container) {
+    return new LHA\DatabaseHelpers\DatabaseTableHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\DatabaseHelpers\DatabaseTaskHelper
+LHA\DatabaseHelpers\DatabaseTaskHelper::class => function ($container) {
+    return new LHA\DatabaseHelpers\DatabaseTaskHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\DatabaseHelpers\DatabaseTransactionHelper
+LHA\DatabaseHelpers\DatabaseTransactionHelper::class => function ($container) {
+    return new LHA\DatabaseHelpers\DatabaseTransactionHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\DatabaseHelpers\DatabaseValidationHelper
+LHA\DatabaseHelpers\DatabaseValidationHelper::class => function ($container) {
+    return new LHA\DatabaseHelpers\DatabaseValidationHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\ExtractHelpers\ExtractCssHelper
+LHA\ExtractHelpers\ExtractCssHelper::class => function ($container) {
+    return new LHA\ExtractHelpers\ExtractCssHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\ExtractHelpers\ExtractSvgHelper
+LHA\ExtractHelpers\ExtractSvgHelper::class => function ($container) {
+    return new LHA\ExtractHelpers\ExtractSvgHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\ExtractHelpers\ExtractUrlHelper
+LHA\ExtractHelpers\ExtractUrlHelper::class => function ($container) {
+    return new LHA\ExtractHelpers\ExtractUrlHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\ExtractHelpers\ExtractUtilityHelper
+LHA\ExtractHelpers\ExtractUtilityHelper::class => function ($container) {
+    return new LHA\ExtractHelpers\ExtractUtilityHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\ExtractHelpers\ExtractValidationHelper
+LHA\ExtractHelpers\ExtractValidationHelper::class => function ($container) {
+    return new LHA\ExtractHelpers\ExtractValidationHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\ProcessHelpers\ProcessCleanupHelper
+LHA\ProcessHelpers\ProcessCleanupHelper::class => function ($container) {
+    return new LHA\ProcessHelpers\ProcessCleanupHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\ProcessHelpers\ProcessExtractionHelper
+LHA\ProcessHelpers\ProcessExtractionHelper::class => function ($container) {
+    return new LHA\ProcessHelpers\ProcessExtractionHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\ProcessHelpers\ProcessQueryHelper
+LHA\ProcessHelpers\ProcessQueryHelper::class => function ($container) {
+    return new LHA\ProcessHelpers\ProcessQueryHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\ProcessHelpers\ProcessQueueHelper
+LHA\ProcessHelpers\ProcessQueueHelper::class => function ($container) {
+    return new LHA\ProcessHelpers\ProcessQueueHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\ProcessHelpers\ProcessTaskHelper
+LHA\ProcessHelpers\ProcessTaskHelper::class => function ($container) {
+    return new LHA\ProcessHelpers\ProcessTaskHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\ProcessHelpers\ProcessUtilityHelper
+LHA\ProcessHelpers\ProcessUtilityHelper::class => function ($container) {
+    return new LHA\ProcessHelpers\ProcessUtilityHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\ProcessHelpers\ProcessValidationHelper
+LHA\ProcessHelpers\ProcessValidationHelper::class => function ($container) {
+    return new LHA\ProcessHelpers\ProcessValidationHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryDatabaseHelper
+LHA\RetryHelpers\RetryDatabaseHelper::class => function ($container) {
+    return new LHA\RetryHelpers\RetryDatabaseHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryDeadLetterQueue
+LHA\RetryHelpers\RetryDeadLetterQueue::class => function ($container) {
+    return new LHA\RetryHelpers\RetryDeadLetterQueue(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryDependencyManager
+LHA\RetryHelpers\RetryDependencyManager::class => function ($container) {
+    return new LHA\RetryHelpers\RetryDependencyManager(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryExecutor
+LHA\RetryHelpers\RetryExecutor::class => function ($container) {
+    return new LHA\RetryHelpers\RetryExecutor(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryHelper
+LHA\RetryHelpers\RetryHelper::class => function ($container) {
+    return new LHA\RetryHelpers\RetryHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryHistoryLogger
+LHA\RetryHelpers\RetryHistoryLogger::class => function ($container) {
+    return new LHA\RetryHelpers\RetryHistoryLogger(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryNoticeHelper
+LHA\RetryHelpers\RetryNoticeHelper::class => function ($container) {
+    return new LHA\RetryHelpers\RetryNoticeHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryOperationHelper
+LHA\RetryHelpers\RetryOperationHelper::class => function ($container) {
+    return new LHA\RetryHelpers\RetryOperationHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryOperationHelperRefactored
+LHA\RetryHelpers\RetryOperationHelperRefactored::class => function ($container) {
+    return new LHA\RetryHelpers\RetryOperationHelperRefactored(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryPolicyManager
+LHA\RetryHelpers\RetryPolicyManager::class => function ($container) {
+    return new LHA\RetryHelpers\RetryPolicyManager(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryQueryHelper
+LHA\RetryHelpers\RetryQueryHelper::class => function ($container) {
+    return new LHA\RetryHelpers\RetryQueryHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryQueue
+LHA\RetryHelpers\RetryQueue::class => function ($container) {
+    return new LHA\RetryHelpers\RetryQueue(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryScheduleHelper
+LHA\RetryHelpers\RetryScheduleHelper::class => function ($container) {
+    return new LHA\RetryHelpers\RetryScheduleHelper(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryScheduler
+LHA\RetryHelpers\RetryScheduler::class => function ($container) {
+    return new LHA\RetryHelpers\RetryScheduler(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryStateManager
+LHA\RetryHelpers\RetryStateManager::class => function ($container) {
+    return new LHA\RetryHelpers\RetryStateManager(
+        // TODO: Add dependencies
+    );
+},
+
+// LHA\RetryHelpers\RetryUtilityHelper
+LHA\RetryHelpers\RetryUtilityHelper::class => function ($container) {
+    return new LHA\RetryHelpers\RetryUtilityHelper(
+        // TODO: Add dependencies
+    );
+},
+
+
+Total instance helpers with dependencies: 49
