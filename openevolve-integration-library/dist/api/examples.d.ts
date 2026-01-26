@@ -1,0 +1,32 @@
+import { OpenEvolveClient } from './client';
+import type { HealthStatus } from './types';
+declare function basicInitialization(): Promise<OpenEvolveClient>;
+declare function authenticatedClient(): Promise<OpenEvolveClient>;
+declare function quickClient(): Promise<OpenEvolveClient>;
+declare function simpleExecution(client: OpenEvolveClient): Promise<unknown>;
+declare function executionWithOptions(client: OpenEvolveClient): Promise<unknown>;
+declare function executionWithProgress(client: OpenEvolveClient): Promise<unknown>;
+declare function streamingExecution(client: OpenEvolveClient): Promise<unknown>;
+declare function streamingWithUI(client: OpenEvolveClient): Promise<unknown>;
+declare function simpleBatch(client: OpenEvolveClient): Promise<import("./types").BatchResult<unknown>[]>;
+declare function batchWithStatistics(client: OpenEvolveClient): Promise<import("./types").BatchResult<unknown>[]>;
+declare function basicErrorHandling(client: OpenEvolveClient): Promise<unknown>;
+declare function specificErrorHandling(client: OpenEvolveClient): Promise<unknown>;
+declare function withRetryLogic(client: OpenEvolveClient): Promise<unknown>;
+declare function withCancellation(client: OpenEvolveClient): Promise<unknown>;
+declare function basicHealthCheck(client: OpenEvolveClient): Promise<HealthStatus>;
+declare function detailedHealthMonitoring(client: OpenEvolveClient): Promise<HealthStatus | undefined>;
+declare function trackMetrics(client: OpenEvolveClient): Promise<unknown>;
+declare function performanceMonitoring(client: OpenEvolveClient): Promise<{
+    avg: number;
+    min: number;
+    max: number;
+    p50: number;
+    p95: number;
+    p99: number;
+}>;
+declare function integrationSpecificMethods(client: OpenEvolveClient): Promise<import("..").LeanAideResult>;
+declare function allIntegrations(client: OpenEvolveClient): Promise<[import("..").LeanAideResult, import("..").EvolutionResult, any, any, any, any, any, any]>;
+declare function completeWorkflow(): Promise<unknown>;
+export { basicInitialization, authenticatedClient, quickClient, simpleExecution, executionWithOptions, executionWithProgress, streamingExecution, streamingWithUI, simpleBatch, batchWithStatistics, basicErrorHandling, specificErrorHandling, withRetryLogic, withCancellation, basicHealthCheck, detailedHealthMonitoring, trackMetrics, performanceMonitoring, integrationSpecificMethods, allIntegrations, completeWorkflow, };
+//# sourceMappingURL=examples.d.ts.map
