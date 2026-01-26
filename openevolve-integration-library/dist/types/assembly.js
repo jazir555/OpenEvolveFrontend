@@ -1,0 +1,36 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+    ** Quality;
+score * /;
+qualityScore ?  : number;
+performanceMetrics ?  : Record;
+    ** Assembly;
+statistics * /;
+statistics: AssemblyStatistics;
+    ** Conflicts;
+detected * /;
+conflicts ?  : AssemblyConflict[];
+    ** Warnings * /;
+warnings ?  : string[];
+metadata: AssemblyMetadata;
+    ** Lines;
+of;
+code();
+if (applicable)
+     * /;
+linesOfCode ?  : number;
+componentsIntegrated: number;
+    ** Solutions;
+involved * /;
+solutions: string[];
+resolution: string;
+    ** Assembly;
+version * /;
+version: string;
+    ** Quality;
+metrics * /;
+qualityMetrics: Record;
+    ** Constraints;
+satisfied * /;
+constraintsSatisfied: string[];
+//# sourceMappingURL=assembly.js.map
