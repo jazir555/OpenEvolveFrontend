@@ -1,9 +1,0 @@
-{
-  "timestamp": "2026-01-09T07:06:02.816425+00:00",
-  "scenarios": {},
-  "overall_status": "pending",
-  "environment": {
-    "python_version": "3.11.0 (main, Oct 24 2022, 18:26:48) [MSC v.1933 64 bit (AMD64)]",
-    "platform": "win32"
-  }
-}

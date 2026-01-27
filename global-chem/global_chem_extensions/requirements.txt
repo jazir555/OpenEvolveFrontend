@@ -1,8 +1,0 @@
-global-chem
-numpy
-rdkit
-pandas
-requests
-
-
-

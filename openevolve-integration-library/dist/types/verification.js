@@ -1,0 +1,35 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+    ** Stop;
+on;
+first;
+failure * /;
+stopOnFirstFailure ?  : boolean;
+includeSuggestions ?  : boolean;
+customValidators ?  : string[];
+    ** Requirements;
+coverage * /;
+requirementsCoverage: RequirementsCoverage;
+    ** Suggestions;
+for (improvement * /; suggestions ?  : Suggestion[]; 
+    ** Verification)
+    metadata * /;
+metadata: VerificationMetadata;
+    ** Check;
+details * /;
+details ?  : CheckDetail[];
+executionTime: number;
+    ** Severity(1 - 10) * /;
+severity ?  : number;
+suggestion ?  : string;
+    ** Requirements;
+breakdown * /;
+breakdown: RequirementBreakdown[];
+    ** Fields;
+passed * /;
+fieldsPassed: number;
+fieldsFailed: number;
+    ** Validation;
+time * /;
+validationTime: number;
+//# sourceMappingURL=verification.js.map

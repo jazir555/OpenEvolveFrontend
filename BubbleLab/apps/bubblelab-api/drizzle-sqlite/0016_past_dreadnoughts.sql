@@ -1,1 +1,0 @@
-ALTER TABLE `user_credentials` ADD `is_default` integer DEFAULT false NOT NULL;

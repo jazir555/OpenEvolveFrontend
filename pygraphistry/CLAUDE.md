@@ -1,1 +1,0 @@
-See [ai/README.md](ai/README.md) for AI assistant development guidance.

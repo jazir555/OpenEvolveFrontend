@@ -1,8 +1,0 @@
-FSPGrowth
----------------
-
-.. automodule:: PAMI.georeferencedFrequentPattern.basic.FSPGrowth
-   :members:
-   :undoc-members:
-   :show-inheritance:
-

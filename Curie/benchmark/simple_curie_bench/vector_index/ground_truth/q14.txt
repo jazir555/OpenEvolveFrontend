@@ -1,3 +1,0 @@
-Recall decrease
-Latency increase
-Memory increase
