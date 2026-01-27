@@ -1,0 +1,130 @@
+Analyzing 110 files...
+
+================================================================================
+TECHNICAL DEBT ANALYSIS REPORT
+================================================================================
+
+Files Analyzed: 110
+Total Lines: 73,478
+Total Issues: 2,081
+
+Severity Breakdown:
+  HIGH: 38
+  MEDIUM: 389
+  LOW: 1,654
+
+Top Issue Types:
+  magic_number: 1,128
+  console_log: 480
+  any_type: 210
+  long_method: 163
+  poor_naming: 46
+  hardcoded_url: 26
+  technical_debt_marker: 21
+  complex_conditional: 7
+
+--------------------------------------------------------------------------------
+TOP 20 FILES BY ISSUE COUNT
+--------------------------------------------------------------------------------
+
+1. tool-bubble\chart-js-tool.ts
+   Issues: 102 | Lines: 772 | Functions: 18
+   Top Issue: Magic Numbers (91)
+
+2. service-bubble\ai-agent.ts
+   Issues: 86 | Lines: 1,890 | Functions: 78
+   Top Issue: Magic Numbers (50)
+
+3. tool-bubble\reddit-scrape-tool.ts
+   Issues: 77 | Lines: 516 | Functions: 24
+   Top Issue: Magic Numbers (68)
+
+4. workflow-bubble\generate-document.workflow.ts
+   Issues: 55 | Lines: 820 | Functions: 23
+   Top Issue: Magic Numbers (30)
+
+5. tool-bubble\pdf-generator-tool.ts
+   Issues: 50 | Lines: 892 | Functions: 54
+   Top Issue: Magic Numbers (34)
+
+6. service-bubble\github.ts
+   Issues: 49 | Lines: 1,321 | Functions: 26
+   Top Issue: Magic Numbers (39)
+
+7. service-bubble\ace-tools-bubble.ts
+   Issues: 47 | Lines: 748 | Functions: 22
+   Top Issue: Magic Numbers (23)
+
+8. service-bubble\stripe-bubble.ts
+   Issues: 47 | Lines: 1,293 | Functions: 23
+   Top Issue: Magic Numbers (40)
+
+9. workflow-bubble\parse-document.workflow.ts
+   Issues: 46 | Lines: 822 | Functions: 12
+   Top Issue: Console Logs (24)
+
+10. workflow-bubble\pdf-ocr.workflow.ts
+   Issues: 44 | Lines: 994 | Functions: 24
+   Top Issue: Magic Numbers (22)
+
+11. service-bubble\hephaestus-bubble.ts
+   Issues: 42 | Lines: 1,106 | Functions: 15
+   Top Issue: Magic Numbers (21)
+
+12. service-bubble\airtable.ts
+   Issues: 40 | Lines: 1,552 | Functions: 43
+   Top Issue: Debt Markers (20)
+
+13. tool-bubble\research-agent-tool.ts
+   Issues: 40 | Lines: 755 | Functions: 26
+   Top Issue: Magic Numbers (25)
+
+14. tool-bubble\file-processor-tool.ts
+   Issues: 37 | Lines: 1,416 | Functions: 119
+   Top Issue: Console Logs (27)
+
+15. service-bubble\notion\notion.ts
+   Issues: 36 | Lines: 1,927 | Functions: 28
+   Top Issue: Magic Numbers (30)
+
+16. tool-bubble\metrics-collector-tool.ts
+   Issues: 35 | Lines: 1,428 | Functions: 60
+   Top Issue: Magic Numbers (25)
+
+17. workflow-bubble\backup-restore.workflow.ts
+   Issues: 35 | Lines: 891 | Functions: 31
+   Top Issue: Console Logs (28)
+
+18. workflow-bubble\pdf-form-operations.workflow.ts
+   Issues: 35 | Lines: 1,212 | Functions: 34
+   Top Issue: Console Logs (23)
+
+19. service-bubble\github-bubble.ts
+   Issues: 34 | Lines: 721 | Functions: 25
+   Top Issue: Console Logs (12)
+
+20. service-bubble\notion-bubble.ts
+   Issues: 33 | Lines: 1,066 | Functions: 29
+   Top Issue: Magic Numbers (15)
+
+--------------------------------------------------------------------------------
+CODE DUPLICATION PATTERNS
+--------------------------------------------------------------------------------
+
+1. Pattern appears 152 times in 25 files:
+   Files: google-drive.ts, eleven-labs.ts, firecrawl.ts
+
+2. Pattern appears 152 times in 25 files:
+   Files: google-drive.ts, eleven-labs.ts, firecrawl.ts
+
+3. Pattern appears 106 times in 20 files:
+   Files: google-drive.ts, eleven-labs.ts, firecrawl.ts
+
+4. Pattern appears 86 times in 13 files:
+   Files: notion-bubble.ts, eleven-labs.ts, google-sheets-bubble.ts
+
+5. Pattern appears 68 times in 7 files:
+   Files: notion-bubble.ts, google-sheets-bubble.ts, webhook-bubble.ts
+
+Report saved to: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\docs\technical_debt_report.json
+Markdown report saved to: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\docs\TECHNICAL_DEBT_REPORT.md
