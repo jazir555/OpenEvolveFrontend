@@ -1,1 +1,0 @@
-"""Integration tests for Hephaestus RAG system."""
