@@ -35,7 +35,7 @@ describe('Select', () => {
   });
 
   it('calls onChange when option is selected', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(
       <Select
         value="option1"

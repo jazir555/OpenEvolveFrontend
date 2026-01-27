@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient, type Query } from '@tanstack/react-query';
+import { useQuery, useQueryClient, type UseQueryResult } from '@tanstack/react-query';
 import { useCallback } from 'react';
 import { api } from '../lib/api';
 import type {
@@ -37,11 +37,9 @@ export function useBubbleFlow(
       | number
       | false
       | ((
-          query: Query<
+          query: UseQueryResult<
             BubbleFlowDetailsResponse,
-            Error,
-            BubbleFlowDetailsResponse,
-            (string | number | null)[]
+            Error
           >
         ) => number | false);
   }
@@ -98,7 +96,7 @@ export function useBubbleFlow(
           console.log('Current data', JSON.stringify(currentData, null, 2));
           return {
             ...currentData,
-            bubbleFlows: currentData.bubbleFlows.map((flow) => {
+            bubbleFlows: currentData.bubbleFlows.map((flow: any) => {
               if (flow.id === flowId) {
                 return {
                   ...flow,
@@ -135,7 +133,7 @@ export function useBubbleFlow(
           if (!currentData) return currentData;
           return {
             ...currentData,
-            bubbleFlows: currentData.bubbleFlows.map((flow) => {
+            bubbleFlows: currentData.bubbleFlows.map((flow: any) => {
               if (flow.id === flowId) {
                 return {
                   ...flow,
@@ -192,7 +190,7 @@ export function useBubbleFlow(
           if (!currentData) return currentData;
           return {
             ...currentData,
-            bubbleFlows: currentData.bubbleFlows.map((flow) => {
+            bubbleFlows: currentData.bubbleFlows.map((flow: any) => {
               if (flow.id === flowId) {
                 return {
                   ...flow,
@@ -267,7 +265,7 @@ export function useBubbleFlow(
           if (!currentData) return currentData;
           return {
             ...currentData,
-            bubbleFlows: currentData.bubbleFlows.map((flow) => {
+            bubbleFlows: currentData.bubbleFlows.map((flow: any) => {
               if (flow.id === flowId) {
                 return {
                   ...flow,

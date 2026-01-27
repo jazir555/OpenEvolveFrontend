@@ -8,13 +8,15 @@ import { ReactNode } from 'react';
 export type AlertType = 'info' | 'success' | 'warning' | 'error';
 
 interface AlertProps {
-  type: AlertType;
+  type?: AlertType;
+  variant?: AlertType; // Alias for type
   title?: string;
   children: ReactNode;
   onDismiss?: () => void;
 }
 
-export function Alert({ type, title, children, onDismiss }: AlertProps) {
+export function Alert({ type, variant, title, children, onDismiss }: AlertProps) {
+  const alertType = type || variant || 'info';
   const styles = {
     info: 'bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-900/20 dark:border-blue-800 dark:text-blue-400',
     success: 'bg-green-50 border-green-200 text-green-800 dark:bg-green-900/20 dark:border-green-800 dark:text-green-400',
@@ -62,9 +64,9 @@ export function Alert({ type, title, children, onDismiss }: AlertProps) {
   };
 
   return (
-    <div className={`rounded-lg border p-4 ${styles[type]}`}>
+    <div className={`rounded-lg border p-4 ${styles[alertType]}`}>
       <div className="flex">
-        <div className="flex-shrink-0">{icons[type]}</div>
+        <div className="flex-shrink-0">{icons[alertType]}</div>
         <div className="ml-3 flex-1">
           {title && (
             <h3 className="text-sm font-medium">{title}</h3>

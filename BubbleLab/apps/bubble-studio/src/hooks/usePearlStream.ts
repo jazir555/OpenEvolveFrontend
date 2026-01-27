@@ -103,10 +103,10 @@ export function usePearlStream(options?: UsePearlStreamOptions) {
 
       return finalResult;
     },
-    onSuccess: (result) => {
+    onSuccess: (result: any) => {
       onSuccess?.(result);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       const errorInstance =
         error instanceof Error ? error : new Error(String(error));
       onError?.(errorInstance);

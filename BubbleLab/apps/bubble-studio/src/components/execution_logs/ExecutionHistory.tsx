@@ -207,7 +207,7 @@ export function ExecutionHistory({ flowId }: ExecutionHistoryProps) {
             </div>
           ) : (
             <div className="space-y-3">
-              {executionHistory.map((execution) => (
+              {executionHistory.map((execution: any) => (
                 <div
                   key={execution.id}
                   className="rounded-lg border border-[#30363d] bg-[#21262d] p-4"

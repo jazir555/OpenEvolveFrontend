@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node", "vitest/globals", "@testing-library/jest-dom"],
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "module": "ESNext",
+    "moduleResolution": "bundler"
+  },
+  "include": ["src", "**/*.test.tsx", "**/*.test.ts", "src/test/setup.ts", "src/utils/test-helpers.tsx", "src/utils/test.ts"],
+  "exclude": ["node_modules", "dist", "coverage"]
+}

@@ -52,6 +52,9 @@ export function Spinner({
   );
 }
 
+// Alias for compatibility
+export const LoadingSpinner = Spinner;
+
 /**
  * DotsSpinner - Alternative loading indicator
  */

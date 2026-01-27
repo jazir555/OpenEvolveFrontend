@@ -30,7 +30,7 @@ export function useWebhook() {
         return { ...response, webhookUrl: '' };
       }
     },
-    onMutate: async ({ flowId, activate }) => {
+    onMutate: async ({ flowId, activate }: any) => {
       // Cancel any outgoing refetches
       await queryClient.cancelQueries({ queryKey: ['bubbleFlow', flowId] });
       await queryClient.cancelQueries({ queryKey: ['bubbleFlowList'] });
@@ -60,7 +60,7 @@ export function useWebhook() {
           if (!old) return old;
           return {
             ...old,
-            bubbleFlows: old.bubbleFlows.map((flow) => {
+            bubbleFlows: old.bubbleFlows.map((flow: any) => {
               if (flow.id === flowId) {
                 return {
                   ...flow,
@@ -76,7 +76,7 @@ export function useWebhook() {
       // Return context object with the snapshot
       return { previousFlow };
     },
-    onError: (error, variables, context) => {
+    onError: (error: any, variables: any, context: any) => {
       // Rollback to the previous value on error
       if (context?.previousFlow) {
         queryClient.setQueryData(

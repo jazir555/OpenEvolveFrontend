@@ -325,7 +325,7 @@ function FlowVisualizerInner({
     };
 
     bubbleEntries.forEach(([key, bubbleData]) => {
-      const bubble = bubbleData;
+      const bubble = bubbleData as ParsedBubbleWithInfo;
       const parentNodeId = bubble.variableId
         ? String(bubble.variableId)
         : String(key);
@@ -777,7 +777,7 @@ function FlowVisualizerInner({
     // Determine entry bubble as the one with the smallest startLine
     let smallestStartLine = Number.POSITIVE_INFINITY;
     bubbleEntries.forEach(([, bubbleData]) => {
-      const typedBubbleData = bubbleData as Partial<ParsedBubble>;
+      const typedBubbleData = bubbleData as ParsedBubbleWithInfo;
       const startLine =
         typedBubbleData?.location?.startLine ?? Number.MAX_SAFE_INTEGER;
       if (startLine < smallestStartLine) {
@@ -1024,7 +1024,7 @@ function FlowVisualizerInner({
       step.bubbleIds.forEach((id) => bubblesInSteps.add(id));
     });
     const unparsedBubbles = bubbleEntries.filter(([, bubbleData]) => {
-      const bubble = bubbleData;
+      const bubble = bubbleData as ParsedBubbleWithInfo;
       const id = bubble.variableId;
       return !bubblesInSteps.has(id) && !bubble.isInsideCustomTool;
     });
@@ -1055,7 +1055,7 @@ function FlowVisualizerInner({
       // Track handles for sequential layout edges
       const mainBubbles = bubbleEntries
         .map(([key, bubbleData]) => {
-          const typedBubbleData = bubbleData as Partial<ParsedBubble>;
+          const typedBubbleData = bubbleData as ParsedBubbleWithInfo;
           return {
             key,
             nodeId: typedBubbleData?.variableId
@@ -1084,7 +1084,7 @@ function FlowVisualizerInner({
 
       // Create nodes for each bubble (sequential horizontal layout)
       bubbleEntries.forEach(([key, bubbleData], index) => {
-        const bubble = bubbleData;
+        const bubble = bubbleData as ParsedBubbleWithInfo;
         const nodeId = bubble.variableId
           ? String(bubble.variableId)
           : String(key);
@@ -1138,7 +1138,7 @@ function FlowVisualizerInner({
             },
             onParamEditInCode: (paramName: string) => {
               // Find the parameter in the bubble's parameters
-              const param = bubble.parameters.find((p) => p.name === paramName);
+              const param = bubble.parameters.find((p: any) => p.name === paramName);
               if (param && param.location) {
                 // Open editor if not visible
                 if (!useUIStore.getState().showEditor) {
@@ -1161,7 +1161,7 @@ function FlowVisualizerInner({
         // Create sub-bubbles from dependency graph
         if (bubble.dependencyGraph?.dependencies) {
           const rootId = bubble.variableId ?? parseInt(key, 10);
-          bubble.dependencyGraph.dependencies.forEach((dep, idx, arr) => {
+          bubble.dependencyGraph.dependencies.forEach((dep: any, idx: number, arr: any[]) => {
             createNodesFromDependencyGraph(
               dep,
               bubble,
@@ -1510,7 +1510,7 @@ function FlowVisualizerInner({
 
     // Mark handles for all dependency graphs
     bubbleEntries.forEach(([key, bubbleData]) => {
-      const bubble = bubbleData;
+      const bubble = bubbleData as ParsedBubbleWithInfo;
       const parentNodeId = bubble.variableId
         ? String(bubble.variableId)
         : String(key);
@@ -1623,7 +1623,7 @@ function FlowVisualizerInner({
       step.bubbleIds.forEach((bubbleId, bubbleIndexInStep) => {
         // Find the bubble data
         const bubbleEntry = bubbleEntries.find(([key, bubbleData]) => {
-          const bubble = bubbleData;
+          const bubble = bubbleData as ParsedBubbleWithInfo;
           const id = bubble.variableId ? bubble.variableId : parseInt(key);
           return id === bubbleId;
         });
@@ -1636,7 +1636,7 @@ function FlowVisualizerInner({
         }
 
         const [key, bubbleData] = bubbleEntry;
-        const bubble = bubbleData;
+        const bubble = bubbleData as ParsedBubbleWithInfo;
 
         // Use the bubble's variableId or key as the node ID (consistent with sequential layout)
         const nodeId = bubble.variableId
@@ -1706,7 +1706,7 @@ function FlowVisualizerInner({
             },
             onParamEditInCode: (paramName: string) => {
               // Find the parameter in the bubble's parameters
-              const param = bubble.parameters.find((p) => p.name === paramName);
+              const param = bubble.parameters.find((p: any) => p.name === paramName);
               if (param && param.location) {
                 // Open editor if not visible
                 if (!useUIStore.getState().showEditor) {
@@ -1729,7 +1729,7 @@ function FlowVisualizerInner({
         // Create sub-bubbles from dependency graph
         // Note: dependencies and functionCallChildren are different types and need separate handling
         if (bubble.dependencyGraph?.dependencies?.length) {
-          bubble.dependencyGraph.dependencies.forEach((dep, idx, arr) => {
+          bubble.dependencyGraph.dependencies.forEach((dep: any, idx: number, arr: any[]) => {
             createNodesFromDependencyGraph(
               dep,
               bubble,
@@ -1847,10 +1847,11 @@ function FlowVisualizerInner({
               // Get bubble data from bubbleParameters
               const ctBubbleEntry = Object.entries(
                 currentFlow?.bubbleParameters || {}
-              ).find(([, b]) => b.variableId === ctBubbleId);
+              ).find(([, b]: [string, any]) => b.variableId === ctBubbleId);
 
               if (ctBubbleEntry) {
                 const [, ctBubbleData] = ctBubbleEntry;
+                const ctBubble = ctBubbleData as ParsedBubbleWithInfo;
                 const ctBubbleNode: Node = {
                   id: ctBubbleNodeId,
                   type: 'bubbleNode',
@@ -1860,13 +1861,13 @@ function FlowVisualizerInner({
                   draggable: false,
                   data: {
                     flowId: currentFlow?.id || flowId,
-                    bubble: ctBubbleData,
+                    bubble: ctBubble,
                     bubbleKey: ctBubbleNodeId,
                     requiredCredentialTypes: (() => {
                       const keyCandidates = [
-                        String(ctBubbleData.variableId),
-                        ctBubbleData.variableName,
-                        ctBubbleData.bubbleName,
+                        String(ctBubble.variableId),
+                        ctBubble.variableName,
+                        ctBubble.bubbleName,
                       ];
                       const credentialsKeyForBubble =
                         keyCandidates.find(
@@ -1877,7 +1878,7 @@ function FlowVisualizerInner({
                                 k
                               ]
                             )
-                        ) || ctBubbleData.bubbleName;
+                        ) || ctBubble.bubbleName;
                       return (
                         (requiredCredentials as Record<string, string[]>)[
                           credentialsKeyForBubble
@@ -1889,8 +1890,8 @@ function FlowVisualizerInner({
                       // Show editor and highlight the bubble's code location
                       useUIStore.getState().showEditorPanel();
                       setExecutionHighlight({
-                        startLine: ctBubbleData.location.startLine,
-                        endLine: ctBubbleData.location.endLine,
+                        startLine: ctBubble.location?.startLine || 0,
+                        endLine: ctBubble.location?.endLine || 0,
                       });
                     },
                     isCustomToolBubble: true, // Render smaller inside custom tool containers
@@ -2284,7 +2285,7 @@ function FlowVisualizerInner({
     // Build a map of main bubbleId -> startLine for ordering
     const idToStartLine = new Map<string, number>();
     bubbleEntries.forEach(([, bubbleData]) => {
-      const b = bubbleData as ParsedBubble;
+      const b = bubbleData as ParsedBubbleWithInfo;
       const id = b.variableId ? String(b.variableId) : String(b.bubbleName);
       const startLine = b?.location?.startLine ?? Number.MAX_SAFE_INTEGER;
       idToStartLine.set(id, startLine);
@@ -2537,7 +2538,7 @@ function FlowVisualizerInner({
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           nodeTypes={nodeTypes}
-          onNodeClick={(_event, node) => {
+          onNodeClick={(_event: any, node: any) => {
             const executionStore = getExecutionStore(currentFlow?.id || flowId);
             const pearlChatStore = getPearlChatStore(currentFlow?.id || flowId);
             const isDesktopView =

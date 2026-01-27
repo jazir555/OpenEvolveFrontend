@@ -63,12 +63,13 @@ export function LazyLoadImage({
   const [ref, isInView] = useIntersectionObserver();
 
   return (
-    <img
-      ref={ref}
-      src={isLoaded || isInView ? src : placeholder}
-      alt={alt}
-      className={className}
-      onLoad={() => setIsLoaded(true)}
-    />
+    <div ref={ref}>
+      <img
+        src={isLoaded || isInView ? src : placeholder}
+        alt={alt}
+        className={className}
+        onLoad={() => setIsLoaded(true)}
+      />
+    </div>
   );
 }

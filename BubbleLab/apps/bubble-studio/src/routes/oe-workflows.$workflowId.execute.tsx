@@ -4,8 +4,8 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
-import { ExecutionPanel } from '../../components/execution/ExecutionPanel';
-import { ResultsView } from '../../components/execution/ResultsView';
+import { ExecutionPanel } from '../components/execution/ExecutionPanel';
+import { ResultsView } from '../components/execution/ResultsView';
 
 export const Route = createFileRoute('/oe-workflows/$workflowId/execute')({
   component: WorkflowExecutionPage,

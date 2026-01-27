@@ -457,7 +457,7 @@ function BubbleNode({ data }: BubbleNodeProps) {
       bubble.clonedFromVariableId !== undefined
     ) {
       // Find the original bubble (where variableId matches clonedFromVariableId)
-      Object.entries(bubbleParameters).forEach(([key, otherBubble]) => {
+      Object.entries(bubbleParameters).forEach(([key, otherBubble]: [string, any]) => {
         if (otherBubble.variableId === bubble.clonedFromVariableId) {
           // This is the original - update its credential too
           setCredential(key, credType, credId);
@@ -468,7 +468,7 @@ function BubbleNode({ data }: BubbleNodeProps) {
     // If this is an original bubble (no invocationCallSiteKey), also update all its clones
     if (!bubble.invocationCallSiteKey) {
       // Find all clones of this bubble (clones have clonedFromVariableId matching this bubble's variableId)
-      Object.entries(bubbleParameters).forEach(([key, otherBubble]) => {
+      Object.entries(bubbleParameters).forEach(([key, otherBubble]: [string, any]) => {
         if (
           otherBubble.invocationCallSiteKey &&
           otherBubble.clonedFromVariableId === bubble.variableId
@@ -515,7 +515,7 @@ function BubbleNode({ data }: BubbleNodeProps) {
 
   const getCredentialsForType = (credType: string) => {
     return availableCredentials.filter(
-      (cred) => cred.credentialType === credType
+      (cred: any) => cred.credentialType === credType
     );
   };
 
@@ -908,7 +908,7 @@ function BubbleNode({ data }: BubbleNodeProps) {
                             ? 'Use system default'
                             : 'Select credential...'}
                         </option>
-                        {availableForType.map((cred) => (
+                        {availableForType.map((cred: any) => (
                           <option key={cred.id} value={String(cred.id)}>
                             {cred.name || `${cred.credentialType} (${cred.id})`}
                           </option>

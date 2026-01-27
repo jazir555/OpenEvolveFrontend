@@ -54,10 +54,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       <button
         ref={ref}
         className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${widthStyles} ${className}`}
-        disabled={disabled || isLoading}
+        disabled={disabled || is_loading}
         {...props}
       >
-        {isLoading ? (
+        {is_loading ? (
           <>
             <svg className="mr-2 h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />

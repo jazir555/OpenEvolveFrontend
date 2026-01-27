@@ -54,7 +54,7 @@ export function useValidateCode({ flowId }: ValidateCodeOptions) {
         },
       });
     },
-    onMutate: (variables) => {
+    onMutate: (variables: any) => {
       // Set validating state to disable Run button
       executionState.startValidation();
 
@@ -66,7 +66,7 @@ export function useValidateCode({ flowId }: ValidateCodeOptions) {
       const loadingToastId = toast.loading('Validating code...');
       return { loadingToastId };
     },
-    onSuccess: (result, variables, context) => {
+    onSuccess: (result: any, variables: any, context: any) => {
       // Dismiss loading toast
       if (context?.loadingToastId) {
         toast.dismiss(context.loadingToastId);
@@ -175,7 +175,7 @@ export function useValidateCode({ flowId }: ValidateCodeOptions) {
         // Show detailed errors in a separate toast
         if (result.errors && result.errors.length > 0) {
           const errorDetails = result.errors
-            .map((error, index) => `${index + 1}. ${error}`)
+            .map((error: any, index: number) => `${index + 1}. ${error}`)
             .join('\n');
 
           toast.error(`Validation errors:\n${errorDetails}`, {
@@ -190,7 +190,7 @@ export function useValidateCode({ flowId }: ValidateCodeOptions) {
         executionState.stopValidation();
       }
     },
-    onError: (error, _variables, context) => {
+    onError: (error: any, _variables: any, context: any) => {
       // Dismiss loading toast
       if (context?.loadingToastId) {
         toast.dismiss(context.loadingToastId);

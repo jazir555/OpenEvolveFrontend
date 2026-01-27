@@ -18,7 +18,7 @@ export function useDebounce<T>(value: T, delay: number): T {
 
     return () => {
       // Cancel pending debounced calls
-      debouncedUpdate.cancel?.();
+      (debouncedUpdate as any).cancel?.();
     };
   }, [value, delay]);
 
@@ -29,17 +29,17 @@ export function useDebounce<T>(value: T, delay: number): T {
  * useDebounceCallback Hook
  * Debounce callback function
  */
-export function useDebounceCallback<T extends (...args: never[]) => unknown>(
+export function useDebounceCallback<T extends (...args: any[]) => unknown>(
   callback: T,
   delay: number
 ): T {
   const [debouncedCallback, setDebouncedCallback] = useState<T>(() =>
-    debounce((...args: never[]) => callback(...args), delay) as unknown as T
+    debounce((...args: any[]) => callback(...args), delay) as unknown as T
   );
 
   useEffect(() => {
     setDebouncedCallback(
-      debounce((...args: never[]) => callback(...args), delay) as unknown as T
+      debounce((...args: any[]) => callback(...args), delay) as unknown as T
     );
   }, [callback, delay]);
 

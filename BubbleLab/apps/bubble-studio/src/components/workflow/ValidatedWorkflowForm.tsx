@@ -7,6 +7,17 @@ import { useState } from 'react';
 import { useNavigate } from '@tanstack/react-router';
 import { useForm, useFormFields } from '../../hooks/useForm';
 import { validateWorkflowName, validateProblemStatement } from '../../utils/validation';
+
+// Wrapper functions to convert ValidationResult to string | null
+const validateWorkflowNameSimple = (name: string): string | null => {
+  const result = validateWorkflowName(name);
+  return result.isValid ? null : result.errors.name || null;
+};
+
+const validateProblemStatementSimple = (statement: string): string | null => {
+  const result = validateProblemStatement(statement);
+  return result.isValid ? null : result.errors.problem_statement || null;
+};
 import { Button } from '../common/Button';
 import { Input } from '../common/Input';
 import { Textarea } from '../common/Textarea';
@@ -41,12 +52,12 @@ export function ValidatedWorkflowForm() {
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
   const { fields, updateField, setFieldError, validateField, getValues, isValid } =
-    useFormFields<WorkflowFormData>({
+    useFormFields<Record<string, string>>({
       name: '',
       description: '',
       problem_statement: '',
       content_type: 'math',
-    });
+    } as Record<string, string>);
 
   const steps = [
     { id: 'basic', label: 'Basic Info', status: 'current' as const },
@@ -70,7 +81,7 @@ export function ValidatedWorkflowForm() {
     let valid = true;
 
     if (currentStep === 'basic') {
-      if (!validateField('name', validateWorkflowName)) valid = false;
+      if (!validateField('name', validateWorkflowNameSimple)) valid = false;
       if (fields.name.value.length < 3) {
         setFieldError('name', 'Workflow name must be at least 3 characters');
         valid = false;
@@ -78,7 +89,7 @@ export function ValidatedWorkflowForm() {
     }
 
     if (currentStep === 'problem') {
-      if (!validateField('problem_statement', validateProblemStatement)) valid = false;
+      if (!validateField('problem_statement', validateProblemStatementSimple)) valid = false;
     }
 
     if (!valid) {
@@ -108,8 +119,8 @@ export function ValidatedWorkflowForm() {
 
   const handleSubmit = async () => {
     // Final validation
-    const nameValid = validateField('name', validateWorkflowName);
-    const problemValid = validateField('problem_statement', validateProblemStatement);
+    const nameValid = validateField('name', validateWorkflowNameSimple);
+    const problemValid = validateField('problem_statement', validateProblemStatementSimple);
 
     if (!nameValid || !problemValid) {
       notify({
@@ -151,7 +162,7 @@ export function ValidatedWorkflowForm() {
               <FormGroup title="Basic Information" description="Enter the basic details for your workflow">
                 <FormField
                   label="Workflow Name"
-                  error={fields.name.error}
+                  error={fields.name.error || undefined}
                   required
                   description="A descriptive name for your workflow"
                 >
@@ -159,7 +170,10 @@ export function ValidatedWorkflowForm() {
                     value={fields.name.value}
                     onChange={(e) => updateField('name', e.target.value)}
                     placeholder="e.g., Math Problem Solver"
-                    onBlur={() => validateField('name', validateWorkflowName)}
+                    onBlur={() => validateField('name', (value: string) => {
+                      const result = validateWorkflowName(value);
+                      return result.isValid ? null : result.errors.name || null;
+                    })}
                   />
                 </FormField>
 
@@ -182,7 +196,7 @@ export function ValidatedWorkflowForm() {
                 >
                   <Select
                     value={fields.content_type.value}
-                    onChange={(value) => updateField('content_type', value)}
+                    onChange={(e) => updateField('content_type', (e.target as HTMLSelectElement).value)}
                     options={CONTENT_TYPES}
                   />
                 </FormField>
@@ -194,7 +208,7 @@ export function ValidatedWorkflowForm() {
               <FormGroup title="Problem Statement" description="Define the problem you want to solve">
                 <FormField
                   label="Problem Statement"
-                  error={fields.problem_statement.error}
+                  error={fields.problem_statement.error || undefined}
                   required
                   description="Clearly describe the problem or question to be solved"
                 >
@@ -203,7 +217,7 @@ export function ValidatedWorkflowForm() {
                     onChange={(e) => updateField('problem_statement', e.target.value)}
                     placeholder="Enter your problem statement here..."
                     rows={8}
-                    onBlur={() => validateField('problem_statement', validateProblemStatement)}
+                    onBlur={() => validateField('problem_statement', validateProblemStatementSimple)}
                   />
                 </FormField>
 

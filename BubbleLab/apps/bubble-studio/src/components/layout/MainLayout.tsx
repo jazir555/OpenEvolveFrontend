@@ -6,10 +6,10 @@
 import { Outlet } from '@tanstack/react-router';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
-import { useUIState } from '../../stores/configStore';
+import { useConfigStore } from '../../stores/configStore';
 
 export function MainLayout() {
-  const sidebarCollapsed = useUIState((state) => state.sidebarCollapsed);
+  const sidebarCollapsed = useConfigStore((state) => state.ui.sidebarCollapsed);
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-900">

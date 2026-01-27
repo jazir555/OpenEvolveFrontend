@@ -6,7 +6,7 @@
 
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { LLMProvider, LLMConfig, UIState } from '../types/api';
+import { LLMProvider, LLMConfig, UIState, PanelMode } from '../types/api';
 
 // ============================================================================
 // Configuration State Interface
@@ -66,7 +66,7 @@ const defaultLLMConfig: LLMConfig = {
 
 const defaultUIState: UIState = {
   selectedFlowId: null,
-  panelMode: 'bubble_list' as const,
+  panelMode: PanelMode.BUBBLE_LIST,
   sidebarCollapsed: false,
   darkMode: false,
   fontSize: 'medium',

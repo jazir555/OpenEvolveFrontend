@@ -5,7 +5,7 @@
 
 import { Link, useLocation } from '@tanstack/react-router';
 import { useState } from 'react';
-import { useUIState, useConfigStore } from '../../stores/configStore';
+import { useConfigStore } from '../../stores/configStore';
 import {
   HomeIcon,
   DocumentTextIcon,
@@ -18,7 +18,7 @@ import {
 } from '@heroicons/react/24/outline';
 
 export function Sidebar() {
-  const collapsed = useUIState((state) => state.sidebarCollapsed);
+  const collapsed = useConfigStore((state) => state.ui.sidebarCollapsed);
   const setSidebarCollapsed = useConfigStore((state) => state.setSidebarCollapsed);
   const location = useLocation();
 

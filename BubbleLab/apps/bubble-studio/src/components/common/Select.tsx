@@ -9,11 +9,12 @@ interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
   helperText?: string;
+  placeholder?: string;
   options: { value: string; label: string }[];
 }
 
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(
-  ({ label, error, helperText, options, className = '', ...props }, ref) => {
+  ({ label, error, helperText, placeholder, options, className = '', ...props }, ref) => {
     const selectStyles = `
       block w-full rounded-lg border px-3 py-2 text-sm
       focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500
@@ -31,6 +32,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           </label>
         )}
         <select ref={ref} className={selectStyles} {...props}>
+          {placeholder && (
+            <option value="" disabled>
+              {placeholder}
+            </option>
+          )}
           {options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}

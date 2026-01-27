@@ -38,8 +38,21 @@ export {
   truncateString
 } from './string';
 
-// Format utilities
-export * from './format';
+// Format utilities (exclude formatBytes which is defined in numbers.ts)
+export {
+  formatNumber,
+  formatCurrency,
+  formatPercentage,
+  truncate,
+  formatList,
+  highlightTerms,
+  pluralize,
+  titleCase,
+  formatPhoneNumber,
+  formatSSN,
+  stripHtml,
+  escapeHtml
+} from './format';
 
 // Validation utilities
 export * from './validation';

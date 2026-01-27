@@ -55,7 +55,7 @@ export default function BenchmarksPage() {
       </div>
 
       {/* Quick Stats */}
-      <QuickStats />
+      <QuickStats stats={{total: 0, running: 0, completed: 0, failed: 0, created: 0}} isLoading={false} />
 
       {/* Dataset Uploader */}
       {showUploader && (

@@ -4,7 +4,7 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
-import { WorkflowConfigForm } from '../../components/workflow/WorkflowConfigForm';
+import { WorkflowConfigForm } from '../components/workflow/WorkflowConfigForm';
 
 export const Route = createFileRoute('/oe-workflows/create')({
   component: CreateWorkflowPage,

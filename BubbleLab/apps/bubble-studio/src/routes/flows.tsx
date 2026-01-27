@@ -58,7 +58,7 @@ function HomeRoute() {
 
     // Show confirmation dialog
     const flowName = bubbleFlowList?.bubbleFlows.find(
-      (flow) => flow.id === flowId
+      (flow: any) => flow.id === flowId
     )?.name;
     const confirmed = window.confirm(
       `Are you sure you want to delete "${flowName}"?\n\nThis action cannot be undone.`

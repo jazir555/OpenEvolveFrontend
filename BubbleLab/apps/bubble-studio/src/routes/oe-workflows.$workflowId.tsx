@@ -4,8 +4,8 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
-import { useWorkflow } from '../../hooks/use-workflows-api';
-import { WorkflowStatus } from '../../types/api';
+import { useWorkflow } from '../hooks/use-workflows-api';
+import { WorkflowStatus } from '../types/api';
 
 export const Route = createFileRoute('/oe-workflows/$workflowId')({
   component: WorkflowDetailPage,

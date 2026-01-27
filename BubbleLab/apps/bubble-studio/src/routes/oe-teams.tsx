@@ -5,10 +5,10 @@
 
 import { createFileRoute } from '@tanstack/react-router';
 import { useState } from 'react';
-import { useGauntlets, useCreateGauntlet } from '../../hooks/use-gauntlets-api';
-import { GauntletList } from '../../components/gauntlet/GauntletList';
-import { GauntletEditorModal } from '../../components/gauntlet/GauntletEditorModal';
-import { CreateGauntletRequest } from '../../types/api';
+import { useGauntlets, useCreateGauntlet } from '../hooks/use-gauntlets-api';
+import { GauntletList } from '../components/gauntlet/GauntletList';
+import { GauntletEditorModal } from '../components/gauntlet/GauntletEditorModal';
+import { CreateGauntletRequest } from '../types/api';
 
 export const Route = createFileRoute('/oe-gauntlets')({
   component: GauntletsPage,

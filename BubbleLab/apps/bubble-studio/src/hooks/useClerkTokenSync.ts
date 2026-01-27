@@ -25,7 +25,7 @@ export function useClerkTokenSync() {
 
     if (isSignedIn) {
       // Initial auth ping to ensure user is created in backend
-      void getToken().then(async (jwt) => {
+      void getToken().then(async (jwt: any) => {
         if (jwt) {
           // Ping backend to ensure upsert happens immediately
           try {

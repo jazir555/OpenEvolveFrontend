@@ -27,14 +27,14 @@ export const MonthlyUsageBar: React.FC<MonthlyUsageBarProps> = ({
 
   // Calculate total cost from serviceUsage
   const totalCost = subscription.usage.serviceUsage.reduce(
-    (sum, service) => sum + service.totalCost,
+    (sum: number, service: any) => sum + service.totalCost,
     0
   );
   const numberOfExecutions = subscription?.usage.executionCount || 0;
   const executionLimit = subscription.usage.executionLimit;
   const numberOfActiveWebhooksOrCronSchedules =
     bubbleFlowListResponse?.bubbleFlows.filter(
-      (flow) => flow.isActive || flow.cronActive
+      (flow: any) => flow.isActive || flow.cronActive
     ).length || 0;
   const webHookLimit = subscription.usage.activeFlowLimit;
 

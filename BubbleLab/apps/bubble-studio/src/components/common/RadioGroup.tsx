@@ -4,6 +4,7 @@
  */
 
 import { RadioGroup as HeadlessRadioGroup } from '@headlessui/react';
+import { ElementType } from 'react';
 
 interface RadioOption {
   value: string;
@@ -50,13 +51,13 @@ export function RadioGroup({
             key={option.value}
             value={option.value}
             disabled={option.disabled || disabled}
-            className={({ checked, disabled: optDisabled }) => `
+            className={({ checked, disabled: optDisabled }: any) => `
               relative flex items-start cursor-pointer
               ${optDisabled ? 'opacity-50 cursor-not-allowed' : ''}
               ${orientation === 'horizontal' ? 'flex-1 min-w-[200px]' : ''}
             `}
           >
-            {({ checked }) => (
+            {({ checked }: { checked: boolean }) => (
               <>
                 <div className="flex h-6 items-center">
                   <input
@@ -69,14 +70,14 @@ export function RadioGroup({
                 </div>
                 <div className="ml-3 text-sm">
                   <HeadlessRadioGroup.Label
-                    as="span"
+                    as={'span' as ElementType}
                     className="block font-medium text-gray-900 dark:text-white"
                   >
                     {option.label}
                   </HeadlessRadioGroup.Label>
                   {option.description && (
                     <HeadlessRadioGroup.Description
-                      as="span"
+                      as={'span' as ElementType}
                       className="text-gray-500 dark:text-gray-400"
                     >
                       {option.description}

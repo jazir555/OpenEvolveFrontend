@@ -48,7 +48,7 @@ export function useRedeemCoupon(): UseRedeemCouponResult {
         throw error;
       }
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       if (data.success) {
         // Invalidate subscription query to refresh data with new offer
         queryClient.invalidateQueries({ queryKey: ['subscription'] });
@@ -57,7 +57,7 @@ export function useRedeemCoupon(): UseRedeemCouponResult {
         );
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('[useRedeemCoupon] Redemption failed:', error);
     },
   });

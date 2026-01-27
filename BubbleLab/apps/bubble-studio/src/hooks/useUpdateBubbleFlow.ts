@@ -73,7 +73,7 @@ export function useUpdateBubbleFlow(flowId?: number | null) {
 
       return response;
     },
-    onSuccess: (response) => {
+    onSuccess: (response: any) => {
       // Update the bubble parameters in the useBubbleFlow store with the response
       if (response && response.bubbleParameters) {
         // The response contains the updated bubble parameters from the server
@@ -82,7 +82,7 @@ export function useUpdateBubbleFlow(flowId?: number | null) {
         toast.error('Failed to update bubble flow');
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Failed to update bubble flow:', error);
     },
   });

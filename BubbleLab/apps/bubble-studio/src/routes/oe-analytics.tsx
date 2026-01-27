@@ -4,8 +4,8 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
-import { useWorkflows } from '../../hooks/use-workflows-api';
-import { useWorkflowStats } from '../../stores/workflowStore';
+import { useWorkflows } from '../hooks/use-workflows-api';
+import { useWorkflowStats } from '../stores/workflowStore';
 
 export const Route = createFileRoute('/oe-analytics')({
   component: AnalyticsPage,
@@ -17,7 +17,7 @@ function AnalyticsPage() {
 
   // Calculate additional metrics
   const averageDuration = workflows
-    ? workflows.reduce((sum, w) => {
+    ? workflows.reduce((sum: any, w: any) => {
         if (w.completed_at && w.created_at) {
           const duration = new Date(w.completed_at).getTime() - new Date(w.created_at).getTime();
           return sum + duration / 1000;

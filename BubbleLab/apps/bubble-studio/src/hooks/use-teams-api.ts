@@ -134,7 +134,7 @@ export function useUpdateTeam() {
         setIsUpdating(false);
       }
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_: any, variables: any) => {
       // Invalidate specific team query
       queryClient.invalidateQueries({
         queryKey: teamKeys.detail(variables.teamId),

@@ -35,7 +35,7 @@ describe('Modal', () => {
     );
 
     const closeButton = screen.getAllByRole('button').find(
-      (button) => button.getAttribute('aria-label') === 'Close'
+      (button: any) => button.getAttribute('aria-label') === 'Close'
     );
 
     if (closeButton) {

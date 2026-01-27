@@ -4,6 +4,26 @@
  */
 
 import { ReactElement } from 'react';
+
+// Type declarations for vitest globals
+declare const vi: {
+  fn: (impl?: () => any) => any;
+  spyOn: () => any;
+  clearAllMocks: () => void;
+  resetAllMocks: () => void;
+  restoreAllMocks: () => void;
+};
+
+// Type declarations for test globals
+declare const beforeAll: (fn: () => void) => void;
+declare const afterAll: (fn: () => void) => void;
+declare const beforeEach: (fn: () => void) => void;
+declare const afterEach: (fn: () => void) => void;
+declare const describe: (name: string, fn: () => void) => void;
+declare const it: (name: string, fn: () => void) => void;
+declare const test: (name: string, fn: () => void) => void;
+declare const expect: any;
+
 import { render, RenderOptions } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 
@@ -87,7 +107,10 @@ export function createMockError(
  * Create mock event
  */
 export function createMockEvent(type: string, data?: unknown): Event {
-  return new Event(type, { data });
+  if (data) {
+    return new CustomEvent(type, { detail: data });
+  }
+  return new Event(type);
 }
 
 /**
@@ -133,7 +156,7 @@ export function suppressConsoleError() {
 export function mockMatchMedia(matches: boolean) {
   Object.defineProperty(window, 'matchMedia', {
     writable: true,
-    value: vi.fn().mockImplementation((query) => ({
+    value: vi.fn().mockImplementation((query: string) => ({
       matches,
       media: query,
       onchange: null,
@@ -159,7 +182,7 @@ export function mockIntersectionObserver() {
       _callback: IntersectionObserverCallback,
       options?: IntersectionObserverInit
     ) {
-      this.root = options?.root || null;
+      this.root = (options?.root as Element | null) || null;
       this.rootMargin = options?.rootMargin || '';
       this.thresholds = Array.isArray(options?.threshold)
         ? options.threshold

@@ -11,6 +11,10 @@ export default defineConfig({
     css: true,
     include: ['**/*.{test,spec}.{test,ts,tsx,js,jsx}'],
     exclude: ['node_modules', 'dist', '.idea', '.git', '.cache'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'json', 'html'],
+    },
   },
   resolve: {
     alias: {

@@ -93,7 +93,7 @@ export function ResultsView({ workflowId }: ResultsViewProps) {
             Sub-problems ({results.sub_problems.length})
           </h3>
           <div className="space-y-4">
-            {results.sub_problems.map((subProblem, index) => (
+            {results.sub_problems.map((subProblem: any, index: number) => (
               <SubProblemCard key={subProblem.subproblem_id} subProblem={subProblem} index={index} />
             ))}
           </div>

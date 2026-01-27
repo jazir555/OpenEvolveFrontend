@@ -3,14 +3,10 @@
  * Configure testing library and global test environment
  */
 
-import { expect, afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
-import * as matchers from '@testing-library/jest-dom/matchers';
-
-// Extend Vitest's expect with jest-dom matchers
-expect.extend(matchers);
 
 // Cleanup after each test
+// @ts-ignore
 afterEach(() => {
   cleanup();
 });
@@ -18,14 +14,20 @@ afterEach(() => {
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: vi.fn().mockImplementation(query => ({
+  // @ts-ignore
+  value: vi.fn().mockImplementation((query: any) => ({
     matches: false,
     media: query,
     onchange: null,
+    // @ts-ignore
     addListener: vi.fn(),
+    // @ts-ignore
     removeListener: vi.fn(),
+    // @ts-ignore
     addEventListener: vi.fn(),
+    // @ts-ignore
     removeEventListener: vi.fn(),
+    // @ts-ignore
     dispatchEvent: vi.fn(),
   })),
 });

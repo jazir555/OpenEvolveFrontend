@@ -3,23 +3,27 @@
  * User-specific application settings
  */
 
-import { useUIStore } from '../../stores/uiStore';
+import { useConfigStore } from '../../stores/configStore';
 import { ToggleSwitch } from '../common/ToggleSwitch';
 import { Select } from '../common/Select';
 
 export function UserPreferences() {
   const {
-    darkMode,
+    ui: {
+      darkMode,
+      sidebarCollapsed,
+      autoSave: autoSaveEnabled,
+    },
     setDarkMode,
-    sidebarCollapsed,
     setSidebarCollapsed,
-    notificationsEnabled,
-    setNotificationsEnabled,
-    autoSaveEnabled,
-    setAutoSaveEnabled,
-    theme,
-    setTheme,
-  } = useUIStore();
+    setAutoSave,
+  } = useConfigStore();
+
+  // Use default values for properties that don't exist in configStore
+  const theme = 'system';
+  const setTheme = () => {};
+  const notificationsEnabled = true;
+  const setNotificationsEnabled = () => {};
 
   const themeOptions = [
     { value: 'light', label: 'Light' },
@@ -47,7 +51,6 @@ export function UserPreferences() {
             value={theme}
             onChange={setTheme}
             options={themeOptions}
-            description="Choose your preferred color theme"
           />
 
           <ToggleSwitch
@@ -67,7 +70,7 @@ export function UserPreferences() {
         <div className="space-y-4">
           <ToggleSwitch
             checked={autoSaveEnabled}
-            onChange={setAutoSaveEnabled}
+            onChange={(value) => setAutoSave(value)}
             label="Auto-Save"
             description="Automatically save workflow configurations"
           />

@@ -31,7 +31,7 @@ export function useDeleteBubbleFlow(): UseDeleteBubbleFlowResult {
       console.log('[useDeleteBubbleFlow] Flow deleted successfully:', response);
       return response;
     },
-    onMutate: async (flowId) => {
+    onMutate: async (flowId: any) => {
       // Cancel any outgoing refetches for bubble flow list
       await queryClient.cancelQueries({ queryKey: ['bubbleFlowList'] });
 
@@ -45,7 +45,7 @@ export function useDeleteBubbleFlow(): UseDeleteBubbleFlowResult {
         const updatedFlowList: BubbleFlowListResponse = {
           ...previousFlowList,
           bubbleFlows: previousFlowList.bubbleFlows.filter(
-            (flow) => flow.id !== flowId
+            (flow: any) => flow.id !== flowId
           ),
         };
 
@@ -64,7 +64,7 @@ export function useDeleteBubbleFlow(): UseDeleteBubbleFlowResult {
 
       return { previousFlowList, deletedFlowId: flowId };
     },
-    onSuccess: (data, flowId) => {
+    onSuccess: (data: any, flowId: any) => {
       console.log('[useDeleteBubbleFlow] Flow deletion succeeded:', data);
 
       // The optimistic update is already correct, no need to update again
@@ -75,7 +75,7 @@ export function useDeleteBubbleFlow(): UseDeleteBubbleFlowResult {
         flowId
       );
     },
-    onError: (error, flowId, context) => {
+    onError: (error: any, flowId: any, context: any) => {
       console.error('[useDeleteBubbleFlow] Flow deletion failed:', error);
 
       // Rollback optimistic updates

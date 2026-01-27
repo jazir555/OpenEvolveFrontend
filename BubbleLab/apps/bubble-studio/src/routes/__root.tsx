@@ -62,6 +62,7 @@ function RootLayout() {
         draggable
         pauseOnHover
         theme="dark"
+        aria-label="Notifications"
       />
 
       {/* Dev tools (only in dev) */}

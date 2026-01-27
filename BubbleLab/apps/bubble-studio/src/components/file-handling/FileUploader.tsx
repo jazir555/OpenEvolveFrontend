@@ -8,16 +8,28 @@ import { useState, useRef } from 'react';
 interface FileUploaderProps {
   onFileSelect: (file: File) => void;
   accept?: string;
+  acceptedTypes?: string[]; // Alias for accept (as array)
   maxSize?: number; // in bytes
+  maxSizeMB?: number; // Alias for maxSize (in MB)
   disabled?: boolean;
+  label?: string;
+  description?: string;
 }
 
 export function FileUploader({
   onFileSelect,
   accept = '.pdf,.png,.jpg,.jpeg,.txt',
-  maxSize = 10 * 1024 * 1024, // 10MB
+  acceptedTypes,
+  maxSize,
+  maxSizeMB,
   disabled = false,
+  label,
+  description,
 }: FileUploaderProps) {
+  // Convert acceptedTypes array to accept string if provided
+  const acceptString = acceptedTypes ? acceptedTypes.join(',') : accept;
+  // Use maxSizeMB if provided, otherwise use maxSize
+  const maxFileSize = maxSizeMB !== undefined ? maxSizeMB * 1024 * 1024 : (maxSize ?? 10 * 1024 * 1024);
   const [isDragging, setIsDragging] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -56,16 +68,16 @@ export function FileUploader({
     setError(null);
 
     // Check file size
-    if (file.size > maxSize) {
-      setError(`File size exceeds ${Math.round(maxSize / 1024 / 1024)}MB limit`);
+    if (file.size > maxFileSize) {
+      setError(`File size exceeds ${Math.round(maxFileSize / 1024 / 1024)}MB limit`);
       return;
     }
 
     // Check file type
     const fileExtension = `.${file.name.split('.').pop()}`;
-    const acceptedExtensions = accept.split(',');
+    const acceptedExtensions = acceptString.split(',');
     if (!acceptedExtensions.includes(fileExtension)) {
-      setError(`File type not accepted. Accepted: ${accept}`);
+      setError(`File type not accepted. Accepted: ${acceptString}`);
       return;
     }
 
@@ -89,10 +101,20 @@ export function FileUploader({
 
   return (
     <div className="space-y-2">
+      {label && (
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {label}
+        </label>
+      )}
+      {description && (
+        <p className="text-sm text-gray-500 dark:text-gray-400">
+          {description}
+        </p>
+      )}
       <input
         ref={inputRef}
         type="file"
-        accept={accept}
+        accept={acceptString}
         onChange={handleFileChange}
         className="hidden"
         disabled={disabled}
@@ -146,7 +168,7 @@ export function FileUploader({
         )}
 
         <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          {accept.toUpperCase()} up to {formatFileSize(maxSize)}
+          {acceptString.toUpperCase()} up to {formatFileSize(maxFileSize)}
         </p>
       </div>
 

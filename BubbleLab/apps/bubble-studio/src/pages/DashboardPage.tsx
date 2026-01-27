@@ -172,7 +172,7 @@ export class UntitledFlow extends BubbleFlow<'webhook/http'> {
         prompt: '',
         eventType: 'webhook/http',
         webhookActive: false,
-      });
+      } as any);
 
       setOutput((prev) => prev + '✅ Flow created successfully!\n');
 

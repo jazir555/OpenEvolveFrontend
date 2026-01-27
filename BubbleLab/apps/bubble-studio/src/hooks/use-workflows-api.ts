@@ -108,7 +108,7 @@ export function useCreateWorkflow() {
         setIsCreating(false);
       }
     },
-    onSuccess: (workflow) => {
+    onSuccess: (workflow: any) => {
       // Invalidate workflows list query
       queryClient.invalidateQueries({ queryKey: workflowKeys.lists() });
 
@@ -147,7 +147,7 @@ export function useUpdateWorkflow() {
         setIsUpdating(false);
       }
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_: any, variables: any) => {
       // Invalidate specific workflow query
       queryClient.invalidateQueries({
         queryKey: workflowKeys.detail(variables.workflowId),
@@ -218,7 +218,7 @@ export function useStartWorkflow() {
         throw error;
       }
     },
-    onSuccess: (_, workflowId) => {
+    onSuccess: (_: any, workflowId: any) => {
       // Invalidate workflow query
       queryClient.invalidateQueries({
         queryKey: workflowKeys.detail(workflowId),
@@ -248,7 +248,7 @@ export function usePauseWorkflow() {
         throw error;
       }
     },
-    onSuccess: (_, workflowId) => {
+    onSuccess: (_: any, workflowId: any) => {
       queryClient.invalidateQueries({
         queryKey: workflowKeys.detail(workflowId),
       });
@@ -275,7 +275,7 @@ export function useResumeWorkflow() {
         throw error;
       }
     },
-    onSuccess: (_, workflowId) => {
+    onSuccess: (_: any, workflowId: any) => {
       queryClient.invalidateQueries({
         queryKey: workflowKeys.detail(workflowId),
       });
@@ -302,7 +302,7 @@ export function useStopWorkflow() {
         throw error;
       }
     },
-    onSuccess: (_, workflowId) => {
+    onSuccess: (_: any, workflowId: any) => {
       queryClient.invalidateQueries({
         queryKey: workflowKeys.detail(workflowId),
       });

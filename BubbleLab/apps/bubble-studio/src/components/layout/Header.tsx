@@ -6,12 +6,12 @@
 import { useState } from 'react';
 import { Link } from '@tanstack/react-router';
 import { UserMenu } from './UserMenu';
-import { useUIState } from '../../stores/configStore';
+import { useConfigStore } from '../../stores/configStore';
 
 export function Header() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const darkMode = useUIState((state) => state.darkMode);
-  const setDarkMode = useUIState((state) => state.setDarkMode);
+  const darkMode = useConfigStore((state) => state.ui.darkMode);
+  const setDarkMode = useConfigStore((state) => state.setDarkMode);
 
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);

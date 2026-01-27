@@ -15,7 +15,7 @@ export function BenchmarkRunner() {
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<any>(null);
 
-  const workflowOptions = (workflows || []).map((w) => ({
+  const workflowOptions = (workflows || []).map((w: { id: string; name: string }) => ({
     value: w.id,
     label: w.name,
   }));
@@ -30,7 +30,7 @@ export function BenchmarkRunner() {
     setResults({
       completed: true,
       results: selectedWorkflows.map((workflowId) => {
-        const workflow = workflows?.find((w) => w.id === workflowId);
+        const workflow = workflows?.find((w: { id: string }) => w.id === workflowId);
         return {
           workflowId,
           workflowName: workflow?.name,
@@ -54,7 +54,7 @@ export function BenchmarkRunner() {
               Select Workflows
             </label>
             <div className="space-y-2">
-              {workflowOptions.map((option) => (
+              {workflowOptions.map((option: { value: string; label: string }) => (
                 <label key={option.value} className="flex items-center gap-2">
                   <input
                     type="checkbox"

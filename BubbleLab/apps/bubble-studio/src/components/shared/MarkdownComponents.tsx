@@ -6,41 +6,41 @@ import type { Components } from 'react-markdown';
  */
 export const sharedMarkdownComponents: Components = {
   // Headings
-  h1: ({ children }) => (
+  h1: ({ children }: any) => (
     <h1 className="text-xl md:text-2xl font-bold text-gray-100 mb-2">
       {children}
     </h1>
   ),
-  h2: ({ children }) => (
+  h2: ({ children }: any) => (
     <h2 className="text-lg md:text-xl font-bold text-gray-100 mb-2">
       {children}
     </h2>
   ),
-  h3: ({ children }) => (
+  h3: ({ children }: any) => (
     <h3 className="text-base md:text-lg font-semibold text-gray-200 mb-1.5">
       {children}
     </h3>
   ),
   // Paragraphs
-  p: ({ children }) => (
+  p: ({ children }: any) => (
     <p className="text-base text-gray-300 leading-relaxed mb-2">{children}</p>
   ),
   // Lists
-  ul: ({ children }) => (
+  ul: ({ children }: any) => (
     <ul className="list-disc list-inside space-y-1 mb-2 text-base text-gray-300">
       {children}
     </ul>
   ),
-  ol: ({ children }) => (
+  ol: ({ children }: any) => (
     <ol className="list-decimal list-inside space-y-1 mb-2 text-base text-gray-300">
       {children}
     </ol>
   ),
-  li: ({ children }) => (
+  li: ({ children }: any) => (
     <li className="text-gray-300 leading-relaxed">{children}</li>
   ),
   // Code blocks
-  code: ({ className, children }) => {
+  code: ({ className, children }: any) => {
     const isInline = !className;
     if (isInline) {
       return (
@@ -56,17 +56,17 @@ export const sharedMarkdownComponents: Components = {
     );
   },
   // Pre blocks (wraps code blocks)
-  pre: ({ children }) => (
+  pre: ({ children }: any) => (
     <pre className="bg-gray-900/50 rounded-lg overflow-x-auto mb-2">
       {children}
     </pre>
   ),
   // Bold text
-  strong: ({ children }) => (
+  strong: ({ children }: any) => (
     <strong className="font-bold text-gray-100">{children}</strong>
   ),
   // Links
-  a: ({ children, href }) => (
+  a: ({ children, href }: any) => (
     <a
       href={href}
       className="text-blue-400 hover:text-blue-300 underline"
@@ -77,7 +77,7 @@ export const sharedMarkdownComponents: Components = {
     </a>
   ),
   // Blockquotes
-  blockquote: ({ children }) => (
+  blockquote: ({ children }: any) => (
     <blockquote className="border-l-4 border-purple-500 pl-4 py-2 my-2 text-gray-400 italic">
       {children}
     </blockquote>

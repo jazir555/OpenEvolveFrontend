@@ -106,7 +106,7 @@ export default function GauntletDetailPage() {
           Gauntlet Rounds ({gauntlet.rounds.length})
         </h2>
         <div className="space-y-4">
-          {gauntlet.rounds.map((round, index) => (
+          {gauntlet.rounds.map((round: any, index: any) => (
             <div
               key={index}
               className="border border-gray-300 dark:border-gray-700 rounded-lg p-4"

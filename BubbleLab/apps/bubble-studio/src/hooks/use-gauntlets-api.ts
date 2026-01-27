@@ -134,7 +134,7 @@ export function useUpdateGauntlet() {
         setIsUpdating(false);
       }
     },
-    onSuccess: (_, variables) => {
+    onSuccess: (_: any, variables: any) => {
       // Invalidate specific gauntlet query
       queryClient.invalidateQueries({
         queryKey: gauntletKeys.detail(variables.gauntletId),

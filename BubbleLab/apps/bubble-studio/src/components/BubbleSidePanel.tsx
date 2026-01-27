@@ -446,20 +446,32 @@ function BubblePromptView({ bubbleDefinition }: BubblePromptViewProps) {
         model: selectedModel,
       },
       {
-        onSuccess: (result) => {
+        onSuccess: (result: unknown) => {
+          // Type guard for result
+          const hasType = (r: unknown): r is { type: string; snippet?: string; message?: string } =>
+            typeof r === 'object' && r !== null && 'type' in r;
+
+          const getResultType = (): 'code' | 'question' | 'answer' | 'reject' => {
+            if (!hasType(result)) return 'answer';
+            if (result.type === 'code' || result.type === 'question' || result.type === 'reject') {
+              return result.type;
+            }
+            return 'answer';
+          };
+
           const assistantMessage: ChatMessage = {
             id: (Date.now() + 1).toString(),
             type: 'assistant',
             content:
-              result.type === 'code' && result.snippet
+              hasType(result) && result.type === 'code' && result.snippet
                 ? result.snippet
-                : result.message || '',
-            resultType: result.type,
+                : hasType(result) ? (result.message || '') : '',
+            resultType: getResultType(),
             timestamp: new Date(),
           };
           setMessages((prev) => [...prev, assistantMessage]);
         },
-        onError: (error) => {
+        onError: (error: unknown) => {
           const errorMessage: ChatMessage = {
             id: (Date.now() + 1).toString(),
             type: 'assistant',

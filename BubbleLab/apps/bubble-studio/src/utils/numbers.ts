@@ -4,7 +4,7 @@
  */
 
 // Re-export common formatting functions from format.ts
-export { formatNumber, formatCurrency, formatPercentage, formatBytes } from './format';
+export { formatNumber, formatCurrency, formatPercentage } from './format';
 
 /**
  * Format number with thousand separators (alias)

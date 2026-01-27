@@ -3,10 +3,8 @@
  * Small status or label badge
  */
 
-import { ReactHTMLAttributes } from 'react';
-
 export type BadgeSize = 'sm' | 'md' | 'lg';
-export type BadgeVariant = 'gray' | 'blue' | 'green' | 'yellow' | 'red' | 'success' | 'error';
+export type BadgeVariant = 'gray' | 'blue' | 'green' | 'yellow' | 'red' | 'success' | 'error' | 'secondary';
 
 interface BadgeProps {
   children: React.ReactNode;
@@ -24,6 +22,7 @@ export function Badge({ children, variant = 'gray', size }: BadgeProps) {
     // Aliases for compatibility
     success: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
     error: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    secondary: 'bg-gray-200 text-gray-700 dark:bg-gray-600 dark:text-gray-300',
   };
 
   const sizeStyles: Record<BadgeSize, string> = {

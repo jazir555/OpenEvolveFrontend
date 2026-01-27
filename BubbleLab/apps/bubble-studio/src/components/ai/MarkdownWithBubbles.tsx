@@ -17,7 +17,7 @@ interface MarkdownWithBubblesProps {
 const markdownComponentsWithCollapsibleJson: Components = {
   ...sharedMarkdownComponents,
   // Override pre component to detect JSON and make it collapsible
-  pre: ({ children }) => {
+  pre: ({ children }: { children?: React.ReactNode }) => {
     // Check if this is a JSON code block by examining the code element
     const codeElement = Array.isArray(children) ? children[0] : children;
     const isJsonBlock =

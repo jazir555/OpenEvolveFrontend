@@ -4,7 +4,7 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
-import { SettingsPanel } from '../../components/settings/SettingsPanel';
+import { SettingsPanel } from '../components/settings/SettingsPanel';
 
 export const Route = createFileRoute('/oe-settings')({
   component: SettingsPage,

@@ -127,7 +127,7 @@ export default function TeamDetailPage() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-gray-900 divide-y divide-gray-200 dark:divide-gray-700">
-              {team.members.map((member, index) => (
+              {team.members.map((member: any, index: any) => (
                 <tr key={index}>
                   <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
                     {member.name}

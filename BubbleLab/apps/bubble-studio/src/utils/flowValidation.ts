@@ -78,11 +78,12 @@ export function validateCredentials(
   // Design-time bubbles that have clones should be skipped
   const clonedFromSet = new Set(
     Object.values(bubbleParameters)
-      .map((b) => b.clonedFromVariableId)
+      .map((b) => (b as any).clonedFromVariableId)
       .filter((id): id is number => typeof id === 'number')
   );
 
-  for (const bubble of Object.values(bubbleParameters)) {
+  for (const bubbleRaw of Object.values(bubbleParameters)) {
+    const bubble = bubbleRaw as any;
     // Guard against missing variableId (malformed data)
     if (bubble.variableId === undefined || bubble.variableId === null) {
       continue;

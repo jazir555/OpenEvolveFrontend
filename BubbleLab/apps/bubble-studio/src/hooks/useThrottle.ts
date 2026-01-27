@@ -17,7 +17,8 @@ export function useThrottle<T>(value: T, delay: number): T {
     throttledUpdate(value);
 
     return () => {
-      throttledUpdate.cancel?.();
+      // Cancel pending throttled calls
+      (throttledUpdate as any).cancel?.();
     };
   }, [value, delay]);
 
@@ -28,17 +29,17 @@ export function useThrottle<T>(value: T, delay: number): T {
  * useThrottleCallback Hook
  * Throttle callback function
  */
-export function useThrottleCallback<T extends (...args: never[]) => unknown>(
+export function useThrottleCallback<T extends (...args: any[]) => unknown>(
   callback: T,
   delay: number
 ): T {
   const [throttledCallback, setThrottledCallback] = useState<T>(() =>
-    throttle((...args: never[]) => callback(...args), delay) as unknown as T
+    throttle((...args: any[]) => callback(...args), delay) as unknown as T
   );
 
   useEffect(() => {
     setThrottledCallback(
-      throttle((...args: never[]) => callback(...args), delay) as unknown as T
+      throttle((...args: any[]) => callback(...args), delay) as unknown as T
     );
   }, [callback, delay]);
 

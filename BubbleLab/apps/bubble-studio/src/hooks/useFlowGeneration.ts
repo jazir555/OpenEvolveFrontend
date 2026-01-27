@@ -63,7 +63,7 @@ export const useFlowGeneration = () => {
           prompt: prompt || '',
           eventType: 'webhook/http',
           webhookActive: false,
-        });
+        } as any);
         setGenerationPrompt('');
       } else {
         // Create an EMPTY flow (for AI generation)
@@ -73,7 +73,7 @@ export const useFlowGeneration = () => {
           prompt: prompt || '',
           eventType: 'webhook/http',
           webhookActive: false,
-        });
+        } as any);
       }
 
       console.log(

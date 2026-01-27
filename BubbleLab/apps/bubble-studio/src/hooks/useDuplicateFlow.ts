@@ -39,7 +39,7 @@ export function useDuplicateFlow({
 
       // Get the bubbles from the flow list for optimistic update
       const sourceFlowInList = flowList?.bubbleFlows.find(
-        (f) => f.id === flowId
+        (f: any) => f.id === flowId
       );
       const bubbles = sourceFlowInList?.bubbles;
 

@@ -380,7 +380,7 @@ export function CreateCredentialModal({
   // If a locked type is provided, set it when opening the modal
   useEffect(() => {
     if (isOpen && lockedCredentialType) {
-      setFormData((prev) => ({
+      setFormData((prev: any) => ({
         ...prev,
         credentialType: lockedCredentialType,
       }));
@@ -553,7 +553,7 @@ export function CreateCredentialModal({
                 type="text"
                 value={formData.name}
                 onChange={(e) =>
-                  setFormData((prev) => ({ ...prev, name: e.target.value }))
+                  setFormData((prev: any) => ({ ...prev, name: e.target.value }))
                 }
                 placeholder={
                   CREDENTIAL_TYPE_CONFIG[
@@ -575,7 +575,7 @@ export function CreateCredentialModal({
                   value={formData.credentialType}
                   onChange={(e) => {
                     const newCredentialType = e.target.value as CredentialType;
-                    setFormData((prev) => ({
+                    setFormData((prev: any) => ({
                       ...prev,
                       credentialType: newCredentialType,
                       name:
@@ -640,7 +640,7 @@ export function CreateCredentialModal({
                     type={showPassword ? 'text' : 'password'}
                     value={formData.value}
                     onChange={(e) =>
-                      setFormData((prev) => ({
+                      setFormData((prev: any) => ({
                         ...prev,
                         value: e.target.value,
                       }))
@@ -1185,7 +1185,7 @@ export function CredentialsPage({ apiBaseUrl }: CredentialsPageProps) {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {credentials.map((credential) => (
+              {credentials.map((credential: any) => (
                 <CredentialCard
                   key={credential.id}
                   credential={credential}

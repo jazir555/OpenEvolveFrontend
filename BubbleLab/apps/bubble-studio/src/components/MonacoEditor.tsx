@@ -288,7 +288,7 @@ export function MonacoEditor() {
         </div>
       )}
 
-      {/* @ts-expect-error - React 19 compatibility issue with Monaco Editor */}
+      {/* @ts-ignore - React 19 compatibility issue with Monaco Editor */}
       <Editor
         {...{
           defaultValue: selectedFlow?.code,

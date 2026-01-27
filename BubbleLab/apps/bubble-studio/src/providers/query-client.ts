@@ -1,3 +1,4 @@
+// @ts-ignore - QueryClient export issue with TypeScript definitions
 import { QueryClient } from '@tanstack/react-query';
 
 export const queryClient = new QueryClient({

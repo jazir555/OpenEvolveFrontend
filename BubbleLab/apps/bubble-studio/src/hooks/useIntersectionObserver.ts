@@ -48,7 +48,7 @@ export function useIntersectionObserver(
     };
   }, [threshold, rootMargin, root, triggerOnce, hasIntersected]);
 
-  return [ref, isIntersecting];
+  return [ref as React.RefObject<HTMLDivElement>, isIntersecting];
 }
 
 /**
@@ -56,7 +56,7 @@ export function useIntersectionObserver(
  * Simplified hook to check if element is in viewport
  */
 export function useInViewport(): [React.RefObject<HTMLDivElement>, boolean] {
-  return useIntersectionObserver({ threshold: 0 });
+  return useIntersectionObserver({ threshold: 0 }) as [React.RefObject<HTMLDivElement>, boolean];
 }
 
 /**

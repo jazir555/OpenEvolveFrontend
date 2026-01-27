@@ -20,7 +20,7 @@ describe('ToggleSwitch', () => {
   });
 
   it('calls onChange when clicked', () => {
-    const handleChange = jest.fn();
+    const handleChange = vi.fn();
     render(
       <ToggleSwitch checked={false} onChange={handleChange} label="Toggle" />
     );

@@ -60,13 +60,13 @@ export const HomePage: React.FC<HomePageProps> = ({
 
   const allFlows = (
     (bubbleFlowListResponse?.bubbleFlows ||
-      []) as OptimisticBubbleFlowListItem[]
+      []) as any[]
   ).sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    (a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
   );
 
   // Find the flow being renamed to get its current name
-  const renamingFlow = allFlows.find((f) => f.id === renamingFlowId);
+  const renamingFlow = allFlows.find((f: any) => f.id === renamingFlowId);
 
   // Use the rename hook for the currently renaming flow
   const {
@@ -237,7 +237,7 @@ export const HomePage: React.FC<HomePageProps> = ({
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {flows.map((flow) => {
+            {flows.map((flow: any) => {
               const isRun = false; // TODO: Determine run status from server data
               const isOptimisticLoading = flow._isLoading === true;
               return (
@@ -263,7 +263,7 @@ export const HomePage: React.FC<HomePageProps> = ({
                     {flow.bubbles && flow.bubbles.length > 0 && (
                       <div className="flex items-center gap-1.5 mb-3 flex-wrap">
                         {flow.bubbles
-                          .map((bubble) => {
+                          .map((bubble: any) => {
                             const logo = findLogoForBubble({
                               bubbleName: bubble.bubbleName,
                               className: bubble.className,
@@ -271,13 +271,13 @@ export const HomePage: React.FC<HomePageProps> = ({
                             return logo ? { ...bubble, logo } : null;
                           })
                           .filter(
-                            (item, index, self) =>
+                            (item: any, index: any, self: any) =>
                               item &&
                               self.findIndex(
-                                (t) => t && t.logo.file === item.logo.file
+                                (t: any) => t && t.logo.file === item.logo.file
                               ) === index
                           )
-                          .map((item, idx) =>
+                          .map((item: any, idx: any) =>
                             item ? (
                               <img
                                 key={idx}
