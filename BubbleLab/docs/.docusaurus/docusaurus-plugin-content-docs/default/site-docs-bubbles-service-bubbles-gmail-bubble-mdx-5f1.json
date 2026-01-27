@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/gmail-bubble",
+  "title": "Gmail Bubble",
+  "description": "Gmail integration for email management",
+  "source": "@site/docs/bubbles/service-bubbles/gmail-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/gmail-bubble",
+  "permalink": "/bubbles/service-bubbles/gmail-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Github Bubble",
+    "permalink": "/bubbles/service-bubbles/github-bubble"
+  },
+  "next": {
+    "title": "Google Calendar Bubble",
+    "permalink": "/bubbles/service-bubbles/google-calendar-bubble"
+  }
+}

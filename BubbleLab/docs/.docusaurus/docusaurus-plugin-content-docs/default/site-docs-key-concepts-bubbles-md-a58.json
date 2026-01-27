@@ -1,0 +1,23 @@
+{
+  "id": "key-concepts/bubbles",
+  "title": "Bubbles",
+  "description": "Bubbles are the building blocks of Bubble Lab. Every automation is made up of Bubbles that can be composed, extended, and reused.",
+  "source": "@site/docs/key-concepts/bubbles.md",
+  "sourceDirName": "key-concepts",
+  "slug": "/key-concepts/bubbles",
+  "permalink": "/key-concepts/bubbles",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Welcome to Bubble Lab",
+    "permalink": "/intro"
+  },
+  "next": {
+    "title": "Bubble Flow Execution Pipeline",
+    "permalink": "/key-concepts/execution-pipeline"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/apify-bubble",
+  "title": "Apify Bubble",
+  "description": "Run any Apify actor for web scraping and automation",
+  "source": "@site/docs/bubbles/service-bubbles/apify-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/apify-bubble",
+  "permalink": "/bubbles/service-bubbles/apify-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Airtable Bubble",
+    "permalink": "/bubbles/service-bubbles/airtable-bubble"
+  },
+  "next": {
+    "title": "Eleven Labs Bubble",
+    "permalink": "/bubbles/service-bubbles/eleven-labs-bubble"
+  }
+}

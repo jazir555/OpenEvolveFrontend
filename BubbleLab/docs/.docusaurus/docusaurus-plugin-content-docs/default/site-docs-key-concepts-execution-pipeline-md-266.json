@@ -1,0 +1,23 @@
+{
+  "id": "key-concepts/execution-pipeline",
+  "title": "Bubble Flow Execution Pipeline",
+  "description": "How your TypeScript code becomes a running workflow - from validation to execution with full traceability.",
+  "source": "@site/docs/key-concepts/execution-pipeline.md",
+  "sourceDirName": "key-concepts",
+  "slug": "/key-concepts/execution-pipeline",
+  "permalink": "/key-concepts/execution-pipeline",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Bubbles",
+    "permalink": "/key-concepts/bubbles"
+  },
+  "next": {
+    "title": "Bubbles Overview",
+    "permalink": "/bubbles/overview"
+  }
+}

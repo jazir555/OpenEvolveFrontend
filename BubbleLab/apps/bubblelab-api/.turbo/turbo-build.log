@@ -1,0 +1,7 @@
+
+> bubblelab-api@0.1.0 build C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\apps\bubblelab-api
+> bun build src/index.ts --outdir=dist --target=bun
+
+'bun' is not recognized as an internal or external command,
+operable program or batch file.
+ ELIFECYCLE  Command failed with exit code 1.

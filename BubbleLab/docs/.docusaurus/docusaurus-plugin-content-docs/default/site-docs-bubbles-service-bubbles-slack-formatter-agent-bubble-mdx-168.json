@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/slack-formatter-agent-bubble",
+  "title": "Slack Formatter Agent Bubble",
+  "description": "AI agent for creating well-formatted Slack messages with adjustable verbosity and technicality",
+  "source": "@site/docs/bubbles/service-bubbles/slack-formatter-agent-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/slack-formatter-agent-bubble",
+  "permalink": "/bubbles/service-bubbles/slack-formatter-agent-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Slack Bubble",
+    "permalink": "/bubbles/service-bubbles/slack-bubble"
+  },
+  "next": {
+    "title": "Storage Bubble",
+    "permalink": "/bubbles/service-bubbles/storage-bubble"
+  }
+}

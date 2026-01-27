@@ -1,0 +1,4 @@
+
+> bubble-studio@0.0.0 build C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\apps\bubble-studio
+> cp ../../packages/bubble-core/dist/bubble-bundle.d.ts public/bubble-types.txt && cp ../../packages/bubble-core/dist/bubbles.json public/bubbles.json && tsc -b && vite build
+

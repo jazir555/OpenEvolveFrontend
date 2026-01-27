@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/eleven-labs-bubble",
+  "title": "Eleven Labs Bubble",
+  "description": "Eleven Labs integration for Conversational AI",
+  "source": "@site/docs/bubbles/service-bubbles/eleven-labs-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/eleven-labs-bubble",
+  "permalink": "/bubbles/service-bubbles/eleven-labs-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Apify Bubble",
+    "permalink": "/bubbles/service-bubbles/apify-bubble"
+  },
+  "next": {
+    "title": "Followupboss Bubble",
+    "permalink": "/bubbles/service-bubbles/followupboss-bubble"
+  }
+}

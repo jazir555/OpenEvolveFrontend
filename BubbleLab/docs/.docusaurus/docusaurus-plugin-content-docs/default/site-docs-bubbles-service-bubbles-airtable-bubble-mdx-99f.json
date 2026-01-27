@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/airtable-bubble",
+  "title": "Airtable Bubble",
+  "description": "Airtable integration for managing records in bases and tables",
+  "source": "@site/docs/bubbles/service-bubbles/airtable-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/airtable-bubble",
+  "permalink": "/bubbles/service-bubbles/airtable-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Ai Agent Bubble",
+    "permalink": "/bubbles/service-bubbles/ai-agent-bubble"
+  },
+  "next": {
+    "title": "Apify Bubble",
+    "permalink": "/bubbles/service-bubbles/apify-bubble"
+  }
+}

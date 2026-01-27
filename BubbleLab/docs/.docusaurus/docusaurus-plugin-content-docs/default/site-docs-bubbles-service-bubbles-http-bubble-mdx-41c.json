@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/http-bubble",
+  "title": "Http Bubble",
+  "description": "Makes HTTP requests to external APIs and services",
+  "source": "@site/docs/bubbles/service-bubbles/http-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/http-bubble",
+  "permalink": "/bubbles/service-bubbles/http-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Hello World Bubble",
+    "permalink": "/bubbles/service-bubbles/hello-world-bubble"
+  },
+  "next": {
+    "title": "Postgresql Bubble",
+    "permalink": "/bubbles/service-bubbles/postgresql-bubble"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/overview",
+  "title": "Bubbles Overview",
+  "description": "Bubbles are the fundamental building blocks of the Bubble Lab platform. They represent modular, reusable components that can be composed together to create powerful automations and workflows.",
+  "source": "@site/docs/bubbles/overview.md",
+  "sourceDirName": "bubbles",
+  "slug": "/bubbles/overview",
+  "permalink": "/bubbles/overview",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Bubble Flow Execution Pipeline",
+    "permalink": "/key-concepts/execution-pipeline"
+  },
+  "next": {
+    "title": "Agi Inc Bubble",
+    "permalink": "/bubbles/service-bubbles/agi-inc-bubble"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/slack-bubble",
+  "title": "Slack Bubble",
+  "description": "Slack integration for messaging and workspace management",
+  "source": "@site/docs/bubbles/service-bubbles/slack-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/slack-bubble",
+  "permalink": "/bubbles/service-bubbles/slack-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Resend Bubble",
+    "permalink": "/bubbles/service-bubbles/resend-bubble"
+  },
+  "next": {
+    "title": "Slack Formatter Agent Bubble",
+    "permalink": "/bubbles/service-bubbles/slack-formatter-agent-bubble"
+  }
+}

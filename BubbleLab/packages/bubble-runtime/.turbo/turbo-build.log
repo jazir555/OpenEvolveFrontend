@@ -1,0 +1,6 @@
+
+> @bubblelab/bubble-runtime@0.1.15 build C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-runtime
+> tsc
+
+src/runtime/BubbleRunner.tracing.ts(31,9): error TS2353: Object literal may only specify known properties, and 'host' does not exist in type 'OtlpExporterOptions | ConsoleExporterOptions | CollectorExporterOptions'.
+ ELIFECYCLE  Command failed with exit code 2.

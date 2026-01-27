@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/resend-bubble",
+  "title": "Resend Bubble",
+  "description": "Email sending service via Resend API",
+  "source": "@site/docs/bubbles/service-bubbles/resend-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/resend-bubble",
+  "permalink": "/bubbles/service-bubbles/resend-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Postgresql Bubble",
+    "permalink": "/bubbles/service-bubbles/postgresql-bubble"
+  },
+  "next": {
+    "title": "Slack Bubble",
+    "permalink": "/bubbles/service-bubbles/slack-bubble"
+  }
+}

@@ -1,0 +1,4 @@
+
+> @bubblelab/bubble-runtime@0.1.15 test C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-runtime
+> vitest run --exclude='**/*.integration.test.{ts,tsx,js,jsx}'
+

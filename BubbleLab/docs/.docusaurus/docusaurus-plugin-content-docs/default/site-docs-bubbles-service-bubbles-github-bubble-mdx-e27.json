@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/github-bubble",
+  "title": "Github Bubble",
+  "description": "GitHub API integration for repository operations",
+  "source": "@site/docs/bubbles/service-bubbles/github-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/github-bubble",
+  "permalink": "/bubbles/service-bubbles/github-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Followupboss Bubble",
+    "permalink": "/bubbles/service-bubbles/followupboss-bubble"
+  },
+  "next": {
+    "title": "Gmail Bubble",
+    "permalink": "/bubbles/service-bubbles/gmail-bubble"
+  }
+}

@@ -1,9 +1,2 @@
-*.pyc
-__pycache__/
-_pycache__/
-.pytest_cache/
-.env/
-.venv/
-venv/
-env/
-envs/
+rese/lean4/.lake/packages/importGraph/.lake/build/bin/graph
+rese/lean4/.lake/packages/mathlib/.lake/build/bin/cache.exe

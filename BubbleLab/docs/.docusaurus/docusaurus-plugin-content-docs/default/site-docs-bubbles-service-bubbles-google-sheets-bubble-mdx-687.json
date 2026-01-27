@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/google-sheets-bubble",
+  "title": "Google Sheets Bubble",
+  "description": "Google Sheets integration for spreadsheet operations",
+  "source": "@site/docs/bubbles/service-bubbles/google-sheets-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/google-sheets-bubble",
+  "permalink": "/bubbles/service-bubbles/google-sheets-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Google Drive Bubble",
+    "permalink": "/bubbles/service-bubbles/google-drive-bubble"
+  },
+  "next": {
+    "title": "Hello World Bubble",
+    "permalink": "/bubbles/service-bubbles/hello-world-bubble"
+  }
+}

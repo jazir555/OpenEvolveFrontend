@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/google-drive-bubble",
+  "title": "Google Drive Bubble",
+  "description": "Google Drive integration for file management",
+  "source": "@site/docs/bubbles/service-bubbles/google-drive-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/google-drive-bubble",
+  "permalink": "/bubbles/service-bubbles/google-drive-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Google Calendar Bubble",
+    "permalink": "/bubbles/service-bubbles/google-calendar-bubble"
+  },
+  "next": {
+    "title": "Google Sheets Bubble",
+    "permalink": "/bubbles/service-bubbles/google-sheets-bubble"
+  }
+}

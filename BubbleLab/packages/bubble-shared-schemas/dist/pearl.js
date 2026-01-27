@@ -1,0 +1,90 @@
+import { z } from 'zod';
+import { AvailableModels } from './ai-models.js';
+import { ParsedBubbleWithInfoSchema } from './bubble-definition-schema.js';
+import { CredentialType } from './types.js';
+import { ConversationMessageSchema } from './agent-memory.js';
+// Default model for Pearl AI agent
+export const PEARL_DEFAULT_MODEL = 'openrouter/anthropic/claude-sonnet-4.5';
+/**
+ * Request schema for Pearl agent
+ * Pearl helps users build complete workflows without requiring specific bubbles
+ */
+export const PearlRequestSchema = z.object({
+    userRequest: z
+        .string()
+        .min(1, 'User request is required')
+        .describe('The user request or question about building a workflow'),
+    currentCode: z
+        .string()
+        .optional()
+        .describe('The current workflow code for context and modification'),
+    userName: z.string().describe('Name of the user making the request'),
+    availableVariables: z
+        .array(z.any())
+        .describe('List of available variables in the current code'),
+    conversationHistory: z
+        .array(ConversationMessageSchema)
+        .optional()
+        .default([])
+        .describe('Previous conversation messages for multi-turn interactions (frontend manages state)'),
+    model: AvailableModels.default(PEARL_DEFAULT_MODEL).describe('AI model to use for Pearl agent'),
+    additionalContext: z
+        .string()
+        .optional()
+        .describe('Additional context information like timezone, user preferences, etc.'),
+    uploadedFiles: z
+        .array(z.object({
+        name: z.string().describe('File name'),
+        content: z
+            .string()
+            .describe('File content: base64 for images, plain text for text files'),
+        fileType: z
+            .enum(['image', 'text'])
+            .describe('Type of file: image (base64) or text (plain text)'),
+    }))
+        .optional()
+        .default([])
+        .describe('Files uploaded by the user: images as base64, text files as plain text'),
+});
+/**
+ * Response schema for Pearl agent
+ */
+export const PearlResponseSchema = z.object({
+    type: z
+        .enum(['code', 'question', 'answer', 'reject'])
+        .describe('Type of response: code (generated workflow), question (needs clarification), answer (provides information/guidance), reject (infeasible request)'),
+    message: z
+        .string()
+        .describe('Human-readable message: explanation for code, question text, or rejection reason'),
+    snippet: z
+        .string()
+        .optional()
+        .describe('Generated TypeScript code for complete workflow (only present when type is "code")'),
+    bubbleParameters: z
+        .record(z.number(), ParsedBubbleWithInfoSchema)
+        .optional()
+        .describe('Parsed bubble parameters from the generated workflow (only present when type is "code")'),
+    inputSchema: z
+        .record(z.unknown())
+        .optional()
+        .describe('Input schema for the generated workflow (only present when type is "code")'),
+    requiredCredentials: z
+        .record(z.string(), z.array(z.nativeEnum(CredentialType)))
+        .optional()
+        .describe('Required credentials for the bubbles in the workflow (only present when type is "code")'),
+    success: z.boolean().describe('Whether the operation completed successfully'),
+    error: z
+        .string()
+        .optional()
+        .describe('Error message if the operation failed'),
+});
+/**
+ * Internal agent response format (JSON mode output from AI)
+ */
+export const PearlAgentOutputSchema = z.object({
+    type: z.enum(['code', 'question', 'answer', 'reject', 'text']),
+    message: z.string(),
+    snippet: z.string().optional(),
+});
+// Note: ConversationMessage type is exported from milk-tea.ts to avoid duplication
+//# sourceMappingURL=pearl.js.map

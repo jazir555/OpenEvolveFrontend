@@ -1,0 +1,217 @@
+{
+  "docusaurus-plugin-content-docs": {
+    "default": {
+      "path": "/",
+      "versions": [
+        {
+          "name": "current",
+          "label": "Next",
+          "isLast": true,
+          "path": "/",
+          "mainDocId": "intro",
+          "docs": [
+            {
+              "id": "bubbles/overview",
+              "path": "/bubbles/overview",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/agi-inc-bubble",
+              "path": "/bubbles/service-bubbles/agi-inc-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/ai-agent-bubble",
+              "path": "/bubbles/service-bubbles/ai-agent-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/airtable-bubble",
+              "path": "/bubbles/service-bubbles/airtable-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/apify-bubble",
+              "path": "/bubbles/service-bubbles/apify-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/eleven-labs-bubble",
+              "path": "/bubbles/service-bubbles/eleven-labs-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/followupboss-bubble",
+              "path": "/bubbles/service-bubbles/followupboss-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/github-bubble",
+              "path": "/bubbles/service-bubbles/github-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/gmail-bubble",
+              "path": "/bubbles/service-bubbles/gmail-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/google-calendar-bubble",
+              "path": "/bubbles/service-bubbles/google-calendar-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/google-drive-bubble",
+              "path": "/bubbles/service-bubbles/google-drive-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/google-sheets-bubble",
+              "path": "/bubbles/service-bubbles/google-sheets-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/hello-world-bubble",
+              "path": "/bubbles/service-bubbles/hello-world-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/http-bubble",
+              "path": "/bubbles/service-bubbles/http-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/postgresql-bubble",
+              "path": "/bubbles/service-bubbles/postgresql-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/resend-bubble",
+              "path": "/bubbles/service-bubbles/resend-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/slack-bubble",
+              "path": "/bubbles/service-bubbles/slack-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/slack-formatter-agent-bubble",
+              "path": "/bubbles/service-bubbles/slack-formatter-agent-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/storage-bubble",
+              "path": "/bubbles/service-bubbles/storage-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/service-bubbles/telegram-bubble",
+              "path": "/bubbles/service-bubbles/telegram-bubble",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/bubbleflow-validation-tool",
+              "path": "/bubbles/tool-bubbles/bubbleflow-validation-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/code-edit-tool",
+              "path": "/bubbles/tool-bubbles/code-edit-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/get-bubble-details-tool",
+              "path": "/bubbles/tool-bubbles/get-bubble-details-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/instagram-tool",
+              "path": "/bubbles/tool-bubbles/instagram-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/linkedin-tool",
+              "path": "/bubbles/tool-bubbles/linkedin-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/list-bubbles-tool",
+              "path": "/bubbles/tool-bubbles/list-bubbles-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/reddit-scrape-tool",
+              "path": "/bubbles/tool-bubbles/reddit-scrape-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/research-agent-tool",
+              "path": "/bubbles/tool-bubbles/research-agent-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/sql-query-tool",
+              "path": "/bubbles/tool-bubbles/sql-query-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/web-crawl-tool",
+              "path": "/bubbles/tool-bubbles/web-crawl-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/web-extract-tool",
+              "path": "/bubbles/tool-bubbles/web-extract-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/web-scrape-tool",
+              "path": "/bubbles/tool-bubbles/web-scrape-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/web-search-tool",
+              "path": "/bubbles/tool-bubbles/web-search-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "bubbles/tool-bubbles/youtube-tool",
+              "path": "/bubbles/tool-bubbles/youtube-tool",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "intro",
+              "path": "/intro",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "key-concepts/bubble-lab-vs-mcps",
+              "path": "/key-concepts/bubble-lab-vs-mcps"
+            },
+            {
+              "id": "key-concepts/bubbles",
+              "path": "/key-concepts/bubbles",
+              "sidebar": "tutorialSidebar"
+            },
+            {
+              "id": "key-concepts/execution-pipeline",
+              "path": "/key-concepts/execution-pipeline",
+              "sidebar": "tutorialSidebar"
+            }
+          ],
+          "draftIds": [],
+          "sidebars": {
+            "tutorialSidebar": {
+              "link": {
+                "path": "/intro",
+                "label": "intro"
+              }
+            }
+          }
+        }
+      ],
+      "breadcrumbs": true
+    }
+  }
+}

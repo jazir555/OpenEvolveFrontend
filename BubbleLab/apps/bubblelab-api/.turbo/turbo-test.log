@@ -1,0 +1,7 @@
+
+> bubblelab-api@0.1.0 test C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\apps\bubblelab-api
+> DATABASE_URL=file:./test.db BUBBLE_ENV=test bun test --timeout 50000 --preload ./src/test/setup.ts
+
+'DATABASE_URL' is not recognized as an internal or external command,
+operable program or batch file.
+ ELIFECYCLE  Test failed. See above for more details.

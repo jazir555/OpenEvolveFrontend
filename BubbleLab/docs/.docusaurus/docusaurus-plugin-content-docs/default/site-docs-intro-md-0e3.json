@@ -1,0 +1,22 @@
+{
+  "id": "intro",
+  "title": "Welcome to Bubble Lab",
+  "description": "Bubble Lab is released under the Apache 2.0 License.",
+  "source": "@site/docs/intro.md",
+  "sourceDirName": ".",
+  "slug": "/intro",
+  "permalink": "/intro",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "sidebarPosition": 1,
+  "frontMatter": {
+    "sidebar_position": 1
+  },
+  "sidebar": "tutorialSidebar",
+  "next": {
+    "title": "Bubbles",
+    "permalink": "/key-concepts/bubbles"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/hello-world-bubble",
+  "title": "Hello World Bubble",
+  "description": "Simple hello world bubble for testing purposes",
+  "source": "@site/docs/bubbles/service-bubbles/hello-world-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/hello-world-bubble",
+  "permalink": "/bubbles/service-bubbles/hello-world-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Google Sheets Bubble",
+    "permalink": "/bubbles/service-bubbles/google-sheets-bubble"
+  },
+  "next": {
+    "title": "Http Bubble",
+    "permalink": "/bubbles/service-bubbles/http-bubble"
+  }
+}

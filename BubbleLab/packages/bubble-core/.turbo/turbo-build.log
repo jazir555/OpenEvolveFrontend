@@ -1,0 +1,4 @@
+
+> @bubblelab/bubble-core@0.1.11 build C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\packages\bubble-core
+> tsc && tsx scripts/bubble-bundler.ts && tsx scripts/bubble-metadata-bundler.ts
+

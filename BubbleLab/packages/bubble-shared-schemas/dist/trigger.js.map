@@ -1,0 +1,1 @@
+{"version":3,"file":"trigger.js","sourceRoot":"","sources":["../src/trigger.ts"],"names":[],"mappings":"AAMA,iDAAiD;AACjD,oDAAoD;AACpD,MAAM,CAAC,MAAM,qBAAqB,GAAG;IACnC,qBAAqB,EAAE,IAAI;IAC3B,eAAe,EAAE,IAAI;IACrB,cAAc,EAAE,IAAI;CAC6C,CAAC;AAEpE,qDAAqD;AACrD,MAAM,UAAU,yBAAyB,CACvC,SAAiB;IAEjB,OAAO,SAAS,IAAI,qBAAqB,CAAC;AAC5C,CAAC"}

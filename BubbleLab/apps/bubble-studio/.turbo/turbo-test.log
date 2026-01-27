@@ -1,0 +1,4 @@
+
+> bubble-studio@0.0.0 test C:\Users\mmeadow\Documents\OpenEvolve\Frontend\BubbleLab\apps\bubble-studio
+> vitest --exclude='**/*.integration.test.{ts,tsx,js,jsx}'
+

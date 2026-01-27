@@ -1,0 +1,14 @@
+{
+  "id": "key-concepts/bubble-lab-vs-mcps",
+  "title": "Bubble Lab vs Model Context Protocols (MCPs)",
+  "description": "TL;DR: Bubble Lab is a complete workflow orchestration platform, while MCPs are a tool integration protocol. Choose Bubble Lab when you need full-featured AI workflows; choose MCPs for simple tool connectivity.",
+  "source": "@site/docs/key-concepts/bubble-lab-vs-mcps.md",
+  "sourceDirName": "key-concepts",
+  "slug": "/key-concepts/bubble-lab-vs-mcps",
+  "permalink": "/key-concepts/bubble-lab-vs-mcps",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {}
+}

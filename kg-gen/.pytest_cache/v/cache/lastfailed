@@ -1,0 +1,22 @@
+{
+  "tests/test_basic.py::test_basic": true,
+  "tests/test_basic.py::test_clustered": true,
+  "tests/test_basic.py::test_conversation": true,
+  "tests/test_chunk_text.py::TestChunkText": true,
+  "tests/test_chunked.py::test_chunked": true,
+  "tests/test_chunked.py::test_chunk_and_cluster": true,
+  "tests/test_clustering.py::test_basic_clustering": true,
+  "tests/test_clustering.py::test_case_sensitivity_clustering": true,
+  "tests/test_clustering.py::test_semantic_clustering": true,
+  "tests/test_clustering.py::test_no_invalid_clustering": true,
+  "tests/test_clustering.py::test_empty_graph_clustering": true,
+  "tests/test_clustering.py::test_single_item_clustering": true,
+  "tests/test_clustering.py::test_configuration_override": true,
+  "tests/test_clustering.py::test_large_scale_clustering": true,
+  "tests/test_clustering.py::test_clustering_with_context": true,
+  "tests/test_clustering.py::test_semhash_deduplication": true,
+  "tests/test_clustering.py::test_lm_based_deduplication": true,
+  "tests/test_clustering.py::test_full_deduplication_comprehensive": true,
+  "tests/test_configs.py::test_custom_api_base": true,
+  "tests/test_configs.py::test_gen_clus_agg": true
+}

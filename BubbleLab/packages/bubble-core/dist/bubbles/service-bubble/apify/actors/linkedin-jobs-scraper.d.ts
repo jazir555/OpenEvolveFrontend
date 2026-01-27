@@ -1,0 +1,137 @@
+import { z } from 'zod';
+export declare const LinkedInJobsScraperInputSchema: z.ZodObject<{
+    urls: z.ZodArray<z.ZodString, "many">;
+    scrapeCompany: z.ZodOptional<z.ZodDefault<z.ZodBoolean>>;
+    count: z.ZodOptional<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    urls: string[];
+    count?: number | undefined;
+    scrapeCompany?: boolean | undefined;
+}, {
+    urls: string[];
+    count?: number | undefined;
+    scrapeCompany?: boolean | undefined;
+}>;
+export declare const LinkedInJobSchema: z.ZodObject<{
+    id: z.ZodOptional<z.ZodString>;
+    trackingId: z.ZodOptional<z.ZodString>;
+    refId: z.ZodOptional<z.ZodString>;
+    link: z.ZodOptional<z.ZodString>;
+    title: z.ZodOptional<z.ZodString>;
+    companyName: z.ZodOptional<z.ZodString>;
+    companyLinkedinUrl: z.ZodOptional<z.ZodString>;
+    companyLogo: z.ZodOptional<z.ZodString>;
+    location: z.ZodOptional<z.ZodString>;
+    salaryInfo: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    postedAt: z.ZodOptional<z.ZodString>;
+    benefits: z.ZodOptional<z.ZodArray<z.ZodString, "many">>;
+    descriptionHtml: z.ZodOptional<z.ZodString>;
+    applicantsCount: z.ZodOptional<z.ZodString>;
+    applyUrl: z.ZodOptional<z.ZodString>;
+    salary: z.ZodOptional<z.ZodString>;
+    descriptionText: z.ZodOptional<z.ZodString>;
+    seniorityLevel: z.ZodOptional<z.ZodString>;
+    employmentType: z.ZodOptional<z.ZodString>;
+    jobFunction: z.ZodOptional<z.ZodString>;
+    industries: z.ZodOptional<z.ZodString>;
+    inputUrl: z.ZodOptional<z.ZodString>;
+    companyAddress: z.ZodOptional<z.ZodObject<{
+        type: z.ZodOptional<z.ZodString>;
+        streetAddress: z.ZodOptional<z.ZodString>;
+        addressLocality: z.ZodOptional<z.ZodString>;
+        addressRegion: z.ZodOptional<z.ZodString>;
+        postalCode: z.ZodOptional<z.ZodString>;
+        addressCountry: z.ZodOptional<z.ZodString>;
+    }, "strip", z.ZodTypeAny, {
+        type?: string | undefined;
+        streetAddress?: string | undefined;
+        addressLocality?: string | undefined;
+        addressRegion?: string | undefined;
+        postalCode?: string | undefined;
+        addressCountry?: string | undefined;
+    }, {
+        type?: string | undefined;
+        streetAddress?: string | undefined;
+        addressLocality?: string | undefined;
+        addressRegion?: string | undefined;
+        postalCode?: string | undefined;
+        addressCountry?: string | undefined;
+    }>>;
+    companyWebsite: z.ZodOptional<z.ZodString>;
+    companySlogan: z.ZodOptional<z.ZodString>;
+    companyDescription: z.ZodOptional<z.ZodString>;
+    companyEmployeesCount: z.ZodOptional<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    title?: string | undefined;
+    link?: string | undefined;
+    id?: string | undefined;
+    location?: string | undefined;
+    inputUrl?: string | undefined;
+    trackingId?: string | undefined;
+    refId?: string | undefined;
+    companyName?: string | undefined;
+    companyLinkedinUrl?: string | undefined;
+    companyLogo?: string | undefined;
+    salaryInfo?: string[] | undefined;
+    postedAt?: string | undefined;
+    benefits?: string[] | undefined;
+    descriptionHtml?: string | undefined;
+    applicantsCount?: string | undefined;
+    applyUrl?: string | undefined;
+    salary?: string | undefined;
+    descriptionText?: string | undefined;
+    seniorityLevel?: string | undefined;
+    employmentType?: string | undefined;
+    jobFunction?: string | undefined;
+    industries?: string | undefined;
+    companyAddress?: {
+        type?: string | undefined;
+        streetAddress?: string | undefined;
+        addressLocality?: string | undefined;
+        addressRegion?: string | undefined;
+        postalCode?: string | undefined;
+        addressCountry?: string | undefined;
+    } | undefined;
+    companyWebsite?: string | undefined;
+    companySlogan?: string | undefined;
+    companyDescription?: string | undefined;
+    companyEmployeesCount?: number | undefined;
+}, {
+    title?: string | undefined;
+    link?: string | undefined;
+    id?: string | undefined;
+    location?: string | undefined;
+    inputUrl?: string | undefined;
+    trackingId?: string | undefined;
+    refId?: string | undefined;
+    companyName?: string | undefined;
+    companyLinkedinUrl?: string | undefined;
+    companyLogo?: string | undefined;
+    salaryInfo?: string[] | undefined;
+    postedAt?: string | undefined;
+    benefits?: string[] | undefined;
+    descriptionHtml?: string | undefined;
+    applicantsCount?: string | undefined;
+    applyUrl?: string | undefined;
+    salary?: string | undefined;
+    descriptionText?: string | undefined;
+    seniorityLevel?: string | undefined;
+    employmentType?: string | undefined;
+    jobFunction?: string | undefined;
+    industries?: string | undefined;
+    companyAddress?: {
+        type?: string | undefined;
+        streetAddress?: string | undefined;
+        addressLocality?: string | undefined;
+        addressRegion?: string | undefined;
+        postalCode?: string | undefined;
+        addressCountry?: string | undefined;
+    } | undefined;
+    companyWebsite?: string | undefined;
+    companySlogan?: string | undefined;
+    companyDescription?: string | undefined;
+    companyEmployeesCount?: number | undefined;
+}>;
+export type LinkedInJobsScraperInput = z.output<typeof LinkedInJobsScraperInputSchema>;
+export type LinkedInJob = z.output<typeof LinkedInJobSchema>;
+//# sourceMappingURL=linkedin-jobs-scraper.d.ts.map

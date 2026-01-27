@@ -1,0 +1,22 @@
+import { z } from 'zod';
+// Define available tool types that can be used in AI agents
+// These should all be valid BubbleName values to ensure consistency
+export const AvailableTools = z.enum([
+    // Web tools
+    'web-search-tool',
+    'web-scrape-tool',
+    'web-crawl-tool',
+    'web-extract-tool',
+    'research-agent-tool',
+    'reddit-scrape-tool',
+    // Social media tools
+    'instagram-tool',
+    // Existing bubble tools (for reference - these are handled by bubble names)
+    'list-bubbles-tool',
+    'get-bubble-details-tool',
+    'bubbleflow-validation-tool',
+    'code-edit-tool',
+    'chart-js-tool',
+    'sql-query-tool',
+]);
+//# sourceMappingURL=available-tools.js.map

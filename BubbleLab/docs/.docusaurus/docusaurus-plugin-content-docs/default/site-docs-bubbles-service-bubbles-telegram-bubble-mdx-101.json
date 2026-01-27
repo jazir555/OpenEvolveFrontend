@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/telegram-bubble",
+  "title": "Telegram Bubble",
+  "description": "Telegram Bot API integration for messaging and bot management",
+  "source": "@site/docs/bubbles/service-bubbles/telegram-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/telegram-bubble",
+  "permalink": "/bubbles/service-bubbles/telegram-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Storage Bubble",
+    "permalink": "/bubbles/service-bubbles/storage-bubble"
+  },
+  "next": {
+    "title": "Bubbleflow Validation Tool",
+    "permalink": "/bubbles/tool-bubbles/bubbleflow-validation-tool"
+  }
+}

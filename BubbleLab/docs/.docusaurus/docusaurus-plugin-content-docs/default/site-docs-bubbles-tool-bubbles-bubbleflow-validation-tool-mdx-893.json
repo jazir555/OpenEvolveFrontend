@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/tool-bubbles/bubbleflow-validation-tool",
+  "title": "Bubbleflow Validation Tool",
+  "description": "Validates BubbleFlow TypeScript code for syntax and structure",
+  "source": "@site/docs/bubbles/tool-bubbles/bubbleflow-validation-tool.mdx",
+  "sourceDirName": "bubbles/tool-bubbles",
+  "slug": "/bubbles/tool-bubbles/bubbleflow-validation-tool",
+  "permalink": "/bubbles/tool-bubbles/bubbleflow-validation-tool",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Telegram Bubble",
+    "permalink": "/bubbles/service-bubbles/telegram-bubble"
+  },
+  "next": {
+    "title": "Code Edit Tool",
+    "permalink": "/bubbles/tool-bubbles/code-edit-tool"
+  }
+}

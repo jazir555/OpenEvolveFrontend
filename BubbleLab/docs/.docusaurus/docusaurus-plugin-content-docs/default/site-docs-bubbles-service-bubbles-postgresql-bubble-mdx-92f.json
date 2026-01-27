@@ -1,0 +1,23 @@
+{
+  "id": "bubbles/service-bubbles/postgresql-bubble",
+  "title": "Postgresql Bubble",
+  "description": "Execute PostgreSQL queries with operation validation",
+  "source": "@site/docs/bubbles/service-bubbles/postgresql-bubble.mdx",
+  "sourceDirName": "bubbles/service-bubbles",
+  "slug": "/bubbles/service-bubbles/postgresql-bubble",
+  "permalink": "/bubbles/service-bubbles/postgresql-bubble",
+  "draft": false,
+  "unlisted": false,
+  "tags": [],
+  "version": "current",
+  "frontMatter": {},
+  "sidebar": "tutorialSidebar",
+  "previous": {
+    "title": "Http Bubble",
+    "permalink": "/bubbles/service-bubbles/http-bubble"
+  },
+  "next": {
+    "title": "Resend Bubble",
+    "permalink": "/bubbles/service-bubbles/resend-bubble"
+  }
+}
