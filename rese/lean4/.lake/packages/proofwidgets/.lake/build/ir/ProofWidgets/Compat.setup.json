@@ -1,0 +1,7 @@
+{"plugins": [],
+ "package": "proofwidgets",
+ "options": {"experimental.module": true},
+ "name": "ProofWidgets.Compat",
+ "isModule": true,
+ "importArts": {},
+ "dynlibs": []}

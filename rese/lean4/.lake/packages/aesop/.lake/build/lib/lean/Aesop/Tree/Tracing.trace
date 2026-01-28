@@ -1,0 +1,30 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "e619bb97671c54ae.ir",
+  "o":
+  ["3d3635ba017984a4.olean",
+   "d676e575943e18dd.olean.server",
+   "690a4c60966ee9b6.olean.private"],
+  "i": "1e70fafee0e87c4d.ilean",
+  "c": "9525fd584153a257.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\Cli\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\Qq\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\proofwidgets\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\importGraph\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\LeanSearchClient\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\plausible\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\build\\lib\\lean c:\\Users\\mmeadow\\.elan\\toolchains\\leanprover--lean4---v4.27.0-rc1\\bin\\lean.exe C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\Aesop\\Tree\\Tracing.lean -o C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean\\Aesop\\Tree\\Tracing.olean -i C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean\\Aesop\\Tree\\Tracing.ilean -c C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\ir\\Aesop\\Tree\\Tracing.c --setup C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\ir\\Aesop\\Tree\\Tracing.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Aesop.Tree.Tracing:deps",
+   [["deps",
+     [["aesop/Aesop:extraDep", [["@aesop:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Aesop.Tree.RunMetaM transitive imports (public)", "c0a83d17691ed092"],
+        ["Aesop.Tree.RunMetaM:importArts", "10b59697898f3b24"],
+        ["Aesop.Tracing transitive imports (public)", "059a897ceeb5f237"],
+        ["Aesop.Tracing:importArts", "2aafdc644c1cdacb"]]]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\Aesop\\Tree\\Tracing.lean",
+   "ef24d64f441e5992"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "a6ad8e91ef15c939"}

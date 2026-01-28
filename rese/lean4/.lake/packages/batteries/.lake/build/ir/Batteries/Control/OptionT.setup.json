@@ -1,0 +1,12 @@
+{"plugins": [],
+ "package": "batteries",
+ "options":
+ {"weak.backward.privateInPublic.warn": false, "linter.missingDocs": true},
+ "name": "Batteries.Control.OptionT",
+ "isModule": true,
+ "importArts":
+ {"Batteries.Control.LawfulMonadState":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\LawfulMonadState.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\LawfulMonadState.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\LawfulMonadState.olean.server"]},
+ "dynlibs": []}

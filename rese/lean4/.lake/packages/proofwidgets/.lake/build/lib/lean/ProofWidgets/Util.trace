@@ -1,0 +1,33 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "f53736a8d8f1e037.ir",
+  "o":
+  ["e170807d56f8e74e.olean",
+   "49617f11d5f58b9c.olean.server",
+   "ef6e6c74ec7e6af9.olean.private"],
+  "i": "88c598dd098bc3b6.ilean",
+  "c": "704df155e81720c9.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/ProofWidgets4/ProofWidgets4/ProofWidgets/Util.lean -o /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Util.olean -i /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Util.ilean -c /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/ProofWidgets/Util.c --setup /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/ProofWidgets/Util.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["ProofWidgets.Util:deps",
+   [["deps",
+     [["proofwidgets/ProofWidgets:extraDep",
+       [["@proofwidgets:extraDep", "00000000000006bb"],
+        ["<nil>", "637b525281701395"]]],
+      ["imports", "00000000000006bb"]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/ProofWidgets/Util.lean",
+   "ea0706c66f70f88f"],
+  ["options", [["-Dexperimental.module=true", "a66e91e2aeb378d2"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "e5c2a931d8462dc6"}

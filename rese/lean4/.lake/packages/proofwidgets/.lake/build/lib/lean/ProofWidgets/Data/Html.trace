@@ -1,0 +1,38 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "c0505b9a2477f29c.ir",
+  "o":
+  ["b76f3aef1b5d754b.olean",
+   "70a4d885c81997eb.olean.server",
+   "8574fa4ecf23ddef.olean.private"],
+  "i": "f09e5fde955f0e5a.ilean",
+  "c": "3814be7163e92941.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/ProofWidgets4/ProofWidgets4/ProofWidgets/Data/Html.lean -o /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Data/Html.olean -i /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Data/Html.ilean -c /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/ProofWidgets/Data/Html.c --setup /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/ProofWidgets/Data/Html.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["ProofWidgets.Data.Html:deps",
+   [["deps",
+     [["proofwidgets/ProofWidgets:extraDep",
+       [["@proofwidgets:extraDep", "00000000000006bb"],
+        ["<nil>", "637b525281701395"]]],
+      ["imports",
+       [["ProofWidgets.Component.Basic transitive imports (meta)",
+         "908ae5d4dea295cf"],
+        ["ProofWidgets.Component.Basic:importArts (meta)", "f952cc411befade2"],
+        ["ProofWidgets.Util transitive imports (meta)", "00000000000006bb"],
+        ["ProofWidgets.Util:importArts (meta)", "31a3d04ce15544bc"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/ProofWidgets/Data/Html.lean",
+   "6ffffe607c3691dc"],
+  ["options", [["-Dexperimental.module=true", "a66e91e2aeb378d2"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "b887df58d6e58491"}

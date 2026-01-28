@@ -1,0 +1,36 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "cbf6d35ecffc36fd.ir",
+  "o":
+  ["331cd642b6dbfa1f.olean",
+   "53b1ca82de4a903a.olean.server",
+   "66d0262c85373e7a.olean.private"],
+  "i": "33549ce44137a870.ilean",
+  "c": "89d1d52494969bc5.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\Cli\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\Qq\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\proofwidgets\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\importGraph\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\LeanSearchClient\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\plausible\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\build\\lib\\lean c:\\Users\\mmeadow\\.elan\\toolchains\\leanprover--lean4---v4.27.0-rc1\\bin\\lean.exe C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\Aesop\\Rule\\Forward.lean -o C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean\\Aesop\\Rule\\Forward.olean -i C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean\\Aesop\\Rule\\Forward.ilean -c C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\ir\\Aesop\\Rule\\Forward.c --setup C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\ir\\Aesop\\Rule\\Forward.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Aesop.Rule.Forward:deps",
+   [["deps",
+     [["aesop/Aesop:extraDep", [["@aesop:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Aesop.Forward.RuleInfo transitive imports (public)",
+         "319ccb03b729b95a"],
+        ["Aesop.Forward.RuleInfo:importArts", "661add73223dd217"],
+        ["Aesop.Percent transitive imports (public)", "00000000000006bb"],
+        ["Aesop.Percent:importArts", "8ca09017a822defc"],
+        ["Aesop.Rule.Name transitive imports (public)", "00000000000006bb"],
+        ["Aesop.Rule.Name:importArts", "961c714f63b27cd2"],
+        ["Aesop.RuleTac.RuleTerm transitive imports (public)",
+         "b2eac91559cbcacc"],
+        ["Aesop.RuleTac.RuleTerm:importArts", "45f839c4522f9340"]]]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\Aesop\\Rule\\Forward.lean",
+   "fed9e71364ee3b03"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "c50d00c02c749203"}

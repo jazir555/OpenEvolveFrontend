@@ -1,0 +1,37 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "0ab3d557d2e7f811.ir",
+  "o":
+  ["09c799cc39f4188b.olean",
+   "d599875f630a2e90.olean.server",
+   "ca2786fe6489c1ca.olean.private"],
+  "i": "19ad1a8fe3b931d6.ilean",
+  "c": "78bc9c6f7adbfd38.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\Cli\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\Qq\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\proofwidgets\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\importGraph\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\LeanSearchClient\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\plausible\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean;C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\build\\lib\\lean c:\\Users\\mmeadow\\.elan\\toolchains\\leanprover--lean4---v4.27.0-rc1\\bin\\lean.exe C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\Aesop\\Frontend\\Tactic.lean -o C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean\\Aesop\\Frontend\\Tactic.olean -i C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean\\Aesop\\Frontend\\Tactic.ilean -c C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\ir\\Aesop\\Frontend\\Tactic.c --setup C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\ir\\Aesop\\Frontend\\Tactic.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Aesop.Frontend.Tactic:deps",
+   [["deps",
+     [["aesop/Aesop:extraDep", [["@aesop:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Aesop.Frontend.RuleExpr transitive imports (public)",
+         "cc0fbc39c844b548"],
+        ["Aesop.Frontend.RuleExpr:importArts", "08c66bfce7bd62c7"],
+        ["Aesop.Options transitive imports (public)", "94d86cef5681d53d"],
+        ["Aesop.Options:importArts", "37c35360b0499752"],
+        ["Batteries.Linter.UnreachableTactic transitive imports (public)",
+         "044d46b081bb522b"],
+        ["Batteries.Linter.UnreachableTactic:importArts", "ce5a819366eb53e9"],
+        ["Aesop.Frontend.Extension transitive imports (public)",
+         "54d5177848a811ce"],
+        ["Aesop.Frontend.Extension:importArts", "a6df8bd68f1a3731"]]]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\Aesop\\Frontend\\Tactic.lean",
+   "595c8de3bdbb2de1"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "b1010e47de9bf72d"}

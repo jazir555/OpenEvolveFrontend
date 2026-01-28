@@ -1,0 +1,59 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'visualizer/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'visualizer/**'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+    
+    - name: Get dependencies
+      working-directory: ./visualizer
+      run: flutter pub get
+    
+    - name: Analyze code
+      working-directory: ./visualizer
+      run: flutter analyze
+      continue-on-error: true
+    
+    - name: Run tests
+      working-directory: ./visualizer
+      run: flutter test
+      continue-on-error: true
+
+  build:
+    needs: analyze
+    runs-on: windows-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.16.0'
+        channel: 'stable'
+
+    - name: Get dependencies
+      working-directory: ./visualizer
+      run: flutter pub get
+    
+    - name: Build Windows
+      working-directory: ./visualizer
+      run: flutter build windows

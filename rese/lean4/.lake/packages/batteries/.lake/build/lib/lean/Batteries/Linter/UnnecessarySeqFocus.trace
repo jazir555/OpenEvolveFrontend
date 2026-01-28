@@ -1,0 +1,38 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "561ab6d2a4c98e86.ir",
+  "o":
+  ["94d2bb695a7a8f9c.olean",
+   "064ea62012968361.olean.server",
+   "e8338f12b81f0d1d.olean.private"],
+  "i": "bb6883931b847c43.ilean",
+  "c": "0099d5fb4e678196.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Batteries/Linter/UnnecessarySeqFocus.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Linter/UnnecessarySeqFocus.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Linter/UnnecessarySeqFocus.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Batteries/Linter/UnnecessarySeqFocus.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Batteries/Linter/UnnecessarySeqFocus.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Batteries.Linter.UnnecessarySeqFocus:deps",
+   [["deps",
+     [["batteries/Batteries:extraDep",
+       [["@batteries:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Batteries.Lean.AttributeExtra transitive imports (meta)",
+         "db2144a09dbc59fe"],
+        ["Batteries.Lean.AttributeExtra:importArts (meta)",
+         "5d391ce5ad2f3389"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Batteries/Linter/UnnecessarySeqFocus.lean",
+   "4f9ee5469a9bec4c"],
+  ["options",
+   [["-Dlinter.missingDocs=true", "90c3480090de3a08"],
+    ["-Dweak.backward.privateInPublic.warn=false", "7bd7a538fb29f63d"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "f6076263ec7c9f0c"}

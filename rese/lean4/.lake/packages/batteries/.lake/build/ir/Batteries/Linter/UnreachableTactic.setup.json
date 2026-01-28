@@ -1,0 +1,12 @@
+{"plugins": [],
+ "package": "batteries",
+ "options":
+ {"weak.backward.privateInPublic.warn": false, "linter.missingDocs": true},
+ "name": "Batteries.Linter.UnreachableTactic",
+ "isModule": true,
+ "importArts":
+ {"Batteries.Tactic.Unreachable":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Unreachable.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Unreachable.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Unreachable.olean.server"]},
+ "dynlibs": []}

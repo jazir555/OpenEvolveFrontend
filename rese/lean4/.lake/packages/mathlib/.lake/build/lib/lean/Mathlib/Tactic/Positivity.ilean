@@ -1,0 +1,1 @@
+{"decls":{},"directImports":[["Mathlib.Tactic.Positivity.Basic",false,false,true],["Mathlib.Tactic.Positivity.Finset",false,false,true],["Mathlib.Tactic.NormNum.Basic",false,false,true],["Mathlib.Data.Int.Order.Basic",false,false,true]],"module":"Mathlib.Tactic.Positivity","references":{},"version":5}

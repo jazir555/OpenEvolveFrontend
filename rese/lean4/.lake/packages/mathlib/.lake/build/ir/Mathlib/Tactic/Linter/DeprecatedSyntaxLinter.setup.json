@@ -1,0 +1,24 @@
+{"plugins": [],
+ "package": "mathlib",
+ "options":
+ {"weak.linter.style.longFile": 1500,
+  "weak.linter.style.header": true,
+  "weak.linter.pythonStyle": true,
+  "weak.linter.mathlibStandardSet": true,
+  "weak.linter.checkInitImports": true,
+  "weak.linter.allScriptsDocumented": true,
+  "pp.unicode.fun": true,
+  "maxSynthPendingDepth": 3,
+  "autoImplicit": false},
+ "name": "Mathlib.Tactic.Linter.DeprecatedSyntaxLinter",
+ "isModule": true,
+ "importArts":
+ {"Mathlib.Tactic.Linter.Header":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean\\Mathlib\\Tactic\\Linter\\Header.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean\\Mathlib\\Tactic\\Linter\\Header.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean\\Mathlib\\Tactic\\Linter\\Header.olean.server"],
+  "Mathlib.Tactic.Linter.DirectoryDependency":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean\\Mathlib\\Tactic\\Linter\\DirectoryDependency.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean\\Mathlib\\Tactic\\Linter\\DirectoryDependency.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean\\Mathlib\\Tactic\\Linter\\DirectoryDependency.olean.server"]},
+ "dynlibs": []}

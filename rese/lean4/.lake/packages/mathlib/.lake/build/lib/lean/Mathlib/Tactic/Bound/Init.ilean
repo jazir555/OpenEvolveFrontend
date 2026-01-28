@@ -1,0 +1,1 @@
+{"decls":{},"directImports":[["Mathlib.Init",false,false,false],["Aesop.Frontend.Command",false,false,true]],"module":"Mathlib.Tactic.Bound.Init","references":{},"version":5}

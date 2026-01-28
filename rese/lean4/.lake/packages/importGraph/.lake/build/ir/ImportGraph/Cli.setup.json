@@ -1,0 +1,31 @@
+{"plugins": [],
+ "package": "importGraph",
+ "options": {},
+ "name": "ImportGraph.Cli",
+ "isModule": true,
+ "importArts":
+ {"ImportGraph.RequiredModules":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/RequiredModules.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/RequiredModules.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/RequiredModules.olean.server"],
+  "ImportGraph.Lean.Name":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Lean/Name.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Lean/Name.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Lean/Name.olean.server"],
+  "ImportGraph.Imports":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Imports.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Imports.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Imports.olean.server"],
+  "ImportGraph.Gexf":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Gexf.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Gexf.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Gexf.olean.server"],
+  "ImportGraph.CurrentModule":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/CurrentModule.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/CurrentModule.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/CurrentModule.olean.server"],
+  "Cli.Basic":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/packages/Cli/.lake/build/lib/lean/Cli/Basic.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/packages/Cli/.lake/build/lib/lean/Cli/Basic.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/packages/Cli/.lake/build/lib/lean/Cli/Basic.olean.server"]},
+ "dynlibs": []}

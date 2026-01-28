@@ -1,0 +1,1 @@
+{"decls":{},"directImports":[["Mathlib.Init",false,false,false]],"module":"Mathlib.Tactic.ExistsI","references":{"{\"c\":{\"m\":\"Init.Notation\",\"n\":\"Lean.Parser.Category.tactic\"}}":{"definition":null,"usages":[[34,29,34,35]]},"{\"c\":{\"m\":\"Init.Notation\",\"n\":\"Lean.Parser.Category.term\"}}":{"definition":null,"usages":[[34,20,34,24]]}},"version":5}

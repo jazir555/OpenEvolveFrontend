@@ -1,0 +1,11 @@
+{"plugins": [],
+ "package": "aesop",
+ "options": {},
+ "name": "Aesop.Util.Tactic",
+ "isModule": true,
+ "importArts":
+ {"Batteries.Tactic.OpenPrivate":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Tactic\\OpenPrivate.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Tactic\\OpenPrivate.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Tactic\\OpenPrivate.olean.server"]},
+ "dynlibs": []}

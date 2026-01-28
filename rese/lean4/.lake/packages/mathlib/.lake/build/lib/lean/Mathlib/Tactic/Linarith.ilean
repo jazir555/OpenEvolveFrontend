@@ -1,0 +1,1 @@
+{"decls":{},"directImports":[["Mathlib.Tactic.Linarith.Frontend",false,false,true],["Mathlib.Tactic.NormNum",false,false,true],["Mathlib.Tactic.Hint",false,false,true]],"module":"Mathlib.Tactic.Linarith","references":{},"version":5}

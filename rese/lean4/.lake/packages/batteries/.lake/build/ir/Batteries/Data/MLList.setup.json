@@ -1,0 +1,40 @@
+{"plugins": [],
+ "package": "batteries",
+ "options":
+ {"weak.backward.privateInPublic.warn": false, "linter.missingDocs": true},
+ "name": "Batteries.Data.MLList",
+ "isModule": true,
+ "importArts":
+ {"Batteries.Lean.System.IO":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Lean\\System\\IO.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Lean\\System\\IO.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Lean\\System\\IO.olean.server"],
+  "Batteries.Data.MLList.IO":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Data\\MLList\\IO.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Data\\MLList\\IO.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Data\\MLList\\IO.olean.server"],
+  "Batteries.Data.MLList.Heartbeats":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Data\\MLList\\Heartbeats.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Data\\MLList\\Heartbeats.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Data\\MLList\\Heartbeats.olean.server"],
+  "Batteries.Data.MLList.Basic":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Data\\MLList\\Basic.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Data\\MLList\\Basic.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Data\\MLList\\Basic.olean.server"],
+  "Batteries.Control.OptionT":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\OptionT.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\OptionT.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\OptionT.olean.server"],
+  "Batteries.Control.Lemmas":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\Lemmas.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\Lemmas.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\Lemmas.olean.server"],
+  "Batteries.Control.LawfulMonadState":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\LawfulMonadState.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\LawfulMonadState.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\LawfulMonadState.olean.server"],
+  "Batteries.Control.AlternativeMonad":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\AlternativeMonad.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\AlternativeMonad.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Control\\AlternativeMonad.olean.server"]},
+ "dynlibs": []}

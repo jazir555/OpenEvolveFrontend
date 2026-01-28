@@ -1,0 +1,37 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "fdefb1a5a33cc984.ir",
+  "o":
+  ["52eca27715205a79.olean",
+   "ef5fa198dfcd4dda.olean.server",
+   "53d796ec9694df7f.olean.private"],
+  "i": "3f0d1a6d64796dd3.ilean",
+  "c": "61f812bc13977c7d.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/ProofWidgets4/ProofWidgets4/ProofWidgets/Component/MakeEditLink.lean -o /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/MakeEditLink.olean -i /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/MakeEditLink.ilean -c /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/ProofWidgets/Component/MakeEditLink.c --setup /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/ProofWidgets/Component/MakeEditLink.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["ProofWidgets.Component.MakeEditLink:deps",
+   [["deps",
+     [["proofwidgets/ProofWidgets:extraDep",
+       [["@proofwidgets:extraDep", "00000000000006bb"],
+        ["<nil>", "637b525281701395"]]],
+      ["imports",
+       [["ProofWidgets.Component.Basic transitive imports (meta)",
+         "908ae5d4dea295cf"],
+        ["ProofWidgets.Component.Basic:importArts (meta)",
+         "f952cc411befade2"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/ProofWidgets/Component/MakeEditLink.lean",
+   "68069b2650b44037"],
+  ["options", [["-Dexperimental.module=true", "a66e91e2aeb378d2"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "5966e3dba4e54165"}

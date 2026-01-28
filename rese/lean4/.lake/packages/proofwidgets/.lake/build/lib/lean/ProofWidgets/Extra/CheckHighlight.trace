@@ -1,0 +1,37 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "2a1813e2e9d46918.ir",
+  "o":
+  ["42fb0292b62cb3e8.olean",
+   "d1827b329e83dac0.olean.server",
+   "8df076699b9de863.olean.private"],
+  "i": "b00f479c7825752e.ilean",
+  "c": "eefb4906e38449e3.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/ProofWidgets4/ProofWidgets4/ProofWidgets/Extra/CheckHighlight.lean -o /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Extra/CheckHighlight.olean -i /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Extra/CheckHighlight.ilean -c /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/ProofWidgets/Extra/CheckHighlight.c --setup /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/ProofWidgets/Extra/CheckHighlight.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["ProofWidgets.Extra.CheckHighlight:deps",
+   [["deps",
+     [["proofwidgets/ProofWidgets:extraDep",
+       [["@proofwidgets:extraDep", "00000000000006bb"],
+        ["<nil>", "637b525281701395"]]],
+      ["imports",
+       [["ProofWidgets.Component.HtmlDisplay transitive imports (meta)",
+         "f32b065154d67cf1"],
+        ["ProofWidgets.Component.HtmlDisplay:importArts (meta)",
+         "af5b9d7d6baf25d8"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/ProofWidgets/Extra/CheckHighlight.lean",
+   "aec3411143e9816c"],
+  ["options", [["-Dexperimental.module=true", "a66e91e2aeb378d2"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "395a9d75bb8badf7"}

@@ -1,0 +1,12 @@
+{"plugins": [],
+ "package": "batteries",
+ "options":
+ {"weak.backward.privateInPublic.warn": false, "linter.missingDocs": true},
+ "name": "Batteries.CodeAction.Basic",
+ "isModule": true,
+ "importArts":
+ {"Batteries.CodeAction.Attr":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\CodeAction\\Attr.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\CodeAction\\Attr.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\CodeAction\\Attr.olean.server"]},
+ "dynlibs": []}

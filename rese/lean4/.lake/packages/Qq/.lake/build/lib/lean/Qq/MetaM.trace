@@ -1,0 +1,37 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "f6496a640b7971c8.ir",
+  "o":
+  ["4821c721c347b5c6.olean",
+   "b6ea56831dc32136.olean.server",
+   "055d63c684914f10.olean.private"],
+  "i": "1fcabb11ee120893.ilean",
+  "c": "b01e98b7d2b30e21.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Qq/MetaM.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Qq/MetaM.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Qq/MetaM.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Qq/MetaM.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Qq/MetaM.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Qq.MetaM:deps",
+   [["deps",
+     [["Qq/Qq:extraDep", [["@Qq:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Qq.Macro transitive imports (public)", "e3924ec318721077"],
+        ["Qq.Macro:importArts", "5be20e5047826337"],
+        ["Qq.Delab transitive imports (public)", "d1af2470df1a9c4d"],
+        ["Qq.Delab:importArts", "a876463729e775a7"],
+        ["Qq.Typ transitive imports (public)", "00000000000006bb"],
+        ["Qq.Typ:importArts", "5b53340e3fb494dc"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Qq/MetaM.lean",
+   "908fd74fcfff2dc6"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "57b52357a65b0442"}

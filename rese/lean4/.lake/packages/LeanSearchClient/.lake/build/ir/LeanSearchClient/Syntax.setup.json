@@ -1,0 +1,11 @@
+{"plugins": [],
+ "package": "LeanSearchClient",
+ "options": {},
+ "name": "LeanSearchClient.Syntax",
+ "isModule": true,
+ "importArts":
+ {"LeanSearchClient.Basic":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/Basic.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/Basic.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/Basic.olean.server"]},
+ "dynlibs": []}

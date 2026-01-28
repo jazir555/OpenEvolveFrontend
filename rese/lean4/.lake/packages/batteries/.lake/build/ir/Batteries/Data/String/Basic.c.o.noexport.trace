@@ -1,0 +1,18 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs": "60a657e7d1b21841.o",
+ "log":
+ [{"message":
+   ".> c:\\Users\\mmeadow\\.elan\\toolchains\\leanprover--lean4---v4.27.0-rc1\\bin\\clang.exe -c -o C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\ir\\Batteries\\Data\\String\\Basic.c.o.noexport C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\ir\\Batteries\\Data\\String\\Basic.c -I c:\\Users\\mmeadow\\.elan\\toolchains\\leanprover--lean4---v4.27.0-rc1\\include -fstack-clash-protection -fwrapv -Wno-unused-command-line-argument --sysroot c:\\Users\\mmeadow\\.elan\\toolchains\\leanprover--lean4---v4.27.0-rc1 -nostdinc -isystem c:\\Users\\mmeadow\\.elan\\toolchains\\leanprover--lean4---v4.27.0-rc1/include/clang -O3 -DNDEBUG",
+   "level": "trace"}],
+ "inputs":
+ [["Batteries.Data.String.Basic:c",
+   [["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\ir\\Batteries\\Data\\String\\Basic.c",
+     "0026a0134c804d72"],
+    ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+     "6f43b597efea5d4c"]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["traceArgs: #[-O3, -DNDEBUG]", "6c7bb0eeabd8f74a"],
+  ["x86_64-w64-windows-gnu", "360db333d006d911"]],
+ "depHash": "843d2507a67022a1"}

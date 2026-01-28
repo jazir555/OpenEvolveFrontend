@@ -1,0 +1,20 @@
+{"plugins": [],
+ "package": "batteries",
+ "options":
+ {"weak.backward.privateInPublic.warn": false, "linter.missingDocs": true},
+ "name": "Batteries.Lean.Meta.DiscrTree",
+ "isModule": true,
+ "importArts":
+ {"Batteries.Lean.PersistentHashMap":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/PersistentHashMap.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/PersistentHashMap.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/PersistentHashMap.olean.server"],
+  "Batteries.Lean.Meta.Expr":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/Meta/Expr.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/Meta/Expr.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/Meta/Expr.olean.server"],
+  "Batteries.Data.Array.Merge":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Data/Array/Merge.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Data/Array/Merge.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Data/Array/Merge.olean.server"]},
+ "dynlibs": []}

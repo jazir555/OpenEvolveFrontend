@@ -1,0 +1,33 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "20b1951433c24aa2.ir",
+  "o":
+  ["475ed0485e81b091.olean",
+   "a3647aeaddeb70eb.olean.server",
+   "e972b7b8099460a0.olean.private"],
+  "i": "21d61c9c4dd514b4.ilean",
+  "c": "888b0bddf396e3f9.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Qq/AssertInstancesCommute.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Qq/AssertInstancesCommute.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Qq/AssertInstancesCommute.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Qq/AssertInstancesCommute.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Qq/AssertInstancesCommute.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Qq.AssertInstancesCommute:deps",
+   [["deps",
+     [["Qq/Qq:extraDep", [["@Qq:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Qq.MetaM transitive imports (public)", "34339ccfa9168e50"],
+        ["Qq.MetaM:importArts", "388cd7c93e801ede"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Qq/AssertInstancesCommute.lean",
+   "e91e6cb1afa53241"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "2af6882c5e2c57fd"}

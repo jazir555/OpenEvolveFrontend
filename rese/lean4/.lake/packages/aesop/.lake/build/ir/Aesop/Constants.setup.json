@@ -1,0 +1,11 @@
+{"plugins": [],
+ "package": "aesop",
+ "options": {},
+ "name": "Aesop.Constants",
+ "isModule": true,
+ "importArts":
+ {"Aesop.Percent":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean\\Aesop\\Percent.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean\\Aesop\\Percent.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean\\Aesop\\Percent.olean.server"]},
+ "dynlibs": []}

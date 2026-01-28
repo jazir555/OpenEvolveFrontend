@@ -1,0 +1,27 @@
+{"plugins": [],
+ "package": "proofwidgets",
+ "options": {"experimental.module": true},
+ "name": "test.delab",
+ "isModule": false,
+ "importArts":
+ {"ProofWidgets.Util":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Util.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Util.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Util.olean.server",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Util.olean.private"],
+  "ProofWidgets.Data.Html":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Data/Html.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Data/Html.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Data/Html.olean.server",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Data/Html.olean.private"],
+  "ProofWidgets.Component.Basic":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Basic.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Basic.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Basic.olean.server",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Basic.olean.private"],
+  "ProofWidgets.Compat":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Compat.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Compat.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Compat.olean.server",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Compat.olean.private"]},
+ "dynlibs": []}

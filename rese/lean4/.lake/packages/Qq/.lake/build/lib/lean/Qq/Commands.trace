@@ -1,0 +1,38 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "472848a9bffc3a51.ir",
+  "o":
+  ["9b49c8511c8eb184.olean",
+   "ebf647947cfc7d3c.olean.server",
+   "77af37bb9b354150.olean.private"],
+  "i": "3f16e9388e61824f.ilean",
+  "c": "c4cb8c2534e49ff3.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Qq/Commands.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Qq/Commands.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Qq/Commands.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Qq/Commands.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Qq/Commands.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Qq.Commands:deps",
+   [["deps",
+     [["Qq/Qq:extraDep", [["@Qq:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Qq.Macro transitive imports (public)", "e3924ec318721077"],
+        ["Qq.Macro:importArts", "5be20e5047826337"],
+        ["Qq.Macro transitive imports (meta)", "e3924ec318721077"],
+        ["Qq.Macro:importArts (meta)", "1781d98e74f3b7a6"],
+        ["Qq.AssertInstancesCommute transitive imports (meta)",
+         "ef59a4d7339b5320"],
+        ["Qq.AssertInstancesCommute:importArts (meta)", "ac00a6fdb2223caa"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Qq/Commands.lean",
+   "1187023701318113"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "2f71a2fe662ff941"}

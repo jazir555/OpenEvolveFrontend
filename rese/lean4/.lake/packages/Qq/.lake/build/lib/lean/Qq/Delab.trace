@@ -1,0 +1,35 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "b658409459466f74.ir",
+  "o":
+  ["f94dcb5101cd66a5.olean",
+   "e6f07e601c89310a.olean.server",
+   "f622cad37864f916.olean.private"],
+  "i": "3a49228f722e8aab.ilean",
+  "c": "3d6995217caa26b8.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Qq/Delab.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Qq/Delab.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Qq/Delab.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Qq/Delab.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Qq/Delab.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Qq.Delab:deps",
+   [["deps",
+     [["Qq/Qq:extraDep", [["@Qq:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Qq.Macro transitive imports (public)", "e3924ec318721077"],
+        ["Qq.Macro:importArts", "5be20e5047826337"],
+        ["Qq.Macro transitive imports (meta)", "e3924ec318721077"],
+        ["Qq.Macro:importArts (meta)", "1781d98e74f3b7a6"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Qq/Delab.lean",
+   "4c589252ca6ffba3"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "fdd238447b6526ac"}

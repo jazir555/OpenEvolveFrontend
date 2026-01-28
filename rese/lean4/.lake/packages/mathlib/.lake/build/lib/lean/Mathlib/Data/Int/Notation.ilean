@@ -1,0 +1,1 @@
+{"decls":{"termℤ":[14,0,14,34,14,0,14,34]},"directImports":[["Mathlib.Init",false,false,false]],"module":"Mathlib.Data.Int.Notation","references":{"{\"c\":{\"m\":\"Init.Data.Int.Basic\",\"n\":\"Int\"}}":{"definition":null,"usages":[[14,31,14,34,"termℤ"]]}},"version":5}

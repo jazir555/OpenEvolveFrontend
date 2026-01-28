@@ -1,0 +1,7 @@
+{"plugins": [],
+ "package": "aesop",
+ "options": {},
+ "name": "Aesop.Script.Tactic",
+ "isModule": true,
+ "importArts": {},
+ "dynlibs": []}

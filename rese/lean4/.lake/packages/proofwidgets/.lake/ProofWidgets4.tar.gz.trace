@@ -1,0 +1,9 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs": null,
+ "log":
+ [{"message":
+   ".> curl -s -S -f -o C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\proofwidgets\\.lake\\ProofWidgets4.tar.gz -L https://github.com/leanprover-community/ProofWidgets4/releases/download/v0.0.84/ProofWidgets4.tar.gz",
+   "level": "trace"}],
+ "inputs": [],
+ "depHash": "0ca24bd0a72d949c"}

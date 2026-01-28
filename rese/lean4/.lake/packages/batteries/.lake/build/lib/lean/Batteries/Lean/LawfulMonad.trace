@@ -1,0 +1,34 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "91ae8831d4afdcaf.ir",
+  "o":
+  ["6e280c99d00c978c.olean",
+   "2528e16b056f97be.olean.server",
+   "9d6c0e62c0f98ca7.olean.private"],
+  "i": "bc3664ea3150a3e5.ilean",
+  "c": "23ea20a3fd4995c9.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Batteries/Lean/LawfulMonad.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/LawfulMonad.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/LawfulMonad.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Batteries/Lean/LawfulMonad.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Batteries/Lean/LawfulMonad.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Batteries.Lean.LawfulMonad:deps",
+   [["deps",
+     [["batteries/Batteries:extraDep",
+       [["@batteries:extraDep", "00000000000006bb"]]],
+      ["imports", "00000000000006bb"]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Batteries/Lean/LawfulMonad.lean",
+   "90f081a066b56812"],
+  ["options",
+   [["-Dlinter.missingDocs=true", "90c3480090de3a08"],
+    ["-Dweak.backward.privateInPublic.warn=false", "7bd7a538fb29f63d"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "265d423c2eaf86dd"}

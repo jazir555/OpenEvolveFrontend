@@ -1,0 +1,18 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs": "829530217a63350b.o",
+ "log":
+ [{"message":
+   ".> /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/clang -c -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/ImportGraph/CurrentModule.c.o.export /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/ImportGraph/CurrentModule.c -I /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/include -fstack-clash-protection -fwrapv -fPIC -fvisibility=hidden -Wno-unused-command-line-argument --sysroot /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1 -nostdinc -isystem /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/include/clang -O3 -DNDEBUG -DLEAN_EXPORTING",
+   "level": "trace"}],
+ "inputs":
+ [["ImportGraph.CurrentModule:c",
+   [["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/ImportGraph/CurrentModule.c",
+     "a0ac80dd626f8e7c"],
+    ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+     "6f43b597efea5d4c"]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["traceArgs: #[-O3, -DNDEBUG, -DLEAN_EXPORTING]", "c1efb66122fb2b9a"],
+  ["x86_64-unknown-linux-gnu", "53a0e8937c307c28"]],
+ "depHash": "056ec831abb0de8e"}

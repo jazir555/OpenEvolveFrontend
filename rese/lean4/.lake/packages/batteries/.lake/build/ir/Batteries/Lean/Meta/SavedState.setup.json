@@ -1,0 +1,32 @@
+{"plugins": [],
+ "package": "batteries",
+ "options":
+ {"weak.backward.privateInPublic.warn": false, "linter.missingDocs": true},
+ "name": "Batteries.Lean.Meta.SavedState",
+ "isModule": true,
+ "importArts":
+ {"Batteries.Lean.MonadBacktrack":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/MonadBacktrack.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/MonadBacktrack.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/MonadBacktrack.olean.server"],
+  "Batteries.Lean.Meta.Basic":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/Meta/Basic.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/Meta/Basic.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/Meta/Basic.olean.server"],
+  "Batteries.Control.OptionT":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Control/OptionT.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Control/OptionT.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Control/OptionT.olean.server"],
+  "Batteries.Control.Lemmas":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Control/Lemmas.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Control/Lemmas.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Control/Lemmas.olean.server"],
+  "Batteries.Control.LawfulMonadState":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Control/LawfulMonadState.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Control/LawfulMonadState.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Control/LawfulMonadState.olean.server"],
+  "Batteries.Control.AlternativeMonad":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Control/AlternativeMonad.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Control/AlternativeMonad.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Control/AlternativeMonad.olean.server"]},
+ "dynlibs": []}

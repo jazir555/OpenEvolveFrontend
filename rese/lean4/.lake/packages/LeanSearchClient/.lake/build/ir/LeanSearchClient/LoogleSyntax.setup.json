@@ -1,0 +1,15 @@
+{"plugins": [],
+ "package": "LeanSearchClient",
+ "options": {},
+ "name": "LeanSearchClient.LoogleSyntax",
+ "isModule": true,
+ "importArts":
+ {"LeanSearchClient.Syntax":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/Syntax.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/Syntax.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/Syntax.olean.server"],
+  "LeanSearchClient.Basic":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/Basic.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/Basic.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/Basic.olean.server"]},
+ "dynlibs": []}

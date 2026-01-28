@@ -1,0 +1,19 @@
+{"plugins": [],
+ "package": "plausible",
+ "options": {},
+ "name": "Plausible.Sampleable",
+ "isModule": true,
+ "importArts":
+ {"Plausible.Random":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Random.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Random.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Random.olean.server"],
+  "Plausible.Gen":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Gen.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Gen.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Gen.olean.server"],
+  "Plausible.Arbitrary":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Arbitrary.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Arbitrary.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Arbitrary.olean.server"]},
+ "dynlibs": []}

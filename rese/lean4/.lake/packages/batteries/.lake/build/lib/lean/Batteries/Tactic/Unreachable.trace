@@ -1,0 +1,34 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "577ea38f7d223d5b.ir",
+  "o":
+  ["15a2d2e554994205.olean",
+   "6ed606543be9045b.olean.server",
+   "2f2a93eabe88f177.olean.private"],
+  "i": "abcbb66da360b87c.ilean",
+  "c": "6c4a6fe5223e64d2.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Batteries/Tactic/Unreachable.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Unreachable.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Unreachable.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Batteries/Tactic/Unreachable.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Batteries/Tactic/Unreachable.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Batteries.Tactic.Unreachable:deps",
+   [["deps",
+     [["batteries/Batteries:extraDep",
+       [["@batteries:extraDep", "00000000000006bb"]]],
+      ["imports", "00000000000006bb"]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Batteries/Tactic/Unreachable.lean",
+   "1821789f94cc0631"],
+  ["options",
+   [["-Dlinter.missingDocs=true", "90c3480090de3a08"],
+    ["-Dweak.backward.privateInPublic.warn=false", "7bd7a538fb29f63d"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "aeb0af7c14374fc1"}

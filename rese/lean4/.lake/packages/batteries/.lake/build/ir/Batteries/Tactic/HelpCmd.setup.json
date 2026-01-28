@@ -1,0 +1,12 @@
+{"plugins": [],
+ "package": "batteries",
+ "options":
+ {"weak.backward.privateInPublic.warn": false, "linter.missingDocs": true},
+ "name": "Batteries.Tactic.HelpCmd",
+ "isModule": true,
+ "importArts":
+ {"Batteries.Util.LibraryNote":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Util/LibraryNote.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Util/LibraryNote.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Util/LibraryNote.olean.server"]},
+ "dynlibs": []}

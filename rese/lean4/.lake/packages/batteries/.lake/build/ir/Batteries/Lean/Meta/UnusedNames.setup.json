@@ -1,0 +1,8 @@
+{"plugins": [],
+ "package": "batteries",
+ "options":
+ {"weak.backward.privateInPublic.warn": false, "linter.missingDocs": true},
+ "name": "Batteries.Lean.Meta.UnusedNames",
+ "isModule": true,
+ "importArts": {},
+ "dynlibs": []}

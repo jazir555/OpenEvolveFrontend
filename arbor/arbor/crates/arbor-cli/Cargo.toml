@@ -1,0 +1,29 @@
+[package]
+name = "arbor-graph-cli"
+version = "1.0.2"
+edition.workspace = true
+license.workspace = true
+description = "Command-line interface for Arbor"
+
+[[bin]]
+name = "arbor"
+path = "src/main.rs"
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+tokio.workspace = true
+
+arbor-core = { path = "../arbor-core", version = "1.0.0" }
+arbor-graph = { path = "../arbor-graph", version = "1.0.0" }
+arbor-watcher = { path = "../arbor-watcher", version = "1.0.0" }
+arbor-server = { path = "../arbor-server", version = "1.0.0" }
+arbor-mcp = { path = "../arbor-mcp", version = "1.0.0" }
+
+clap = { version = "4.0", features = ["derive"] }
+colored = "2.0"
+indicatif = "0.17"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+dirs = "5.0"

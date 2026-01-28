@@ -1,0 +1,31 @@
+{"plugins": [],
+ "package": "proofwidgets",
+ "options": {"experimental.module": true},
+ "name": "ProofWidgets.Component.Panel.SelectionPanel",
+ "isModule": true,
+ "importArts":
+ {"ProofWidgets.Util":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Util.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Util.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Util.olean.server"],
+  "ProofWidgets.Presentation.Expr":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Presentation/Expr.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Presentation/Expr.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Presentation/Expr.olean.server"],
+  "ProofWidgets.Data.Html":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Data/Html.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Data/Html.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Data/Html.olean.server"],
+  "ProofWidgets.Component.Panel.Basic":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Panel/Basic.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Panel/Basic.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Panel/Basic.olean.server"],
+  "ProofWidgets.Component.Basic":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Basic.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Basic.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Basic.olean.server"],
+  "ProofWidgets.Compat":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Compat.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Compat.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Compat.olean.server"]},
+ "dynlibs": []}

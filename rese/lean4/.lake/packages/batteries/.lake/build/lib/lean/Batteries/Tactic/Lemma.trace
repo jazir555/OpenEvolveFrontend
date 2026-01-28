@@ -1,0 +1,34 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "f76e219a908ad28d.ir",
+  "o":
+  ["b39e41c7bbe8aef8.olean",
+   "6160a6b5966176af.olean.server",
+   "fa9522e273bb570c.olean.private"],
+  "i": "f642ddb3bb3d881b.ilean",
+  "c": "3c88d97f6795c833.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Batteries/Tactic/Lemma.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Lemma.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Lemma.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Batteries/Tactic/Lemma.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Batteries/Tactic/Lemma.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Batteries.Tactic.Lemma:deps",
+   [["deps",
+     [["batteries/Batteries:extraDep",
+       [["@batteries:extraDep", "00000000000006bb"]]],
+      ["imports", "00000000000006bb"]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Batteries/Tactic/Lemma.lean",
+   "01413cb3c7d7c9dc"],
+  ["options",
+   [["-Dlinter.missingDocs=true", "90c3480090de3a08"],
+    ["-Dweak.backward.privateInPublic.warn=false", "7bd7a538fb29f63d"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "23a46d93b2b1f6a3"}

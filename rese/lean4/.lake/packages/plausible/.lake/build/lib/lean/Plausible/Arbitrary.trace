@@ -1,0 +1,34 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "790cdc5d7c8c1202.ir",
+  "o":
+  ["035e5299af00859a.olean",
+   "85ff2c99c8822561.olean.server",
+   "9f54cb8d138b6fc5.olean.private"],
+  "i": "11e5c9a81b676ce7.ilean",
+  "c": "a1da1adc74e98089.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Plausible/Arbitrary.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Arbitrary.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Arbitrary.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Plausible/Arbitrary.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Plausible/Arbitrary.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Plausible.Arbitrary:deps",
+   [["deps",
+     [["plausible/Plausible:extraDep",
+       [["@plausible:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Plausible.Gen transitive imports (meta)", "2923242c09724cdd"],
+        ["Plausible.Gen:importArts (meta)", "f3b2fba23eabcdcc"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Plausible/Arbitrary.lean",
+   "12d2d1fdc068ae4a"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "fde83018cab6b9ba"}

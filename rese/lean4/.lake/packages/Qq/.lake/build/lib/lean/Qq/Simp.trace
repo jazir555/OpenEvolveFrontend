@@ -1,0 +1,33 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "5113949ded1cfde8.ir",
+  "o":
+  ["818a2f3ff47f193f.olean",
+   "3104e51ab0994be9.olean.server",
+   "5d0e77cbf375fe8a.olean.private"],
+  "i": "cde55d32a0585a70.ilean",
+  "c": "d61bdffb8e9a52c7.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Qq/Simp.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Qq/Simp.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Qq/Simp.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Qq/Simp.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Qq/Simp.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Qq.Simp:deps",
+   [["deps",
+     [["Qq/Qq:extraDep", [["@Qq:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Qq.MetaM transitive imports (public)", "34339ccfa9168e50"],
+        ["Qq.MetaM:importArts", "388cd7c93e801ede"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Qq/Simp.lean",
+   "5ce100f543c77d32"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "cddafe211b51ddbf"}

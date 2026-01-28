@@ -1,0 +1,34 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "0d2e0fb66a009bd3.ir",
+  "o":
+  ["df45d4c65ab105dd.olean",
+   "9f1e2500858a69e0.olean.server",
+   "4a017c7e5276d796.olean.private"],
+  "i": "6e0337304dd7bb29.ilean",
+  "c": "0119c99df7999c88.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Batteries/Tactic/PrintOpaques.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/PrintOpaques.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/PrintOpaques.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Batteries/Tactic/PrintOpaques.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Batteries/Tactic/PrintOpaques.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Batteries.Tactic.PrintOpaques:deps",
+   [["deps",
+     [["batteries/Batteries:extraDep",
+       [["@batteries:extraDep", "00000000000006bb"]]],
+      ["imports", "00000000000006bb"]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Batteries/Tactic/PrintOpaques.lean",
+   "bab68bdca5016bbe"],
+  ["options",
+   [["-Dlinter.missingDocs=true", "90c3480090de3a08"],
+    ["-Dweak.backward.privateInPublic.warn=false", "7bd7a538fb29f63d"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "67c971afe4720e31"}

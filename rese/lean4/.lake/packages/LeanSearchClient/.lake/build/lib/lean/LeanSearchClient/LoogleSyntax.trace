@@ -1,0 +1,38 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "783b599212a98ac9.ir",
+  "o":
+  ["7a66ec305cb65fe3.olean",
+   "06b5e0ba35fc6cfc.olean.server",
+   "8776e0f2add3147c.olean.private"],
+  "i": "05ca62c58f23ac5f.ilean",
+  "c": "f715e8e0e3f7733c.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/LeanSearchClient/LoogleSyntax.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/LoogleSyntax.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/LoogleSyntax.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/LeanSearchClient/LoogleSyntax.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/LeanSearchClient/LoogleSyntax.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["LeanSearchClient.LoogleSyntax:deps",
+   [["deps",
+     [["LeanSearchClient/LeanSearchClient:extraDep",
+       [["@LeanSearchClient:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["LeanSearchClient.Basic transitive imports (meta)",
+         "00000000000006bb"],
+        ["LeanSearchClient.Basic:importArts (meta)", "d458671f0400f6c7"],
+        ["LeanSearchClient.Syntax transitive imports (meta)",
+         "2af57fd593efed4e"],
+        ["LeanSearchClient.Syntax:importArts (meta)", "61259fdf25b4ebf0"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/LeanSearchClient/LoogleSyntax.lean",
+   "29636cfbb67ef749"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "3a9aab4c7676fae9"}

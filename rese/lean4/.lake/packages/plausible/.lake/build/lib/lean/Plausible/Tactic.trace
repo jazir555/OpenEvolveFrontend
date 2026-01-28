@@ -1,0 +1,36 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "31e732133e1e82a0.ir",
+  "o":
+  ["ac0f803552ba9fea.olean",
+   "1208ff7e677b4fb4.olean.server",
+   "04779af9e5a24c02.olean.private"],
+  "i": "2cd7bebb8185a56a.ilean",
+  "c": "551f993a8b30bf52.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Plausible/Tactic.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Tactic.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Tactic.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Plausible/Tactic.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Plausible/Tactic.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Plausible.Tactic:deps",
+   [["deps",
+     [["plausible/Plausible:extraDep",
+       [["@plausible:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Plausible.Testable transitive imports (meta)", "428e50cf9f0fc264"],
+        ["Plausible.Testable:importArts (meta)", "4273b11b474de087"],
+        ["Plausible.Attr transitive imports (meta)", "00000000000006bb"],
+        ["Plausible.Attr:importArts (meta)", "56d432b70fba72d7"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Plausible/Tactic.lean",
+   "8d67c1fd94510811"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "68e6e178e67354f7"}

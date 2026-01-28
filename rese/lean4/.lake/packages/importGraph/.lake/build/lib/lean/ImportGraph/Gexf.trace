@@ -1,0 +1,32 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "db63deaf007c4976.ir",
+  "o":
+  ["52f9d79acc550e13.olean",
+   "90035e2075cc3e17.olean.server",
+   "5f98ac9cfe7915b6.olean.private"],
+  "i": "b3194c99c59570fe.ilean",
+  "c": "2b8db55844d114d4.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/packages/Cli/.lake/build/lib/lean:/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/ImportGraph/Gexf.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Gexf.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Gexf.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/ImportGraph/Gexf.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/ImportGraph/Gexf.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["ImportGraph.Gexf:deps",
+   [["deps",
+     [["importGraph/ImportGraph:extraDep",
+       [["@importGraph:extraDep", "00000000000006bb"]]],
+      ["imports", "00000000000006bb"]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/ImportGraph/Gexf.lean",
+   "28f5efdb921ab28d"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "3c39e615e937e242"}

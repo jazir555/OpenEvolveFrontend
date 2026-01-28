@@ -1,0 +1,1 @@
+{"decls":{},"directImports":[["Mathlib.Init",false,false,false],["Lean.Meta.Tactic.Simp.SimpTheorems",false,false,true],["Lean.Meta.Tactic.Simp.RegisterCommand",false,false,true],["Lean.LabelAttribute",false,false,true]],"module":"Mathlib.Tactic.Attr.Register","references":{},"version":5}

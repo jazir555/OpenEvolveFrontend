@@ -1,0 +1,35 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "1376f02d5720d390.ir",
+  "o":
+  ["254ee1216c2b6ae1.olean",
+   "791421a752324f0c.olean.server",
+   "0344a320018406f1.olean.private"],
+  "i": "c5b9bda52dfe84c6.ilean",
+  "c": "39baa757ddf96d7e.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/ProofWidgets4/ProofWidgets4/ProofWidgets/Component/Basic.lean -o /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Basic.olean -i /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Basic.ilean -c /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/ProofWidgets/Component/Basic.c --setup /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/ProofWidgets/Component/Basic.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["ProofWidgets.Component.Basic:deps",
+   [["deps",
+     [["proofwidgets/ProofWidgets:extraDep",
+       [["@proofwidgets:extraDep", "00000000000006bb"],
+        ["<nil>", "637b525281701395"]]],
+      ["imports",
+       [["ProofWidgets.Compat transitive imports (meta)", "00000000000006bb"],
+        ["ProofWidgets.Compat:importArts (meta)", "c3d6254d37a390a9"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/ProofWidgets/Component/Basic.lean",
+   "06741a1935376a54"],
+  ["options", [["-Dexperimental.module=true", "a66e91e2aeb378d2"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "9dda20a99e6b3db7"}

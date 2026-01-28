@@ -1,0 +1,28 @@
+{"plugins": [],
+ "package": "mathlib",
+ "options":
+ {"weak.linter.style.longFile": 1500,
+  "weak.linter.style.header": true,
+  "weak.linter.pythonStyle": true,
+  "weak.linter.mathlibStandardSet": true,
+  "weak.linter.checkInitImports": true,
+  "weak.linter.allScriptsDocumented": true,
+  "pp.unicode.fun": true,
+  "maxSynthPendingDepth": 3,
+  "autoImplicit": false},
+ "name": "Mathlib.Data.Ineq",
+ "isModule": true,
+ "importArts":
+ {"Mathlib.Lean.Expr.Basic":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean\\Mathlib\\Lean\\Expr\\Basic.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean\\Mathlib\\Lean\\Expr\\Basic.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean\\Mathlib\\Lean\\Expr\\Basic.olean.server"],
+  "Batteries.Tactic.Alias":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Tactic\\Alias.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Tactic\\Alias.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\Tactic\\Alias.olean.server"],
+  "Batteries.CodeAction.Deprecated":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\CodeAction\\Deprecated.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\CodeAction\\Deprecated.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build\\lib\\lean\\Batteries\\CodeAction\\Deprecated.olean.server"]},
+ "dynlibs": []}

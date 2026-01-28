@@ -1,0 +1,3923 @@
+// Lean compiler output
+// Module: Mathlib.Algebra.Group.Hom.Defs
+// Imports: public import Init public import Mathlib.Algebra.Group.Defs public import Mathlib.Algebra.Notation.Pi.Defs public import Mathlib.Data.FunLike.Basic public import Mathlib.Logic.Function.Iterate
+#include <lean/lean.h>
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wunused-label"
+#elif defined(__GNUC__) && !defined(__CLANG__)
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-label"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instOne(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCAddHomOfAddHomClass___redArg(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instOne(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedMonoidHom___redArg(lean_object*);
+static lean_object* lp_mathlib_term___u2192_x2a___00__closed__2;
+LEAN_EXPORT lean_object* lp_mathlib_term___u2192_u2099_x2b__;
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__4;
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_funLike(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_copy___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_funLike___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedOneHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instFunLike(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_inverse___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_comp___redArg(lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__6;
+static lean_object* lp_mathlib_term___u2192_x2a___00__closed__1;
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddMonoidHom__1___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedZeroHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_funLike___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_instFunLike(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instOneMonoidHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedAddHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddMonoidHom(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__8;
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedAddMonoidHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_funLike___lam__0(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_inverse___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_mk_x27(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__4;
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instMonoid(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHomClass_toAddMonoidHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_coeToAddHom(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_coeToZeroHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instMul(lean_object*, lean_object*);
+static lean_object* lp_mathlib_AddMonoid_End_instMonoid___redArg___closed__0;
+static lean_object* lp_mathlib_term___u2192_u2099_x2a___00__closed__3;
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_inverse___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1(lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instMonoid___redArg(lean_object*);
+lean_object* l_Lean_replaceRef(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_inverse(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_mk_x27___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_inverse___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2b___00__closed__5;
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCMulHomOfMulHomClass(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_copy___redArg(lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2a___00__closed__4;
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCOneHomOfOneHomClass(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instMul___redArg(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_copy___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_funLike___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2b___00__closed__8;
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_inverse___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+uint8_t l_Lean_Syntax_isOfKind(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instOneMulHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedOneHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHomClass_toOneHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_x2b___00__closed__3;
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_copy___redArg___boxed(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__3;
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_mk_x27___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCAddMonoidHomOfAddMonoidHomClass(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_inverse___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHomClass_toMulHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddHom___redArg___lam__0(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_copy___redArg(lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2b___00__closed__6;
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__2;
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__4;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHomClass_toAddMonoidHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_inverse(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_copy___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+lean_object* l_Function_comp(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_id___lam__0___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_id___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_LibraryNote_hom_x20simp_x20lemma_x20priority;
+LEAN_EXPORT lean_object* lp_mathlib_instOneMulHom___redArg___lam__0(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHomClass_toMulHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_inverse___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instInhabited(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedMulHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_inverse___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCZeroHomOfZeroHomClass___redArg(lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__3;
+static lean_object* lp_mathlib_term___u2192_u2099_x2b___00__closed__7;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_mk_x27___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__MonoidHom__1___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instInhabited___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_id___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_mk_x27___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_id(lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2b___00__closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHomClass_toMonoidHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_copy___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_term___u2192_u2099_x2a__;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__13;
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedAddHom___redArg(lean_object*);
+lean_object* l_Lean_SourceInfo_fromRef(lean_object*, uint8_t);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__5;
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_comp(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_inverse___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_comp___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_x2b___00__closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_inverse___redArg(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__MonoidHom__1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instMonoid(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instOneMulHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_funLike(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_funLike(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_comp___redArg___lam__1(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_comp___redArg(lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2b___00__closed__10;
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddMonoidHom__1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_comp(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_copy(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHomClass_toMonoidHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_x2a___00__closed__4;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_comp___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddHom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instMul(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_inverse___redArg(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__0;
+lean_object* l_Lean_Syntax_node3(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_funLike___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddHom(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCZeroHomOfZeroHomClass(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_coeToOneHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instOneMulHom___redArg___lam__0___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_inverse___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHomClass_toAddMonoidHom___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instMul___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHomClass_toAddHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_comp___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instMonoid___redArg(lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2a___00__closed__5;
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedMulHom___redArg(lean_object*);
+static lean_object* lp_mathlib_term___u2192_x2a___00__closed__5;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2b___00__closed__2;
+static lean_object* lp_mathlib_term___u2192_u2099_x2b___00__closed__3;
+lean_object* l_Lean_addMacroScope(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_comp___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__10;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_coeToMulHom___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddMonoidHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+lean_object* l_Lean_Syntax_node2(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instFunLike(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_copy___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCMonoidHomOfMonoidHomClass___redArg(lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__5;
+static lean_object* lp_mathlib_AddMonoidHom_instFunLike___closed__0;
+lean_object* l_Lean_Syntax_getArg(lean_object*, lean_object*);
+uint8_t l_Lean_Syntax_matchesNull(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHomClass_toAddHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__7;
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_comp___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_inverse(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_inverse___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instFunLike___boxed(lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__2;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_coeToMulHom(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHomClass_toMonoidHom___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_id(lean_object*, lean_object*);
+lean_object* l_String_toRawSubstring_x27(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_id(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_id___lam__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCOneHomOfOneHomClass___redArg(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instInhabited(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHomClass_toOneHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2a___00__closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_coeToZeroHom(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2b___00__closed__9;
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__6;
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedOneHom(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_mk_x27(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_inverse___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedAddHom(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2a___00__closed__2;
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddMonoidHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHomClass_toAddHom___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_id___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_mk_x27___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_term___u2192_x2a__;
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_funLike(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_copy___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_coeToAddHom___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCAddHomOfAddHomClass(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2b___00__closed__0;
+static lean_object* lp_mathlib_ZeroHom_id___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_inverse___redArg(lean_object*);
+static lean_object* lp_mathlib_term___u2192_x2a___00__closed__3;
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__11;
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_copy___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instZeroZeroHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__3;
+static lean_object* lp_mathlib_term___u2192_x2b___00__closed__4;
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__2;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instOne___boxed(lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__12;
+lean_object* lp_mathlib_Nat_iterate___redArg(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_id(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_inverse___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instOneMulHom(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_comp(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instFunLike___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_inverse(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__MulHom__1___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_copy___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instInhabited___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCAddMonoidHomOfAddMonoidHomClass___redArg(lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__9;
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_comp___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instZeroZeroHom(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_coeToOneHom(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__3;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_copy___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_mk_x27___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instOneMonoidHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_instFunLike___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2a___00__closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulHom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_copy___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_copy(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__6;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_copy(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_term___u2192_x2b__;
+LEAN_EXPORT lean_object* lp_mathlib_instZeroZeroHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_copy___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instOneOneHom___redArg___lam__0___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_comp(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instOneOneHom___redArg___lam__0(lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_x2b___00__closed__5;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_instFunLike(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHomClass_toMulHom___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_inverse(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedZeroHom(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_copy(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__2;
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__0;
+static lean_object* lp_mathlib_term___u2192_x2b___00__closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instOne___boxed(lean_object*, lean_object*);
+lean_object* l_Lean_Name_mkStr1(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_inverse___redArg___boxed(lean_object*);
+lean_object* l_Lean_Name_mkStr4(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_id(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_copy___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedMonoidHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_copy___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instOneMonoidHom(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__MulHom__1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_u2099_x2b___00__closed__4;
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddHom___redArg___lam__0___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCMulHomOfMulHomClass___redArg(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_id___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instOneOneHom___redArg(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__5;
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_copy___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_comp___redArg___lam__0(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_copy(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_x2a___00__closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_copy___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedMulHom(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instOneOneHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_OneHomClass_toOneHom___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instOneOneHom(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedAddMonoidHom(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHomClass_toZeroHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHomClass_toZeroHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedMonoidHom(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__5;
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedAddMonoidHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHomClass_toZeroHom___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_copy(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__6;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_instFunLike___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u2192_x2b___00__closed__2;
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_id___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_inverse(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCMonoidHomOfMonoidHomClass(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedZeroHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_instFunLike___lam__0(lean_object*, lean_object*);
+static lean_object* lp_mathlib_ZeroHom_funLike___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instMonoid___redArg___lam__1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_inverse___redArg___boxed(lean_object*);
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("term_→ₙ+_", 13, 9);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u2192_u2099_x2b___00__closed__0;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__2() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("andthen", 7, 7);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__3() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u2192_u2099_x2b___00__closed__2;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__4() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked(" →ₙ+ ", 9, 5);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__5() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u2192_u2099_x2b___00__closed__4;
+x_2 = lean_alloc_ctor(5, 1, 0);
+lean_ctor_set(x_2, 0, x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__6() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("term", 4, 4);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__7() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u2192_u2099_x2b___00__closed__6;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__8() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_unsigned_to_nat(25u);
+x_2 = lp_mathlib_term___u2192_u2099_x2b___00__closed__7;
+x_3 = lean_alloc_ctor(7, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__9() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; 
+x_1 = lp_mathlib_term___u2192_u2099_x2b___00__closed__8;
+x_2 = lp_mathlib_term___u2192_u2099_x2b___00__closed__5;
+x_3 = lp_mathlib_term___u2192_u2099_x2b___00__closed__3;
+x_4 = lean_alloc_ctor(2, 3, 0);
+lean_ctor_set(x_4, 0, x_3);
+lean_ctor_set(x_4, 1, x_2);
+lean_ctor_set(x_4, 2, x_1);
+return x_4;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__10() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_1 = lp_mathlib_term___u2192_u2099_x2b___00__closed__9;
+x_2 = lean_unsigned_to_nat(26u);
+x_3 = lean_unsigned_to_nat(25u);
+x_4 = lp_mathlib_term___u2192_u2099_x2b___00__closed__1;
+x_5 = lean_alloc_ctor(4, 4, 0);
+lean_ctor_set(x_5, 0, x_4);
+lean_ctor_set(x_5, 1, x_3);
+lean_ctor_set(x_5, 2, x_2);
+lean_ctor_set(x_5, 3, x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2b__() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_term___u2192_u2099_x2b___00__closed__10;
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("Lean", 4, 4);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__1() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("Parser", 6, 6);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__2() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("Term", 4, 4);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__3() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("app", 3, 3);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__3;
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__2;
+x_3 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__1;
+x_4 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__0;
+x_5 = l_Lean_Name_mkStr4(x_4, x_3, x_2, x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__5() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("AddHom", 6, 6);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__6() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__5;
+x_2 = l_String_toRawSubstring_x27(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__7() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__5;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__8() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_box(0);
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__7;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__9() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__7;
+x_2 = lean_alloc_ctor(0, 1, 0);
+lean_ctor_set(x_2, 0, x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__10() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_box(0);
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__9;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__11() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__10;
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__8;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__12() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("null", 4, 4);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__13() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__12;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; uint8_t x_5; 
+x_4 = lp_mathlib_term___u2192_u2099_x2b___00__closed__1;
+lean_inc(x_1);
+x_5 = l_Lean_Syntax_isOfKind(x_1, x_4);
+if (x_5 == 0)
+{
+lean_object* x_6; lean_object* x_7; 
+lean_dec_ref(x_2);
+lean_dec(x_1);
+x_6 = lean_box(1);
+x_7 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_7, 0, x_6);
+lean_ctor_set(x_7, 1, x_3);
+return x_7;
+}
+else
+{
+lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; lean_object* x_12; lean_object* x_13; lean_object* x_14; uint8_t x_15; lean_object* x_16; lean_object* x_17; lean_object* x_18; lean_object* x_19; lean_object* x_20; lean_object* x_21; lean_object* x_22; lean_object* x_23; lean_object* x_24; lean_object* x_25; lean_object* x_26; 
+x_8 = lean_ctor_get(x_2, 1);
+lean_inc(x_8);
+x_9 = lean_ctor_get(x_2, 2);
+lean_inc(x_9);
+x_10 = lean_ctor_get(x_2, 5);
+lean_inc(x_10);
+lean_dec_ref(x_2);
+x_11 = lean_unsigned_to_nat(0u);
+x_12 = l_Lean_Syntax_getArg(x_1, x_11);
+x_13 = lean_unsigned_to_nat(2u);
+x_14 = l_Lean_Syntax_getArg(x_1, x_13);
+lean_dec(x_1);
+x_15 = 0;
+x_16 = l_Lean_SourceInfo_fromRef(x_10, x_15);
+lean_dec(x_10);
+x_17 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4;
+x_18 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__6;
+x_19 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__7;
+x_20 = l_Lean_addMacroScope(x_8, x_19, x_9);
+x_21 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__11;
+lean_inc(x_16);
+x_22 = lean_alloc_ctor(3, 4, 0);
+lean_ctor_set(x_22, 0, x_16);
+lean_ctor_set(x_22, 1, x_18);
+lean_ctor_set(x_22, 2, x_20);
+lean_ctor_set(x_22, 3, x_21);
+x_23 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__13;
+lean_inc(x_16);
+x_24 = l_Lean_Syntax_node2(x_16, x_23, x_12, x_14);
+x_25 = l_Lean_Syntax_node2(x_16, x_17, x_22, x_24);
+x_26 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_26, 0, x_25);
+lean_ctor_set(x_26, 1, x_3);
+return x_26;
+}
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("ident", 5, 5);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__0;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; uint8_t x_5; 
+x_4 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4;
+lean_inc(x_1);
+x_5 = l_Lean_Syntax_isOfKind(x_1, x_4);
+if (x_5 == 0)
+{
+lean_object* x_6; lean_object* x_7; 
+lean_dec(x_1);
+x_6 = lean_box(0);
+x_7 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_7, 0, x_6);
+lean_ctor_set(x_7, 1, x_3);
+return x_7;
+}
+else
+{
+lean_object* x_8; lean_object* x_9; lean_object* x_10; uint8_t x_11; 
+x_8 = lean_unsigned_to_nat(0u);
+x_9 = l_Lean_Syntax_getArg(x_1, x_8);
+x_10 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__1;
+lean_inc(x_9);
+x_11 = l_Lean_Syntax_isOfKind(x_9, x_10);
+if (x_11 == 0)
+{
+lean_object* x_12; lean_object* x_13; 
+lean_dec(x_9);
+lean_dec(x_1);
+x_12 = lean_box(0);
+x_13 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_13, 0, x_12);
+lean_ctor_set(x_13, 1, x_3);
+return x_13;
+}
+else
+{
+lean_object* x_14; lean_object* x_15; lean_object* x_16; uint8_t x_17; 
+x_14 = lean_unsigned_to_nat(1u);
+x_15 = l_Lean_Syntax_getArg(x_1, x_14);
+lean_dec(x_1);
+x_16 = lean_unsigned_to_nat(2u);
+lean_inc(x_15);
+x_17 = l_Lean_Syntax_matchesNull(x_15, x_16);
+if (x_17 == 0)
+{
+lean_object* x_18; lean_object* x_19; 
+lean_dec(x_15);
+lean_dec(x_9);
+x_18 = lean_box(0);
+x_19 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_19, 0, x_18);
+lean_ctor_set(x_19, 1, x_3);
+return x_19;
+}
+else
+{
+lean_object* x_20; lean_object* x_21; lean_object* x_22; uint8_t x_23; lean_object* x_24; lean_object* x_25; lean_object* x_26; lean_object* x_27; lean_object* x_28; lean_object* x_29; 
+x_20 = l_Lean_Syntax_getArg(x_15, x_8);
+x_21 = l_Lean_Syntax_getArg(x_15, x_14);
+lean_dec(x_15);
+x_22 = l_Lean_replaceRef(x_9, x_2);
+lean_dec(x_9);
+x_23 = 0;
+x_24 = l_Lean_SourceInfo_fromRef(x_22, x_23);
+lean_dec(x_22);
+x_25 = lp_mathlib_term___u2192_u2099_x2b___00__closed__1;
+x_26 = lp_mathlib_term___u2192_u2099_x2b___00__closed__4;
+lean_inc(x_24);
+x_27 = lean_alloc_ctor(2, 2, 0);
+lean_ctor_set(x_27, 0, x_24);
+lean_ctor_set(x_27, 1, x_26);
+x_28 = l_Lean_Syntax_node3(x_24, x_25, x_20, x_27, x_21);
+x_29 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_29, 0, x_28);
+lean_ctor_set(x_29, 1, x_3);
+return x_29;
+}
+}
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1(x_1, x_2, x_3);
+lean_dec(x_2);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_inc(x_5);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_AddMonoidHom_toAddHom(x_1, x_2, x_3, x_4, x_5);
+lean_dec(x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddHom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonoidHom_toAddHom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2b___00__closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("term_→+_", 10, 8);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2b___00__closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u2192_x2b___00__closed__0;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2b___00__closed__2() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked(" →+ ", 6, 4);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2b___00__closed__3() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u2192_x2b___00__closed__2;
+x_2 = lean_alloc_ctor(5, 1, 0);
+lean_ctor_set(x_2, 0, x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2b___00__closed__4() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; 
+x_1 = lp_mathlib_term___u2192_u2099_x2b___00__closed__8;
+x_2 = lp_mathlib_term___u2192_x2b___00__closed__3;
+x_3 = lp_mathlib_term___u2192_u2099_x2b___00__closed__3;
+x_4 = lean_alloc_ctor(2, 3, 0);
+lean_ctor_set(x_4, 0, x_3);
+lean_ctor_set(x_4, 1, x_2);
+lean_ctor_set(x_4, 2, x_1);
+return x_4;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2b___00__closed__5() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_1 = lp_mathlib_term___u2192_x2b___00__closed__4;
+x_2 = lean_unsigned_to_nat(26u);
+x_3 = lean_unsigned_to_nat(25u);
+x_4 = lp_mathlib_term___u2192_x2b___00__closed__1;
+x_5 = lean_alloc_ctor(4, 4, 0);
+lean_ctor_set(x_5, 0, x_4);
+lean_ctor_set(x_5, 1, x_3);
+lean_ctor_set(x_5, 2, x_2);
+lean_ctor_set(x_5, 3, x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2b__() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_term___u2192_x2b___00__closed__5;
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("AddMonoidHom", 12, 12);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__0;
+x_2 = l_String_toRawSubstring_x27(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__2() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__0;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__3() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_box(0);
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__2;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__4() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__2;
+x_2 = lean_alloc_ctor(0, 1, 0);
+lean_ctor_set(x_2, 0, x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__5() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_box(0);
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__4;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__6() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__5;
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__3;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; uint8_t x_5; 
+x_4 = lp_mathlib_term___u2192_x2b___00__closed__1;
+lean_inc(x_1);
+x_5 = l_Lean_Syntax_isOfKind(x_1, x_4);
+if (x_5 == 0)
+{
+lean_object* x_6; lean_object* x_7; 
+lean_dec_ref(x_2);
+lean_dec(x_1);
+x_6 = lean_box(1);
+x_7 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_7, 0, x_6);
+lean_ctor_set(x_7, 1, x_3);
+return x_7;
+}
+else
+{
+lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; lean_object* x_12; lean_object* x_13; lean_object* x_14; uint8_t x_15; lean_object* x_16; lean_object* x_17; lean_object* x_18; lean_object* x_19; lean_object* x_20; lean_object* x_21; lean_object* x_22; lean_object* x_23; lean_object* x_24; lean_object* x_25; lean_object* x_26; 
+x_8 = lean_ctor_get(x_2, 1);
+lean_inc(x_8);
+x_9 = lean_ctor_get(x_2, 2);
+lean_inc(x_9);
+x_10 = lean_ctor_get(x_2, 5);
+lean_inc(x_10);
+lean_dec_ref(x_2);
+x_11 = lean_unsigned_to_nat(0u);
+x_12 = l_Lean_Syntax_getArg(x_1, x_11);
+x_13 = lean_unsigned_to_nat(2u);
+x_14 = l_Lean_Syntax_getArg(x_1, x_13);
+lean_dec(x_1);
+x_15 = 0;
+x_16 = l_Lean_SourceInfo_fromRef(x_10, x_15);
+lean_dec(x_10);
+x_17 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4;
+x_18 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__1;
+x_19 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__2;
+x_20 = l_Lean_addMacroScope(x_8, x_19, x_9);
+x_21 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__6;
+lean_inc(x_16);
+x_22 = lean_alloc_ctor(3, 4, 0);
+lean_ctor_set(x_22, 0, x_16);
+lean_ctor_set(x_22, 1, x_18);
+lean_ctor_set(x_22, 2, x_20);
+lean_ctor_set(x_22, 3, x_21);
+x_23 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__13;
+lean_inc(x_16);
+x_24 = l_Lean_Syntax_node2(x_16, x_23, x_12, x_14);
+x_25 = l_Lean_Syntax_node2(x_16, x_17, x_22, x_24);
+x_26 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_26, 0, x_25);
+lean_ctor_set(x_26, 1, x_3);
+return x_26;
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddMonoidHom__1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; uint8_t x_5; 
+x_4 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4;
+lean_inc(x_1);
+x_5 = l_Lean_Syntax_isOfKind(x_1, x_4);
+if (x_5 == 0)
+{
+lean_object* x_6; lean_object* x_7; 
+lean_dec(x_1);
+x_6 = lean_box(0);
+x_7 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_7, 0, x_6);
+lean_ctor_set(x_7, 1, x_3);
+return x_7;
+}
+else
+{
+lean_object* x_8; lean_object* x_9; lean_object* x_10; uint8_t x_11; 
+x_8 = lean_unsigned_to_nat(0u);
+x_9 = l_Lean_Syntax_getArg(x_1, x_8);
+x_10 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__1;
+lean_inc(x_9);
+x_11 = l_Lean_Syntax_isOfKind(x_9, x_10);
+if (x_11 == 0)
+{
+lean_object* x_12; lean_object* x_13; 
+lean_dec(x_9);
+lean_dec(x_1);
+x_12 = lean_box(0);
+x_13 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_13, 0, x_12);
+lean_ctor_set(x_13, 1, x_3);
+return x_13;
+}
+else
+{
+lean_object* x_14; lean_object* x_15; lean_object* x_16; uint8_t x_17; 
+x_14 = lean_unsigned_to_nat(1u);
+x_15 = l_Lean_Syntax_getArg(x_1, x_14);
+lean_dec(x_1);
+x_16 = lean_unsigned_to_nat(2u);
+lean_inc(x_15);
+x_17 = l_Lean_Syntax_matchesNull(x_15, x_16);
+if (x_17 == 0)
+{
+lean_object* x_18; lean_object* x_19; 
+lean_dec(x_15);
+lean_dec(x_9);
+x_18 = lean_box(0);
+x_19 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_19, 0, x_18);
+lean_ctor_set(x_19, 1, x_3);
+return x_19;
+}
+else
+{
+lean_object* x_20; lean_object* x_21; lean_object* x_22; uint8_t x_23; lean_object* x_24; lean_object* x_25; lean_object* x_26; lean_object* x_27; lean_object* x_28; lean_object* x_29; 
+x_20 = l_Lean_Syntax_getArg(x_15, x_8);
+x_21 = l_Lean_Syntax_getArg(x_15, x_14);
+lean_dec(x_15);
+x_22 = l_Lean_replaceRef(x_9, x_2);
+lean_dec(x_9);
+x_23 = 0;
+x_24 = l_Lean_SourceInfo_fromRef(x_22, x_23);
+lean_dec(x_22);
+x_25 = lp_mathlib_term___u2192_x2b___00__closed__1;
+x_26 = lp_mathlib_term___u2192_x2b___00__closed__2;
+lean_inc(x_24);
+x_27 = lean_alloc_ctor(2, 2, 0);
+lean_ctor_set(x_27, 0, x_24);
+lean_ctor_set(x_27, 1, x_26);
+x_28 = l_Lean_Syntax_node3(x_24, x_25, x_20, x_27, x_21);
+x_29 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_29, 0, x_28);
+lean_ctor_set(x_29, 1, x_3);
+return x_29;
+}
+}
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddMonoidHom__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddMonoidHom__1(x_1, x_2, x_3);
+lean_dec(x_2);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_funLike___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_apply_1(x_1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_funLike(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lean_alloc_closure((void*)(lp_mathlib_OneHom_funLike___lam__0), 2, 0);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_funLike___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_OneHom_funLike(x_1, x_2, x_3, x_4);
+lean_dec(x_4);
+lean_dec(x_3);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_ZeroHom_funLike___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_OneHom_funLike___lam__0), 2, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_funLike(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_ZeroHom_funLike___closed__0;
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_funLike___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_ZeroHom_funLike(x_1, x_2, x_3, x_4);
+lean_dec(x_4);
+lean_dec(x_3);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_LibraryNote_hom_x20simp_x20lemma_x20priority() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_box(0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHomClass_toOneHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lean_apply_1(x_6, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHomClass_toOneHom___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_apply_1(x_1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHomClass_toOneHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_OneHomClass_toOneHom(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec(x_5);
+lean_dec(x_4);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHomClass_toZeroHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lean_apply_1(x_6, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHomClass_toZeroHom___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_apply_1(x_1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHomClass_toZeroHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_ZeroHomClass_toZeroHom(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec(x_5);
+lean_dec(x_4);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCOneHomOfOneHomClass(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lean_alloc_closure((void*)(lp_mathlib_OneHomClass_toOneHom___boxed), 8, 7);
+lean_closure_set(x_8, 0, lean_box(0));
+lean_closure_set(x_8, 1, lean_box(0));
+lean_closure_set(x_8, 2, lean_box(0));
+lean_closure_set(x_8, 3, x_4);
+lean_closure_set(x_8, 4, x_5);
+lean_closure_set(x_8, 5, x_6);
+lean_closure_set(x_8, 6, lean_box(0));
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCOneHomOfOneHomClass___redArg(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lean_alloc_closure((void*)(lp_mathlib_OneHomClass_toOneHom___boxed), 8, 7);
+lean_closure_set(x_4, 0, lean_box(0));
+lean_closure_set(x_4, 1, lean_box(0));
+lean_closure_set(x_4, 2, lean_box(0));
+lean_closure_set(x_4, 3, x_1);
+lean_closure_set(x_4, 4, x_2);
+lean_closure_set(x_4, 5, x_3);
+lean_closure_set(x_4, 6, lean_box(0));
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCZeroHomOfZeroHomClass(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lean_alloc_closure((void*)(lp_mathlib_ZeroHomClass_toZeroHom___boxed), 8, 7);
+lean_closure_set(x_8, 0, lean_box(0));
+lean_closure_set(x_8, 1, lean_box(0));
+lean_closure_set(x_8, 2, lean_box(0));
+lean_closure_set(x_8, 3, x_4);
+lean_closure_set(x_8, 4, x_5);
+lean_closure_set(x_8, 5, x_6);
+lean_closure_set(x_8, 6, lean_box(0));
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCZeroHomOfZeroHomClass___redArg(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lean_alloc_closure((void*)(lp_mathlib_ZeroHomClass_toZeroHom___boxed), 8, 7);
+lean_closure_set(x_4, 0, lean_box(0));
+lean_closure_set(x_4, 1, lean_box(0));
+lean_closure_set(x_4, 2, lean_box(0));
+lean_closure_set(x_4, 3, x_1);
+lean_closure_set(x_4, 4, x_2);
+lean_closure_set(x_4, 5, x_3);
+lean_closure_set(x_4, 6, lean_box(0));
+return x_4;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2a___00__closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("term_→ₙ*_", 13, 9);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2a___00__closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u2192_u2099_x2a___00__closed__0;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2a___00__closed__2() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked(" →ₙ* ", 9, 5);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2a___00__closed__3() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u2192_u2099_x2a___00__closed__2;
+x_2 = lean_alloc_ctor(5, 1, 0);
+lean_ctor_set(x_2, 0, x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2a___00__closed__4() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; 
+x_1 = lp_mathlib_term___u2192_u2099_x2b___00__closed__8;
+x_2 = lp_mathlib_term___u2192_u2099_x2a___00__closed__3;
+x_3 = lp_mathlib_term___u2192_u2099_x2b___00__closed__3;
+x_4 = lean_alloc_ctor(2, 3, 0);
+lean_ctor_set(x_4, 0, x_3);
+lean_ctor_set(x_4, 1, x_2);
+lean_ctor_set(x_4, 2, x_1);
+return x_4;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2a___00__closed__5() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_1 = lp_mathlib_term___u2192_u2099_x2a___00__closed__4;
+x_2 = lean_unsigned_to_nat(26u);
+x_3 = lean_unsigned_to_nat(25u);
+x_4 = lp_mathlib_term___u2192_u2099_x2a___00__closed__1;
+x_5 = lean_alloc_ctor(4, 4, 0);
+lean_ctor_set(x_5, 0, x_4);
+lean_ctor_set(x_5, 1, x_3);
+lean_ctor_set(x_5, 2, x_2);
+lean_ctor_set(x_5, 3, x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_u2099_x2a__() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_term___u2192_u2099_x2a___00__closed__5;
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("MulHom", 6, 6);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__0;
+x_2 = l_String_toRawSubstring_x27(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__2() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__0;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__3() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_box(0);
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__2;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__4() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__2;
+x_2 = lean_alloc_ctor(0, 1, 0);
+lean_ctor_set(x_2, 0, x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__5() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_box(0);
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__4;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__6() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__5;
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__3;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; uint8_t x_5; 
+x_4 = lp_mathlib_term___u2192_u2099_x2a___00__closed__1;
+lean_inc(x_1);
+x_5 = l_Lean_Syntax_isOfKind(x_1, x_4);
+if (x_5 == 0)
+{
+lean_object* x_6; lean_object* x_7; 
+lean_dec_ref(x_2);
+lean_dec(x_1);
+x_6 = lean_box(1);
+x_7 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_7, 0, x_6);
+lean_ctor_set(x_7, 1, x_3);
+return x_7;
+}
+else
+{
+lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; lean_object* x_12; lean_object* x_13; lean_object* x_14; uint8_t x_15; lean_object* x_16; lean_object* x_17; lean_object* x_18; lean_object* x_19; lean_object* x_20; lean_object* x_21; lean_object* x_22; lean_object* x_23; lean_object* x_24; lean_object* x_25; lean_object* x_26; 
+x_8 = lean_ctor_get(x_2, 1);
+lean_inc(x_8);
+x_9 = lean_ctor_get(x_2, 2);
+lean_inc(x_9);
+x_10 = lean_ctor_get(x_2, 5);
+lean_inc(x_10);
+lean_dec_ref(x_2);
+x_11 = lean_unsigned_to_nat(0u);
+x_12 = l_Lean_Syntax_getArg(x_1, x_11);
+x_13 = lean_unsigned_to_nat(2u);
+x_14 = l_Lean_Syntax_getArg(x_1, x_13);
+lean_dec(x_1);
+x_15 = 0;
+x_16 = l_Lean_SourceInfo_fromRef(x_10, x_15);
+lean_dec(x_10);
+x_17 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4;
+x_18 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__1;
+x_19 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__2;
+x_20 = l_Lean_addMacroScope(x_8, x_19, x_9);
+x_21 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__6;
+lean_inc(x_16);
+x_22 = lean_alloc_ctor(3, 4, 0);
+lean_ctor_set(x_22, 0, x_16);
+lean_ctor_set(x_22, 1, x_18);
+lean_ctor_set(x_22, 2, x_20);
+lean_ctor_set(x_22, 3, x_21);
+x_23 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__13;
+lean_inc(x_16);
+x_24 = l_Lean_Syntax_node2(x_16, x_23, x_12, x_14);
+x_25 = l_Lean_Syntax_node2(x_16, x_17, x_22, x_24);
+x_26 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_26, 0, x_25);
+lean_ctor_set(x_26, 1, x_3);
+return x_26;
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__MulHom__1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; uint8_t x_5; 
+x_4 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4;
+lean_inc(x_1);
+x_5 = l_Lean_Syntax_isOfKind(x_1, x_4);
+if (x_5 == 0)
+{
+lean_object* x_6; lean_object* x_7; 
+lean_dec(x_1);
+x_6 = lean_box(0);
+x_7 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_7, 0, x_6);
+lean_ctor_set(x_7, 1, x_3);
+return x_7;
+}
+else
+{
+lean_object* x_8; lean_object* x_9; lean_object* x_10; uint8_t x_11; 
+x_8 = lean_unsigned_to_nat(0u);
+x_9 = l_Lean_Syntax_getArg(x_1, x_8);
+x_10 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__1;
+lean_inc(x_9);
+x_11 = l_Lean_Syntax_isOfKind(x_9, x_10);
+if (x_11 == 0)
+{
+lean_object* x_12; lean_object* x_13; 
+lean_dec(x_9);
+lean_dec(x_1);
+x_12 = lean_box(0);
+x_13 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_13, 0, x_12);
+lean_ctor_set(x_13, 1, x_3);
+return x_13;
+}
+else
+{
+lean_object* x_14; lean_object* x_15; lean_object* x_16; uint8_t x_17; 
+x_14 = lean_unsigned_to_nat(1u);
+x_15 = l_Lean_Syntax_getArg(x_1, x_14);
+lean_dec(x_1);
+x_16 = lean_unsigned_to_nat(2u);
+lean_inc(x_15);
+x_17 = l_Lean_Syntax_matchesNull(x_15, x_16);
+if (x_17 == 0)
+{
+lean_object* x_18; lean_object* x_19; 
+lean_dec(x_15);
+lean_dec(x_9);
+x_18 = lean_box(0);
+x_19 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_19, 0, x_18);
+lean_ctor_set(x_19, 1, x_3);
+return x_19;
+}
+else
+{
+lean_object* x_20; lean_object* x_21; lean_object* x_22; uint8_t x_23; lean_object* x_24; lean_object* x_25; lean_object* x_26; lean_object* x_27; lean_object* x_28; lean_object* x_29; 
+x_20 = l_Lean_Syntax_getArg(x_15, x_8);
+x_21 = l_Lean_Syntax_getArg(x_15, x_14);
+lean_dec(x_15);
+x_22 = l_Lean_replaceRef(x_9, x_2);
+lean_dec(x_9);
+x_23 = 0;
+x_24 = l_Lean_SourceInfo_fromRef(x_22, x_23);
+lean_dec(x_22);
+x_25 = lp_mathlib_term___u2192_u2099_x2a___00__closed__1;
+x_26 = lp_mathlib_term___u2192_u2099_x2a___00__closed__2;
+lean_inc(x_24);
+x_27 = lean_alloc_ctor(2, 2, 0);
+lean_ctor_set(x_27, 0, x_24);
+lean_ctor_set(x_27, 1, x_26);
+x_28 = l_Lean_Syntax_node3(x_24, x_25, x_20, x_27, x_21);
+x_29 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_29, 0, x_28);
+lean_ctor_set(x_29, 1, x_3);
+return x_29;
+}
+}
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__MulHom__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__MulHom__1(x_1, x_2, x_3);
+lean_dec(x_2);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_funLike(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_ZeroHom_funLike___closed__0;
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_funLike___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MulHom_funLike(x_1, x_2, x_3, x_4);
+lean_dec(x_4);
+lean_dec(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_funLike(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_ZeroHom_funLike___closed__0;
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_funLike___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddHom_funLike(x_1, x_2, x_3, x_4);
+lean_dec(x_4);
+lean_dec(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHomClass_toMulHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lean_apply_1(x_6, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHomClass_toMulHom___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_apply_1(x_1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHomClass_toMulHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_MulHomClass_toMulHom(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec(x_5);
+lean_dec(x_4);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHomClass_toAddHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lean_apply_1(x_6, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHomClass_toAddHom___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_apply_1(x_1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHomClass_toAddHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_AddHomClass_toAddHom(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec(x_5);
+lean_dec(x_4);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCMulHomOfMulHomClass(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lean_alloc_closure((void*)(lp_mathlib_MulHomClass_toMulHom___boxed), 8, 7);
+lean_closure_set(x_8, 0, lean_box(0));
+lean_closure_set(x_8, 1, lean_box(0));
+lean_closure_set(x_8, 2, lean_box(0));
+lean_closure_set(x_8, 3, x_4);
+lean_closure_set(x_8, 4, x_5);
+lean_closure_set(x_8, 5, x_6);
+lean_closure_set(x_8, 6, lean_box(0));
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCMulHomOfMulHomClass___redArg(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lean_alloc_closure((void*)(lp_mathlib_MulHomClass_toMulHom___boxed), 8, 7);
+lean_closure_set(x_4, 0, lean_box(0));
+lean_closure_set(x_4, 1, lean_box(0));
+lean_closure_set(x_4, 2, lean_box(0));
+lean_closure_set(x_4, 3, x_1);
+lean_closure_set(x_4, 4, x_2);
+lean_closure_set(x_4, 5, x_3);
+lean_closure_set(x_4, 6, lean_box(0));
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCAddHomOfAddHomClass(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lean_alloc_closure((void*)(lp_mathlib_AddHomClass_toAddHom___boxed), 8, 7);
+lean_closure_set(x_8, 0, lean_box(0));
+lean_closure_set(x_8, 1, lean_box(0));
+lean_closure_set(x_8, 2, lean_box(0));
+lean_closure_set(x_8, 3, x_4);
+lean_closure_set(x_8, 4, x_5);
+lean_closure_set(x_8, 5, x_6);
+lean_closure_set(x_8, 6, lean_box(0));
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCAddHomOfAddHomClass___redArg(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lean_alloc_closure((void*)(lp_mathlib_AddHomClass_toAddHom___boxed), 8, 7);
+lean_closure_set(x_4, 0, lean_box(0));
+lean_closure_set(x_4, 1, lean_box(0));
+lean_closure_set(x_4, 2, lean_box(0));
+lean_closure_set(x_4, 3, x_1);
+lean_closure_set(x_4, 4, x_2);
+lean_closure_set(x_4, 5, x_3);
+lean_closure_set(x_4, 6, lean_box(0));
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_inc(x_5);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_MonoidHom_toMulHom(x_1, x_2, x_3, x_4, x_5);
+lean_dec(x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulHom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MonoidHom_toMulHom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2a___00__closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("term_→*_", 10, 8);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2a___00__closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u2192_x2a___00__closed__0;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2a___00__closed__2() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked(" →* ", 6, 4);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2a___00__closed__3() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u2192_x2a___00__closed__2;
+x_2 = lean_alloc_ctor(5, 1, 0);
+lean_ctor_set(x_2, 0, x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2a___00__closed__4() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; 
+x_1 = lp_mathlib_term___u2192_u2099_x2b___00__closed__8;
+x_2 = lp_mathlib_term___u2192_x2a___00__closed__3;
+x_3 = lp_mathlib_term___u2192_u2099_x2b___00__closed__3;
+x_4 = lean_alloc_ctor(2, 3, 0);
+lean_ctor_set(x_4, 0, x_3);
+lean_ctor_set(x_4, 1, x_2);
+lean_ctor_set(x_4, 2, x_1);
+return x_4;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2a___00__closed__5() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_1 = lp_mathlib_term___u2192_x2a___00__closed__4;
+x_2 = lean_unsigned_to_nat(26u);
+x_3 = lean_unsigned_to_nat(25u);
+x_4 = lp_mathlib_term___u2192_x2a___00__closed__1;
+x_5 = lean_alloc_ctor(4, 4, 0);
+lean_ctor_set(x_5, 0, x_4);
+lean_ctor_set(x_5, 1, x_3);
+lean_ctor_set(x_5, 2, x_2);
+lean_ctor_set(x_5, 3, x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_term___u2192_x2a__() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_term___u2192_x2a___00__closed__5;
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("MonoidHom", 9, 9);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__0;
+x_2 = l_String_toRawSubstring_x27(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__2() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__0;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__3() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_box(0);
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__2;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__4() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__2;
+x_2 = lean_alloc_ctor(0, 1, 0);
+lean_ctor_set(x_2, 0, x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__5() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_box(0);
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__4;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__6() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__5;
+x_2 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__3;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; uint8_t x_5; 
+x_4 = lp_mathlib_term___u2192_x2a___00__closed__1;
+lean_inc(x_1);
+x_5 = l_Lean_Syntax_isOfKind(x_1, x_4);
+if (x_5 == 0)
+{
+lean_object* x_6; lean_object* x_7; 
+lean_dec_ref(x_2);
+lean_dec(x_1);
+x_6 = lean_box(1);
+x_7 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_7, 0, x_6);
+lean_ctor_set(x_7, 1, x_3);
+return x_7;
+}
+else
+{
+lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; lean_object* x_12; lean_object* x_13; lean_object* x_14; uint8_t x_15; lean_object* x_16; lean_object* x_17; lean_object* x_18; lean_object* x_19; lean_object* x_20; lean_object* x_21; lean_object* x_22; lean_object* x_23; lean_object* x_24; lean_object* x_25; lean_object* x_26; 
+x_8 = lean_ctor_get(x_2, 1);
+lean_inc(x_8);
+x_9 = lean_ctor_get(x_2, 2);
+lean_inc(x_9);
+x_10 = lean_ctor_get(x_2, 5);
+lean_inc(x_10);
+lean_dec_ref(x_2);
+x_11 = lean_unsigned_to_nat(0u);
+x_12 = l_Lean_Syntax_getArg(x_1, x_11);
+x_13 = lean_unsigned_to_nat(2u);
+x_14 = l_Lean_Syntax_getArg(x_1, x_13);
+lean_dec(x_1);
+x_15 = 0;
+x_16 = l_Lean_SourceInfo_fromRef(x_10, x_15);
+lean_dec(x_10);
+x_17 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4;
+x_18 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__1;
+x_19 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__2;
+x_20 = l_Lean_addMacroScope(x_8, x_19, x_9);
+x_21 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__6;
+lean_inc(x_16);
+x_22 = lean_alloc_ctor(3, 4, 0);
+lean_ctor_set(x_22, 0, x_16);
+lean_ctor_set(x_22, 1, x_18);
+lean_ctor_set(x_22, 2, x_20);
+lean_ctor_set(x_22, 3, x_21);
+x_23 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__13;
+lean_inc(x_16);
+x_24 = l_Lean_Syntax_node2(x_16, x_23, x_12, x_14);
+x_25 = l_Lean_Syntax_node2(x_16, x_17, x_22, x_24);
+x_26 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_26, 0, x_25);
+lean_ctor_set(x_26, 1, x_3);
+return x_26;
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__MonoidHom__1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; uint8_t x_5; 
+x_4 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4;
+lean_inc(x_1);
+x_5 = l_Lean_Syntax_isOfKind(x_1, x_4);
+if (x_5 == 0)
+{
+lean_object* x_6; lean_object* x_7; 
+lean_dec(x_1);
+x_6 = lean_box(0);
+x_7 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_7, 0, x_6);
+lean_ctor_set(x_7, 1, x_3);
+return x_7;
+}
+else
+{
+lean_object* x_8; lean_object* x_9; lean_object* x_10; uint8_t x_11; 
+x_8 = lean_unsigned_to_nat(0u);
+x_9 = l_Lean_Syntax_getArg(x_1, x_8);
+x_10 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__1;
+lean_inc(x_9);
+x_11 = l_Lean_Syntax_isOfKind(x_9, x_10);
+if (x_11 == 0)
+{
+lean_object* x_12; lean_object* x_13; 
+lean_dec(x_9);
+lean_dec(x_1);
+x_12 = lean_box(0);
+x_13 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_13, 0, x_12);
+lean_ctor_set(x_13, 1, x_3);
+return x_13;
+}
+else
+{
+lean_object* x_14; lean_object* x_15; lean_object* x_16; uint8_t x_17; 
+x_14 = lean_unsigned_to_nat(1u);
+x_15 = l_Lean_Syntax_getArg(x_1, x_14);
+lean_dec(x_1);
+x_16 = lean_unsigned_to_nat(2u);
+lean_inc(x_15);
+x_17 = l_Lean_Syntax_matchesNull(x_15, x_16);
+if (x_17 == 0)
+{
+lean_object* x_18; lean_object* x_19; 
+lean_dec(x_15);
+lean_dec(x_9);
+x_18 = lean_box(0);
+x_19 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_19, 0, x_18);
+lean_ctor_set(x_19, 1, x_3);
+return x_19;
+}
+else
+{
+lean_object* x_20; lean_object* x_21; lean_object* x_22; uint8_t x_23; lean_object* x_24; lean_object* x_25; lean_object* x_26; lean_object* x_27; lean_object* x_28; lean_object* x_29; 
+x_20 = l_Lean_Syntax_getArg(x_15, x_8);
+x_21 = l_Lean_Syntax_getArg(x_15, x_14);
+lean_dec(x_15);
+x_22 = l_Lean_replaceRef(x_9, x_2);
+lean_dec(x_9);
+x_23 = 0;
+x_24 = l_Lean_SourceInfo_fromRef(x_22, x_23);
+lean_dec(x_22);
+x_25 = lp_mathlib_term___u2192_x2a___00__closed__1;
+x_26 = lp_mathlib_term___u2192_x2a___00__closed__2;
+lean_inc(x_24);
+x_27 = lean_alloc_ctor(2, 2, 0);
+lean_ctor_set(x_27, 0, x_24);
+lean_ctor_set(x_27, 1, x_26);
+x_28 = l_Lean_Syntax_node3(x_24, x_25, x_20, x_27, x_21);
+x_29 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_29, 0, x_28);
+lean_ctor_set(x_29, 1, x_3);
+return x_29;
+}
+}
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__MonoidHom__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__MonoidHom__1(x_1, x_2, x_3);
+lean_dec(x_2);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_instFunLike___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_apply_1(x_1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_instFunLike(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_instFunLike___lam__0), 2, 0);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_instFunLike___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MonoidHom_instFunLike(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonoidHom_instFunLike___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_instFunLike___lam__0), 2, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_instFunLike(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonoidHom_instFunLike___closed__0;
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_instFunLike___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonoidHom_instFunLike(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHomClass_toMonoidHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lean_apply_1(x_6, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHomClass_toMonoidHom___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_apply_1(x_1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHomClass_toMonoidHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_MonoidHomClass_toMonoidHom(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec_ref(x_5);
+lean_dec_ref(x_4);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHomClass_toAddMonoidHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lean_apply_1(x_6, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHomClass_toAddMonoidHom___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_apply_1(x_1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHomClass_toAddMonoidHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_AddMonoidHomClass_toAddMonoidHom(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec_ref(x_5);
+lean_dec_ref(x_4);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCMonoidHomOfMonoidHomClass(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lean_alloc_closure((void*)(lp_mathlib_MonoidHomClass_toMonoidHom___boxed), 8, 7);
+lean_closure_set(x_8, 0, lean_box(0));
+lean_closure_set(x_8, 1, lean_box(0));
+lean_closure_set(x_8, 2, lean_box(0));
+lean_closure_set(x_8, 3, x_4);
+lean_closure_set(x_8, 4, x_5);
+lean_closure_set(x_8, 5, x_6);
+lean_closure_set(x_8, 6, lean_box(0));
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCMonoidHomOfMonoidHomClass___redArg(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lean_alloc_closure((void*)(lp_mathlib_MonoidHomClass_toMonoidHom___boxed), 8, 7);
+lean_closure_set(x_4, 0, lean_box(0));
+lean_closure_set(x_4, 1, lean_box(0));
+lean_closure_set(x_4, 2, lean_box(0));
+lean_closure_set(x_4, 3, x_1);
+lean_closure_set(x_4, 4, x_2);
+lean_closure_set(x_4, 5, x_3);
+lean_closure_set(x_4, 6, lean_box(0));
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCAddMonoidHomOfAddMonoidHomClass(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHomClass_toAddMonoidHom___boxed), 8, 7);
+lean_closure_set(x_8, 0, lean_box(0));
+lean_closure_set(x_8, 1, lean_box(0));
+lean_closure_set(x_8, 2, lean_box(0));
+lean_closure_set(x_8, 3, x_4);
+lean_closure_set(x_8, 4, x_5);
+lean_closure_set(x_8, 5, x_6);
+lean_closure_set(x_8, 6, lean_box(0));
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instCoeTCAddMonoidHomOfAddMonoidHomClass___redArg(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHomClass_toAddMonoidHom___boxed), 8, 7);
+lean_closure_set(x_4, 0, lean_box(0));
+lean_closure_set(x_4, 1, lean_box(0));
+lean_closure_set(x_4, 2, lean_box(0));
+lean_closure_set(x_4, 3, x_1);
+lean_closure_set(x_4, 4, x_2);
+lean_closure_set(x_4, 5, x_3);
+lean_closure_set(x_4, 6, lean_box(0));
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_coeToOneHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_ZeroHom_funLike___closed__0;
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_coeToOneHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MonoidHom_coeToOneHom(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_coeToZeroHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_ZeroHom_funLike___closed__0;
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_coeToZeroHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonoidHom_coeToZeroHom(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_coeToMulHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toMulHom___boxed), 5, 4);
+lean_closure_set(x_5, 0, lean_box(0));
+lean_closure_set(x_5, 1, lean_box(0));
+lean_closure_set(x_5, 2, x_3);
+lean_closure_set(x_5, 3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_coeToMulHom___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toMulHom___boxed), 5, 4);
+lean_closure_set(x_3, 0, lean_box(0));
+lean_closure_set(x_3, 1, lean_box(0));
+lean_closure_set(x_3, 2, x_1);
+lean_closure_set(x_3, 3, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_coeToAddHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_toAddHom___boxed), 5, 4);
+lean_closure_set(x_5, 0, lean_box(0));
+lean_closure_set(x_5, 1, lean_box(0));
+lean_closure_set(x_5, 2, x_3);
+lean_closure_set(x_5, 3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_coeToAddHom___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_toAddHom___boxed), 5, 4);
+lean_closure_set(x_3, 0, lean_box(0));
+lean_closure_set(x_3, 1, lean_box(0));
+lean_closure_set(x_3, 2, x_1);
+lean_closure_set(x_3, 3, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_mk_x27(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_inc(x_5);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_mk_x27___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_mk_x27___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_MonoidHom_mk_x27(x_1, x_2, x_3, x_4, x_5, x_6);
+lean_dec(x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_mk_x27___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MonoidHom_mk_x27___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_mk_x27(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_inc(x_5);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_mk_x27___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_mk_x27___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_AddMonoidHom_mk_x27(x_1, x_2, x_3, x_4, x_5, x_6);
+lean_dec(x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_mk_x27___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonoidHom_mk_x27___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_copy(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_inc(x_6);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_copy___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_copy___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_OneHom_copy(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec(x_4);
+lean_dec(x_3);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_copy___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_OneHom_copy___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_copy(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_inc(x_6);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_copy___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_copy___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_ZeroHom_copy(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec(x_4);
+lean_dec(x_3);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_copy___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_ZeroHom_copy___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_copy(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_inc(x_6);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_copy___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_copy___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_MulHom_copy(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec(x_4);
+lean_dec(x_3);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_copy___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MulHom_copy___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_copy(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_inc(x_6);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_copy___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_copy___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_AddHom_copy(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec(x_4);
+lean_dec(x_3);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_copy___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddHom_copy___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_copy(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_inc(x_6);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_copy___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_copy___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_MonoidHom_copy(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_copy___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MonoidHom_copy___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_copy(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_inc(x_6);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_copy___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_copy___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_AddMonoidHom_copy(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_copy___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonoidHom_copy___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_id___lam__0(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_id___lam__0___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_OneHom_id___lam__0(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_id(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_OneHom_id___lam__0___boxed), 1, 0);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_id___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_OneHom_id(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib_ZeroHom_id___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_OneHom_id___lam__0___boxed), 1, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_id(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_ZeroHom_id___closed__0;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_id___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_ZeroHom_id(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_id(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_ZeroHom_id___closed__0;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_id___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MulHom_id(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_id(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_ZeroHom_id___closed__0;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_id___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddHom_id(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_id(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_ZeroHom_id___closed__0;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_id___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MonoidHom_id(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_ZeroHom_id___closed__0;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonoidHom_id(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_comp___redArg___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_apply_1(x_1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_comp___redArg___lam__1(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_apply_1(x_1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_comp___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_OneHom_comp___redArg___lam__0), 2, 1);
+lean_closure_set(x_3, 0, x_1);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_OneHom_comp___redArg___lam__1), 2, 1);
+lean_closure_set(x_4, 0, x_2);
+x_5 = lean_alloc_closure((void*)(l_Function_comp), 6, 5);
+lean_closure_set(x_5, 0, lean_box(0));
+lean_closure_set(x_5, 1, lean_box(0));
+lean_closure_set(x_5, 2, lean_box(0));
+lean_closure_set(x_5, 3, x_3);
+lean_closure_set(x_5, 4, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_comp(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_OneHom_comp___redArg(x_7, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_comp___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_OneHom_comp(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec(x_4);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_comp___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_OneHom_comp___redArg___lam__0), 2, 1);
+lean_closure_set(x_3, 0, x_1);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_OneHom_comp___redArg___lam__1), 2, 1);
+lean_closure_set(x_4, 0, x_2);
+x_5 = lean_alloc_closure((void*)(l_Function_comp), 6, 5);
+lean_closure_set(x_5, 0, lean_box(0));
+lean_closure_set(x_5, 1, lean_box(0));
+lean_closure_set(x_5, 2, lean_box(0));
+lean_closure_set(x_5, 3, x_3);
+lean_closure_set(x_5, 4, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_comp(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_ZeroHom_comp___redArg(x_7, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_comp___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_ZeroHom_comp(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec(x_4);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_comp___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_OneHom_comp___redArg___lam__0), 2, 1);
+lean_closure_set(x_3, 0, x_1);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_OneHom_comp___redArg___lam__1), 2, 1);
+lean_closure_set(x_4, 0, x_2);
+x_5 = lean_alloc_closure((void*)(l_Function_comp), 6, 5);
+lean_closure_set(x_5, 0, lean_box(0));
+lean_closure_set(x_5, 1, lean_box(0));
+lean_closure_set(x_5, 2, lean_box(0));
+lean_closure_set(x_5, 3, x_3);
+lean_closure_set(x_5, 4, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_comp(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_MulHom_comp___redArg(x_7, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_comp___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_MulHom_comp(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec(x_4);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_comp___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_OneHom_comp___redArg___lam__0), 2, 1);
+lean_closure_set(x_3, 0, x_1);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_OneHom_comp___redArg___lam__1), 2, 1);
+lean_closure_set(x_4, 0, x_2);
+x_5 = lean_alloc_closure((void*)(l_Function_comp), 6, 5);
+lean_closure_set(x_5, 0, lean_box(0));
+lean_closure_set(x_5, 1, lean_box(0));
+lean_closure_set(x_5, 2, lean_box(0));
+lean_closure_set(x_5, 3, x_3);
+lean_closure_set(x_5, 4, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_comp(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_AddHom_comp___redArg(x_7, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_comp___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_AddHom_comp(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec(x_4);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_OneHom_comp___redArg___lam__0), 2, 1);
+lean_closure_set(x_3, 0, x_1);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_OneHom_comp___redArg___lam__1), 2, 1);
+lean_closure_set(x_4, 0, x_2);
+x_5 = lean_alloc_closure((void*)(l_Function_comp), 6, 5);
+lean_closure_set(x_5, 0, lean_box(0));
+lean_closure_set(x_5, 1, lean_box(0));
+lean_closure_set(x_5, 2, lean_box(0));
+lean_closure_set(x_5, 3, x_3);
+lean_closure_set(x_5, 4, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_MonoidHom_comp___redArg(x_7, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_MonoidHom_comp(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec_ref(x_6);
+lean_dec_ref(x_5);
+lean_dec_ref(x_4);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_OneHom_comp___redArg___lam__0), 2, 1);
+lean_closure_set(x_3, 0, x_1);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_OneHom_comp___redArg___lam__1), 2, 1);
+lean_closure_set(x_4, 0, x_2);
+x_5 = lean_alloc_closure((void*)(l_Function_comp), 6, 5);
+lean_closure_set(x_5, 0, lean_box(0));
+lean_closure_set(x_5, 1, lean_box(0));
+lean_closure_set(x_5, 2, lean_box(0));
+lean_closure_set(x_5, 3, x_3);
+lean_closure_set(x_5, 4, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_AddMonoidHom_comp___redArg(x_7, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_AddMonoidHom_comp(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec_ref(x_6);
+lean_dec_ref(x_5);
+lean_dec_ref(x_4);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_inverse(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_inc(x_6);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_inverse___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_inverse___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_OneHom_inverse(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec(x_4);
+lean_dec(x_3);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_OneHom_inverse___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_OneHom_inverse___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_inverse(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_inc(x_6);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_inverse___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_inverse___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_ZeroHom_inverse(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec(x_4);
+lean_dec(x_3);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_ZeroHom_inverse___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_ZeroHom_inverse___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_inverse(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_inc(x_6);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_inverse___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_inverse___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_MulHom_inverse(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec(x_4);
+lean_dec(x_3);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulHom_inverse___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MulHom_inverse___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_inverse(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_inc(x_6);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_inverse___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_inverse___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_AddHom_inverse(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec(x_4);
+lean_dec(x_3);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddHom_inverse___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddHom_inverse___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_inverse(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_inc(x_6);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_inverse___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_inverse___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_MonoidHom_inverse(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_inverse___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MonoidHom_inverse___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_inverse(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_inc(x_6);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_inverse___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_inverse___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7, lean_object* x_8) {
+_start:
+{
+lean_object* x_9; 
+x_9 = lp_mathlib_AddMonoidHom_inverse(x_1, x_2, x_3, x_4, x_5, x_6, x_7, x_8);
+lean_dec(x_6);
+lean_dec(x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_inverse___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonoidHom_inverse___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instFunLike(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonoidHom_instFunLike___closed__0;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instFunLike___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_Monoid_End_instFunLike(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instFunLike(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonoidHom_instFunLike___closed__0;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instFunLike___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonoid_End_instFunLike(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instOne(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_ZeroHom_id___closed__0;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instOne___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_Monoid_End_instOne(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instOne(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_ZeroHom_id___closed__0;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instOne___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonoid_End_instOne(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instMul(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+lean_inc_ref_n(x_2, 2);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_comp___boxed), 8, 6);
+lean_closure_set(x_3, 0, lean_box(0));
+lean_closure_set(x_3, 1, lean_box(0));
+lean_closure_set(x_3, 2, lean_box(0));
+lean_closure_set(x_3, 3, x_2);
+lean_closure_set(x_3, 4, x_2);
+lean_closure_set(x_3, 5, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instMul___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+lean_inc_ref_n(x_1, 2);
+x_2 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_comp___boxed), 8, 6);
+lean_closure_set(x_2, 0, lean_box(0));
+lean_closure_set(x_2, 1, lean_box(0));
+lean_closure_set(x_2, 2, lean_box(0));
+lean_closure_set(x_2, 3, x_1);
+lean_closure_set(x_2, 4, x_1);
+lean_closure_set(x_2, 5, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instMul(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+lean_inc_ref_n(x_2, 2);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___boxed), 8, 6);
+lean_closure_set(x_3, 0, lean_box(0));
+lean_closure_set(x_3, 1, lean_box(0));
+lean_closure_set(x_3, 2, lean_box(0));
+lean_closure_set(x_3, 3, x_2);
+lean_closure_set(x_3, 4, x_2);
+lean_closure_set(x_3, 5, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instMul___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+lean_inc_ref_n(x_1, 2);
+x_2 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___boxed), 8, 6);
+lean_closure_set(x_2, 0, lean_box(0));
+lean_closure_set(x_2, 1, lean_box(0));
+lean_closure_set(x_2, 2, lean_box(0));
+lean_closure_set(x_2, 3, x_1);
+lean_closure_set(x_2, 4, x_1);
+lean_closure_set(x_2, 5, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instMonoid___redArg___lam__1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; lean_object* x_5; 
+x_4 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_instFunLike___lam__0), 2, 1);
+lean_closure_set(x_4, 0, x_2);
+x_5 = lp_mathlib_Nat_iterate___redArg(x_4, x_1, x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instMonoid___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_Monoid_End_instMonoid___redArg___lam__1), 3, 0);
+lean_inc_ref_n(x_1, 2);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_comp___boxed), 8, 6);
+lean_closure_set(x_3, 0, lean_box(0));
+lean_closure_set(x_3, 1, lean_box(0));
+lean_closure_set(x_3, 2, lean_box(0));
+lean_closure_set(x_3, 3, x_1);
+lean_closure_set(x_3, 4, x_1);
+lean_closure_set(x_3, 5, x_1);
+x_4 = lp_mathlib_ZeroHom_id___closed__0;
+x_5 = lean_alloc_ctor(0, 3, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+lean_ctor_set(x_5, 2, x_2);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instMonoid(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_Monoid_End_instMonoid___redArg(x_2);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonoid_End_instMonoid___redArg___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_Monoid_End_instMonoid___redArg___lam__1), 3, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instMonoid___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_2 = lp_mathlib_AddMonoid_End_instMonoid___redArg___closed__0;
+lean_inc_ref_n(x_1, 2);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___boxed), 8, 6);
+lean_closure_set(x_3, 0, lean_box(0));
+lean_closure_set(x_3, 1, lean_box(0));
+lean_closure_set(x_3, 2, lean_box(0));
+lean_closure_set(x_3, 3, x_1);
+lean_closure_set(x_3, 4, x_1);
+lean_closure_set(x_3, 5, x_1);
+x_4 = lp_mathlib_ZeroHom_id___closed__0;
+x_5 = lean_alloc_ctor(0, 3, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+lean_ctor_set(x_5, 2, x_2);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instMonoid(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonoid_End_instMonoid___redArg(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instInhabited(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_ZeroHom_id___closed__0;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_Monoid_End_instInhabited___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_Monoid_End_instInhabited(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instInhabited(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_ZeroHom_id___closed__0;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoid_End_instInhabited___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonoid_End_instInhabited(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneOneHom___redArg___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneOneHom___redArg___lam__0___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_instOneOneHom___redArg___lam__0(x_1, x_2);
+lean_dec(x_2);
+lean_dec(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneOneHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lean_alloc_closure((void*)(lp_mathlib_instOneOneHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_5, 0, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneOneHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_instOneOneHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneOneHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instOneOneHom(x_1, x_2, x_3, x_4);
+lean_dec(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instZeroZeroHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lean_alloc_closure((void*)(lp_mathlib_instOneOneHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_5, 0, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instZeroZeroHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_instOneOneHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instZeroZeroHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instZeroZeroHom(x_1, x_2, x_3, x_4);
+lean_dec(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneMulHom___redArg___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneMulHom___redArg___lam__0___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_instOneMulHom___redArg___lam__0(x_1, x_2);
+lean_dec(x_2);
+lean_dec(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneMulHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+lean_dec_ref(x_1);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_instOneMulHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_3, 0, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneMulHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instOneMulHom___redArg(x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneMulHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instOneMulHom(x_1, x_2, x_3, x_4);
+lean_dec(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddHom___redArg___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddHom___redArg___lam__0___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_instZeroAddHom___redArg___lam__0(x_1, x_2);
+lean_dec(x_2);
+lean_dec(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+lean_dec_ref(x_1);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_instZeroAddHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_3, 0, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instZeroAddHom___redArg(x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instZeroAddHom(x_1, x_2, x_3, x_4);
+lean_dec(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneMonoidHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+lean_dec_ref(x_1);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_instOneMulHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_3, 0, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneMonoidHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instOneMonoidHom___redArg(x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instOneMonoidHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instOneMonoidHom(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddMonoidHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+lean_dec_ref(x_1);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_instZeroAddHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_3, 0, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddMonoidHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instZeroAddMonoidHom___redArg(x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instZeroAddMonoidHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instZeroAddMonoidHom(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedOneHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lean_alloc_closure((void*)(lp_mathlib_instOneOneHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_5, 0, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedOneHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_instOneOneHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedOneHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instInhabitedOneHom(x_1, x_2, x_3, x_4);
+lean_dec(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedZeroHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lean_alloc_closure((void*)(lp_mathlib_instOneOneHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_5, 0, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedZeroHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_instOneOneHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedZeroHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instInhabitedZeroHom(x_1, x_2, x_3, x_4);
+lean_dec(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedMulHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+lean_dec_ref(x_1);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_instOneMulHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_3, 0, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedMulHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instInhabitedMulHom___redArg(x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedMulHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instInhabitedMulHom(x_1, x_2, x_3, x_4);
+lean_dec(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedAddHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+lean_dec_ref(x_1);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_instZeroAddHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_3, 0, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedAddHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instInhabitedAddHom___redArg(x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedAddHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instInhabitedAddHom(x_1, x_2, x_3, x_4);
+lean_dec(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedMonoidHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+lean_dec_ref(x_1);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_instOneMulHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_3, 0, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedMonoidHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instInhabitedMonoidHom___redArg(x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedMonoidHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instInhabitedMonoidHom(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_3);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedAddMonoidHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+lean_dec_ref(x_1);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_instZeroAddHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_3, 0, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedAddMonoidHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instInhabitedAddMonoidHom___redArg(x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_instInhabitedAddMonoidHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_instInhabitedAddMonoidHom(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_3);
+return x_5;
+}
+}
+lean_object* initialize_Init(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Group_Defs(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Notation_Pi_Defs(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Data_FunLike_Basic(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Logic_Function_Iterate(uint8_t builtin);
+static bool _G_initialized = false;
+LEAN_EXPORT lean_object* initialize_mathlib_Mathlib_Algebra_Group_Hom_Defs(uint8_t builtin) {
+lean_object * res;
+if (_G_initialized) return lean_io_result_mk_ok(lean_box(0));
+_G_initialized = true;
+res = initialize_Init(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Group_Defs(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Notation_Pi_Defs(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Data_FunLike_Basic(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Logic_Function_Iterate(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+lp_mathlib_term___u2192_u2099_x2b___00__closed__0 = _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__0();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2b___00__closed__0);
+lp_mathlib_term___u2192_u2099_x2b___00__closed__1 = _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__1();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2b___00__closed__1);
+lp_mathlib_term___u2192_u2099_x2b___00__closed__2 = _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__2();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2b___00__closed__2);
+lp_mathlib_term___u2192_u2099_x2b___00__closed__3 = _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__3();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2b___00__closed__3);
+lp_mathlib_term___u2192_u2099_x2b___00__closed__4 = _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__4();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2b___00__closed__4);
+lp_mathlib_term___u2192_u2099_x2b___00__closed__5 = _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__5();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2b___00__closed__5);
+lp_mathlib_term___u2192_u2099_x2b___00__closed__6 = _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__6();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2b___00__closed__6);
+lp_mathlib_term___u2192_u2099_x2b___00__closed__7 = _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__7();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2b___00__closed__7);
+lp_mathlib_term___u2192_u2099_x2b___00__closed__8 = _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__8();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2b___00__closed__8);
+lp_mathlib_term___u2192_u2099_x2b___00__closed__9 = _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__9();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2b___00__closed__9);
+lp_mathlib_term___u2192_u2099_x2b___00__closed__10 = _init_lp_mathlib_term___u2192_u2099_x2b___00__closed__10();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2b___00__closed__10);
+lp_mathlib_term___u2192_u2099_x2b__ = _init_lp_mathlib_term___u2192_u2099_x2b__();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2b__);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__0 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__0();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__0);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__1 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__1();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__1);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__2 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__2();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__2);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__3 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__3();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__3);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__4);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__5 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__5();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__5);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__6 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__6();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__6);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__7 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__7();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__7);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__8 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__8();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__8);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__9 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__9();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__9);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__10 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__10();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__10);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__11 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__11();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__11);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__12 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__12();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__12);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__13 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__13();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2b____1___closed__13);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__0 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__0();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__0);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__1 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__1();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______unexpand__AddHom__1___closed__1);
+lp_mathlib_term___u2192_x2b___00__closed__0 = _init_lp_mathlib_term___u2192_x2b___00__closed__0();
+lean_mark_persistent(lp_mathlib_term___u2192_x2b___00__closed__0);
+lp_mathlib_term___u2192_x2b___00__closed__1 = _init_lp_mathlib_term___u2192_x2b___00__closed__1();
+lean_mark_persistent(lp_mathlib_term___u2192_x2b___00__closed__1);
+lp_mathlib_term___u2192_x2b___00__closed__2 = _init_lp_mathlib_term___u2192_x2b___00__closed__2();
+lean_mark_persistent(lp_mathlib_term___u2192_x2b___00__closed__2);
+lp_mathlib_term___u2192_x2b___00__closed__3 = _init_lp_mathlib_term___u2192_x2b___00__closed__3();
+lean_mark_persistent(lp_mathlib_term___u2192_x2b___00__closed__3);
+lp_mathlib_term___u2192_x2b___00__closed__4 = _init_lp_mathlib_term___u2192_x2b___00__closed__4();
+lean_mark_persistent(lp_mathlib_term___u2192_x2b___00__closed__4);
+lp_mathlib_term___u2192_x2b___00__closed__5 = _init_lp_mathlib_term___u2192_x2b___00__closed__5();
+lean_mark_persistent(lp_mathlib_term___u2192_x2b___00__closed__5);
+lp_mathlib_term___u2192_x2b__ = _init_lp_mathlib_term___u2192_x2b__();
+lean_mark_persistent(lp_mathlib_term___u2192_x2b__);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__0 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__0();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__0);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__1 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__1();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__1);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__2 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__2();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__2);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__3 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__3();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__3);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__4 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__4();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__4);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__5 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__5();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__5);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__6 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__6();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2b____1___closed__6);
+lp_mathlib_ZeroHom_funLike___closed__0 = _init_lp_mathlib_ZeroHom_funLike___closed__0();
+lean_mark_persistent(lp_mathlib_ZeroHom_funLike___closed__0);
+lp_mathlib_LibraryNote_hom_x20simp_x20lemma_x20priority = _init_lp_mathlib_LibraryNote_hom_x20simp_x20lemma_x20priority();
+lean_mark_persistent(lp_mathlib_LibraryNote_hom_x20simp_x20lemma_x20priority);
+lp_mathlib_term___u2192_u2099_x2a___00__closed__0 = _init_lp_mathlib_term___u2192_u2099_x2a___00__closed__0();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2a___00__closed__0);
+lp_mathlib_term___u2192_u2099_x2a___00__closed__1 = _init_lp_mathlib_term___u2192_u2099_x2a___00__closed__1();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2a___00__closed__1);
+lp_mathlib_term___u2192_u2099_x2a___00__closed__2 = _init_lp_mathlib_term___u2192_u2099_x2a___00__closed__2();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2a___00__closed__2);
+lp_mathlib_term___u2192_u2099_x2a___00__closed__3 = _init_lp_mathlib_term___u2192_u2099_x2a___00__closed__3();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2a___00__closed__3);
+lp_mathlib_term___u2192_u2099_x2a___00__closed__4 = _init_lp_mathlib_term___u2192_u2099_x2a___00__closed__4();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2a___00__closed__4);
+lp_mathlib_term___u2192_u2099_x2a___00__closed__5 = _init_lp_mathlib_term___u2192_u2099_x2a___00__closed__5();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2a___00__closed__5);
+lp_mathlib_term___u2192_u2099_x2a__ = _init_lp_mathlib_term___u2192_u2099_x2a__();
+lean_mark_persistent(lp_mathlib_term___u2192_u2099_x2a__);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__0 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__0();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__0);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__1 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__1();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__1);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__2 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__2();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__2);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__3 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__3();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__3);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__4 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__4();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__4);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__5 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__5();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__5);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__6 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__6();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_u2099_x2a____1___closed__6);
+lp_mathlib_term___u2192_x2a___00__closed__0 = _init_lp_mathlib_term___u2192_x2a___00__closed__0();
+lean_mark_persistent(lp_mathlib_term___u2192_x2a___00__closed__0);
+lp_mathlib_term___u2192_x2a___00__closed__1 = _init_lp_mathlib_term___u2192_x2a___00__closed__1();
+lean_mark_persistent(lp_mathlib_term___u2192_x2a___00__closed__1);
+lp_mathlib_term___u2192_x2a___00__closed__2 = _init_lp_mathlib_term___u2192_x2a___00__closed__2();
+lean_mark_persistent(lp_mathlib_term___u2192_x2a___00__closed__2);
+lp_mathlib_term___u2192_x2a___00__closed__3 = _init_lp_mathlib_term___u2192_x2a___00__closed__3();
+lean_mark_persistent(lp_mathlib_term___u2192_x2a___00__closed__3);
+lp_mathlib_term___u2192_x2a___00__closed__4 = _init_lp_mathlib_term___u2192_x2a___00__closed__4();
+lean_mark_persistent(lp_mathlib_term___u2192_x2a___00__closed__4);
+lp_mathlib_term___u2192_x2a___00__closed__5 = _init_lp_mathlib_term___u2192_x2a___00__closed__5();
+lean_mark_persistent(lp_mathlib_term___u2192_x2a___00__closed__5);
+lp_mathlib_term___u2192_x2a__ = _init_lp_mathlib_term___u2192_x2a__();
+lean_mark_persistent(lp_mathlib_term___u2192_x2a__);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__0 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__0();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__0);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__1 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__1();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__1);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__2 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__2();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__2);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__3 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__3();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__3);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__4 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__4();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__4);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__5 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__5();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__5);
+lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__6 = _init_lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__6();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__Algebra__Group__Hom__Defs______macroRules__term___u2192_x2a____1___closed__6);
+lp_mathlib_AddMonoidHom_instFunLike___closed__0 = _init_lp_mathlib_AddMonoidHom_instFunLike___closed__0();
+lean_mark_persistent(lp_mathlib_AddMonoidHom_instFunLike___closed__0);
+lp_mathlib_ZeroHom_id___closed__0 = _init_lp_mathlib_ZeroHom_id___closed__0();
+lean_mark_persistent(lp_mathlib_ZeroHom_id___closed__0);
+lp_mathlib_AddMonoid_End_instMonoid___redArg___closed__0 = _init_lp_mathlib_AddMonoid_End_instMonoid___redArg___closed__0();
+lean_mark_persistent(lp_mathlib_AddMonoid_End_instMonoid___redArg___closed__0);
+return lean_io_result_mk_ok(lean_box(0));
+}
+#ifdef __cplusplus
+}
+#endif

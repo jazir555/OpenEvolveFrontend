@@ -1,0 +1,20 @@
+{"plugins": [],
+ "package": "batteries",
+ "options":
+ {"weak.backward.privateInPublic.warn": false, "linter.missingDocs": true},
+ "name": "Batteries.Tactic.PrintPrefix",
+ "isModule": true,
+ "importArts":
+ {"Batteries.Tactic.Lint.Misc":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Lint/Misc.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Lint/Misc.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Lint/Misc.olean.server"],
+  "Batteries.Tactic.Lint.Basic":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Lint/Basic.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Lint/Basic.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Tactic/Lint/Basic.olean.server"],
+  "Batteries.Lean.Util.EnvSearch":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/Util/EnvSearch.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/Util/EnvSearch.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/Util/EnvSearch.olean.server"]},
+ "dynlibs": []}

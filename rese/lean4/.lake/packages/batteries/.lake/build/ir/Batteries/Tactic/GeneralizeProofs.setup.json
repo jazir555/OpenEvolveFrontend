@@ -1,0 +1,12 @@
+{"plugins": [],
+ "package": "batteries",
+ "options":
+ {"weak.backward.privateInPublic.warn": false, "linter.missingDocs": true},
+ "name": "Batteries.Tactic.GeneralizeProofs",
+ "isModule": true,
+ "importArts":
+ {"Batteries.Lean.Expr":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/Expr.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/Expr.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Batteries/Lean/Expr.olean.server"]},
+ "dynlibs": []}

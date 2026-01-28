@@ -1,0 +1,1 @@
+{"decls":{},"directImports":[["Lean.Elab.Tactic.ElabTerm",false,false,true],["Batteries.Linter",false,false,true],["Batteries.Tactic.Init",false,false,true],["Batteries.Tactic.SeqFocus",false,false,true],["Batteries.Util.ProofWanted",false,false,true]],"module":"Batteries.Tactic.Basic","references":{},"version":5}

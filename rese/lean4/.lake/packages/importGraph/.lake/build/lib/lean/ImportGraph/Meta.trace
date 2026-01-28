@@ -1,0 +1,34 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "96e88529c0174614.ir",
+  "o":
+  ["67e46c3e820df015.olean",
+   "8e98bffdf61fefb7.olean.server",
+   "49ebddec8789c05f.olean.private"],
+  "i": "5ba9aa89f689f3a9.ilean",
+  "c": "d625561edc3143f9.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/packages/Cli/.lake/build/lib/lean:/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/ImportGraph/Meta.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Meta.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Meta.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/ImportGraph/Meta.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/ImportGraph/Meta.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["ImportGraph.Meta:deps",
+   [["deps",
+     [["importGraph/ImportGraph:extraDep",
+       [["@importGraph:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["ImportGraph.Imports transitive imports (meta)", "86a9fd643a37a452"],
+        ["ImportGraph.Imports:importArts (meta)", "1ac740d33aef02d4"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/ImportGraph/Meta.lean",
+   "cc63b95f40fb815d"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "1532b58c607245a2"}

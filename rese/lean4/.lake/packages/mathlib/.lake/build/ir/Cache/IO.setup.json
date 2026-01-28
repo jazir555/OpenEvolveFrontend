@@ -1,0 +1,9 @@
+{"plugins": [],
+ "package": "mathlib",
+ "options": {},
+ "name": "Cache.IO",
+ "isModule": false,
+ "importArts":
+ {"Cache.Lean":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\mathlib\\.lake\\build\\lib\\lean\\Cache\\Lean.olean"]},
+ "dynlibs": []}

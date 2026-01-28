@@ -1,0 +1,8 @@
+{"plugins": [],
+ "package": "batteries",
+ "options":
+ {"weak.backward.privateInPublic.warn": false, "linter.missingDocs": true},
+ "name": "Batteries.Util.LibraryNote",
+ "isModule": true,
+ "importArts": {},
+ "dynlibs": []}

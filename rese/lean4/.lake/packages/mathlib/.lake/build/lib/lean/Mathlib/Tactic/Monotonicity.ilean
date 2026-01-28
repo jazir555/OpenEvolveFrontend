@@ -1,0 +1,1 @@
+{"decls":{},"directImports":[["Mathlib.Tactic.Monotonicity.Basic",false,false,true],["Mathlib.Tactic.Monotonicity.Lemmas",false,false,true]],"module":"Mathlib.Tactic.Monotonicity","references":{},"version":5}

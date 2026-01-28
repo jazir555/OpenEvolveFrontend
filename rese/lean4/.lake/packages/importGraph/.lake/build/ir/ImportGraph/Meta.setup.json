@@ -1,0 +1,15 @@
+{"plugins": [],
+ "package": "importGraph",
+ "options": {},
+ "name": "ImportGraph.Meta",
+ "isModule": true,
+ "importArts":
+ {"ImportGraph.RequiredModules":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/RequiredModules.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/RequiredModules.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/RequiredModules.olean.server"],
+  "ImportGraph.Imports":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Imports.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Imports.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/Imports.olean.server"]},
+ "dynlibs": []}

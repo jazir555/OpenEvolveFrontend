@@ -1,0 +1,32 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "807cd7e42f4ea539.ir",
+  "o":
+  ["90d387cad633bc2c.olean",
+   "2692b2abad126a46.olean.server",
+   "24f191f361ed03e0.olean.private"],
+  "i": "2db5fe5de0ae614f.ilean",
+  "c": "a0ac80dd626f8e7c.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/packages/Cli/.lake/build/lib/lean:/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/ImportGraph/CurrentModule.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/CurrentModule.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/ImportGraph/CurrentModule.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/ImportGraph/CurrentModule.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/ImportGraph/CurrentModule.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["ImportGraph.CurrentModule:deps",
+   [["deps",
+     [["importGraph/ImportGraph:extraDep",
+       [["@importGraph:extraDep", "00000000000006bb"]]],
+      ["imports", "00000000000006bb"]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/ImportGraph/CurrentModule.lean",
+   "c93b8b2673dfc36b"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "6820ee52bd06a491"}

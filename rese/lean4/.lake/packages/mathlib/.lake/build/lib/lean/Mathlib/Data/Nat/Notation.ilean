@@ -1,0 +1,1 @@
+{"decls":{"termℕ":[15,0,15,34,15,0,15,34]},"directImports":[["Mathlib.Init",false,false,false]],"module":"Mathlib.Data.Nat.Notation","references":{"{\"c\":{\"m\":\"Init.Prelude\",\"n\":\"Nat\"}}":{"definition":null,"usages":[[15,31,15,34,"termℕ"]]}},"version":5}

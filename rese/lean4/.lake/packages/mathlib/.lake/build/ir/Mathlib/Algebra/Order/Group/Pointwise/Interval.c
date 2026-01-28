@@ -1,0 +1,61 @@
+// Lean compiler output
+// Module: Mathlib.Algebra.Order.Group.Pointwise.Interval
+// Imports: public import Init public import Mathlib.Algebra.Group.Action.Defs public import Mathlib.Algebra.Group.Pointwise.Set.Scalar public import Mathlib.Algebra.Order.Field.Basic public import Mathlib.Algebra.Order.Group.MinMax public import Mathlib.Algebra.Order.Interval.Set.Monoid public import Mathlib.Order.Interval.Set.OrderIso public import Mathlib.Order.Interval.Set.UnorderedInterval public import Mathlib.Algebra.Group.Pointwise.Set.Basic
+#include <lean/lean.h>
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wunused-label"
+#elif defined(__GNUC__) && !defined(__CLANG__)
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-label"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+lean_object* initialize_Init(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Group_Action_Defs(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Group_Pointwise_Set_Scalar(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Order_Field_Basic(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Order_Group_MinMax(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Order_Interval_Set_Monoid(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Order_Interval_Set_OrderIso(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Order_Interval_Set_UnorderedInterval(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Group_Pointwise_Set_Basic(uint8_t builtin);
+static bool _G_initialized = false;
+LEAN_EXPORT lean_object* initialize_mathlib_Mathlib_Algebra_Order_Group_Pointwise_Interval(uint8_t builtin) {
+lean_object * res;
+if (_G_initialized) return lean_io_result_mk_ok(lean_box(0));
+_G_initialized = true;
+res = initialize_Init(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Group_Action_Defs(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Group_Pointwise_Set_Scalar(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Order_Field_Basic(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Order_Group_MinMax(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Order_Interval_Set_Monoid(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Order_Interval_Set_OrderIso(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Order_Interval_Set_UnorderedInterval(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Group_Pointwise_Set_Basic(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+return lean_io_result_mk_ok(lean_box(0));
+}
+#ifdef __cplusplus
+}
+#endif

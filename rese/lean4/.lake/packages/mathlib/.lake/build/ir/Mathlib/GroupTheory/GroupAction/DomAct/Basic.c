@@ -1,0 +1,3227 @@
+// Lean compiler output
+// Module: Mathlib.GroupTheory.GroupAction.DomAct.Basic
+// Imports: public import Init public import Mathlib.Algebra.Group.Action.Basic public import Mathlib.Algebra.Group.Opposite public import Mathlib.Algebra.Group.Pi.Lemmas public import Mathlib.Algebra.GroupWithZero.Action.Hom public import Mathlib.Algebra.Ring.Defs
+#include <lean/lean.h>
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wunused-label"
+#elif defined(__GNUC__) && !defined(__CLANG__)
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-label"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelSemigroupOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonAssocSemiringOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribSMulForallOfSMul___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelMonoidOfAddOpposite___redArg(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelMonoidOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulMonoidHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegAddMonoidOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOneClassOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instDivisionAddCommMonoidOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_mk(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddSemigroupOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelSemigroupOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddSemigroupOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulAddMonoidHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instZeroOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instZeroOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelSemigroupOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulDistribMulActionMonoidHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelMonoidOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddActionForall(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommMonoidOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddActionForall___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulDistribMulActionForallOfMulAction___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemiringOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulAddMonoidHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelMonoidOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instInvolutiveNegOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instOneOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelMonoidOfAddOpposite___redArg___boxed(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__7;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instGroupOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelMonoidOfAddOpposite(lean_object*, lean_object*);
+lean_object* lp_mathlib_MulOpposite_opEquiv(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulDistribMulActionMonoidHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulZeroClassForallOfSMul(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelCommMonoidOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelMonoidOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommGroupOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommGroupOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommSemigroupOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelCommMonoidOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionForall(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelCommMonoidOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulDistribMulActionForallOfMulAction___redArg(lean_object*);
+static lean_object* lp_mathlib_term___u1d48_u1d50_u1d43___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instVAddForall(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribMulActionForallOfMulAction___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulDistribMulActionForallOfMulAction(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instDivisionAddCommMonoidOfAddOpposite___redArg(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__2;
+lean_object* l_Lean_replaceRef(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelMonoidOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionMonoidHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommSemigroupOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOneClassOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulZeroClassForallOfSMul___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvolutiveInvOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelMonoidOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelSemigroupOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegZeroClassOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonUnitalSemiringOfMulOpposite___redArg___boxed(lean_object*);
+static lean_object* lp_mathlib_DomAddAct_mk___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonAssocSemiringOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegZeroClassOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulZeroClassForallOfSMul___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonAssocSemiringOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulMonoidHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemiringOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instInvolutiveNegOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRingOfMulOpposite___redArg___boxed(lean_object*);
+uint8_t l_Lean_Syntax_isOfKind(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemigroupOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribSMulForallOfSMul___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelSemigroupOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommSemigroupOfAddOpposite___boxed(lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__2;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelMonoidOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instCommRingOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvMonoidOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddZeroClassOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommRingOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulForall___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMonoidOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommGroupOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommRingOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulAddMonoidHom___redArg___lam__0(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulAddMonoidHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddGroupOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonUnitalSemiringOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemigroupOfMulOpposite___redArg___boxed(lean_object*);
+static lean_object* lp_mathlib_term___u1d48_u1d43_u1d43___closed__1;
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommGroupOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelCommMonoidOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommMonoidOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOneClassOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelSemigroupOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionCommMonoidOfMulOpposite___redArg(lean_object*);
+static lean_object* lp_mathlib_term___u1d48_u1d50_u1d43___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommGroupOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegZeroClassOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMonoidOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegZeroMonoidOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelMonoidOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddZeroClassOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddGroupOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulForall(lean_object*, lean_object*, lean_object*, lean_object*);
+lean_object* lp_mathlib_AddOpposite_opEquiv(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddMonoidOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelMonoidOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonUnitalSemiringOfAddOpposite(lean_object*, lean_object*);
+lean_object* l_Lean_SourceInfo_fromRef(lean_object*, uint8_t);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulMonoidHom___redArg___lam__0(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubtractionMonoidOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulMonoidHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelMonoidOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonAssocSemiringOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonUnitalSemiringOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelMonoidOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOneClassOfMulOpposite(lean_object*, lean_object*);
+lean_object* lp_mathlib_MulDistribMulAction_toMonoidHom___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_mk(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSemiringOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddOfAddOpposite___boxed(lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__6;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelMonoidOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instGroupOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instRingOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instCommRingOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubtractionMonoidOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instCommRingOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelCommMonoidOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemigroupOfMulOpposite(lean_object*, lean_object*);
+lean_object* lp_mathlib_DistribSMul_toAddMonoidHom___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instRingOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommMonoidOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribSMulForallOfSMul(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelSemigroupOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddSemigroupOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegZeroMonoidOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSemiringOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommMonoidOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instVAddForall___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelSemigroupOfAddOpposite___redArg___boxed(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__3;
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommMonoidOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvMonoidOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommGroupOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionMonoidOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegZeroMonoidOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelSemigroupOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonAssocSemiringOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelMonoidOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddGroupOfAddOpposite___redArg___boxed(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__10;
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddActionForall___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegAddMonoidOfAddOpposite___redArg(lean_object*);
+lean_object* l_Lean_addMacroScope(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRingOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemigroupOfMulOpposite___boxed(lean_object*, lean_object*);
+lean_object* l_Lean_Syntax_node2(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelSemigroupOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommGroupOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_term___u1d48_u1d43_u1d43;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribMulActionAddMonoidHom___redArg(lean_object*);
+lean_object* lp_mathlib_AddMonoidHom_comp___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvOneMonoidOfMulOpposite___boxed(lean_object*, lean_object*);
+lean_object* l_Lean_Syntax_getArg(lean_object*, lean_object*);
+static lean_object* lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOfMulOpposite(lean_object*, lean_object*);
+lean_object* lp_mathlib_Equiv_symm___redArg(lean_object*);
+uint8_t l_Lean_Syntax_matchesNull(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelMonoidOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instDivisionAddCommMonoidOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionMonoidOfMulOpposite(lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instDivisionAddCommMonoidOfAddOpposite(lean_object*, lean_object*);
+static lean_object* lp_mathlib_DomAddAct_instVAddForall___redArg___lam__0___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribMulActionForallOfMulAction___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelCommMonoidOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddZeroClassOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionAddMonoidHomOfDistribMulAction___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemiringOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelMonoidOfMulOpposite___redArg___boxed(lean_object*);
+static lean_object* lp_mathlib_term___u1d48_u1d43_u1d43___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddZeroClassOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvolutiveInvOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribMulActionForallOfMulAction(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+lean_object* l_String_toRawSubstring_x27(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionCommMonoidOfMulOpposite___boxed(lean_object*, lean_object*);
+static lean_object* lp_mathlib_DomMulAct_mk___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegAddMonoidOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegZeroClassOfAddOpposite___boxed(lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomAddAct__1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemiringOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionMonoidHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonAssocSemiringOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommMonoidOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommSemigroupOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionMonoidHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelMonoidOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRingOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMonoidOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instZeroOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddMonoidOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulDistribMulActionMonoidHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__9;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionMonoidOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelMonoidOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomAddAct__1___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelSemigroupOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommMonoidOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instOneOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSemiringOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvolutiveInvOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvOneMonoidOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddOfAddOpposite___redArg(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__11;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelMonoidOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelSemigroupOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddMonoidOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelSemigroupOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonUnitalSemiringOfAddOpposite___boxed(lean_object*, lean_object*);
+lean_object* l_Lean_Syntax_node1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instRingOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommSemigroupOfAddOpposite(lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u1d48_u1d43_u1d43___closed__4;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommSemigroupOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonUnitalSemiringOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionCommMonoidOfMulOpposite(lean_object*, lean_object*);
+lean_object* lp_mathlib_MonoidHom_comp___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSemiringOfAddOpposite___redArg___boxed(lean_object*);
+static lean_object* lp_mathlib_term___u1d48_u1d43_u1d43___closed__2;
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommSemigroupOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelSemigroupOfAddOpposite___redArg(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommSemigroupOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_term___u1d48_u1d50_u1d43;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionMonoidOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelCommMonoidOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvOneMonoidOfMulOpposite(lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u1d48_u1d50_u1d43___closed__3;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommMonoidOfMulOpposite___boxed(lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__5;
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddOfAddOpposite(lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u1d48_u1d50_u1d43___closed__4;
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubtractionMonoidOfAddOpposite(lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__4;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRingOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOneClassOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instGroupOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddMonoidOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionCommMonoidOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddGroupOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribMulActionAddMonoidHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvOneMonoidOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelSemigroupOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonUnitalSemiringOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvMonoidOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instInvolutiveNegOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instOneOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribMulActionAddMonoidHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instOneOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instCommRingOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegAddMonoidOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instZeroOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionForall___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+lean_object* l_Lean_Name_mkStr1(lean_object*);
+lean_object* l_Lean_Name_mkStr4(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommRingOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvolutiveInvOfMulOpposite___redArg(lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__3;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOneClassOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelMonoidOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionForall___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionAddMonoidHomOfDistribMulAction___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommRingOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instInvolutiveNegOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instGroupOfMulOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOneClassOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonAssocSemiringOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelSemigroupOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonAssocSemiringOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegZeroMonoidOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelMonoidOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvMonoidOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instRingOfAddOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOneClassOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMonoidOfMulOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonUnitalSemiringOfMulOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubtractionMonoidOfAddOpposite___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommGroupOfMulOpposite(lean_object*, lean_object*);
+static lean_object* lp_mathlib_term___u1d48_u1d50_u1d43___closed__2;
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelCommMonoidOfAddOpposite___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddSemigroupOfAddOpposite(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instVAddForall___redArg___lam__0(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__4;
+static lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__8;
+static lean_object* lp_mathlib_term___u1d48_u1d43_u1d43___closed__3;
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionAddMonoidHomOfDistribMulAction(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOfMulOpposite___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelMonoidOfAddOpposite___boxed(lean_object*, lean_object*);
+static lean_object* _init_lp_mathlib_term___u1d48_u1d50_u1d43___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("term_ᵈᵐᵃ", 14, 8);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u1d48_u1d50_u1d43___closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u1d48_u1d50_u1d43___closed__0;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u1d48_u1d50_u1d43___closed__2() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("ᵈᵐᵃ", 9, 3);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u1d48_u1d50_u1d43___closed__3() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u1d48_u1d50_u1d43___closed__2;
+x_2 = lean_alloc_ctor(5, 1, 0);
+lean_ctor_set(x_2, 0, x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u1d48_u1d50_u1d43___closed__4() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; 
+x_1 = lp_mathlib_term___u1d48_u1d50_u1d43___closed__3;
+x_2 = lean_unsigned_to_nat(1024u);
+x_3 = lp_mathlib_term___u1d48_u1d50_u1d43___closed__1;
+x_4 = lean_alloc_ctor(4, 4, 0);
+lean_ctor_set(x_4, 0, x_3);
+lean_ctor_set(x_4, 1, x_2);
+lean_ctor_set(x_4, 2, x_2);
+lean_ctor_set(x_4, 3, x_1);
+return x_4;
+}
+}
+static lean_object* _init_lp_mathlib_term___u1d48_u1d50_u1d43() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_term___u1d48_u1d50_u1d43___closed__4;
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("Lean", 4, 4);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__1() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("Parser", 6, 6);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__2() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("Term", 4, 4);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__3() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("app", 3, 3);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__4() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_1 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__3;
+x_2 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__2;
+x_3 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__1;
+x_4 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__0;
+x_5 = l_Lean_Name_mkStr4(x_4, x_3, x_2, x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__5() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("DomMulAct", 9, 9);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__6() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__5;
+x_2 = l_String_toRawSubstring_x27(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__7() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__5;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__8() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_box(0);
+x_2 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__7;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__9() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_box(0);
+x_2 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__8;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__10() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("null", 4, 4);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__11() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__10;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; uint8_t x_5; 
+x_4 = lp_mathlib_term___u1d48_u1d50_u1d43___closed__1;
+lean_inc(x_1);
+x_5 = l_Lean_Syntax_isOfKind(x_1, x_4);
+if (x_5 == 0)
+{
+lean_object* x_6; lean_object* x_7; 
+lean_dec_ref(x_2);
+lean_dec(x_1);
+x_6 = lean_box(1);
+x_7 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_7, 0, x_6);
+lean_ctor_set(x_7, 1, x_3);
+return x_7;
+}
+else
+{
+lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; lean_object* x_12; uint8_t x_13; lean_object* x_14; lean_object* x_15; lean_object* x_16; lean_object* x_17; lean_object* x_18; lean_object* x_19; lean_object* x_20; lean_object* x_21; lean_object* x_22; lean_object* x_23; lean_object* x_24; 
+x_8 = lean_ctor_get(x_2, 1);
+lean_inc(x_8);
+x_9 = lean_ctor_get(x_2, 2);
+lean_inc(x_9);
+x_10 = lean_ctor_get(x_2, 5);
+lean_inc(x_10);
+lean_dec_ref(x_2);
+x_11 = lean_unsigned_to_nat(0u);
+x_12 = l_Lean_Syntax_getArg(x_1, x_11);
+lean_dec(x_1);
+x_13 = 0;
+x_14 = l_Lean_SourceInfo_fromRef(x_10, x_13);
+lean_dec(x_10);
+x_15 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__4;
+x_16 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__6;
+x_17 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__7;
+x_18 = l_Lean_addMacroScope(x_8, x_17, x_9);
+x_19 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__9;
+lean_inc(x_14);
+x_20 = lean_alloc_ctor(3, 4, 0);
+lean_ctor_set(x_20, 0, x_14);
+lean_ctor_set(x_20, 1, x_16);
+lean_ctor_set(x_20, 2, x_18);
+lean_ctor_set(x_20, 3, x_19);
+x_21 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__11;
+lean_inc(x_14);
+x_22 = l_Lean_Syntax_node1(x_14, x_21, x_12);
+x_23 = l_Lean_Syntax_node2(x_14, x_15, x_20, x_22);
+x_24 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_24, 0, x_23);
+lean_ctor_set(x_24, 1, x_3);
+return x_24;
+}
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("ident", 5, 5);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__0;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; uint8_t x_5; 
+x_4 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__4;
+lean_inc(x_1);
+x_5 = l_Lean_Syntax_isOfKind(x_1, x_4);
+if (x_5 == 0)
+{
+lean_object* x_6; lean_object* x_7; 
+lean_dec(x_1);
+x_6 = lean_box(0);
+x_7 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_7, 0, x_6);
+lean_ctor_set(x_7, 1, x_3);
+return x_7;
+}
+else
+{
+lean_object* x_8; lean_object* x_9; lean_object* x_10; uint8_t x_11; 
+x_8 = lean_unsigned_to_nat(0u);
+x_9 = l_Lean_Syntax_getArg(x_1, x_8);
+x_10 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__1;
+lean_inc(x_9);
+x_11 = l_Lean_Syntax_isOfKind(x_9, x_10);
+if (x_11 == 0)
+{
+lean_object* x_12; lean_object* x_13; 
+lean_dec(x_9);
+lean_dec(x_1);
+x_12 = lean_box(0);
+x_13 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_13, 0, x_12);
+lean_ctor_set(x_13, 1, x_3);
+return x_13;
+}
+else
+{
+lean_object* x_14; lean_object* x_15; uint8_t x_16; 
+x_14 = lean_unsigned_to_nat(1u);
+x_15 = l_Lean_Syntax_getArg(x_1, x_14);
+lean_dec(x_1);
+lean_inc(x_15);
+x_16 = l_Lean_Syntax_matchesNull(x_15, x_14);
+if (x_16 == 0)
+{
+lean_object* x_17; lean_object* x_18; 
+lean_dec(x_15);
+lean_dec(x_9);
+x_17 = lean_box(0);
+x_18 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_18, 0, x_17);
+lean_ctor_set(x_18, 1, x_3);
+return x_18;
+}
+else
+{
+lean_object* x_19; lean_object* x_20; uint8_t x_21; lean_object* x_22; lean_object* x_23; lean_object* x_24; lean_object* x_25; lean_object* x_26; lean_object* x_27; 
+x_19 = l_Lean_Syntax_getArg(x_15, x_8);
+lean_dec(x_15);
+x_20 = l_Lean_replaceRef(x_9, x_2);
+lean_dec(x_9);
+x_21 = 0;
+x_22 = l_Lean_SourceInfo_fromRef(x_20, x_21);
+lean_dec(x_20);
+x_23 = lp_mathlib_term___u1d48_u1d50_u1d43___closed__1;
+x_24 = lp_mathlib_term___u1d48_u1d50_u1d43___closed__2;
+lean_inc(x_22);
+x_25 = lean_alloc_ctor(2, 2, 0);
+lean_ctor_set(x_25, 0, x_22);
+lean_ctor_set(x_25, 1, x_24);
+x_26 = l_Lean_Syntax_node2(x_22, x_23, x_19, x_25);
+x_27 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_27, 0, x_26);
+lean_ctor_set(x_27, 1, x_3);
+return x_27;
+}
+}
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1(x_1, x_2, x_3);
+lean_dec(x_2);
+return x_4;
+}
+}
+static lean_object* _init_lp_mathlib_term___u1d48_u1d43_u1d43___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("term_ᵈᵃᵃ", 14, 8);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u1d48_u1d43_u1d43___closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u1d48_u1d43_u1d43___closed__0;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u1d48_u1d43_u1d43___closed__2() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("ᵈᵃᵃ", 9, 3);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_term___u1d48_u1d43_u1d43___closed__3() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_term___u1d48_u1d43_u1d43___closed__2;
+x_2 = lean_alloc_ctor(5, 1, 0);
+lean_ctor_set(x_2, 0, x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_term___u1d48_u1d43_u1d43___closed__4() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; 
+x_1 = lp_mathlib_term___u1d48_u1d43_u1d43___closed__3;
+x_2 = lean_unsigned_to_nat(1024u);
+x_3 = lp_mathlib_term___u1d48_u1d43_u1d43___closed__1;
+x_4 = lean_alloc_ctor(4, 4, 0);
+lean_ctor_set(x_4, 0, x_3);
+lean_ctor_set(x_4, 1, x_2);
+lean_ctor_set(x_4, 2, x_2);
+lean_ctor_set(x_4, 3, x_1);
+return x_4;
+}
+}
+static lean_object* _init_lp_mathlib_term___u1d48_u1d43_u1d43() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_term___u1d48_u1d43_u1d43___closed__4;
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_mk_string_unchecked("DomAddAct", 9, 9);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__0;
+x_2 = l_String_toRawSubstring_x27(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__2() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__0;
+x_2 = l_Lean_Name_mkStr1(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__3() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_box(0);
+x_2 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__2;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__4() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_box(0);
+x_2 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__3;
+x_3 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; uint8_t x_5; 
+x_4 = lp_mathlib_term___u1d48_u1d43_u1d43___closed__1;
+lean_inc(x_1);
+x_5 = l_Lean_Syntax_isOfKind(x_1, x_4);
+if (x_5 == 0)
+{
+lean_object* x_6; lean_object* x_7; 
+lean_dec_ref(x_2);
+lean_dec(x_1);
+x_6 = lean_box(1);
+x_7 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_7, 0, x_6);
+lean_ctor_set(x_7, 1, x_3);
+return x_7;
+}
+else
+{
+lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; lean_object* x_12; uint8_t x_13; lean_object* x_14; lean_object* x_15; lean_object* x_16; lean_object* x_17; lean_object* x_18; lean_object* x_19; lean_object* x_20; lean_object* x_21; lean_object* x_22; lean_object* x_23; lean_object* x_24; 
+x_8 = lean_ctor_get(x_2, 1);
+lean_inc(x_8);
+x_9 = lean_ctor_get(x_2, 2);
+lean_inc(x_9);
+x_10 = lean_ctor_get(x_2, 5);
+lean_inc(x_10);
+lean_dec_ref(x_2);
+x_11 = lean_unsigned_to_nat(0u);
+x_12 = l_Lean_Syntax_getArg(x_1, x_11);
+lean_dec(x_1);
+x_13 = 0;
+x_14 = l_Lean_SourceInfo_fromRef(x_10, x_13);
+lean_dec(x_10);
+x_15 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__4;
+x_16 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__1;
+x_17 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__2;
+x_18 = l_Lean_addMacroScope(x_8, x_17, x_9);
+x_19 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__4;
+lean_inc(x_14);
+x_20 = lean_alloc_ctor(3, 4, 0);
+lean_ctor_set(x_20, 0, x_14);
+lean_ctor_set(x_20, 1, x_16);
+lean_ctor_set(x_20, 2, x_18);
+lean_ctor_set(x_20, 3, x_19);
+x_21 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__11;
+lean_inc(x_14);
+x_22 = l_Lean_Syntax_node1(x_14, x_21, x_12);
+x_23 = l_Lean_Syntax_node2(x_14, x_15, x_20, x_22);
+x_24 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_24, 0, x_23);
+lean_ctor_set(x_24, 1, x_3);
+return x_24;
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomAddAct__1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; uint8_t x_5; 
+x_4 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__4;
+lean_inc(x_1);
+x_5 = l_Lean_Syntax_isOfKind(x_1, x_4);
+if (x_5 == 0)
+{
+lean_object* x_6; lean_object* x_7; 
+lean_dec(x_1);
+x_6 = lean_box(0);
+x_7 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_7, 0, x_6);
+lean_ctor_set(x_7, 1, x_3);
+return x_7;
+}
+else
+{
+lean_object* x_8; lean_object* x_9; lean_object* x_10; uint8_t x_11; 
+x_8 = lean_unsigned_to_nat(0u);
+x_9 = l_Lean_Syntax_getArg(x_1, x_8);
+x_10 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__1;
+lean_inc(x_9);
+x_11 = l_Lean_Syntax_isOfKind(x_9, x_10);
+if (x_11 == 0)
+{
+lean_object* x_12; lean_object* x_13; 
+lean_dec(x_9);
+lean_dec(x_1);
+x_12 = lean_box(0);
+x_13 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_13, 0, x_12);
+lean_ctor_set(x_13, 1, x_3);
+return x_13;
+}
+else
+{
+lean_object* x_14; lean_object* x_15; uint8_t x_16; 
+x_14 = lean_unsigned_to_nat(1u);
+x_15 = l_Lean_Syntax_getArg(x_1, x_14);
+lean_dec(x_1);
+lean_inc(x_15);
+x_16 = l_Lean_Syntax_matchesNull(x_15, x_14);
+if (x_16 == 0)
+{
+lean_object* x_17; lean_object* x_18; 
+lean_dec(x_15);
+lean_dec(x_9);
+x_17 = lean_box(0);
+x_18 = lean_alloc_ctor(1, 2, 0);
+lean_ctor_set(x_18, 0, x_17);
+lean_ctor_set(x_18, 1, x_3);
+return x_18;
+}
+else
+{
+lean_object* x_19; lean_object* x_20; uint8_t x_21; lean_object* x_22; lean_object* x_23; lean_object* x_24; lean_object* x_25; lean_object* x_26; lean_object* x_27; 
+x_19 = l_Lean_Syntax_getArg(x_15, x_8);
+lean_dec(x_15);
+x_20 = l_Lean_replaceRef(x_9, x_2);
+lean_dec(x_9);
+x_21 = 0;
+x_22 = l_Lean_SourceInfo_fromRef(x_20, x_21);
+lean_dec(x_20);
+x_23 = lp_mathlib_term___u1d48_u1d43_u1d43___closed__1;
+x_24 = lp_mathlib_term___u1d48_u1d43_u1d43___closed__2;
+lean_inc(x_22);
+x_25 = lean_alloc_ctor(2, 2, 0);
+lean_ctor_set(x_25, 0, x_22);
+lean_ctor_set(x_25, 1, x_24);
+x_26 = l_Lean_Syntax_node2(x_22, x_23, x_19, x_25);
+x_27 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_27, 0, x_26);
+lean_ctor_set(x_27, 1, x_3);
+return x_27;
+}
+}
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomAddAct__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomAddAct__1(x_1, x_2, x_3);
+lean_dec(x_2);
+return x_4;
+}
+}
+static lean_object* _init_lp_mathlib_DomMulAct_mk___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_MulOpposite_opEquiv(lean_box(0));
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_mk(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_mk___closed__0;
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_DomAddAct_mk___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_AddOpposite_opEquiv(lean_box(0));
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_mk(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_mk___closed__0;
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instMulOfMulOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instMulOfMulOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddOfAddOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddOfAddOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instOneOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instOneOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instOneOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instOneOfMulOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instOneOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instOneOfMulOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instZeroOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instZeroOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instZeroOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instZeroOfAddOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instZeroOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instZeroOfAddOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instInvOfMulOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instInvOfMulOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instNegOfAddOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instNegOfAddOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemigroupOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemigroupOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemigroupOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instSemigroupOfMulOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemigroupOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instSemigroupOfMulOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddSemigroupOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddSemigroupOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddSemigroupOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddSemigroupOfAddOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddSemigroupOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddSemigroupOfAddOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommSemigroupOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommSemigroupOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommSemigroupOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instCommSemigroupOfMulOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommSemigroupOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instCommSemigroupOfMulOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommSemigroupOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommSemigroupOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommSemigroupOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddCommSemigroupOfAddOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommSemigroupOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddCommSemigroupOfAddOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelSemigroupOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelSemigroupOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelSemigroupOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instLeftCancelSemigroupOfMulOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelSemigroupOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instLeftCancelSemigroupOfMulOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelSemigroupOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelSemigroupOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelSemigroupOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddLeftCancelSemigroupOfAddOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelSemigroupOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddLeftCancelSemigroupOfAddOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelSemigroupOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelSemigroupOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelSemigroupOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instRightCancelSemigroupOfMulOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelSemigroupOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instRightCancelSemigroupOfMulOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelSemigroupOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelSemigroupOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelSemigroupOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddRightCancelSemigroupOfAddOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelSemigroupOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddRightCancelSemigroupOfAddOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOneClassOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOneClassOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOneClassOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instMulOneClassOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulOneClassOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instMulOneClassOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddZeroClassOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddZeroClassOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddZeroClassOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddZeroClassOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddZeroClassOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddZeroClassOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMonoidOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMonoidOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMonoidOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instMonoidOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMonoidOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instMonoidOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddMonoidOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddMonoidOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddMonoidOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddMonoidOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddMonoidOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddMonoidOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommMonoidOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommMonoidOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommMonoidOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instCommMonoidOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommMonoidOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instCommMonoidOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommMonoidOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommMonoidOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommMonoidOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddCommMonoidOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommMonoidOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddCommMonoidOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelMonoidOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelMonoidOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelMonoidOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instLeftCancelMonoidOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instLeftCancelMonoidOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instLeftCancelMonoidOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelMonoidOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelMonoidOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelMonoidOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddLeftCancelMonoidOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddLeftCancelMonoidOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddLeftCancelMonoidOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelMonoidOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelMonoidOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelMonoidOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instRightCancelMonoidOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRightCancelMonoidOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instRightCancelMonoidOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelMonoidOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelMonoidOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelMonoidOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddRightCancelMonoidOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddRightCancelMonoidOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddRightCancelMonoidOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelMonoidOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelMonoidOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelMonoidOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instCancelMonoidOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelMonoidOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instCancelMonoidOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelMonoidOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelMonoidOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelMonoidOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddCancelMonoidOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelMonoidOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddCancelMonoidOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelCommMonoidOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelCommMonoidOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelCommMonoidOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instCancelCommMonoidOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCancelCommMonoidOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instCancelCommMonoidOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelCommMonoidOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelCommMonoidOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelCommMonoidOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddCancelCommMonoidOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCancelCommMonoidOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddCancelCommMonoidOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvolutiveInvOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvolutiveInvOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvolutiveInvOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instInvolutiveInvOfMulOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvolutiveInvOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instInvolutiveInvOfMulOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instInvolutiveNegOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instInvolutiveNegOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instInvolutiveNegOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instInvolutiveNegOfAddOpposite(x_1, x_2);
+lean_dec(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instInvolutiveNegOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instInvolutiveNegOfAddOpposite___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvMonoidOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvMonoidOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvMonoidOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instDivInvMonoidOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvMonoidOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instDivInvMonoidOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegAddMonoidOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegAddMonoidOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegAddMonoidOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instSubNegAddMonoidOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegAddMonoidOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instSubNegAddMonoidOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOneClassOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOneClassOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOneClassOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instInvOneClassOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instInvOneClassOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instInvOneClassOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegZeroClassOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegZeroClassOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegZeroClassOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instNegZeroClassOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNegZeroClassOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instNegZeroClassOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvOneMonoidOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvOneMonoidOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvOneMonoidOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instDivInvOneMonoidOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivInvOneMonoidOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instDivInvOneMonoidOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegZeroMonoidOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegZeroMonoidOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegZeroMonoidOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instSubNegZeroMonoidOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubNegZeroMonoidOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instSubNegZeroMonoidOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionMonoidOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionMonoidOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionMonoidOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instDivisionMonoidOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionMonoidOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instDivisionMonoidOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubtractionMonoidOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubtractionMonoidOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubtractionMonoidOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instSubtractionMonoidOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSubtractionMonoidOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instSubtractionMonoidOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionCommMonoidOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionCommMonoidOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionCommMonoidOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instDivisionCommMonoidOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDivisionCommMonoidOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instDivisionCommMonoidOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instDivisionAddCommMonoidOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instDivisionAddCommMonoidOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instDivisionAddCommMonoidOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instDivisionAddCommMonoidOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instDivisionAddCommMonoidOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instDivisionAddCommMonoidOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instGroupOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instGroupOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instGroupOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instGroupOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instGroupOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instGroupOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddGroupOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddGroupOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddGroupOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddGroupOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddGroupOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddGroupOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommGroupOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommGroupOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommGroupOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instCommGroupOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommGroupOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instCommGroupOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommGroupOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommGroupOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommGroupOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instAddCommGroupOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddCommGroupOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instAddCommGroupOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonAssocSemiringOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonAssocSemiringOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonAssocSemiringOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instNonAssocSemiringOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonAssocSemiringOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instNonAssocSemiringOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonAssocSemiringOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonAssocSemiringOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonAssocSemiringOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instNonAssocSemiringOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonAssocSemiringOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instNonAssocSemiringOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonUnitalSemiringOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonUnitalSemiringOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonUnitalSemiringOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instNonUnitalSemiringOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instNonUnitalSemiringOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instNonUnitalSemiringOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonUnitalSemiringOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonUnitalSemiringOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonUnitalSemiringOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instNonUnitalSemiringOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instNonUnitalSemiringOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instNonUnitalSemiringOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemiringOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemiringOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemiringOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instSemiringOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSemiringOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instSemiringOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSemiringOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSemiringOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSemiringOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instSemiringOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instSemiringOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instSemiringOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRingOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRingOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRingOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instRingOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instRingOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instRingOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instRingOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instRingOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instRingOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instRingOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instRingOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instRingOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommRingOfMulOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommRingOfMulOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommRingOfMulOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomMulAct_instCommRingOfMulOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instCommRingOfMulOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomMulAct_instCommRingOfMulOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instCommRingOfAddOpposite(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instCommRingOfAddOpposite___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instCommRingOfAddOpposite___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_DomAddAct_instCommRingOfAddOpposite(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instCommRingOfAddOpposite___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_DomAddAct_instCommRingOfAddOpposite___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0___closed__0() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_DomMulAct_mk___closed__0;
+x_2 = lp_mathlib_Equiv_symm___redArg(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; 
+x_5 = lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0___closed__0;
+x_6 = lean_ctor_get(x_5, 0);
+lean_inc(x_6);
+x_7 = lean_apply_1(x_6, x_2);
+x_8 = lean_apply_2(x_1, x_7, x_4);
+x_9 = lean_apply_1(x_3, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulForall___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulForall(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_DomMulAct_instSMulForall___redArg(x_4);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_DomAddAct_instVAddForall___redArg___lam__0___closed__0() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_DomAddAct_mk___closed__0;
+x_2 = lp_mathlib_Equiv_symm___redArg(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instVAddForall___redArg___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; 
+x_5 = lp_mathlib_DomAddAct_instVAddForall___redArg___lam__0___closed__0;
+x_6 = lean_ctor_get(x_5, 0);
+lean_inc(x_6);
+x_7 = lean_apply_1(x_6, x_2);
+x_8 = lean_apply_2(x_1, x_7, x_4);
+x_9 = lean_apply_1(x_3, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instVAddForall___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomAddAct_instVAddForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instVAddForall(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_DomAddAct_instVAddForall___redArg(x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulZeroClassForallOfSMul(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_6, 0, x_4);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulZeroClassForallOfSMul___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulZeroClassForallOfSMul___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_DomMulAct_instSMulZeroClassForallOfSMul(x_1, x_2, x_3, x_4, x_5);
+lean_dec(x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribSMulForallOfSMul(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_6, 0, x_4);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribSMulForallOfSMul___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribSMulForallOfSMul___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_DomMulAct_instDistribSMulForallOfSMul(x_1, x_2, x_3, x_4, x_5);
+lean_dec_ref(x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionForall(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_6, 0, x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionForall___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionForall___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_DomMulAct_instMulActionForall(x_1, x_2, x_3, x_4, x_5);
+lean_dec_ref(x_4);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddActionForall(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lean_alloc_closure((void*)(lp_mathlib_DomAddAct_instVAddForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_6, 0, x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddActionForall___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomAddAct_instVAddForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomAddAct_instAddActionForall___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_DomAddAct_instAddActionForall(x_1, x_2, x_3, x_4, x_5);
+lean_dec_ref(x_4);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribMulActionForallOfMulAction(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_7, 0, x_5);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribMulActionForallOfMulAction___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribMulActionForallOfMulAction___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_DomMulAct_instDistribMulActionForallOfMulAction(x_1, x_2, x_3, x_4, x_5, x_6);
+lean_dec_ref(x_6);
+lean_dec_ref(x_4);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulDistribMulActionForallOfMulAction(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_7, 0, x_5);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulDistribMulActionForallOfMulAction___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulDistribMulActionForallOfMulAction___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_DomMulAct_instMulDistribMulActionForallOfMulAction(x_1, x_2, x_3, x_4, x_5, x_6);
+lean_dec_ref(x_6);
+lean_dec_ref(x_4);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulMonoidHom___redArg___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; lean_object* x_10; 
+x_5 = lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0___closed__0;
+x_6 = lean_ctor_get(x_5, 0);
+lean_inc(x_6);
+x_7 = lean_apply_1(x_6, x_2);
+x_8 = lp_mathlib_MulDistribMulAction_toMonoidHom___redArg(x_1, x_7);
+x_9 = lp_mathlib_MonoidHom_comp___redArg(x_3, x_8);
+x_10 = lean_apply_1(x_9, x_4);
+return x_10;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulMonoidHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulMonoidHom___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulMonoidHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_DomMulAct_instSMulMonoidHom___redArg(x_6);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulMonoidHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_DomMulAct_instSMulMonoidHom(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec_ref(x_7);
+lean_dec_ref(x_5);
+lean_dec_ref(x_4);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionMonoidHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulMonoidHom___redArg___lam__0), 4, 1);
+lean_closure_set(x_8, 0, x_6);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionMonoidHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulMonoidHom___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionMonoidHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_DomMulAct_instMulActionMonoidHom(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec_ref(x_7);
+lean_dec_ref(x_5);
+lean_dec_ref(x_4);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulAddMonoidHom___redArg___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; lean_object* x_10; 
+x_5 = lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0___closed__0;
+x_6 = lean_ctor_get(x_5, 0);
+lean_inc(x_6);
+x_7 = lean_apply_1(x_6, x_2);
+x_8 = lp_mathlib_DistribSMul_toAddMonoidHom___redArg(x_1, x_7);
+x_9 = lp_mathlib_AddMonoidHom_comp___redArg(x_3, x_8);
+x_10 = lean_apply_1(x_9, x_4);
+return x_10;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulAddMonoidHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulAddMonoidHom___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulAddMonoidHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_DomMulAct_instSMulAddMonoidHom___redArg(x_5);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instSMulAddMonoidHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_DomMulAct_instSMulAddMonoidHom(x_1, x_2, x_3, x_4, x_5, x_6);
+lean_dec_ref(x_6);
+lean_dec_ref(x_4);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionAddMonoidHomOfDistribMulAction(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulAddMonoidHom___redArg___lam__0), 4, 1);
+lean_closure_set(x_8, 0, x_6);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionAddMonoidHomOfDistribMulAction___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulAddMonoidHom___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulActionAddMonoidHomOfDistribMulAction___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_DomMulAct_instMulActionAddMonoidHomOfDistribMulAction(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec_ref(x_7);
+lean_dec_ref(x_5);
+lean_dec_ref(x_4);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribMulActionAddMonoidHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulAddMonoidHom___redArg___lam__0), 4, 1);
+lean_closure_set(x_8, 0, x_6);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribMulActionAddMonoidHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulAddMonoidHom___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instDistribMulActionAddMonoidHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_DomMulAct_instDistribMulActionAddMonoidHom(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec_ref(x_7);
+lean_dec_ref(x_5);
+lean_dec_ref(x_4);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulDistribMulActionMonoidHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulMonoidHom___redArg___lam__0), 4, 1);
+lean_closure_set(x_8, 0, x_6);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulDistribMulActionMonoidHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_DomMulAct_instSMulMonoidHom___redArg___lam__0), 4, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_DomMulAct_instMulDistribMulActionMonoidHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6, lean_object* x_7) {
+_start:
+{
+lean_object* x_8; 
+x_8 = lp_mathlib_DomMulAct_instMulDistribMulActionMonoidHom(x_1, x_2, x_3, x_4, x_5, x_6, x_7);
+lean_dec_ref(x_7);
+lean_dec_ref(x_5);
+lean_dec_ref(x_4);
+return x_8;
+}
+}
+lean_object* initialize_Init(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Group_Action_Basic(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Group_Opposite(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Group_Pi_Lemmas(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_GroupWithZero_Action_Hom(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Ring_Defs(uint8_t builtin);
+static bool _G_initialized = false;
+LEAN_EXPORT lean_object* initialize_mathlib_Mathlib_GroupTheory_GroupAction_DomAct_Basic(uint8_t builtin) {
+lean_object * res;
+if (_G_initialized) return lean_io_result_mk_ok(lean_box(0));
+_G_initialized = true;
+res = initialize_Init(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Group_Action_Basic(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Group_Opposite(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Group_Pi_Lemmas(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_GroupWithZero_Action_Hom(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Ring_Defs(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+lp_mathlib_term___u1d48_u1d50_u1d43___closed__0 = _init_lp_mathlib_term___u1d48_u1d50_u1d43___closed__0();
+lean_mark_persistent(lp_mathlib_term___u1d48_u1d50_u1d43___closed__0);
+lp_mathlib_term___u1d48_u1d50_u1d43___closed__1 = _init_lp_mathlib_term___u1d48_u1d50_u1d43___closed__1();
+lean_mark_persistent(lp_mathlib_term___u1d48_u1d50_u1d43___closed__1);
+lp_mathlib_term___u1d48_u1d50_u1d43___closed__2 = _init_lp_mathlib_term___u1d48_u1d50_u1d43___closed__2();
+lean_mark_persistent(lp_mathlib_term___u1d48_u1d50_u1d43___closed__2);
+lp_mathlib_term___u1d48_u1d50_u1d43___closed__3 = _init_lp_mathlib_term___u1d48_u1d50_u1d43___closed__3();
+lean_mark_persistent(lp_mathlib_term___u1d48_u1d50_u1d43___closed__3);
+lp_mathlib_term___u1d48_u1d50_u1d43___closed__4 = _init_lp_mathlib_term___u1d48_u1d50_u1d43___closed__4();
+lean_mark_persistent(lp_mathlib_term___u1d48_u1d50_u1d43___closed__4);
+lp_mathlib_term___u1d48_u1d50_u1d43 = _init_lp_mathlib_term___u1d48_u1d50_u1d43();
+lean_mark_persistent(lp_mathlib_term___u1d48_u1d50_u1d43);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__0 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__0();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__0);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__1 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__1();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__1);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__2 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__2();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__2);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__3 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__3();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__3);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__4 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__4();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__4);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__5 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__5();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__5);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__6 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__6();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__6);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__7 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__7();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__7);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__8 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__8();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__8);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__9 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__9();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__9);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__10 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__10();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__10);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__11 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__11();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d50_u1d43__1___closed__11);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__0 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__0();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__0);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__1 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__1();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______unexpand__DomMulAct__1___closed__1);
+lp_mathlib_term___u1d48_u1d43_u1d43___closed__0 = _init_lp_mathlib_term___u1d48_u1d43_u1d43___closed__0();
+lean_mark_persistent(lp_mathlib_term___u1d48_u1d43_u1d43___closed__0);
+lp_mathlib_term___u1d48_u1d43_u1d43___closed__1 = _init_lp_mathlib_term___u1d48_u1d43_u1d43___closed__1();
+lean_mark_persistent(lp_mathlib_term___u1d48_u1d43_u1d43___closed__1);
+lp_mathlib_term___u1d48_u1d43_u1d43___closed__2 = _init_lp_mathlib_term___u1d48_u1d43_u1d43___closed__2();
+lean_mark_persistent(lp_mathlib_term___u1d48_u1d43_u1d43___closed__2);
+lp_mathlib_term___u1d48_u1d43_u1d43___closed__3 = _init_lp_mathlib_term___u1d48_u1d43_u1d43___closed__3();
+lean_mark_persistent(lp_mathlib_term___u1d48_u1d43_u1d43___closed__3);
+lp_mathlib_term___u1d48_u1d43_u1d43___closed__4 = _init_lp_mathlib_term___u1d48_u1d43_u1d43___closed__4();
+lean_mark_persistent(lp_mathlib_term___u1d48_u1d43_u1d43___closed__4);
+lp_mathlib_term___u1d48_u1d43_u1d43 = _init_lp_mathlib_term___u1d48_u1d43_u1d43();
+lean_mark_persistent(lp_mathlib_term___u1d48_u1d43_u1d43);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__0 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__0();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__0);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__1 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__1();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__1);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__2 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__2();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__2);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__3 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__3();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__3);
+lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__4 = _init_lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__4();
+lean_mark_persistent(lp_mathlib___aux__Mathlib__GroupTheory__GroupAction__DomAct__Basic______macroRules__term___u1d48_u1d43_u1d43__1___closed__4);
+lp_mathlib_DomMulAct_mk___closed__0 = _init_lp_mathlib_DomMulAct_mk___closed__0();
+lean_mark_persistent(lp_mathlib_DomMulAct_mk___closed__0);
+lp_mathlib_DomAddAct_mk___closed__0 = _init_lp_mathlib_DomAddAct_mk___closed__0();
+lean_mark_persistent(lp_mathlib_DomAddAct_mk___closed__0);
+lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0___closed__0 = _init_lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0___closed__0();
+lean_mark_persistent(lp_mathlib_DomMulAct_instSMulForall___redArg___lam__0___closed__0);
+lp_mathlib_DomAddAct_instVAddForall___redArg___lam__0___closed__0 = _init_lp_mathlib_DomAddAct_instVAddForall___redArg___lam__0___closed__0();
+lean_mark_persistent(lp_mathlib_DomAddAct_instVAddForall___redArg___lam__0___closed__0);
+return lean_io_result_mk_ok(lean_box(0));
+}
+#ifdef __cplusplus
+}
+#endif

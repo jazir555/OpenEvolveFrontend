@@ -1,0 +1,7 @@
+{"plugins": [],
+ "package": "aesop",
+ "options": {},
+ "name": "Aesop.Util.UnionFind",
+ "isModule": true,
+ "importArts": {},
+ "dynlibs": []}

@@ -1,0 +1,11 @@
+{"plugins": [],
+ "package": "aesop",
+ "options": {},
+ "name": "Aesop.RuleTac.ElabRuleTerm",
+ "isModule": true,
+ "importArts":
+ {"Aesop.ElabM":
+  ["C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean\\Aesop\\ElabM.olean",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean\\Aesop\\ElabM.ir",
+   "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\aesop\\.lake\\build\\lib\\lean\\Aesop\\ElabM.olean.server"]},
+ "dynlibs": []}

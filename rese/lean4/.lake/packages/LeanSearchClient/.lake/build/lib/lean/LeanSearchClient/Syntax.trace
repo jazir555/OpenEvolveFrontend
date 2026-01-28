@@ -1,0 +1,35 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "e28c7c4d551bc5bf.ir",
+  "o":
+  ["e90a7c672024509c.olean",
+   "a5f91ad91b427555.olean.server",
+   "b3d4eca5b0aae7fb.olean.private"],
+  "i": "a28e2540ca209c6b.ilean",
+  "c": "101e065b5020d39d.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/LeanSearchClient/Syntax.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/Syntax.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/LeanSearchClient/Syntax.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/LeanSearchClient/Syntax.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/LeanSearchClient/Syntax.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["LeanSearchClient.Syntax:deps",
+   [["deps",
+     [["LeanSearchClient/LeanSearchClient:extraDep",
+       [["@LeanSearchClient:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["LeanSearchClient.Basic transitive imports (meta)",
+         "00000000000006bb"],
+        ["LeanSearchClient.Basic:importArts (meta)", "d458671f0400f6c7"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/LeanSearchClient/Syntax.lean",
+   "80148baf30358c6b"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "8a3e7e9ccac73fef"}

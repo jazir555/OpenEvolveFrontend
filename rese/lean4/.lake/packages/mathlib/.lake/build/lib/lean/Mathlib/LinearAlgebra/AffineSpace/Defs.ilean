@@ -1,0 +1,1 @@
+{"decls":{"Affine.termAffineSpace":[45,0,45,65,45,0,45,65]},"directImports":[["Mathlib.Algebra.AddTorsor.Defs",false,false,false]],"module":"Mathlib.LinearAlgebra.AffineSpace.Defs","references":{"{\"c\":{\"m\":\"Mathlib.Algebra.AddTorsor.Defs\",\"n\":\"AddTorsor\"}}":{"definition":null,"usages":[[45,56,45,65,"Affine.termAffineSpace"]]}},"version":5}

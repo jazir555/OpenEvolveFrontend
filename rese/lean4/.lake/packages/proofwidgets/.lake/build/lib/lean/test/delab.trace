@@ -1,0 +1,34 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"o": ["0e1f3af3aa5f800a.olean"],
+  "i": "35682184c76dded8.ilean",
+  "c": "6517b51748128cc9.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/ProofWidgets4/ProofWidgets4/test/delab.lean -o /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/test/delab.olean -i /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/test/delab.ilean -c /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/test/delab.c --setup /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/test/delab.setup.json --json",
+   "level": "trace"},
+  {"message":
+   "test/delab.lean:58:0: <span id=\"test\">Hello {text \"<>\"} world<CustomComponent val={1}str={\"3\"}/></span> : ProofWidgets.Html",
+   "level": "info"}],
+ "inputs":
+ [["test.delab:deps",
+   [["deps",
+     [["proofwidgets/test:extraDep",
+       [["@proofwidgets:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["ProofWidgets.Data.Html transitive imports (legacy)",
+         "39d9e866e027e227"],
+        ["ProofWidgets.Data.Html:importAllArts", "612762ace9a8ae0b"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/test/delab.lean",
+   "803d0e7b73801f79"],
+  ["options", [["-Dexperimental.module=true", "a66e91e2aeb378d2"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "f36a88172adfb51f"}

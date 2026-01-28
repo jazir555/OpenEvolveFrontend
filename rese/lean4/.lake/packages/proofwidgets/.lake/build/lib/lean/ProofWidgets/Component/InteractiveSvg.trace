@@ -1,0 +1,35 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "bed0019e718db60d.ir",
+  "o":
+  ["49fd8a32fd256a13.olean",
+   "0bcfdfff5b92e4c1.olean.server",
+   "a581368b9d117f74.olean.private"],
+  "i": "4ade5bec0f8e7447.ilean",
+  "c": "147c64d4623b2c5c.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/ProofWidgets4/ProofWidgets4/ProofWidgets/Component/InteractiveSvg.lean -o /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/InteractiveSvg.olean -i /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/InteractiveSvg.ilean -c /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/ProofWidgets/Component/InteractiveSvg.c --setup /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/ProofWidgets/Component/InteractiveSvg.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["ProofWidgets.Component.InteractiveSvg:deps",
+   [["deps",
+     [["proofwidgets/ProofWidgets:extraDep",
+       [["@proofwidgets:extraDep", "00000000000006bb"],
+        ["<nil>", "637b525281701395"]]],
+      ["imports",
+       [["ProofWidgets.Data.Svg transitive imports (meta)", "f32b065154d67cf1"],
+        ["ProofWidgets.Data.Svg:importArts (meta)", "5f104da4027ccccb"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/ProofWidgets/Component/InteractiveSvg.lean",
+   "97132b2a051087f1"],
+  ["options", [["-Dexperimental.module=true", "a66e91e2aeb378d2"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "4dcd86f7618e3821"}

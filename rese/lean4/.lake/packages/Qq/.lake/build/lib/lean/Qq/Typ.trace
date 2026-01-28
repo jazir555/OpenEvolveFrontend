@@ -1,0 +1,31 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "cb17c62831b42b3a.ir",
+  "o":
+  ["1bf2ea7c17291c35.olean",
+   "afed4a1936e70ad2.olean.server",
+   "7560f898aa2a2136.olean.private"],
+  "i": "f7ad609713911b9c.ilean",
+  "c": "4817a9f54d078da8.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Qq/Typ.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Qq/Typ.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Qq/Typ.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Qq/Typ.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Qq/Typ.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Qq.Typ:deps",
+   [["deps",
+     [["Qq/Qq:extraDep", [["@Qq:extraDep", "00000000000006bb"]]],
+      ["imports", "00000000000006bb"]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Qq/Typ.lean",
+   "557dcc30673fc3df"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "39a080609a37c050"}

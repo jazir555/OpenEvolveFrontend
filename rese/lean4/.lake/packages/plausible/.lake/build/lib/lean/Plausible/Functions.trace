@@ -1,0 +1,36 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"r": "4daf25ae0cbd1583.ir",
+  "o":
+  ["842770f774332adf.olean",
+   "0771fc5caef76a64.olean.server",
+   "adfbf07225482722.olean.private"],
+  "i": "c80266cb610aa6a9.ilean",
+  "c": "99719c391a41c1e6.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/reservoir/reservoir/testbed/repo/Plausible/Functions.lean -o /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Functions.olean -i /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Functions.ilean -c /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Plausible/Functions.c --setup /home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/ir/Plausible/Functions.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["Plausible.Functions:deps",
+   [["deps",
+     [["plausible/Plausible:extraDep",
+       [["@plausible:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["Plausible.Sampleable transitive imports (meta)", "937cab8de46578de"],
+        ["Plausible.Sampleable:importArts (meta)", "b721777f78d972fe"],
+        ["Plausible.Testable transitive imports (meta)", "428e50cf9f0fc264"],
+        ["Plausible.Testable:importArts (meta)", "4273b11b474de087"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/Plausible/Functions.lean",
+   "eab14065b1895093"],
+  ["options", "00000000000006bb"],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "91a45f4cb0477bbb"}

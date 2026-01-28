@@ -1,0 +1,4297 @@
+// Lean compiler output
+// Module: Mathlib.Algebra.Category.MonCat.Basic
+// Imports: public import Init public import Mathlib.Algebra.Group.PUnit public import Mathlib.Algebra.Group.TypeTags.Hom public import Mathlib.Algebra.Group.ULift public import Mathlib.CategoryTheory.Elementwise public import Mathlib.CategoryTheory.Functor.ReflectsIso.Basic
+#include <lean/lean.h>
+#if defined(__clang__)
+#pragma clang diagnostic ignored "-Wunused-parameter"
+#pragma clang diagnostic ignored "-Wunused-label"
+#elif defined(__GNUC__) && !defined(__CLANG__)
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-label"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#endif
+#ifdef __cplusplus
+extern "C" {
+#endif
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_equivalence___lam__1(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_CommMonCat_fullyFaithfulForgetToMonCat___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_instCategory_spec__1(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_AddMonCat_equivalence___closed__1;
+static lean_object* lp_mathlib_addEquivIsoAddMonCatIso___redArg___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_ofHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_equivalence;
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_ulift___at___00AddCommMonCat_uliftFunctor_spec__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__3___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__3___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_equivalence___lam__1___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__5(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__5___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_instZeroHom_spec__0___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_hom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddCommMonCatIso(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__2___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__2___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_of___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_fullyFaithfulForgetToAddMonCat_spec__0___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instConcreteCategoryAddMonoidHomCarrier;
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_hasForgetToMonCat___lam__1(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_equivalence_spec__2___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instConcreteCategoryAddMonoidHomCarrier___lam__0(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_symm___at___00AddCommMonCat_uliftFunctor_spec__1___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instCoeSortType;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__5(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__2___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_of___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_Simps_hom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoMonCatIso___redArg___lam__0(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__3___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier;
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instOneHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_id___at___00CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7_spec__7_spec__7(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_hom___redArg(lean_object*);
+static lean_object* lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_hom___boxed(lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_hom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__3(lean_object*, lean_object*);
+lean_object* lp_mathlib_Additive_addMonoid___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__0___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_uliftFunctor_spec__6___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instCategory___lam__1(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_instCategory;
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_of___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_uliftFunctor;
+static lean_object* lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_uliftFunctor;
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instOneHom___redArg___lam__0(lean_object*, lean_object*);
+static lean_object* lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__2___boxed(lean_object*, lean_object*);
+lean_object* lp_mathlib_ULift_monoid___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddCommMonCatIso(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_of___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoCommMonCatIso___redArg___lam__0___boxed(lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_uliftFunctor___lam__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_of___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__5___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoCommMonCatIso___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_Simps_hom___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_commMonCatIsoToAddEquiv(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_instCategory_spec__1___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_addEquivIsoAddCommMonCatIso___redArg___closed__0;
+static lean_object* lp_mathlib_CommMonCat_instCoeMonCat___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddCommMonCatIso___redArg___lam__0___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_Simps_hom___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_uliftFunctor;
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_equivalence___lam__1(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_Simps_hom___boxed(lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_AddCommMonCat_uliftFunctor___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__1(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_commMonCatIsoToMulEquiv_spec__0(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+extern lean_object* lp_mathlib_PUnit_addCommGroup;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_uliftFunctor_spec__6(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__2___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_id___at___00CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7_spec__7_spec__7___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonCatIso(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_ulift___at___00CommMonCat_uliftFunctor_spec__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_ulift___at___00AddMonCat_uliftFunctor_spec__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instZeroHom___lam__0(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instConcreteCategoryMonoidHomCarrier___lam__0(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_AddCommMonCat_fullyFaithfulForgetToAddMonCat___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toCommMonCatIso___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__2(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_of___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_ulift___at___00CommMonCat_uliftFunctor_spec__0___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_Simps_hom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_equivalence___lam__1___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_equivalence_spec__2___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_Hom_hom___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__4___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_hom(lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__5___redArg(lean_object*, lean_object*);
+lean_object* lp_mathlib_Additive_toMul(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg___lam__0(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_symm___at___00AddCommMonCat_uliftFunctor_spec__1___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoMonCatIso(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__2(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3;
+static lean_object* lp_mathlib_mulEquivIsoCommMonCatIso___redArg___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__4___redArg(lean_object*, lean_object*);
+lean_object* lp_mathlib_Equiv_ulift(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_symm___at___00MonCat_uliftFunctor_spec__1___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_uliftFunctor___lam__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_addMonCatIsoToAddEquiv_spec__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_hom(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instConcreteCategoryMonoidHomCarrier___lam__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toCommMonCatIso(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instCategory___lam__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__2;
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__2___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_hasForgetToMonCat___lam__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_ofHom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_instInhabited;
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier;
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_of___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4___lam__0___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_symm___at___00CommMonCat_uliftFunctor_spec__1___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddCommMonCat_hasForgetToAddMonCat_spec__0___boxed(lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__2;
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4_spec__4(lean_object*);
+static lean_object* lp_mathlib_AddMonCat_equivalence___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_Simps_hom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonCatIso___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0___lam__0___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_hom___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_equivalence_spec__2___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__3___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_ofHom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__5___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_instCoeMonCat;
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_instCoeMonCat;
+lean_object* lp_mathlib_Additive_ofMul(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_equivalence;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_id___at___00CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7_spec__7_spec__7(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonCatIso___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1(lean_object*, lean_object*);
+lean_object* lp_mathlib_ULift_commMonoid___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddCommMonCat_hasForgetToAddMonCat_spec__0___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_fullyFaithfulForgetToAddMonCat_spec__0___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instCategory___lam__0(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_Simps_hom(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_symm___at___00CommMonCat_uliftFunctor_spec__1(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_of(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_symm___at___00AddMonCat_uliftFunctor_spec__1(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_symm___at___00MonCat_uliftFunctor_spec__1___boxed(lean_object*, lean_object*);
+lean_object* lp_mathlib_AddMonoid_toAddZeroClass___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_ofHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonCatIso(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddCommMonCatIso___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instCategory;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__4___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddCommMonCat_hasForgetToAddMonCat_spec__0___redArg(lean_object*);
+static lean_object* lp_mathlib_mulEquivIsoMonCatIso___redArg___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_instCategory_spec__1___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg___lam__1(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_addMonCatIsoToAddEquiv(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddCommMonCatIso___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonCatIso___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instOneHom___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_equivalence_spec__2___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_hasForgetToAddMonCat;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_Hom_hom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7_spec__7(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_hasForgetToMonCat;
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__2(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_uliftFunctor;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_hom(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instCategory;
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__2___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_comp___at___00AddCommMonCat_equivalence_spec__6(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_commMonCatIsoToMulEquiv(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddCommMonCat_hasForgetToAddMonCat_spec__0(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4___lam__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__3(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_instCoeSortType;
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__2___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_equivalence___lam__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__5___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_monCatIsoToMulEquiv___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg___lam__0(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_fullyFaithfulForgetToAddMonCat_spec__0___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__2___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__4(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_uliftFunctor___lam__0(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_symm___at___00AddCommMonCat_uliftFunctor_spec__1(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_commMonCatIsoToAddEquiv___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_of___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_symm___at___00MonCat_uliftFunctor_spec__1(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__2___redArg___boxed(lean_object*);
+static lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_uliftFunctor___lam__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_symm___at___00AddMonCat_uliftFunctor_spec__1___redArg(lean_object*);
+static lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_equivalence_spec__2___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__5___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__5(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg(lean_object*, lean_object*);
+lean_object* lp_mathlib_Equiv_symm___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_uliftFunctor_spec__6___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__5___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_instZeroHom_spec__0(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_commMonCatIsoToAddEquiv_spec__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_instCoeSortType;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instInhabited;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_instZeroHom_spec__0___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__2___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_equivalence___lam__0(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_ofHom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instZeroHom(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_of(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_commMonCatIsoToMulEquiv_spec__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__1___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_Simps_hom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instOneHom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoMonCatIso___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_of(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_fullyFaithfulForgetToAddMonCat;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__4___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_instCategory___lam__0(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_CommMonCat_instCategory___closed__0;
+static lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__1(lean_object*, lean_object*);
+static lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__1;
+lean_object* lp_mathlib_OneHom_id___lam__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_Hom_hom(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_equivalence___lam__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_equivalence_spec__2(lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instCategory___lam__0(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__4___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_fullyFaithfulForgetToMonCat;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__5(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_uliftFunctor___lam__0(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__2(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___redArg___boxed(lean_object*);
+lean_object* lp_mathlib_ULift_addMonoid___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddCommMonCatIso___redArg___lam__0(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_Simps_hom(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__0___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__1(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_Simps_hom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_hom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_symm___at___00CommMonCat_uliftFunctor_spec__1___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__2___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+lean_object* lp_mathlib_Monoid_toMulOneClass___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instConcreteCategoryMonoidHomCarrier;
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instOneHom___redArg___lam__0___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7_spec__7___lam__0(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instOneHom(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_uliftFunctor_spec__6(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoMonCatIso___redArg___lam__0___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__4(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instInhabited;
+extern lean_object* lp_mathlib_PUnit_commGroup;
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__3___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instZeroHom___lam__0___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_comp___at___00AddMonCat_equivalence_spec__6___lam__0(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_commMonCatIsoToMulEquiv___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_commMonCatIsoToMulEquiv_spec__0___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instZeroHom___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_addMonCatIsoToAddEquiv___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instCoeSortType;
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_equivalence_spec__2___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__3(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__3___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddMonCatIso___redArg___lam__0(lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_AddMonCat_uliftFunctor___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_Simps_hom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_of(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__1(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_CommMonCat_instCategory___closed__2;
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_instCategory___lam__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__3___boxed(lean_object*, lean_object*);
+static lean_object* lp_mathlib_MonCat_uliftFunctor___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7_spec__7___lam__0(lean_object*, lean_object*);
+lean_object* lp_mathlib_Multiplicative_toAdd(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0___boxed(lean_object*);
+lean_object* lp_mathlib_MonoidHom_comp___redArg(lean_object*, lean_object*);
+static lean_object* lp_mathlib_CommMonCat_uliftFunctor___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_ulift___at___00AddCommMonCat_uliftFunctor_spec__0___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_of___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__4(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_fullyFaithfulForgetToAddMonCat_spec__0(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_hom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__3___redArg(lean_object*);
+lean_object* lp_mathlib_Multiplicative_ofAdd(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_addMonCatIsoToAddEquiv_spec__0(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_equivalence_spec__2(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_uliftFunctor_spec__6___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_ofHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__4(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_AddCommMonCat_instCoeMonCat___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_ofHom(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__4___redArg(lean_object*, lean_object*);
+static lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__5___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddMonCatIso___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_Simps_hom(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_commMonCatIsoToAddEquiv_spec__0___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instCategory___lam__1___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_comp___at___00AddMonCat_equivalence_spec__6___lam__1(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_symm___at___00AddMonCat_uliftFunctor_spec__1___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_instInhabited;
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoCommMonCatIso(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3;
+static lean_object* lp_mathlib_CommMonCat_instCategory___closed__1;
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__3___redArg(lean_object*);
+lean_object* lp_mathlib_Multiplicative_monoid___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_of___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toCommMonCatIso___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_equivalence___lam__0(lean_object*, lean_object*, lean_object*, lean_object*);
+static lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instCategory___lam__0___boxed(lean_object*, lean_object*);
+static lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4_spec__4___closed__0;
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0___lam__0(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_of___boxed(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4_spec__4___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_addMonCatIsoToAddEquiv_spec__0___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_of___redArg(lean_object*);
+static lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__2;
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_ulift___at___00AddMonCat_uliftFunctor_spec__0___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__3___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_hom___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddCommMonCatIso___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_uliftFunctor___lam__0(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7_spec__7(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_uliftFunctor_spec__6___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_uliftFunctor___lam__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_hasForgetToMonCat___lam__0___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__3___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_hasForgetToMonCat___lam__1___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_instCategory;
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoCommMonCatIso___redArg___lam__0(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_uliftFunctor_spec__6___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddMonCatIso___redArg___lam__0___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_id___at___00CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7_spec__7_spec__7___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_ofHom___boxed(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__3___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_uliftFunctor___lam__0(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_commMonCatIsoToAddEquiv_spec__0(lean_object*, lean_object*, lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_hom___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddMonCatIso(lean_object*, lean_object*, lean_object*, lean_object*);
+lean_object* lp_mathlib_ULift_addCommMonoid___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instConcreteCategoryAddMonoidHomCarrier___lam__0___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_monCatIsoToMulEquiv(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__4___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__1___boxed(lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__4___boxed(lean_object*, lean_object*, lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_Hom_hom___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonCatIso___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_uliftFunctor_spec__6___redArg___boxed(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_instZeroHom_spec__0___redArg(lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__3(lean_object*, lean_object*);
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_comp___at___00AddMonCat_equivalence_spec__6(lean_object*, lean_object*);
+static lean_object* _init_lp_mathlib_MonCat_instCoeSortType() {
+_start:
+{
+return lean_box(0);
+}
+}
+static lean_object* _init_lp_mathlib_AddMonCat_instCoeSortType() {
+_start:
+{
+return lean_box(0);
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_of(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_of___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_of___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MonCat_of(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_of___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MonCat_of___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_of(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_of___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_of___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonCat_of(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_of___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonCat_of___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instCategory___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_OneHom_id___lam__0(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instCategory___lam__1(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; lean_object* x_8; 
+x_7 = lp_mathlib_MonoidHom_comp___redArg(x_5, x_4);
+x_8 = lean_apply_1(x_7, x_6);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instCategory___lam__0___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MonCat_instCategory___lam__0(x_1, x_2);
+lean_dec(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instCategory___lam__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_MonCat_instCategory___lam__1(x_1, x_2, x_3, x_4, x_5, x_6);
+lean_dec_ref(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_7;
+}
+}
+static lean_object* _init_lp_mathlib_MonCat_instCategory() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_MonCat_instCategory___lam__0___boxed), 2, 0);
+x_2 = lean_alloc_closure((void*)(lp_mathlib_MonCat_instCategory___lam__1___boxed), 6, 0);
+x_3 = lean_box(0);
+x_4 = lean_alloc_ctor(0, 3, 0);
+lean_ctor_set(x_4, 0, x_3);
+lean_ctor_set(x_4, 1, x_1);
+lean_ctor_set(x_4, 2, x_2);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0___lam__0(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; lean_object* x_5; 
+x_4 = lean_apply_1(x_1, x_3);
+x_5 = lean_apply_1(x_2, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg___lam__0), 3, 2);
+lean_closure_set(x_3, 0, x_2);
+lean_closure_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instCategory___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; lean_object* x_8; 
+x_7 = lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg(x_5, x_4);
+x_8 = lean_apply_1(x_7, x_6);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg(x_4, x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0___lam__0___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0___lam__0(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0___lam__0___boxed), 1, 0);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instCategory___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_AddMonCat_instCategory___lam__0(x_1, x_2, x_3, x_4, x_5, x_6);
+lean_dec_ref(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_7;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonCat_instCategory() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0___boxed), 1, 0);
+x_2 = lean_alloc_closure((void*)(lp_mathlib_AddMonCat_instCategory___lam__0___boxed), 6, 0);
+x_3 = lean_box(0);
+x_4 = lean_alloc_ctor(0, 3, 0);
+lean_ctor_set(x_4, 0, x_3);
+lean_ctor_set(x_4, 1, x_1);
+lean_ctor_set(x_4, 2, x_2);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1(x_1, x_2, x_3, x_4, x_5);
+lean_dec_ref(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instConcreteCategoryMonoidHomCarrier___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lean_apply_1(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instConcreteCategoryMonoidHomCarrier___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MonCat_instConcreteCategoryMonoidHomCarrier___lam__0(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_MonCat_instConcreteCategoryMonoidHomCarrier() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_MonCat_instConcreteCategoryMonoidHomCarrier___lam__0___boxed), 4, 0);
+lean_inc_ref(x_1);
+x_2 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_2, 0, x_1);
+lean_ctor_set(x_2, 1, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instConcreteCategoryAddMonoidHomCarrier___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lean_apply_1(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instConcreteCategoryAddMonoidHomCarrier___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonCat_instConcreteCategoryAddMonoidHomCarrier___lam__0(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonCat_instConcreteCategoryAddMonoidHomCarrier() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_AddMonCat_instConcreteCategoryAddMonoidHomCarrier___lam__0___boxed), 4, 0);
+lean_inc_ref(x_1);
+x_2 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_2, 0, x_1);
+lean_ctor_set(x_2, 1, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_hom(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_hom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_hom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_MonCat_Hom_hom(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_hom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MonCat_Hom_hom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_Hom_hom(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_Hom_hom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_Hom_hom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_AddMonCat_Hom_hom(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_Hom_hom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonCat_Hom_hom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_ofHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_inc(x_5);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_ofHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_ofHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_MonCat_ofHom(x_1, x_2, x_3, x_4, x_5);
+lean_dec(x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_ofHom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MonCat_ofHom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_inc(x_5);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_AddMonCat_ofHom(x_1, x_2, x_3, x_4, x_5);
+lean_dec(x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonCat_ofHom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_Simps_hom(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_Simps_hom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_Simps_hom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_MonCat_Hom_Simps_hom(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_Hom_Simps_hom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MonCat_Hom_Simps_hom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_MonCat_instInhabited() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_PUnit_commGroup;
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonCat_instInhabited() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_PUnit_addCommGroup;
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instOneHom___redArg___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instOneHom___redArg___lam__0___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MonCat_instOneHom___redArg___lam__0(x_1, x_2);
+lean_dec(x_2);
+lean_dec(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instOneHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; lean_object* x_4; 
+x_2 = lp_mathlib_Monoid_toMulOneClass___redArg(x_1);
+x_3 = lean_ctor_get(x_2, 0);
+lean_inc(x_3);
+lean_dec_ref(x_2);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_MonCat_instOneHom___redArg___lam__0___boxed), 2, 1);
+lean_closure_set(x_4, 0, x_3);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instOneHom(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MonCat_instOneHom___redArg(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instOneHom___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MonCat_instOneHom(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_instOneHom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MonCat_instOneHom___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instZeroHom___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_instZeroHom_spec__0(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_instZeroHom_spec__0___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instZeroHom___lam__0___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonCat_instZeroHom___lam__0(x_1, x_2);
+lean_dec(x_2);
+lean_dec(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instZeroHom(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lp_mathlib_AddMonoid_toAddZeroClass___redArg(x_2);
+x_4 = lean_ctor_get(x_3, 0);
+lean_inc(x_4);
+lean_dec_ref(x_3);
+x_5 = lean_alloc_closure((void*)(lp_mathlib_AddMonCat_instZeroHom___lam__0___boxed), 2, 1);
+lean_closure_set(x_5, 0, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_instZeroHom_spec__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_instZeroHom_spec__0(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_instZeroHom_spec__0___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_instZeroHom_spec__0___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_instZeroHom___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonCat_instZeroHom(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__4___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg___lam__0), 3, 2);
+lean_closure_set(x_3, 0, x_2);
+lean_closure_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__4(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__4___redArg(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__5___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg___lam__0), 3, 2);
+lean_closure_set(x_3, 0, x_2);
+lean_closure_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__5(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__5___redArg(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_symm___at___00MonCat_uliftFunctor_spec__1(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_Equiv_symm___redArg(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_symm___at___00MonCat_uliftFunctor_spec__1___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_Equiv_symm___redArg(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_Equiv_ulift(lean_box(0));
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0___closed__0;
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__2(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_ctor_get(x_2, 0);
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__2___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__3(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_ctor_get(x_2, 0);
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__3___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_MonCat_uliftFunctor___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_ULift_monoid___redArg), 1, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_uliftFunctor___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; lean_object* x_12; 
+x_5 = lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0(x_2);
+x_6 = lp_mathlib_Equiv_symm___redArg(x_5);
+x_7 = lean_ctor_get(x_6, 0);
+lean_inc(x_7);
+lean_dec_ref(x_6);
+x_8 = lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0(x_1);
+x_9 = lean_ctor_get(x_8, 0);
+lean_inc(x_9);
+lean_dec_ref(x_8);
+x_10 = lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__4___redArg(x_3, x_9);
+x_11 = lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__5___redArg(x_7, x_10);
+x_12 = lean_apply_1(x_11, x_4);
+return x_12;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonCat_uliftFunctor___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MonCat_uliftFunctor___lam__0(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_MonCat_uliftFunctor() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lp_mathlib_MonCat_uliftFunctor___closed__0;
+x_2 = lean_alloc_closure((void*)(lp_mathlib_MonCat_uliftFunctor___lam__0___boxed), 4, 0);
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_1);
+lean_ctor_set(x_3, 1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__4___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__4(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__5___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MonoidHom_comp___at___00MonCat_uliftFunctor_spec__5(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_symm___at___00MonCat_uliftFunctor_spec__1___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MulEquiv_symm___at___00MonCat_uliftFunctor_spec__1(x_1, x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__2___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__2(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__2___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__2___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__3___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__3(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__3___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MulEquiv_toMonoidHom___at___00MonCat_uliftFunctor_spec__3___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_uliftFunctor_spec__6(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_uliftFunctor_spec__6___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_symm___at___00AddMonCat_uliftFunctor_spec__1(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_Equiv_symm___redArg(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_symm___at___00AddMonCat_uliftFunctor_spec__1___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_Equiv_symm___redArg(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_ulift___at___00AddMonCat_uliftFunctor_spec__0(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0___closed__0;
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__4___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg___lam__0), 3, 2);
+lean_closure_set(x_3, 0, x_2);
+lean_closure_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__4(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__4___redArg(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__5___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg___lam__0), 3, 2);
+lean_closure_set(x_3, 0, x_2);
+lean_closure_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__5(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__5___redArg(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__2(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_ctor_get(x_2, 0);
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__2___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__3(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_ctor_get(x_2, 0);
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__3___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonCat_uliftFunctor___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_ULift_addMonoid___redArg), 1, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_uliftFunctor___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; lean_object* x_12; 
+x_5 = lp_mathlib_AddEquiv_ulift___at___00AddMonCat_uliftFunctor_spec__0(x_2);
+x_6 = lp_mathlib_Equiv_symm___redArg(x_5);
+x_7 = lean_ctor_get(x_6, 0);
+lean_inc(x_7);
+lean_dec_ref(x_6);
+x_8 = lp_mathlib_AddEquiv_ulift___at___00AddMonCat_uliftFunctor_spec__0(x_1);
+x_9 = lean_ctor_get(x_8, 0);
+lean_inc(x_9);
+lean_dec_ref(x_8);
+x_10 = lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__4___redArg(x_3, x_9);
+x_11 = lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__5___redArg(x_7, x_10);
+x_12 = lean_apply_1(x_11, x_4);
+return x_12;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_uliftFunctor___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonCat_uliftFunctor___lam__0(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonCat_uliftFunctor() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lp_mathlib_AddMonCat_uliftFunctor___closed__0;
+x_2 = lean_alloc_closure((void*)(lp_mathlib_AddMonCat_uliftFunctor___lam__0___boxed), 4, 0);
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_1);
+lean_ctor_set(x_3, 1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_uliftFunctor_spec__6___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_uliftFunctor_spec__6(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_uliftFunctor_spec__6___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_uliftFunctor_spec__6___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_symm___at___00AddMonCat_uliftFunctor_spec__1___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddEquiv_symm___at___00AddMonCat_uliftFunctor_spec__1(x_1, x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_ulift___at___00AddMonCat_uliftFunctor_spec__0___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddEquiv_ulift___at___00AddMonCat_uliftFunctor_spec__0(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__4___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__4(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__5___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_uliftFunctor_spec__5(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__2___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__2(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__2___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__2___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__3___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__3(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__3___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddMonCat_uliftFunctor_spec__3___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_instCoeSortType() {
+_start:
+{
+return lean_box(0);
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_instCoeSortType() {
+_start:
+{
+return lean_box(0);
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_of(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_of___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_of___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_CommMonCat_of(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_of___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_CommMonCat_of___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_of(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_of___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_of___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddCommMonCat_of(x_1, x_2);
+lean_dec_ref(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_of___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddCommMonCat_of___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_instCategory___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_MonCat_instCategory___lam__0___boxed), 2, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_instCategory___closed__1() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_MonCat_instCategory___lam__1___boxed), 6, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_instCategory___closed__2() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; 
+x_1 = lp_mathlib_CommMonCat_instCategory___closed__1;
+x_2 = lp_mathlib_CommMonCat_instCategory___closed__0;
+x_3 = lean_box(0);
+x_4 = lean_alloc_ctor(0, 3, 0);
+lean_ctor_set(x_4, 0, x_3);
+lean_ctor_set(x_4, 1, x_2);
+lean_ctor_set(x_4, 2, x_1);
+return x_4;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_instCategory() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_CommMonCat_instCategory___closed__2;
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_instCategory_spec__1___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg___lam__0), 3, 2);
+lean_closure_set(x_3, 0, x_2);
+lean_closure_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_instCategory___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; lean_object* x_8; 
+x_7 = lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_instCategory_spec__1___redArg(x_5, x_4);
+x_8 = lean_apply_1(x_7, x_6);
+return x_8;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_instCategory_spec__1(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_instCategory_spec__1___redArg(x_4, x_5);
+return x_6;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_id___at___00AddMonCat_instCategory_spec__0___lam__0___boxed), 1, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0___closed__0;
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_instCategory___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_AddCommMonCat_instCategory___lam__0(x_1, x_2, x_3, x_4, x_5, x_6);
+lean_dec_ref(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_7;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_instCategory() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0___boxed), 1, 0);
+x_2 = lean_alloc_closure((void*)(lp_mathlib_AddCommMonCat_instCategory___lam__0___boxed), 6, 0);
+x_3 = lean_box(0);
+x_4 = lean_alloc_ctor(0, 3, 0);
+lean_ctor_set(x_4, 0, x_3);
+lean_ctor_set(x_4, 1, x_1);
+lean_ctor_set(x_4, 2, x_2);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_instCategory_spec__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_instCategory_spec__1(x_1, x_2, x_3, x_4, x_5);
+lean_dec_ref(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_6;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_MonCat_instConcreteCategoryMonoidHomCarrier___lam__0___boxed), 4, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier___closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier___closed__0;
+x_2 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_2, 0, x_1);
+lean_ctor_set(x_2, 1, x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier___closed__1;
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_AddMonCat_instConcreteCategoryAddMonoidHomCarrier___lam__0___boxed), 4, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier___closed__1() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier___closed__0;
+x_2 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_2, 0, x_1);
+lean_ctor_set(x_2, 1, x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier___closed__1;
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_hom(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_hom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_hom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_CommMonCat_Hom_hom(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_hom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_CommMonCat_Hom_hom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_hom(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_hom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_hom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_AddCommMonCat_Hom_hom(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_hom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddCommMonCat_Hom_hom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_ofHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_inc(x_5);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_ofHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_ofHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_CommMonCat_ofHom(x_1, x_2, x_3, x_4, x_5);
+lean_dec(x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_ofHom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_CommMonCat_ofHom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_inc(x_5);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_AddCommMonCat_ofHom(x_1, x_2, x_3, x_4, x_5);
+lean_dec(x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddCommMonCat_ofHom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_Simps_hom(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_Simps_hom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_Simps_hom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_CommMonCat_Hom_Simps_hom(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_Hom_Simps_hom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_CommMonCat_Hom_Simps_hom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_Simps_hom(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_Simps_hom___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_Simps_hom___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_AddCommMonCat_Hom_Simps_hom(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_Hom_Simps_hom___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddCommMonCat_Hom_Simps_hom___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_instInhabited() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_PUnit_commGroup;
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_instInhabited() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; 
+x_1 = lp_mathlib_PUnit_addCommGroup;
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc_ref(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_hasForgetToMonCat___lam__0(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_hasForgetToMonCat___lam__1(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lean_apply_1(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_hasForgetToMonCat___lam__0___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_CommMonCat_hasForgetToMonCat___lam__0(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_hasForgetToMonCat___lam__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_CommMonCat_hasForgetToMonCat___lam__1(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_hasForgetToMonCat() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_CommMonCat_hasForgetToMonCat___lam__0___boxed), 1, 0);
+x_2 = lean_alloc_closure((void*)(lp_mathlib_CommMonCat_hasForgetToMonCat___lam__1___boxed), 4, 0);
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_1);
+lean_ctor_set(x_3, 1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__0(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddCommMonCat_hasForgetToAddMonCat_spec__0(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddCommMonCat_hasForgetToAddMonCat_spec__0___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__1(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lean_apply_1(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__0___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__0(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__1(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_hasForgetToAddMonCat() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__0___boxed), 1, 0);
+x_2 = lean_alloc_closure((void*)(lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__1___boxed), 4, 0);
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_1);
+lean_ctor_set(x_3, 1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddCommMonCat_hasForgetToAddMonCat_spec__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_AddMonCat_ofHom___at___00AddCommMonCat_hasForgetToAddMonCat_spec__0(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddCommMonCat_hasForgetToAddMonCat_spec__0___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonCat_ofHom___at___00AddCommMonCat_hasForgetToAddMonCat_spec__0___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_fullyFaithfulForgetToMonCat___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_CommMonCat_hasForgetToMonCat___lam__1___boxed), 4, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_fullyFaithfulForgetToMonCat() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_CommMonCat_fullyFaithfulForgetToMonCat___closed__0;
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_fullyFaithfulForgetToAddMonCat_spec__0(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_fullyFaithfulForgetToAddMonCat_spec__0___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_fullyFaithfulForgetToAddMonCat___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__1___boxed), 4, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_fullyFaithfulForgetToAddMonCat() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_AddCommMonCat_fullyFaithfulForgetToAddMonCat___closed__0;
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_fullyFaithfulForgetToAddMonCat_spec__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_fullyFaithfulForgetToAddMonCat_spec__0(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_fullyFaithfulForgetToAddMonCat_spec__0___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_fullyFaithfulForgetToAddMonCat_spec__0___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_instCoeMonCat___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_CommMonCat_hasForgetToMonCat___lam__0___boxed), 1, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_instCoeMonCat() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_CommMonCat_instCoeMonCat___closed__0;
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_instCoeMonCat___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_AddCommMonCat_hasForgetToAddMonCat___lam__0___boxed), 1, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_instCoeMonCat() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_AddCommMonCat_instCoeMonCat___closed__0;
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__4___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg___lam__0), 3, 2);
+lean_closure_set(x_3, 0, x_2);
+lean_closure_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__4(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__4___redArg(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__5___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg___lam__0), 3, 2);
+lean_closure_set(x_3, 0, x_2);
+lean_closure_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__5(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__5___redArg(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_symm___at___00CommMonCat_uliftFunctor_spec__1(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_Equiv_symm___redArg(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_symm___at___00CommMonCat_uliftFunctor_spec__1___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_Equiv_symm___redArg(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_ulift___at___00CommMonCat_uliftFunctor_spec__0(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0___closed__0;
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__2(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_ctor_get(x_2, 0);
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__2___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__3(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_ctor_get(x_2, 0);
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__3___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_uliftFunctor___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_ULift_commMonoid___redArg), 1, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_uliftFunctor___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; lean_object* x_12; 
+x_5 = lp_mathlib_MulEquiv_ulift___at___00CommMonCat_uliftFunctor_spec__0(x_2);
+x_6 = lp_mathlib_Equiv_symm___redArg(x_5);
+x_7 = lean_ctor_get(x_6, 0);
+lean_inc(x_7);
+lean_dec_ref(x_6);
+x_8 = lp_mathlib_MulEquiv_ulift___at___00CommMonCat_uliftFunctor_spec__0(x_1);
+x_9 = lean_ctor_get(x_8, 0);
+lean_inc(x_9);
+lean_dec_ref(x_8);
+x_10 = lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__4___redArg(x_3, x_9);
+x_11 = lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__5___redArg(x_7, x_10);
+x_12 = lean_apply_1(x_11, x_4);
+return x_12;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CommMonCat_uliftFunctor___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_CommMonCat_uliftFunctor___lam__0(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_CommMonCat_uliftFunctor() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lp_mathlib_CommMonCat_uliftFunctor___closed__0;
+x_2 = lean_alloc_closure((void*)(lp_mathlib_CommMonCat_uliftFunctor___lam__0___boxed), 4, 0);
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_1);
+lean_ctor_set(x_3, 1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__4___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__4(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__5___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_MonoidHom_comp___at___00CommMonCat_uliftFunctor_spec__5(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_symm___at___00CommMonCat_uliftFunctor_spec__1___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MulEquiv_symm___at___00CommMonCat_uliftFunctor_spec__1(x_1, x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_ulift___at___00CommMonCat_uliftFunctor_spec__0___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MulEquiv_ulift___at___00CommMonCat_uliftFunctor_spec__0(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__2___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__2(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__2___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__2___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__3___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__3(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__3___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MulEquiv_toMonoidHom___at___00CommMonCat_uliftFunctor_spec__3___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_uliftFunctor_spec__6(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_uliftFunctor_spec__6___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_symm___at___00AddCommMonCat_uliftFunctor_spec__1(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_Equiv_symm___redArg(x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_symm___at___00AddCommMonCat_uliftFunctor_spec__1___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_Equiv_symm___redArg(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_ulift___at___00AddCommMonCat_uliftFunctor_spec__0(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0___closed__0;
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__4___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg___lam__0), 3, 2);
+lean_closure_set(x_3, 0, x_2);
+lean_closure_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__4(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__4___redArg(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__5___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_comp___at___00AddMonCat_instCategory_spec__1___redArg___lam__0), 3, 2);
+lean_closure_set(x_3, 0, x_2);
+lean_closure_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__5(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__5___redArg(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__2(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_ctor_get(x_2, 0);
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__2___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__3(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_ctor_get(x_2, 0);
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__3___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+return x_2;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_uliftFunctor___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_ULift_addCommMonoid___redArg), 1, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_uliftFunctor___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; lean_object* x_12; 
+x_5 = lp_mathlib_AddEquiv_ulift___at___00AddCommMonCat_uliftFunctor_spec__0(x_2);
+x_6 = lp_mathlib_Equiv_symm___redArg(x_5);
+x_7 = lean_ctor_get(x_6, 0);
+lean_inc(x_7);
+lean_dec_ref(x_6);
+x_8 = lp_mathlib_AddEquiv_ulift___at___00AddCommMonCat_uliftFunctor_spec__0(x_1);
+x_9 = lean_ctor_get(x_8, 0);
+lean_inc(x_9);
+lean_dec_ref(x_8);
+x_10 = lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__4___redArg(x_3, x_9);
+x_11 = lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__5___redArg(x_7, x_10);
+x_12 = lean_apply_1(x_11, x_4);
+return x_12;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_uliftFunctor___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddCommMonCat_uliftFunctor___lam__0(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_uliftFunctor() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lp_mathlib_AddCommMonCat_uliftFunctor___closed__0;
+x_2 = lean_alloc_closure((void*)(lp_mathlib_AddCommMonCat_uliftFunctor___lam__0___boxed), 4, 0);
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_1);
+lean_ctor_set(x_3, 1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_uliftFunctor_spec__6___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_uliftFunctor_spec__6(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_uliftFunctor_spec__6___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_uliftFunctor_spec__6___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_symm___at___00AddCommMonCat_uliftFunctor_spec__1___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddEquiv_symm___at___00AddCommMonCat_uliftFunctor_spec__1(x_1, x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_ulift___at___00AddCommMonCat_uliftFunctor_spec__0___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddEquiv_ulift___at___00AddCommMonCat_uliftFunctor_spec__0(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__4___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__4(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__5___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonoidHom_comp___at___00AddCommMonCat_uliftFunctor_spec__5(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__2___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__2(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__2___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__2___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__3___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__3(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__3___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddEquiv_toAddMonoidHom___at___00AddCommMonCat_uliftFunctor_spec__3___redArg(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonCatIso___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; uint8_t x_4; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+x_3 = lp_mathlib_Equiv_symm___redArg(x_1);
+x_4 = !lean_is_exclusive(x_3);
+if (x_4 == 0)
+{
+lean_object* x_5; lean_object* x_6; 
+x_5 = lean_ctor_get(x_3, 0);
+x_6 = lean_ctor_get(x_3, 1);
+lean_dec(x_6);
+lean_ctor_set(x_3, 1, x_5);
+lean_ctor_set(x_3, 0, x_2);
+return x_3;
+}
+else
+{
+lean_object* x_7; lean_object* x_8; 
+x_7 = lean_ctor_get(x_3, 0);
+lean_inc(x_7);
+lean_dec(x_3);
+x_8 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_8, 0, x_2);
+lean_ctor_set(x_8, 1, x_7);
+return x_8;
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonCatIso(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_MulEquiv_toMonCatIso___redArg(x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toMonCatIso___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_MulEquiv_toMonCatIso(x_1, x_2, x_3, x_4, x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonCatIso___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; uint8_t x_4; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+x_3 = lp_mathlib_Equiv_symm___redArg(x_1);
+x_4 = !lean_is_exclusive(x_3);
+if (x_4 == 0)
+{
+lean_object* x_5; lean_object* x_6; 
+x_5 = lean_ctor_get(x_3, 0);
+x_6 = lean_ctor_get(x_3, 1);
+lean_dec(x_6);
+lean_ctor_set(x_3, 1, x_5);
+lean_ctor_set(x_3, 0, x_2);
+return x_3;
+}
+else
+{
+lean_object* x_7; lean_object* x_8; 
+x_7 = lean_ctor_get(x_3, 0);
+lean_inc(x_7);
+lean_dec(x_3);
+x_8 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_8, 0, x_2);
+lean_ctor_set(x_8, 1, x_7);
+return x_8;
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonCatIso(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_AddEquiv_toAddMonCatIso___redArg(x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddMonCatIso___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_AddEquiv_toAddMonCatIso(x_1, x_2, x_3, x_4, x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toCommMonCatIso___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; uint8_t x_4; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+x_3 = lp_mathlib_Equiv_symm___redArg(x_1);
+x_4 = !lean_is_exclusive(x_3);
+if (x_4 == 0)
+{
+lean_object* x_5; lean_object* x_6; 
+x_5 = lean_ctor_get(x_3, 0);
+x_6 = lean_ctor_get(x_3, 1);
+lean_dec(x_6);
+lean_ctor_set(x_3, 1, x_5);
+lean_ctor_set(x_3, 0, x_2);
+return x_3;
+}
+else
+{
+lean_object* x_7; lean_object* x_8; 
+x_7 = lean_ctor_get(x_3, 0);
+lean_inc(x_7);
+lean_dec(x_3);
+x_8 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_8, 0, x_2);
+lean_ctor_set(x_8, 1, x_7);
+return x_8;
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toCommMonCatIso(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_MulEquiv_toCommMonCatIso___redArg(x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MulEquiv_toCommMonCatIso___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_MulEquiv_toCommMonCatIso(x_1, x_2, x_3, x_4, x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddCommMonCatIso___redArg(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; uint8_t x_4; 
+x_2 = lean_ctor_get(x_1, 0);
+lean_inc(x_2);
+x_3 = lp_mathlib_Equiv_symm___redArg(x_1);
+x_4 = !lean_is_exclusive(x_3);
+if (x_4 == 0)
+{
+lean_object* x_5; lean_object* x_6; 
+x_5 = lean_ctor_get(x_3, 0);
+x_6 = lean_ctor_get(x_3, 1);
+lean_dec(x_6);
+lean_ctor_set(x_3, 1, x_5);
+lean_ctor_set(x_3, 0, x_2);
+return x_3;
+}
+else
+{
+lean_object* x_7; lean_object* x_8; 
+x_7 = lean_ctor_get(x_3, 0);
+lean_inc(x_7);
+lean_dec(x_3);
+x_8 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_8, 0, x_2);
+lean_ctor_set(x_8, 1, x_7);
+return x_8;
+}
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddCommMonCatIso(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_AddEquiv_toAddCommMonCatIso___redArg(x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddEquiv_toAddCommMonCatIso___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; 
+x_6 = lp_mathlib_AddEquiv_toAddCommMonCatIso(x_1, x_2, x_3, x_4, x_5);
+lean_dec_ref(x_4);
+lean_dec_ref(x_3);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_apply_1(x_1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg___lam__1(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lean_apply_1(x_1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg___lam__0), 2, 1);
+lean_closure_set(x_3, 0, x_1);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg___lam__1), 2, 1);
+lean_closure_set(x_4, 0, x_2);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg(x_3, x_4);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_monCatIsoToMulEquiv(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; lean_object* x_5; lean_object* x_6; 
+x_4 = lean_ctor_get(x_3, 0);
+lean_inc(x_4);
+x_5 = lean_ctor_get(x_3, 1);
+lean_inc(x_5);
+lean_dec_ref(x_3);
+x_6 = lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg(x_4, x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0(x_1, x_2, x_3, x_4, x_5, x_6);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_monCatIsoToMulEquiv___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_CategoryTheory_Iso_monCatIsoToMulEquiv(x_1, x_2, x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_addMonCatIsoToAddEquiv_spec__0___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg___lam__0), 2, 1);
+lean_closure_set(x_3, 0, x_1);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg___lam__1), 2, 1);
+lean_closure_set(x_4, 0, x_2);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_addMonCatIsoToAddEquiv_spec__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_addMonCatIsoToAddEquiv_spec__0___redArg(x_3, x_4);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_addMonCatIsoToAddEquiv(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; lean_object* x_5; lean_object* x_6; 
+x_4 = lean_ctor_get(x_3, 0);
+lean_inc(x_4);
+x_5 = lean_ctor_get(x_3, 1);
+lean_inc(x_5);
+lean_dec_ref(x_3);
+x_6 = lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_addMonCatIsoToAddEquiv_spec__0___redArg(x_4, x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_addMonCatIsoToAddEquiv_spec__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_addMonCatIsoToAddEquiv_spec__0(x_1, x_2, x_3, x_4, x_5, x_6);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_addMonCatIsoToAddEquiv___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_CategoryTheory_Iso_addMonCatIsoToAddEquiv(x_1, x_2, x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_commMonCatIsoToMulEquiv_spec__0___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg___lam__0), 2, 1);
+lean_closure_set(x_3, 0, x_1);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg___lam__1), 2, 1);
+lean_closure_set(x_4, 0, x_2);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_commMonCatIsoToMulEquiv_spec__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_commMonCatIsoToMulEquiv_spec__0___redArg(x_3, x_4);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_commMonCatIsoToMulEquiv(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; lean_object* x_5; lean_object* x_6; 
+x_4 = lean_ctor_get(x_3, 0);
+lean_inc(x_4);
+x_5 = lean_ctor_get(x_3, 1);
+lean_inc(x_5);
+lean_dec_ref(x_3);
+x_6 = lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_commMonCatIsoToMulEquiv_spec__0___redArg(x_4, x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_commMonCatIsoToMulEquiv_spec__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_commMonCatIsoToMulEquiv_spec__0(x_1, x_2, x_3, x_4, x_5, x_6);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_commMonCatIsoToMulEquiv___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_CategoryTheory_Iso_commMonCatIsoToMulEquiv(x_1, x_2, x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_commMonCatIsoToAddEquiv_spec__0___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg___lam__0), 2, 1);
+lean_closure_set(x_3, 0, x_1);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toMulEquiv___at___00CategoryTheory_Iso_monCatIsoToMulEquiv_spec__0___redArg___lam__1), 2, 1);
+lean_closure_set(x_4, 0, x_2);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_commMonCatIsoToAddEquiv_spec__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_commMonCatIsoToAddEquiv_spec__0___redArg(x_3, x_4);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_commMonCatIsoToAddEquiv(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; lean_object* x_5; lean_object* x_6; 
+x_4 = lean_ctor_get(x_3, 0);
+lean_inc(x_4);
+x_5 = lean_ctor_get(x_3, 1);
+lean_inc(x_5);
+lean_dec_ref(x_3);
+x_6 = lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_commMonCatIsoToAddEquiv_spec__0___redArg(x_4, x_5);
+return x_6;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_commMonCatIsoToAddEquiv_spec__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5, lean_object* x_6) {
+_start:
+{
+lean_object* x_7; 
+x_7 = lp_mathlib_AddMonoidHom_toAddEquiv___at___00CategoryTheory_Iso_commMonCatIsoToAddEquiv_spec__0(x_1, x_2, x_3, x_4, x_5, x_6);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_commMonCatIsoToAddEquiv___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_CategoryTheory_Iso_commMonCatIsoToAddEquiv(x_1, x_2, x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+static lean_object* _init_lp_mathlib_mulEquivIsoMonCatIso___redArg___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_MulEquiv_toMonCatIso___redArg), 1, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoMonCatIso___redArg___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_CategoryTheory_Iso_monCatIsoToMulEquiv(x_1, x_2, x_3);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoMonCatIso___redArg___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_mulEquivIsoMonCatIso___redArg___lam__0(x_1, x_2, x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoMonCatIso___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lp_mathlib_mulEquivIsoMonCatIso___redArg___closed__0;
+x_4 = lean_alloc_closure((void*)(lp_mathlib_mulEquivIsoMonCatIso___redArg___lam__0___boxed), 3, 2);
+lean_closure_set(x_4, 0, x_1);
+lean_closure_set(x_4, 1, x_2);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoMonCatIso(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_mulEquivIsoMonCatIso___redArg(x_3, x_4);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_addEquivIsoAddMonCatIso___redArg___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_AddEquiv_toAddMonCatIso___redArg), 1, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddMonCatIso___redArg___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_CategoryTheory_Iso_addMonCatIsoToAddEquiv(x_1, x_2, x_3);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddMonCatIso___redArg___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_addEquivIsoAddMonCatIso___redArg___lam__0(x_1, x_2, x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddMonCatIso___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lp_mathlib_addEquivIsoAddMonCatIso___redArg___closed__0;
+x_4 = lean_alloc_closure((void*)(lp_mathlib_addEquivIsoAddMonCatIso___redArg___lam__0___boxed), 3, 2);
+lean_closure_set(x_4, 0, x_1);
+lean_closure_set(x_4, 1, x_2);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddMonCatIso(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_addEquivIsoAddMonCatIso___redArg(x_3, x_4);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_mulEquivIsoCommMonCatIso___redArg___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_MulEquiv_toCommMonCatIso___redArg), 1, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoCommMonCatIso___redArg___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_CategoryTheory_Iso_commMonCatIsoToMulEquiv(x_1, x_2, x_3);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoCommMonCatIso___redArg___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_mulEquivIsoCommMonCatIso___redArg___lam__0(x_1, x_2, x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoCommMonCatIso___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lp_mathlib_mulEquivIsoCommMonCatIso___redArg___closed__0;
+x_4 = lean_alloc_closure((void*)(lp_mathlib_mulEquivIsoCommMonCatIso___redArg___lam__0___boxed), 3, 2);
+lean_closure_set(x_4, 0, x_1);
+lean_closure_set(x_4, 1, x_2);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_mulEquivIsoCommMonCatIso(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_mulEquivIsoCommMonCatIso___redArg(x_3, x_4);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_addEquivIsoAddCommMonCatIso___redArg___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_AddEquiv_toAddCommMonCatIso___redArg), 1, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddCommMonCatIso___redArg___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_CategoryTheory_Iso_commMonCatIsoToAddEquiv(x_1, x_2, x_3);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddCommMonCatIso___redArg___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_addEquivIsoAddCommMonCatIso___redArg___lam__0(x_1, x_2, x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddCommMonCatIso___redArg(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lp_mathlib_addEquivIsoAddCommMonCatIso___redArg___closed__0;
+x_4 = lean_alloc_closure((void*)(lp_mathlib_addEquivIsoAddCommMonCatIso___redArg___lam__0___boxed), 3, 2);
+lean_closure_set(x_4, 0, x_1);
+lean_closure_set(x_4, 1, x_2);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_addEquivIsoAddCommMonCatIso(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_addEquivIsoAddCommMonCatIso___redArg(x_3, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_equivalence_spec__2(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_equivalence_spec__2___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__0(lean_object* x_1) {
+_start:
+{
+lean_inc_ref(x_1);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__1(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4___lam__0(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0___closed__0;
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4___lam__0___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4___lam__0(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4___lam__0___boxed), 1, 0);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_id___at___00CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7_spec__7_spec__7(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0___closed__0;
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7_spec__7___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_ctor_get(x_1, 0);
+lean_inc(x_3);
+lean_dec_ref(x_1);
+x_4 = lean_apply_1(x_3, x_2);
+x_5 = lp_mathlib_MonoidHom_id___at___00CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7_spec__7_spec__7(x_4);
+lean_dec_ref(x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7_spec__7(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7_spec__7___lam__0), 2, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; 
+x_2 = lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4(x_1);
+lean_inc(x_2);
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; 
+x_2 = lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7_spec__7(x_1);
+lean_inc(x_2);
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_2);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_Multiplicative_toAdd(lean_box(0));
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__1() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_Multiplicative_ofAdd(lean_box(0));
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; 
+x_3 = lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__0;
+x_4 = lean_ctor_get(x_3, 0);
+lean_inc(x_4);
+x_5 = lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__1;
+x_6 = lean_ctor_get(x_5, 0);
+lean_inc(x_6);
+x_7 = lean_apply_1(x_4, x_2);
+x_8 = lean_apply_1(x_1, x_7);
+x_9 = lean_apply_1(x_6, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__1(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; 
+x_3 = lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__1;
+x_4 = lean_ctor_get(x_3, 0);
+lean_inc(x_4);
+x_5 = lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__0;
+x_6 = lean_ctor_get(x_5, 0);
+lean_inc(x_6);
+x_7 = lean_apply_1(x_4, x_2);
+x_8 = lean_apply_1(x_1, x_7);
+x_9 = lean_apply_1(x_6, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0), 2, 0);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__1), 2, 0);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_comp___at___00AddMonCat_equivalence_spec__6___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; lean_object* x_5; lean_object* x_6; lean_object* x_7; 
+x_4 = lean_ctor_get(x_1, 0);
+lean_inc(x_4);
+lean_dec_ref(x_1);
+x_5 = lean_ctor_get(x_2, 0);
+lean_inc(x_5);
+lean_dec_ref(x_2);
+x_6 = lean_apply_1(x_5, x_3);
+x_7 = lean_apply_1(x_4, x_6);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_comp___at___00AddMonCat_equivalence_spec__6___lam__1(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4, lean_object* x_5) {
+_start:
+{
+lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; lean_object* x_12; 
+x_6 = lean_ctor_get(x_1, 1);
+lean_inc(x_6);
+lean_dec_ref(x_1);
+x_7 = lean_ctor_get(x_2, 0);
+lean_inc(x_7);
+x_8 = lean_ctor_get(x_2, 1);
+lean_inc(x_8);
+lean_dec_ref(x_2);
+lean_inc(x_7);
+lean_inc_ref(x_3);
+x_9 = lean_apply_1(x_7, x_3);
+lean_inc_ref(x_4);
+x_10 = lean_apply_1(x_7, x_4);
+x_11 = lean_apply_3(x_8, x_3, x_4, x_5);
+x_12 = lean_apply_3(x_6, x_9, x_10, x_11);
+return x_12;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_comp___at___00AddMonCat_equivalence_spec__6(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+lean_inc_ref(x_1);
+lean_inc_ref(x_2);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_CategoryTheory_Functor_comp___at___00AddMonCat_equivalence_spec__6___lam__0), 3, 2);
+lean_closure_set(x_3, 0, x_2);
+lean_closure_set(x_3, 1, x_1);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_CategoryTheory_Functor_comp___at___00AddMonCat_equivalence_spec__6___lam__1), 5, 2);
+lean_closure_set(x_4, 0, x_2);
+lean_closure_set(x_4, 1, x_1);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__0___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__0(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__1(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+static lean_object* _init_lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__0___boxed), 1, 0);
+x_2 = lean_alloc_closure((void*)(lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__1___boxed), 3, 0);
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_1);
+lean_ctor_set(x_3, 1, x_2);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_Additive_toMul(lean_box(0));
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__1() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_Additive_ofMul(lean_box(0));
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; 
+x_3 = lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__0;
+x_4 = lean_ctor_get(x_3, 0);
+lean_inc(x_4);
+x_5 = lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__1;
+x_6 = lean_ctor_get(x_5, 0);
+lean_inc(x_6);
+x_7 = lean_apply_1(x_4, x_2);
+x_8 = lean_apply_1(x_1, x_7);
+x_9 = lean_apply_1(x_6, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__1(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; 
+x_3 = lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__1;
+x_4 = lean_ctor_get(x_3, 0);
+lean_inc(x_4);
+x_5 = lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__0;
+x_6 = lean_ctor_get(x_5, 0);
+lean_inc(x_6);
+x_7 = lean_apply_1(x_4, x_2);
+x_8 = lean_apply_1(x_1, x_7);
+x_9 = lean_apply_1(x_6, x_8);
+return x_9;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0), 2, 0);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__1), 2, 0);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_equivalence___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; lean_object* x_6; lean_object* x_7; 
+x_5 = lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0(x_1, x_2);
+x_6 = lean_ctor_get(x_5, 0);
+lean_inc(x_6);
+lean_dec_ref(x_5);
+x_7 = lean_apply_2(x_6, x_3, x_4);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_equivalence___lam__1(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; lean_object* x_6; lean_object* x_7; 
+x_5 = lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1(x_1, x_2);
+x_6 = lean_ctor_get(x_5, 0);
+lean_inc(x_6);
+lean_dec_ref(x_5);
+x_7 = lean_apply_2(x_6, x_3, x_4);
+return x_7;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonCat_equivalence___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_Multiplicative_monoid___redArg), 1, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonCat_equivalence___closed__1() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_Additive_addMonoid___redArg), 1, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_equivalence___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonCat_equivalence___lam__0(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_equivalence___lam__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddMonCat_equivalence___lam__1(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonCat_equivalence() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; 
+x_1 = lp_mathlib_AddMonCat_equivalence___closed__0;
+x_2 = lean_alloc_closure((void*)(lp_mathlib_AddMonCat_equivalence___lam__0___boxed), 4, 0);
+x_3 = lp_mathlib_AddMonCat_equivalence___closed__1;
+x_4 = lean_alloc_closure((void*)(lp_mathlib_AddMonCat_equivalence___lam__1___boxed), 4, 0);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_1);
+lean_ctor_set(x_5, 1, x_2);
+x_6 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_6, 0, x_3);
+lean_ctor_set(x_6, 1, x_4);
+x_7 = lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3;
+x_8 = lp_mathlib_CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4(x_7);
+lean_inc_ref(x_5);
+lean_inc_ref(x_6);
+x_9 = lp_mathlib_CategoryTheory_Functor_comp___at___00AddMonCat_equivalence_spec__6(x_6, x_5);
+x_10 = lp_mathlib_CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7(x_9);
+x_11 = lean_alloc_ctor(0, 4, 0);
+lean_ctor_set(x_11, 0, x_5);
+lean_ctor_set(x_11, 1, x_6);
+lean_ctor_set(x_11, 2, x_8);
+lean_ctor_set(x_11, 3, x_10);
+return x_11;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_equivalence_spec__2___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_equivalence_spec__2(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_equivalence_spec__2___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonCat_ofHom___at___00AddMonCat_equivalence_spec__2___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_id___at___00CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7_spec__7_spec__7___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MonoidHom_id___at___00CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__7_spec__7_spec__7(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_equivalence_spec__2(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_inc(x_3);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_equivalence_spec__2___redArg(lean_object* x_1) {
+_start:
+{
+lean_inc(x_1);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4_spec__4___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddMonCat_equivalence_spec__4_spec__4___lam__0___boxed), 1, 0);
+return x_1;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4_spec__4(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4_spec__4___closed__0;
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_id___at___00CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7_spec__7_spec__7(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0___closed__0;
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7_spec__7___lam__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+x_3 = lean_ctor_get(x_1, 0);
+lean_inc(x_3);
+lean_dec_ref(x_1);
+x_4 = lean_apply_1(x_3, x_2);
+x_5 = lp_mathlib_MonoidHom_id___at___00CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7_spec__7_spec__7(x_4);
+lean_dec_ref(x_4);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7_spec__7(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lean_alloc_closure((void*)(lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7_spec__7___lam__0), 2, 1);
+lean_closure_set(x_2, 0, x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; 
+x_2 = lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4_spec__4(x_1);
+lean_inc(x_2);
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_2);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; lean_object* x_3; 
+x_2 = lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7_spec__7(x_1);
+lean_inc(x_2);
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_2);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0), 2, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__1() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__1), 2, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__2() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__1;
+x_2 = lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__0;
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__2;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Functor_comp___at___00AddCommMonCat_equivalence_spec__6(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; lean_object* x_4; lean_object* x_5; 
+lean_inc_ref(x_1);
+lean_inc_ref(x_2);
+x_3 = lean_alloc_closure((void*)(lp_mathlib_CategoryTheory_Functor_comp___at___00AddMonCat_equivalence_spec__6___lam__0), 3, 2);
+lean_closure_set(x_3, 0, x_2);
+lean_closure_set(x_3, 1, x_1);
+x_4 = lean_alloc_closure((void*)(lp_mathlib_CategoryTheory_Functor_comp___at___00AddMonCat_equivalence_spec__6___lam__1), 5, 2);
+lean_closure_set(x_4, 0, x_2);
+lean_closure_set(x_4, 1, x_1);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_3);
+lean_ctor_set(x_5, 1, x_4);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__0___boxed), 1, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__1() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3___lam__1___boxed), 3, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__2() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__1;
+x_2 = lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__0;
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+static lean_object* _init_lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__2;
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__0() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0), 2, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__1() {
+_start:
+{
+lean_object* x_1; 
+x_1 = lean_alloc_closure((void*)(lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__1), 2, 0);
+return x_1;
+}
+}
+static lean_object* _init_lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__2() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; 
+x_1 = lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__1;
+x_2 = lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__0;
+x_3 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_3, 0, x_2);
+lean_ctor_set(x_3, 1, x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__2;
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_equivalence___lam__0(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; lean_object* x_6; lean_object* x_7; 
+x_5 = lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0(x_1, x_2);
+x_6 = lean_ctor_get(x_5, 0);
+lean_inc(x_6);
+lean_dec_ref(x_5);
+x_7 = lean_apply_2(x_6, x_3, x_4);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_equivalence___lam__1(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; lean_object* x_6; lean_object* x_7; 
+x_5 = lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1(x_1, x_2);
+x_6 = lean_ctor_get(x_5, 0);
+lean_inc(x_6);
+lean_dec_ref(x_5);
+x_7 = lean_apply_2(x_6, x_3, x_4);
+return x_7;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_equivalence___lam__0___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddCommMonCat_equivalence___lam__0(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_equivalence___lam__1___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3, lean_object* x_4) {
+_start:
+{
+lean_object* x_5; 
+x_5 = lp_mathlib_AddCommMonCat_equivalence___lam__1(x_1, x_2, x_3, x_4);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_5;
+}
+}
+static lean_object* _init_lp_mathlib_AddCommMonCat_equivalence() {
+_start:
+{
+lean_object* x_1; lean_object* x_2; lean_object* x_3; lean_object* x_4; lean_object* x_5; lean_object* x_6; lean_object* x_7; lean_object* x_8; lean_object* x_9; lean_object* x_10; lean_object* x_11; 
+x_1 = lp_mathlib_AddMonCat_equivalence___closed__0;
+x_2 = lean_alloc_closure((void*)(lp_mathlib_AddCommMonCat_equivalence___lam__0___boxed), 4, 0);
+x_3 = lp_mathlib_AddMonCat_equivalence___closed__1;
+x_4 = lean_alloc_closure((void*)(lp_mathlib_AddCommMonCat_equivalence___lam__1___boxed), 4, 0);
+x_5 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_5, 0, x_1);
+lean_ctor_set(x_5, 1, x_2);
+x_6 = lean_alloc_ctor(0, 2, 0);
+lean_ctor_set(x_6, 0, x_3);
+lean_ctor_set(x_6, 1, x_4);
+x_7 = lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3;
+x_8 = lp_mathlib_CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4(x_7);
+lean_inc_ref(x_5);
+lean_inc_ref(x_6);
+x_9 = lp_mathlib_CategoryTheory_Functor_comp___at___00AddCommMonCat_equivalence_spec__6(x_6, x_5);
+x_10 = lp_mathlib_CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7(x_9);
+x_11 = lean_alloc_ctor(0, 4, 0);
+lean_ctor_set(x_11, 0, x_5);
+lean_ctor_set(x_11, 1, x_6);
+lean_ctor_set(x_11, 2, x_8);
+lean_ctor_set(x_11, 3, x_10);
+return x_11;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_equivalence_spec__2___boxed(lean_object* x_1, lean_object* x_2, lean_object* x_3) {
+_start:
+{
+lean_object* x_4; 
+x_4 = lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_equivalence_spec__2(x_1, x_2, x_3);
+lean_dec(x_3);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_4;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_equivalence_spec__2___redArg___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_AddCommMonCat_ofHom___at___00AddCommMonCat_equivalence_spec__2___redArg(x_1);
+lean_dec(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4_spec__4___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4_spec__4(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_id___at___00CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7_spec__7_spec__7___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_MonoidHom_id___at___00CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__7_spec__7_spec__7(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4___boxed(lean_object* x_1) {
+_start:
+{
+lean_object* x_2; 
+x_2 = lp_mathlib_CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4(x_1);
+lean_dec_ref(x_1);
+return x_2;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+LEAN_EXPORT lean_object* lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___boxed(lean_object* x_1, lean_object* x_2) {
+_start:
+{
+lean_object* x_3; 
+x_3 = lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1(x_1, x_2);
+lean_dec_ref(x_2);
+lean_dec_ref(x_1);
+return x_3;
+}
+}
+lean_object* initialize_Init(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Group_PUnit(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Group_TypeTags_Hom(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_Algebra_Group_ULift(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_CategoryTheory_Elementwise(uint8_t builtin);
+lean_object* initialize_mathlib_Mathlib_CategoryTheory_Functor_ReflectsIso_Basic(uint8_t builtin);
+static bool _G_initialized = false;
+LEAN_EXPORT lean_object* initialize_mathlib_Mathlib_Algebra_Category_MonCat_Basic(uint8_t builtin) {
+lean_object * res;
+if (_G_initialized) return lean_io_result_mk_ok(lean_box(0));
+_G_initialized = true;
+res = initialize_Init(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Group_PUnit(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Group_TypeTags_Hom(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_Algebra_Group_ULift(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_CategoryTheory_Elementwise(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+res = initialize_mathlib_Mathlib_CategoryTheory_Functor_ReflectsIso_Basic(builtin);
+if (lean_io_result_is_error(res)) return res;
+lean_dec_ref(res);
+lp_mathlib_MonCat_instCoeSortType = _init_lp_mathlib_MonCat_instCoeSortType();
+lp_mathlib_AddMonCat_instCoeSortType = _init_lp_mathlib_AddMonCat_instCoeSortType();
+lp_mathlib_MonCat_instCategory = _init_lp_mathlib_MonCat_instCategory();
+lean_mark_persistent(lp_mathlib_MonCat_instCategory);
+lp_mathlib_AddMonCat_instCategory = _init_lp_mathlib_AddMonCat_instCategory();
+lean_mark_persistent(lp_mathlib_AddMonCat_instCategory);
+lp_mathlib_MonCat_instConcreteCategoryMonoidHomCarrier = _init_lp_mathlib_MonCat_instConcreteCategoryMonoidHomCarrier();
+lean_mark_persistent(lp_mathlib_MonCat_instConcreteCategoryMonoidHomCarrier);
+lp_mathlib_AddMonCat_instConcreteCategoryAddMonoidHomCarrier = _init_lp_mathlib_AddMonCat_instConcreteCategoryAddMonoidHomCarrier();
+lean_mark_persistent(lp_mathlib_AddMonCat_instConcreteCategoryAddMonoidHomCarrier);
+lp_mathlib_MonCat_instInhabited = _init_lp_mathlib_MonCat_instInhabited();
+lean_mark_persistent(lp_mathlib_MonCat_instInhabited);
+lp_mathlib_AddMonCat_instInhabited = _init_lp_mathlib_AddMonCat_instInhabited();
+lean_mark_persistent(lp_mathlib_AddMonCat_instInhabited);
+lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0___closed__0 = _init_lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0___closed__0();
+lean_mark_persistent(lp_mathlib_MulEquiv_ulift___at___00MonCat_uliftFunctor_spec__0___closed__0);
+lp_mathlib_MonCat_uliftFunctor___closed__0 = _init_lp_mathlib_MonCat_uliftFunctor___closed__0();
+lean_mark_persistent(lp_mathlib_MonCat_uliftFunctor___closed__0);
+lp_mathlib_MonCat_uliftFunctor = _init_lp_mathlib_MonCat_uliftFunctor();
+lean_mark_persistent(lp_mathlib_MonCat_uliftFunctor);
+lp_mathlib_AddMonCat_uliftFunctor___closed__0 = _init_lp_mathlib_AddMonCat_uliftFunctor___closed__0();
+lean_mark_persistent(lp_mathlib_AddMonCat_uliftFunctor___closed__0);
+lp_mathlib_AddMonCat_uliftFunctor = _init_lp_mathlib_AddMonCat_uliftFunctor();
+lean_mark_persistent(lp_mathlib_AddMonCat_uliftFunctor);
+lp_mathlib_CommMonCat_instCoeSortType = _init_lp_mathlib_CommMonCat_instCoeSortType();
+lp_mathlib_AddCommMonCat_instCoeSortType = _init_lp_mathlib_AddCommMonCat_instCoeSortType();
+lp_mathlib_CommMonCat_instCategory___closed__0 = _init_lp_mathlib_CommMonCat_instCategory___closed__0();
+lean_mark_persistent(lp_mathlib_CommMonCat_instCategory___closed__0);
+lp_mathlib_CommMonCat_instCategory___closed__1 = _init_lp_mathlib_CommMonCat_instCategory___closed__1();
+lean_mark_persistent(lp_mathlib_CommMonCat_instCategory___closed__1);
+lp_mathlib_CommMonCat_instCategory___closed__2 = _init_lp_mathlib_CommMonCat_instCategory___closed__2();
+lean_mark_persistent(lp_mathlib_CommMonCat_instCategory___closed__2);
+lp_mathlib_CommMonCat_instCategory = _init_lp_mathlib_CommMonCat_instCategory();
+lean_mark_persistent(lp_mathlib_CommMonCat_instCategory);
+lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0___closed__0 = _init_lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0___closed__0();
+lean_mark_persistent(lp_mathlib_AddMonoidHom_id___at___00AddCommMonCat_instCategory_spec__0___closed__0);
+lp_mathlib_AddCommMonCat_instCategory = _init_lp_mathlib_AddCommMonCat_instCategory();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_instCategory);
+lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier___closed__0 = _init_lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier___closed__0();
+lean_mark_persistent(lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier___closed__0);
+lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier___closed__1 = _init_lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier___closed__1();
+lean_mark_persistent(lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier___closed__1);
+lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier = _init_lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier();
+lean_mark_persistent(lp_mathlib_CommMonCat_instConcreteCategoryMonoidHomCarrier);
+lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier___closed__0 = _init_lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier___closed__0();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier___closed__0);
+lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier___closed__1 = _init_lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier___closed__1();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier___closed__1);
+lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier = _init_lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_instConcreteCategoryAddMonoidHomCarrier);
+lp_mathlib_CommMonCat_instInhabited = _init_lp_mathlib_CommMonCat_instInhabited();
+lean_mark_persistent(lp_mathlib_CommMonCat_instInhabited);
+lp_mathlib_AddCommMonCat_instInhabited = _init_lp_mathlib_AddCommMonCat_instInhabited();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_instInhabited);
+lp_mathlib_CommMonCat_hasForgetToMonCat = _init_lp_mathlib_CommMonCat_hasForgetToMonCat();
+lean_mark_persistent(lp_mathlib_CommMonCat_hasForgetToMonCat);
+lp_mathlib_AddCommMonCat_hasForgetToAddMonCat = _init_lp_mathlib_AddCommMonCat_hasForgetToAddMonCat();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_hasForgetToAddMonCat);
+lp_mathlib_CommMonCat_fullyFaithfulForgetToMonCat___closed__0 = _init_lp_mathlib_CommMonCat_fullyFaithfulForgetToMonCat___closed__0();
+lean_mark_persistent(lp_mathlib_CommMonCat_fullyFaithfulForgetToMonCat___closed__0);
+lp_mathlib_CommMonCat_fullyFaithfulForgetToMonCat = _init_lp_mathlib_CommMonCat_fullyFaithfulForgetToMonCat();
+lean_mark_persistent(lp_mathlib_CommMonCat_fullyFaithfulForgetToMonCat);
+lp_mathlib_AddCommMonCat_fullyFaithfulForgetToAddMonCat___closed__0 = _init_lp_mathlib_AddCommMonCat_fullyFaithfulForgetToAddMonCat___closed__0();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_fullyFaithfulForgetToAddMonCat___closed__0);
+lp_mathlib_AddCommMonCat_fullyFaithfulForgetToAddMonCat = _init_lp_mathlib_AddCommMonCat_fullyFaithfulForgetToAddMonCat();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_fullyFaithfulForgetToAddMonCat);
+lp_mathlib_CommMonCat_instCoeMonCat___closed__0 = _init_lp_mathlib_CommMonCat_instCoeMonCat___closed__0();
+lean_mark_persistent(lp_mathlib_CommMonCat_instCoeMonCat___closed__0);
+lp_mathlib_CommMonCat_instCoeMonCat = _init_lp_mathlib_CommMonCat_instCoeMonCat();
+lean_mark_persistent(lp_mathlib_CommMonCat_instCoeMonCat);
+lp_mathlib_AddCommMonCat_instCoeMonCat___closed__0 = _init_lp_mathlib_AddCommMonCat_instCoeMonCat___closed__0();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_instCoeMonCat___closed__0);
+lp_mathlib_AddCommMonCat_instCoeMonCat = _init_lp_mathlib_AddCommMonCat_instCoeMonCat();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_instCoeMonCat);
+lp_mathlib_CommMonCat_uliftFunctor___closed__0 = _init_lp_mathlib_CommMonCat_uliftFunctor___closed__0();
+lean_mark_persistent(lp_mathlib_CommMonCat_uliftFunctor___closed__0);
+lp_mathlib_CommMonCat_uliftFunctor = _init_lp_mathlib_CommMonCat_uliftFunctor();
+lean_mark_persistent(lp_mathlib_CommMonCat_uliftFunctor);
+lp_mathlib_AddCommMonCat_uliftFunctor___closed__0 = _init_lp_mathlib_AddCommMonCat_uliftFunctor___closed__0();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_uliftFunctor___closed__0);
+lp_mathlib_AddCommMonCat_uliftFunctor = _init_lp_mathlib_AddCommMonCat_uliftFunctor();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_uliftFunctor);
+lp_mathlib_mulEquivIsoMonCatIso___redArg___closed__0 = _init_lp_mathlib_mulEquivIsoMonCatIso___redArg___closed__0();
+lean_mark_persistent(lp_mathlib_mulEquivIsoMonCatIso___redArg___closed__0);
+lp_mathlib_addEquivIsoAddMonCatIso___redArg___closed__0 = _init_lp_mathlib_addEquivIsoAddMonCatIso___redArg___closed__0();
+lean_mark_persistent(lp_mathlib_addEquivIsoAddMonCatIso___redArg___closed__0);
+lp_mathlib_mulEquivIsoCommMonCatIso___redArg___closed__0 = _init_lp_mathlib_mulEquivIsoCommMonCatIso___redArg___closed__0();
+lean_mark_persistent(lp_mathlib_mulEquivIsoCommMonCatIso___redArg___closed__0);
+lp_mathlib_addEquivIsoAddCommMonCatIso___redArg___closed__0 = _init_lp_mathlib_addEquivIsoAddCommMonCatIso___redArg___closed__0();
+lean_mark_persistent(lp_mathlib_addEquivIsoAddCommMonCatIso___redArg___closed__0);
+lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__0 = _init_lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__0();
+lean_mark_persistent(lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__0);
+lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__1 = _init_lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__1();
+lean_mark_persistent(lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddMonCat_equivalence_spec__0___lam__0___closed__1);
+lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3 = _init_lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3();
+lean_mark_persistent(lp_mathlib_CategoryTheory_Functor_id___at___00AddMonCat_equivalence_spec__3);
+lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__0 = _init_lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__0();
+lean_mark_persistent(lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__0);
+lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__1 = _init_lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__1();
+lean_mark_persistent(lp_mathlib_MonoidHom_toAdditive___at___00AddMonCat_equivalence_spec__1___lam__0___closed__1);
+lp_mathlib_AddMonCat_equivalence___closed__0 = _init_lp_mathlib_AddMonCat_equivalence___closed__0();
+lean_mark_persistent(lp_mathlib_AddMonCat_equivalence___closed__0);
+lp_mathlib_AddMonCat_equivalence___closed__1 = _init_lp_mathlib_AddMonCat_equivalence___closed__1();
+lean_mark_persistent(lp_mathlib_AddMonCat_equivalence___closed__1);
+lp_mathlib_AddMonCat_equivalence = _init_lp_mathlib_AddMonCat_equivalence();
+lean_mark_persistent(lp_mathlib_AddMonCat_equivalence);
+lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4_spec__4___closed__0 = _init_lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4_spec__4___closed__0();
+lean_mark_persistent(lp_mathlib_CategoryTheory_NatTrans_id___at___00CategoryTheory_Iso_refl___at___00AddCommMonCat_equivalence_spec__4_spec__4___closed__0);
+lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__0 = _init_lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__0();
+lean_mark_persistent(lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__0);
+lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__1 = _init_lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__1();
+lean_mark_persistent(lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__1);
+lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__2 = _init_lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__2();
+lean_mark_persistent(lp_mathlib_AddMonoidHom_toMultiplicative___at___00AddCommMonCat_equivalence_spec__0___closed__2);
+lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__0 = _init_lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__0();
+lean_mark_persistent(lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__0);
+lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__1 = _init_lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__1();
+lean_mark_persistent(lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__1);
+lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__2 = _init_lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__2();
+lean_mark_persistent(lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3___closed__2);
+lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3 = _init_lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3();
+lean_mark_persistent(lp_mathlib_CategoryTheory_Functor_id___at___00AddCommMonCat_equivalence_spec__3);
+lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__0 = _init_lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__0();
+lean_mark_persistent(lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__0);
+lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__1 = _init_lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__1();
+lean_mark_persistent(lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__1);
+lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__2 = _init_lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__2();
+lean_mark_persistent(lp_mathlib_MonoidHom_toAdditive___at___00AddCommMonCat_equivalence_spec__1___closed__2);
+lp_mathlib_AddCommMonCat_equivalence = _init_lp_mathlib_AddCommMonCat_equivalence();
+lean_mark_persistent(lp_mathlib_AddCommMonCat_equivalence);
+return lean_io_result_mk_ok(lean_box(0));
+}
+#ifdef __cplusplus
+}
+#endif

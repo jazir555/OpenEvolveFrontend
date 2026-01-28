@@ -1,0 +1,1 @@
+{"decls":{},"directImports":[["Mathlib.Tactic.PPWithUniv",false,false,true]],"module":"Mathlib.Tactic.ToLevel","references":{"{\"c\":{\"m\":\"Lean.ToLevel\",\"n\":\"Lean.ToLevel.toLevel\"}}":{"definition":null,"usages":[[23,25,23,32]]}},"version":5}

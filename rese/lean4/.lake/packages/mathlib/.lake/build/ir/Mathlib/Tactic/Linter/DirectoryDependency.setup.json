@@ -1,0 +1,16 @@
+{"plugins": [],
+ "package": "mathlib",
+ "options":
+ {"weak.linter.style.longFile": 1500,
+  "weak.linter.style.header": true,
+  "weak.linter.pythonStyle": true,
+  "weak.linter.mathlibStandardSet": true,
+  "weak.linter.checkInitImports": true,
+  "weak.linter.allScriptsDocumented": true,
+  "pp.unicode.fun": true,
+  "maxSynthPendingDepth": 3,
+  "autoImplicit": false},
+ "name": "Mathlib.Tactic.Linter.DirectoryDependency",
+ "isModule": true,
+ "importArts": {},
+ "dynlibs": []}

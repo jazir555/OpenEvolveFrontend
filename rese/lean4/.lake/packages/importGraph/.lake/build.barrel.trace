@@ -1,0 +1,9 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs": null,
+ "log":
+ [{"message":
+   ".> curl -s -S -f -o C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\importGraph\\.lake\\build.barrel -L https://reservoir.lean-lang.org/api/v1/packages/leanprover-community/importGraph/barrel?rev=cff9dd30f2c161b9efd7c657cafed1f967645890&toolchain=leanprover%2Flean4%3Av4.27.0-rc1 -H X-Reservoir-Api-Version:1.0.0 -H X-Lake-Registry-Api-Version:0.1.0",
+   "level": "trace"}],
+ "inputs": [],
+ "depHash": "b2c6e80dba28dec4"}

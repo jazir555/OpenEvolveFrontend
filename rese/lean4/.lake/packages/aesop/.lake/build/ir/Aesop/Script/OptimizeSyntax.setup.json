@@ -1,0 +1,7 @@
+{"plugins": [],
+ "package": "aesop",
+ "options": {},
+ "name": "Aesop.Script.OptimizeSyntax",
+ "isModule": true,
+ "importArts": {},
+ "dynlibs": []}

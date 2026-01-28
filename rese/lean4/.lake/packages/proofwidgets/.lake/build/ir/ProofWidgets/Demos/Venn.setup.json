@@ -1,0 +1,43 @@
+{"plugins": [],
+ "package": "proofwidgets",
+ "options": {"experimental.module": true},
+ "name": "ProofWidgets.Demos.Venn",
+ "isModule": true,
+ "importArts":
+ {"ProofWidgets.Util":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Util.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Util.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Util.olean.server"],
+  "ProofWidgets.Data.Html":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Data/Html.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Data/Html.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Data/Html.olean.server"],
+  "ProofWidgets.Component.PenroseDiagram":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/PenroseDiagram.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/PenroseDiagram.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/PenroseDiagram.olean.server"],
+  "ProofWidgets.Component.Panel.Basic":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Panel/Basic.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Panel/Basic.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Panel/Basic.olean.server"],
+  "ProofWidgets.Component.OfRpcMethod":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/OfRpcMethod.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/OfRpcMethod.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/OfRpcMethod.olean.server"],
+  "ProofWidgets.Component.HtmlDisplay":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/HtmlDisplay.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/HtmlDisplay.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/HtmlDisplay.olean.server"],
+  "ProofWidgets.Component.Basic":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Basic.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Basic.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Component/Basic.olean.server"],
+  "ProofWidgets.Compat":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Compat.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Compat.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Compat.olean.server"],
+  "ProofWidgets.Cancellable":
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Cancellable.olean",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Cancellable.ir",
+   "/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/ProofWidgets/Cancellable.olean.server"]},
+ "dynlibs": []}

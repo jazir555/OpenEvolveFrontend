@@ -1,0 +1,11 @@
+{"plugins": [],
+ "package": "plausible",
+ "options": {},
+ "name": "Plausible.Gen",
+ "isModule": true,
+ "importArts":
+ {"Plausible.Random":
+  ["/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Random.olean",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Random.ir",
+   "/home/runner/work/reservoir/reservoir/testbed/repo/.lake/build/lib/lean/Plausible/Random.olean.server"]},
+ "dynlibs": []}

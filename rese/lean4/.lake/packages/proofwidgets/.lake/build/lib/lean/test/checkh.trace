@@ -1,0 +1,32 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs":
+ {"o": ["781c6642c226fcec.olean"],
+  "i": "fb1569f85f0c186b.ilean",
+  "c": "fd868b993065399e.c"},
+ "log":
+ [{"message":
+   ".> LEAN_PATH=/home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean /home/runner/.elan/toolchains/leanprover--lean4---v4.27.0-rc1/bin/lean /home/runner/work/ProofWidgets4/ProofWidgets4/test/checkh.lean -o /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/test/checkh.olean -i /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/lib/lean/test/checkh.ilean -c /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/test/checkh.c --setup /home/runner/work/ProofWidgets4/ProofWidgets4/.lake/build/ir/test/checkh.setup.json --json",
+   "level": "trace"}],
+ "inputs":
+ [["test.checkh:deps",
+   [["deps",
+     [["proofwidgets/test:extraDep",
+       [["@proofwidgets:extraDep", "00000000000006bb"]]],
+      ["imports",
+       [["ProofWidgets.Extra.CheckHighlight transitive imports (legacy)",
+         "d357f6b08d7dbfc2"],
+        ["ProofWidgets.Extra.CheckHighlight:importAllArts",
+         "c7a73b7168b6dc60"]]]]],
+    ["libs",
+     [["import dynlibs", "00000000000006bb"],
+      ["package external libraries", "00000000000006bb"],
+      ["module dynlibs", "00000000000006bb"],
+      ["module plugins", "00000000000006bb"]]]]],
+  ["Lean 4.27.0, commit 2fcce7258eeb6e324366bc25f9058293b04b7547",
+   "6f43b597efea5d4c"],
+  ["/home/runner/work/ProofWidgets4/ProofWidgets4/test/checkh.lean",
+   "c6d9c47f894a8dfe"],
+  ["options", [["-Dexperimental.module=true", "a66e91e2aeb378d2"]]],
+  ["Module.leanArgs: #[]", "00000000000006bb"]],
+ "depHash": "0af95091a9fb49a3"}

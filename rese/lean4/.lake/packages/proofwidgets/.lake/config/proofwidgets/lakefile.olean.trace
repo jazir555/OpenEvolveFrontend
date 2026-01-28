@@ -1,0 +1,8 @@
+{"platform": "x86_64-w64-windows-gnu",
+ "options":
+ {"errorOnBuild":
+  "ProofWidgets not up-to-date. Please run `lake exe cache get` to fetch the latest ProofWidgets. If this does not work, report your issue on the Lean Zulip."},
+ "name": "proofwidgets",
+ "leanHash": "2fcce7258eeb6e324366bc25f9058293b04b7547",
+ "idx": 5,
+ "configHash": "d1ddd905c757c3e3"}

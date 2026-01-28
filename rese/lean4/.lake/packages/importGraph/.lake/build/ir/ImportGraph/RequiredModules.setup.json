@@ -1,0 +1,7 @@
+{"plugins": [],
+ "package": "importGraph",
+ "options": {},
+ "name": "ImportGraph.RequiredModules",
+ "isModule": true,
+ "importArts": {},
+ "dynlibs": []}

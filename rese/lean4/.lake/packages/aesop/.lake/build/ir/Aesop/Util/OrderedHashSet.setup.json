@@ -1,0 +1,7 @@
+{"plugins": [],
+ "package": "aesop",
+ "options": {},
+ "name": "Aesop.Util.OrderedHashSet",
+ "isModule": true,
+ "importArts": {},
+ "dynlibs": []}

@@ -1,0 +1,9 @@
+{"synthetic": false,
+ "schemaVersion": "2025-09-10",
+ "outputs": null,
+ "log":
+ [{"message":
+   ".> curl -s -S -f -o C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\rese\\lean4\\.lake\\packages\\batteries\\.lake\\build.barrel -L https://reservoir.lean-lang.org/api/v1/packages/leanprover-community/batteries/barrel?rev=2e16f91af2a97975e5d2fac906494cd6c17ba255&toolchain=leanprover%2Flean4%3Av4.27.0-rc1 -H X-Reservoir-Api-Version:1.0.0 -H X-Lake-Registry-Api-Version:0.1.0",
+   "level": "trace"}],
+ "inputs": [],
+ "depHash": "9e19b2cdc0f65343"}

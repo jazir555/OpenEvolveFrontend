@@ -1,0 +1,1 @@
+{"decls":{},"directImports":[["Mathlib.Tactic.Ring.Basic",false,false,true],["Mathlib.Tactic.Ring.RingNF",false,false,true],["Mathlib.Tactic.Ring.PNat",false,false,true]],"module":"Mathlib.Tactic.Ring","references":{},"version":5}
