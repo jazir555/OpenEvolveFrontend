@@ -1,0 +1,20 @@
+{
+  "problem": {
+    "id": "test_problem_1",
+    "statement": "Test"
+  },
+  "context": {
+    "level": 1,
+    "stage": "solving"
+  },
+  "solutions": {
+    "subproblem_1": "solution_1"
+  },
+  "decomposition_tree": null,
+  "execution_status": {},
+  "metrics": {},
+  "metadata": {
+    "checkpoint_count": 0
+  },
+  "serialized_at": "2026-01-24T07:29:26.647592"
+}

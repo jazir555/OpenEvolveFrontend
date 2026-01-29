@@ -1,0 +1,929 @@
+"""
+Sovereign-Grade Problem Decomposition System - Problem Analyzer
+
+This module provides semantic analysis of problems to extract domain context,
+assess complexity, identify constraints, and generate success criteria.
+"""
+
+import logging
+from typing import List, Dict, Any, Optional
+from datetime import datetime
+import re
+
+from sovereign_data_models import (
+    ProblemDefinition, ProblemType, DomainContext, ComplexityScore,
+    Constraint, SuccessCriterion, generate_id
+)
+from sovereign_reliability import with_retry, with_error_handling  # Import with_retry and with_error_handling
+
+# Import OpenEvolve client for LLM-based analysis
+try:
+    from openevolve_client import OpenEvolveClient
+    OPENEVOLVE_AVAILABLE = True
+except ImportError:
+    OPENEVOLVE_AVAILABLE = False
+    logging.warning("OpenEvolve client not available - using fallback analysis")
+
+# ACE + Steer Integration
+try:
+    from ace_steer_integration import AceSteerBridge
+    from ace_mcp_tools import ACE_AVAILABLE
+    STEER_ACE_BRIDGE_AVAILABLE = True
+except ImportError:
+    STEER_ACE_BRIDGE_AVAILABLE = False
+    ACE_AVAILABLE = False
+    AceSteerBridge = None
+
+logger = logging.getLogger(__name__)
+
+
+class ProblemAnalyzer:
+    """
+    Analyzes problems to extract semantic information and structure.
+    
+    Uses LLM-based analysis for semantic understanding, domain classification,
+    complexity assessment, and constraint identification.
+    """
+    
+    def __init__(self, openevolve_client: Optional[OpenEvolveClient] = None, 
+                 openevolve_client_config: Optional[Dict[str, Any]] = None,
+                 ace_steer_bridge: Optional[AceSteerBridge] = None,
+                 ace_enabled: bool = True):
+        """
+        Initialize problem analyzer.
+        
+        Args:
+            openevolve_client: Optional OpenEvolve client for LLM analysis
+            openevolve_client_config: Optional configuration for OpenEvolve client
+            ace_steer_bridge: Optional ACE + Steer bridge for reliability
+            ace_enabled: Whether to enable ACE+Steer features
+        """
+        self.openevolve_client = openevolve_client
+        if not self.openevolve_client and OPENEVOLVE_AVAILABLE:
+            # Pass configuration to OpenEvolveClient
+            self.openevolve_client = OpenEvolveClient(**openevolve_client_config if openevolve_client_config else {})
+        
+        # ACE + Steer Integration
+        self.ace_enabled = ace_enabled and STEER_ACE_BRIDGE_AVAILABLE
+        self.ace_steer_bridge = ace_steer_bridge
+        
+        if self.ace_enabled and not self.ace_steer_bridge:
+            # Auto-initialize bridge if enabled but not provided
+            self.ace_steer_bridge = AceSteerBridge(
+                ace_agent_id="problem_analyzer_agent",
+                skillbook_path="./ace_skillbook.json"
+            )
+            logger.info("Auto-initialized ACE+Steer bridge for Problem Analyzer")
+
+        self.logger = logging.getLogger(__name__)
+    
+    @with_error_handling(fallback=lambda *args, **kwargs: None)
+    @with_retry(max_attempts=2, retry_on=(RuntimeError,))
+    def analyze_problem(self, problem_text: str, title: str = "") -> ProblemDefinition:
+        """
+        Performs comprehensive problem analysis.
+        
+        Args:
+            problem_text: The problem description
+            title: Optional problem title
+            
+        Returns:
+            ProblemDefinition with domain, complexity, constraints, success criteria
+        """
+        self.logger.info(f"Analyzing problem: {title or 'Untitled'}")
+        
+        # Extract domain context
+        domain_context = self.extract_domain_context(problem_text)
+        
+        # Classify problem type
+        problem_type = self.classify_problem_type(problem_text)
+        
+        # Identify constraints
+        constraints = self.identify_constraints(problem_text)
+        
+        # Create initial problem definition
+        problem = ProblemDefinition(
+            id=generate_id("problem"),
+            title=title or self._extract_title(problem_text),
+            description=problem_text,
+            problem_type=problem_type,
+            domain_context=domain_context,
+            complexity_score=ComplexityScore(
+                cognitive_complexity=5.0,
+                computational_complexity=5.0,
+                domain_complexity=5.0,
+                integration_complexity=5.0,
+                overall_complexity=5.0,
+                explanation="Initial assessment"
+            ),
+            constraints=constraints,
+            success_criteria=[],
+            stakeholders=[],
+            resources_available={}
+        )
+        
+        # Assess complexity (needs full problem context)
+        problem.complexity_score = self.assess_complexity(problem)
+        
+        # Generate success criteria
+        problem.success_criteria = self.generate_success_criteria(problem)
+        
+        self.logger.info(f"Problem analysis complete: {problem.id}")
+        return problem
+    
+    def extract_domain_context(self, problem_text: str) -> DomainContext:
+        """
+        Identifies problem domain and relevant context using LLM-based analysis.
+        
+        Args:
+            problem_text: The problem description
+            
+        Returns:
+            DomainContext with domain, subdomain, and related domains
+        
+        Raises:
+            RuntimeError: If LLM analysis fails or is unavailable.
+        """
+        if not self.openevolve_client or not OPENEVOLVE_AVAILABLE:
+            # Fallback implementation when OpenEvolve is not available
+            return self._extract_domain_context_fallback(problem_text)
+        
+        try:
+            return self._extract_domain_context_llm(problem_text)
+        except Exception as e:  # TODO: Catch specific exception instead of Exception
+            self.logger.error(f"LLM-based domain context extraction failed: {e}")
+            # Fall back to basic implementation
+            return self._extract_domain_context_fallback(problem_text)
+    
+    def _extract_domain_context_fallback(self, problem_text: str) -> DomainContext:
+        """Basic domain extraction when LLM is not available."""
+        # Simple keyword-based domain detection
+        problem_lower = problem_text.lower()
+        
+        domain_keywords = {
+            "software_engineering": ["code", "programming", "software", "application", "api", "database", "web", "mobile"],
+            "machine_learning": ["machine learning", "ai", "neural network", "model", "training", "prediction", "algorithm"],
+            "data_science": ["data", "analysis", "statistics", "visualization", "dataset", "big data"],
+            "business_strategy": ["business", "strategy", "market", "customer", "revenue", "growth"],
+            "research": ["research", "study", "investigation", "experiment", "hypothesis"],
+            "design": ["design", "ui", "ux", "interface", "experience", "visual"],
+            "optimization": ["optimize", "efficiency", "performance", "speed", "resource"],
+            "systems_engineering": ["system", "infrastructure", "architecture", "network", "server"]
+        }
+        
+        # Find the most likely domain
+        domain_scores = {}
+        for domain, keywords in domain_keywords.items():
+            score = sum(1 for keyword in keywords if keyword in problem_lower)
+            domain_scores[domain] = score
+        
+        # Get domain with highest score or default to "general"
+        best_domain = max(domain_scores.items(), key=lambda x: x[1])
+        domain = best_domain[0] if best_domain[1] > 0 else "general"
+        
+        return DomainContext(
+            domain=domain,
+            subdomain=None,
+            related_domains=[],
+            domain_knowledge={
+                "key_concepts": [],
+                "extraction_method": "keyword_fallback",
+                "domain_complexity": 5.0,
+                "required_expertise": []
+            }
+        )
+    
+    @with_retry(max_attempts=3, retry_on=(RuntimeError, ValueError))
+    def _extract_domain_context_llm(self, problem_text: str) -> DomainContext:
+        """Extract domain context using LLM analysis with sophisticated prompting."""
+        prompt = f"""You are an expert domain analyst. Analyze this problem and identify its domain context with precision.
+
+Problem:
+{problem_text}
+
+Provide a comprehensive domain analysis:
+
+1. PRIMARY DOMAIN: Identify the main field (e.g., software_engineering, machine_learning, data_science, business_strategy, research, design, optimization, systems_engineering)
+
+2. SUBDOMAIN: Identify specific subdomain if applicable (e.g., for software_engineering: web_development, distributed_systems, security, etc.)
+
+3. RELATED DOMAINS: List 3-5 closely related fields that provide relevant context
+
+4. KEY CONCEPTS: Identify 5-7 domain-specific concepts, techniques, or principles that are central to this problem
+
+5. DOMAIN COMPLEXITY: Rate domain specialization (1-10, where 10 is highly specialized)
+
+6. REQUIRED EXPERTISE: List specific expertise areas needed
+
+Format your response EXACTLY as:
+Domain: <primary_domain>
+Subdomain: <subdomain or "none">
+Related: <domain1>, <domain2>, <domain3>
+Concepts: <concept1>, <concept2>, <concept3>, <concept4>, <concept5>
+Complexity: <1-10>
+Expertise: <expertise1>, <expertise2>, <expertise3>
+Summary: <1-2 sentence summary of the domain context>
+
+Be specific and precise. Use underscores for multi-word domains (e.g., machine_learning not "machine learning")."""
+        
+        result = self.openevolve_client.evolve(
+            content=prompt,
+            evolution_mode="standard",
+            content_type="analysis",
+            max_iterations=1,
+            temperature=0.3,  # Lower temperature for more focused analysis
+            max_tokens=500
+        )
+        
+        if not result.success or not result.best_code:
+            raise RuntimeError("LLM evolution failed to produce a result for domain context extraction.")
+
+        parsed = self._parse_domain_response(result.best_code)
+        
+        if not parsed.domain:
+            raise ValueError("LLM analysis for domain context returned an empty domain.")
+
+        self.logger.info(f"LLM domain extraction successful: {parsed.domain}")
+        return parsed
+    
+    def _parse_domain_response(self, response: str) -> DomainContext:
+        """Parse LLM response for domain context with enhanced extraction."""
+        lines = response.strip().split('\n')
+        domain = "general"
+        subdomain = None
+        related_domains = []
+        concepts = []
+        complexity = 5.0
+        expertise = []
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+                
+            if line.startswith("Domain:"):
+                domain = line.split(":", 1)[1].strip().lower().replace(" ", "_")
+            elif line.startswith("Subdomain:"):
+                sub = line.split(":", 1)[1].strip()
+                subdomain = sub.lower().replace(" ", "_") if sub.lower() != "none" else None
+            elif line.startswith("Related:"):
+                related = line.split(":", 1)[1].strip()
+                related_domains = [d.strip().lower().replace(" ", "_") for d in related.split(",") if d.strip()]
+            elif line.startswith("Concepts:"):
+                concepts_str = line.split(":", 1)[1].strip()
+                concepts = [c.strip() for c in concepts_str.split(",") if c.strip()]
+            elif line.startswith("Complexity:"):
+                try:
+                    complexity = float(line.split(":", 1)[1].strip())
+                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                    complexity = 5.0
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Error: {e}", exc_info=True)
+            elif line.startswith("Expertise:"):
+                expertise_str = line.split(":", 1)[1].strip()
+                expertise = [e.strip() for e in expertise_str.split(",") if e.strip()]
+        
+        return DomainContext(
+            domain=domain,
+            subdomain=subdomain,
+            related_domains=related_domains[:5],  # Limit to 5
+            domain_knowledge={
+                "key_concepts": concepts[:7],  # Limit to 7
+                "extraction_method": "llm",
+                "domain_complexity": complexity,
+                "required_expertise": expertise[:5]  # Limit to 5
+            }
+        )
+    
+    def classify_problem_type(self, problem_text: str) -> ProblemType:
+        """
+        Determines problem category for strategy selection using LLM-based analysis.
+        
+        Args:
+            problem_text: The problem description
+            
+        Returns:
+            ProblemType enum value
+            
+        Raises:
+            RuntimeError: If LLM analysis fails or is unavailable.
+        """
+        if not self.openevolve_client or not OPENEVOLVE_AVAILABLE:
+            # Fallback implementation when OpenEvolve is not available
+            return self._classify_problem_type_fallback(problem_text)
+            
+        try:
+            return self._classify_problem_type_llm(problem_text)
+        except Exception as e:  # TODO: Catch specific exception instead of Exception
+            self.logger.error(f"LLM-based problem classification failed: {e}")
+            # Fall back to basic implementation
+            return self._classify_problem_type_fallback(problem_text)
+
+    def _classify_problem_type_fallback(self, problem_text: str) -> ProblemType:
+        """Basic problem type classification when LLM is not available."""
+        problem_lower = problem_text.lower()
+        
+        # Keyword-based classification
+        if any(keyword in problem_lower for keyword in ["research", "study", "investigate", "explore"]):
+            return ProblemType.RESEARCH
+        elif any(keyword in problem_lower for keyword in ["implement", "build", "create", "develop", "code"]):
+            return ProblemType.IMPLEMENTATION
+        elif any(keyword in problem_lower for keyword in ["analyze", "evaluate", "assess", "review"]):
+            return ProblemType.ANALYSIS
+        elif any(keyword in problem_lower for keyword in ["optimize", "improve", "enhance", "maximize", "minimize"]):
+            return ProblemType.OPTIMIZATION
+        elif any(keyword in problem_lower for keyword in ["design", "architect", "structure", "plan"]):
+            return ProblemType.DESIGN
+        else:
+            # Default to ANALYSIS for unknown types
+            return ProblemType.ANALYSIS
+
+    @with_retry(max_attempts=3, retry_on=(RuntimeError, ValueError))
+    def _classify_problem_type_llm(self, problem_text: str) -> ProblemType:
+        """Classify problem type using LLM analysis with sophisticated prompting."""
+        prompt = f"""You are an expert problem classifier. Analyze the following problem and classify its primary type.
+        
+Problem:
+{problem_text}
+
+Classify the problem into one of these categories:
+- RESEARCH: Problems requiring investigation, study, exploration, or discovery.
+- IMPLEMENTATION: Problems requiring building, creating, developing, or coding a solution.
+- ANALYSIS: Problems requiring evaluation, assessment, examination, or review of existing data or systems.
+- OPTIMIZATION: Problems requiring improvement, enhancement, maximization, or minimization of performance or efficiency.
+- DESIGN: Problems requiring architectural planning, structuring, modeling, or prototyping.
+
+Provide only the classification word (e.g., RESEARCH, IMPLEMENTATION, ANALYSIS, OPTIMIZATION, DESIGN)."""
+
+        result = self.openevolve_client.evolve(
+            content=prompt,
+            evolution_mode="standard",
+            content_type="analysis",
+            max_iterations=1,
+            temperature=0.2,  # Low temperature for consistent classification
+            max_tokens=50
+        )
+
+        if not result.success or not result.best_code:
+            raise RuntimeError("LLM evolution failed to produce a result for problem classification.")
+
+        classification = result.best_code.strip().upper()
+        if classification in ProblemType.__members__:
+            self.logger.info(f"LLM problem classification successful: {classification}")
+            return ProblemType[classification]
+        else:
+            raise ValueError(f"LLM returned an unknown problem type: {classification}")
+
+    def assess_complexity(self, problem: ProblemDefinition) -> ComplexityScore:
+        """
+        Calculates cognitive and computational complexity using LLM-based analysis.
+        
+        Args:
+            problem: The problem definition
+            
+        Returns:
+            ComplexityScore with multi-dimensional assessment
+            
+        Raises:
+            RuntimeError: If LLM analysis fails or is unavailable.
+        """
+        if not self.openevolve_client or not OPENEVOLVE_AVAILABLE:
+            # Fallback implementation when OpenEvolve is not available
+            return self._assess_complexity_fallback(problem)
+            
+        try:
+            return self._assess_complexity_llm(problem)
+        except Exception as e:  # TODO: Catch specific exception instead of Exception
+            self.logger.error(f"LLM-based complexity assessment failed: {e}")
+            # Fall back to basic implementation
+            return self._assess_complexity_fallback(problem)
+    
+    def _assess_complexity_fallback(self, problem: ProblemDefinition) -> ComplexityScore:
+        """Basic complexity assessment when LLM is not available."""
+        # Simple heuristic-based complexity assessment
+        problem_text = problem.description.lower()
+        
+        # Cognitive complexity based on text length and complexity indicators
+        cognitive_indicators = ["complex", "difficult", "challenge", "abstract", "deep", "advanced"]
+        cognitive_score = min(10.0, len(problem_text) / 100.0)  # Rough estimate based on length
+        cognitive_score += sum(1.0 for indicator in cognitive_indicators if indicator in problem_text)
+        cognitive_score = min(10.0, cognitive_score)
+        
+        # Computational complexity based on technical terms
+        comp_indicators = ["algorithm", "compute", "calculate", "process", "analyze", "data intensive"]
+        comp_score = sum(1.0 for indicator in comp_indicators if indicator in problem_text)
+        comp_score = min(10.0, comp_score + 2.0)  # Base score
+        
+        # Domain complexity based on domain knowledge
+        domain_complexity = problem.domain_context.domain_knowledge.get("domain_complexity", 5.0)
+        
+        # Integration complexity based on constraints
+        integration_score = min(10.0, len(problem.constraints) * 1.5)
+        
+        overall = (cognitive_score + comp_score + domain_complexity + integration_score) / 4.0
+        
+        return ComplexityScore(
+            cognitive_complexity=cognitive_score,
+            computational_complexity=comp_score,
+            domain_complexity=domain_complexity,
+            integration_complexity=integration_score,
+            overall_complexity=overall,
+            explanation="Fallback assessment based on heuristics"
+        )
+    
+    @with_retry(max_attempts=3, retry_on=(RuntimeError, ValueError))
+    def _assess_complexity_llm(self, problem: ProblemDefinition) -> ComplexityScore:
+        """Assess complexity using LLM analysis with multi-dimensional evaluation."""
+        # Build comprehensive context
+        constraints_desc = f"\nConstraints: {len(problem.constraints)} constraints including " + ", ".join([c.type for c in problem.constraints[:3]]) if problem.constraints else "\nConstraints: None specified"
+        domain_knowledge = problem.domain_context.domain_knowledge.get("key_concepts", [])
+        concepts_desc = f"\nKey Concepts: {', '.join(domain_knowledge[:5])}" if domain_knowledge else ""
+        
+        prompt = f"""You are an expert problem complexity analyst. Assess this problem's complexity across multiple dimensions with precision.
+
+PROBLEM DETAILS:
+Title: {problem.title}
+Description: {problem.description}
+Domain: {problem.domain_context.domain}
+Subdomain: {problem.domain_context.subdomain or "N/A"}
+Type: {problem.problem_type.value}{constraints_desc}{concepts_desc}
+
+COMPLEXITY ASSESSMENT FRAMEWORK:
+
+1. COGNITIVE COMPLEXITY (0-10): Mental effort, conceptual difficulty, abstraction level
+   - Consider: Problem understanding, mental models needed, conceptual depth
+   - 0-3: Simple, straightforward
+   - 4-6: Moderate, requires focused thinking
+   - 7-10: High, requires deep expertise and abstract reasoning
+
+2. COMPUTATIONAL COMPLEXITY (0-10): Processing, calculation, algorithmic requirements
+   - Consider: Data volume, algorithm complexity, performance requirements
+   - 0-3: Minimal computation
+   - 4-6: Moderate processing needs
+   - 7-10: Intensive computation, optimization critical
+
+3. DOMAIN COMPLEXITY (0-10): Specialized knowledge and expertise required
+   - Consider: Domain depth, specialized techniques, field-specific knowledge
+   - 0-3: General knowledge sufficient
+   - 4-6: Domain familiarity needed
+   - 7-10: Deep domain expertise essential
+
+4. INTEGRATION COMPLEXITY (0-10): Coordination, dependencies, system integration
+   - Consider: Component interactions, external dependencies, coordination needs
+   - 0-3: Standalone, minimal integration
+   - 4-6: Some integration required
+   - 7-10: Complex integration, many dependencies
+
+Provide your assessment in this EXACT format:
+Cognitive: <score>
+Computational: <score>
+Domain: <score>
+Integration: <score>
+Explanation: <2-3 sentence explanation of key complexity drivers>
+
+Be precise and justify your scores based on the problem characteristics."""
+        
+        result = self.openevolve_client.evolve(
+            content=prompt,
+            evolution_mode="standard",
+            content_type="analysis",
+            max_iterations=1,
+            temperature=0.2,  # Very low temperature for consistent scoring
+            max_tokens=400
+        )
+        
+        if not result.success or not result.best_code:
+            raise RuntimeError("LLM evolution failed to produce a result for complexity assessment.")
+
+        parsed = self._parse_complexity_response(result.best_code)
+        
+        if not (0 <= parsed.overall_complexity <= 10):
+            raise ValueError(f"LLM returned invalid complexity scores: {parsed.overall_complexity}")
+
+        self.logger.info(f"LLM complexity assessment: {parsed.overall_complexity:.1f}")
+        return parsed
+    
+    def _parse_complexity_response(self, response: str) -> ComplexityScore:
+        """Parse LLM response for complexity scores."""
+        lines = response.strip().split('\n')
+        cognitive = 5.0
+        computational = 5.0
+        domain = 5.0
+        integration = 5.0
+        explanation = "LLM assessment"
+        
+        for line in lines:
+            if line.startswith("Cognitive:"):
+                try:
+                    cognitive = float(line.split(":", 1)[1].strip())
+                except Exception as exc:  # TODO: Catch specific exception instead of Exception
+                    self.logger.debug(f"Failed to parse Cognitive score: {exc}")
+            elif line.startswith("Computational:"):
+                try:
+                    computational = float(line.split(":", 1)[1].strip())
+                except Exception as exc:  # TODO: Catch specific exception instead of Exception
+                    self.logger.debug(f"Failed to parse Computational score: {exc}")
+            elif line.startswith("Domain:"):
+                try:
+                    domain = float(line.split(":", 1)[1].strip())
+                except Exception as exc:  # TODO: Catch specific exception instead of Exception
+                    self.logger.debug(f"Failed to parse Domain score: {exc}")
+            elif line.startswith("Integration:"):
+                try:
+                    integration = float(line.split(":", 1)[1].strip())
+                except Exception as exc:  # TODO: Catch specific exception instead of Exception
+                    self.logger.debug(f"Failed to parse Integration score: {exc}")
+            elif line.startswith("Explanation:"):
+                explanation = line.split(":", 1)[1].strip()
+        
+        overall = (cognitive + computational + domain + integration) / 4.0
+        
+        return ComplexityScore(
+            cognitive_complexity=cognitive,
+            computational_complexity=computational,
+            domain_complexity=domain,
+            integration_complexity=integration,
+            overall_complexity=overall,
+            explanation=explanation
+        )
+    
+    def identify_constraints(self, problem_text: str) -> List[Constraint]:
+        """
+        Extracts explicit and implicit constraints using LLM analysis.
+        
+        Args:
+            problem_text: The problem description
+            
+        Returns:
+            List of Constraint objects
+            
+        Raises:
+            RuntimeError: If LLM analysis fails or is unavailable.
+        """
+        if not self.openevolve_client or not OPENEVOLVE_AVAILABLE:
+            # Fallback implementation when OpenEvolve is not available
+            return self._identify_constraints_fallback(problem_text)
+            
+        try:
+            return self._identify_constraints_llm(problem_text)
+        except Exception as e:  # TODO: Catch specific exception instead of Exception
+            self.logger.error(f"LLM-based constraint identification failed: {e}")
+            # Fall back to basic implementation
+            return self._identify_constraints_fallback(problem_text)
+    
+    def _identify_constraints_fallback(self, problem_text: str) -> List[Constraint]:
+        """Basic constraint identification when LLM is not available."""
+        constraints = []
+        problem_lower = problem_text.lower()
+        
+        # Time constraints
+        time_indicators = ["deadline", "due date", "time limit", "schedule", "month", "week", "day"]
+        if any(indicator in problem_lower for indicator in time_indicators):
+            constraints.append(Constraint(
+                id=generate_id("constraint"),
+                description="Time constraints identified in problem description",
+                type="time",
+                severity="soft"
+            ))
+        
+        # Resource constraints
+        resource_indicators = ["budget", "resource", "money", "funding", "personnel", "staff", "team"]
+        if any(indicator in problem_lower for indicator in resource_indicators):
+            constraints.append(Constraint(
+                id=generate_id("constraint"),
+                description="Resource constraints identified in problem description",
+                type="resource",
+                severity="soft"
+            ))
+        
+        # Quality constraints
+        quality_indicators = ["quality", "accurate", "reliable", "robust", "secure", "standard"]
+        if any(indicator in problem_lower for indicator in quality_indicators):
+            constraints.append(Constraint(
+                id=generate_id("constraint"),
+                description="Quality constraints identified in problem description",
+                type="quality",
+                severity="soft"
+            ))
+        
+        # Technical constraints
+        tech_indicators = ["technology", "platform", "compatible", "framework", "language", "stack"]
+        if any(indicator in problem_lower for indicator in tech_indicators):
+            constraints.append(Constraint(
+                id=generate_id("constraint"),
+                description="Technical constraints identified in problem description",
+                type="technical",
+                severity="soft"
+            ))
+        
+        return constraints
+    
+    @with_retry(max_attempts=3, retry_on=(RuntimeError, ValueError))
+    def _identify_constraints_llm(self, problem_text: str) -> List[Constraint]:
+        """Use LLM to identify constraints with semantic understanding."""
+        prompt = f"""You are an expert at identifying constraints in problem statements. Analyze this problem and extract ALL constraints.
+
+Problem:
+{problem_text}
+
+Identify constraints in these categories:
+1. TIME: Deadlines, schedules, time windows
+2. RESOURCE: Budget, personnel, equipment, infrastructure
+3. QUALITY: Performance, accuracy, reliability, standards
+4. TECHNICAL: Technology stack, compatibility, platform requirements
+5. REGULATORY: Compliance, legal, policy requirements
+6. SCOPE: Boundaries, limitations, exclusions
+
+For each constraint found, provide:
+- Type: (time/resource/quality/technical/regulatory/scope)
+- Description: Clear description of the constraint
+- Severity: (hard/soft) - hard = must satisfy, soft = should satisfy
+
+Format each constraint as:
+[TYPE] Description | SEVERITY
+
+Example:
+[time] Must be completed within 3 months | hard
+[resource] Budget limited to $50,000 | hard
+[quality] Must achieve 95% accuracy | soft
+
+List ALL constraints you identify, including implicit ones:"""
+        
+        result = self.openevolve_client.evolve(
+            content=prompt,
+            evolution_mode="standard",
+            content_type="analysis",
+            max_iterations=1,
+            temperature=0.3,
+            max_tokens=600
+        )
+        
+        if not result.success or not result.best_code:
+            raise RuntimeError("LLM evolution failed to produce a result for constraint identification.")
+
+        constraints = self._parse_constraints_response(result.best_code)
+        self.logger.info(f"LLM identified {len(constraints)} constraints")
+        return constraints
+    
+    def _parse_constraints_response(self, response: str) -> List[Constraint]:
+        """Parse LLM response for constraints."""
+        constraints = []
+        lines = response.strip().split('\n')
+        
+        for line in lines:
+            line = line.strip()
+            if not line or not line.startswith('['):
+                continue
+            
+            try:
+                # Parse format: [TYPE] Description | SEVERITY
+                if ']' not in line:
+                    continue
+                    
+                type_part = line[1:line.index(']')].strip().lower()
+                rest = line[line.index(']')+1:].strip()
+                
+                if '|' in rest:
+                    description, severity = rest.split('|', 1)
+                    description = description.strip()
+                    severity = severity.strip().lower()
+                else:
+                    description = rest
+                    severity = "soft"
+                
+                # Validate type
+                valid_types = ["time", "resource", "quality", "technical", "regulatory", "scope"]
+                if type_part not in valid_types:
+                    continue
+                
+                # Validate severity
+                if severity not in ["hard", "soft"]:
+                    severity = "soft"
+                
+                constraints.append(Constraint(
+                    id=generate_id("constraint"),
+                    description=description,
+                    type=type_part,
+                    severity=severity
+                ))
+            except Exception as e:  # TODO: Catch specific exception instead of Exception
+                self.logger.debug(f"Failed to parse constraint line: {line} - {e}")
+                continue
+        
+        return constraints
+    
+    def generate_success_criteria(self, problem: ProblemDefinition) -> List[SuccessCriterion]:
+        """
+        Creates measurable success criteria using LLM for intelligent generation.
+        
+        Args:
+            problem: The problem definition
+            
+        Returns:
+            List of SuccessCriterion objects
+            
+        Raises:
+            RuntimeError: If LLM analysis fails or is unavailable.
+        """
+        if not self.openevolve_client or not OPENEVOLVE_AVAILABLE:
+            # Fallback implementation when OpenEvolve is not available
+            return self._generate_criteria_fallback(problem)
+
+        try:
+            llm_criteria = self._generate_criteria_with_llm(problem)
+            if not llm_criteria or len(llm_criteria) < 2:
+                raise ValueError("LLM generated insufficient or no success criteria.")
+            
+            self.logger.info(f"LLM generated {len(llm_criteria)} success criteria")
+            return llm_criteria
+        except Exception as e:  # TODO: Catch specific exception instead of Exception
+            self.logger.error(f"LLM-based success criteria generation failed: {e}")
+            # Fall back to basic implementation
+            return self._generate_criteria_fallback(problem)
+    
+    def _generate_criteria_fallback(self, problem: ProblemDefinition) -> List[SuccessCriterion]:
+        """Basic success criteria generation when LLM is not available."""
+        criteria = []
+        
+        # Basic criteria based on problem type and complexity
+        criteria.append(SuccessCriterion(
+            id=generate_id("criterion"),
+            description=f"Successfully analyze and understand the {problem.problem_type.value} problem",
+            metric="Problem comprehension score (0-100)",
+            threshold=80.0,
+            validation_method="Peer review"
+        ))
+        
+        criteria.append(SuccessCriterion(
+            id=generate_id("criterion"),
+            description=f"Generate a viable solution for the {problem.domain_context.domain} domain",
+            metric="Solution viability score (0-100)",
+            threshold=75.0,
+            validation_method="Domain expert review"
+        ))
+        
+        # Add criteria based on constraints
+        if problem.constraints:
+            for constraint in problem.constraints[:3]:  # Limit to first 3 constraints
+                criteria.append(SuccessCriterion(
+                    id=generate_id("criterion"),
+                    description=f"Satisfy the {constraint.type} constraint: {constraint.description}",
+                    metric=f"{constraint.type.capitalize()} constraint satisfaction (0-100)",
+                    threshold=90.0 if constraint.severity == "hard" else 70.0,
+                    validation_method="Constraint validation"
+                ))
+        
+        # Add complexity-based criteria
+        if problem.complexity_score.overall_complexity > 7:
+            criteria.append(SuccessCriterion(
+                id=generate_id("criterion"),
+                description="Demonstrate expert-level understanding of complex problem aspects",
+                metric="Expert-level understanding score (0-100)",
+                threshold=85.0,
+                validation_method="Expert panel review"
+            ))
+        
+        return criteria
+    
+    @with_retry(max_attempts=3, retry_on=(RuntimeError, ValueError))
+    def _generate_criteria_with_llm(self, problem: ProblemDefinition) -> List[SuccessCriterion]:
+        """Use LLM to generate intelligent, specific success criteria."""
+        constraints_desc = "\n".join([f"- {c.description}" for c in problem.constraints[:5]]) if problem.constraints else "None"
+        
+        prompt = f"""You are an expert at defining measurable success criteria. Create specific, measurable success criteria for this problem.
+
+PROBLEM:
+Title: {problem.title}
+Description: {problem.description}
+Type: {problem.problem_type.value}
+Domain: {problem.domain_context.domain}
+Complexity: {problem.complexity_score.overall_complexity}/10
+Constraints: 
+{constraints_desc}
+
+SUCCESS CRITERIA GENERATION:
+Create 3-5 SMART (Specific, Measurable, Achievable, Relevant, Time-bound) success criteria.
+
+For each criterion provide:
+1. Description: Clear, specific description of what success looks like
+2. Metric: How to measure it (quantitative if possible)
+3. Threshold: Minimum acceptable value (0.0-1.0 scale or specific number)
+4. Validation: How to validate achievement
+
+Format EXACTLY as:
+---
+CRITERION 1
+Description: <specific description>
+Metric: <measurable metric>
+Threshold: <numeric threshold>
+Validation: <validation method>
+---
+
+Provide 3-5 criteria. Be specific and measurable."""
+        
+        result = self.openevolve_client.evolve(
+            content=prompt,
+            evolution_mode="standard",
+            content_type="analysis",
+            max_iterations=1,
+            temperature=0.3,
+            max_tokens=1000
+        )
+        
+        if not result.success or not result.best_code:
+            raise RuntimeError("LLM evolution failed to produce a result for success criteria generation.")
+        
+        return self._parse_criteria_response(result.best_code)
+    
+    def _parse_criteria_response(self, response: str) -> List[SuccessCriterion]:
+        """Parse LLM success criteria response."""
+        criteria = []
+        sections = response.split('---')
+        
+        for section in sections:
+            section = section.strip()
+            if not section or 'CRITERION' not in section:
+                continue
+            
+            try:
+                description = self._extract_criteria_field(section, 'Description:')
+                metric = self._extract_criteria_field(section, 'Metric:')
+                threshold_str = self._extract_criteria_field(section, 'Threshold:')
+                validation = self._extract_criteria_field(section, 'Validation:')
+                
+                if not description or not metric:
+                    continue
+                
+                # Parse threshold
+                try:
+                    threshold = float(threshold_str.split()[0])
+                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                    threshold = 0.8
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Error: {e}", exc_info=True)
+                
+                criterion = SuccessCriterion(
+                    id=generate_id("criterion"),
+                    description=description,
+                    metric=metric,
+                    threshold=threshold,
+                    validation_method=validation or "review"
+                )
+                criteria.append(criterion)
+                
+            except Exception as e:  # TODO: Catch specific exception instead of Exception
+                self.logger.debug(f"Failed to parse criterion section: {e}")
+                continue
+        
+        return criteria
+    
+    def _extract_criteria_field(self, text: str, field_name: str) -> str:
+        """Extract field value from criteria text."""
+        lines = text.split('\n')
+        for line in lines:
+            if line.strip().startswith(field_name):
+                return line.split(':', 1)[1].strip()
+        return ""
+    
+    def validate_problem_definition(self, problem: ProblemDefinition) -> tuple[bool, List[str]]:
+        """
+        Ensures problem is well-formed.
+        
+        Args:
+            problem: The problem definition to validate
+            
+        Returns:
+            Tuple of (is_valid, list of validation errors)
+        """
+        errors = []
+        
+        # Check required fields
+        if not problem.title or len(problem.title.strip()) == 0:
+            errors.append("Problem title is required")
+        
+        if not problem.description or len(problem.description.strip()) < 10:
+            errors.append("Problem description must be at least 10 characters")
+        
+        if not problem.domain_context.domain:
+            errors.append("Problem domain must be identified")
+        
+        if problem.complexity_score.overall_complexity < 0 or problem.complexity_score.overall_complexity > 10:
+            errors.append("Complexity score must be between 0 and 10")
+        
+        if len(problem.success_criteria) == 0:
+            errors.append("At least one success criterion is required")
+        
+        return (len(errors) == 0, errors)
+    
+    def _extract_title(self, problem_text: str) -> str:
+        """Extract a title from problem text if not provided."""
+        # Take first sentence or first 50 characters
+        sentences = re.split(r'[.!?]+', problem_text)
+        if sentences:
+            title = sentences[0].strip()
+            if len(title) > 50:
+                title = title[:47] + "..."
+            return title
+        return "Untitled Problem"

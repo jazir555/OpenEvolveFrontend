@@ -62,6 +62,7 @@ export interface Workflow {
   user_id: string;
   tenant_id: string;
   metadata?: WorkflowMetadata;
+  workflow_type?: 'evolution' | 'adversarial' | 'sovereign';
 }
 
 /**
@@ -70,8 +71,41 @@ export interface Workflow {
 export interface WorkflowMetadata {
   mdap_enabled?: boolean;
   maker_enabled?: boolean;
+  maker_config?: MAKERConfig;
+  adaptive_config?: AdaptiveConfig;
   evolution_params?: EvolutionParameters;
   performance_params?: PerformanceParameters;
+}
+
+/**
+ * MAKER Engine Configuration
+ */
+export interface MAKERConfig {
+  mode: 'sequential' | 'recursive' | 'hybrid';
+  k_ahead: number;
+  num_candidates: number;
+  max_depth: number;
+  enable_red_flagging: boolean;
+  max_token_length: number;
+  timeout_seconds: number;
+  preset?: string;
+}
+
+/**
+ * Adaptive MDAP Configuration
+ */
+export interface AdaptiveConfig {
+  enabled: boolean;
+  enable_selection: boolean;
+  enable_allocation: boolean;
+  preset?: 'conservative' | 'balanced' | 'aggressive';
+  classifier?: {
+    feature_weights?: Record<string, number>;
+  };
+  allocator?: {
+    thresholds?: number[];
+    enable_learning?: boolean;
+  };
 }
 
 /**
@@ -110,6 +144,7 @@ export interface CreateWorkflowRequest {
   teams: string[];
   gauntlets: string[];
   metadata?: WorkflowMetadata;
+  workflow_type?: 'evolution' | 'adversarial' | 'sovereign';
 }
 
 /**
@@ -123,6 +158,17 @@ export interface UpdateWorkflowRequest {
   teams?: string[];
   gauntlets?: string[];
   metadata?: WorkflowMetadata;
+  workflow_type?: 'evolution' | 'adversarial' | 'sovereign';
+}
+
+/**
+ * Workflow list response
+ */
+export interface WorkflowListResponse {
+  workflows: Workflow[];
+  total: number;
+  page?: number;
+  page_size?: number;
 }
 
 // ============================================================================
@@ -271,6 +317,14 @@ export interface Team {
 }
 
 /**
+ * Team list response
+ */
+export interface TeamListResponse {
+  teams: Team[];
+  total: number;
+}
+
+/**
  * Create team request
  */
 export interface CreateTeamRequest {
@@ -317,6 +371,14 @@ export interface Gauntlet {
   updated_at: string;
   user_id: string;
   tenant_id: string;
+}
+
+/**
+ * Gauntlet list response
+ */
+export interface GauntletListResponse {
+  gauntlets: Gauntlet[];
+  total: number;
 }
 
 /**

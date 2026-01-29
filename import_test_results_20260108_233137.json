@@ -1,0 +1,51 @@
+{
+  "timestamp": "2026-01-08T23:31:37.110402",
+  "duration_seconds": 8.472965,
+  "total_tests": 5,
+  "passed_tests": 5,
+  "failed_tests": 0,
+  "total_items": 88,
+  "total_imported": 88,
+  "results": [
+    {
+      "import_path": "knowledge_engine",
+      "success": true,
+      "error": null,
+      "missing_items": [],
+      "total_items": 11,
+      "imported_count": 11
+    },
+    {
+      "import_path": "knowledge_engine.integrations.graphiti",
+      "success": true,
+      "error": null,
+      "missing_items": [],
+      "total_items": 32,
+      "imported_count": 32
+    },
+    {
+      "import_path": "knowledge_engine.integrations.kggen",
+      "success": true,
+      "error": null,
+      "missing_items": [],
+      "total_items": 19,
+      "imported_count": 19
+    },
+    {
+      "import_path": "knowledge_engine.integrations.oneke",
+      "success": true,
+      "error": null,
+      "missing_items": [],
+      "total_items": 12,
+      "imported_count": 12
+    },
+    {
+      "import_path": "knowledge_engine.visualization",
+      "success": true,
+      "error": null,
+      "missing_items": [],
+      "total_items": 14,
+      "imported_count": 14
+    }
+  ]
+}

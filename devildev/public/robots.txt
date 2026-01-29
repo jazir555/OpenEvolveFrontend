@@ -1,0 +1,9 @@
+# *
+User-agent: *
+Allow: /
+
+# Host
+Host: https://devildev.com
+
+# Sitemaps
+Sitemap: https://devildev.com/sitemap.xml

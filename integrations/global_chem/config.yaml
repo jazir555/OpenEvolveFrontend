@@ -1,0 +1,176 @@
+# GlobalChem Integration Configuration
+# Chemical Knowledge Graph for OpenEvolve
+
+project:
+  name: global-chem
+  version: 0.1.0
+  enabled: true
+  description: "Community-curated chemical knowledge graph with SMILES/SMARTS support"
+
+# Connection Configuration
+# Note: GlobalChem is data-based, no external connection needed
+connection:
+  type: "local"
+  data_path: "../../projects to analyze/global-chem"
+
+# Feature Configuration
+features:
+  chemical_lists: true
+  smiles_parsing: true
+  smarts_parsing: true
+  property_prediction: true
+  oneke_integration: true
+  entity_recognition: true
+  relationship_extraction: true
+  knowledge_graph_generation: true
+
+# Chemical Lists to Load
+# Leave empty to load all available lists
+chemical_lists:
+  # Organic Chemistry
+  - organic_and_inorganic_bronsted_acids
+  - common_organic_solvents
+  - common_monomer_repeating_units
+  - amino_acid_protecting_groups
+
+  # Biomolecules
+  - amino_acids
+  - vitamins
+  - cannabis_acids
+  - cannabis_alcohols
+  - cannabis_aldehydes
+  - cannabis_amino_acids
+  - cannabis_fatty_acids
+  - cannabis_flavanoidglycosides
+  - cannabis_terpenes
+  - cannabis_vitamins
+
+  # Medicinal Chemistry
+  - phyto_cannabinoids
+  - constituents_of_cannabis_sativa
+  - cannabinoids
+  - electrophilic_warheads_for_kinases
+  - common_warheads_covalent_inhibitors
+  - rings_in_drugs
+  - iupac_blue_book_rings
+  - privileged_scaffolds
+  - common_r_group_replacements
+  - braf_inhibitors
+  - privileged_kinase_inhibitors
+
+  # Drugs & Pharmaceuticals
+  - drugs_from_snake_venom
+  - insect_sex_pheromones
+  - monoclonal_antibodies
+
+  # Food Chemistry
+  - salt
+  - fda_list_one
+  - fda_list_two
+  - fda_list_three
+  - fda_list_four
+  - fda_list_five
+  - fda_list_six
+  - fda_list_seven
+  - mango_phyto_compounds
+  - mango_phenolic_acids
+  - mango_vitamins
+  - mango_fatty_acids
+  - mango_amino_acids
+  - mango_flavonoids
+
+  # Materials Chemistry
+  - montmorillonite_adsorption
+
+  # Environmental Chemistry
+  - alternative_jet_fuels
+  - chemicals_from_biomass
+  - emerging_perfluoroalkyls
+  - interstellar_space
+  - asteroid_ryugu
+
+  # Narcotics (Controlled Substances)
+  - pihkal
+  - schedule_one
+  - schedule_two
+  - schedule_three
+  - schedule_four
+  - schedule_five
+
+  # Warfare Agents
+  - organo_phosphorous_nerve_agents
+
+# Integration Settings
+integration:
+  auto_start: true
+  oneke_integration: true
+  cache_enabled: true
+  cache_ttl: 3600
+  fallback_on_error: true
+
+# Entity Recognition Settings
+entity_recognition:
+  enabled: true
+  confidence_threshold: 0.7
+  max_entities_per_text: 100
+  include_smiles: true
+  include_properties: true
+
+# Relationship Extraction Settings
+relationship_extraction:
+  enabled: true
+  max_distance: 100  # Maximum character distance between related entities
+  confidence_threshold: 0.6
+  relationship_types:
+    - reacts_with
+    - derivative_of
+    - analog_of
+    - inhibits
+    - binds_to
+    - co_occurs_with
+
+# SMILES/SMARTS Pipeline Settings
+smiles_smarts:
+  validation_enabled: true
+  canonical_form: true
+  molecular_formula: true
+  molecular_weight: true
+  pattern_matching: true
+
+# Performance Configuration
+performance:
+  max_workers: 4
+  timeout: 30
+  batch_size: 100
+  max_cache_size: 1000
+
+# OneKE Integration Settings
+oneke:
+  enabled: true
+  merge_results: true
+  priority: "chemical"  # Priority when merging with OneKE results
+  schema_mapping:
+    chemical_name: "name"
+    smiles: "identifier"
+    chemical_type: "category"
+
+# Logging Configuration
+logging:
+  level: "INFO"
+  log_file: "logs/global_chem.log"
+  log_to_console: true
+  log_to_file: false
+
+# Validation Settings
+validation:
+  enabled: true
+  validate_smiles: true
+  validate_smarts: true
+  strict_validation: false
+
+# Advanced Settings
+advanced:
+  preload_all_lists: false  # Set to true to load all lists on startup
+  lazy_loading: true
+  background_refresh: false
+  refresh_interval: 86400  # 24 hours in seconds

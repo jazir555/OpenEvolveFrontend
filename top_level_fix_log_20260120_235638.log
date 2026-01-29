@@ -1,0 +1,68 @@
+================================================================================
+Top-Level Auto-Fix Tool
+================================================================================
+Target directory: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+Mode: LIVE
+Scope: Top-level Python files ONLY (no subdirectories)
+================================================================================
+
+[*] Found 604 Python files in top-level directory
+
+[*] Analyzing files for issues...
+
+Analysis Results:
+  Syntax errors: 1 files
+  Bare except clauses: 65 files
+  Hardcoded /tmp paths: 3 files
+  Pickle usage: 16 files
+
+[*] Phase 1: Attempting to fix 1 syntax errors...
+  Fixed: 0/1
+  Manual review required: 1
+
+[*] Phase 2: Fixing bare except clauses in 65 files...
+  Fixed: 64/65
+
+[*] Phase 3: Documenting hardcoded /tmp paths in 3 files...
+  Documented: 3/3
+
+[*] Phase 4: Pickle usage found in 16 files
+  ACTION REQUIRED: Replace pickle with json for security
+
+  Files with pickle usage:
+    - advanced_cache.py
+    - advanced_unit_tests_comprehensive.py
+    - auto_fix_security.py
+    - blue_team_coordinator.py
+    - evaluator_team_coordinator.py
+    - fix_manual_security_issues.py
+    - future_enhancements.py
+    - leanaide_mdap.py
+    - llm_cache.py
+    - llm_caching.py
+    - mcts_evolved_policies.py
+    - mcts_evolved_policies_mdap.py
+    - red_team_coordinator.py
+    - scan_top_level_only.py
+    - test_guardrails_integration.py
+    - validate_phase1_complete.py
+
+================================================================================
+[OK] Auto-Fix Complete
+================================================================================
+
+Summary:
+  Files analyzed: 604
+  Syntax errors: 1 (some auto-fixed)
+  Bare except clauses: 65 (auto-fixed)
+  Hardcoded /tmp: 3 (documented)
+  Pickle usage: 16 (manual fix required)
+
+Next steps:
+  1. Review .backup files if any changes were made
+  2. Fix remaining syntax errors manually
+  3. Replace pickle usage with json
+  4. Review and fix hardcoded /tmp paths
+  5. Run tests to verify fixes
+
+[OK] Done!

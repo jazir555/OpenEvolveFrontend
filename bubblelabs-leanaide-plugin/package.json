@@ -1,0 +1,93 @@
+{
+  "name": "bubblelabs-leanaide-plugin",
+  "version": "1.0.0",
+  "description": "LeanAIDE Autoformalization Plugin for BubbleLabs - Standalone plugin for mathematical formalization and verification",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && vite build",
+    "dev": "vite dev",
+    "test": "vitest run",
+    "lint": "eslint . --ext .ts,.tsx",
+    "prepare": "husky install"
+  },
+  "keywords": [
+    "bubblelabs",
+    "leanaide",
+    "plugin",
+    "autoformalization",
+    "mathematical",
+    "verification",
+    "formal",
+    "lean",
+    "theorem",
+    "prover"
+  ],
+  "author": "OpenEvolve",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "lucide-react": "^0.300.0",
+    "react-toastify": "^9.1.3",
+    "zustand": "^4.4.0",
+    "react-hook-form": "^7.45.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.0",
+    "@types/react-dom": "^18.2.0",
+    "typescript": "^5.0.0",
+    "vite": "^4.0.0",
+    "vitest": "^0.30.0",
+    "@vitejs/plugin-react": "^4.0.0",
+    "eslint": "^8.0.0",
+    "eslint-plugin-react": "^7.0.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^13.0.0"
+  },
+  "peerDependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": false
+    },
+    "react-dom": {
+      "optional": false
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./package.json": "./package.json"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openevolve/bubblelabs-leanaide-plugin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/openevolve/bubblelabs-leanaide-plugin/issues"
+  },
+  "homepage": "https://github.com/openevolve/bubblelabs-leanaide-plugin#readme",
+  "bubblelabs": {
+    "pluginType": "integration",
+    "displayName": "LeanAIDE Autoformalization",
+    "description": "Adds mathematical formalization and verification capabilities using LeanAIDE",
+    "category": "AI & Verification",
+    "icon": "leanaide.svg",
+    "configurable": true,
+    "version": "1.0.0",
+    "minBubbleLabsVersion": "1.0.0",
+    "author": "OpenEvolve",
+    "website": "https://openevolve.com"
+  }
+}

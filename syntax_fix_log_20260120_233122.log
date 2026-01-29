@@ -1,0 +1,203 @@
+================================================================================
+Syntax Error Fixer - Top Level Files
+================================================================================
+Target directory: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+Mode: DRY RUN
+================================================================================
+
+[*] Found 12 files with syntax errors
+
+Files to fix:
+  - ace_mcp_tools_FIXED.py
+  - adversarial_adapter.py
+  - adversarial_error_handling.py
+  - bubblelabs_evolution_integration.py
+  - demo_mcts_mdap.py
+  - hybrid_error_handling.py
+  - leanaide_mdap_demo.py
+  - leanaide_sop_integration.py
+  - openevolve_leanaide_bridge.py
+  - simple_verify_implementation.py
+  - sovereign_gauntlets.py
+  - workflow_stage_functions.py
+
+[*] Fixing syntax errors...
+
+[*] Processing: ace_mcp_tools_FIXED.py
+     Text: ```
+  Fixing: Generic invalid syntax
+    Line 37: Added 1 closing paren(s)
+    Line 97: Added 1 closing paren(s)
+    Line 140: Added 1 closing paren(s)
+    Line 183: Added 1 closing paren(s)
+    Line 194: Added 1 closing brace(s)
+    Line 200: Added 1 closing brace(s)
+    Line 213: Added 1 closing paren(s)
+    Line 238: Added 1 closing brace(s)
+    Line 248: Added 1 closing brace(s)
+
+[*] Processing: adversarial_adapter.py
+     Text: try:
+  Fixing: Missing except/finally block
+    Line 148: Added missing except block at line 199
+
+[*] Processing: adversarial_error_handling.py
+     Text: await unreliable_service()
+  Fixing: await outside async function
+
+[*] Processing: bubblelabs_evolution_integration.py
+     Text: try:
+  Fixing: Missing except/finally block
+    Added missing except block at line 413
+
+[*] Processing: demo_mcts_mdap.py
+     Text: print(f"  {name:<15} {func.__doc__.split('\n')[0].strip()}")
+  Fixing: f-string with backslash
+    Line 137: Escaped backslash in f-string
+    Line 155: Escaped backslash in f-string
+    Line 167: Escaped backslash in f-string
+    Line 239: Escaped backslash in f-string
+    Line 314: Escaped backslash in f-string
+    Line 335: Escaped backslash in f-string
+    Line 349: Escaped backslash in f-string
+    Line 410: Escaped backslash in f-string
+    Line 423: Escaped backslash in f-string
+    Line 444: Escaped backslash in f-string
+    Line 494: Escaped backslash in f-string
+    Line 495: Escaped backslash in f-string
+    Line 581: Escaped backslash in f-string
+    Line 604: Escaped backslash in f-string
+
+[*] Processing: hybrid_error_handling.py
+     Text: await unreliable_hybrid_service()
+  Fixing: await outside async function
+
+[*] Processing: leanaide_mdap_demo.py
+     Text: print('
+  Fixing: Unterminated string literal
+    Line 45: Added closing single quote
+    Line 56: Added closing single quote
+
+[*] Processing: leanaide_sop_integration.py
+     Text: LEANAIDE_MCTS_MDAP_AVAILABLE = True
+  Fixing: Generic invalid syntax
+    Line 16: Added 1 closing paren(s)
+    Line 25: Added 1 closing paren(s)
+    Line 31: Added 1 closing paren(s)
+    Line 37: Added 1 closing paren(s)
+    Line 42: Added 1 closing paren(s)
+    Line 84: Added 1 closing paren(s)
+    Line 105: Added 1 closing paren(s)
+    Line 118: Added 1 closing paren(s)
+    Line 131: Added 1 closing paren(s)
+    Line 140: Added 1 closing paren(s)
+    Line 161: Added 1 closing paren(s)
+    Line 165: Added 1 closing paren(s)
+    Line 172: Added 1 closing bracket(s)
+    Line 192: Added 1 closing paren(s)
+    Line 206: Added 1 closing brace(s)
+    Line 224: Added 1 closing paren(s)
+    Line 244: Added 1 closing paren(s)
+    Line 254: Added 1 closing paren(s)
+    Line 259: Added 1 closing brace(s)
+    Line 271: Added 1 closing paren(s)
+    Line 274: Added 1 closing brace(s)
+    Line 283: Added 1 closing paren(s)
+    Line 286: Added 1 closing brace(s)
+    Line 298: Added 1 closing paren(s)
+    Line 307: Added 1 closing paren(s)
+    Line 319: Added 1 closing paren(s)
+    Line 329: Added 1 closing paren(s)
+    Line 356: Added 1 closing paren(s)
+    Line 373: Added 1 closing brace(s)
+    Line 383: Added 1 closing paren(s)
+    Line 399: Added 1 closing paren(s)
+    Line 405: Added 1 closing paren(s)
+    Line 412: Added 1 closing paren(s)
+    Line 472: Added 1 closing paren(s)
+    Line 495: Added 1 closing paren(s)
+    Line 503: Added 1 closing paren(s)
+    Line 514: Added 1 closing paren(s)
+    Line 551: Added 1 closing paren(s)
+    Line 569: Added 1 closing paren(s)
+    Line 593: Added 1 closing paren(s)
+    Line 637: Added 1 closing paren(s)
+
+[*] Processing: openevolve_leanaide_bridge.py
+     Text: solution_attempt.metadata['autoformalization']['verification_status'] =
+  Fixing: Generic invalid syntax
+    Line 36: Added 1 closing paren(s)
+    Line 60: Added 1 closing paren(s)
+    Line 71: Added 1 closing paren(s)
+    Line 140: Added 1 closing brace(s)
+    Line 177: Added 1 closing paren(s)
+    Line 195: Added 1 closing bracket(s)
+    Line 216: Added 1 closing bracket(s)
+    Line 240: Added 1 closing brace(s)
+    Line 267: Added 1 closing paren(s)
+    Line 275: Added 1 closing paren(s)
+    Line 309: Added 1 closing paren(s)
+    Line 325: Added 1 closing brace(s)
+    Line 343: Added 1 closing paren(s)
+    Line 355: Added 1 closing paren(s)
+    Line 358: Added 1 closing brace(s)
+    Line 364: Added 1 closing paren(s)
+    Line 377: Added 1 closing paren(s)
+    Line 380: Added 1 closing brace(s)
+    Line 386: Added 1 closing paren(s)
+    Line 398: Added 1 closing paren(s)
+    Line 404: Added 1 closing paren(s)
+    Line 417: Added 1 closing paren(s)
+    Line 425: Added 1 closing brace(s)
+    Line 441: Added 1 closing paren(s)
+    Line 446: Added 1 closing paren(s)
+    Line 456: Added 1 closing paren(s)
+    Line 464: Added 1 closing brace(s)
+    Line 474: Added 1 closing paren(s)
+    Line 477: Added 1 closing brace(s)
+    Line 490: Added 1 closing paren(s)
+    Line 518: Added 1 closing paren(s)
+    Line 524: Added 1 closing brace(s)
+    Line 535: Added 1 closing paren(s)
+    Line 546: Added 1 closing paren(s)
+    Line 555: Added 1 closing brace(s)
+    Line 556: Added 1 closing brace(s)
+    Line 562: Added 1 closing brace(s)
+    Line 568: Added 1 closing brace(s)
+    Line 574: Added 1 closing brace(s)
+    Line 587: Added 1 closing paren(s)
+    Line 593: Added 1 closing brace(s)
+    Line 613: Added 1 closing paren(s)
+    Line 620: Added 1 closing brace(s)
+
+[*] Processing: simple_verify_implementation.py
+     Text: try:
+  Fixing: Missing except/finally block
+    Added missing except block at line 76
+  [DRY RUN] Would save changes
+
+[*] Processing: sovereign_gauntlets.py
+     Text: if not self.roma_engine and ROMA_MDAP_MAKER_AVAILABLE:
+  Fixing: Missing indented block after except
+    Line 449: Added raise statement to empty except block
+  [DRY RUN] Would save changes
+
+[*] Processing: workflow_stage_functions.py
+     Text: api_pattern = r'@(?:app\.)?(get|post|put|delete)\s*[\'"](/[^\\'"]+)'
+  Fixing: Unterminated string literal
+    Line 20: Added closing triple quotes
+
+================================================================================
+[OK] Fix Complete
+================================================================================
+
+Summary:
+  Files processed: 12
+  Fixed: 2
+  Failed: 10
+  Success rate: 16.7%
+
+[!] Some files could not be fixed automatically
+    These will require manual review
+
+[OK] Done!

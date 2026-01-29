@@ -1,0 +1,28 @@
+{
+  "problem": {
+    "id": "no_viz_test",
+    "statement": "Test without visualization",
+    "subproblems": [
+      {
+        "id": "child_1",
+        "statement": "Child 1"
+      },
+      {
+        "id": "child_2",
+        "statement": "Child 2"
+      }
+    ]
+  },
+  "context": {
+    "level": 0,
+    "stage": "starting"
+  },
+  "solutions": {},
+  "decomposition_tree": null,
+  "execution_status": {},
+  "metrics": {},
+  "metadata": {
+    "checkpoint_count": 0
+  },
+  "serialized_at": "2026-01-24T07:35:05.849304"
+}

@@ -1,0 +1,210 @@
+# ODE Problem Template
+# This template defines common ordinary differential equation problems
+
+template_name: ode_problems
+description: Ordinary differential equation problem templates
+
+# Example problems
+examples:
+
+  # Simple first-order ODE: dy/dt = -ky (exponential decay)
+  exponential_decay:
+    type: ode
+    name: Exponential Decay
+    description: First-order linear ODE modeling exponential decay
+    equation: dy/dt = -k*y
+    variables:
+      - name: y
+        description: State variable
+        initial_value: 1.0
+      - name: k
+        description: Decay constant
+        value: 0.5
+    time_span: [0, 10]
+    method: automatic
+    analytical_solution: y(t) = y0 * exp(-k*t)
+
+  # Second-order ODE: Simple harmonic oscillator
+  harmonic_oscillator:
+    type: ode
+    name: Harmonic Oscillator
+    description: Second-order linear ODE for harmonic motion
+    equation: d²x/dt² + ω²x = 0
+    variables:
+      - name: x
+        description: Position
+        initial_value: 1.0
+      - name: v
+        description: Velocity (dx/dt)
+        initial_value: 0.0
+      - name: omega
+        description: Angular frequency
+        value: 2.0
+    time_span: [0, 20]
+    method: neural_ode
+    analytical_solution: x(t) = A*cos(ωt) + B*sin(ωt)
+
+  # Damped harmonic oscillator
+  damped_oscillator:
+    type: ode
+    name: Damped Harmonic Oscillator
+    description: Second-order ODE with damping term
+    equation: d²x/dt² + 2ζω₀(dx/dt) + ω₀²x = 0
+    variables:
+      - name: x
+        description: Position
+        initial_value: 1.0
+      - name: v
+        description: Velocity
+        initial_value: 0.0
+      - name: omega_0
+        description: Natural frequency
+        value: 2.0
+      - name: zeta
+        description: Damping ratio
+        value: 0.1
+    time_span: [0, 20]
+    method: automatic
+    regimes:
+      underdamped: zeta < 1
+      critically_damped: zeta = 1
+      overdamped: zeta > 1
+
+  # Van der Pol oscillator (nonlinear)
+  van_der_pol:
+    type: ode
+    name: Van der Pol Oscillator
+    description: Nonlinear oscillator with damping
+    equation: d²x/dt² - μ(1-x²)(dx/dt) + x = 0
+    variables:
+      - name: x
+        description: Position
+        initial_value: 2.0
+      - name: v
+        description: Velocity
+        initial_value: 0.0
+      - name: mu
+        description: Damping parameter
+        value: 1.0
+    time_span: [0, 20]
+    method: neural_ode
+    notes: Exhibits limit cycle behavior for μ > 0
+
+  # Lorenz system (chaotic)
+  lorenz_system:
+    type: ode
+    name: Lorenz System
+    description: Three-dimensional chaotic system
+    equations:
+      - dx/dt = σ(y - x)
+      - dy/dt = x(ρ - z) - y
+      - dz/dt = xy - βz
+    variables:
+      - name: x
+        description: First state variable
+        initial_value: 1.0
+      - name: y
+        description: Second state variable
+        initial_value: 1.0
+      - name: z
+        description: Third state variable
+        initial_value: 1.0
+      - name: sigma
+        description: Prandtl number
+        value: 10.0
+      - name: rho
+        description: Rayleigh number
+        value: 28.0
+      - name: beta
+        description: Geometric parameter
+        value: 8.0/3.0
+    time_span: [0, 50]
+    method: neural_ode
+    notes: Classic example of chaotic dynamics
+
+  # SIR epidemic model
+  sir_model:
+    type: ode
+    name: SIR Epidemic Model
+    description: Compartmental model for disease spread
+    equations:
+      - dS/dt = -βSI/N
+      - dI/dt = βSI/N - γI
+      - dR/dt = γI
+    variables:
+      - name: S
+        description: Susceptible population
+        initial_value: 999
+      - name: I
+        description: Infected population
+        initial_value: 1
+      - name: R
+        description: Recovered population
+        initial_value: 0
+      - name: N
+        description: Total population
+        value: 1000
+      - name: beta
+        description: Infection rate
+        value: 0.3
+      - name: gamma
+        description: Recovery rate
+        value: 0.1
+    time_span: [0, 100]
+    method: automatic
+    constraints:
+      - S + I + R = N
+
+# Problem categories
+categories:
+  first_order:
+    description: First-order ODEs
+    examples: [exponential_decay]
+
+  second_order_linear:
+    description: Second-order linear ODEs
+    examples: [harmonic_oscillator, damped_oscillator]
+
+  nonlinear:
+    description: Nonlinear ODEs
+    examples: [van_der_pol]
+
+  systems:
+    description: Systems of ODEs
+    examples: [lorenz_system, sir_model]
+
+# Solver recommendations
+solver_recommendations:
+  linear_stiff:
+    method: rk4
+    reason: "Good stability for stiff linear systems"
+
+  linear_nonstiff:
+    method: automatic
+    reason: "Adaptive methods work well"
+
+  nonlinear_smooth:
+    method: neural_ode
+    reason: "Neural ODEs handle nonlinearity well"
+
+  chaotic:
+    method: neural_ode
+    reason: "Preserves geometric structure"
+    time_step: 0.01  # Need small time steps
+
+# Common parameters
+parameters:
+  time_step:
+    description: Integration time step
+    default: 0.01
+    range: [0.001, 0.1]
+
+  tolerance:
+    description: Solver tolerance
+    default: 1.0e-6
+    range: [1.0e-10, 1.0e-4]
+
+  max_steps:
+    description: Maximum integration steps
+    default: 10000
+    range: [1000, 100000]

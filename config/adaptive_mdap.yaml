@@ -1,0 +1,60 @@
+# Adaptive MDAP Configuration
+# Based on MAKER (Massively Decomposed Agentic Processes) paper
+
+# Complexity Classifier Configuration
+classifier:
+  # Embedding model for domain similarity
+  embedding_model: "all-MiniLM-L6-v2"
+  
+  # Feature weights (must sum to 1.0)
+  feature_weights:
+    text_length: 0.2
+    domain_rarity: 0.2
+    depth: 0.2
+    historical_error: 0.2
+    dependency: 0.2
+  
+  # Cache settings
+  cache_dir: ".cache/adaptive_mdap"
+  cache_ttl_hours: 24
+
+# Resource Allocator Configuration
+allocator:
+  # Complexity thresholds for strategy selection
+  # Low: [0.0, 0.3) -> DIRECT
+  # Medium: [0.3, 0.7) -> MDAP_LIGHT
+  # High: [0.7, 1.0] -> MAKER_FULL
+  thresholds: [0.3, 0.7]
+  
+  # Enable learning from outcomes (future feature)
+  enable_learning: false
+  
+  # Default strategy if allocation fails
+  default_strategy: "maker_full"
+
+# Strategy Configurations
+strategies:
+  direct:
+    n_agents: 1
+    k_ahead: 0
+    max_retries: 1
+    timeout_ms: 30000
+  
+  mdap_light:
+    n_agents: 3
+    k_ahead: 1
+    max_retries: 2
+    timeout_ms: 60000
+  
+  maker_full:
+    n_agents: 5
+    k_ahead: 2
+    max_retries: 3
+    timeout_ms: 120000
+
+# Monitoring Configuration
+monitoring:
+  enabled: true
+  metrics_export_format: "json"  # Options: json, prometheus, csv
+  log_level: "INFO"
+  enable_structured_logging: true

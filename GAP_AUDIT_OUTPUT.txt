@@ -1,0 +1,4 @@
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\comprehensive_gap_audit.py", line 204
+    snippet = '\n'.join(f"{i+1}: {line}" for i, line in enumerate(lines[start:end], start)
+                       ^
+SyntaxError: '(' was never closed

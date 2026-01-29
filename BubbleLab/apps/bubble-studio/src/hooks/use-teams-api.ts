@@ -35,9 +35,9 @@ export function useTeams(params?: ListQueryParams) {
       setIsLoading(true);
       setError(null);
       try {
-        const teams = await apiClient.getTeams(params);
-        setTeams(teams);
-        return teams;
+        const response = await apiClient.getTeams(params);
+        setTeams(response.teams);
+        return response.teams;
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to fetch teams';
         setError(message);

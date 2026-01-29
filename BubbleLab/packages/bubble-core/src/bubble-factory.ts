@@ -159,7 +159,57 @@ export class BubbleFactory {
       'notion',
       'firecrawl',
       'insforge-db',
-    ];
+      'ragbits-ingest',
+      'ragbits-search',
+      'ragbits-index',
+      'ragbits-generation',
+      'crewai-orchestration',
+      'crewai-research',
+      'ace-tools',
+      'workflow-orchestrator',
+      'qdrant',
+      'elasticsearch',
+      'redis',
+      'sendgrid',
+      'twilio',
+      'stripe',
+      'webhook',
+      'hephaestus',
+      'airtable-wrapper',
+      'openevolve-slack',
+      'openevolve-gmail',
+      'openevolve-http',
+      'openevolve-github',
+      'openevolve-apify',
+      'openevolve-google-drive',
+      'openevolve-google-sheets',
+      'openevolve-airtable',
+      'openevolve-notion',
+      'openevolve-postgresql',
+      'log-parser-tool',
+      'metrics-collector-tool',
+      'vector-search-tool',
+      'csv-processor-tool',
+      'json-validator-tool',
+      'data-transformer-tool',
+      'file-processor-tool',
+      'image-processor-tool',
+      'xml-parser-tool',
+      'pdf-generator-tool',
+      'email-validator-tool',
+      'url-validator-tool',
+      'code-formatter-tool',
+      'text-analyzer-tool',
+      'data-enrichment-workflow',
+      'backup-restore-workflow',
+      'monitoring-alert-workflow',
+      'etl-pipeline-workflow',
+      'api-aggregator-workflow',
+      'scheduled-task-workflow',
+      'event-handler-workflow',
+      'multi-step-approval-workflow',
+      'webhook-repeater-workflow',
+    ] as BubbleName[];
   }
 
   async registerDefaults(): Promise<void> {
@@ -262,6 +312,48 @@ export class BubbleFactory {
     const { GoogleMapsTool } = await import(
       './bubbles/tool-bubble/google-maps-tool.js'
     );
+    const { LogParserTool } = await import(
+      './bubbles/tool-bubble/log-parser-tool.js'
+    );
+    const { MetricsCollectorTool } = await import(
+      './bubbles/tool-bubble/metrics-collector-tool.js'
+    );
+    const { VectorSearchTool } = await import(
+      './bubbles/tool-bubble/vector-search-tool.js'
+    );
+    const { CSVProcessorTool } = await import(
+      './bubbles/tool-bubble/csv-processor-tool.js'
+    );
+    const { JSONValidatorTool } = await import(
+      './bubbles/tool-bubble/json-validator-tool.js'
+    );
+    const { DataTransformerTool } = await import(
+      './bubbles/tool-bubble/data-transformer-tool.js'
+    );
+    const { FileProcessorTool } = await import(
+      './bubbles/tool-bubble/file-processor-tool.js'
+    );
+    const { ImageProcessorTool } = await import(
+      './bubbles/tool-bubble/image-processor-tool.js'
+    );
+    const { XMLParserTool } = await import(
+      './bubbles/tool-bubble/xml-parser-tool.js'
+    );
+    const { PDFGeneratorTool } = await import(
+      './bubbles/tool-bubble/pdf-generator-tool.js'
+    );
+    const { EmailValidatorTool } = await import(
+      './bubbles/tool-bubble/email-validator-tool.js'
+    );
+    const { URLValidatorTool } = await import(
+      './bubbles/tool-bubble/url-validator-tool.js'
+    );
+    const { CodeFormatterTool } = await import(
+      './bubbles/tool-bubble/code-formatter-tool.js'
+    );
+    const { TextAnalyzerTool } = await import(
+      './bubbles/tool-bubble/text-analyzer-tool.js'
+    );
     const { SlackFormatterAgentBubble } = await import(
       './bubbles/workflow-bubble/slack-formatter-agent.js'
     );
@@ -276,6 +368,33 @@ export class BubbleFactory {
     );
     const { ParseDocumentWorkflow } = await import(
       './bubbles/workflow-bubble/parse-document.workflow.js'
+    );
+    const { DataEnrichmentWorkflow } = await import(
+      './bubbles/workflow-bubble/data-enrichment.workflow.js'
+    );
+    const { BackupRestoreWorkflow } = await import(
+      './bubbles/workflow-bubble/backup-restore.workflow.js'
+    );
+    const { MonitoringAlertWorkflow } = await import(
+      './bubbles/workflow-bubble/monitoring-alert.workflow.js'
+    );
+    const { ETLPipelineWorkflow } = await import(
+      './bubbles/workflow-bubble/etl-pipeline.workflow.js'
+    );
+    const { APIAggregatorWorkflow } = await import(
+      './bubbles/workflow-bubble/api-aggregator.workflow.js'
+    );
+    const { ScheduledTaskWorkflow } = await import(
+      './bubbles/workflow-bubble/scheduled-task.workflow.js'
+    );
+    const { EventHandlerWorkflow } = await import(
+      './bubbles/workflow-bubble/event-handler.workflow.js'
+    );
+    const { MultiStepApprovalWorkflow } = await import(
+      './bubbles/workflow-bubble/multi-step-approval.workflow.js'
+    );
+    const { WebhookRepeaterWorkflow } = await import(
+      './bubbles/workflow-bubble/webhook-repeater.workflow.js'
     );
     const { ElevenLabsBubble } = await import(
       './bubbles/service-bubble/eleven-labs.js'
@@ -292,6 +411,95 @@ export class BubbleFactory {
     const { InsForgeDbBubble } = await import(
       './bubbles/service-bubble/insforge-db.js'
     );
+    const { AceToolsBubble } = await import(
+      './bubbles/service-bubble/ace-tools-bubble.js'
+    );
+    const { WorkflowOrchestratorBubble } = await import(
+      './bubbles/service-bubble/workflow-orchestrator-bubble.js'
+    );
+    const { QdrantBubble } = await import(
+      './bubbles/service-bubble/qdrant-bubble.js'
+    );
+    const { ElasticsearchBubble } = await import(
+      './bubbles/service-bubble/elasticsearch-bubble.js'
+    );
+    const { RedisBubble } = await import(
+      './bubbles/service-bubble/redis-bubble.js'
+    );
+    const { SendGridBubble } = await import(
+      './bubbles/service-bubble/sendgrid-bubble.js'
+    );
+    const { TwilioBubble } = await import(
+      './bubbles/service-bubble/twilio-bubble.js'
+    );
+    const { StripeBubble } = await import(
+      './bubbles/service-bubble/stripe-bubble.js'
+    );
+    const { WebhookBubble } = await import(
+      './bubbles/service-bubble/webhook-bubble.js'
+    );
+    const { HephaestusBubble } = await import(
+      './bubbles/service-bubble/hephaestus-bubble.js'
+    );
+    const { AirtableWrapperBubble } = await import(
+      './bubbles/service-bubble/airtable-wrapper.js'
+    );
+    const { SlackBubble: OpenEvolveSlackBubbleBase } = await import(
+      './bubbles/service-bubble/slack-bubble.js'
+    );
+    const { GmailBubble: OpenEvolveGmailBubbleBase } = await import(
+      './bubbles/service-bubble/gmail-bubble.js'
+    );
+    const { HttpBubble: OpenEvolveHttpBubbleBase } = await import(
+      './bubbles/service-bubble/http-bubble.js'
+    );
+    const { GithubBubble: OpenEvolveGithubBubbleBase } = await import(
+      './bubbles/service-bubble/github-bubble.js'
+    );
+    const { ApifyBubble: OpenEvolveApifyBubbleBase } = await import(
+      './bubbles/service-bubble/apify-bubble.js'
+    );
+    const { GoogleDriveBubble: OpenEvolveGoogleDriveBubbleBase } = await import(
+      './bubbles/service-bubble/google-drive-bubble.js'
+    );
+    const { GoogleSheetsBubble: OpenEvolveGoogleSheetsBubbleBase } = await import(
+      './bubbles/service-bubble/google-sheets-bubble.js'
+    );
+    const { AirtableBubble: OpenEvolveAirtableBubbleBase } = await import(
+      './bubbles/service-bubble/airtable-bubble.js'
+    );
+    const { NotionBubble: OpenEvolveNotionBubbleBase } = await import(
+      './bubbles/service-bubble/notion-bubble.js'
+    );
+    const { PostgreSQLBubble: OpenEvolvePostgreSQLBubbleBase } = await import(
+      './bubbles/service-bubble/postgresql-bubble.js'
+    );
+    // Import RAGBits bubbles
+    const { RAGBitsIngestBubble } = await import(
+      '../ragbits-bubblelab-integration/bubbles/ingest/RAGBitsIngestBubble.js'
+    );
+    const { RAGBitsSearchBubble } = await import(
+      '../ragbits-bubblelab-integration/bubbles/search/RAGBitsSearchBubble.js'
+    );
+    const { RAGBitsIndexBubble } = await import(
+      '../ragbits-bubblelab-integration/bubbles/index/RAGBitsIndexBubble.js'
+    );
+    const { RAGBitsGenerationBubble } = await import(
+      '../ragbits-bubblelab-integration/bubbles/generation/RAGBitsGenerationBubble.js'
+    );
+
+    // Import CrewAI bubbles
+    const { CrewAIOrchestrationBubble, CrewAIResearchBubble } = await import(
+      '../ragbits-bubblelab-integration/bubbles/crewai/CrewAIOrchestrationBubble.js'
+    );
+
+    const wrapBubbleName = <T extends BubbleClassWithMetadata<any>>(
+      BubbleClass: T,
+      bubbleName: BubbleName
+    ) =>
+      class extends (BubbleClass as unknown as new (...args: any[]) => any) {
+        static readonly bubbleName = bubbleName;
+      } as unknown as T;
 
     // Create the default factory instance
     this.register('hello-world', HelloWorldBubble as BubbleClassWithMetadata);
@@ -401,6 +609,220 @@ export class BubbleFactory {
     this.register('airtable', AirtableBubble as BubbleClassWithMetadata);
     this.register('firecrawl', FirecrawlBubble as BubbleClassWithMetadata);
     this.register('insforge-db', InsForgeDbBubble as BubbleClassWithMetadata);
+
+    // Register RAGBits bubbles
+    this.register('ragbits-ingest', RAGBitsIngestBubble as BubbleClassWithMetadata);
+    this.register('ragbits-search', RAGBitsSearchBubble as BubbleClassWithMetadata);
+    this.register('ragbits-index', RAGBitsIndexBubble as BubbleClassWithMetadata);
+    this.register('ragbits-generation', RAGBitsGenerationBubble as BubbleClassWithMetadata);
+
+    // Register CrewAI bubbles
+    this.register('crewai-orchestration', CrewAIOrchestrationBubble as BubbleClassWithMetadata);
+    this.register('crewai-research', CrewAIResearchBubble as BubbleClassWithMetadata);
+
+    // Register OpenEvolve service bubbles (non-conflicting)
+    this.register('ace-tools' as BubbleName, AceToolsBubble as BubbleClassWithMetadata);
+    this.register(
+      'workflow-orchestrator' as BubbleName,
+      WorkflowOrchestratorBubble as BubbleClassWithMetadata
+    );
+    this.register('qdrant' as BubbleName, QdrantBubble as BubbleClassWithMetadata);
+    this.register(
+      'elasticsearch' as BubbleName,
+      ElasticsearchBubble as BubbleClassWithMetadata
+    );
+    this.register('redis' as BubbleName, RedisBubble as BubbleClassWithMetadata);
+    this.register('sendgrid' as BubbleName, SendGridBubble as BubbleClassWithMetadata);
+    this.register('twilio' as BubbleName, TwilioBubble as BubbleClassWithMetadata);
+    this.register('stripe' as BubbleName, StripeBubble as BubbleClassWithMetadata);
+    this.register('webhook' as BubbleName, WebhookBubble as BubbleClassWithMetadata);
+    this.register(
+      'hephaestus' as BubbleName,
+      HephaestusBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'airtable-wrapper' as BubbleName,
+      AirtableWrapperBubble as BubbleClassWithMetadata
+    );
+
+    // Register OpenEvolve service bubbles with prefixed names to avoid collisions
+    const OpenEvolveSlackBubble = wrapBubbleName(
+      OpenEvolveSlackBubbleBase as BubbleClassWithMetadata,
+      'openevolve-slack' as BubbleName
+    );
+    const OpenEvolveGmailBubble = wrapBubbleName(
+      OpenEvolveGmailBubbleBase as BubbleClassWithMetadata,
+      'openevolve-gmail' as BubbleName
+    );
+    const OpenEvolveHttpBubble = wrapBubbleName(
+      OpenEvolveHttpBubbleBase as BubbleClassWithMetadata,
+      'openevolve-http' as BubbleName
+    );
+    const OpenEvolveGithubBubble = wrapBubbleName(
+      OpenEvolveGithubBubbleBase as BubbleClassWithMetadata,
+      'openevolve-github' as BubbleName
+    );
+    const OpenEvolveApifyBubble = wrapBubbleName(
+      OpenEvolveApifyBubbleBase as BubbleClassWithMetadata,
+      'openevolve-apify' as BubbleName
+    );
+    const OpenEvolveGoogleDriveBubble = wrapBubbleName(
+      OpenEvolveGoogleDriveBubbleBase as BubbleClassWithMetadata,
+      'openevolve-google-drive' as BubbleName
+    );
+    const OpenEvolveGoogleSheetsBubble = wrapBubbleName(
+      OpenEvolveGoogleSheetsBubbleBase as BubbleClassWithMetadata,
+      'openevolve-google-sheets' as BubbleName
+    );
+    const OpenEvolveAirtableBubble = wrapBubbleName(
+      OpenEvolveAirtableBubbleBase as BubbleClassWithMetadata,
+      'openevolve-airtable' as BubbleName
+    );
+    const OpenEvolveNotionBubble = wrapBubbleName(
+      OpenEvolveNotionBubbleBase as BubbleClassWithMetadata,
+      'openevolve-notion' as BubbleName
+    );
+    const OpenEvolvePostgreSQLBubble = wrapBubbleName(
+      OpenEvolvePostgreSQLBubbleBase as BubbleClassWithMetadata,
+      'openevolve-postgresql' as BubbleName
+    );
+
+    this.register(
+      'openevolve-slack' as BubbleName,
+      OpenEvolveSlackBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-gmail' as BubbleName,
+      OpenEvolveGmailBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-http' as BubbleName,
+      OpenEvolveHttpBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-github' as BubbleName,
+      OpenEvolveGithubBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-apify' as BubbleName,
+      OpenEvolveApifyBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-google-drive' as BubbleName,
+      OpenEvolveGoogleDriveBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-google-sheets' as BubbleName,
+      OpenEvolveGoogleSheetsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-airtable' as BubbleName,
+      OpenEvolveAirtableBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-notion' as BubbleName,
+      OpenEvolveNotionBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-postgresql' as BubbleName,
+      OpenEvolvePostgreSQLBubble as BubbleClassWithMetadata
+    );
+
+    // Register OpenEvolve tool bubbles
+    this.register(
+      'log-parser-tool' as BubbleName,
+      LogParserTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'metrics-collector-tool' as BubbleName,
+      MetricsCollectorTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'vector-search-tool' as BubbleName,
+      VectorSearchTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'csv-processor-tool' as BubbleName,
+      CSVProcessorTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'json-validator-tool' as BubbleName,
+      JSONValidatorTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'data-transformer-tool' as BubbleName,
+      DataTransformerTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'file-processor-tool' as BubbleName,
+      FileProcessorTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'image-processor-tool' as BubbleName,
+      ImageProcessorTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'xml-parser-tool' as BubbleName,
+      XMLParserTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'pdf-generator-tool' as BubbleName,
+      PDFGeneratorTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'email-validator-tool' as BubbleName,
+      EmailValidatorTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'url-validator-tool' as BubbleName,
+      URLValidatorTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'code-formatter-tool' as BubbleName,
+      CodeFormatterTool as BubbleClassWithMetadata
+    );
+    this.register(
+      'text-analyzer-tool' as BubbleName,
+      TextAnalyzerTool as BubbleClassWithMetadata
+    );
+
+    // Register OpenEvolve workflow bubbles
+    this.register(
+      'data-enrichment-workflow' as BubbleName,
+      DataEnrichmentWorkflow as BubbleClassWithMetadata
+    );
+    this.register(
+      'backup-restore-workflow' as BubbleName,
+      BackupRestoreWorkflow as BubbleClassWithMetadata
+    );
+    this.register(
+      'monitoring-alert-workflow' as BubbleName,
+      MonitoringAlertWorkflow as BubbleClassWithMetadata
+    );
+    this.register(
+      'etl-pipeline-workflow' as BubbleName,
+      ETLPipelineWorkflow as BubbleClassWithMetadata
+    );
+    this.register(
+      'api-aggregator-workflow' as BubbleName,
+      APIAggregatorWorkflow as BubbleClassWithMetadata
+    );
+    this.register(
+      'scheduled-task-workflow' as BubbleName,
+      ScheduledTaskWorkflow as BubbleClassWithMetadata
+    );
+    this.register(
+      'event-handler-workflow' as BubbleName,
+      EventHandlerWorkflow as BubbleClassWithMetadata
+    );
+    this.register(
+      'multi-step-approval-workflow' as BubbleName,
+      MultiStepApprovalWorkflow as BubbleClassWithMetadata
+    );
+    this.register(
+      'webhook-repeater-workflow' as BubbleName,
+      WebhookRepeaterWorkflow as BubbleClassWithMetadata
+    );
 
     // After all default bubbles are registered, auto-populate bubbleDependencies
     if (!BubbleFactory.dependenciesPopulated) {
@@ -703,6 +1125,16 @@ import {
   TwitterTool, // bubble name: 'twitter-tool'
   GoogleMapsTool, // bubble name: 'google-maps-tool'
   YouTubeTool, // bubble name: 'youtube-tool'
+
+  // RAGBits Bubbles (Semantic search and retrieval)
+  RAGBitsIngestBubble, // bubble name: 'ragbits-ingest'
+  RAGBitsSearchBubble, // bubble name: 'ragbits-search'
+  RAGBitsIndexBubble, // bubble name: 'ragbits-index'
+  RAGBitsGenerationBubble, // bubble name: 'ragbits-generation'
+
+  // CrewAI Bubbles (Orchestration and multi-agent workflows)
+  CrewAIOrchestrationBubble, // bubble name: 'crewai-orchestration'
+  CrewAIResearchBubble, // bubble name: 'crewai-research'
 
   // Event Types (How the workflow is triggered)
   type WebhookEvent,

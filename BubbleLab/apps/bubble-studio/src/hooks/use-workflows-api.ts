@@ -41,9 +41,9 @@ export function useWorkflows(params?: ListQueryParams) {
       setIsLoading(true);
       setError(null);
       try {
-        const workflows = await apiClient.getWorkflows(params);
-        setWorkflows(workflows);
-        return workflows;
+        const response = await apiClient.getWorkflows(params);
+        setWorkflows(response.workflows);
+        return response.workflows;
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to fetch workflows';
         setError(message);

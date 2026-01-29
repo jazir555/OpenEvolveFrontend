@@ -1,0 +1,881 @@
+#!/usr/bin/env python3
+"""
+BubbleLab Automation CLI
+Complete end-to-end automation for BubbleLab workflows
+
+Usage:
+    python bubblelab_automation.py [command] [options]
+
+Commands:
+    setup       Interactive setup wizard
+    list        List all workflows
+    create      Create new workflow
+    deploy      Deploy workflows
+    generate    Generate workflow with AI
+    export      Export all workflows
+    import      Import workflows
+    validate    Validate workflows
+    backup      Create backup
+    restore     Restore from backup
+    monitor     Monitor workflow executions
+    test        Test workflows
+    sync        Sync workflows to environment
+    status      Show system status
+"""
+
+import os
+import sys
+import json
+import time
+import yaml
+import argparse
+import requests
+from pathlib import Path
+from typing import Dict, List, Optional, Any
+from datetime import datetime
+from getpass import getpass
+
+
+# =============================================================================
+# Configuration
+# =============================================================================
+
+class Config:
+    """Configuration management"""
+
+    DEFAULT_CONFIG = {
+        'base_url': 'http://localhost:3001',
+        'api_key': None,
+        'workflows_dir': './bubblelab-workflows',
+        'templates_dir': './bubblelab-templates',
+        'exports_dir': './bubblelab-exports',
+        'backups_dir': './bubblelab-backups',
+        'environments': {
+            'development': {
+                'api_url': 'http://localhost:8000',
+                'qdrant_url': 'http://qdrant:6333',
+                'postgres_url': 'http://postgres:5432',
+                'redis_url': 'http://redis:6379',
+                'slack_channel': '#openevolve-dev'
+            },
+            'production': {
+                'api_url': 'https://api.openevolve.com',
+                'qdrant_url': 'https://qdrant.openevolve.com',
+                'postgres_url': 'postgresql://prod-db:5432',
+                'redis_url': 'redis://prod-redis:6379',
+                'slack_channel': '#openevolve-alerts'
+            }
+        }
+    }
+
+    def __init__(self, config_file: str = 'bubblelab-config.yaml'):
+        self.config_file = config_file
+        self.config = self.load_config()
+
+    def load_config(self) -> Dict:
+        """Load configuration from file"""
+        if os.path.exists(self.config_file):
+            with open(self.config_file, 'r') as f:
+                return yaml.safe_load(f)
+        return self.DEFAULT_CONFIG.copy()
+
+    def save_config(self):
+        """Save configuration to file"""
+        with open(self.config_file, 'w') as f:
+            yaml.dump(self.config, f, default_flow_style=False)
+
+    def get(self, key: str, default=None):
+        """Get configuration value"""
+        return self.config.get(key, default)
+
+    def set(self, key: str, value):
+        """Set configuration value"""
+        self.config[key] = value
+        self.save_config()
+
+
+# =============================================================================
+# BubbleLab API Client
+# =============================================================================
+
+class BubbleLabClient:
+    """BubbleLab REST API client"""
+
+    def __init__(self, config: Config):
+        self.config = config
+        self.base_url = config.get('base_url').rstrip('/')
+        self.api_key = config.get('api_key')
+        self.session = requests.Session()
+        self._setup_headers()
+
+    def _setup_headers(self):
+        """Setup request headers"""
+        headers = {'Content-Type': 'application/json'}
+        if self.api_key:
+            headers['Authorization'] = f'Bearer {self.api_key}'
+        self.session.headers.update(headers)
+
+    def _request(self, method: str, endpoint: str, **kwargs) -> Dict:
+        """Make API request"""
+        url = f"{self.base_url}{endpoint}"
+        response = self.session.request(method, url, **kwargs)
+
+        if response.status_code >= 400:
+            error_msg = response.text
+            try:
+                error_data = response.json()
+                error_msg = error_data.get('error', error_msg)
+            except:
+                pass
+            raise Exception(f"API Error ({response.status_code}): {error_msg}")
+
+        return response.json()
+
+    # Flow Management
+    def list_flows(self) -> List[Dict]:
+        """List all BubbleFlows"""
+        data = self._request('GET', '/bubble-flow')
+        return data.get('bubbleFlows', [])
+
+    def get_flow(self, flow_id: int) -> Dict:
+        """Get flow details"""
+        return self._request('GET', f'/bubble-flow/{flow_id}')
+
+    def create_flow(
+        self,
+        name: str,
+        code: str,
+        description: str = "",
+        event_type: str = "webhook/http"
+    ) -> Dict:
+        """Create new BubbleFlow"""
+        return self._request('POST', '/bubble-flow', json={
+            'name': name,
+            'description': description,
+            'eventType': event_type,
+            'code': code
+        })
+
+    def update_flow(
+        self,
+        flow_id: int,
+        name: Optional[str] = None,
+        code: Optional[str] = None,
+        description: Optional[str] = None
+    ) -> Dict:
+        """Update existing BubbleFlow"""
+        data = {}
+        if name is not None:
+            data['name'] = name
+        if code is not None:
+            data['code'] = code
+        if description is not None:
+            data['description'] = description
+
+        return self._request('PUT', f'/bubble-flow/{flow_id}', json=data)
+
+    def delete_flow(self, flow_id: int) -> bool:
+        """Delete BubbleFlow"""
+        self._request('DELETE', f'/bubble-flow/{flow_id}')
+        return True
+
+    def execute_flow(
+        self,
+        flow_id: int,
+        input_data: Dict,
+        stream: bool = False
+    ) -> Dict:
+        """Execute BubbleFlow"""
+        endpoint = f"/bubble-flow/{flow_id}/execute"
+        if stream:
+            endpoint += "-stream"
+        return self._request('POST', endpoint, json={'input': input_data})
+
+    def activate_flow(self, flow_id: int) -> bool:
+        """Activate BubbleFlow webhook"""
+        self._request('POST', f'/bubble-flow/{flow_id}/activate')
+        return True
+
+    def deactivate_flow(self, flow_id: int) -> bool:
+        """Deactivate BubbleFlow webhook"""
+        self._request('POST', f'/bubble-flow/{flow_id}/deactivate')
+        return True
+
+    # Templates
+    def get_templates(self) -> List[Dict]:
+        """Get available templates"""
+        data = self._request('GET', '/bubble-flow-templates')
+        return data.get('templates', [])
+
+    def create_from_template(
+        self,
+        template_name: str,
+        name: str,
+        parameters: Dict = None
+    ) -> Dict:
+        """Create flow from template"""
+        return self._request('POST', f'/bubbleflow-template/{template_name}', json={
+            'name': name,
+            'parameters': parameters or {}
+        })
+
+    # AI Generation
+    def generate_workflow_ai(
+        self,
+        prompt: str,
+        credentials: Optional[Dict] = None
+    ) -> Dict:
+        """Generate workflow using AI (Boba)"""
+        return self._request('POST', '/ai/boba', json={
+            'prompt': prompt,
+            'credentials': credentials or {}
+        })
+
+    def plan_workflow_ai(
+        self,
+        prompt: str,
+        conversation_history: Optional[List] = None
+    ) -> Dict:
+        """Plan workflow using AI (Coffee)"""
+        return self._request('POST', '/ai/coffee', json={
+            'prompt': prompt,
+            'conversationHistory': conversation_history or []
+        })
+
+
+# =============================================================================
+# Workflow Manager
+# =============================================================================
+
+class WorkflowManager:
+    """High-level workflow management"""
+
+    def __init__(self, config: Config):
+        self.config = config
+        self.client = BubbleLabClient(config)
+
+    def deploy_from_directory(
+        self,
+        workflows_dir: str,
+        activate: bool = True
+    ) -> Dict[str, Any]:
+        """Deploy all workflows from directory"""
+        workflow_dir = Path(workflows_dir)
+        if not workflow_dir.exists():
+            return {'deployed': [], 'failed': [], 'error': 'Directory not found'}
+
+        results = {'deployed': [], 'failed': [], 'skipped': []}
+
+        for workflow_file in workflow_dir.glob('*.ts'):
+            workflow_name = workflow_file.stem.replace('-', ' ').title()
+
+            try:
+                with open(workflow_file, 'r') as f:
+                    code = f.read()
+
+                # Check if workflow already exists
+                existing_flows = self.client.list_flows()
+                existing = next(
+                    (f for f in existing_flows if f['name'].lower() == workflow_name.lower()),
+                    None
+                )
+
+                if existing:
+                    # Update existing
+                    self.client.update_flow(existing['id'], code=code)
+                    results['deployed'].append(workflow_name)
+                    print(f"  ✅ Updated: {workflow_name}")
+                else:
+                    # Create new
+                    flow = self.client.create_flow(
+                        name=workflow_name,
+                        code=code,
+                        description=f"Auto-generated from {workflow_file.name}"
+                    )
+                    results['deployed'].append(workflow_name)
+                    print(f"  ✅ Created: {workflow_name}")
+
+                    # Activate if requested
+                    if activate:
+                        self.client.activate_flow(flow['id'])
+                        print(f"     ▶️  Activated")
+
+            except Exception as e:
+                results['failed'].append({
+                    'workflow': workflow_name,
+                    'error': str(e)
+                })
+                print(f"  ❌ Failed: {workflow_name} - {e}")
+
+        return results
+
+    def export_all_workflows(self, output_dir: str) -> List[str]:
+        """Export all workflows to directory"""
+        output_path = Path(output_dir)
+        output_path.mkdir(parents=True, exist_ok=True)
+
+        flows = self.client.list_flows()
+        exported_files = []
+
+        for flow in flows:
+            flow_details = self.client.get_flow(flow['id'])
+            workflow_name = flow['name'].replace(' ', '-').lower()
+            output_file = output_path / f'{workflow_name}.ts'
+
+            with open(output_file, 'w') as f:
+                f.write(flow_details['code'])
+
+            exported_files.append(str(output_file))
+            print(f"  📦 Exported: {flow['name']}")
+
+        return exported_files
+
+    def backup_workflows(self, backup_dir: str = None) -> str:
+        """Create timestamped backup"""
+        if not backup_dir:
+            backup_dir = self.config.get('backups_dir', './bubblelab-backups')
+
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        backup_path = Path(backup_dir) / timestamp
+        backup_path.mkdir(parents=True, exist_ok=True)
+
+        print(f"💾 Creating backup: {backup_path}")
+
+        files = self.export_all_workflows(str(backup_path))
+
+        # Create metadata
+        metadata = {
+            'timestamp': timestamp,
+            'workflow_count': len(files),
+            'backup_path': str(backup_path),
+            'created_at': datetime.now().isoformat()
+        }
+
+        metadata_file = backup_path / 'metadata.json'
+        with open(metadata_file, 'w') as f:
+            json.dump(metadata, f, indent=2)
+
+        print(f"✅ Backup complete: {len(files)} workflows")
+        return str(backup_path)
+
+    def generate_and_deploy(
+        self,
+        prompt: str,
+        name: str,
+        activate: bool = True
+    ) -> Dict:
+        """Generate workflow with AI and deploy"""
+        print(f"🤖 Generating workflow: {name}")
+        print(f"   Prompt: {prompt[:100]}...")
+
+        # Generate using AI
+        generated = self.client.generate_workflow_ai(prompt)
+
+        if not generated.get('validation', {}).get('valid'):
+            errors = generated.get('validation', {}).get('errors', [])
+            raise ValueError(f"Generated code is invalid:\n" + "\n".join(errors))
+
+        print("✅ Code generated successfully")
+
+        # Deploy
+        flow = self.client.create_flow(
+            name=name,
+            code=generated['code'],
+            description=generated.get('explanation', '')
+        )
+
+        print(f"✅ Workflow created: ID {flow['id']}")
+
+        if activate:
+            self.client.activate_flow(flow['id'])
+            print("▶️  Workflow activated")
+
+        return {
+            'flow_id': flow['id'],
+            'name': name,
+            'explanation': generated.get('explanation'),
+            'webhook_path': flow.get('webhookPath'),
+            'webhook_url': f"{self.config.get('base_url')}/webhook/USER_ID/{flow.get('webhookPath')}" if flow.get('webhookPath') else None
+        }
+
+    def sync_environment(self, environment: str) -> Dict:
+        """Sync workflows for specific environment"""
+        env_config = self.config.get('environments', {}).get(environment, {})
+        workflows_dir = env_config.get('workflows_dir', f'./bubblelab-workflows/{environment}')
+
+        print(f"🔄 Syncing workflows for {environment}...")
+        print(f"   Source: {workflows_dir}")
+
+        results = self.deploy_from_directory(workflows_dir)
+
+        # Print summary
+        print(f"\n{'='*60}")
+        print(f"Deployment Summary for {environment}")
+        print(f"{'='*60}")
+        print(f"✅ Successful: {len(results['deployed'])}")
+        print(f"❌ Failed: {len(results['failed'])}")
+
+        if results['deployed']:
+            print(f"\nDeployed Workflows:")
+            for name in results['deployed']:
+                print(f"  ✅ {name}")
+
+        if results['failed']:
+            print(f"\nFailed Workflows:")
+            for failure in results['failed']:
+                print(f"  ❌ {failure['workflow']}: {failure.get('error', 'Unknown error')}")
+
+        return results
+
+
+# =============================================================================
+# CLI Commands
+# =============================================================================
+
+def cmd_setup(args):
+    """Interactive setup wizard"""
+    print("\n" + "="*60)
+    print("🚀 BubbleLab Setup Wizard")
+    print("="*60 + "\n")
+
+    # Get BubbleLab URL
+    bubblelab_url = input(f"BubbleLab URL [http://localhost:3001]: ") or "http://localhost:3001"
+
+    # Get API key
+    print("\n📝 API Key (from BubbleLab Settings → API)")
+    api_key = getpass("API Key: ")
+
+    if not api_key:
+        print("❌ API Key is required!")
+        sys.exit(1)
+
+    # Create config
+    config = Config()
+    config.set('base_url', bubblelab_url)
+    config.set('api_key', api_key)
+
+    print("\n✅ Configuration saved")
+
+    # Test connection
+    print("\n🔍 Testing connection...")
+    try:
+        client = BubbleLabClient(config)
+        flows = client.list_flows()
+        print(f"✅ Connected! Found {len(flows)} existing workflows")
+
+        if flows:
+            print("\n📊 Existing Workflows:")
+            for flow in flows[:5]:
+                status = "▶️" if flow.get('isActive') else "⏸️"
+                print(f"  {status} {flow['name']}")
+
+    except Exception as e:
+        print(f"❌ Connection failed: {e}")
+        print("\nPlease verify:")
+        print("  1. BubbleLab is running")
+        print("  2. API URL is correct")
+        print("  3. API key is valid")
+        sys.exit(1)
+
+    print("\n✨ Setup complete!")
+    print("\nNext steps:")
+    print("  • Run: python bubblelab_automation.py list")
+    print("  • Run: python bubblelab_automation.py generate")
+    print("  • Run: python bubblelab_automation.py deploy")
+
+
+def cmd_list(args):
+    """List all workflows"""
+    config = Config()
+    client = BubbleLabClient(config)
+
+    try:
+        flows = client.list_flows()
+        print(f"\n📊 BubbleLab Workflows ({len(flows)} total):\n")
+
+        if not flows:
+            print("  No workflows found")
+            return
+
+        for i, flow in enumerate(flows, 1):
+            status = "▶️" if flow.get('isActive') else "⏸️"
+            event_type = flow.get('eventType', 'N/A')
+            executions = flow.get('executionCount', 0)
+            last_exec = flow.get('lastExecutionAt', 'Never')
+
+            print(f"{i}. {status} {flow['name']}")
+            print(f"   Type: {event_type}")
+            print(f"   Executions: {executions}")
+            print(f"   Last Run: {last_exec}")
+            print(f"   ID: {flow['id']}")
+            print()
+
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        sys.exit(1)
+
+
+def cmd_create(args):
+    """Create new workflow from file"""
+    if not args.file:
+        print("❌ --file is required")
+        sys.exit(1)
+
+    config = Config()
+    client = BubbleLabClient(config)
+
+    try:
+        with open(args.file, 'r') as f:
+            code = f.read()
+
+        name = args.name or Path(args.file).stem.replace('-', ' ').title()
+
+        print(f"\n📝 Creating workflow: {name}")
+
+        flow = client.create_flow(
+            name=name,
+            code=code,
+            description=args.description or f"Created from {args.file}"
+        )
+
+        print(f"✅ Workflow created!")
+        print(f"   ID: {flow['id']}")
+        print(f"   Name: {flow['name']}")
+
+        if flow.get('webhookPath'):
+            webhook_url = f"{config.get('base_url')}/webhook/USER_ID/{flow['webhookPath']}"
+            print(f"   Webhook: {webhook_url}")
+
+        if args.activate:
+            client.activate_flow(flow['id'])
+            print("   ▶️  Activated")
+
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        sys.exit(1)
+
+
+def cmd_deploy(args):
+    """Deploy workflows from directory"""
+    config = Config()
+    manager = WorkflowManager(config)
+
+    workflows_dir = args.directory or config.get('workflows_dir', './bubblelab-workflows')
+
+    print(f"\n🚀 Deploying workflows from: {workflows_dir}\n")
+
+    results = manager.deploy_from_directory(workflows_dir, activate=not args.no_activate)
+
+    print(f"\n{'='*60}")
+    print(f"Deployment Summary")
+    print(f"{'='*60}")
+    print(f"✅ Deployed: {len(results['deployed'])}")
+    print(f"❌ Failed: {len(results['failed'])}")
+
+    if results['failed']:
+        sys.exit(1)
+
+
+def cmd_generate(args):
+    """Generate workflow with AI"""
+    if not args.prompt:
+        print("❌ --prompt is required")
+        sys.exit(1)
+
+    if not args.name:
+        print("❌ --name is required")
+        sys.exit(1)
+
+    config = Config()
+    manager = WorkflowManager(config)
+
+    try:
+        result = manager.generate_and_deploy(
+            prompt=args.prompt,
+            name=args.name,
+            activate=not args.no_activate
+        )
+
+        print(f"\n{'='*60}")
+        print(f"Workflow Generated Successfully!")
+        print(f"{'='*60}")
+        print(f"ID: {result['flow_id']}")
+        print(f"Name: {result['name']}")
+
+        if result.get('webhook_url'):
+            print(f"\n🔗 Webhook URL:")
+            print(f"   {result['webhook_url']}")
+
+        if result.get('explanation'):
+            print(f"\n📝 Explanation:")
+            print(f"   {result['explanation'][:200]}...")
+
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        sys.exit(1)
+
+
+def cmd_export(args):
+    """Export all workflows"""
+    config = Config()
+    manager = WorkflowManager(config)
+
+    output_dir = args.output or config.get('exports_dir', './bubblelab-exports')
+
+    print(f"\n📦 Exporting workflows to: {output_dir}\n")
+
+    try:
+        files = manager.export_all_workflows(output_dir)
+        print(f"\n✅ Exported {len(files)} workflows")
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        sys.exit(1)
+
+
+def cmd_backup(args):
+    """Create backup"""
+    config = Config()
+    manager = WorkflowManager(config)
+
+    backup_dir = args.directory or config.get('backups_dir', './bubblelab-backups')
+
+    try:
+        backup_path = manager.backup_workflows(backup_dir)
+        print(f"\n✅ Backup created at: {backup_path}")
+    except Exception as e:
+        print(f"❌ Error: {e}")
+        sys.exit(1)
+
+
+def cmd_monitor(args):
+    """Monitor workflow executions"""
+    import time
+
+    config = Config()
+    client = BubbleLabClient(config)
+
+    if not args.flow_id and not args.flow_name:
+        print("❌ --flow-id or --flow-name is required")
+        sys.exit(1)
+
+    # Get flow
+    flows = client.list_flows()
+
+    if args.flow_id:
+        flow = next((f for f in flows if f['id'] == int(args.flow_id)), None)
+    else:
+        flow = next((f for f in flows if f['name'].lower() == args.flow_name.lower()), None)
+
+    if not flow:
+        print(f"❌ Flow not found")
+        sys.exit(1)
+
+    flow_id = flow['id']
+    flow_name = flow['name']
+
+    print(f"\n🔍 Monitoring: {flow_name}")
+    print(f"   ID: {flow_id}")
+    print(f"   Duration: {args.duration} minutes")
+    print(f"   Press Ctrl+C to stop\n")
+
+    start_executions = flow.get('executionCount', 0)
+    end_time = time.time() + (args.duration * 60)
+
+    try:
+        while time.time() < end_time:
+            # Refresh flow data
+            flow = client.get_flow(flow_id)
+            current_executions = flow.get('executionCount', 0)
+
+            if current_executions > start_executions:
+                new_executions = current_executions - start_executions
+                print(f"[{datetime.now().strftime('%H:%M:%S')}] ✨ New executions: +{new_executions}")
+                start_executions = current_executions
+
+            time.sleep(10)  # Check every 10 seconds
+
+    except KeyboardInterrupt:
+        print(f"\n\n⏹️  Monitoring stopped")
+
+    flow = client.get_flow(flow_id)
+    total_executions = flow.get('executionCount', 0)
+    final_count = total_executions - start_executions
+
+    print(f"\n📊 Final Stats:")
+    print(f"   New Executions: {final_count}")
+
+
+def cmd_sync(args):
+    """Sync workflows to environment"""
+    config = Config()
+    manager = WorkflowManager(config)
+
+    environment = args.environment or 'development'
+
+    try:
+        results = manager.sync_environment(environment)
+
+        if results['failed']:
+            sys.exit(1)
+    except Exception as e:
+        print(f"\n❌ Error: {e}")
+        sys.exit(1)
+
+
+def cmd_status(args):
+    """Show system status"""
+    config = Config()
+    client = BubbleLabClient(config)
+
+    print(f"\n{'='*60}")
+    print(f"BubbleLab System Status")
+    print(f"{'='*60}\n")
+
+    # Connection
+    print("🔌 Connection:")
+    print(f"   URL: {config.get('base_url')}")
+
+    try:
+        flows = client.list_flows()
+        print(f"   Status: ✅ Connected")
+        print(f"   Workflows: {len(flows)}")
+
+        active_count = sum(1 for f in flows if f.get('isActive'))
+        total_executions = sum(f.get('executionCount', 0) for f in flows)
+
+        print(f"   Active: {active_count}")
+        print(f"   Total Executions: {total_executions}")
+
+    except Exception as e:
+        print(f"   Status: ❌ Disconnected")
+        print(f"   Error: {e}")
+        return
+
+    # Templates
+    try:
+        templates = client.get_templates()
+        print(f"\n📋 Templates: {len(templates)}")
+    except:
+        pass
+
+    # Configuration
+    print(f"\n⚙️  Configuration:")
+    print(f"   Workflows Dir: {config.get('workflows_dir')}")
+    print(f"   Exports Dir: {config.get('exports_dir')}")
+    print(f"   Backups Dir: {config.get('backups_dir')}")
+
+    # Environments
+    environments = config.get('environments', {})
+    print(f"\n🌍 Environments: {list(environments.keys())}")
+
+    print(f"\n{'='*60}\n")
+
+
+# =============================================================================
+# Main Entry Point
+# =============================================================================
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='BubbleLab Automation CLI',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Setup
+  python bubblelab_automation.py setup
+
+  # List workflows
+  python bubblelab_automation.py list
+
+  # Create workflow from file
+  python bubblelab_automation.py create --file my-workflow.ts --name "My Workflow"
+
+  # Deploy workflows
+  python bubblelab_automation.py deploy --directory ./workflows
+
+  # Generate with AI
+  python bubblelab_automation.py generate --prompt "Monitor services and alert on failure" --name "Health Monitor"
+
+  # Export workflows
+  python bubblelab_automation.py export --output ./exports
+
+  # Backup workflows
+  python bubblelab_automation.py backup
+
+  # Monitor workflow
+  python bubblelab_automation.py monitor --flow-name "Health Monitor" --duration 60
+
+  # Sync to environment
+  python bubblelab_automation.py sync --environment production
+
+  # Show status
+  python bubblelab_automation.py status
+        """
+    )
+
+    subparsers = parser.add_subparsers(dest='command', help='Command to execute')
+
+    # Setup
+    subparsers.add_parser('setup', help='Interactive setup wizard')
+
+    # List
+    subparsers.add_parser('list', help='List all workflows')
+
+    # Create
+    create_parser = subparsers.add_parser('create', help='Create workflow from file')
+    create_parser.add_argument('--file', required=True, help='Workflow file (.ts)')
+    create_parser.add_argument('--name', help='Workflow name')
+    create_parser.add_argument('--description', help='Workflow description')
+    create_parser.add_argument('--activate', action='store_true', default=True, help='Activate after creation')
+    create_parser.add_argument('--no-activate', dest='activate', action='store_false', help='Do not activate')
+
+    # Deploy
+    deploy_parser = subparsers.add_parser('deploy', help='Deploy workflows from directory')
+    deploy_parser.add_argument('--directory', '-d', help='Workflows directory')
+    deploy_parser.add_argument('--no-activate', action='store_true', help='Do not activate workflows')
+
+    # Generate
+    generate_parser = subparsers.add_parser('generate', help='Generate workflow with AI')
+    generate_parser.add_argument('--prompt', '-p', required=True, help='Workflow description')
+    generate_parser.add_argument('--name', '-n', required=True, help='Workflow name')
+    generate_parser.add_argument('--no-activate', action='store_true', help='Do not activate')
+
+    # Export
+    export_parser = subparsers.add_parser('export', help='Export all workflows')
+    export_parser.add_argument('--output', '-o', help='Output directory')
+
+    # Backup
+    backup_parser = subparsers.add_parser('backup', help='Create backup')
+    backup_parser.add_argument('--directory', '-d', help='Backup directory')
+
+    # Monitor
+    monitor_parser = subparsers.add_parser('monitor', help='Monitor workflow executions')
+    monitor_parser.add_argument('--flow-id', type=int, help='Flow ID')
+    monitor_parser.add_argument('--flow-name', help='Flow name')
+    monitor_parser.add_argument('--duration', type=int, default=60, help='Duration in minutes')
+
+    # Sync
+    sync_parser = subparsers.add_parser('sync', help='Sync workflows to environment')
+    sync_parser.add_argument('--environment', '-e', default='development', help='Target environment')
+
+    # Status
+    subparsers.add_parser('status', help='Show system status')
+
+    # Parse arguments
+    args = parser.parse_args()
+
+    if not args.command:
+        parser.print_help()
+        sys.exit(1)
+
+    # Execute command
+    command_func = globals().get(f'cmd_{args.command}')
+    if command_func:
+        command_func(args)
+    else:
+        parser.print_help()
+        sys.exit(1)
+
+
+if __name__ == '__main__':
+    main()

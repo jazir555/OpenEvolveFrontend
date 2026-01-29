@@ -1,0 +1,220 @@
+# Curie Integration Configuration
+# Automated Scientific Experimentation for OpenEvolve
+# Fills GAP-4 (Experimental Data Integration) and GAP-12 (Scientific Experimentation Automation)
+
+project:
+  name: Curie
+  version: 1.0.0
+  description: Automated rigorous scientific experimentation framework
+  repository: https://github.com/Just-Curieous/curie
+  enabled: true
+
+# Connection Configuration
+connection:
+  # OpenAI API configuration (required for LLM-based experiment design)
+  openai_api_key: ${OPENAI_API_KEY}  # Set as environment variable
+
+  # Primary experimental domain
+  domain: physics  # Options: physics, chemistry, biology, materials_science, ml_engineering, general
+
+  # Workspace for experiments
+  workspace_dir: ./curie_workspace
+
+# Feature Flags
+features:
+  # Hypothesis formulation and refinement
+  hypothesis_formulation: true
+
+  # Experiment design and protocol generation
+  experiment_design: true
+
+  # Result analysis and interpretation
+  result_analysis: true
+
+  # Reflection-based iterative refinement
+  reflection: true
+
+  # Statistical validation framework
+  statistical_validation: true
+
+  # SOP Generator integration for protocols
+  sop_generator_integration: true
+
+# Experiment Templates
+templates:
+  # Physics experiments (quantum mechanics, relativity, thermodynamics)
+  - physics_experiments
+
+  # Chemistry experiments (reaction optimization, property prediction)
+  - chemistry_experiments
+
+  # Biology experiments (genetic analysis, biochemical pathways)
+  - biology_experiments
+
+  # Materials science experiments
+  - materials_science_experiments
+
+  # ML/Engineering experiments
+  - ml_engineering_experiments
+
+# Integration Settings
+integration:
+  # Auto-start Curie when OpenEvolve initializes
+  auto_start: true
+
+  # Enable SOP Generator integration for protocols
+  sop_generator_integration: true
+
+  # Enable result caching
+  cache_enabled: true
+
+  # Cache TTL in seconds
+  cache_ttl: 3600  # 1 hour
+
+  # Fallback to default protocols on error
+  fallback_on_error: true
+
+# Performance Configuration
+performance:
+  # Maximum parallel workers
+  max_workers: 4
+
+  # Request timeout in seconds
+  timeout: 30
+
+  # Batch size for processing
+  batch_size: 100
+
+  # Maximum experiment runtime in seconds (24 hours)
+  max_runtime: 86400
+
+# LLM Configuration
+llm:
+  # Model to use for experiment design
+  model: gpt-4o-mini
+
+  # Temperature for generation (higher = more creative)
+  temperature: 0.7
+
+  # Maximum tokens per response
+  max_tokens: 2000
+
+# Experiment Configuration
+experiment:
+  # Default number of iterations for reproducibility
+  default_iterations: 3
+
+  # Maximum refinement iterations
+  max_refinement_iterations: 3
+
+  # Reproducibility threshold (0.0 to 1.0)
+  reproducibility_threshold: 0.8
+
+  # Statistical power threshold (0.0 to 1.0)
+  statistical_power_threshold: 0.8
+
+  # Confidence level for confidence intervals (0.0 to 1.0)
+  confidence_level: 0.95
+
+# Domain-Specific Settings
+domains:
+  physics:
+    enabled: true
+    subfields:
+      - quantum_mechanics
+      - relativity
+      - thermodynamics
+      - electromagnetism
+      - classical_mechanics
+
+  chemistry:
+    enabled: true
+    subfields:
+      - organic_chemistry
+      - inorganic_chemistry
+      - physical_chemistry
+      - analytical_chemistry
+      - biochemistry
+
+  biology:
+    enabled: true
+    subfields:
+      - molecular_biology
+      - genetics
+      - biochemistry
+      - cell_biology
+      - microbiology
+
+  materials_science:
+    enabled: true
+    subfields:
+      - nanomaterials
+      - polymers
+      - ceramics
+      - metals
+      - composites
+
+  ml_engineering:
+    enabled: true
+    subfields:
+      - model_architecture
+      - hyperparameter_optimization
+      - feature_engineering
+      - model_interpretation
+      - deployment
+
+# Logging Configuration
+logging:
+  # Log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  level: INFO
+
+  # Log to file
+  file_logging: true
+
+  # Log file location
+  log_file: ./curie_workspace/curie.log
+
+  # Log format
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# Validation Settings
+validation:
+  # Validate experimental protocols
+  validate_protocols: true
+
+  # Validate experimental results
+  validate_results: true
+
+  # Validate statistical significance
+  validate_statistics: true
+
+  # Validate reproducibility
+  validate_reproducibility: true
+
+# Security Settings
+security:
+  # Sanitize user inputs
+  sanitize_inputs: true
+
+  # Validate file paths
+  validate_paths: true
+
+  # Restrict file access to workspace
+  restrict_to_workspace: true
+
+# Advanced Settings
+advanced:
+  # Enable Docker isolation for experiments
+  docker_enabled: false
+
+  # Docker image to use
+  docker_image: curie-experiments:latest
+
+  # Enable experimental features
+  experimental_features: false
+
+  # Debug mode
+  debug: false
+
+  # Verbose output
+  verbose: false

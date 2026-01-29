@@ -1,0 +1,44 @@
+# Balanced Profile - Default configuration
+# Balances cost and quality
+
+classifier:
+  embedding_model: "all-MiniLM-L6-v2"
+  feature_weights:
+    text_length: 0.2
+    domain_rarity: 0.2
+    depth: 0.2
+    historical_error: 0.2
+    dependency: 0.2
+  cache_dir: ".cache/adaptive_mdap"
+  cache_ttl_hours: 24
+
+allocator:
+  # Default thresholds
+  thresholds: [0.3, 0.7]
+  enable_learning: false
+  default_strategy: "maker_full"
+
+strategies:
+  direct:
+    n_agents: 1
+    k_ahead: 0
+    max_retries: 1
+    timeout_ms: 30000
+  
+  mdap_light:
+    n_agents: 3
+    k_ahead: 1
+    max_retries: 2
+    timeout_ms: 60000
+  
+  maker_full:
+    n_agents: 5
+    k_ahead: 2
+    max_retries: 3
+    timeout_ms: 120000
+
+monitoring:
+  enabled: true
+  metrics_export_format: "json"
+  log_level: "INFO"
+  enable_structured_logging: true

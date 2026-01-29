@@ -1,0 +1,126 @@
+{
+  "schema_name": "biomedical_extraction",
+  "schema_type": "domain_specific",
+  "description": "Biomedical and healthcare domain schema for bilingual extraction",
+  "version": "1.0",
+  "languages": ["en", "zh"],
+  "entity_types": [
+    {
+      "type": "DISEASE",
+      "description": "Diseases, disorders, medical conditions",
+      "examples_en": ["COVID-19", "diabetes", "Alzheimer's disease", "cancer"],
+      "examples_zh": ["新冠肺炎", "糖尿病", "阿尔茨海默病", "癌症"]
+    },
+    {
+      "type": "DRUG",
+      "description": "Medications, drugs, treatments",
+      "examples_en": ["aspirin", "insulin", "Pfizer vaccine", "remdesivir"],
+      "examples_zh": ["阿司匹林", "胰岛素", "辉瑞疫苗", "瑞德西韦"]
+    },
+    {
+      "type": "GENE",
+      "description": "Genes, proteins, biomolecules",
+      "examples_en": ["TP53", "BRCA1", "ACE2", "spike protein"],
+      "examples_zh": ["TP53基因", "BRCA1基因", "ACE2受体", "刺突蛋白"]
+    },
+    {
+      "type": "SYMPTOM",
+      "description": "Symptoms, clinical manifestations",
+      "examples_en": ["fever", "cough", "headache", "fatigue"],
+      "examples_zh": ["发烧", "咳嗽", "头痛", "疲劳"]
+    },
+    {
+      "type": "PROCEDURE",
+      "description": "Medical procedures, surgeries, tests",
+      "examples_en": ["MRI scan", "biopsy", "chemotherapy", "vaccination"],
+      "examples_zh": ["核磁共振", "活检", "化疗", "疫苗接种"]
+    },
+    {
+      "type": "ANATOMY",
+      "description": "Anatomical structures, body parts",
+      "examples_en": ["heart", "lung", "brain", "liver"],
+      "examples_zh": ["心脏", "肺", "大脑", "肝脏"]
+    },
+    {
+      "type": "MEDICAL_INSTITUTION",
+      "description": "Hospitals, research institutes, organizations",
+      "examples_en": ["WHO", "CDC", "Mayo Clinic", "Johns Hopkins"],
+      "examples_zh": ["世界卫生组织", "疾控中心", "梅奥诊所", "约翰霍普金斯"]
+    }
+  ],
+  "relation_types": [
+    {
+      "type": "TREATS",
+      "description": "Drug treats disease",
+      "inverse": "TREATED_BY",
+      "examples_en": ["insulin TREATS diabetes"],
+      "examples_zh": ["胰岛素 治疗 糖尿病"]
+    },
+    {
+      "type": "CAUSES",
+      "description": "Disease causes symptom",
+      "inverse": "CAUSED_BY",
+      "examples_en": ["COVID-19 CAUSES fever"],
+      "examples_zh": ["新冠肺炎 导致 发烧"]
+    },
+    {
+      "type": "ASSOCIATED_WITH",
+      "description": "Gene associated with disease",
+      "inverse": "ASSOCIATED_WITH",
+      "examples_en": ["BRCA1 ASSOCIATED_WITH breast cancer"],
+      "examples_zh": ["BRCA1基因 与 乳腺癌 相关"]
+    },
+    {
+      "type": "INTERACTS_WITH",
+      "description": "Drug-drug or protein-protein interaction",
+      "inverse": "INTERACTS_WITH",
+      "examples_en": ["aspirin INTERACTS_WITH warfarin"],
+      "examples_zh": ["阿司匹林 与 华法林 相互作用"]
+    },
+    {
+      "type": "DIAGNOSES",
+      "description": "Test diagnoses disease",
+      "inverse": "DIAGNOSED_BY",
+      "examples_en": ["PCR test DIAGNOSES COVID-19"],
+      "examples_zh": ["PCR检测 诊断 新冠肺炎"]
+    },
+    {
+      "type": "MANUFACTURED_BY",
+      "description": "Drug manufacturer",
+      "inverse": "MANUFACTURES",
+      "examples_en": ["Pfizer vaccine MANUFACTURED_BY Pfizer"],
+      "examples_zh": ["辉瑞疫苗 由 辉瑞公司 生产"]
+    }
+  ],
+  "event_types": [
+    {
+      "type": "CLINICAL_TRIAL",
+      "description": "Clinical trial events",
+      "triggers_en": ["clinical trial", "study", "research", "Phase I", "Phase II"],
+      "triggers_zh": ["临床试验", "研究", "第一期", "第二期"],
+      "arguments": ["sponsor", "drug", "condition", "phase", "participants", "outcome"]
+    },
+    {
+      "type": "OUTBREAK",
+      "description": "Disease outbreak",
+      "triggers_en": ["outbreak", "epidemic", "pandemic", "emerged"],
+      "triggers_zh": ["爆发", "流行", "大流行", "出现"],
+      "arguments": ["disease", "location", "time", "cases"]
+    },
+    {
+      "type": "DRUG_APPROVAL",
+      "description": "Drug approval by regulatory body",
+      "triggers_en": ["approved", "authorized", "FDA approval", "EMA approval"],
+      "triggers_zh": ["批准", "授权", "FDA批准", "EMA批准"],
+      "arguments": ["drug", "authority", "condition", "time"]
+    }
+  ],
+  "extraction_rules": {
+    "minimum_confidence": 0.7,
+    "max_entities_per_document": 150,
+    "max_relations_per_document": 200,
+    "require_entity_types": true,
+    "allow_overlapping_entities": true,
+    "domain_specific_validation": true
+  }
+}

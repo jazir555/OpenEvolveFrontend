@@ -3797,7 +3797,8 @@ def run_maker_enhanced_evolution(
             voting_threshold=voting_threshold,
             population_size=population_size,
             enable_decomposition=enable_decomposition,
-            adaptive_voting=kwargs.get('adaptive_voting', True)
+            adaptive_voting=kwargs.get('adaptive_voting', True),
+            enable_adaptive_allocation=kwargs.get('enable_adaptive_allocation', True)
         )
         
         # Create evaluator function

@@ -1,0 +1,24 @@
+
+================================================================================
+TDAD Session Started: 2026-01-29T02:28:00.315Z
+================================================================================
+[2026-01-29T02:28:00.560Z] [EXTENSION] 🚀 TDAD extension is now ACTIVATED! Version with comprehensive logging
+[2026-01-29T02:28:00.561Z] [EXTENSION] 📁 Log file location: c:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\.tdad\logs\tdad-2026-01-29.log
+[2026-01-29T02:28:00.561Z] [EXTENSION] 📊 Workspace folders: c:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI
+[2026-01-29T02:28:00.561Z] [EXTENSION] Creating WorkflowController...
+[2026-01-29T02:28:00.562Z] [EXTENSION] MVP: Using simple JSON storage (.tdad/workflows/workflow.json)
+[2026-01-29T02:28:00.562Z] [EXTENSION] TDAD Extension activated successfully
+[2026-01-29T02:28:00.562Z] [EXTENSION] Registering commands...
+[2026-01-29T02:28:00.605Z] [EXTENSION] TDAD structure already initialized
+[2026-01-29T02:28:00.606Z] [EXTENSION] Auto-opening TDAD Canvas...
+[2026-01-29T02:28:00.608Z] [CANVAS] Created directory: c:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\.tdad\workflows
+[2026-01-29T02:28:00.609Z] [CANVAS] Sprint 13: Agent Orchestrator initialized
+[2026-01-29T02:28:00.610Z] [CANVAS] [AUTOPILOT DEBUG] Loading beta code from config: none
+[2026-01-29T02:28:00.610Z] [CANVAS] [AUTOPILOT DEBUG] Sending autopilot settings with loadNodes: no
+[2026-01-29T02:28:00.713Z] [CANVAS] WEBVIEW
+Data: Using stylesheets: index-CqP4kAre.css
+[2026-01-29T02:28:00.714Z] [CANVAS] MVP: Canvas initialized with simple JSON storage
+[2026-01-29T02:28:00.885Z] [CANVAS] [FitView] isLoading=true, nodes.length=0, folderId=null
+[2026-01-29T02:28:01.141Z] [CANVAS] [FitView] isLoading=false, nodes.length=0, folderId=null
+[2026-01-29T02:28:03.599Z] [EXTENSION] Blueprint workflow created: c:\Users\mmeadow\Documents\OpenEvolve\Frontend\projects to analyze\PAMI\.tdad\workflows\root.workflow.json
+[2026-01-29T02:28:03.602Z] [EXTENSION] Scaffolded 1 files from blueprint

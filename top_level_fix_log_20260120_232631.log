@@ -1,0 +1,133 @@
+================================================================================
+Top-Level Auto-Fix Tool
+================================================================================
+Target directory: C:\Users\mmeadow\Documents\OpenEvolve\Frontend
+Mode: DRY RUN
+Scope: Top-level Python files ONLY (no subdirectories)
+================================================================================
+
+[*] Found 597 Python files in top-level directory
+
+[*] Analyzing files for issues...
+
+Analysis Results:
+  Syntax errors: 12 files
+  Bare except clauses: 63 files
+  Hardcoded /tmp paths: 3 files
+  Pickle usage: 16 files
+
+[*] Phase 1: Attempting to fix 12 syntax errors...
+  Fixed: 0/12
+  Manual review required: 12
+
+[*] Phase 2: Fixing bare except clauses in 63 files...
+[DRY RUN] Would fix 2 bare except clauses in advanced_features.py
+[DRY RUN] Would fix 4 bare except clauses in advanced_system_unit_tests.py
+[DRY RUN] Would fix 2 bare except clauses in advanced_visualization.py
+[DRY RUN] Would fix 6 bare except clauses in adversarial_performance.py
+[DRY RUN] Would fix 1 bare except clauses in adversarial_realtime.py
+[DRY RUN] Would fix 2 bare except clauses in analyze_bubbles.py
+[DRY RUN] Would fix 2 bare except clauses in base_configuration.py
+[DRY RUN] Would fix 2 bare except clauses in blue_team_utilities.py
+[DRY RUN] Would fix 4 bare except clauses in bubblelab-auto-setup-v1-backup.py
+[DRY RUN] Would fix 7 bare except clauses in bubblelab-auto-setup-v2.py
+[DRY RUN] Would fix 6 bare except clauses in bubblelab-auto-setup-v3.py
+[DRY RUN] Would fix 4 bare except clauses in bubblelab-auto-setup.py
+[DRY RUN] Would fix 2 bare except clauses in bubblelab-automation.py
+[DRY RUN] Would fix 6 bare except clauses in bubblelabs_ui_component.py
+[DRY RUN] Would fix 1 bare except clauses in compare_parameter_managers.py
+[DRY RUN] Would fix 1 bare except clauses in comprehensive_functional_tests.py
+[DRY RUN] Would fix 1 bare except clauses in comprehensive_integration_test.py
+[DRY RUN] Would fix 1 bare except clauses in comprehensive_verification_report.py
+[DRY RUN] Would fix 2 bare except clauses in continuous_math_detector.py
+[DRY RUN] Would fix 2 bare except clauses in data_consistency_verification.py
+[DRY RUN] Would fix 9 bare except clauses in decomposition_engine_backup.py
+[DRY RUN] Would fix 4 bare except clauses in decomposition_mcp_tools.py
+[DRY RUN] Would fix 2 bare except clauses in deep_bug_check.py
+[DRY RUN] Would fix 2 bare except clauses in demo_team_assignment.py
+[DRY RUN] Would fix 6 bare except clauses in demo_ui_integration.py
+[DRY RUN] Would fix 6 bare except clauses in dependency_visualizer.py
+[DRY RUN] Would fix 4 bare except clauses in deploy.py
+[DRY RUN] Would fix 2 bare except clauses in edge_case_analyzer.py
+[DRY RUN] Would fix 1 bare except clauses in end_to_end_invention_planner.py
+[DRY RUN] Would fix 16 bare except clauses in evolution.py
+[DRY RUN] Would fix 4 bare except clauses in extended_unit_tests.py
+[DRY RUN] Would fix 4 bare except clauses in final_integration_test.py
+[DRY RUN] Would fix 4 bare except clauses in frontend_health_check.py
+[DRY RUN] Would fix 3 bare except clauses in knowledge_graph_visualizer.py
+[DRY RUN] Would fix 2 bare except clauses in leanaide_continuous_math.py
+[DRY RUN] Would fix 3 bare except clauses in leanaide_predictive_flagging.py
+[DRY RUN] Would fix 2 bare except clauses in lmql_adapter.py
+[DRY RUN] Would fix 8 bare except clauses in maker_engine.py
+[DRY RUN] Would fix 8 bare except clauses in mdap_engine.py
+[DRY RUN] Would fix 2 bare except clauses in monitoring.py
+[DRY RUN] Would fix 2 bare except clauses in n8n_workflow_integration.py
+[DRY RUN] Would fix 4 bare except clauses in performance_optimization.py
+[DRY RUN] Would fix 2 bare except clauses in performance_optimizations.py
+[DRY RUN] Would fix 4 bare except clauses in problem_analyzer.py
+[DRY RUN] Would fix 2 bare except clauses in problem_decomposition.py
+[DRY RUN] Would fix 1 bare except clauses in query_optimizer.py
+[DRY RUN] Would fix 2 bare except clauses in report_templates.py
+[DRY RUN] Would fix 2 bare except clauses in roma_mcp_tools.py
+[DRY RUN] Would fix 8 bare except clauses in run_all_ace_tests.py
+[DRY RUN] Would fix 1 bare except clauses in run_full_rese_e2e_pipeline.py
+[DRY RUN] Would fix 1 bare except clauses in sop_component_system.py
+[DRY RUN] Would fix 2 bare except clauses in sop_generator.py
+[DRY RUN] Would fix 2 bare except clauses in sop_integrated_system.py
+[DRY RUN] Would fix 2 bare except clauses in sovereign_knowledge_manager.py
+[DRY RUN] Would fix 2 bare except clauses in sovereign_quality_assessment.py
+[DRY RUN] Would fix 6 bare except clauses in sovereign_refinement.py
+[DRY RUN] Would fix 2 bare except clauses in sovereign_solution_orchestration.py
+[DRY RUN] Would fix 1 bare except clauses in success_criteria.py
+[DRY RUN] Would fix 1 bare except clauses in thorough_integration_test.py
+[DRY RUN] Would fix 6 bare except clauses in ui_components.py
+[DRY RUN] Would fix 5 bare except clauses in workflow_enhanced_stages.py
+[DRY RUN] Would fix 2 bare except clauses in workflow_history_manager.py
+  Fixed: 62/63
+
+[*] Phase 3: Documenting hardcoded /tmp paths in 3 files...
+[DRY RUN] Would document 2 hardcoded /tmp paths in add_class_function_docstrings.py
+[DRY RUN] Would document 1 hardcoded /tmp paths in auto_fix_top_level.py
+[DRY RUN] Would document 3 hardcoded /tmp paths in deployment_operations.py
+  Documented: 3/3
+
+[*] Phase 4: Pickle usage found in 16 files
+  ACTION REQUIRED: Replace pickle with json for security
+
+  Files with pickle usage:
+    - advanced_cache.py
+    - advanced_unit_tests_comprehensive.py
+    - auto_fix_security.py
+    - blue_team_coordinator.py
+    - evaluator_team_coordinator.py
+    - fix_manual_security_issues.py
+    - future_enhancements.py
+    - leanaide_mdap.py
+    - llm_cache.py
+    - llm_caching.py
+    - mcts_evolved_policies.py
+    - mcts_evolved_policies_mdap.py
+    - red_team_coordinator.py
+    - scan_top_level_only.py
+    - test_guardrails_integration.py
+    - validate_phase1_complete.py
+
+================================================================================
+[OK] Auto-Fix Complete
+================================================================================
+
+Summary:
+  Files analyzed: 597
+  Syntax errors: 12 (some auto-fixed)
+  Bare except clauses: 63 (auto-fixed)
+  Hardcoded /tmp: 3 (documented)
+  Pickle usage: 16 (manual fix required)
+
+Next steps:
+  1. Review .backup files if any changes were made
+  2. Fix remaining syntax errors manually
+  3. Replace pickle usage with json
+  4. Review and fix hardcoded /tmp paths
+  5. Run tests to verify fixes
+
+[OK] Done!

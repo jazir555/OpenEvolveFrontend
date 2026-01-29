@@ -9,6 +9,7 @@ import {
   loadMonacoTypes,
   loadBubbleCoreTypes,
 } from '../utils/monacoTypeLoader';
+import { logger } from '../utils/logger';
 
 // Import Monaco workers
 import editorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker';
@@ -50,7 +51,10 @@ export function MonacoEditor() {
     editor: monaco.editor.IStandaloneCodeEditor,
     monacoInstance: typeof monaco
   ) => {
-    console.log('Editor mounted');
+    logger.debug({
+      msg: 'Editor mounted',
+      component: 'MonacoEditor',
+    });
     editorRef.current = editor;
 
     // Store the configured Monaco instance for TypeScript worker access
@@ -64,7 +68,11 @@ export function MonacoEditor() {
     if (editorDomNode) {
       editorDomNode.classList.add('notranslate');
       editorDomNode.setAttribute('translate', 'no');
-      console.log('✅ Added notranslate attributes to Monaco editor DOM');
+      logger.debug({
+        msg: 'Added notranslate attributes to Monaco editor DOM',
+        component: 'MonacoEditor',
+        action: 'google_translate_prevention',
+      });
     }
 
     // Track cursor position changes
@@ -210,7 +218,11 @@ export function MonacoEditor() {
       return;
     }
 
-    console.log('Applying range highlight:', executionHighlightRange);
+    logger.debug({
+      msg: 'Applying range highlight',
+      component: 'MonacoEditor',
+      executionHighlightRange,
+    });
 
     // Clear previous decorations
     if (rangeDecorationRef.current.length > 0) {
@@ -253,10 +265,19 @@ export function MonacoEditor() {
     const newDecorations = editor.deltaDecorations([], [decoration]);
     rangeDecorationRef.current = newDecorations;
 
-    console.log('Applied range decorations:', newDecorations);
+    logger.debug({
+      msg: 'Applied range decorations',
+      component: 'MonacoEditor',
+      decorationCount: newDecorations.length,
+      decorationIds: newDecorations,
+    });
 
     // Auto-scroll to highlight
-    console.log('Auto-scrolling to highlight:', executionHighlightRange);
+    logger.debug({
+      msg: 'Auto-scrolling to highlight',
+      component: 'MonacoEditor',
+      executionHighlightRange,
+    });
     setTimeout(() => {
       editor.revealRangeInCenter(range);
     }, 100);

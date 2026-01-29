@@ -15,15 +15,22 @@ import {
   UpdateGauntletRequest,
   LLMConfig,
   ExecutionResult,
+  WorkflowListResponse,
+  TeamListResponse,
+  GauntletListResponse,
   ApiResponse,
   ListQueryParams,
 } from '../types/api';
+import { OPENEVOLVE_API_BASE_URL } from '../env';
 
 // ============================================================================
 // Configuration
 // ============================================================================
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8001';
+const API_BASE_URL =
+  OPENEVOLVE_API_BASE_URL ||
+  import.meta.env.VITE_API_BASE_URL ||
+  'http://localhost:8001';
 const API_TIMEOUT = 30000; // 30 seconds
 
 // ============================================================================
@@ -170,7 +177,7 @@ class ApiClient {
   // ========================================================================
 
   async getWorkflows(params?: ListQueryParams) {
-    return this.get<Workflow[]>('/api/workflows', params);
+    return this.get<WorkflowListResponse>('/api/workflows', params);
   }
 
   async getWorkflow(workflowId: string) {
@@ -214,7 +221,7 @@ class ApiClient {
   // ========================================================================
 
   async getTeams(params?: ListQueryParams) {
-    return this.get<Team[]>('/api/teams', params);
+    return this.get<TeamListResponse>('/api/teams', params);
   }
 
   async getTeam(teamId: string) {
@@ -238,7 +245,7 @@ class ApiClient {
   // ========================================================================
 
   async getGauntlets(params?: ListQueryParams) {
-    return this.get<Gauntlet[]>('/api/gauntlets', params);
+    return this.get<GauntletListResponse>('/api/gauntlets', params);
   }
 
   async getGauntlet(gauntletId: string) {

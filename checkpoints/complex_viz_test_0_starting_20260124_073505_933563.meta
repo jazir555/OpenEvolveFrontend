@@ -1,0 +1,10 @@
+{
+  "checkpoint_id": "complex_viz_test_0_starting_20260124_073505_933563",
+  "problem_id": "complex_viz_test",
+  "timestamp": "2026-01-24T07:35:05.933563",
+  "level": 0,
+  "stage": "starting",
+  "state_size": 1425,
+  "compressed": false,
+  "parent_checkpoint_id": null
+}

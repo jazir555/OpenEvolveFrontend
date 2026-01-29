@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Mic, Loader2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { api } from '../../lib/api';
+import { logger } from '../../utils/logger';
 
 interface VoiceRecorderProps {
   onTranscription: (text: string) => void;
@@ -172,7 +173,9 @@ export function VoiceRecorder({
           });
           const wavBlob = await convertWebMToWAV(webmBlob);
           const base64Audio = await blobToBase64(wavBlob);
-          console.log('Sending audio to backend...', {
+          logger.debug({
+            msg: 'Sending audio to backend for transcription',
+            component: 'VoiceRecorder',
             base64Length: base64Audio.length,
           });
 
@@ -184,7 +187,11 @@ export function VoiceRecorder({
             onTranscriptionRef.current(data.text);
           }
         } catch (error) {
-          console.error('Error processing audio:', error);
+          logger.error({
+            msg: 'Error processing audio',
+            component: 'VoiceRecorder',
+            error: error instanceof Error ? error.message : String(error),
+          });
           toast.error('Error processing audio recording');
         } finally {
           setIsProcessing(false);
@@ -197,7 +204,11 @@ export function VoiceRecorder({
     } catch (error) {
       // Stop the stream if it was acquired but something else failed
       stream?.getTracks().forEach((track) => track.stop());
-      console.error('Error accessing microphone:', error);
+      logger.error({
+        msg: 'Error accessing microphone',
+        component: 'VoiceRecorder',
+        error: error instanceof Error ? error.message : String(error),
+      });
       toast.error('Could not access microphone');
     }
   }, []);

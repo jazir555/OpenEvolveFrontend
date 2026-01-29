@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  openevolve-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: openevolve-api
+    ports:
+      - "8000:8000"
+    environment:
+      # Server Configuration
+      - OPENEVOLVE_HOST=0.0.0.0
+      - OPENEVOLVE_PORT=8000
+      - OPENEVOLVE_WORKERS=4
+
+      # LLM Configuration
+      - OPENEVOLVE_LLM_PROVIDER=openai
+      - OPENEVOLVE_LLM_API_KEY=${OPENAI_API_KEY:-sk-placeholder}
+      - OPENEVOLVE_LLM_MODEL=gpt-4
+      - OPENEVOLVE_LLM_BASE_URL=https://api.openai.com/v1
+
+      # Execution Configuration
+      - OPENEVOLVE_MAX_WORKERS=5
+      - OPENEVOLVE_EXECUTION_TIMEOUT=300
+      - OPENEVOLVE_LOG_LEVEL=INFO
+
+      # Storage
+      - OPENEVOLVE_DATABASE_URL=sqlite:///openevolve.db
+      - OPENEVOLVE_CACHE_TTL=3600
+    volumes:
+      - ./data:/app/data
+    networks:
+      - bubblelab-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+networks:
+  bubblelab-network:
+    external: true
+    name: bubblelab-network

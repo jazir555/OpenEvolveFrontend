@@ -1,0 +1,570 @@
+import { OpenAPIHono } from '@hono/zod-openapi';
+import { promises as fs } from 'fs';
+import { join, extname } from 'path';
+import { nanoid } from 'nanoid';
+import { db } from '../db/index.js';
+import { evolutionRuns, evolutionNodes, evolutionAssets, idempotencyKeys } from '../db/schema.js';
+import { getUserId } from '../middleware/auth.js';
+import {
+  createEvolutionRunRoute,
+  listEvolutionRunsRoute,
+  listEvolutionNodesRoute,
+  getEvolutionUsageRoute,
+  clearEvolutionNodesRoute,
+  clearEvolutionThumbnailsRoute,
+  deleteEvolutionRunRoute,
+  upsertEvolutionNodeRoute,
+  createEvolutionAssetRoute,
+  getEvolutionAssetRoute,
+} from '../schemas/evolution-graph.js';
+import {
+  setupErrorHandler,
+  validationErrorHook,
+} from '../utils/error-handler.js';
+import { and, desc, eq, sql } from 'drizzle-orm';
+
+// ============================================================================
+// TYPE-SAFE JSON FIELD VALIDATION
+// ============================================================================
+
+/**
+ * Validate that a value is a proper JSON object with string keys
+ * This prevents runtime errors from malformed JSON data
+ */
+function isValidJsonObject(value: unknown): value is Record<string, unknown> {
+  if (value === null || value === undefined) {
+    return true; // null is valid for nullable fields
+  }
+
+  if (typeof value !== 'object' || Array.isArray(value)) {
+    return false;
+  }
+
+  // All keys must be strings
+  return Object.keys(value).every(key => typeof key === 'string');
+}
+
+/**
+ * Safely parse and validate JSON field from database
+ * Returns validated object or null if invalid
+ */
+function safeParseJsonField(value: unknown): Record<string, unknown> | null {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  // If it's already an object, validate it
+  if (typeof value === 'object' && !Array.isArray(value)) {
+    return isValidJsonObject(value) ? (value as Record<string, unknown>) : null;
+  }
+
+  // If it's a string, try to parse it
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      return isValidJsonObject(parsed) ? parsed : null;
+    } catch {
+      return null;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Type guard to check if run config is valid
+ */
+function isValidRunConfig(value: unknown): value is Record<string, unknown> | null {
+  const validated = safeParseJsonField(value);
+  return validated !== null || value === null;
+}
+
+/**
+ * Type guard to check if node metadata is valid
+ */
+function isValidNodeMetadata(value: unknown): value is Record<string, unknown> | null {
+  const validated = safeParseJsonField(value);
+  return validated !== null || value === null;
+}
+
+const app = new OpenAPIHono({
+  defaultHook: validationErrorHook,
+});
+setupErrorHandler(app);
+
+const ASSET_DIR = join(process.cwd(), 'storage', 'evolution-assets');
+
+const ensureAssetDir = async () => {
+  await fs.mkdir(ASSET_DIR, { recursive: true });
+};
+
+const getExtension = (contentType: string, filename?: string, kind?: string) => {
+  if (filename) {
+    const ext = extname(filename);
+    if (ext) return ext;
+  }
+  if (contentType.includes('png')) return '.png';
+  if (contentType.includes('jpeg') || contentType.includes('jpg')) return '.jpg';
+  if (contentType.includes('webp')) return '.webp';
+  if (contentType.includes('html') || kind === 'html') return '.html';
+  return '';
+};
+
+const toRunResponse = (run: typeof evolutionRuns.$inferSelect) => {
+  // Safely validate config field before returning
+  const validatedConfig = safeParseJsonField(run.config);
+
+  return {
+    id: run.id,
+    evolutionId: run.evolutionId,
+    status: run.status,
+    name: run.name || undefined,
+    config: isValidRunConfig(run.config) ? validatedConfig : undefined,
+    createdAt: run.createdAt.toISOString(),
+    updatedAt: run.updatedAt.toISOString(),
+  };
+};
+
+const toNodeResponse = (node: typeof evolutionNodes.$inferSelect) => {
+  // Safely validate metadata field before returning
+  const validatedMetadata = safeParseJsonField(node.metadata);
+
+  return {
+    id: node.id,
+    runId: node.runId,
+    nodeId: node.nodeId,
+    parentNodeId: node.parentNodeId ?? undefined,
+    generation: node.generation,
+    status: node.status,
+    fitness: node.fitness ?? undefined,
+    score: node.score ?? undefined,
+    label: node.label ?? undefined,
+    htmlAssetId: node.htmlAssetId ?? undefined,
+    thumbnailAssetId: node.thumbnailAssetId ?? undefined,
+    metadata: isValidNodeMetadata(node.metadata) ? validatedMetadata : undefined,
+    createdAt: node.createdAt.toISOString(),
+    updatedAt: node.updatedAt.toISOString(),
+  };
+};
+
+app.openapi(createEvolutionRunRoute, async (c) => {
+  const userId = getUserId(c);
+  const { evolutionId, status, name, config, idempotencyKey } = c.req.valid('json');
+
+  // BUG #14 FIX: Idempotency key support for request deduplication
+  if (idempotencyKey) {
+    // Check if this request was already processed
+    const existing = await db.query.idempotencyKeys.findFirst({
+      where: and(
+        eq(idempotencyKeys.key, idempotencyKey),
+        eq(idempotencyKeys.userId, userId)
+      ),
+    });
+
+    if (existing) {
+      // Return cached response
+      return c.json(
+        existing.response as any,
+        existing.statusCode as 200 | 400
+      ) as any;
+    }
+
+    // Process the request and cache the result
+    const [result] = await db
+      .insert(evolutionRuns)
+      .values({
+        userId,
+        evolutionId,
+        status: status ?? 'running',
+        name,
+        config,
+      })
+      .onConflictDoUpdate({
+        target: [evolutionRuns.userId, evolutionRuns.evolutionId],
+        set: {
+          status: status ?? undefined,
+          name: name ?? undefined,
+          config: config ?? undefined,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+
+    const response = toRunResponse(result);
+
+    // Cache the response with 48-hour TTL
+    const expiresAt = new Date();
+    expiresAt.setHours(expiresAt.getHours() + 48);
+
+    await db.insert(idempotencyKeys).values({
+      key: idempotencyKey,
+      userId,
+      endpoint: '/evolution-graph/runs',
+      params: { evolutionId, status, name, config },
+      response,
+      statusCode: 200,
+      expiresAt,
+    });
+
+    return c.json(response, 200);
+  }
+
+  // BUG #9 FIX: Use database-level upsert to prevent race conditions
+  // The unique constraint on (userId, evolutionId) ensures atomicity
+  // This operation is idempotent - safe to retry
+  const [result] = await db
+    .insert(evolutionRuns)
+    .values({
+      userId,
+      evolutionId,
+      status: status ?? 'running',
+      name,
+      config,
+    })
+    .onConflictDoUpdate({
+      target: [evolutionRuns.userId, evolutionRuns.evolutionId],
+      set: {
+        status: status ?? undefined,
+        name: name ?? undefined,
+        config: config ?? undefined,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+
+  return c.json(toRunResponse(result), 200);
+});
+
+app.openapi(listEvolutionRunsRoute, async (c) => {
+  const userId = getUserId(c);
+  const runs = await db.query.evolutionRuns.findMany({
+    where: eq(evolutionRuns.userId, userId),
+    orderBy: desc(evolutionRuns.createdAt),
+  });
+
+  return c.json(runs.map(toRunResponse), 200);
+});
+
+app.openapi(listEvolutionNodesRoute, async (c) => {
+  const userId = getUserId(c);
+  const runId = parseInt(c.req.param('runId'));
+
+  const run = await db.query.evolutionRuns.findFirst({
+    where: and(eq(evolutionRuns.id, runId), eq(evolutionRuns.userId, userId)),
+  });
+
+  if (!run) {
+    return c.json({ error: 'Evolution run not found' }, 404);
+  }
+
+  const nodes = await db.query.evolutionNodes.findMany({
+    where: eq(evolutionNodes.runId, runId),
+    orderBy: desc(evolutionNodes.createdAt),
+  });
+
+  return c.json(nodes.map(toNodeResponse), 200);
+});
+
+app.openapi(getEvolutionUsageRoute, async (c) => {
+  const userId = getUserId(c);
+  const runId = parseInt(c.req.param('runId'));
+
+  const run = await db.query.evolutionRuns.findFirst({
+    where: and(eq(evolutionRuns.id, runId), eq(evolutionRuns.userId, userId)),
+  });
+
+  if (!run) {
+    return c.json({ error: 'Evolution run not found' }, 404);
+  }
+
+  const assets = await db.query.evolutionAssets.findMany({
+    where: and(
+      eq(evolutionAssets.runId, runId),
+      eq(evolutionAssets.userId, userId)
+    ),
+  });
+
+  let totalBytes = 0;
+  let htmlBytes = 0;
+  let thumbnailBytes = 0;
+  let htmlCount = 0;
+  let thumbnailCount = 0;
+
+  for (const asset of assets) {
+    totalBytes += asset.size;
+    if (asset.kind === 'thumbnail') {
+      thumbnailBytes += asset.size;
+      thumbnailCount += 1;
+    } else if (asset.kind === 'html') {
+      htmlBytes += asset.size;
+      htmlCount += 1;
+    }
+  }
+
+  return c.json(
+    {
+      totalBytes,
+      totalAssets: assets.length,
+      htmlBytes,
+      htmlCount,
+      thumbnailBytes,
+      thumbnailCount,
+    },
+    200
+  );
+});
+
+app.openapi(clearEvolutionNodesRoute, async (c) => {
+  const userId = getUserId(c);
+  const runId = parseInt(c.req.param('runId'));
+
+  const run = await db.query.evolutionRuns.findFirst({
+    where: and(eq(evolutionRuns.id, runId), eq(evolutionRuns.userId, userId)),
+  });
+
+  if (!run) {
+    return c.json({ error: 'Evolution run not found' }, 404);
+  }
+
+  // BUG #11 FIX: Wrap database operations in transaction for atomicity
+  // If any operation fails, all database changes are rolled back
+  const assets = await db.query.evolutionAssets.findMany({
+    where: and(eq(evolutionAssets.runId, runId), eq(evolutionAssets.userId, userId)),
+  });
+
+  await db.transaction(async (tx) => {
+    // Delete nodes first (due to foreign key constraints)
+    await tx.delete(evolutionNodes).where(eq(evolutionNodes.runId, runId));
+    // Then delete assets
+    await tx.delete(evolutionAssets).where(eq(evolutionAssets.runId, runId));
+    // Update the run's timestamp
+    await tx
+      .update(evolutionRuns)
+      .set({ updatedAt: new Date() })
+      .where(eq(evolutionRuns.id, runId));
+  });
+
+  // File cleanup happens AFTER successful transaction commit
+  // If transaction fails, files are not deleted (safe to retry)
+  for (const asset of assets) {
+    try {
+      await fs.unlink(asset.filePath);
+    } catch {
+      // Ignore missing files.
+    }
+  }
+
+  return c.json({ message: 'Evolution nodes cleared' }, 200);
+});
+
+app.openapi(deleteEvolutionRunRoute, async (c) => {
+  const userId = getUserId(c);
+  const runId = parseInt(c.req.param('runId'));
+
+  const run = await db.query.evolutionRuns.findFirst({
+    where: and(eq(evolutionRuns.id, runId), eq(evolutionRuns.userId, userId)),
+  });
+
+  if (!run) {
+    return c.json({ error: 'Evolution run not found' }, 404);
+  }
+
+  const assets = await db.query.evolutionAssets.findMany({
+    where: and(
+      eq(evolutionAssets.runId, runId),
+      eq(evolutionAssets.userId, userId)
+    ),
+  });
+
+  for (const asset of assets) {
+    try {
+      await fs.unlink(asset.filePath);
+    } catch {
+      // Ignore missing files.
+    }
+  }
+
+  await db.delete(evolutionRuns).where(eq(evolutionRuns.id, runId));
+
+  return c.json({ message: 'Evolution run deleted' }, 200);
+});
+
+app.openapi(clearEvolutionThumbnailsRoute, async (c) => {
+  const userId = getUserId(c);
+  const runId = parseInt(c.req.param('runId'));
+
+  const run = await db.query.evolutionRuns.findFirst({
+    where: and(eq(evolutionRuns.id, runId), eq(evolutionRuns.userId, userId)),
+  });
+
+  if (!run) {
+    return c.json({ error: 'Evolution run not found' }, 404);
+  }
+
+  const thumbnails = await db.query.evolutionAssets.findMany({
+    where: and(
+      eq(evolutionAssets.runId, runId),
+      eq(evolutionAssets.userId, userId),
+      eq(evolutionAssets.kind, 'thumbnail')
+    ),
+  });
+
+  let freedBytes = 0;
+  for (const asset of thumbnails) {
+    freedBytes += asset.size;
+    try {
+      await fs.unlink(asset.filePath);
+    } catch {
+      // Ignore missing files.
+    }
+  }
+
+  await db
+    .delete(evolutionAssets)
+    .where(
+      and(
+        eq(evolutionAssets.runId, runId),
+        eq(evolutionAssets.userId, userId),
+        eq(evolutionAssets.kind, 'thumbnail')
+      )
+    );
+
+  await db
+    .update(evolutionNodes)
+    .set({ thumbnailAssetId: null, updatedAt: new Date() })
+    .where(eq(evolutionNodes.runId, runId));
+
+  await db
+    .update(evolutionRuns)
+    .set({ updatedAt: new Date() })
+    .where(eq(evolutionRuns.id, runId));
+
+  return c.json(
+    {
+      message: 'Evolution thumbnails cleared',
+      removedCount: thumbnails.length,
+      freedBytes,
+    },
+    200
+  );
+});
+
+app.openapi(upsertEvolutionNodeRoute, async (c) => {
+  const userId = getUserId(c);
+  const payload = c.req.valid('json');
+
+  const run = await db.query.evolutionRuns.findFirst({
+    where: and(
+      eq(evolutionRuns.id, payload.runId),
+      eq(evolutionRuns.userId, userId)
+    ),
+  });
+
+  if (!run) {
+    return c.json({ error: 'Evolution run not found' } as any, 404) as any;
+  }
+
+  // BUG #10 FIX: Use database-level upsert to prevent race conditions
+  // The unique constraint on (runId, nodeId) ensures atomicity
+  // This removes the check-then-act race condition
+  const [result] = await db
+    .insert(evolutionNodes)
+    .values({
+      runId: payload.runId,
+      nodeId: payload.nodeId,
+      parentNodeId: payload.parentNodeId ?? null,
+      generation: payload.generation,
+      status: payload.status,
+      fitness: payload.fitness ?? null,
+      score: payload.score ?? null,
+      label: payload.label ?? null,
+      htmlAssetId: payload.htmlAssetId ?? null,
+      thumbnailAssetId: payload.thumbnailAssetId ?? null,
+      metadata: payload.metadata ?? null,
+    })
+    .onConflictDoUpdate({
+      target: [evolutionNodes.runId, evolutionNodes.nodeId],
+      set: {
+        parentNodeId: sql`CASE WHEN ${payload.parentNodeId} IS NOT NULL THEN ${payload.parentNodeId} ELSE ${evolutionNodes.parentNodeId} END`,
+        generation: payload.generation,
+        status: payload.status,
+        fitness: payload.fitness ?? undefined,
+        score: payload.score ?? undefined,
+        label: payload.label ?? undefined,
+        htmlAssetId: payload.htmlAssetId ?? undefined,
+        thumbnailAssetId: payload.thumbnailAssetId ?? undefined,
+        metadata: payload.metadata ?? undefined,
+        updatedAt: new Date(),
+      },
+    })
+    .returning();
+
+  return c.json(toNodeResponse(result), 200);
+});
+
+app.openapi(createEvolutionAssetRoute, async (c) => {
+  const userId = getUserId(c);
+  const { runId, kind, contentType, dataBase64, filename } = c.req.valid('json');
+
+  const run = await db.query.evolutionRuns.findFirst({
+    where: and(eq(evolutionRuns.id, runId), eq(evolutionRuns.userId, userId)),
+  });
+
+  if (!run) {
+    return c.json({ error: 'Evolution run not found' } as any, 404) as any;
+  }
+
+  await ensureAssetDir();
+  const extension = getExtension(contentType, filename, kind);
+  const assetName = `${runId}-${nanoid(10)}${extension}`;
+  const filePath = join(ASSET_DIR, assetName);
+  const buffer = Buffer.from(dataBase64, 'base64');
+  await fs.writeFile(filePath, buffer);
+
+  const [inserted] = await db
+    .insert(evolutionAssets)
+    .values({
+      runId,
+      userId,
+      kind,
+      contentType,
+      filePath,
+      size: buffer.length,
+    })
+    .returning();
+
+  return c.json(
+    {
+      id: inserted.id,
+      url: `/evolution-graph/assets/${inserted.id}`,
+      contentType: inserted.contentType,
+      size: inserted.size,
+    },
+    200
+  );
+});
+
+app.openapi(getEvolutionAssetRoute, async (c) => {
+  const userId = getUserId(c);
+  const assetId = parseInt(c.req.param('assetId'));
+
+  const asset = await db.query.evolutionAssets.findFirst({
+    where: and(eq(evolutionAssets.id, assetId), eq(evolutionAssets.userId, userId)),
+  });
+
+  if (!asset) {
+    return c.json({ error: 'Evolution asset not found' }, 404);
+  }
+
+  try {
+    const file = await fs.readFile(asset.filePath);
+    return c.body(file, 200, {
+      'Content-Type': asset.contentType,
+      'Cache-Control': 'public, max-age=3600',
+    });
+  } catch {
+    return c.json({ error: 'Evolution asset file missing' }, 404);
+  }
+});
+
+export default app;

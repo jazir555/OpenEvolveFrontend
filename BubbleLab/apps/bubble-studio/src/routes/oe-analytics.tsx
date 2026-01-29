@@ -4,8 +4,10 @@
  */
 
 import { createFileRoute } from '@tanstack/react-router';
+import { useMemo } from 'react';
 import { useWorkflows } from '../hooks/use-workflows-api';
 import { useWorkflowStats } from '../stores/workflowStore';
+import { BarChart, LineChart, PieChart } from '../components/analytics/Charts';
 
 export const Route = createFileRoute('/oe-analytics')({
   component: AnalyticsPage,
@@ -15,18 +17,99 @@ function AnalyticsPage() {
   const { data: workflows } = useWorkflows();
   const stats = useWorkflowStats();
 
-  // Calculate additional metrics
-  const averageDuration = workflows
-    ? workflows.reduce((sum: any, w: any) => {
-        if (w.completed_at && w.created_at) {
-          const duration = new Date(w.completed_at).getTime() - new Date(w.created_at).getTime();
-          return sum + duration / 1000;
-        }
-        return sum;
-      }, 0) / (workflows.length || 1)
-    : 0;
+  const durations = useMemo(() => {
+    if (!workflows) return [];
+    return workflows
+      .map((workflow: any) => {
+        const start =
+          workflow.started_at || workflow.created_at || workflow.updated_at;
+        const end = workflow.completed_at || workflow.updated_at;
+        if (!start || !end) return null;
+        const startTime = new Date(start).getTime();
+        const endTime = new Date(end).getTime();
+        if (Number.isNaN(startTime) || Number.isNaN(endTime)) return null;
+        return Math.max((endTime - startTime) / 1000, 0);
+      })
+      .filter((duration: number | null): duration is number => duration !== null);
+  }, [workflows]);
+
+  const averageDuration =
+    durations.length > 0
+      ? durations.reduce((sum, duration) => sum + duration, 0) /
+        durations.length
+      : 0;
+
+  const fastestDuration =
+    durations.length > 0 ? Math.min(...durations) : 0;
+  const slowestDuration =
+    durations.length > 0 ? Math.max(...durations) : 0;
 
   const successRate = stats.total > 0 ? stats.completed / stats.total : 0;
+
+  const statusChartData = useMemo(
+    () => [
+      { label: 'Completed', value: stats.completed, color: '#10B981' },
+      { label: 'Running', value: stats.running, color: '#F59E0B' },
+      { label: 'Failed', value: stats.failed, color: '#EF4444' },
+      { label: 'Created', value: stats.created, color: '#9CA3AF' },
+    ],
+    [stats]
+  );
+
+  const timelineData = useMemo(() => {
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      weekday: 'short',
+    });
+    const buckets = Array.from({ length: 7 }).map((_, idx) => {
+      const date = new Date(now);
+      date.setDate(now.getDate() - (6 - idx));
+      const key = date.toISOString().slice(0, 10);
+      return {
+        key,
+        label: formatter.format(date),
+        count: 0,
+      };
+    });
+    const bucketMap = new Map(buckets.map((b) => [b.key, b]));
+
+    workflows?.forEach((workflow: any) => {
+      const timestamp =
+        workflow.completed_at || workflow.created_at || workflow.updated_at;
+      if (!timestamp) return;
+      const dateKey = new Date(timestamp).toISOString().slice(0, 10);
+      const bucket = bucketMap.get(dateKey);
+      if (bucket) {
+        bucket.count += 1;
+      }
+    });
+
+    return buckets.map((bucket) => ({
+      x: bucket.label,
+      y: bucket.count,
+    }));
+  }, [workflows]);
+
+  const durationChartData = useMemo(
+    () => [
+      {
+        label: 'Fastest',
+        value: Math.round(fastestDuration),
+        color: 'bg-emerald-500',
+      },
+      {
+        label: 'Average',
+        value: Math.round(averageDuration),
+        color: 'bg-blue-500',
+      },
+      {
+        label: 'Slowest',
+        value: Math.round(slowestDuration),
+        color: 'bg-rose-500',
+      },
+    ],
+    [averageDuration, fastestDuration, slowestDuration]
+  );
 
   return (
     <div className="space-y-6">
@@ -70,53 +153,44 @@ function AnalyticsPage() {
 
       {/* Charts Section */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Execution Timeline */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Execution Timeline
-          </h3>
-          <div className="h-64 flex items-center justify-center text-sm text-gray-500 dark:text-gray-400">
-            Chart implementation needed
-            <br />
-            (Consider using Recharts or Chart.js)
-          </div>
-        </div>
-
-        {/* Status Distribution */}
-        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-            Status Distribution
-          </h3>
-          <div className="space-y-3">
-            <StatusRow label="Completed" count={stats.completed} color="bg-green-500" total={stats.total} />
-            <StatusRow label="Running" count={stats.running} color="bg-yellow-500" total={stats.total} />
-            <StatusRow label="Failed" count={stats.failed} color="bg-red-500" total={stats.total} />
-            <StatusRow label="Created" count={stats.created} color="bg-gray-500" total={stats.total} />
-          </div>
-        </div>
+        <LineChart
+          data={timelineData}
+          title="Execution Timeline (Last 7 Days)"
+          height={220}
+          width={520}
+        />
+        <PieChart data={statusChartData} title="Status Distribution" />
       </div>
 
       {/* Performance Metrics */}
-      <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-          Performance Metrics
-        </h3>
-        <div className="grid gap-4 sm:grid-cols-3">
-          <MetricCard
-            label="Fastest Execution"
-            value={`${Math.round(averageDuration * 0.5)}s`}
-            description="Best case scenario"
-          />
-          <MetricCard
-            label="Slowest Execution"
-            value={`${Math.round(averageDuration * 2)}s`}
-            description="Worst case scenario"
-          />
-          <MetricCard
-            label="Total API Calls"
-            value={(stats.total * 15).toLocaleString()}
-            description="Across all workflows"
-          />
+      <div className="grid gap-6 lg:grid-cols-2">
+        <BarChart
+          data={durationChartData}
+          title="Execution Duration (s)"
+          horizontal
+          height={220}
+        />
+        <div className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+            Performance Metrics
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-3">
+            <MetricCard
+              label="Fastest Execution"
+              value={`${Math.round(fastestDuration)}s`}
+              description="Best case scenario"
+            />
+            <MetricCard
+              label="Slowest Execution"
+              value={`${Math.round(slowestDuration)}s`}
+              description="Worst case scenario"
+            />
+            <MetricCard
+              label="Total API Calls"
+              value={(stats.total * 15).toLocaleString()}
+              description="Across all workflows"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -133,22 +207,6 @@ function StatCard({ title, value, icon, trend }: { title: string; value: string 
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{trend}</p>
         </div>
         <div className="text-4xl">{icon}</div>
-      </div>
-    </div>
-  );
-}
-
-function StatusRow({ label, count, color, total }: { label: string; count: number; color: string; total: number }) {
-  const percentage = total > 0 ? (count / total) * 100 : 0;
-
-  return (
-    <div>
-      <div className="mb-1 flex items-center justify-between text-sm">
-        <span className="font-medium text-gray-700 dark:text-gray-300">{label}</span>
-        <span className="text-gray-900 dark:text-white">{count}</span>
-      </div>
-      <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
-        <div className={`h-full ${color}`} style={{ width: `${percentage}%` }} />
       </div>
     </div>
   );

@@ -1,0 +1,27 @@
+# Unified Deduplication Configuration
+
+default_strategy: auto
+cache_enabled: true
+cache_ttl: 3600
+
+strategies:
+  semhash:
+    enabled: true
+    similarity_threshold: 0.95
+    use_llm_for_entities: false
+
+  lm_cluster:
+    enabled: true
+    cluster_size: 128
+    num_workers: 64
+    retrieval_model: "sentence-transformers/all-mpnet-base-v2"
+
+  standardization:
+    enabled: true
+    use_llm_for_resolution: false
+    stem_length: 4
+
+  semantic:
+    enabled: true
+    confidence_threshold: 0.8
+    max_entity_batch: 100

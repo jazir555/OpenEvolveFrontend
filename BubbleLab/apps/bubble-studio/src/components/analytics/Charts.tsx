@@ -27,7 +27,7 @@ export function BarChart({
   horizontal = false,
   className = '',
 }: BarChartProps) {
-  const maxValue = Math.max(...data.map((d) => d.value));
+  const maxValue = Math.max(1, ...data.map((d) => d.value));
 
   return (
     <Card className={className}>
@@ -96,12 +96,13 @@ export function PieChart({
   className = '',
 }: PieChartProps) {
   const total = data.reduce((sum, item) => sum + item.value, 0);
+  const safeTotal = total === 0 ? 1 : total;
   const colors = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899'];
 
   let currentAngle = 0;
   const slices = data.map((item, index) => {
-    const percentage = (item.value / total) * 100;
-    const angle = (item.value / total) * 360;
+    const percentage = (item.value / safeTotal) * 100;
+    const angle = (item.value / safeTotal) * 360;
 
     const slice = {
       ...item,

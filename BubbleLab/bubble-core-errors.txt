@@ -1,0 +1,594 @@
+../../integrations/openevolve/adapters/resilience.ts(14,1): error TS6133: 'z' is declared but its value is never read.
+../../integrations/openevolve/adapters/resilience.ts(14,19): error TS2307: Cannot find module 'zod' or its corresponding type declarations.
+../../integrations/openevolve/adapters/resilience.ts(746,7): error TS2698: Spread types may only be created from object types.
+src/__mocks__/resilience.ts(8,1): error TS6133: 'vi' is declared but its value is never read.
+src/__mocks__/resilience.ts(28,23): error TS6138: Property 'config' is declared but its value is never read.
+src/__mocks__/resilience.ts(36,20): error TS6133: 'operation' is declared but its value is never read.
+src/__mocks__/resilience.ts(104,5): error TS6133: 'options' is declared but its value is never read.
+src/__mocks__/resilience.ts(198,9): error TS6133: 'message' is declared but its value is never read.
+src/__mocks__/resilience.ts(198,26): error TS6133: 'meta' is declared but its value is never read.
+src/__mocks__/resilience.ts(202,8): error TS6133: 'message' is declared but its value is never read.
+src/__mocks__/resilience.ts(202,25): error TS6133: 'meta' is declared but its value is never read.
+src/__mocks__/resilience.ts(206,8): error TS6133: 'message' is declared but its value is never read.
+src/__mocks__/resilience.ts(206,25): error TS6133: 'meta' is declared but its value is never read.
+src/__mocks__/resilience.ts(210,9): error TS6133: 'message' is declared but its value is never read.
+src/__mocks__/resilience.ts(210,26): error TS6133: 'error' is declared but its value is never read.
+src/__mocks__/resilience.ts(210,47): error TS6133: 'meta' is declared but its value is never read.
+src/bubbles/common/connection-pool.ts(284,16): error TS6133: 'connection' is declared but its value is never read.
+src/bubbles/common/index.ts(10,1): error TS2308: Module './validators.js' has already exported a member named 'ValidationError'. Consider explicitly re-exporting to resolve the ambiguity.
+src/bubbles/common/index.ts(22,1): error TS2308: Module './types.js' has already exported a member named 'ConnectionPoolConfig'. Consider explicitly re-exporting to resolve the ambiguity.
+src/bubbles/common/index.ts(25,1): error TS2308: Module './types.js' has already exported a member named 'CacheConfig'. Consider explicitly re-exporting to resolve the ambiguity.
+src/bubbles/common/retry.ts(210,11): error TS6133: 'lastFailureTime' is declared but its value is never read.
+src/bubbles/service-bubble/ace-tools-bubble.ts(146,73): error TS2344: Type '{ success: boolean; meta: { operation: string; executionTime?: number | undefined; language?: string | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/ace-tools-bubble.ts(149,19): error TS2322: Type '"ace-tools"' is not assignable to type 'BubbleName'.
+src/bubbles/service-bubble/ace-tools-bubble.ts(368,25): error TS6133: 'language' is declared but its value is never read.
+src/bubbles/service-bubble/ai-agent.ts(473,25): error TS2345: Argument of type 'K | undefined' is not assignable to parameter of type 'K'.
+  'K' could be instantiated with an arbitrary type which could be unrelated to 'K | undefined'.
+src/bubbles/service-bubble/ai-agent.ts(1250,41): error TS2339: Property 'RETRY_BACKOFF_MULTIPLIER' does not exist on type '{ readonly TEMPERATURE_MIN: 0; readonly TEMPERATURE_MAX: 2; readonly TEMPERATURE_DEFAULT: 1; readonly TEMPERATURE_LOW: 0.3; readonly TEMPERATURE_MEDIUM: 0.7; readonly TEMPERATURE_HIGH: 1; ... 33 more ...; readonly THINKING_BUDGET_HIGH: 10000; }'.
+src/bubbles/service-bubble/ai-agent.ts(1847,63): error TS2554: Expected 1-2 arguments, but got 3.
+src/bubbles/service-bubble/airtable-bubble.ts(8,8): error TS2307: Cannot find module '../../../adapters/resilience.js' or its corresponding type declarations.
+src/bubbles/service-bubble/airtable-bubble.ts(353,28): error TS2344: Type 'Extract<{ result: { error: string; success: boolean; count: number; records: { id: string; fields: Record<string, any>; createdTime: string; }[]; offset?: string | undefined; }; operation: "listRecords"; }, { ...; }> | ... 8 more ... | Extract<...>' does not satisfy the constraint 'BubbleOperationResult'.
+  Type 'Extract<{ result: { error: string; success: boolean; count: number; records: { id: string; fields: Record<string, any>; createdTime: string; }[]; offset?: string | undefined; }; operation: "listRecords"; }, { ...; }>' is not assignable to type 'BubbleOperationResult'.
+    Type '{ operation: T["operation"]; } & { result: { error: string; success: boolean; count: number; records: { id: string; fields: Record<string, any>; createdTime: string; }[]; offset?: string | undefined; }; operation: "listRecords"; }' is missing the following properties from type 'BubbleOperationResult': success, error
+src/bubbles/service-bubble/airtable-bubble.ts(492,14): error TS2749: 'RecordsSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RecordsSchema'?
+src/bubbles/service-bubble/airtable-bubble.ts(540,14): error TS2749: 'RecordSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RecordSchema'?
+src/bubbles/service-bubble/airtable-bubble.ts(570,14): error TS2749: 'RecordSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RecordSchema'?
+src/bubbles/service-bubble/airtable-bubble.ts(608,14): error TS2749: 'RecordSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RecordSchema'?
+src/bubbles/service-bubble/airtable-bubble.ts(646,14): error TS2749: 'DeleteResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof DeleteResultSchema'?
+src/bubbles/service-bubble/airtable-bubble.ts(674,14): error TS2749: 'BatchResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof BatchResultSchema'?
+src/bubbles/service-bubble/airtable-bubble.ts(710,14): error TS2749: 'BatchResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof BatchResultSchema'?
+src/bubbles/service-bubble/airtable-bubble.ts(746,14): error TS2749: 'BatchDeleteResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof BatchDeleteResultSchema'?
+src/bubbles/service-bubble/airtable-bubble.ts(781,14): error TS2749: 'RecordsSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RecordsSchema'?
+src/bubbles/service-bubble/airtable-bubble.ts(826,14): error TS2749: 'TableInfoSchema' refers to a value, but is being used as a type here. Did you mean 'typeof TableInfoSchema'?
+src/bubbles/service-bubble/airtable-wrapper.ts(43,3): error TS6133: 'InputValidator' is declared but its value is never read.
+src/bubbles/service-bubble/airtable-wrapper.ts(310,31): error TS6133: 'baseId' is declared but its value is never read.
+src/bubbles/service-bubble/airtable-wrapper.ts(445,28): error TS2344: Type 'Extract<{ result: { success: boolean; count: number; records: { id: string; fields: Record<string, any>; createdTime: string; }[]; error?: string | undefined; offset?: string | undefined; }; operation: "listRecords"; }, { ...; }> | ... 10 more ... | Extract<...>' does not satisfy the constraint 'BubbleOperationResult'.
+  Type 'Extract<{ result: { success: boolean; count: number; records: { id: string; fields: Record<string, any>; createdTime: string; }[]; error?: string | undefined; offset?: string | undefined; }; operation: "listRecords"; }, { ...; }>' is not assignable to type 'BubbleOperationResult'.
+    Type '{ operation: T["operation"]; } & { result: { success: boolean; count: number; records: { id: string; fields: Record<string, any>; createdTime: string; }[]; error?: string | undefined; offset?: string | undefined; }; operation: "listRecords"; }' is missing the following properties from type 'BubbleOperationResult': success, error
+src/bubbles/service-bubble/airtable-wrapper.ts(668,14): error TS2749: 'RecordsResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RecordsResultSchema'?
+src/bubbles/service-bubble/airtable-wrapper.ts(669,50): error TS6133: 'fields' is declared but its value is never read.
+src/bubbles/service-bubble/airtable-wrapper.ts(669,58): error TS6133: 'sort' is declared but its value is never read.
+src/bubbles/service-bubble/airtable-wrapper.ts(703,14): error TS2749: 'RecordResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RecordResultSchema'?
+src/bubbles/service-bubble/airtable-wrapper.ts(732,14): error TS2749: 'RecordResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RecordResultSchema'?
+src/bubbles/service-bubble/airtable-wrapper.ts(764,14): error TS2749: 'RecordResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RecordResultSchema'?
+src/bubbles/service-bubble/airtable-wrapper.ts(796,14): error TS2749: 'DeleteResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof DeleteResultSchema'?
+src/bubbles/service-bubble/airtable-wrapper.ts(823,14): error TS2749: 'BatchResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof BatchResultSchema'?
+src/bubbles/service-bubble/airtable-wrapper.ts(853,14): error TS2749: 'BatchResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof BatchResultSchema'?
+src/bubbles/service-bubble/airtable-wrapper.ts(883,14): error TS2749: 'BatchDeleteResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof BatchDeleteResultSchema'?
+src/bubbles/service-bubble/airtable-wrapper.ts(918,14): error TS2749: 'RecordsResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RecordsResultSchema'?
+src/bubbles/service-bubble/airtable-wrapper.ts(919,59): error TS6133: 'fields' is declared but its value is never read.
+src/bubbles/service-bubble/airtable-wrapper.ts(919,67): error TS6133: 'sort' is declared but its value is never read.
+src/bubbles/service-bubble/airtable-wrapper.ts(953,14): error TS2749: 'RecordsResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RecordsResultSchema'?
+src/bubbles/service-bubble/airtable-wrapper.ts(1005,14): error TS2749: 'SchemaResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SchemaResultSchema'?
+src/bubbles/service-bubble/airtable-wrapper.ts(1048,14): error TS2749: 'TablesResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof TablesResultSchema'?
+src/bubbles/service-bubble/airtable.ts(5,1): error TS6133: 'validateNonEmptyString' is declared but its value is never read.
+src/bubbles/service-bubble/airtable.ts(8,1): error TS6192: All imports in import declaration are unused.
+src/bubbles/service-bubble/apify-bubble.ts(74,10): error TS6133: 'validateMemory' is declared but its value is never read.
+src/bubbles/service-bubble/apify-bubble.ts(81,10): error TS6133: 'sanitizeError' is declared but its value is never read.
+src/bubbles/service-bubble/apify-bubble.ts(498,28): error TS2344: Type 'Extract<{ result: { status: string; error: string; success: boolean; runId: string; actorId: string; consoleUrl: string; datasetId?: string | undefined; itemsCount?: number | undefined; startedAt?: string | undefined; finishedAt?: string | undefined; }; operation: "runActor"; }, { ...; }> | ... 8 more ... | Extract<...' does not satisfy the constraint 'BubbleOperationResult'.
+  Type 'Extract<{ result: { status: string; error: string; success: boolean; runId: string; actorId: string; consoleUrl: string; datasetId?: string | undefined; itemsCount?: number | undefined; startedAt?: string | undefined; finishedAt?: string | undefined; }; operation: "runActor"; }, { ...; }>' is not assignable to type 'BubbleOperationResult'.
+    Type '{ operation: T["operation"]; } & { result: { status: string; error: string; success: boolean; runId: string; actorId: string; consoleUrl: string; datasetId?: string | undefined; itemsCount?: number | undefined; startedAt?: string | undefined; finishedAt?: string | undefined; }; operation: "runActor"; }' is missing the following properties from type 'BubbleOperationResult': success, error
+src/bubbles/service-bubble/apify-bubble.ts(664,14): error TS2749: 'ActorRunResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ActorRunResultSchema'?
+src/bubbles/service-bubble/apify-bubble.ts(740,14): error TS2749: 'ActorInfoSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ActorInfoSchema'?
+src/bubbles/service-bubble/apify-bubble.ts(773,14): error TS2749: 'RunInfoSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RunInfoSchema'?
+src/bubbles/service-bubble/apify-bubble.ts(811,14): error TS2749: 'DatasetInfoSchema' refers to a value, but is being used as a type here. Did you mean 'typeof DatasetInfoSchema'?
+src/bubbles/service-bubble/apify-bubble.ts(844,14): error TS2749: 'DatasetItemsSchema' refers to a value, but is being used as a type here. Did you mean 'typeof DatasetItemsSchema'?
+src/bubbles/service-bubble/apify-bubble.ts(845,46): error TS6133: 'format' is declared but its value is never read.
+src/bubbles/service-bubble/apify-bubble.ts(849,16): error TS18048: 'limit' is possibly 'undefined'.
+src/bubbles/service-bubble/apify-bubble.ts(850,17): error TS18048: 'offset' is possibly 'undefined'.
+src/bubbles/service-bubble/apify-bubble.ts(851,16): error TS18048: 'clean' is possibly 'undefined'.
+src/bubbles/service-bubble/apify-bubble.ts(883,14): error TS2749: 'ScrapeResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ScrapeResultSchema'?
+src/bubbles/service-bubble/apify-bubble.ts(884,18): error TS2339: Property 'selector' does not exist on type '{ url: string; operation: "webScrape"; credentials?: Partial<Record<CredentialType, string>> | undefined; timeout?: number | undefined; selectors?: string[] | undefined; waitForSelector?: string | undefined; proxyConfiguration?: { ...; } | undefined; }'.
+src/bubbles/service-bubble/apify-bubble.ts(884,54): error TS2339: Property 'proxy' does not exist on type '{ url: string; operation: "webScrape"; credentials?: Partial<Record<CredentialType, string>> | undefined; timeout?: number | undefined; selectors?: string[] | undefined; waitForSelector?: string | undefined; proxyConfiguration?: { ...; } | undefined; }'.
+src/bubbles/service-bubble/apify-bubble.ts(898,28): error TS18048: 'timeout' is possibly 'undefined'.
+src/bubbles/service-bubble/apify-bubble.ts(941,17): error TS6133: 'puppeteerScrape' is declared but its value is never read.
+src/bubbles/service-bubble/apify-bubble.ts(943,14): error TS2749: 'ScrapeResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ScrapeResultSchema'?
+src/bubbles/service-bubble/apify-bubble.ts(1014,17): error TS6133: 'cheerioScrape' is declared but its value is never read.
+src/bubbles/service-bubble/apify-bubble.ts(1016,14): error TS2749: 'ScrapeResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ScrapeResultSchema'?
+src/bubbles/service-bubble/apify-bubble.ts(1078,14): error TS2749: 'ActorListSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ActorListSchema'?
+src/bubbles/service-bubble/apify-bubble.ts(1083,41): error TS2345: Argument of type '{ limit: string; offset: string; sortBy: "createdAt" | "modifiedAt" | "usageStats" | undefined; }' is not assignable to parameter of type 'string | string[][] | Record<string, string> | URLSearchParams | undefined'.
+  Type '{ limit: string; offset: string; sortBy: "createdAt" | "modifiedAt" | "usageStats" | undefined; }' is not assignable to type 'undefined'.
+src/bubbles/service-bubble/apify-bubble.ts(1084,16): error TS18048: 'limit' is possibly 'undefined'.
+src/bubbles/service-bubble/apify-bubble.ts(1085,17): error TS18048: 'offset' is possibly 'undefined'.
+src/bubbles/service-bubble/apify-bubble.ts(1120,17): error TS6133: 'getActorRuns' is declared but its value is never read.
+src/bubbles/service-bubble/apify-bubble.ts(1122,14): error TS2749: 'ActorRunsSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ActorRunsSchema'?
+src/bubbles/service-bubble/apify-bubble.ts(1126,34): error TS2339: Property 'replace' does not exist on type 'never'.
+src/bubbles/service-bubble/apify-bubble.ts(1128,22): error TS2339: Property 'toString' does not exist on type 'never'.
+src/bubbles/service-bubble/apify-bubble.ts(1129,24): error TS2339: Property 'toString' does not exist on type 'never'.
+src/bubbles/service-bubble/apify-bubble.ts(1220,27): error TS18048: 'waitFor' is possibly 'undefined'.
+src/bubbles/service-bubble/apify-bubble.ts(1221,28): error TS18048: 'waitInterval' is possibly 'undefined'.
+src/bubbles/service-bubble/apify/apify.ts(6,1): error TS6192: All imports in import declaration are unused.
+src/bubbles/service-bubble/elasticsearch-bubble.ts(5,24): error TS2307: Cannot find module '@elastic/elasticsearch' or its corresponding type declarations.
+src/bubbles/service-bubble/elasticsearch-bubble.ts(145,3): error TS2344: Type '{ success: boolean; meta: { operation: string; indexName?: string | undefined; took?: number | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/elasticsearch-bubble.ts(149,19): error TS2322: Type '"elasticsearch"' is not assignable to type 'BubbleName'.
+src/bubbles/service-bubble/elasticsearch-bubble.ts(186,27): error TS2339: Property 'ELASTICSEARCH_CRED' does not exist on type 'typeof CredentialType'.
+src/bubbles/service-bubble/elasticsearch-bubble.ts(194,39): error TS2339: Property 'ELASTICSEARCH_CRED' does not exist on type 'typeof CredentialType'.
+src/bubbles/service-bubble/github-bubble.ts(170,69): error TS2344: Type '{ success: boolean; meta: { operation: string; owner?: string | undefined; repository?: string | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/github-bubble.ts(211,27): error TS2339: Property 'GITHUB_CRED' does not exist on type 'typeof CredentialType'.
+src/bubbles/service-bubble/github-bubble.ts(219,39): error TS2339: Property 'GITHUB_CRED' does not exist on type 'typeof CredentialType'.
+src/bubbles/service-bubble/github-bubble.ts(263,5): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/bubbles/service-bubble/gmail-bubble.ts(146,67): error TS2344: Type '{ success: boolean; meta: { operation: string; emailId?: string | undefined; emailCount?: number | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/gmail-bubble.ts(239,5): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/bubbles/service-bubble/gmail-bubble.ts(513,11): error TS6133: 'result' is declared but its value is never read.
+src/bubbles/service-bubble/gmail-bubble.ts(530,11): error TS6133: 'result' is declared but its value is never read.
+src/bubbles/service-bubble/google-drive-bubble.ts(43,7): error TS6133: 'DEFAULT_TIMEOUT' is declared but its value is never read.
+src/bubbles/service-bubble/google-drive-bubble.ts(193,3): error TS2344: Type '{ success: boolean; meta: { operation: string; fileName?: string | undefined; fileId?: string | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/google-drive-bubble.ts(343,5): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/bubbles/service-bubble/google-drive.ts(5,1): error TS6192: All imports in import declaration are unused.
+src/bubbles/service-bubble/google-drive.ts(14,3): error TS6133: 'NotFoundError' is declared but its value is never read.
+src/bubbles/service-bubble/google-sheets-bubble.ts(8,8): error TS2307: Cannot find module '../../../adapters/resilience.js' or its corresponding type declarations.
+src/bubbles/service-bubble/google-sheets-bubble.ts(640,28): error TS2344: Type 'Extract<{ result: { title: string; error: string; success: boolean; url: string; spreadsheetId: string; sheetCount: number; }; operation: "createSpreadsheet"; }, { operation: T["operation"]; }> | ... 17 more ... | Extract<...>' does not satisfy the constraint 'BubbleOperationResult'.
+  Type 'Extract<{ result: { title: string; error: string; success: boolean; url: string; spreadsheetId: string; sheetCount: number; }; operation: "createSpreadsheet"; }, { operation: T["operation"]; }>' is not assignable to type 'BubbleOperationResult'.
+    Type '{ operation: T["operation"]; } & { result: { title: string; error: string; success: boolean; url: string; spreadsheetId: string; sheetCount: number; }; operation: "createSpreadsheet"; }' is missing the following properties from type 'BubbleOperationResult': success, error
+src/bubbles/service-bubble/google-sheets-bubble.ts(713,28): error TS2345: Argument of type '{ fields: string; }' is not assignable to parameter of type 'boolean | undefined'.
+src/bubbles/service-bubble/google-sheets-bubble.ts(787,18): error TS2678: Type '"getSheet"' is not comparable to type '"batchUpdate" | "createSpreadsheet" | "getSpreadsheet" | "deleteSpreadsheet" | "copySpreadsheet" | "updateCell" | "getCellValue" | "appendRow" | "getRange" | "clearRange" | ... 8 more ... | "getSheetData"'.
+src/bubbles/service-bubble/google-sheets-bubble.ts(788,42): error TS2345: Argument of type 'any' is not assignable to parameter of type 'never'.
+src/bubbles/service-bubble/google-sheets-bubble.ts(816,14): error TS2749: 'SpreadsheetResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SpreadsheetResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(866,14): error TS2749: 'SheetInfoSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SheetInfoSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(908,14): error TS2749: 'UpdateResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof UpdateResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(947,14): error TS2749: 'BatchUpdateResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof BatchUpdateResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(948,37): error TS6133: 'valueInputOption' is declared but its value is never read.
+src/bubbles/service-bubble/google-sheets-bubble.ts(967,13): error TS6133: 'response' is declared but its value is never read.
+src/bubbles/service-bubble/google-sheets-bubble.ts(969,50): error TS6133: 'index' is declared but its value is never read.
+src/bubbles/service-bubble/google-sheets-bubble.ts(1004,14): error TS2749: 'AppendResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof AppendResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1038,14): error TS2749: 'RowDataSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RowDataSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1107,14): error TS2749: 'SheetResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SheetResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1149,14): error TS2749: 'SheetResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SheetResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1183,14): error TS2749: 'ValuesResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ValuesResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1215,14): error TS2749: 'UpdateResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof UpdateResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1287,14): error TS2749: 'SheetInfoSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SheetInfoSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1327,14): error TS2749: 'DeleteSpreadsheetResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof DeleteSpreadsheetResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1353,14): error TS2749: 'CopySpreadsheetResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof CopySpreadsheetResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1384,14): error TS2749: 'CellValueResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof CellValueResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1416,14): error TS2749: 'RangeDataResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RangeDataResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1477,14): error TS2749: 'CopyRangeResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof CopyRangeResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1548,14): error TS2749: 'SheetDataResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SheetDataResultSchema'?
+src/bubbles/service-bubble/google-sheets-bubble.ts(1573,21): error TS2749: 'SheetDataResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SheetDataResultSchema'?
+src/bubbles/service-bubble/google-sheets/google-sheets.ts(14,3): error TS6133: 'ExternalServiceError' is declared but its value is never read.
+src/bubbles/service-bubble/hephaestus-bubble.ts(200,3): error TS2344: Type '{ success: boolean; meta: { operation: string; model?: string | undefined; language?: string | undefined; tokens?: { input?: number | undefined; output?: number | undefined; total?: number | undefined; } | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/hephaestus-bubble.ts(979,106): error TS2339: Property 'join' does not exist on type 'never'.
+src/bubbles/service-bubble/http-bubble.ts(34,11): error TS6196: 'RequestMetrics' is declared but never used.
+src/bubbles/service-bubble/http-bubble.ts(162,65): error TS2344: Type '{ status: number; success: boolean; headers: Record<string, string>; body: string; statusText: string; metrics: { responseTime: number; totalAttempts: number; lastAttemptTime: number; retryCount: number; fromCache?: boolean | undefined; circuitBreakerTripped?: boolean | undefined; }; ... 5 more ...; errorCode?: stri...' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/http-bubble.ts(350,13): error TS6133: 'responseTime' is declared but its value is never read.
+src/bubbles/service-bubble/http-fix-validation.ts(31,11): error TS6133: 'result' is declared but its value is never read.
+src/bubbles/service-bubble/http-fix-validation.ts(41,11): error TS6133: 'result' is declared but its value is never read.
+src/bubbles/service-bubble/http-fix-validation.ts(51,11): error TS6133: 'result' is declared but its value is never read.
+src/bubbles/service-bubble/http-fix-validation.ts(61,11): error TS6133: 'result' is declared but its value is never read.
+src/bubbles/service-bubble/http-fix-validation.ts(72,11): error TS6133: 'result' is declared but its value is never read.
+src/bubbles/service-bubble/http-fix-validation.ts(83,11): error TS6133: 'result' is declared but its value is never read.
+src/bubbles/service-bubble/http-fix-validation.ts(93,11): error TS6133: 'result' is declared but its value is never read.
+src/bubbles/service-bubble/http-fix-validation.ts(103,11): error TS6133: 'result' is declared but its value is never read.
+src/bubbles/service-bubble/notion-bubble.ts(58,7): error TS6133: 'NotionIdSchema' is declared but its value is never read.
+src/bubbles/service-bubble/notion-bubble.ts(547,28): error TS2344: Type 'Extract<{ result: { error: string; success: boolean; url: string; pageId: string; properties?: Record<string, any> | undefined; title?: string | undefined; createdTime?: string | undefined; lastEditedTime?: string | undefined; }; operation: "createPage"; }, { ...; }> | ... 10 more ... | Extract<...>' does not satisfy the constraint 'BubbleOperationResult'.
+  Type 'Extract<{ result: { error: string; success: boolean; url: string; pageId: string; properties?: Record<string, any> | undefined; title?: string | undefined; createdTime?: string | undefined; lastEditedTime?: string | undefined; }; operation: "createPage"; }, { ...; }>' is not assignable to type 'BubbleOperationResult'.
+    Type '{ operation: T["operation"]; } & { result: { error: string; success: boolean; url: string; pageId: string; properties?: Record<string, any> | undefined; title?: string | undefined; createdTime?: string | undefined; lastEditedTime?: string | undefined; }; operation: "createPage"; }' is missing the following properties from type 'BubbleOperationResult': success, error
+src/bubbles/service-bubble/notion-bubble.ts(720,14): error TS2749: 'PageResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof PageResultSchema'?
+src/bubbles/service-bubble/notion-bubble.ts(792,14): error TS2749: 'PageInfoSchema' refers to a value, but is being used as a type here. Did you mean 'typeof PageInfoSchema'?
+src/bubbles/service-bubble/notion-bubble.ts(832,14): error TS2749: 'PageResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof PageResultSchema'?
+src/bubbles/service-bubble/notion-bubble.ts(916,14): error TS2749: 'QueryResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof QueryResultSchema'?
+src/bubbles/service-bubble/notion-bubble.ts(963,14): error TS2749: 'DatabaseResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof DatabaseResultSchema'?
+src/bubbles/service-bubble/notion-bubble.ts(1068,39): error TS18048: 'pageSize' is possibly 'undefined'.
+src/bubbles/service-bubble/notion-bubble.ts(1102,14): error TS2749: 'BlockInfoSchema' refers to a value, but is being used as a type here. Did you mean 'typeof BlockInfoSchema'?
+src/bubbles/service-bubble/notion-bubble.ts(1136,14): error TS2749: 'BlockResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof BlockResultSchema'?
+src/bubbles/service-bubble/notion-bubble.ts(1205,14): error TS2749: 'SearchResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SearchResultSchema'?
+src/bubbles/service-bubble/notion-bubble.ts(1253,14): error TS2749: 'DatabaseInfoSchema' refers to a value, but is being used as a type here. Did you mean 'typeof DatabaseInfoSchema'?
+src/bubbles/service-bubble/notion-bubble.ts(1290,14): error TS2749: 'SearchResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SearchResultSchema'?
+src/bubbles/service-bubble/notion-bubble.ts(1338,14): error TS2749: 'PageResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof PageResultSchema'?
+src/bubbles/service-bubble/notion-bubble.ts(1382,14): error TS2749: 'PageResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof PageResultSchema'?
+src/bubbles/service-bubble/notion-bubble.ts(1420,14): error TS2749: 'QueryResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof QueryResultSchema'?
+src/bubbles/service-bubble/notion/notion.ts(5,1): error TS6192: All imports in import declaration are unused.
+src/bubbles/service-bubble/notion/notion.ts(9,1): error TS6192: All imports in import declaration are unused.
+src/bubbles/service-bubble/postgresql-bubble.ts(5,16): error TS6133: 'PoolClient' is declared but its value is never read.
+src/bubbles/service-bubble/postgresql-bubble.ts(150,3): error TS2344: Type '{ success: boolean; meta: { operation: string; table?: string | undefined; rowsAffected?: number | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/postgresql-bubble.ts(190,27): error TS2339: Property 'POSTGRESQL_CRED' does not exist on type 'typeof CredentialType'.
+src/bubbles/service-bubble/postgresql-bubble.ts(198,39): error TS2339: Property 'POSTGRESQL_CRED' does not exist on type 'typeof CredentialType'.
+src/bubbles/service-bubble/postgresql.ts(11,3): error TS6133: 'createSuccessResponse' is declared but its value is never read.
+src/bubbles/service-bubble/postgresql.ts(18,1): error TS6192: All imports in import declaration are unused.
+src/bubbles/service-bubble/postgresql.ts(24,1): error TS6192: All imports in import declaration are unused.
+src/bubbles/service-bubble/postgresql.ts(30,1): error TS6192: All imports in import declaration are unused.
+src/bubbles/service-bubble/postgresql.ts(60,13): error TS6133: 'trimmedQuery' is declared but its value is never read.
+src/bubbles/service-bubble/postgresql.ts(63,13): error TS6133: 'safeKeywords' is declared but its value is never read.
+src/bubbles/service-bubble/postgresql.ts(385,15): error TS2353: Object literal may only specify known properties, and 'operation' does not exist in type '{ maxAttempts?: number | undefined; baseDelayMs?: number | undefined; maxDelayMs?: number | undefined; correlationId?: string | undefined; operationName?: string | undefined; }'.
+src/bubbles/service-bubble/qdrant-bubble.ts(5,30): error TS2307: Cannot find module '@qdrant/js-client-rest' or its corresponding type declarations.
+src/bubbles/service-bubble/qdrant-bubble.ts(158,69): error TS2344: Type '{ success: boolean; meta: { operation: string; time?: number | undefined; collectionName?: string | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/qdrant-bubble.ts(161,19): error TS2322: Type '"qdrant"' is not assignable to type 'BubbleName'.
+src/bubbles/service-bubble/qdrant-bubble.ts(199,27): error TS2339: Property 'QDRANT_CRED' does not exist on type 'typeof CredentialType'.
+src/bubbles/service-bubble/qdrant-bubble.ts(207,39): error TS2339: Property 'QDRANT_CRED' does not exist on type 'typeof CredentialType'.
+src/bubbles/service-bubble/redis-bubble.ts(5,30): error TS2307: Cannot find module 'redis' or its corresponding type declarations.
+src/bubbles/service-bubble/redis-bubble.ts(128,67): error TS2344: Type '{ success: boolean; meta: { operation: string; key?: string | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/redis-bubble.ts(131,19): error TS2322: Type '"redis"' is not assignable to type 'BubbleName'.
+src/bubbles/service-bubble/redis-bubble.ts(168,27): error TS2339: Property 'REDIS_CRED' does not exist on type 'typeof CredentialType'.
+src/bubbles/service-bubble/redis-bubble.ts(176,39): error TS2339: Property 'REDIS_CRED' does not exist on type 'typeof CredentialType'.
+src/bubbles/service-bubble/sendgrid-bubble.ts(5,20): error TS2307: Cannot find module '@sendgrid/mail' or its corresponding type declarations.
+src/bubbles/service-bubble/sendgrid-bubble.ts(140,3): error TS2344: Type '{ success: boolean; meta: { operation: string; messageId?: string | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/slack-bubble.ts(139,67): error TS2344: Type '{ success: boolean; meta: { operation: string; channel?: string | undefined; timestamp?: string | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/slack-bubble.ts(234,5): error TS2322: Type 'string | null' is not assignable to type 'string'.
+  Type 'null' is not assignable to type 'string'.
+src/bubbles/service-bubble/slack.ts(7,3): error TS6133: 'validateNonEmptyString' is declared but its value is never read.
+src/bubbles/service-bubble/slack.ts(13,3): error TS6133: 'createErrorResponse' is declared but its value is never read.
+src/bubbles/service-bubble/slack.ts(15,1): error TS6133: 'retryWithBackoff' is declared but its value is never read.
+src/bubbles/service-bubble/stripe-bubble.ts(8,8): error TS6059: File 'C:/Users/mmeadow/Documents/OpenEvolve/Frontend/BubbleLab/integrations/openevolve/adapters/resilience.ts' is not under 'rootDir' 'C:/Users/mmeadow/Documents/OpenEvolve/Frontend/BubbleLab/packages/bubble-core/src'. 'rootDir' is expected to contain all source files.
+  The file is in the program because:
+    Imported via '../../../../../integrations/openevolve/adapters/resilience.js' from file 'C:/Users/mmeadow/Documents/OpenEvolve/Frontend/BubbleLab/packages/bubble-core/src/bubbles/service-bubble/stripe-bubble.ts'
+    Imported via '../../../../../integrations/openevolve/adapters/resilience.js' from file 'C:/Users/mmeadow/Documents/OpenEvolve/Frontend/BubbleLab/packages/bubble-core/src/bubbles/service-bubble/airtable-wrapper.ts'
+    Imported via '../../../../../integrations/openevolve/adapters/resilience.js' from file 'C:/Users/mmeadow/Documents/OpenEvolve/Frontend/BubbleLab/packages/bubble-core/src/bubbles/service-bubble/apify-bubble.ts'
+src/bubbles/service-bubble/stripe-bubble.ts(9,1): error TS6192: All imports in import declaration are unused.
+src/bubbles/service-bubble/stripe-bubble.ts(18,3): error TS6133: 'ValidationError' is declared but its value is never read.
+src/bubbles/service-bubble/stripe-bubble.ts(19,3): error TS6133: 'NotFoundError' is declared but its value is never read.
+src/bubbles/service-bubble/stripe-bubble.ts(20,3): error TS6133: 'createErrorResponse' is declared but its value is never read.
+src/bubbles/service-bubble/stripe-bubble.ts(549,28): error TS2344: Type 'Extract<{ result: { status: string; error: string; success: boolean; id: string; createdAt: string; currency: string; amount: number; description?: string | undefined; clientSecret?: string | undefined; }; operation: "createPaymentIntent"; }, { ...; }> | ... 13 more ... | Extract<...>' does not satisfy the constraint 'BubbleOperationResult'.
+  Type 'Extract<{ result: { status: string; error: string; success: boolean; id: string; createdAt: string; currency: string; amount: number; description?: string | undefined; clientSecret?: string | undefined; }; operation: "createPaymentIntent"; }, { ...; }>' is not assignable to type 'BubbleOperationResult'.
+    Type '{ operation: T["operation"]; } & { result: { status: string; error: string; success: boolean; id: string; createdAt: string; currency: string; amount: number; description?: string | undefined; clientSecret?: string | undefined; }; operation: "createPaymentIntent"; }' is missing the following properties from type 'BubbleOperationResult': success, error
+src/bubbles/service-bubble/stripe-bubble.ts(728,14): error TS2749: 'PaymentIntentResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof PaymentIntentResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(778,14): error TS2749: 'PaymentIntentResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof PaymentIntentResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(820,14): error TS2749: 'RefundResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RefundResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(864,14): error TS2749: 'CustomerResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof CustomerResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(904,14): error TS2749: 'CustomerResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof CustomerResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(936,14): error TS2749: 'CustomerResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof CustomerResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(974,14): error TS2749: 'SubscriptionResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SubscriptionResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(1003,9): error TS2552: Cannot find name 'customerId'. Did you mean 'customer'?
+src/bubbles/service-bubble/stripe-bubble.ts(1021,14): error TS2749: 'SubscriptionResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SubscriptionResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(1059,14): error TS2749: 'SubscriptionResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SubscriptionResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(1109,14): error TS2749: 'InvoiceResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof InvoiceResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(1152,14): error TS2749: 'InvoiceResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof InvoiceResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(1189,14): error TS2749: 'InvoiceListSchema' refers to a value, but is being used as a type here. Did you mean 'typeof InvoiceListSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(1243,14): error TS2749: 'ProductResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ProductResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(1282,14): error TS2749: 'PriceResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof PriceResultSchema'?
+src/bubbles/service-bubble/stripe-bubble.ts(1326,14): error TS2749: 'WebhookEventSchema' refers to a value, but is being used as a type here. Did you mean 'typeof WebhookEventSchema'?
+src/bubbles/service-bubble/twilio-bubble.ts(5,20): error TS2307: Cannot find module 'twilio' or its corresponding type declarations.
+src/bubbles/service-bubble/twilio-bubble.ts(121,69): error TS2344: Type '{ success: boolean; meta: { operation: string; sid?: string | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/twilio-bubble.ts(176,33): error TS2552: Cannot find name 'credentials'. Did you mean 'Credential'?
+src/bubbles/service-bubble/webhook-bubble.ts(8,8): error TS2307: Cannot find module '../../../adapters/resilience.js' or its corresponding type declarations.
+src/bubbles/service-bubble/webhook-bubble.ts(10,1): error TS6192: All imports in import declaration are unused.
+src/bubbles/service-bubble/webhook-bubble.ts(14,1): error TS6192: All imports in import declaration are unused.
+src/bubbles/service-bubble/webhook-bubble.ts(635,28): error TS2344: Type 'Extract<{ result: { path: string; error: string; success: boolean; webhookId: string; receivedAt: string; validated: boolean; parsed: boolean; stored: boolean; provider?: string | undefined; eventType?: string | undefined; }; operation: "receiveWebhook"; }, { ...; }> | ... 12 more ... | Extract<...>' does not satisfy the constraint 'BubbleOperationResult'.
+  Type 'Extract<{ result: { path: string; error: string; success: boolean; webhookId: string; receivedAt: string; validated: boolean; parsed: boolean; stored: boolean; provider?: string | undefined; eventType?: string | undefined; }; operation: "receiveWebhook"; }, { ...; }>' is not assignable to type 'BubbleOperationResult'.
+    Type '{ operation: T["operation"]; } & { result: { path: string; error: string; success: boolean; webhookId: string; receivedAt: string; validated: boolean; parsed: boolean; stored: boolean; provider?: string | undefined; eventType?: string | undefined; }; operation: "receiveWebhook"; }' is missing the following properties from type 'BubbleOperationResult': success, error
+src/bubbles/service-bubble/webhook-bubble.ts(780,14): error TS2749: 'WebhookReceiveResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof WebhookReceiveResultSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(876,11): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/webhook-bubble.ts(961,14): error TS2749: 'ParsedPayloadSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ParsedPayloadSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(993,14): error TS2749: 'SignatureValidationResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof SignatureValidationResultSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(1001,9): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/webhook-bubble.ts(1030,14): error TS2749: 'DispatchResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof DispatchResultSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(1031,51): error TS6133: 'retries' is declared but its value is never read.
+src/bubbles/service-bubble/webhook-bubble.ts(1112,14): error TS2749: 'ReplayResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ReplayResultSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(1196,14): error TS2749: 'WebhookListSchema' refers to a value, but is being used as a type here. Did you mean 'typeof WebhookListSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(1269,14): error TS2749: 'WebhookStatsSchema' refers to a value, but is being used as a type here. Did you mean 'typeof WebhookStatsSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(1313,14): error TS2749: 'VerifySignatureResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof VerifySignatureResultSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(1339,87): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/webhook-bubble.ts(1369,14): error TS2749: 'HandlerRegistrationResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof HandlerRegistrationResultSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(1419,14): error TS2749: 'HandlerUnregistrationResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof HandlerUnregistrationResultSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(1458,14): error TS2749: 'RetryResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RetryResultSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(1600,14): error TS2749: 'RetryStatusResultSchema' refers to a value, but is being used as a type here. Did you mean 'typeof RetryStatusResultSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(1660,14): error TS2749: 'WebhookDetailsSchema' refers to a value, but is being used as a type here. Did you mean 'typeof WebhookDetailsSchema'?
+src/bubbles/service-bubble/webhook-bubble.ts(1721,59): error TS6133: 'path' is declared but its value is never read.
+src/bubbles/service-bubble/webhook-bubble.ts(1724,11): error TS6133: 'eventType' is declared but its value is never read.
+src/bubbles/service-bubble/webhook-bubble.ts(1725,11): error TS6133: 'signature' is declared but its value is never read.
+src/bubbles/service-bubble/workflow-orchestrator-bubble.ts(196,3): error TS2344: Type '{ success: boolean; meta: { operation: string; executionId?: string | undefined; workflowId?: string | undefined; }; error?: string | undefined; data?: unknown; }' does not satisfy the constraint 'BubbleOperationResult'.
+  Types of property 'error' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/bubbles/service-bubble/workflow-orchestrator-bubble.ts(200,19): error TS2322: Type '"workflow-orchestrator"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/chart-js-tool.ts(667,7): error TS2322: Type 'readonly ["rgba(54, 162, 235, 0.8)", "rgba(255, 99, 132, 0.8)", "rgba(255, 205, 86, 0.8)", "rgba(75, 192, 192, 0.8)", "rgba(153, 102, 255, 0.8)", "rgba(255, 159, 64, 0.8)"] | ... 8 more ... | readonly [...]' is not assignable to type 'string[]'.
+  The type 'readonly ["rgba(54, 162, 235, 0.8)", "rgba(255, 99, 132, 0.8)", "rgba(255, 205, 86, 0.8)", "rgba(75, 192, 192, 0.8)", "rgba(153, 102, 255, 0.8)", "rgba(255, 159, 64, 0.8)"]' is 'readonly' and cannot be assigned to the mutable type 'string[]'.
+src/bubbles/tool-bubble/chart-js-tool.ts(675,5): error TS4104: The type 'readonly ["rgba(54, 162, 235, 0.8)", "rgba(255, 99, 132, 0.8)", "rgba(255, 205, 86, 0.8)", "rgba(75, 192, 192, 0.8)", "rgba(153, 102, 255, 0.8)", "rgba(255, 159, 64, 0.8)"]' is 'readonly' and cannot be assigned to the mutable type 'string[]'.
+src/bubbles/tool-bubble/code-formatter-tool.ts(179,19): error TS2322: Type '"code-formatter-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/code-formatter-tool.ts(428,15): error TS6133: 'expectedIndent' is declared but its value is never read.
+src/bubbles/tool-bubble/comprehensive-tool-bubbles-test-suite.ts(17,44): error TS6133: 'vi' is declared but its value is never read.
+src/bubbles/tool-bubble/comprehensive-tool-bubbles-test-suite.ts(683,9): error TS6133: 'tool' is declared but its value is never read.
+src/bubbles/tool-bubble/csv-processor-tool.ts(245,19): error TS2322: Type '"csv-processor-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/csv-processor-tool.ts(734,27): error TS2304: Cannot find name 'currentRow'.
+src/bubbles/tool-bubble/csv-processor-tool.ts(743,41): error TS2304: Cannot find name 'currentRow'.
+src/bubbles/tool-bubble/csv-processor-tool.ts(744,21): error TS2304: Cannot find name 'currentRow'.
+src/bubbles/tool-bubble/csv-processor-tool.ts(745,28): error TS2304: Cannot find name 'currentRow'.
+src/bubbles/tool-bubble/csv-processor-tool.ts(756,29): error TS2304: Cannot find name 'currentRow'.
+src/bubbles/tool-bubble/csv-processor-tool.ts(773,31): error TS2304: Cannot find name 'currentRow'.
+src/bubbles/tool-bubble/csv-processor-tool.ts(782,29): error TS2304: Cannot find name 'currentRow'.
+src/bubbles/tool-bubble/csv-processor-tool.ts(947,48): error TS2365: Operator '+' cannot be applied to types '{}' and 'number'.
+src/bubbles/tool-bubble/csv-processor-tool.ts(951,15): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/bubbles/tool-bubble/csv-processor-tool.ts(951,41): error TS2365: Operator '+' cannot be applied to types '{}' and 'number'.
+src/bubbles/tool-bubble/data-transformer-tool.ts(217,19): error TS2322: Type '"data-transformer-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/data-transformer-tool.ts(430,15): error TS2304: Cannot find name 'fieldsRemoved'.
+src/bubbles/tool-bubble/data-transformer-tool.ts(654,53): error TS2365: Operator '+' cannot be applied to types '{}' and 'number'.
+src/bubbles/tool-bubble/data-transformer-tool.ts(658,15): error TS2362: The left-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.
+src/bubbles/tool-bubble/data-transformer-tool.ts(658,41): error TS2365: Operator '+' cannot be applied to types '{}' and 'number'.
+src/bubbles/tool-bubble/email-validator-tool.ts(196,19): error TS2322: Type '"email-validator-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/file-processor-tool.ts(321,11): error TS6133: 'timeout' is declared but its value is never read.
+src/bubbles/tool-bubble/file-processor-tool.ts(513,7): error TS6133: 'FileMetadataSchema' is declared but its value is never read.
+src/bubbles/tool-bubble/file-processor-tool.ts(588,19): error TS2322: Type '"file-processor-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/file-processor-tool.ts(657,18): error TS6133: 'rateLimiter' is declared but its value is never read.
+src/bubbles/tool-bubble/file-processor-tool.ts(1027,19): error TS6133: 'dirStats' is declared but its value is never read.
+src/bubbles/tool-bubble/file-processor-tool.ts(1483,21): error TS6133: 'content' is declared but its value is never read.
+src/bubbles/tool-bubble/image-processor-tool.ts(154,7): error TS6133: 'ImageMetadataSchema' is declared but its value is never read.
+src/bubbles/tool-bubble/image-processor-tool.ts(223,19): error TS2322: Type '"image-processor-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/image-processor-tool.ts(295,31): error TS2307: Cannot find module 'sharp' or its corresponding type declarations.
+src/bubbles/tool-bubble/json-validator-tool.ts(214,19): error TS2322: Type '"json-validator-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/log-parser-tool.ts(28,27): error TS6133: 'TIMEZONE_OFFSETS' is declared but its value is never read.
+src/bubbles/tool-bubble/log-parser-tool.ts(44,47): error TS6133: 'format' is declared but its value is never read.
+src/bubbles/tool-bubble/log-parser-tool.ts(55,13): error TS6133: 'offsetHours' is declared but its value is never read.
+src/bubbles/tool-bubble/log-parser-tool.ts(56,13): error TS6133: 'offsetMinutes' is declared but its value is never read.
+src/bubbles/tool-bubble/log-parser-tool.ts(357,19): error TS2322: Type '"log-parser-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/log-parser-tool.ts(421,9): error TS2322: Type 'string' is not assignable to type '"json" | "csv" | "custom" | "auto" | "apache" | "nginx" | "syslog" | undefined'.
+src/bubbles/tool-bubble/log-parser-tool.ts(425,63): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/bubbles/tool-bubble/log-parser-tool.ts(445,11): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/bubbles/tool-bubble/log-parser-tool.ts(965,13): error TS2322: Type '"gpt-4"' is not assignable to type '"openai/gpt-5" | "openai/gpt-5-mini" | "openai/gpt-5.1" | "openai/gpt-5.2" | "openai/gpt-4" | "openai/gpt-4-turbo" | "openai/gpt-3.5-turbo" | "openai/gpt-4o" | "google/gemini-2.0-flash-exp" | ... 21 more ... | "deepseek/deepseek-chat"'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(96,17): error TS6133: 'stats' is declared but its value is never read.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(160,11): error TS6133: 'network' is declared but its value is never read.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(467,19): error TS2322: Type '"metrics-collector-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(673,77): error TS2339: Property '_element' does not exist on type 'ZodOptional<ZodArray<ZodObject<{ type: ZodEnum<["api", "database", "file", "prometheus", "cloudwatch"]>; endpoint: ZodOptional<ZodString>; query: ZodOptional<ZodString>; interval: ZodOptional<...>; }, "strip", ZodTypeAny, { ...; }, { ...; }>, "many">>'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(705,77): error TS2339: Property '_element' does not exist on type 'ZodOptional<ZodArray<ZodObject<{ type: ZodEnum<["api", "database", "file", "prometheus", "cloudwatch"]>; endpoint: ZodOptional<ZodString>; query: ZodOptional<ZodString>; interval: ZodOptional<...>; }, "strip", ZodTypeAny, { ...; }, { ...; }>, "many">>'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(756,77): error TS2339: Property '_element' does not exist on type 'ZodOptional<ZodArray<ZodObject<{ type: ZodEnum<["api", "database", "file", "prometheus", "cloudwatch"]>; endpoint: ZodOptional<ZodString>; query: ZodOptional<ZodString>; interval: ZodOptional<...>; }, "strip", ZodTypeAny, { ...; }, { ...; }>, "many">>'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(799,77): error TS2339: Property '_element' does not exist on type 'ZodOptional<ZodArray<ZodObject<{ type: ZodEnum<["api", "database", "file", "prometheus", "cloudwatch"]>; endpoint: ZodOptional<ZodString>; query: ZodOptional<ZodString>; interval: ZodOptional<...>; }, "strip", ZodTypeAny, { ...; }, { ...; }>, "many">>'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(938,11): error TS18048: 'params.aggregation.functions' is possibly 'undefined'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(941,11): error TS18048: 'params.aggregation.functions' is possibly 'undefined'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(944,11): error TS18048: 'params.aggregation.functions' is possibly 'undefined'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(995,31): error TS18048: 'params.query' is possibly 'undefined'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(1005,13): error TS18048: 'params.query' is possibly 'undefined'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(1005,60): error TS18048: 'params.query' is possibly 'undefined'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(1008,13): error TS18048: 'params.query' is possibly 'undefined'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(1008,58): error TS18048: 'params.query' is possibly 'undefined'.
+src/bubbles/tool-bubble/metrics-collector-tool.ts(1309,64): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(195,19): error TS2322: Type '"pdf-generator-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(272,31): error TS2307: Cannot find module 'pdfkit' or its corresponding type declarations.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(374,51): error TS6133: 'doc' is declared but its value is never read.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(407,33): error TS2345: Argument of type '{ text: string; bold: boolean; }' is not assignable to parameter of type 'string'.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(414,33): error TS2345: Argument of type '{ text: string; italic: boolean; }' is not assignable to parameter of type 'string'.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(421,33): error TS2345: Argument of type '{ text: string; link: string; underline: boolean; color: string; }' is not assignable to parameter of type 'string'.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(477,43): error TS6133: 'doc' is declared but its value is never read.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(492,43): error TS6133: 'doc' is declared but its value is never read.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(678,22): error TS2339: Property 'style' does not exist on type '{ type: string; content: any; }'.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(678,37): error TS2339: Property 'style' does not exist on type '{ type: string; content: any; }'.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(679,31): error TS2339: Property 'style' does not exist on type '{ type: string; content: any; }'.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(685,22): error TS2339: Property 'style' does not exist on type '{ type: string; content: any; }'.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(685,37): error TS2339: Property 'style' does not exist on type '{ type: string; content: any; }'.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(686,31): error TS2339: Property 'style' does not exist on type '{ type: string; content: any; }'.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(698,19): error TS2339: Property 'style' does not exist on type '{ type: string; content: any; }'.
+src/bubbles/tool-bubble/pdf-generator-tool.ts(699,46): error TS2339: Property 'style' does not exist on type '{ type: string; content: any; }'.
+src/bubbles/tool-bubble/research-agent-tool.ts(707,11): error TS6133: 'summarizeContent' is declared but its value is never read.
+src/bubbles/tool-bubble/sql-query-tool.ts(6,28): error TS6133: 'TimeoutManager' is declared but its value is never read.
+src/bubbles/tool-bubble/sql-query-tool.ts(240,11): error TS6133: 'stats' is declared but its value is never read.
+src/bubbles/tool-bubble/sql-query-tool.ts(275,11): error TS6133: 'formatAsCSV' is declared but its value is never read.
+src/bubbles/tool-bubble/sql-query-tool.ts(299,11): error TS6133: 'formatAsMarkdown' is declared but its value is never read.
+src/bubbles/tool-bubble/tests/tool-bubble-tests.template.ts(7,28): error TS6133: 'measurePerformance' is declared but its value is never read.
+src/bubbles/tool-bubble/tests/tool-bubble-tests.template.ts(7,73): error TS2307: Cannot find module '../../tests/test-utils.js' or its corresponding type declarations.
+src/bubbles/tool-bubble/tests/tool-bubble-tests.template.ts(10,7): error TS6133: 'testContext' is declared but its value is never read.
+src/bubbles/tool-bubble/text-analyzer-tool.ts(227,19): error TS2322: Type '"text-analyzer-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/text-analyzer-tool.ts(307,13): error TS2739: Type '{ success: true; }' is missing the following properties from type '{ error: string; success: boolean; statistics: { wordCount: number; processingTime: number; characterCount: number; sentenceCount: number; paragraphCount: number; averageWordLength: number; averageSentenceLength: number; }; ... 6 more ...; frequency?: { ...; }[] | undefined; }': error, statistics
+src/bubbles/tool-bubble/url-validator-tool.ts(168,19): error TS2322: Type '"url-validator-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/tool-bubble/vector-search-tool.ts(144,19): error TS2820: Type '"vector-search-tool"' is not assignable to type 'BubbleName'. Did you mean '"web-search-tool"'?
+src/bubbles/tool-bubble/vector-search-tool.ts(299,48): error TS2339: Property 'QDRANT_CRED' does not exist on type 'typeof CredentialType'.
+src/bubbles/tool-bubble/vector-search-tool.ts(303,32): error TS2339: Property 'qdrant_url' does not exist on type 'Partial<Record<CredentialType, string>>'.
+src/bubbles/tool-bubble/vector-search-tool.ts(498,11): error TS6133: 'batchSimilarity' is declared but its value is never read.
+src/bubbles/tool-bubble/xml-parser-tool.ts(243,37): error TS2307: Cannot find module 'xml2js' or its corresponding type declarations.
+src/bubbles/tool-bubble/xml-parser-tool.ts(425,19): error TS1308: 'await' expressions are only allowed within async functions and at the top levels of modules.
+src/bubbles/tool-bubble/xml-parser-tool.ts(426,25): error TS1308: 'await' expressions are only allowed within async functions and at the top levels of modules.
+src/bubbles/tool-bubble/xml-parser-tool.ts(485,19): error TS2322: Type '"xml-parser-tool"' is not assignable to type 'BubbleName'.
+src/bubbles/workflow-bubble/api-aggregator.workflow.ts(40,19): error TS2322: Type '"api-aggregator-workflow"' is not assignable to type 'BubbleName'.
+src/bubbles/workflow-bubble/api-aggregator.workflow.ts(59,67): error TS2345: Argument of type '{ name: string; url: string; timeout?: number | undefined; headers?: Record<string, string> | undefined; method?: "GET" | "POST" | "PUT" | "PATCH" | undefined; body?: unknown; }' is not assignable to parameter of type '{ name: string; url: string; timeout: number; method: "GET" | "POST" | "PUT" | "PATCH"; headers?: Record<string, string> | undefined; body?: unknown; }'.
+  Types of property 'timeout' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/bubbles/workflow-bubble/api-aggregator.workflow.ts(64,45): error TS2345: Argument of type '{ name: string; url: string; timeout?: number | undefined; headers?: Record<string, string> | undefined; method?: "GET" | "POST" | "PUT" | "PATCH" | undefined; body?: unknown; }' is not assignable to parameter of type '{ name: string; url: string; timeout: number; method: "GET" | "POST" | "PUT" | "PATCH"; headers?: Record<string, string> | undefined; body?: unknown; }'.
+  Types of property 'timeout' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/bubbles/workflow-bubble/api-aggregator.workflow.ts(101,9): error TS2322: Type 'unknown' is not assignable to type 'string | Record<string, unknown> | undefined'.
+src/bubbles/workflow-bubble/api-aggregator.workflow.ts(111,22): error TS2339: Property 'json' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/backup-restore.workflow.ts(209,19): error TS2322: Type '"backup-restore-workflow"' is not assignable to type 'BubbleName'.
+src/bubbles/workflow-bubble/backup-restore.workflow.ts(306,40): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/bubbles/workflow-bubble/backup-restore.workflow.ts(312,39): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/bubbles/workflow-bubble/backup-restore.workflow.ts(317,57): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/bubbles/workflow-bubble/backup-restore.workflow.ts(323,15): error TS18048: 'data' is possibly 'undefined'.
+src/bubbles/workflow-bubble/backup-restore.workflow.ts(344,17): error TS18048: 'data' is possibly 'undefined'.
+src/bubbles/workflow-bubble/backup-restore.workflow.ts(632,33): error TS6133: 'data' is declared but its value is never read.
+src/bubbles/workflow-bubble/backup-restore.workflow.ts(731,23): error TS2339: Property 'body' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/backup-restore.workflow.ts(744,49): error TS6133: 'metadata' is declared but its value is never read.
+src/bubbles/workflow-bubble/backup-restore.workflow.ts(793,36): error TS2339: Property 'json' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/data-enrichment.workflow.ts(24,7): error TS6133: 'EnrichmentSourceSchema' is declared but its value is never read.
+src/bubbles/workflow-bubble/data-enrichment.workflow.ts(256,19): error TS2322: Type '"data-enrichment-workflow"' is not assignable to type 'BubbleName'.
+src/bubbles/workflow-bubble/data-enrichment.workflow.ts(353,57): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/bubbles/workflow-bubble/data-enrichment.workflow.ts(437,45): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/bubbles/workflow-bubble/data-enrichment.workflow.ts(454,36): error TS2339: Property 'json' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/data-enrichment.workflow.ts(456,58): error TS2339: Property 'json' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/data-enrichment.workflow.ts(456,64): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/bubbles/workflow-bubble/data-enrichment.workflow.ts(503,36): error TS2339: Property 'json' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/data-enrichment.workflow.ts(504,46): error TS2339: Property 'json' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/data-enrichment.workflow.ts(688,32): error TS2339: Property 'value' does not exist on type '{}'.
+src/bubbles/workflow-bubble/etl-pipeline.workflow.ts(42,19): error TS2322: Type '"etl-pipeline-workflow"' is not assignable to type 'BubbleName'.
+src/bubbles/workflow-bubble/etl-pipeline.workflow.ts(93,36): error TS2339: Property 'json' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/etl-pipeline.workflow.ts(94,40): error TS2339: Property 'json' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/etl-pipeline.workflow.ts(94,55): error TS2339: Property 'json' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/etl-pipeline.workflow.ts(94,70): error TS2339: Property 'json' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/etl-pipeline.workflow.ts(111,11): error TS6133: 'transform' is declared but its value is never read.
+src/bubbles/workflow-bubble/etl-pipeline.workflow.ts(129,13): error TS6133: 'config' is declared but its value is never read.
+src/bubbles/workflow-bubble/event-handler.workflow.ts(70,19): error TS2322: Type '"event-handler-workflow"' is not assignable to type 'BubbleName'.
+src/bubbles/workflow-bubble/event-handler.workflow.ts(129,72): error TS18048: 'b.priority' is possibly 'undefined'.
+src/bubbles/workflow-bubble/event-handler.workflow.ts(129,85): error TS18048: 'a.priority' is possibly 'undefined'.
+src/bubbles/workflow-bubble/event-handler.workflow.ts(176,102): error TS2339: Property '0' does not exist on type '{ name: string; config?: Record<string, unknown> | undefined; }[] | undefined'.
+src/bubbles/workflow-bubble/event-handler.workflow.ts(231,13): error TS2322: Type 'unknown' is not assignable to type 'string | Record<string, unknown> | undefined'.
+src/bubbles/workflow-bubble/monitoring-alert.workflow.ts(163,19): error TS2322: Type '"monitoring-alert-workflow"' is not assignable to type 'BubbleName'.
+src/bubbles/workflow-bubble/monitoring-alert.workflow.ts(360,28): error TS2339: Property 'json' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/monitoring-alert.workflow.ts(410,44): error TS6133: 'severity' is declared but its value is never read.
+src/bubbles/workflow-bubble/monitoring-alert.workflow.ts(420,13): error TS6133: 'escalateTo' is declared but its value is never read.
+src/bubbles/workflow-bubble/multi-step-approval.workflow.ts(74,19): error TS2322: Type '"multi-step-approval-workflow"' is not assignable to type 'BubbleName'.
+src/bubbles/workflow-bubble/multi-step-approval.workflow.ts(107,13): error TS2749: 'ApprovalStatusSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ApprovalStatusSchema'?
+src/bubbles/workflow-bubble/multi-step-approval.workflow.ts(111,15): error TS2749: 'ApprovalStatusSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ApprovalStatusSchema'?
+src/bubbles/workflow-bubble/multi-step-approval.workflow.ts(173,28): error TS2749: 'ApprovalStatusSchema' refers to a value, but is being used as a type here. Did you mean 'typeof ApprovalStatusSchema'?
+src/bubbles/workflow-bubble/multi-step-approval.workflow.ts(178,57): error TS2345: Argument of type '{ title: string; description: string | undefined; requester: string; approvalSteps: { stepName: string; approvers: { name: string; userId: string; email?: string | undefined; }[]; timeout?: number | undefined; approvalType?: "any" | ... 2 more ... | undefined; }[]; ... 4 more ...; createdAt: Date; }' is not assignable to parameter of type '{ title: string; description?: string | undefined; requester: string; approvalSteps: { stepName: string; approvers: { name: string; userId: string; email?: string | undefined; }[]; approvalType: "any" | ... 1 more ... | "sequence"; timeout?: number | undefined; }[]; ... 4 more ...; createdAt: Date; }'.
+  Types of property 'approvalSteps' are incompatible.
+    Type '{ stepName: string; approvers: { name: string; userId: string; email?: string | undefined; }[]; timeout?: number | undefined; approvalType?: "any" | "all" | "sequence" | undefined; }[]' is not assignable to type '{ stepName: string; approvers: { name: string; userId: string; email?: string | undefined; }[]; approvalType: "any" | "all" | "sequence"; timeout?: number | undefined; }[]'.
+      Type '{ stepName: string; approvers: { name: string; userId: string; email?: string | undefined; }[]; timeout?: number | undefined; approvalType?: "any" | "all" | "sequence" | undefined; }' is not assignable to type '{ stepName: string; approvers: { name: string; userId: string; email?: string | undefined; }[]; approvalType: "any" | "all" | "sequence"; timeout?: number | undefined; }'.
+        Types of property 'approvalType' are incompatible.
+          Type '"any" | "all" | "sequence" | undefined' is not assignable to type '"any" | "all" | "sequence"'.
+            Type 'undefined' is not assignable to type '"any" | "all" | "sequence"'.
+src/bubbles/workflow-bubble/multi-step-approval.workflow.ts(408,41): error TS2339: Property 'workflows' does not exist on type 'MultiStepApprovalWorkflow'.
+src/bubbles/workflow-bubble/multi-step-approval.workflow.ts(452,41): error TS2339: Property 'workflows' does not exist on type 'MultiStepApprovalWorkflow'.
+src/bubbles/workflow-bubble/multi-step-approval.workflow.ts(480,41): error TS2339: Property 'workflows' does not exist on type 'MultiStepApprovalWorkflow'.
+src/bubbles/workflow-bubble/scheduled-task.workflow.ts(39,19): error TS2322: Type '"scheduled-task-workflow"' is not assignable to type 'BubbleName'.
+src/bubbles/workflow-bubble/scheduled-task.workflow.ts(52,19): error TS2416: Property 'performAction' in type 'ScheduledTaskWorkflow' is not assignable to the same property in base type 'WorkflowBubble<{ action: { type: "function" | "workflow" | "http"; config: Record<string, unknown>; }; schedule: { type: "interval" | "cron" | "once"; expression?: string | undefined; runAt?: Date | undefined; }; ... 4 more ...; retryOnFailure?: boolean | undefined; }, { ...; }>'.
+  Type '() => Promise<{ success: boolean; error: string; taskId: string; status: string; nextRun: Date | undefined; } | { success: boolean; error: string; taskId: string; status: string; nextRun?: undefined; }>' is not assignable to type '(context?: BubbleContext | undefined) => Promise<{ status: "failed" | "scheduled" | "completed" | "running" | "cancelled"; error: string; success: boolean; taskId: string; result?: unknown; nextRun?: Date | undefined; }>'.
+    Type 'Promise<{ success: boolean; error: string; taskId: string; status: string; nextRun: Date | undefined; } | { success: boolean; error: string; taskId: string; status: string; nextRun?: undefined; }>' is not assignable to type 'Promise<{ status: "failed" | "scheduled" | "completed" | "running" | "cancelled"; error: string; success: boolean; taskId: string; result?: unknown; nextRun?: Date | undefined; }>'.
+      Type '{ success: boolean; error: string; taskId: string; status: string; nextRun: Date | undefined; } | { success: boolean; error: string; taskId: string; status: string; nextRun?: undefined; }' is not assignable to type '{ status: "failed" | "scheduled" | "completed" | "running" | "cancelled"; error: string; success: boolean; taskId: string; result?: unknown; nextRun?: Date | undefined; }'.
+        Type '{ success: boolean; error: string; taskId: string; status: string; nextRun: Date | undefined; }' is not assignable to type '{ status: "failed" | "scheduled" | "completed" | "running" | "cancelled"; error: string; success: boolean; taskId: string; result?: unknown; nextRun?: Date | undefined; }'.
+          Types of property 'status' are incompatible.
+            Type 'string' is not assignable to type '"failed" | "scheduled" | "completed" | "running" | "cancelled"'.
+src/bubbles/workflow-bubble/webhook-repeater.workflow.ts(56,7): error TS6133: 'CircuitBreakerConfigSchema' is declared but its value is never read.
+src/bubbles/workflow-bubble/webhook-repeater.workflow.ts(252,19): error TS2322: Type '"webhook-repeater-workflow"' is not assignable to type 'BubbleName'.
+src/bubbles/workflow-bubble/webhook-repeater.workflow.ts(365,13): error TS2353: Object literal may only specify known properties, and 'authType' does not exist in type '{ url: string; credentials?: Partial<Record<CredentialType, string>> | undefined; timeout?: number | undefined; headers?: Record<string, string> | undefined; method?: "DELETE" | ... 6 more ... | undefined; body?: string | ... 1 more ... | undefined; followRedirects?: boolean | undefined; }'.
+src/bubbles/workflow-bubble/webhook-repeater.workflow.ts(380,30): error TS2339: Property 'status' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/bubbles/workflow-bubble/webhook-repeater.workflow.ts(402,39): error TS2339: Property 'status' does not exist on type 'BubbleResult<{ status: number; error: string; success: boolean; headers: Record<string, string>; size: number; body: string; statusText: string; responseTime: number; json?: unknown; }>'.
+src/health/health-check.ts(435,35): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/index.ts(78,15): error TS2724: '"./bubbles/service-bubble/stripe-bubble.js"' has no exported member named 'StripeBubbleParams'. Did you mean 'StripeBubble'?
+src/logging/logger.ts(68,49): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/logging/logger.ts(329,3): error TS6133: 'logger' is declared but its value is never read.
+src/metrics/middleware.ts(7,49): error TS2307: Cannot find module 'express' or its corresponding type declarations.
+src/metrics/middleware.ts(81,37): error TS6133: 'res' is declared but its value is never read.
+src/metrics/prometheus.ts(299,3): error TS2322: Type 'MetricObjectWithValues<MetricValue<string>>[]' is not assignable to type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'MetricObjectWithValues<MetricValue<string>>[]'.
+src/metrics/prometheus.ts(325,5): error TS6133: 'target' is declared but its value is never read.
+src/metrics/prometheus.ts(326,5): error TS6133: 'propertyKey' is declared but its value is never read.
+src/tests/setup.ts(26,9): error TS2649: Cannot augment module 'console' with value exports because it resolves to a non-module entity.
+src/tests/templates/service-bubble-test.template.ts(9,1): error TS6133: 'CredentialType' is declared but its value is never read.
+src/tests/templates/service-bubble-test.template.ts(10,28): error TS6133: 'measurePerformance' is declared but its value is never read.
+src/tests/templates/service-bubble-test.template.ts(13,7): error TS6133: 'testContext' is declared but its value is never read.
+src/tests/test-utils.ts(34,19): error TS2339: Property 'OAUTH_TOKEN' does not exist on type 'typeof CredentialType'.
+src/tests/test-utils.ts(85,29): error TS6133: 'params' is declared but its value is never read.
+src/tests/test-utils.ts(149,16): error TS6133: 'key' is declared but its value is never read.
+src/tests/test-utils.ts(149,29): error TS6133: 'seconds' is declared but its value is never read.
+src/tests/test-utils.ts(170,10): error TS2304: Cannot find name 'vi'.
+src/tracing/examples.ts(9,22): error TS6133: 'createSpan' is declared but its value is never read.
+src/tracing/examples.ts(9,34): error TS6133: 'addSpanAttributes' is declared but its value is never read.
+src/tracing/examples.ts(10,24): error TS6133: 'withBubbleTracing' is declared but its value is never read.
+src/tracing/examples.ts(12,10): error TS2305: Module '"./trace-metrics.js"' has no exported member 'TraceMetrics'.
+src/tracing/examples.ts(14,1): error TS6192: All imports in import declaration are unused.
+src/tracing/examples.ts(29,7): error TS2322: Type '"jaeger"' is not assignable to type 'ExporterType'.
+src/tracing/examples.ts(105,43): error TS2554: Expected 0 arguments, but got 1.
+src/tracing/examples.ts(110,51): error TS2339: Property 'duration' does not exist on type '{ rows: never[]; rowCount: number; }'.
+src/tracing/examples.ts(133,18): error TS6133: 'callServiceB' is declared but its value is never read.
+src/tracing/examples.ts(152,18): error TS6133: 'handleServiceBRequest' is declared but its value is never read.
+src/tracing/examples.ts(155,11): error TS6133: 'ctx' is declared but its value is never read.
+src/tracing/examples.ts(238,30): error TS2304: Cannot find name 'db'.
+src/tracing/examples.ts(252,54): error TS2339: Property 'code' does not exist on type 'Error'.
+src/tracing/examples.ts(343,12): error TS6133: 'workflowSpan' is declared but its value is never read.
+src/tracing/examples.ts(352,18): error TS2304: Cannot find name 'fetchDataFromAPI'.
+src/tracing/examples.ts(364,18): error TS2304: Cannot find name 'processDataWithAI'.
+src/tracing/examples.ts(376,18): error TS2304: Cannot find name 'storeResults'.
+src/tracing/examples.ts(397,7): error TS2322: Type '"collector"' is not assignable to type 'ExporterType'.
+src/tracing/index.ts(19,25): error TS1448: 'ExporterType' resolves to a type-only declaration and must be re-exported using a type-only re-export when 'isolatedModules' is enabled.
+src/tracing/index.ts(21,29): error TS1205: Re-exporting a type when 'isolatedModules' is enabled requires using 'export type'.
+src/tracing/trace-alerts.ts(13,10): error TS2305: Module '"./trace-metrics.js"' has no exported member 'TraceMetrics'.
+src/tracing/trace-alerts.ts(197,5): error TS6133: 'rule' is declared but its value is never read.
+src/tracing/trace-exporter.ts(10,3): error TS6133: 'SimpleSpanProcessor' is declared but its value is never read.
+src/tracing/trace-exporter.ts(12,32): error TS2307: Cannot find module '@opentelemetry/exporter-trace-jaeger' or its corresponding type declarations.
+src/tracing/trace-exporter.ts(13,35): error TS2307: Cannot find module '@opentelemetry/exporter-trace-otlp-grpc' or its corresponding type declarations.
+src/tracing/trace-exporter.ts(14,60): error TS2307: Cannot find module '@opentelemetry/exporter-trace-otlp-http' or its corresponding type declarations.
+src/tracing/trace-exporter.ts(48,12): error TS1361: 'ExporterType' cannot be used as a value because it was imported using 'import type'.
+src/tracing/trace-exporter.ts(51,12): error TS1361: 'ExporterType' cannot be used as a value because it was imported using 'import type'.
+src/tracing/trace-exporter.ts(54,12): error TS1361: 'ExporterType' cannot be used as a value because it was imported using 'import type'.
+src/tracing/trace-exporter.ts(57,12): error TS1361: 'ExporterType' cannot be used as a value because it was imported using 'import type'.
+src/tracing/trace-exporter.ts(120,50): error TS2345: Argument of type 'ConsoleExporterOptions' is not assignable to parameter of type 'Record<string, unknown>'.
+  Index signature for type 'string' is missing in type 'ConsoleExporterOptions'.
+src/tracing/trace-exporter.ts(192,13): error TS1361: 'ExporterType' cannot be used as a value because it was imported using 'import type'.
+src/tracing/trace-exporter.ts(209,13): error TS1361: 'ExporterType' cannot be used as a value because it was imported using 'import type'.
+src/tracing/trace-exporter.ts(253,13): error TS1361: 'ExporterType' cannot be used as a value because it was imported using 'import type'.
+src/tracing/trace-exporter.ts(272,13): error TS1361: 'ExporterType' cannot be used as a value because it was imported using 'import type'.
+src/tracing/trace-exporter.ts(290,13): error TS1361: 'ExporterType' cannot be used as a value because it was imported using 'import type'.
+src/tracing/trace-metrics.ts(9,19): error TS6196: 'TraceMetricsType' is declared but never used.
+src/tracing/trace-metrics.ts(58,17): error TS2552: Cannot find name 'TraceMetrics'. Did you mean 'TraceMetricsType'?
+src/tracing/trace-metrics.ts(126,13): error TS6133: 'errorRate' is declared but its value is never read.
+src/tracing/trace-metrics.ts(251,13): error TS6133: 'avgDuration' is declared but its value is never read.
+src/tracing/trace-metrics.ts(310,23): error TS2304: Cannot find name 'TraceMetrics'.
+src/tracing/trace-metrics.ts(321,23): error TS2304: Cannot find name 'TraceMetrics'.
+src/tracing/tracer.ts(151,3): error TS2322: Type 'Span | undefined' is not assignable to type 'Span | null'.
+  Type 'undefined' is not assignable to type 'Span | null'.
+src/tracing/tracing-manager.ts(27,25): error TS6133: 'ExporterType' is declared but its value is never read.
+src/tracing/tracing-manager.ts(94,13): error TS2353: Object literal may only specify known properties, and 'exportIntervalMillis' does not exist in type 'BufferConfig'.
+src/tracing/tracing-manager.ts(104,21): error TS2339: Property 'addSpanProcessor' does not exist on type 'NodeTracerProvider'.
+src/tracing/tracing-manager.ts(155,16): error TS2693: 'Resource' only refers to a type, but is being used as a value here.
+src/tracing/tracing-manager.ts(198,33): error TS2339: Property 'parentSpanId' does not exist on type 'Span'.
+src/tracing/types.ts(5,10): error TS6133: 'SpanStatusCode' is declared but its value is never read.
+src/utils/api-client.ts(8,29): error TS6133: 'retry' is declared but its value is never read.
+src/utils/api-client.ts(191,14): error TS2349: This expression is not callable.
+  Type 'Boolean' has no call signatures.
+src/utils/api-client.ts(254,14): error TS2415: Class 'AuthenticatedApiClient' incorrectly extends base class 'ApiClient'.
+  Types have separate declarations of a private property 'request'.
+src/utils/api-client.ts(265,17): error TS6133: 'request' is declared but its value is never read.
+src/utils/api-client.ts(276,18): error TS2341: Property 'request' is private and only accessible within class 'ApiClient'.
+src/utils/bubble-error-handler.ts(103,19): error TS2353: Object literal may only specify known properties, and 'operation' does not exist in type '{ maxAttempts?: number | undefined; baseDelayMs?: number | undefined; maxDelayMs?: number | undefined; correlationId?: string | undefined; operationName?: string | undefined; }'.
+src/utils/bubble-error-handler.ts(131,15): error TS2353: Object literal may only specify known properties, and 'operation' does not exist in type '{ maxAttempts?: number | undefined; baseDelayMs?: number | undefined; maxDelayMs?: number | undefined; correlationId?: string | undefined; operationName?: string | undefined; }'.
+src/utils/error-handler.ts(337,13): error TS6133: 'category' is declared but its value is never read.
+src/utils/index.ts(11,1): error TS2308: Module './constants.js' has already exported a member named 'LogLevel'. Consider explicitly re-exporting to resolve the ambiguity.
+src/utils/performance-monitor.ts(331,5): error TS6133: 'metadata' is declared but its value is never read.
+src/utils/performance-monitor.ts(428,9): error TS6133: 'result' is declared but its value is never read.
+src/utils/result.ts(141,3): error TS2322: Type 'Result<Result<T, E>, Error>[]' is not assignable to type 'Result<T, E>[]'.
+  Type 'Result<Result<T, E>, Error>' is not assignable to type 'Result<T, E>'.
+    Type '{ success: false; error: Error; }' is not assignable to type 'Result<T, E>'.
+      Type '{ success: false; error: Error; }' is not assignable to type '{ success: false; error: E; }'.
+        Types of property 'error' are incompatible.
+          Type 'Error' is not assignable to type 'E'.
+            'E' could be instantiated with an arbitrary type which could be unrelated to 'Error'.
+src/utils/result.ts(193,7): error TS2322: Type '{ success: true; data: Result<T, Error>; }' is not assignable to type 'Result<T, Error>'.
+  Type '{ success: true; data: Result<T, Error>; }' is not assignable to type '{ success: true; data: T; }'.
+    Types of property 'data' are incompatible.
+      Type 'Result<T, Error>' is not assignable to type 'T'.
+        'T' could be instantiated with an arbitrary type which could be unrelated to 'Result<T, Error>'.
+src/utils/validation.ts(41,13): error TS6133: 'issues' is declared but its value is never read.
+src/utils/validation.ts(58,5): error TS2322: Type 'Result<T, Error>' is not assignable to type 'Result<T, ValidationError>'.
+  Type '{ success: false; error: Error; }' is not assignable to type 'Result<T, ValidationError>'.
+    Type '{ success: false; error: Error; }' is not assignable to type '{ success: false; error: ValidationError; }'.
+      Types of property 'error' are incompatible.
+        Property 'errors' is missing in type 'Error' but required in type 'ValidationError'.

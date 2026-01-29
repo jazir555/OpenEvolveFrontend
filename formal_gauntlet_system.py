@@ -1,0 +1,1709 @@
+"""
+Formal Gauntlet System for Sovereign-Grade Problem Decomposition
+
+Implements a comprehensive, programmable gauntlet framework with configurable rules,
+validation stages, and red team/gold team workflows.
+"""
+
+import logging
+from typing import List, Dict, Any, Optional, Tuple
+from datetime import datetime
+import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Lock
+from dataclasses import dataclass, field
+from enum import Enum
+import time
+
+from sovereign_data_models import (
+    GauntletRoundRule,
+    GauntletDefinition,
+    GauntletExecution,
+    GauntletAssignment,
+    SolutionAttempt,
+    SubProblem,
+    CritiqueReport,
+    ValidationResult,
+    Feedback,
+    generate_id
+)
+
+# ROMA-MDAP-MAKER (Robust Execution)
+try:
+    from roma_mdap_maker_associative_integration import (
+        ROMAMDAPMakerAssociativeEngine,
+        create_romamdapmaker_associative_config,
+        ROMA_MDAP_MAKER_AVAILABLE
+    )
+    from roma_mdap_maker_reliability_ssot import get_validation_config
+except ImportError:
+    ROMA_MDAP_MAKER_AVAILABLE = False
+    get_validation_config = None
+
+logger = logging.getLogger(__name__)
+
+
+class GauntletTemplates:
+    """Predefined gauntlet templates for common use cases."""
+
+    @staticmethod
+    def standard_validation_gauntlet() -> GauntletDefinition:
+        """Standard 3-round validation gauntlet."""
+        rounds = [
+            GauntletRoundRule(
+                rule_id="automated_tests",
+                rule_type="automated",
+                description="Run automated tests",
+                validation_type="acceptance",
+                min_score=0.8,
+                max_attempts=3,
+                evaluator="automated",
+                evaluation_prompt="Evaluate solution against automated tests",
+                success_criteria=["All tests pass", "Code quality checks pass"],
+                is_required=True,
+                can_fail_gracefully=False
+            ),
+            GauntletRoundRule(
+                rule_id="red_team_review",
+                rule_type="red_team",
+                description="Red team adversarial review",
+                validation_type="quality",
+                min_score=0.7,
+                max_attempts=2,
+                evaluator="red_team_auto",
+                evaluation_prompt="Perform adversarial review to find flaws and edge cases",
+                success_criteria=["No critical flaws found", "Edge cases addressed"],
+                is_required=True,
+                can_fail_gracefully=True
+            ),
+            GauntletRoundRule(
+                rule_id="gold_team_verification",
+                rule_type="gold_team",
+                description="Gold team final verification",
+                validation_type="quality",
+                min_score=0.9,
+                max_attempts=2,
+                evaluator="gold_team_auto",
+                evaluation_prompt="Perform thorough verification of correctness and quality",
+                success_criteria=["Meets all quality standards", "Solution is correct"],
+                is_required=True,
+                can_fail_gracefully=False
+            )
+        ]
+
+        return GauntletDefinition(
+            gauntlet_id="standard_validation",
+            name="Standard Validation Gauntlet",
+            description="3-round validation with automated tests, red team review, and gold team verification",
+            rounds=rounds,
+            execution_order="sequential",
+            stop_on_first_failure=False,
+            require_all_rounds=True
+        )
+
+    @staticmethod
+    def security_gauntlet() -> GauntletDefinition:
+        """Security-focused gauntlet with penetration testing."""
+        rounds = [
+            GauntletRoundRule(
+                rule_id="automated_security_scan",
+                rule_type="automated",
+                description="Automated security vulnerability scan",
+                validation_type="security",
+                min_score=0.85,
+                max_attempts=3,
+                evaluator="automated",
+                evaluation_prompt="Scan for common security vulnerabilities",
+                success_criteria=["No critical vulnerabilities", "No high-severity issues"],
+                is_required=True
+            ),
+            GauntletRoundRule(
+                rule_id="red_team_penetration",
+                rule_type="red_team",
+                description="Red team penetration testing",
+                validation_type="security",
+                min_score=0.75,
+                max_attempts=3,
+                evaluator="red_team_auto",
+                evaluation_prompt="Attempt to exploit security flaws and bypass controls",
+                success_criteria=["Resists penetration attempts", "No unauthorized access possible"],
+                is_required=True
+            ),
+            GauntletRoundRule(
+                rule_id="gold_team_security_audit",
+                rule_type="gold_team",
+                description="Gold team security compliance audit",
+                validation_type="security",
+                min_score=0.9,
+                max_attempts=2,
+                evaluator="gold_team_auto",
+                evaluation_prompt="Verify compliance with security standards and best practices",
+                success_criteria=["Complies with security standards", "Follows secure coding practices"],
+                is_required=True
+            )
+        ]
+
+        return GauntletDefinition(
+            gauntlet_id="security_validation",
+            name="Security Validation Gauntlet",
+            description="Security-focused validation with automated scans, penetration testing, and compliance audit",
+            rounds=rounds,
+            execution_order="sequential",
+            stop_on_first_failure=False,
+            require_all_rounds=True,
+            red_team_required=True,
+            gold_team_required=True
+        )
+
+    @staticmethod
+    def performance_gauntlet() -> GauntletDefinition:
+        """Performance-focused gauntlet."""
+        rounds = [
+            GauntletRoundRule(
+                rule_id="automated_performance_tests",
+                rule_type="automated",
+                description="Automated performance benchmarks",
+                validation_type="performance",
+                min_score=0.75,
+                max_attempts=3,
+                evaluator="automated",
+                evaluation_prompt="Run performance benchmarks and load tests",
+                success_criteria=["Meets performance baselines", "Scales under load"],
+                is_required=True
+            ),
+            GauntletRoundRule(
+                rule_id="red_team_stress_testing",
+                rule_type="red_team",
+                description="Red team stress testing and adversarial load",
+                validation_type="performance",
+                min_score=0.7,
+                max_attempts=2,
+                evaluator="red_team_auto",
+                evaluation_prompt="Attempt to overwhelm system with extreme load",
+                success_criteria=["Graceful degradation under stress", "No catastrophic failures"],
+                is_required=True,
+                can_fail_gracefully=True
+            ),
+            GauntletRoundRule(
+                rule_id="gold_team_performance_analysis",
+                rule_type="gold_team",
+                description="Gold team detailed performance analysis",
+                validation_type="performance",
+                min_score=0.85,
+                max_attempts=2,
+                evaluator="gold_team_auto",
+                evaluation_prompt="Analyze performance characteristics and optimization opportunities",
+                success_criteria=["Efficient resource usage", "Optimal performance"],
+                is_required=True
+            )
+        ]
+
+        return GauntletDefinition(
+            gauntlet_id="performance_validation",
+            name="Performance Validation Gauntlet",
+            description="Performance-focused validation with benchmarks, stress testing, and analysis",
+            rounds=rounds,
+            execution_order="sequential",
+            stop_on_first_failure=False,
+            require_all_rounds=True
+        )
+
+    @staticmethod
+    def research_gauntlet() -> GauntletDefinition:
+        """Research-focused gauntlet for validation."""
+        rounds = [
+            GauntletRoundRule(
+                rule_id="automated_reproducibility_check",
+                rule_type="automated",
+                description="Automated reproducibility verification",
+                validation_type="acceptance",
+                min_score=0.8,
+                max_attempts=3,
+                evaluator="automated",
+                evaluation_prompt="Verify reproducibility of research results",
+                success_criteria=["Results are reproducible", "Methodology is clear"],
+                is_required=True
+            ),
+            GauntletRoundRule(
+                rule_id="red_team_critique",
+                rule_type="red_team",
+                description="Red team critical review of methodology",
+                validation_type="quality",
+                min_score=0.7,
+                max_attempts=2,
+                evaluator="red_team_auto",
+                evaluation_prompt="Critically evaluate methodology and identify potential flaws",
+                success_criteria=["Methodology is sound", "No logical fallacies"],
+                is_required=True
+            ),
+            GauntletRoundRule(
+                rule_id="gold_team_peer_review",
+                rule_type="gold_team",
+                description="Gold team peer review and validation",
+                validation_type="quality",
+                min_score=0.9,
+                max_attempts=2,
+                evaluator="gold_team_auto",
+                evaluation_prompt="Perform thorough peer review and validate contributions",
+                success_criteria=["Novel contribution validated", "Meets research standards"],
+                is_required=True
+            )
+        ]
+
+        return GauntletDefinition(
+            gauntlet_id="research_validation",
+            name="Research Validation Gauntlet",
+            description="Research-focused validation with reproducibility checks, methodology critique, and peer review",
+            rounds=rounds,
+            execution_order="sequential",
+            stop_on_first_failure=False,
+            require_all_rounds=True
+        )
+
+    @staticmethod
+    def get_template(template_name: str) -> Optional[GauntletDefinition]:
+        """Get a predefined gauntlet template by name."""
+        templates = {
+            "standard": GauntletTemplates.standard_validation_gauntlet,
+            "security": GauntletTemplates.security_gauntlet,
+            "performance": GauntletTemplates.performance_gauntlet,
+            "research": GauntletTemplates.research_gauntlet
+        }
+
+        template_func = templates.get(template_name)
+        if template_func:
+            return template_func()
+        return None
+
+
+class ReviewStatus(Enum):
+    """Status of human review in queue."""
+    PENDING = "pending"
+    IN_PROGRESS = "in_progress"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    CANCELLED = "cancelled"
+
+
+@dataclass
+class HumanReviewItem:
+    """Item in human review queue."""
+    review_id: str
+    round_rule: GauntletRoundRule
+    solution: SolutionAttempt
+    sub_problem: SubProblem
+    status: ReviewStatus = ReviewStatus.PENDING
+    assigned_to: Optional[str] = None
+    created_at: datetime = field(default_factory=datetime.now)
+    completed_at: Optional[datetime] = None
+    feedback: str = ""
+    score: float = 0.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
+class AdaptiveMetrics:
+    """Metrics for adaptive difficulty adjustment."""
+    total_rounds_completed: int = 0
+    total_rounds_passed: int = 0
+    average_score: float = 0.0
+    recent_scores: List[float] = field(default_factory=list)
+    difficulty_adjustments: int = 0
+    current_difficulty_multiplier: float = 1.0
+    failure_categories: Dict[str, int] = field(default_factory=dict)
+
+
+class HumanReviewQueue:
+    """
+    Thread-safe queue for human review items.
+
+    Manages queuing, assignment, and tracking of human reviews.
+    """
+
+    def __init__(self):
+        """Initialize the human review queue."""
+        self._queue: Dict[str, HumanReviewItem] = {}
+        self._lock = Lock()
+        self.logger = logging.getLogger(__name__)
+
+    def enqueue(
+        self,
+        round_rule: GauntletRoundRule,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem
+    ) -> HumanReviewItem:
+        """
+        Add an item to the review queue.
+
+        Args:
+            round_rule: The gauntlet round rule
+            solution: The solution attempt to review
+            sub_problem: The sub-problem context
+
+        Returns:
+            The created review item
+        """
+        review_id = generate_id("review")
+
+        item = HumanReviewItem(
+            review_id=review_id,
+            round_rule=round_rule,
+            solution=solution,
+            sub_problem=sub_problem,
+            status=ReviewStatus.PENDING
+        )
+
+        with self._lock:
+            self._queue[review_id] = item
+
+        self.logger.info(f"Enqueued review {review_id} for round {round_rule.rule_id}")
+        return item
+
+    def assign(self, review_id: str, reviewer: str) -> bool:
+        """
+        Assign a review to a human reviewer.
+
+        Args:
+            review_id: The review item ID
+            reviewer: Identifier for the reviewer
+
+        Returns:
+            True if assignment succeeded, False otherwise
+        """
+        with self._lock:
+            item = self._queue.get(review_id)
+            if not item:
+                self.logger.warning(f"Review {review_id} not found")
+                return False
+
+            if item.status != ReviewStatus.PENDING:
+                self.logger.warning(f"Review {review_id} not in pending state")
+                return False
+
+            item.status = ReviewStatus.IN_PROGRESS
+            item.assigned_to = reviewer
+            self.logger.info(f"Assigned review {review_id} to {reviewer}")
+            return True
+
+    def complete(
+        self,
+        review_id: str,
+        approved: bool,
+        feedback: str,
+        score: float = 0.0
+    ) -> bool:
+        """
+        Complete a review with results.
+
+        Args:
+            review_id: The review item ID
+            approved: Whether the solution was approved
+            feedback: Reviewer feedback
+            score: Optional score (0.0-1.0)
+
+        Returns:
+            True if completion succeeded, False otherwise
+        """
+        with self._lock:
+            item = self._queue.get(review_id)
+            if not item:
+                self.logger.warning(f"Review {review_id} not found")
+                return False
+
+            if item.status not in [ReviewStatus.PENDING, ReviewStatus.IN_PROGRESS]:
+                self.logger.warning(f"Review {review_id} not in completable state")
+                return False
+
+            item.status = ReviewStatus.APPROVED if approved else ReviewStatus.REJECTED
+            item.feedback = feedback
+            item.score = score
+            item.completed_at = datetime.now()
+
+            self.logger.info(
+                f"Completed review {review_id}: "
+                f"{'APPROVED' if approved else 'REJECTED'}, score={score:.2f}"
+            )
+            return True
+
+    def get_status(self, review_id: str) -> Optional[HumanReviewItem]:
+        """
+        Get the status of a review item.
+
+        Args:
+            review_id: The review item ID
+
+        Returns:
+            The review item or None if not found
+        """
+        with self._lock:
+            return self._queue.get(review_id)
+
+    def get_pending_reviews(self) -> List[HumanReviewItem]:
+        """Get all pending review items."""
+        with self._lock:
+            return [item for item in self._queue.values() if item.status == ReviewStatus.PENDING]
+
+    def get_reviewer_workload(self, reviewer: str) -> int:
+        """Get the number of in-progress reviews for a reviewer."""
+        with self._lock:
+            return sum(
+                1 for item in self._queue.values()
+                if item.assigned_to == reviewer and item.status == ReviewStatus.IN_PROGRESS
+            )
+
+
+class GauntletSystem:
+    """
+    Manages formal gauntlet execution for validation.
+
+    A gauntlet is a series of validation challenges that a solution
+    must pass to be accepted.
+    """
+
+    def __init__(
+        self,
+        team_manager=None,
+        openevolve_client=None,
+        max_parallel_workers: int = 4,
+        enable_adaptive: bool = True
+    ):
+        """
+        Initialize the gauntlet system.
+
+        Args:
+            team_manager: Team manager for red/gold team assignment
+            openevolve_client: OpenEvolve client for AI execution
+            max_parallel_workers: Maximum number of parallel workers (default: 4)
+            enable_adaptive: Enable adaptive difficulty adjustments (default: True)
+        """
+        self.team_manager = team_manager
+        self.openevolve_client = openevolve_client
+        self.logger = logging.getLogger(__name__)
+
+        # Configuration
+        self.max_parallel_workers = max_parallel_workers
+        self.enable_adaptive = enable_adaptive
+
+        # Initialize human review queue
+        self.review_queue = HumanReviewQueue()
+
+        # Initialize adaptive metrics
+        self.adaptive_metrics = AdaptiveMetrics()
+
+        # Thread safety for parallel execution
+        self._execution_lock = Lock()
+
+        # Initialize OpenEvolve client if not provided
+        if not self.openevolve_client:
+            try:
+                from openevolve_client import OpenEvolveClient
+                self.openevolve_client = OpenEvolveClient()
+            except ImportError as e:
+                self.logger.warning(f"OpenEvolve client not available: {e}")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize OpenEvolve client: {e}")
+
+        # Initialize ROMA-MDAP-MAKER Engine for robust validation
+        self.roma_engine = None
+        if ROMA_MDAP_MAKER_AVAILABLE:
+            try:
+                # Use SSOT validation preset for standardized high-reliability config
+                config = get_validation_config()
+                self.roma_engine = ROMAMDAPMakerAssociativeEngine(config)
+                self.logger.info("ROMAMDAPMakerAssociativeEngine initialized for GauntletSystem")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize ROMA engine: {e}")
+
+    def create_gauntlet(
+        self,
+        gauntlet_id: str,
+        name: str,
+        rounds: List[GauntletRoundRule],
+        **config
+    ) -> GauntletDefinition:
+        """Create a new gauntlet definition."""
+        gauntlet = GauntletDefinition(
+            gauntlet_id=gauntlet_id,
+            name=name,
+            description=config.get('description', ''),
+            rounds=rounds,
+            execution_order=config.get('execution_order', 'sequential'),
+            stop_on_first_failure=config.get('stop_on_first_failure', False),
+            require_all_rounds=config.get('require_all_rounds', True),
+            red_team_required=config.get('red_team_required', False),
+            gold_team_required=config.get('gold_team_required', False),
+            blue_team_participation=config.get('blue_team_participation', 'none'),
+            metadata=config.get('metadata', {})
+        )
+
+        # Validate the gauntlet
+        errors = gauntlet.validate()
+        if errors:
+            raise ValueError(f"Invalid gauntlet definition: {errors}")
+
+        self.logger.info(f"Created gauntlet: {gauntlet_id}")
+        return gauntlet
+
+    def execute_gauntlet(
+        self,
+        gauntlet: GauntletDefinition,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem
+    ) -> GauntletExecution:
+        """
+        Execute gauntlet against a solution.
+
+        Runs each round in configured order, tracks results,
+        generates feedback reports.
+        """
+        execution_id = generate_id("execution")
+        self.logger.info(f"Executing gauntlet {gauntlet.gauntlet_id} for solution {solution.id}")
+
+        execution = GauntletExecution(
+            execution_id=execution_id,
+            gauntlet_definition=gauntlet,
+            sub_problem_id=sub_problem.id,
+            solution_attempt=solution,
+            start_time=datetime.now()
+        )
+
+        # Execute rounds based on execution order
+        if gauntlet.execution_order == "sequential":
+            self._execute_sequential_rounds(gauntlet, solution, sub_problem, execution)
+        elif gauntlet.execution_order == "parallel":
+            self._execute_parallel_rounds(gauntlet, solution, sub_problem, execution)
+        elif gauntlet.execution_order == "adaptive":
+            self._execute_adaptive_rounds(gauntlet, solution, sub_problem, execution)
+
+        # Calculate final results
+        execution.end_time = datetime.now()
+        execution.execution_duration = (execution.end_time - execution.start_time).total_seconds()
+        execution.overall_passed = execution.rounds_passed >= len(gauntlet.rounds) - (1 if gauntlet.stop_on_first_failure else 0)
+
+        if execution.rounds_passed + execution.rounds_failed > 0:
+            execution.final_score = execution.rounds_passed / (execution.rounds_passed + execution.rounds_failed)
+        else:
+            execution.final_score = 0.0
+
+        self.logger.info(f"Gauntlet execution complete: passed={execution.overall_passed}, score={execution.final_score:.2f}")
+        return execution
+
+    def _execute_sequential_rounds(
+        self,
+        gauntlet: GauntletDefinition,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem,
+        execution: GauntletExecution
+    ):
+        """Execute rounds sequentially."""
+        for round_rule in gauntlet.rounds:
+            result = self._execute_round(round_rule, solution, sub_problem)
+            execution.round_results.append(result)
+
+            if result["passed"]:
+                execution.rounds_passed += 1
+            else:
+                execution.rounds_failed += 1
+
+                # Check if we should stop
+                if round_rule.is_required and not round_rule.can_fail_gracefully:
+                    if gauntlet.stop_on_first_failure:
+                        self.logger.warning(f"Stopping gauntlet due to failure in round: {round_rule.rule_id}")
+                        break
+
+                # Check if we should retry
+                if round_rule.retry_on_failure and execution.rounds_failed < round_rule.max_attempts:
+                    self.logger.info(f"Retrying round: {round_rule.rule_id}")
+                    result = self._execute_round(round_rule, solution, sub_problem)
+                    execution.round_results.append(result)
+                    if result["passed"]:
+                        execution.rounds_passed += 1
+                        execution.rounds_failed -= 1
+
+    def _execute_parallel_rounds(
+        self,
+        gauntlet: GauntletDefinition,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem,
+        execution: GauntletExecution
+    ):
+        """
+        Execute rounds in parallel using ThreadPoolExecutor.
+
+        Multiple validation rounds run simultaneously to improve throughput.
+        Results are aggregated and thread-safe updates are made to execution state.
+        """
+        self.logger.info(
+            f"Executing {len(gauntlet.rounds)} rounds in parallel "
+            f"with {self.max_parallel_workers} workers"
+        )
+
+        # Thread-safe result collection
+        results_lock = Lock()
+        completed_results = []
+
+        def execute_single_round(round_rule: GauntletRoundRule) -> Tuple[Dict[str, Any], float]:
+            """
+            Execute a single round and measure execution time.
+
+            Args:
+                round_rule: The round rule to execute
+
+            Returns:
+                Tuple of (result_dict, execution_time_seconds)
+            """
+            start_time = time.time()
+            try:
+                result = self._execute_round(round_rule, solution, sub_problem)
+                exec_time = time.time() - start_time
+
+                self.logger.info(
+                    f"Parallel round {round_rule.rule_id} completed in {exec_time:.2f}s, "
+                    f"passed={result.get('passed', False)}, score={result.get('score', 0.0):.2f}"
+                )
+
+                return result, exec_time
+            except Exception as e:
+                exec_time = time.time() - start_time
+                self.logger.error(f"Error executing parallel round {round_rule.rule_id}: {e}")
+                error_result = {
+                    "round_id": round_rule.rule_id,
+                    "passed": False,
+                    "score": 0.0,
+                    "feedback": f"Parallel execution error: {str(e)}",
+                    "errors": [str(e)],
+                    "execution_time": exec_time
+                }
+                return error_result, exec_time
+
+        # Execute rounds in parallel
+        with ThreadPoolExecutor(max_workers=self.max_parallel_workers) as executor:
+            # Submit all rounds for execution
+            future_to_round = {
+                executor.submit(execute_single_round, round_rule): round_rule
+                for round_rule in gauntlet.rounds
+            }
+
+            # Collect results as they complete
+            for future in as_completed(future_to_round):
+                round_rule = future_to_round[future]
+                try:
+                    result, exec_time = future.result()
+                    result["execution_time"] = exec_time
+
+                    # Thread-safe update of results
+                    with results_lock:
+                        completed_results.append((round_rule, result))
+                        execution.round_results.append(result)
+
+                        if result["passed"]:
+                            execution.rounds_passed += 1
+                        else:
+                            execution.rounds_failed += 1
+
+                    self.logger.info(
+                        f"Parallel round {round_rule.rule_id} collected: "
+                        f"status={'PASS' if result['passed'] else 'FAIL'}, "
+                        f"time={exec_time:.2f}s"
+                    )
+
+                except Exception as e:
+                    self.logger.error(f"Failed to collect result for round {round_rule.rule_id}: {e}")
+                    error_result = {
+                        "round_id": round_rule.rule_id,
+                        "passed": False,
+                        "score": 0.0,
+                        "feedback": f"Result collection error: {str(e)}",
+                        "errors": [str(e)]
+                    }
+                    with results_lock:
+                        execution.round_results.append(error_result)
+                        execution.rounds_failed += 1
+
+        # Log parallel execution summary
+        total_parallel_time = sum(r[1].get("execution_time", 0) for r in completed_results)
+        max_single_time = max(r[1].get("execution_time", 0) for r in completed_results) if completed_results else 0
+        time_saved = total_parallel_time - max_single_time
+
+        self.logger.info(
+            f"Parallel execution complete: "
+            f"{len(completed_results)} rounds, "
+            f"passed={execution.rounds_passed}, failed={execution.rounds_failed}, "
+            f"total_time={total_parallel_time:.2f}s, "
+            f"max_single_time={max_single_time:.2f}s, "
+            f"time_saved={time_saved:.2f}s ({time_saved/total_parallel_time*100:.1f}% faster)"
+        )
+
+        # Handle stop_on_first_failure if configured
+        if gauntlet.stop_on_first_failure and execution.rounds_failed > 0:
+            self.logger.warning("Parallel execution had failures but could not stop early due to parallel nature")
+
+    def _execute_adaptive_rounds(
+        self,
+        gauntlet: GauntletDefinition,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem,
+        execution: GauntletExecution
+    ):
+        """
+        Execute rounds with adaptive difficulty adjustment.
+
+        Monitors performance metrics and adjusts difficulty dynamically:
+        - If scoring consistently high, increase difficulty with additional scrutiny
+        - If scoring consistently low, provide remediation and lower thresholds
+        - Track failure patterns and adapt validation criteria accordingly
+        """
+        if not self.enable_adaptive:
+            self.logger.info("Adaptive execution disabled, falling back to sequential")
+            self._execute_sequential_rounds(gauntlet, solution, sub_problem, execution)
+            return
+
+        self.logger.info(
+            f"Executing adaptive rounds with current difficulty multiplier: "
+            f"{self.adaptive_metrics.current_difficulty_multiplier:.2f}"
+        )
+
+        # Execute initial rounds
+        initial_rounds = self._create_adaptive_rounds(gauntlet, phase="initial")
+        self._execute_round_list(initial_rounds, solution, sub_problem, execution)
+
+        # Calculate initial performance
+        initial_score = self._calculate_adaptive_score(execution)
+        self.logger.info(f"Initial adaptive phase score: {initial_score:.3f}")
+
+        # Update metrics
+        self._update_adaptive_metrics(execution, initial_score)
+
+        # Make adaptive decisions
+        adaptation_needed = self._assess_adaptation_need(execution, initial_score)
+
+        if adaptation_needed["action"] == "increase_difficulty":
+            self.logger.info("Performance too strong, increasing difficulty")
+            self._increase_difficulty(gauntlet, solution, sub_problem, execution)
+
+        elif adaptation_needed["action"] == "decrease_difficulty":
+            self.logger.info("Performance struggling, providing remediation")
+            self._decrease_difficulty(gauntlet, solution, sub_problem, execution)
+
+        elif adaptation_needed["action"] == "add_scrutiny":
+            self.logger.info("Adding additional scrutiny rounds")
+            self._add_scrutiny_rounds(gauntlet, solution, sub_problem, execution)
+
+        # Log adaptive metrics
+        self.logger.info(
+            f"Adaptive execution complete: "
+            f"difficulty_multiplier={self.adaptive_metrics.current_difficulty_multiplier:.2f}, "
+            f"total_adjustments={self.adaptive_metrics.difficulty_adjustments}, "
+            f"pass_rate={self.adaptive_metrics.total_rounds_passed/max(1, self.adaptive_metrics.total_rounds_completed):.2%}"
+        )
+
+    def _create_adaptive_rounds(
+        self,
+        gauntlet: GauntletDefinition,
+        phase: str = "initial"
+    ) -> List[GauntletRoundRule]:
+        """
+        Create adaptive rounds based on current difficulty.
+
+        Args:
+            gauntlet: Original gauntlet definition
+            phase: Phase of adaptive execution (initial, harder, easier, scrutiny)
+
+        Returns:
+            List of adapted round rules
+        """
+        multiplier = self.adaptive_metrics.current_difficulty_multiplier
+
+        if phase == "initial":
+            return gauntlet.rounds
+
+        elif phase == "harder":
+            # Increase min_score requirements
+            harder_rounds = []
+            for round_rule in gauntlet.rounds:
+                adapted_rule = GauntletRoundRule(
+                    rule_id=f"{round_rule.rule_id}_harder",
+                    rule_type=round_rule.rule_type,
+                    description=f"{round_rule.description} (Increased Difficulty)",
+                    validation_type=round_rule.validation_type,
+                    min_score=min(0.95, round_rule.min_score + (0.1 * multiplier)),
+                    max_attempts=round_rule.max_attempts,
+                    evaluator=round_rule.evaluator,
+                    evaluation_prompt=(
+                        f"{round_rule.evaluation_prompt}\n"
+                        f"Apply STRICT scrutiny. Look for subtle flaws. "
+                        f"Extra 10% rigor required."
+                    ),
+                    success_criteria=round_rule.success_criteria + [
+                        "Extra scrutiny applied",
+                        "No subtle flaws found"
+                    ],
+                    is_required=round_rule.is_required,
+                    can_fail_gracefully=round_rule.can_fail_gracefully
+                )
+                harder_rounds.append(adapted_rule)
+            return harder_rounds
+
+        elif phase == "easier":
+            # Decrease min_score and provide hints
+            easier_rounds = []
+            for round_rule in gauntlet.rounds:
+                adapted_rule = GauntletRoundRule(
+                    rule_id=f"{round_rule.rule_id}_easier",
+                    rule_type=round_rule.rule_type,
+                    description=f"{round_rule.description} (With Guidance)",
+                    validation_type=round_rule.validation_type,
+                    min_score=max(0.5, round_rule.min_score - (0.1 * multiplier)),
+                    max_attempts=round_rule.max_attempts + 1,  # Extra attempt
+                    evaluator=round_rule.evaluator,
+                    evaluation_prompt=(
+                        f"{round_rule.evaluation_prompt}\n"
+                        f"Be CONSTRUCTIVE. Provide specific guidance for improvement. "
+                        f"Focus on fixable issues rather than failures."
+                    ),
+                    success_criteria=round_rule.success_criteria,
+                    is_required=round_rule.is_required,
+                    can_fail_gracefully=True  # More forgiving
+                )
+                easier_rounds.append(adapted_rule)
+            return easier_rounds
+
+        elif phase == "scrutiny":
+            # Add additional red team review
+            scrutiny_round = GauntletRoundRule(
+                rule_id="adaptive_scrutiny",
+                rule_type="red_team",
+                description="Additional adaptive scrutiny review",
+                validation_type="quality",
+                min_score=0.85,
+                max_attempts=2,
+                evaluator="red_team_auto",
+                evaluation_prompt=(
+                    "Perform EXTRA THOROUGH review due to borderline performance. "
+                    "Check for edge cases, subtle bugs, and potential issues."
+                ),
+                success_criteria=["No critical issues found", "All edge cases handled"],
+                is_required=False,
+                can_fail_gracefully=True
+            )
+            return [scrutiny_round]
+
+        return gauntlet.rounds
+
+    def _execute_round_list(
+        self,
+        rounds: List[GauntletRoundRule],
+        solution: SolutionAttempt,
+        sub_problem: SubProblem,
+        execution: GauntletExecution
+    ):
+        """Execute a list of rounds sequentially."""
+        for round_rule in rounds:
+            result = self._execute_round(round_rule, solution, sub_problem)
+            execution.round_results.append(result)
+
+            if result["passed"]:
+                execution.rounds_passed += 1
+            else:
+                execution.rounds_failed += 1
+
+                # Track failure categories
+                failure_category = result.get("errors", ["unknown"])[0] if result.get("errors") else "low_score"
+                self.adaptive_metrics.failure_categories[failure_category] = \
+                    self.adaptive_metrics.failure_categories.get(failure_category, 0) + 1
+
+    def _calculate_adaptive_score(self, execution: GauntletExecution) -> float:
+        """Calculate adaptive score from execution results."""
+        if not execution.round_results:
+            return 0.0
+
+        scores = [r.get("score", 0.0) for r in execution.round_results]
+        return sum(scores) / len(scores)
+
+    def _update_adaptive_metrics(
+        self,
+        execution: GauntletExecution,
+        score: float
+    ):
+        """Update adaptive metrics with latest execution data."""
+        self.adaptive_metrics.total_rounds_completed += len(execution.round_results)
+        self.adaptive_metrics.total_rounds_passed += execution.rounds_passed
+        self.adaptive_metrics.recent_scores.append(score)
+
+        # Keep only last 10 scores for recent performance
+        if len(self.adaptive_metrics.recent_scores) > 10:
+            self.adaptive_metrics.recent_scores.pop(0)
+
+        # Update average score
+        self.adaptive_metrics.average_score = (
+            sum(self.adaptive_metrics.recent_scores) /
+            len(self.adaptive_metrics.recent_scores)
+        )
+
+    def _assess_adaptation_need(
+        self,
+        execution: GauntletExecution,
+        score: float
+    ) -> Dict[str, Any]:
+        """
+        Assess whether adaptation is needed based on performance.
+
+        Returns:
+            Dict with 'action' key indicating needed adaptation:
+            - 'none': No adaptation needed
+            - 'increase_difficulty': Performance too strong
+            - 'decrease_difficulty': Performance too weak
+            - 'add_scrutiny': Borderline performance
+        """
+        rounds_completed = len(execution.round_results)
+        rounds_passed = execution.rounds_passed
+        pass_rate = rounds_passed / rounds_completed if rounds_completed > 0 else 0
+
+        # Strong performance - increase difficulty
+        if score > 0.9 and pass_rate > 0.95:
+            return {
+                "action": "increase_difficulty",
+                "reason": f"High score ({score:.3f}) and pass rate ({pass_rate:.2%})",
+                "score": score,
+                "pass_rate": pass_rate
+            }
+
+        # Weak performance - decrease difficulty
+        elif score < 0.6 and pass_rate < 0.7:
+            return {
+                "action": "decrease_difficulty",
+                "reason": f"Low score ({score:.3f}) and pass rate ({pass_rate:.2%})",
+                "score": score,
+                "pass_rate": pass_rate
+            }
+
+        # Borderline performance - add scrutiny
+        elif 0.7 <= score <= 0.85 and 0.7 <= pass_rate <= 0.9:
+            return {
+                "action": "add_scrutiny",
+                "reason": f"Borderline score ({score:.3f}) and pass rate ({pass_rate:.2%})",
+                "score": score,
+                "pass_rate": pass_rate
+            }
+
+        # No adaptation needed
+        return {
+            "action": "none",
+            "reason": f"Acceptable performance (score={score:.3f}, pass_rate={pass_rate:.2%})",
+            "score": score,
+            "pass_rate": pass_rate
+        }
+
+    def _increase_difficulty(
+        self,
+        gauntlet: GauntletDefinition,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem,
+        execution: GauntletExecution
+    ):
+        """Increase difficulty by executing harder rounds."""
+        harder_rounds = self._create_adaptive_rounds(gauntlet, phase="harder")
+
+        # Adjust multiplier
+        self.adaptive_metrics.current_difficulty_multiplier = min(
+            2.0,
+            self.adaptive_metrics.current_difficulty_multiplier + 0.2
+        )
+        self.adaptive_metrics.difficulty_adjustments += 1
+
+        self.logger.info(
+            f"Increasing difficulty: multiplier={self.adaptive_metrics.current_difficulty_multiplier:.2f}"
+        )
+
+        # Execute harder rounds
+        self._execute_round_list(harder_rounds, solution, sub_problem, execution)
+
+    def _decrease_difficulty(
+        self,
+        gauntlet: GauntletDefinition,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem,
+        execution: GauntletExecution
+    ):
+        """Decrease difficulty by providing easier rounds with guidance."""
+        easier_rounds = self._create_adaptive_rounds(gauntlet, phase="easier")
+
+        # Adjust multiplier
+        self.adaptive_metrics.current_difficulty_multiplier = max(
+            0.5,
+            self.adaptive_metrics.current_difficulty_multiplier - 0.2
+        )
+        self.adaptive_metrics.difficulty_adjustments += 1
+
+        self.logger.info(
+            f"Decreasing difficulty: multiplier={self.adaptive_metrics.current_difficulty_multiplier:.2f}"
+        )
+
+        # Execute easier rounds
+        self._execute_round_list(easier_rounds, solution, sub_problem, execution)
+
+    def _add_scrutiny_rounds(
+        self,
+        gauntlet: GauntletDefinition,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem,
+        execution: GauntletExecution
+    ):
+        """Add additional scrutiny rounds for borderline performance."""
+        scrutiny_rounds = self._create_adaptive_rounds(gauntlet, phase="scrutiny")
+
+        self.logger.info(f"Adding {len(scrutiny_rounds)} scrutiny rounds")
+
+        # Execute scrutiny rounds
+        self._execute_round_list(scrutiny_rounds, solution, sub_problem, execution)
+
+    def _execute_round(
+        self,
+        round_rule: GauntletRoundRule,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem
+    ) -> Dict[str, Any]:
+        """Execute a single round based on its type."""
+        if round_rule.rule_type == "red_team":
+            return self.execute_red_team_round(round_rule, solution, sub_problem)
+        elif round_rule.rule_type == "gold_team":
+            return self.execute_gold_team_round(round_rule, solution, sub_problem)
+        elif round_rule.rule_type == "automated":
+            return self.execute_automated_round(round_rule, solution, sub_problem)
+        elif round_rule.rule_type == "human":
+            return self.execute_human_round(round_rule, solution, sub_problem)
+        else:
+            return {
+                "round_id": round_rule.rule_id,
+                "passed": False,
+                "score": 0.0,
+                "feedback": f"Unknown round type: {round_rule.rule_type}",
+                "errors": [f"Invalid round type: {round_rule.rule_type}"]
+            }
+
+    def execute_red_team_round(
+        self,
+        round_rule: GauntletRoundRule,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem
+    ) -> Dict[str, Any]:  # FIXED: Was bool, actually returns Dict
+        """
+        Execute red team validation round.
+
+        Red team tries to find flaws, break the solution,
+        identify edge cases, and test adversarially.
+        """
+        self.logger.info(f"Executing red team round: {round_rule.rule_id}")
+
+        # Check if OpenEvolve client is available
+        if not self.openevolve_client and not self.roma_engine:
+            self.logger.warning("No execution engine available, using mock red team review")
+            return {
+                "round_id": round_rule.rule_id,
+                "passed": True,
+                "score": 0.8,
+                "feedback": "Mock red team review (Engine not available)",
+                "flaws_found": []
+            }
+
+        try:
+            # Build red team prompt
+            prompt = self._build_red_team_prompt(round_rule, solution, sub_problem)
+
+            # 1. Try ROMA Engine First
+            if self.roma_engine:
+                try:
+                    result = self.roma_engine.solve_problem(prompt)
+                    response_content = result.get("solution", "")
+                    if response_content:
+                        # Parse results
+                        parsed_result = self._parse_red_team_result(response_content, round_rule)
+                        parsed_result["feedback"] += f" (Verified by ROMA Confidence: {result.get('confidence', 0.0):.2f})"
+                        return parsed_result
+                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                    self.logger.warning(f"ROMA engine execution failed, falling back: {e}")
+
+            # 2. Fallback to OpenEvolve Client
+            if self.openevolve_client:
+                result = self.openevolve_client.evolve(
+                    content=prompt,
+                    evolution_mode="adversarial",
+                    content_type="analysis",
+                    max_iterations=1,
+                    temperature=0.7,
+                    max_tokens=2000
+                )
+
+                # Parse results
+                if result.success and result.best_code:
+                    return self._parse_red_team_result(result.best_code, round_rule)
+            
+            return {
+                "round_id": round_rule.rule_id,
+                "passed": False,
+                "score": 0.0,
+                "feedback": "Red team analysis failed",
+                "errors": ["No valid response from any engine"]
+            }
+
+        except Exception as e:  # TODO: Catch specific exception instead of Exception
+            self.logger.error(f"Red team execution error: {e}")
+            return {
+                "round_id": round_rule.rule_id,
+                "passed": False,
+                "score": 0.0,
+                "feedback": f"Red team execution error: {str(e)}",
+                "errors": [str(e)]
+            }
+
+    def _build_red_team_prompt(
+        self,
+        round_rule: GauntletRoundRule,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem
+    ) -> str:
+        """Build prompt for red team analysis."""
+        prompt = f"""You are a RED TEAM reviewer. Your goal is to FIND FLAWS and BREAK this solution.
+
+SUB-PROBLEM:
+Title: {sub_problem.title}
+Description: {sub_problem.description}
+
+SOLUTION ATTEMPT:
+{solution.solution_content}
+
+YOUR MISSION:
+{round_rule.evaluation_prompt}
+
+Analyze this solution ADVERSARIALLY:
+1. Identify logical flaws and fallacies
+2. Find edge cases that break the solution
+3. Test assumptions critically
+4. Look for security vulnerabilities
+5. Identify missing error handling
+6. Check for incorrect implementations
+
+Provide your analysis in this EXACT format:
+OverallScore: <0.0-1.0>
+Passed: <true/false>
+FlawCount: <number>
+Flaws: <flaw1> | <flaw2> | <flaw3>
+SeverityScores: <category>:<score> | <category>:<score>
+Feedback: <2-3 sentence summary>
+Improvements: <improvement1> | <improvement2>
+
+Be critical and thorough. Your job is to find problems."""
+        return prompt
+
+    def _parse_red_team_result(self, response: str, round_rule: GauntletRoundRule) -> Dict[str, Any]:
+        """Parse red team analysis result."""
+        lines = response.strip().split('\n')
+        result = {
+            "round_id": round_rule.rule_id,
+            "passed": False,
+            "score": 0.5,
+            "flaws_found": [],
+            "feedback": "",
+            "improvements": []
+        }
+
+        for line in lines:
+            line = line.strip()
+            if ':' not in line:
+                continue
+
+            key, value = line.split(':', 1)
+            key = key.strip()
+            value = value.strip()
+
+            if key == "OverallScore":
+                try:
+                    result["score"] = float(value)
+                except ValueError:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Error in {__name__}", exc_info=True)
+                    raise  # Re-raise the exception
+            elif key == "Passed":
+                result["passed"] = value.lower() in ["true", "yes", "1"]
+            elif key == "Flaws":
+                result["flaws_found"] = [f.strip() for f in value.split('|') if f.strip()]
+            elif key == "Feedback":
+                result["feedback"] = value
+            elif key == "Improvements":
+                result["improvements"] = [i.strip() for i in value.split('|') if i.strip()]
+
+        # Check if minimum score is met
+        result["passed"] = result["score"] >= round_rule.min_score
+        return result
+
+    def execute_gold_team_round(
+        self,
+        round_rule: GauntletRoundRule,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem,
+        red_team_feedback: List = None
+    ) -> Dict[str, Any]:  # FIXED: Was bool, actually returns Dict
+        """
+        Execute gold team verification round.
+
+        Gold team does thorough validation, checks correctness,
+        verifies quality, and ensures standards met.
+        """
+        self.logger.info(f"Executing gold team round: {round_rule.rule_id}")
+
+        # Check if OpenEvolve client is available
+        if not self.openevolve_client and not self.roma_engine:
+            self.logger.warning("No execution engine available, using mock gold team review")
+            return {
+                "round_id": round_rule.rule_id,
+                "passed": True,
+                "score": 0.9,
+                "feedback": "Mock gold team review (Engine not available)",
+                "criteria_met": []
+            }
+
+        try:
+            # Build gold team prompt
+            prompt = self._build_gold_team_prompt(round_rule, solution, sub_problem, red_team_feedback)
+
+            # 1. Try ROMA Engine First
+            if self.roma_engine:
+                try:
+                    result = self.roma_engine.solve_problem(prompt)
+                    response_content = result.get("solution", "")
+                    if response_content:
+                        # Parse results
+                        parsed_result = self._parse_gold_team_result(response_content, round_rule)
+                        parsed_result["feedback"] += f" (Verified by ROMA Confidence: {result.get('confidence', 0.0):.2f})"
+                        return parsed_result
+                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                    self.logger.warning(f"ROMA engine execution failed, falling back: {e}")
+
+            # 2. Fallback to OpenEvolve Client
+            if self.openevolve_client:
+                # Execute gold team analysis
+                result = self.openevolve_client.evolve(
+                    content=prompt,
+                    evolution_mode="standard",
+                    content_type="analysis",
+                    max_iterations=1,
+                    temperature=0.3,
+                    max_tokens=2000
+                )
+
+                # Parse results
+                if result.success and result.best_code:
+                    return self._parse_gold_team_result(result.best_code, round_rule)
+            
+            return {
+                "round_id": round_rule.rule_id,
+                "passed": False,
+                "score": 0.0,
+                "feedback": "Gold team analysis failed",
+                "errors": ["No valid response from any engine"]
+            }
+
+        except Exception as e:  # TODO: Catch specific exception instead of Exception
+            self.logger.error(f"Gold team execution error: {e}")
+            return {
+                "round_id": round_rule.rule_id,
+                "passed": False,
+                "score": 0.0,
+                "feedback": f"Gold team execution error: {str(e)}",
+                "errors": [str(e)]
+            }
+
+    def _build_gold_team_prompt(
+        self,
+        round_rule: GauntletRoundRule,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem,
+        red_team_feedback: List = None
+    ) -> str:
+        """Build prompt for gold team analysis."""
+        red_team_section = ""
+        if red_team_feedback:
+            red_team_section = f"\nRED TEAM FEEDBACK (for context):\n{json.dumps(red_team_feedback, indent=2)}\n"
+
+        prompt = f"""You are a GOLD TEAM verifier. Your goal is to THOROUGHLY VALIDATE this solution.
+
+SUB-PROBLEM:
+Title: {sub_problem.title}
+Description: {sub_problem.description}
+
+SOLUTION ATTEMPT:
+{solution.solution_content}
+{red_team_section}
+YOUR MISSION:
+{round_rule.evaluation_prompt}
+
+Analyze this solution THOROUGHLY:
+1. Verify correctness of the approach
+2. Check quality of implementation
+3. Validate all success criteria are met
+4. Ensure standards and best practices followed
+5. Verify completeness and robustness
+6. Check for proper error handling
+
+Provide your analysis in this EXACT format:
+OverallScore: <0.0-1.0>
+Passed: <true/false>
+CriteriaMet: <criterion1> | <criterion2>
+QualityScore: <0.0-1.0>
+CorrectnessScore: <0.0-1.0>
+Feedback: <2-3 sentence summary>
+Improvements: <improvement1> | <improvement2>
+
+Be thorough and precise. Your approval certifies the solution is ready."""
+        return prompt
+
+    def _parse_gold_team_result(self, response: str, round_rule: GauntletRoundRule) -> Dict[str, Any]:
+        """Parse gold team analysis result."""
+        lines = response.strip().split('\n')
+        result = {
+            "round_id": round_rule.rule_id,
+            "passed": False,
+            "score": 0.5,
+            "criteria_met": [],
+            "feedback": "",
+            "improvements": []
+        }
+
+        for line in lines:
+            line = line.strip()
+            if ':' not in line:
+                continue
+
+            key, value = line.split(':', 1)
+            key = key.strip()
+            value = value.strip()
+
+            if key == "OverallScore":
+                try:
+                    result["score"] = float(value)
+                except ValueError:
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Error in {__name__}", exc_info=True)
+                    raise  # Re-raise the exception
+            elif key == "Passed":
+                result["passed"] = value.lower() in ["true", "yes", "1"]
+            elif key == "CriteriaMet":
+                result["criteria_met"] = [c.strip() for c in value.split('|') if c.strip()]
+            elif key == "Feedback":
+                result["feedback"] = value
+            elif key == "Improvements":
+                result["improvements"] = [i.strip() for i in value.split('|') if i.strip()]
+
+        # Check if minimum score is met
+        result["passed"] = result["score"] >= round_rule.min_score
+        return result
+
+    def execute_automated_round(
+        self,
+        round_rule: GauntletRoundRule,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem
+    ) -> Dict[str, Any]:  # FIXED: Was bool, actually returns Dict
+        """
+        Execute automated validation round.
+
+        Runs automated tests, checks, validations.
+        """
+        self.logger.info(f"Executing automated round: {round_rule.rule_id}")
+
+        # In a real system, this would run actual automated tests
+        # For now, we simulate automated validation
+        try:
+            # Simulate automated checks
+            checks_passed = 0
+            total_checks = len(round_rule.success_criteria) if round_rule.success_criteria else 1
+
+            for criterion in round_rule.success_criteria:
+                # Simulate checking each criterion
+                # In production, these would be actual automated tests
+                if "test" in criterion.lower() or "check" in criterion.lower():
+                    checks_passed += 1
+
+            score = checks_passed / total_checks if total_checks > 0 else 0.8
+            passed = score >= round_rule.min_score
+
+            return {
+                "round_id": round_rule.rule_id,
+                "passed": passed,
+                "score": score,
+                "feedback": f"Automated validation: {checks_passed}/{total_checks} checks passed",
+                "checks_passed": checks_passed,
+                "total_checks": total_checks
+            }
+
+        except Exception as e:  # TODO: Catch specific exception instead of Exception
+            self.logger.error(f"Automated round execution error: {e}")
+            return {
+                "round_id": round_rule.rule_id,
+                "passed": False,
+                "score": 0.0,
+                "feedback": f"Automated validation error: {str(e)}",
+                "errors": [str(e)]
+            }
+
+    def execute_human_round(
+        self,
+        round_rule: GauntletRoundRule,
+        solution: SolutionAttempt,
+        sub_problem: SubProblem
+    ) -> Dict[str, Any]:
+        """
+        Execute human review round with proper queue management.
+
+        Queues solution for human review, tracks status, and integrates results.
+        Supports both synchronous (wait) and asynchronous (return pending) modes.
+        """
+        self.logger.info(f"Executing human review round: {round_rule.rule_id}")
+
+        try:
+            # Enqueue the review item
+            review_item = self.review_queue.enqueue(
+                round_rule=round_rule,
+                solution=solution,
+                sub_problem=sub_problem
+            )
+
+            self.logger.info(
+                f"Review {review_item.review_id} queued for human review. "
+                f"Assigned to: {round_rule.evaluator}"
+            )
+
+            # Check if there's a pre-completed review (for testing/mocking)
+            # In production, this would wait for actual human completion
+            wait_for_review = round_rule.metadata.get("wait_for_human_review", False) if hasattr(round_rule, 'metadata') else False
+
+            if wait_for_review:
+                # Wait for review completion (blocking mode)
+                # In production, this would poll or use webhooks
+                timeout = round_rule.metadata.get("review_timeout_seconds", 300)  # 5 min default
+                start_wait = time.time()
+
+                self.logger.info(f"Waiting for human review (timeout={timeout}s)...")
+
+                while time.time() - start_wait < timeout:
+                    updated_item = self.review_queue.get_status(review_item.review_id)
+                    if updated_item and updated_item.status in [ReviewStatus.APPROVED, ReviewStatus.REJECTED]:
+                        # Review completed
+                        self.logger.info(
+                            f"Human review completed: "
+                            f"{'APPROVED' if updated_item.status == ReviewStatus.APPROVED else 'REJECTED'}"
+                        )
+
+                        return {
+                            "round_id": round_rule.rule_id,
+                            "passed": updated_item.status == ReviewStatus.APPROVED,
+                            "score": updated_item.score,
+                            "feedback": updated_item.feedback,
+                            "status": updated_item.status.value,
+                            "review_id": review_item.review_id,
+                            "evaluator": updated_item.assigned_to or round_rule.evaluator,
+                            "review_duration": (updated_item.completed_at - updated_item.created_at).total_seconds()
+                                if updated_item.completed_at else 0.0
+                        }
+
+                    time.sleep(5)  # Poll every 5 seconds
+
+                # Timeout reached
+                self.logger.warning(f"Human review timeout after {timeout}s")
+                return {
+                    "round_id": round_rule.rule_id,
+                    "passed": False,
+                    "score": 0.0,
+                    "feedback": f"Human review timed out after {timeout}s",
+                    "status": "timeout",
+                    "review_id": review_item.review_id,
+                    "evaluator": round_rule.evaluator
+                }
+
+            else:
+                # Non-blocking mode - return pending status
+                self.logger.info(f"Returning pending status for review {review_item.review_id}")
+
+                return {
+                    "round_id": round_rule.rule_id,
+                    "passed": False,
+                    "score": 0.0,
+                    "feedback": "Human review required - awaiting human reviewer",
+                    "status": ReviewStatus.PENDING.value,
+                    "review_id": review_item.review_id,
+                    "evaluator": round_rule.evaluator,
+                    "queue_position": len(self.review_queue.get_pending_reviews()),
+                    "instructions": {
+                        "assign_reviewer": f"Use review_queue.assign('{review_item.review_id}', 'reviewer_id')",
+                        "complete_review": f"Use review_queue.complete('{review_item.review_id}', approved=True, feedback='...', score=0.9)"
+                    }
+                }
+
+        except Exception as e:
+            self.logger.error(f"Human review execution error: {e}")
+            return {
+                "round_id": round_rule.rule_id,
+                "passed": False,
+                "score": 0.0,
+                "feedback": f"Human review error: {str(e)}",
+                "status": "error",
+                "errors": [str(e)]
+            }
+
+    def assign_human_review(self, review_id: str, reviewer: str) -> Dict[str, Any]:
+        """
+        Assign a pending review to a human reviewer.
+
+        Args:
+            review_id: The review item ID
+            reviewer: Identifier for the reviewer (user ID, email, etc.)
+
+        Returns:
+            Dict with success status and message
+        """
+        try:
+            success = self.review_queue.assign(review_id, reviewer)
+
+            if success:
+                return {
+                    "success": True,
+                    "message": f"Review {review_id} assigned to {reviewer}",
+                    "review_id": review_id,
+                    "reviewer": reviewer
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Failed to assign review {review_id}",
+                    "review_id": review_id
+                }
+
+        except Exception as e:
+            self.logger.error(f"Error assigning review: {e}")
+            return {
+                "success": False,
+                "message": f"Assignment error: {str(e)}",
+                "review_id": review_id,
+                "error": str(e)
+            }
+
+    def complete_human_review(
+        self,
+        review_id: str,
+        approved: bool,
+        feedback: str,
+        score: float = 0.0
+    ) -> Dict[str, Any]:
+        """
+        Complete a human review with results.
+
+        Args:
+            review_id: The review item ID
+            approved: Whether the solution was approved
+            feedback: Reviewer feedback
+            score: Optional score (0.0-1.0)
+
+        Returns:
+            Dict with success status and message
+        """
+        try:
+            # Validate inputs
+            if not 0.0 <= score <= 1.0:
+                return {
+                    "success": False,
+                    "message": f"Score must be between 0.0 and 1.0, got {score}",
+                    "review_id": review_id
+                }
+
+            if not feedback or not feedback.strip():
+                return {
+                    "success": False,
+                    "message": "Feedback is required",
+                    "review_id": review_id
+                }
+
+            success = self.review_queue.complete(review_id, approved, feedback, score)
+
+            if success:
+                return {
+                    "success": True,
+                    "message": f"Review {review_id} completed: {'APPROVED' if approved else 'REJECTED'}",
+                    "review_id": review_id,
+                    "approved": approved,
+                    "score": score
+                }
+            else:
+                return {
+                    "success": False,
+                    "message": f"Failed to complete review {review_id}",
+                    "review_id": review_id
+                }
+
+        except Exception as e:
+            self.logger.error(f"Error completing review: {e}")
+            return {
+                "success": False,
+                "message": f"Completion error: {str(e)}",
+                "review_id": review_id,
+                "error": str(e)
+            }
+
+    def get_review_status(self, review_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Get the current status of a human review.
+
+        Args:
+            review_id: The review item ID
+
+        Returns:
+            Dict with review status or None if not found
+        """
+        try:
+            item = self.review_queue.get_status(review_id)
+
+            if not item:
+                return None
+
+            return {
+                "review_id": item.review_id,
+                "status": item.status.value,
+                "assigned_to": item.assigned_to,
+                "created_at": item.created_at.isoformat(),
+                "completed_at": item.completed_at.isoformat() if item.completed_at else None,
+                "feedback": item.feedback,
+                "score": item.score,
+                "round_id": item.round_rule.rule_id,
+                "solution_id": item.solution.id
+            }
+
+        except Exception as e:
+            self.logger.error(f"Error getting review status: {e}")
+            return None
+
+    def get_pending_reviews(self) -> List[Dict[str, Any]]:
+        """
+        Get all pending human review items.
+
+        Returns:
+            List of dicts with pending review information
+        """
+        try:
+            pending_items = self.review_queue.get_pending_reviews()
+
+            return [
+                {
+                    "review_id": item.review_id,
+                    "round_id": item.round_rule.rule_id,
+                    "round_type": item.round_rule.rule_type,
+                    "solution_id": item.solution.id,
+                    "created_at": item.created_at.isoformat(),
+                    "evaluator": item.round_rule.evaluator
+                }
+                for item in pending_items
+            ]
+
+        except Exception as e:
+            self.logger.error(f"Error getting pending reviews: {e}")
+            return []

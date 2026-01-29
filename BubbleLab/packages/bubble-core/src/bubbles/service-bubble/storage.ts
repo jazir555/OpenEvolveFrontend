@@ -5,6 +5,7 @@ import {
   GetObjectCommand,
   DeleteObjectCommand,
   HeadObjectCommand,
+  HeadBucketCommand,
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { ServiceBubble } from '../../types/service-bubble-class.js';
@@ -355,8 +356,27 @@ export class StorageBubble<
   }
 
   public async testCredential(): Promise<boolean> {
-    //TODO: Implement credential addition for multiple credentials
-    return true;
+    try {
+      this.initializeS3Client();
+      if (!this.s3Client) {
+        return false;
+      }
+
+      const bucketName =
+        'bucketName' in this.params ? this.params.bucketName : undefined;
+
+      if (!bucketName) {
+        // Credentials are present and client initialized; skip bucket check.
+        return true;
+      }
+
+      const command = new HeadBucketCommand({ Bucket: bucketName });
+      await this.s3Client.send(command);
+      return true;
+    } catch (error) {
+      console.error('[StorageBubble] Credential test failed:', error);
+      return false;
+    }
   }
 
   protected async performAction(

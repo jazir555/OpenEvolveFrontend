@@ -15,6 +15,12 @@ const resolveApiBaseUrl = (): string => {
 };
 
 export const API_BASE_URL: string = resolveApiBaseUrl();
+
+// OpenEvolve API Configuration (new FastAPI service)
+export const OPENEVOLVE_API_BASE_URL: string = (
+  import.meta.env.VITE_OPENEVOLVE_API_URL || 'http://localhost:8001'
+).replace(/\/$/, '');
+
 export const CLERK_PUBLISHABLE_KEY: string | undefined = import.meta.env
   .VITE_CLERK_PUBLISHABLE_KEY;
 export const SHOW_LEGACY_PARAMS: boolean =

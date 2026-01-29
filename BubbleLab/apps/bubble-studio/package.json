@@ -19,11 +19,11 @@
     "@heroicons/react": "^2.2.0",
     "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/typography": "^0.5.19",
-    "@tanstack/react-query": "^5.81.5",
-    "@tanstack/react-router": "^1.133.28",
-    "@tanstack/router-devtools": "^1.133.28",
+    "@tanstack/react-query": "^5.5.0",
+    "@tanstack/react-router": "^1.15.0",
+    "@tanstack/router-devtools": "^1.15.0",
     "@types/marked": "^6.0.0",
-    "@xyflow/react": "^12.8.2",
+    "@xyflow/react": "^12.2.0",
     "autolinker": "^4.1.5",
     "browser-image-compression": "^2.0.2",
     "jszip": "^3.10.1",
@@ -37,7 +37,8 @@
     "react-resizable-panels": "^3.0.4",
     "react-toastify": "^11.0.5",
     "zod": "3.25.76",
-    "zustand": "^4.5.7"
+    "zustand": "^4.5.7",
+    "bubblelabs-ragbits-plugin": "workspace:*"
   },
   "devDependencies": {
     "@eslint/js": "^9.30.1",

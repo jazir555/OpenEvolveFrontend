@@ -1,0 +1,10 @@
+# OneKE Bilingual Extraction Dependencies
+# Sprint 3: OneKE Integration
+
+# Core dependencies
+numpy>=1.21.0
+scikit-learn>=1.0.0
+rapidfuzz>=2.0.0
+
+# Optional but recommended
+langdetect>=1.0.9

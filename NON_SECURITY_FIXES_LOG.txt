@@ -1,0 +1,251 @@
+================================================================================
+Non-Security Issue Fixer
+================================================================================
+Started: 2026-01-21 01:39:53
+
+[*] Fixed ace_analytics.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 3
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed ace_security_utils.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed advanced_cache.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed advanced_features.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 1
+[*] Fixed advanced_validation_workflows.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed adversarial_realtime.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 1
+    - Requests timeout: 0
+[*] Fixed adversarial_testing.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 1
+[*] Fixed adversarial_types.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 1
+    - Requests timeout: 0
+[*] Fixed api_endpoints.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 1
+[*] Fixed blue_team.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 1
+[*] Fixed blue_team_patcher_engine.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 2
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed blue_team_solver_engine.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed blue_team_tools.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 4
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed bubblelab-auto-setup.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed bubblelabs_analytics.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed bubblelabs_leanaide_integration_patch.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed coverage_tracking.py:
+    - Assert statements: 4
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed edge_case_analyzer.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 1
+    - Requests timeout: 0
+[*] Fixed edge_case_detector_fixed.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 3
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed evaluator_team.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed evolution.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 1
+[*] Fixed fix_manual_security_issues.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 3
+[*] Fixed formal_gauntlet_system.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 2
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed github_config.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 2
+[*] Fixed leanaide_config.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed leanaide_evolution_mdap.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 1
+    - Requests timeout: 0
+[*] Fixed llm_cache.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed llm_utils.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed mdap_maker_complete.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 2
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed openevolve_bubblelabs_plugin.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed openevolve_integration.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 3
+[*] Fixed performance_profiler.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 4
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed query_optimizer.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 3
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed quick_verify.py:
+    - Assert statements: 7
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed red_team.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed red_team_feedback_system.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed run_rese_tests.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed scalability_improvements.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 1
+    - Requests timeout: 0
+[*] Fixed scheduled_reports.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed semantic_analyzer.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed sovereign_gauntlets.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 1
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed system_integration_validation.py:
+    - Assert statements: 1
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed tripartite_production.py:
+    - Assert statements: 6
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed ultimate_validation.py:
+    - Assert statements: 0
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 8
+    - Requests timeout: 0
+[*] Fixed validate_phase1_complete.py:
+    - Assert statements: 59
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed verify_knowledge_engine.py:
+    - Assert statements: 10
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+[*] Fixed workflow_engine.py:
+    - Assert statements: 4
+    - Try/Except/Pass: 0
+    - Try/Except/Continue: 0
+    - Requests timeout: 0
+
+================================================================================
+SUMMARY
+================================================================================
+Files modified: 47
+Assert statements fixed: 91
+Try/Except/Pass fixed: 42
+Try/Except/Continue fixed: 13
+Requests timeout added: 13
+Total fixes: 159
+================================================================================

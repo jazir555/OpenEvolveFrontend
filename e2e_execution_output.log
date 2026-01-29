@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\e2e_invention_validation.py", line 712, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\e2e_invention_validation.py", line 686, in main
+    print("""
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\encodings\cp1252.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode characters in position 2-79: character maps to <undefined>

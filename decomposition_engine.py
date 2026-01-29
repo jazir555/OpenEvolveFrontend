@@ -1124,13 +1124,21 @@ Begin decomposition:
 class DecompositionEngine:
     """Orchestrates problem decomposition using multiple strategies."""
     
-    def __init__(self, problem_analyzer: Optional[ProblemAnalyzer] = None, knowledge_manager: Optional[KnowledgeManager] = None):
+    def __init__(
+        self, 
+        problem_analyzer: Optional[ProblemAnalyzer] = None, 
+        knowledge_manager: Optional[KnowledgeManager] = None, 
+        enable_adaptive_selection: bool = True,
+        maker_config: Optional[Dict[str, Any]] = None
+    ):
         """
         Initialize decomposition engine.
         
         Args:
             problem_analyzer: Optional ProblemAnalyzer instance
             knowledge_manager: Optional KnowledgeManager instance
+            enable_adaptive_selection: Whether to use granular complexity for strategy selection
+            maker_config: Configuration for the MAKER system (voting thresholds, depth, etc.)
         """
         self.strategies: Dict[str, DecompositionStrategyBase] = {
             'semantic': SemanticDecomposition(),
@@ -1139,11 +1147,21 @@ class DecompositionEngine:
             'hybrid': HybridDecomposition(),
             'research': ResearchDecomposition()
         }
-        self.problem_analyzer = problem_analyzer or ProblemAnalyzer()
-        self.knowledge_manager = knowledge_manager or KnowledgeManager()
+        self.problem_analyzer = problem_analyzer or ProblemAnalyzer()      
+        self.knowledge_manager = knowledge_manager or KnowledgeManager()   
         self.logger = logging.getLogger(__name__)
-    
-    @with_error_handling(severity=ErrorSeverity.CRITICAL, fallback=lambda problem, strategy: DecompositionPlan(
+        self.enable_adaptive_selection = enable_adaptive_selection
+        self.maker_config = maker_config or {}
+        
+        # Integrate Enhanced TaskComplexityClassifier
+        try:
+            from adaptive_mdap.classifiers.task_complexity_classifier import TaskComplexityClassifier
+            self.complexity_classifier = TaskComplexityClassifier()
+            self.logger.info(f"Integrated Adaptive TaskComplexityClassifier into DecompositionEngine (enabled={enable_adaptive_selection})")
+        except ImportError:
+            self.logger.warning("TaskComplexityClassifier not available, using standard complexity metrics.")
+            self.complexity_classifier = None
+            @with_error_handling(severity=ErrorSeverity.CRITICAL, fallback=lambda problem, strategy: DecompositionPlan(
         id=generate_id("plan"),
         problem_id=problem.id,
         strategy=DecompositionStrategy.HYBRID,
@@ -1207,38 +1225,67 @@ class DecompositionEngine:
     @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda problem: "hybrid")
     def select_strategy(self, problem: ProblemDefinition) -> str:
         """
-        Chooses optimal decomposition strategy using LLM-based analysis.
+        Chooses optimal decomposition strategy using granular complexity analysis and LLM.
         
         Args:
             problem: The problem to analyze
             
         Returns:
             Strategy name
-            
-        Raises:
-            RuntimeError: If LLM-based strategy selection fails.
         """
+        # Step 1: Calculate granular complexity if enabled
+        granular_complexity = None
+        if self.enable_adaptive_selection and hasattr(self, 'complexity_classifier') and self.complexity_classifier:
+            try:
+                # Map ProblemDefinition to AdaptiveSubProblem for classifier
+                from adaptive_mdap.core.types import SubProblem as AdaptiveSubProblem
+                adaptive_sp = AdaptiveSubProblem(
+                    id=problem.id,
+                    description=problem.description,
+                    domain=problem.domain_context.domain if hasattr(problem, 'domain_context') else "general",
+                    depth=0,
+                    dependencies=[], # Root problem
+                    metadata={"title": problem.title}
+                )
+                granular_complexity = self.complexity_classifier.compute_complexity(adaptive_sp)
+                self.logger.info(f"Granular complexity analysis: score={granular_complexity.overall_score:.3f}")
+            except Exception as e:
+                self.logger.error(f"Granular complexity calculation failed: {e}")
+
+        # Step 2: Fallback to LLM or Heuristics
         global OpenEvolveClient, OPENEVOLVE_AVAILABLE
         if OPENEVOLVE_AVAILABLE:
             try:
                 client = OpenEvolveClient()
-                strategy = self._select_strategy_with_llm(problem, client)
+                strategy = self._select_strategy_with_llm(problem, client, granular_complexity)
                 if strategy in self.strategies:
                     self.logger.info(f"LLM selected strategy: {strategy}")
                     return strategy
                 else:
-                    self.logger.warning(f"LLM returned an unknown strategy: {strategy}. Falling back to hybrid.")
-                    return "hybrid"
+                    self.logger.warning(f"LLM returned an unknown strategy: {strategy}. Falling back to heuristic.")
             except Exception as e:
-                self.logger.error(f"Failed to instantiate OpenEvolve client for strategy selection or LLM call failed: {e}", exc_info=True)
-                self.logger.warning("Falling back to hybrid strategy due to OpenEvolve client issue.")
-                return "hybrid"
+                self.logger.error(f"Failed to call LLM for strategy selection: {e}")
+        
+        # Step 3: Heuristic selection based on complexity
+        overall_complexity = granular_complexity.overall_score * 10 if granular_complexity else problem.complexity_score.overall_complexity
+        
+        if overall_complexity > 7.5:
+            return 'hybrid'
+        elif overall_complexity > 5.0:
+            return 'semantic'
         else:
-            self.logger.warning("OpenEvolve client not available for strategy selection. Falling back to hybrid.")
-            return "hybrid"
+            return 'complexity'
     
-    def _select_strategy_with_llm(self, problem: ProblemDefinition, client) -> str:
+    def _select_strategy_with_llm(self, problem: ProblemDefinition, client, granular_complexity: Any = None) -> str:
         """Use LLM to select optimal decomposition strategy."""
+        complexity_context = ""
+        if granular_complexity:
+            complexity_context = f"\nGRANULAR COMPLEXITY BREAKDOWN:\n"
+            complexity_context += f"- Overall Score: {granular_complexity.overall_score:.3f}\n"
+            complexity_context += f"- Text Length Score: {granular_complexity.text_length_score:.2f}\n"
+            complexity_context += f"- Keyword Complexity: {granular_complexity.keyword_score:.2f}\n"
+            complexity_context += f"- Constraint Density: {granular_complexity.constraint_score:.2f}\n"
+
         prompt = f"""You are an expert in problem decomposition strategies. Select the BEST strategy for this problem.
 
 PROBLEM:
@@ -1248,6 +1295,7 @@ Domain: {problem.domain_context.domain}
 Type: {problem.problem_type.value}
 Complexity: {problem.complexity_score.overall_complexity}/10
 Constraints: {len(problem.constraints)}
+{complexity_context}
 
 AVAILABLE STRATEGIES:
 

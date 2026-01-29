@@ -1,0 +1,332 @@
+#!/usr/bin/env python3
+"""
+🔧 Manual Security Fix Generator
+
+Generates specific fix files for complex security issues that require
+human review and manual intervention:
+
+- Pickle usage (replace with JSON)
+- Hardcoded temp paths (replace with tempfile)
+- Certificate verification issues
+- Complex try/except patterns
+
+Usage:
+    python fix_manual_security_issues.py [--target-dir PATH]
+"""
+
+import os
+import re
+from pathlib import Path
+from typing import List, Dict
+import logging
+from datetime import datetime
+
+logging.basicConfig(level=logging.INFO, format='%(message)s')
+logger = logging.getLogger(__name__)
+
+
+class ManualFixGenerator:
+    """Generate manual fix files for complex security issues."""
+
+    def __init__(self, target_dir: str = '.'):
+        self.target_dir = Path(target_dir)
+        self.fixes_generated = []
+
+    def find_pickle_usage(self) -> List[Dict]:
+        """Find all pickle usage that needs to be replaced with JSON."""
+        findings = []
+
+        for root, dirs, files in os.walk(self.target_dir):
+            skip_dirs = {'.git', '__pycache__', 'node_modules', '.venv', 'venv', 'dist', 'build'}
+            dirs[:] = [d for d in dirs if d not in skip_dirs]
+
+            for file in files:
+                if file.endswith('.py'):
+                    filepath = Path(root) / file
+                    try:
+                        with open(filepath, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            lines = content.split('\n')
+
+                        for i, line in enumerate(lines, 1):
+                            if 'pickle' in line:
+                                findings.append({
+                                    'file': str(filepath),
+                                    'line': i,
+                                    'content': line.strip(),
+                                    'issue': 'pickle_usage',
+                                    'recommendation': self._suggest_pickle_fix(line)
+                                })
+                    except Exception as e:
+                        logger.warning(f"Error reading {filepath}: {e}")
+
+        return findings
+
+    def _suggest_pickle_fix(self, line: str) -> str:
+        """Suggest fix for pickle usage."""
+        if 'pickle.load' in line:
+            return "Replace with json.load() and change file format from .pkl to .json"
+        elif 'pickle.dump' in line:
+            return "Replace with json.dump() and change file format from .pkl to .json"
+        elif 'import pickle' in line:
+            return "Replace with import json"
+        else:
+            return "Review pickle usage and consider replacing with JSON"
+
+    def find_hardcoded_temp_paths(self) -> List[Dict]:
+        """Find hardcoded /tmp paths."""
+        findings = []
+
+        for root, dirs, files in os.walk(self.target_dir):
+            skip_dirs = {'.git', '__pycache__', 'node_modules', '.venv', 'venv', 'dist', 'build'}
+            dirs[:] = [d for d in dirs if d not in skip_dirs]
+
+            for file in files:
+                if file.endswith('.py'):
+                    filepath = Path(root) / file
+                    try:
+                        with open(filepath, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            lines = content.split('\n')
+
+                        for i, line in enumerate(lines, 1):
+                            # Check for hardcoded /tmp in string literals
+                            if re.search(r'["\']\/tmp\/', line):
+                                findings.append({
+                                    'file': str(filepath),
+                                    'line': i,
+                                    'content': line.strip(),
+                                    'issue': 'hardcoded_tmp',
+                                    'recommendation': self._suggest_temp_fix(line)
+                                })
+                    except Exception as e:
+                        logger.warning(f"Error reading {filepath}: {e}")
+
+        return findings
+
+    def _suggest_temp_fix(self, line: str) -> str:
+        """Suggest fix for hardcoded temp path."""
+        if 'open(' in line and '/tmp/' in line:
+            return "Use tempfile.NamedTemporaryFile() or tempfile.mkstemp() instead"
+        elif '/tmp/' in line and '=' in line:
+            return "Replace with tempfile.mkdtemp(prefix='yourprefix_')"
+        else:
+            return "Replace hardcoded /tmp with tempfile module functions"
+
+    def find_certificate_issues(self) -> List[Dict]:
+        """Find certificate verification issues."""
+        findings = []
+
+        for root, dirs, files in os.walk(self.target_dir):
+            skip_dirs = {'.git', '__pycache__', 'node_modules', '.venv', 'venv', 'dist', 'build'}
+            dirs[:] = [d for d in dirs if d not in skip_dirs]
+
+            for file in files:
+                if file.endswith('.py'):
+                    filepath = Path(root) / file
+                    try:
+                        with open(filepath, 'r', encoding='utf-8') as f:
+                            content = f.read()
+                            lines = content.split('\n')
+
+                        for i, line in enumerate(lines, 1):
+                            if 'verify=False' in line or 'verify = False' in line:
+                                findings.append({
+                                    'file': str(filepath),
+                                    'line': i,
+                                    'content': line.strip(),
+                                    'issue': 'certificate_verification',
+                                    'recommendation': "Remove verify=False or set verify=True for SSL certificate validation"
+                                })
+                    except Exception as e:
+                        logger.warning(f"Error reading {filepath}: {e}")
+
+        return findings
+
+    def generate_fix_report(self) -> str:
+        """Generate comprehensive fix report."""
+        logger.info("[*] Scanning for manual security issues...")
+
+        pickle_issues = self.find_pickle_usage()
+        temp_issues = self.find_hardcoded_temp_paths()
+        cert_issues = self.find_certificate_issues()
+
+        report_lines = []
+        report_lines.append("# 🔧 Manual Security Fix Report")
+        report_lines.append(f"# Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        report_lines.append("")
+        report_lines.append("## Issues Requiring Manual Fix")
+        report_lines.append("")
+
+        # Pickle issues
+        if pickle_issues:
+            report_lines.append(f"### 1. Pickle Usage ({len(pickle_issues)} issues)")
+            report_lines.append("")
+            report_lines.append("**Action Required:** Replace `pickle` with `json` for secure serialization")
+            report_lines.append("")
+            for issue in pickle_issues[:50]:  # Limit to first 50
+                report_lines.append(f"**File:** {issue['file']}")
+                report_lines.append(f"**Line:** {issue['line']}")
+                report_lines.append(f"**Code:** `{issue['content']}`")
+                report_lines.append(f"**Fix:** {issue['recommendation']}")
+                report_lines.append("")
+
+            if len(pickle_issues) > 50:
+                report_lines.append(f"*... and {len(pickle_issues) - 50} more pickle issues*")
+            report_lines.append("")
+
+        # Temp path issues
+        if temp_issues:
+            report_lines.append(f"### 2. Hardcoded Temp Paths ({len(temp_issues)} issues)")
+            report_lines.append("")
+            report_lines.append("**Action Required:** Replace hardcoded `/tmp/` with `tempfile` module")
+            report_lines.append("")
+            for issue in temp_issues[:50]:
+                report_lines.append(f"**File:** {issue['file']}")
+                report_lines.append(f"**Line:** {issue['line']}")
+                report_lines.append(f"**Code:** `{issue['content']}`")
+                report_lines.append(f"**Fix:** {issue['recommendation']}")
+                report_lines.append("")
+
+            if len(temp_issues) > 50:
+                report_lines.append(f"*... and {len(temp_issues) - 50} more temp path issues*")
+            report_lines.append("")
+
+        # Certificate issues
+        if cert_issues:
+            report_lines.append(f"### 3. Certificate Verification Issues ({len(cert_issues)} issues)")
+            report_lines.append("")
+            report_lines.append("**Action Required:** Remove `verify=False` to enable SSL certificate validation")
+            report_lines.append("")
+            for issue in cert_issues[:50]:
+                report_lines.append(f"**File:** {issue['file']}")
+                report_lines.append(f"**Line:** {issue['line']}")
+                report_lines.append(f"**Code:** `{issue['content']}`")
+                report_lines.append(f"**Fix:** {issue['recommendation']}")
+                report_lines.append("")
+
+            if len(cert_issues) > 50:
+                report_lines.append(f"*... and {len(cert_issues) - 50} more certificate issues*")
+            report_lines.append("")
+
+        # Summary
+        report_lines.append("## Summary")
+        report_lines.append("")
+        report_lines.append(f"- Total pickle usage issues: {len(pickle_issues)}")
+        report_lines.append(f"- Total hardcoded temp path issues: {len(temp_issues)}")
+        report_lines.append(f"- Total certificate verification issues: {len(cert_issues)}")
+        report_lines.append(f"- **Total manual fixes required: {len(pickle_issues) + len(temp_issues) + len(cert_issues)}**")
+        report_lines.append("")
+
+        # Fix examples
+        report_lines.append("## Fix Examples")
+        report_lines.append("")
+        report_lines.append("### Pickle → JSON")
+        report_lines.append("```python")
+        report_lines.append("# ❌ BEFORE (insecure)")
+        report_lines.append("import pickle")
+        report_lines.append("with open('data.pkl', 'rb') as f:")
+        report_lines.append("    data = pickle.load(f)  # Can execute arbitrary code!")
+        report_lines.append("")
+        report_lines.append("# ✅ AFTER (secure)")
+        report_lines.append("import json")
+        report_lines.append("with open('data.json', 'r') as f:")
+        report_lines.append("    data = json.load(f)  # Safe, no code execution")
+        report_lines.append("```")
+        report_lines.append("")
+
+        report_lines.append("### Hardcoded /tmp → tempfile")
+        report_lines.append("```python")
+        report_lines.append("# ❌ BEFORE (insecure)")
+        report_lines.append("temp_dir = '/tmp/myapp_data'")
+        report_lines.append("os.makedirs(temp_dir, exist_ok=True)")
+        report_lines.append("")
+        report_lines.append("# ✅ AFTER (secure)")
+        report_lines.append("import tempfile")
+        report_lines.append("temp_dir = tempfile.mkdtemp(prefix='myapp_')")
+        report_lines.append("```")
+        report_lines.append("")
+
+        report_lines.append("### Certificate Verification")
+        report_lines.append("```python")
+        report_lines.append("# ❌ BEFORE (insecure)")
+        report_lines.append("response = requests.get(url, verify=False)  # Disables SSL validation")
+        report_lines.append("")
+        report_lines.append("# ✅ AFTER (secure)")
+        report_lines.append("response = requests.get(url, verify=True)  # Enable SSL validation")
+        report_lines.append("# Or for custom CA bundle:")
+        report_lines.append("response = requests.get(url, verify='/path/to/ca-bundle.crt')")
+        report_lines.append("```")
+        report_lines.append("")
+
+        return '\n'.join(report_lines)
+
+    def generate_patched_files(self):
+        """Generate individual .patch files for each issue."""
+        logger.info("[*] Generating patch files for manual fixes...")
+
+        pickle_issues = self.find_pickle_usage()
+
+        # Group issues by file
+        files_with_issues = {}
+        for issue in pickle_issues:
+            filepath = issue['file']
+            if filepath not in files_with_issues:
+                files_with_issues[filepath] = []
+            files_with_issues[filepath].append(issue)
+
+        # Create patch directory
+        patch_dir = Path('security_patches')
+        patch_dir.mkdir(exist_ok=True)
+
+        for filepath, issues in files_with_issues.items():
+            rel_path = Path(filepath).relative_to(self.target_dir)
+            patch_file = patch_dir / f"{rel_path}.patch"
+
+            patch_content = f"# Patch file for {filepath}\n"
+            patch_content += f"# Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n"
+            patch_content += "# Instructions: Review each issue and apply the recommended fix\n"
+            patch_content += "\n"
+
+            for issue in issues:
+                patch_content += f"## Line {issue['line']}\n"
+                patch_content += f"Original: {issue['content']}\n"
+                patch_content += f"Fix: {issue['recommendation']}\n"
+                patch_content += "\n"
+
+            with open(patch_file, 'w', encoding='utf-8') as f:
+                f.write(patch_content)
+
+        logger.info(f"[OK] Generated {len(files_with_issues)} patch files in {patch_dir}/")
+
+
+def main():
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Generate manual security fix reports')
+    parser.add_argument('--target-dir', type=str, default='.', help='Directory to scan')
+    parser.add_argument('--generate-patches', action='store_true', help='Generate individual .patch files')
+
+    args = parser.parse_args()
+
+    generator = ManualFixGenerator(args.target_dir)
+
+    # Generate main report
+    report = generator.generate_fix_report()
+
+    # Save report
+    report_file = f'MANUAL_SECURITY_FIXES_{datetime.now().strftime("%Y%m%d_%H%M%S")}.md'
+    with open(report_file, 'w', encoding='utf-8') as f:
+        f.write(report)
+
+    logger.info(f"\n[OK] Report saved to: {report_file}")
+
+    # Generate individual patch files if requested
+    if args.generate_patches:
+        generator.generate_patched_files()
+
+    logger.info("\n[OK] Done!")
+
+
+if __name__ == '__main__':
+    main()

@@ -3,9 +3,11 @@
  * Application and LLM configuration settings
  */
 
-import { useState } from 'react';
-import { useLLMConfig } from '../../stores/configStore';
+import { useEffect, useState } from 'react';
+import { useConfigStore, useLLMConfig } from '../../stores/configStore';
 import { LLMProvider } from '../../types/api';
+import apiClient from '../../lib/api-client';
+import { notify } from '../common/Notifications';
 
 export function SettingsPanel() {
   const {
@@ -34,13 +36,90 @@ export function SettingsPanel() {
   } = useLLMConfig();
 
   const [showApiKey, setShowApiKey] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  const { ui, setAutoSave, setDarkMode } = useConfigStore((state) => ({
+    ui: state.ui,
+    setAutoSave: state.setAutoSave,
+    setDarkMode: state.setDarkMode,
+  }));
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadConfig = async () => {
+      setIsLoading(true);
+      try {
+        const config = await apiClient.getLLMConfig();
+        if (isMounted) {
+          useConfigStore.getState().setLLMConfig(config);
+        }
+      } catch (error) {
+        notify({
+          type: 'error',
+          title: 'Settings load failed',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Unable to load LLM configuration.',
+        });
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+
+    void loadConfig();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setIsSaving(false);
+    try {
+      const updated = await apiClient.updateLLMConfig({
+        provider,
+        api_key,
+        base_url,
+        model_leanaide,
+        model_text,
+        model_img,
+        temperature,
+        top_p,
+        max_tokens,
+        frequency_penalty,
+        presence_penalty,
+      });
+      useConfigStore.getState().setLLMConfig(updated);
+      notify({
+        type: 'success',
+        title: 'Settings saved',
+        message: 'LLM configuration updated successfully.',
+      });
+    } catch (error) {
+      notify({
+        type: 'error',
+        title: 'Save failed',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Unable to save LLM configuration.',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const toggleDarkMode = () => {
+    const nextValue = !ui.darkMode;
+    setDarkMode(nextValue);
+    if (nextValue) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
   };
 
   return (
@@ -215,10 +294,10 @@ export function SettingsPanel() {
           <div className="pt-4">
             <button
               onClick={handleSave}
-              disabled={isSaving}
+              disabled={isSaving || isLoading}
               className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {isSaving ? 'Saving...' : 'Save Settings'}
+              {isSaving ? 'Saving...' : isLoading ? 'Loading...' : 'Save Settings'}
             </button>
           </div>
         </div>
@@ -241,16 +320,14 @@ export function SettingsPanel() {
               </p>
             </div>
             <button
-              onClick={() => {
-                // Toggle auto-save in config store
-              }}
-              className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 bg-blue-600"
+              onClick={() => setAutoSave(!ui.autoSave)}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${ui.autoSave ? 'bg-blue-600' : 'bg-gray-200'}`}
               role="switch"
-              aria-checked="true"
+              aria-checked={ui.autoSave}
             >
               <span
                 aria-hidden="true"
-                className="translate-x-5 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${ui.autoSave ? 'translate-x-5' : 'translate-x-0'}`}
               />
             </button>
           </div>
@@ -265,16 +342,14 @@ export function SettingsPanel() {
               </p>
             </div>
             <button
-              onClick={() => {
-                // Toggle dark mode
-              }}
-              className="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 bg-gray-200"
+              onClick={toggleDarkMode}
+              className={`relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 ${ui.darkMode ? 'bg-blue-600' : 'bg-gray-200'}`}
               role="switch"
-              aria-checked="false"
+              aria-checked={ui.darkMode}
             >
               <span
                 aria-hidden="true"
-                className="translate-x-0 pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
+                className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${ui.darkMode ? 'translate-x-5' : 'translate-x-0'}`}
               />
             </button>
           </div>

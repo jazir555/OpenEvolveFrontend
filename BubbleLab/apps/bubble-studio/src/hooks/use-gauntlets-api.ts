@@ -35,9 +35,9 @@ export function useGauntlets(params?: ListQueryParams) {
       setIsLoading(true);
       setError(null);
       try {
-        const gauntlets = await apiClient.getGauntlets(params);
-        setGauntlets(gauntlets);
-        return gauntlets;
+        const response = await apiClient.getGauntlets(params);
+        setGauntlets(response.gauntlets);
+        return response.gauntlets;
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Failed to fetch gauntlets';
         setError(message);

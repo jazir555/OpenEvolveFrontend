@@ -19,6 +19,7 @@ import { CronToggle } from '../components/CronToggle';
 import { WebhookToggle } from '../components/WebhookToggle';
 import { useSubscription } from '../hooks/useSubscription';
 import type { OptimisticBubbleFlowListItem } from '../hooks/useCreateBubbleFlow';
+import { notify } from '../components/common/Notifications';
 
 export interface HomePageProps {
   onFlowSelect: (flowId: number) => void;
@@ -54,7 +55,14 @@ export const HomePage: React.FC<HomePageProps> = ({
       console.error('[HomePage] Failed to duplicate flow:', error);
       setDuplicatingFlowId(null);
       setOpenMenuId(null);
-      // TODO: Show error toast/notification
+      notify({
+        type: 'error',
+        title: 'Duplication Failed',
+        message:
+          error instanceof Error
+            ? error.message
+            : 'Unable to duplicate the flow. Please try again.',
+      });
     },
   });
 
@@ -238,7 +246,7 @@ export const HomePage: React.FC<HomePageProps> = ({
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {flows.map((flow: any) => {
-              const isRun = false; // TODO: Determine run status from server data
+              const isRun = Boolean(flow.isActive || flow.cronActive);
               const isOptimisticLoading = flow._isLoading === true;
               return (
                 <div

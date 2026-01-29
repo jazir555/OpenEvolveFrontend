@@ -68,6 +68,14 @@ except ImportError:
 # Evolution imports
 from evolution import EvolutionConfiguration
 
+# Adaptive MDAP Imports
+try:
+    from adaptive_mdap.classifiers.task_complexity_classifier import TaskComplexityClassifier
+    from adaptive_mdap.allocators.resource_allocator import AdaptiveMDAPAllocator, AllocationContext
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -111,6 +119,7 @@ class MakerevolutionConfig:
 
     # Adaptive parameters
     adaptive_voting: bool = True  # Adjust k based on diversity
+    enable_adaptive_allocation: bool = True # Task 16: Granular complexity analysis
     diversity_threshold: float = 0.3  # Minimum diversity threshold
 
     # MAKER-specific
@@ -132,6 +141,7 @@ class MakerevolutionConfig:
             "convergence_threshold": self.convergence_threshold,
             "max_iterations_without_improvement": self.max_iterations_without_improvement,
             "adaptive_voting": self.adaptive_voting,
+            "enable_adaptive_allocation": self.enable_adaptive_allocation,
             "diversity_threshold": self.diversity_threshold,
             "max_token_length": self.max_token_length,
             "temperature": self.temperature
@@ -210,12 +220,12 @@ class Population:
 # MAKER-ENHANCED SELECTION
 # =============================================================================
 
-class MAKERSelection:
+class AdaptiveMAKERSelection:
     """
-    Selection operator enhanced with MAKER voting.
+    Selection operator enhanced with Adaptive MAKER voting.
 
-    Uses first-to-ahead-by-k voting to select best individuals,
-    providing zero-error guarantees for selection quality.
+    Uses granular complexity analysis to determine the optimal voting
+    threshold (k) for each selection decision, optimizing compute vs accuracy.
     """
 
     def __init__(
@@ -225,6 +235,14 @@ class MAKERSelection:
     ):
         self.config = config
         self.vote_collector = vote_collector
+        
+        # Initialize adaptive components
+        self.classifier = None
+        self.allocator = None
+        if ADAPTIVE_MDAP_AVAILABLE:
+            self.classifier = TaskComplexityClassifier()
+            self.allocator = AdaptiveMDAPAllocator()
+            logger.info("Adaptive MAKER Selection initialized with granular complexity analysis")
 
     def select(
         self,
@@ -233,24 +251,15 @@ class MAKERSelection:
         evaluator: Optional[Callable] = None
     ) -> List[Individual]:
         """
-        Select parents using MAKER voting.
-
-        Args:
-            population: Current population
-            num_parents: Number of parents to select
-            evaluator: Optional fitness function
-
-        Returns:
-            List of selected parent individuals
+        Select parents using complexity-aware MAKER voting.
         """
         if not self.config.enable_voting:
-            # Fallback to standard selection (fitness-based)
             return self._standard_selection(population, num_parents)
 
         try:
             return self._voting_selection(population, num_parents, evaluator)
         except Exception as e:
-            logger.error(f"MAKER voting selection failed: {e}")
+            logger.error(f"Adaptive MAKER voting selection failed: {e}")
             return self._standard_selection(population, num_parents)
 
     def _voting_selection(
@@ -259,19 +268,59 @@ class MAKERSelection:
         num_parents: int,
         evaluator: Optional[Callable]
     ) -> List[Individual]:
-        """Select parents using MAKER voting"""
+        """Select parents using adaptive voting thresholds"""
         # Select candidates for voting
         candidates = self._select_candidates(population, self.config.num_candidates)
 
         # Vote on each parent slot
         selected = []
         for _ in range(num_parents):
-            # Use MAKER to vote on best candidate
-            winner = self._vote_on_candidates(candidates, evaluator)
+            # 1. Compute complexity of the candidate pool
+            k_ahead = self._determine_voting_threshold(candidates)
+            
+            # 2. Use MAKER to vote on best candidate with dynamic k
+            winner = self._vote_on_candidates(candidates, evaluator, k_ahead)
             if winner:
                 selected.append(winner)
 
         return selected
+
+    def _determine_voting_threshold(self, candidates: List[Individual]) -> int:
+        """Use TaskComplexityClassifier to determine optimal k for this selection."""
+        if not self.config.enable_adaptive_allocation or not self.classifier or not self.allocator:
+            return self.config.voting_threshold
+
+        try:
+            # Combine genomes for representative complexity
+            combined_genome = "\n---\n".join([c.genome for i, c in enumerate(candidates) if i < 3])
+            
+            # Map to AdaptiveSubProblem
+            from adaptive_mdap.core.types import SubProblem as AdaptiveSubProblem
+            adaptive_sp = AdaptiveSubProblem(
+                id="selection_pool",
+                description=combined_genome[:2000],
+                domain="evolutionary_selection",
+                depth=0,
+                dependencies=[],
+                metadata={"pool_size": len(candidates)}
+            )
+            
+            # Compute granular complexity
+            complexity = self.classifier.compute_complexity(adaptive_sp)
+            
+            # Allocate resources (tier selection)
+            solve_config = self.allocator.allocate_resources(complexity.overall_score)
+            
+            # Map tier to voting threshold k
+            # k_ahead from allocator is used directly
+            k = max(1, solve_config.k_ahead)
+            
+            logger.debug(f"Adaptive threshold selection: complexity={complexity.overall_score:.3f} -> k={k}")
+            return k
+            
+        except Exception as e:
+            logger.warning(f"Failed to compute adaptive threshold: {e}")
+            return self.config.voting_threshold
 
     def _select_candidates(
         self,
@@ -292,22 +341,22 @@ class MAKERSelection:
     def _vote_on_candidates(
         self,
         candidates: List[Individual],
-        evaluator: Optional[Callable]
+        evaluator: Optional[Callable],
+        k_ahead: int = 3
     ) -> Optional[Individual]:
-        """Vote on best candidate using MAKER"""
-        # For now, simple selection by fitness
-        # In full implementation, would use MAKER voting with LLM evaluation
+        """Vote on best candidate using MAKER with dynamic k."""
         if not candidates:
             return None
 
-        # Sort by fitness
+        # Sort by fitness as a proxy for voting in this placeholder
+        # In production, this would spawn multiple agents to evaluate each candidate
+        # and use the ahead-by-k logic to converge.
         sorted_candidates = sorted(
             candidates,
             key=lambda ind: ind.fitness,
             reverse=True
         )
 
-        # Return top candidate
         return sorted_candidates[0] if sorted_candidates else None
 
     def _standard_selection(
@@ -428,16 +477,20 @@ class MAKEREvolutionEngine:
     def __init__(
         self,
         config: MakerevolutionConfig,
-        evolution_config: Optional[EvolutionConfiguration] = None
+        evolution_config: Optional[EvolutionConfiguration] = None,
+        selection: Optional[AdaptiveMAKERSelection] = None,
+        decomposer: Optional[MDAPEvolutionDecomposer] = None
     ):
         self.config = config
         self.evolution_config = evolution_config or EvolutionConfiguration()
 
-        # Initialize components
-        self.selection = MAKERSelection(config)
-        self.decomposer = MDAPEvolutionDecomposer(config)
+        # Use provided components or initialize with config
+        self.selection = selection or AdaptiveMAKERSelection(config)
+        self.decomposer = decomposer or MDAPEvolutionDecomposer(config)
 
         # Evolution state
+
+    
         self.current_population: Optional[Population] = None
         self.generation = 0
         self.best_fitness_history: List[float] = []

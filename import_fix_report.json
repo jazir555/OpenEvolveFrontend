@@ -1,0 +1,1992 @@
+{
+  "summary": {
+    "total_files": 10794,
+    "files_processed": 10794,
+    "files_modified": 152,
+    "fixes_applied": 153
+  },
+  "results": [
+    {
+      "file": ".\\adaptive_decomposition_integration.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 6386,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\additional_unit_tests.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 672,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\advanced_cache.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 10578,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\advanced_system_unit_tests.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 869,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\advanced_unit_tests_comprehensive.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 1344,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\adversarial_mdap_mcts.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 6865,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\api_endpoints.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 1211,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\bubblelabs_leanaide_integration_patch.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 8859,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\clean_final_verification_test.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 6684,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\comprehensive_functional_tests.py",
+      "fixes": [
+        {
+          "pattern": "direct_evolution_import",
+          "severity": "CRITICAL",
+          "line": 24470,
+          "explanation": "Replaced direct evolution import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\comprehensive_validation_tests.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 636,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\decomposition_engine_adaptive_enhancement.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 532,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\decomposition_engine_lean_enhanced.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 869,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\decomposition_mcp_tools.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 890,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\decomposition_mdap_integration.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 220,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\edge_case_tests.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 1058,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\end_to_end_invention_planner.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 2081,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\evolution.py",
+      "fixes": [
+        {
+          "pattern": "direct_adversarial_import",
+          "severity": "CRITICAL",
+          "line": 83017,
+          "explanation": "Replaced direct adversarial import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\extended_unit_tests.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 802,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\extra_comprehensive_tests.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 883,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\final_validation_tests.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 564,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\gauntlet_tests.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 12168,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\integration_and_performance_tests.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 661,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\leanaide_mdap.py",
+      "fixes": [
+        {
+          "pattern": "direct_evolution_import",
+          "severity": "CRITICAL",
+          "line": 17036,
+          "explanation": "Replaced direct evolution import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\mcts_evolutionary_nodes_mdap.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 3089,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\mdap_maker_mcts_unified.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 6010,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\monitoring.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 33210,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_hephaestus_adapter.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 11565,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\parallel_processing.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 23233,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\performance_profiler.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 6725,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\persistent_decomposition_engine.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 570,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\quick_verify.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 243,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\roma_decomposition_hybrid.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 1619,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\sovereign_integration.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 327,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\sovereign_sidebar_integration.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 256,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\sovereign_ui.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 341,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\system_integration_validation.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 477,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\testing_framework.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 1029,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_all_bugs_fixed.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 23398,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        },
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 19571,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_bubblelabs_validation.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 17753,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_decomposition_e2e.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 881,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_decomposition_engine.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 59,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_decomposition_fixes.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 194,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_decomposition_performance.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 3123,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_dependency_analyzer.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 616,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_enhanced_decomposition_node.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 1031,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_enhanced_decomposition_simple.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 339,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_hybrid_decomposition.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 94,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_missing_strategies.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 484,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_phase1_foundation.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 4121,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_prompt_enhancement.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 172,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_quality_assessment.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 497,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_semantic_analysis.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 547,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_solution_integration.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 21663,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_sovereign_benchmarks.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 260,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_sovereign_integration.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 89,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_sovereign_integrity.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 2274,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_sovereign_production_ready.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 397,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_sovereign_team_agents.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 206,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_strategy_selection.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 394,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_strategy_selection_simple.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 223,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_subproblem_fields_fixed.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 848,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_suite.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 597,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\test_visualization_and_custom.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 927,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\ultimate_comprehensive_tests.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 1154,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\ultra_comprehensive_tests.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 887,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\validate_adversarial_maker_integration.py",
+      "fixes": [
+        {
+          "pattern": "direct_adversarial_import",
+          "severity": "CRITICAL",
+          "line": 786,
+          "explanation": "Replaced direct adversarial import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\validate_evolution_maker_integration.py",
+      "fixes": [
+        {
+          "pattern": "direct_evolution_import",
+          "severity": "CRITICAL",
+          "line": 794,
+          "explanation": "Replaced direct evolution import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\validate_production_ready.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 353,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\validate_task_16.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 6279,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\verify_fix.py",
+      "fixes": [
+        {
+          "pattern": "direct_evolution_import",
+          "severity": "CRITICAL",
+          "line": 1619,
+          "explanation": "Replaced direct evolution import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\verify_missing_strategies.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 774,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\verify_resource_estimation.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 3504,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\verify_strategies.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 117,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\verify_subproblem_fix.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 584,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\agentic-context-engine\\ace\\observability\\tracers.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 527,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\agentic-context-engine\\benchmarks\\manager.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 2161,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\agentic-context-engine\\examples\\litellm\\seahorse_emoji_ace.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 505,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\agentic-context-engine\\scripts\\run_benchmark.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 661,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\bubblelabs_nodes\\decomposition_node.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 2448,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\examples\\example_business_process.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 182,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\examples\\example_ml_pipeline.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 226,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\examples\\example_research_decomposition.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 194,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\examples\\example_software_architecture.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 221,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\integrations\\registry.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 13856,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\kg-gen\\mcp\\tests\\conftest.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1393,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\typing_extensions.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 144574,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\gitdb\\fun.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 23214,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\gitdb\\pack.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 803,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\gitdb\\stream.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 699,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\google\\protobuf\\internal\\api_implementation.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1063,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\lxml\\html\\html5parser.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 865,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\numpy\\_distributor_init.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 378,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\numpy\\distutils\\system_info.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 97676,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\numpy\\distutils\\__init__.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1677,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\numpy\\lib\\_datasource.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 3264,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\numpy\\_core\\tests\\test_array_interface.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 3736,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\numpy\\_core\\tests\\test_mem_policy.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 8430,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pandas\\io\\common.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 12218,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pandas\\io\\clipboard\\__init__.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 18607,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pandas\\tests\\io\\test_common.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1023,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pandas\\tests\\io\\test_parquet.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 35109,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\PIL\\Image.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 8798,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\PIL\\ImageFilter.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 11664,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\PIL\\ImageFont.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 6883,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\PIL\\ImageShow.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 9825,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pip\\_internal\\network\\auth.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 4994,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pip\\_internal\\utils\\compat.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 322,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pip\\_vendor\\distlib\\compat.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 23011,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pip\\_vendor\\pygments\\cmdline.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 15155,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pip\\_vendor\\requests\\__init__.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 4063,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pip\\_vendor\\urllib3\\__init__.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 964,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pip\\_vendor\\urllib3\\contrib\\pyopenssl.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1146,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pip\\_vendor\\urllib3\\util\\ssl_.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1178,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pkg_resources\\extern\\__init__.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1336,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pkg_resources\\_vendor\\appdirs.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 21399,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\conftest.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 2910,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\dataset.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 2382,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\fs.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 3855,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\test_acero.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1153,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\test_adhoc_memory_leak.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 954,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\test_cffi.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 25738,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\test_convert_builtin.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 68698,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\test_dataset.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 34349,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\test_exec_plan.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 934,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\test_feather.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1258,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\test_ipc.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1162,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\test_orc.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1172,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\test_pandas.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1691,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\test_schema.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1061,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\interchange\\test_conversion.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1224,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\pyarrow\\tests\\parquet\\test_parquet_file.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 12917,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\requests\\compat.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 891,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\requests\\__init__.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 3969,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\setuptools\\monkey.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 4664,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\setuptools\\py34compat.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 49,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\setuptools\\command\\build_ext.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1985,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\setuptools\\extern\\__init__.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1336,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\setuptools\\_distutils\\py38compat.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 129,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\setuptools\\_distutils\\__init__.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 508,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\streamlit\\web\\bootstrap.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 3009,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\urllib3\\__init__.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 992,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\urllib3\\contrib\\pyopenssl.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1111,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\openevolve_test_env\\Lib\\site-packages\\urllib3\\util\\request.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 812,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\plugin_integrations\\github_adapter.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 712,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\plugin_integrations\\jira_adapter.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 683,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\plugin_integrations\\slack_adapter.py",
+      "fixes": [
+        {
+          "pattern": "direct_decomposition_import",
+          "severity": "CRITICAL",
+          "line": 727,
+          "explanation": "Replaced direct decomposition import with unified conditional import"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\pygraphistry\\graphistry\\Engine.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 1436,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\pygraphistry\\graphistry\\feature_utils.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 54836,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\pygraphistry\\graphistry\\PlotterBase.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 72701,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\pygraphistry\\graphistry\\util.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 5649,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    },
+    {
+      "file": ".\\ragbits\\packages\\ragbits-core\\src\\ragbits\\core\\llms\\local.py",
+      "fixes": [
+        {
+          "pattern": "silent_import_fail",
+          "severity": "HIGH",
+          "line": 11648,
+          "explanation": "Added logging to import error handling"
+        }
+      ],
+      "errors": [],
+      "modified": true
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "name": "@bubblelab/ragbits-bubblelab-integration",
+  "version": "1.0.0",
+  "description": "RAGBits integration package for BubbleLab with semantic search bubbles",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "build:watch": "tsc --watch",
+    "test": "vitest",
+    "test:watch": "vitest --watch",
+    "lint": "eslint src --ext .ts,.tsx",
+    "clean": "rimraf dist",
+    "prepare": "npm run clean && npm run build",
+    "dev": "concurrently \"npm run build:watch\" \"npm run test:watch\""
+  },
+  "keywords": [
+    "rag",
+    "bubblelab",
+    "workflow",
+    "automation",
+    "integration",
+    "semantic-search",
+    "vector-database",
+    "retrieval-augmented-generation"
+  ],
+  "author": "OpenEvolve",
+  "license": "MIT",
+  "dependencies": {
+    "@bubblelab/bubble-core": "workspace:*",
+    "@bubblelab/shared-schemas": "workspace:*",
+    "zod": "^3.22.4"
+  },
+  "peerDependencies": {
+    "@bubblelab/core": "^1.0.0",
+    "ragbits": "^2.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "vitest": "^1.2.1",
+    "ts-jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "rimraf": "^5.0.0",
+    "concurrently": "^8.0.0",
+    "nodemon": "^3.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@rollup/plugin-typescript": "^11.1.6",
+    "rollup": "^4.9.5",
+    "vite": "^5.0.11"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}

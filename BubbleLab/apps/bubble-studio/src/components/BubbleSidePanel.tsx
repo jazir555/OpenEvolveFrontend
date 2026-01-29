@@ -16,6 +16,7 @@ import {
 } from '../stores/uiStore';
 import { useEditor } from '../hooks/useEditor';
 import { useMilkTea } from '../hooks/useMilkTea';
+import { useUser } from '../hooks/useUser';
 import { toast } from 'react-toastify';
 import { findLogoForBubble } from '../lib/integrations';
 import { type AvailableModel } from '@bubblelab/shared-schemas';
@@ -72,6 +73,9 @@ export function BubbleSidePanel() {
     selectBubble,
     openPearlChat: openGeneralChat,
   } = useUIStore();
+
+  // Auth state
+  const { user } = useUser();
 
   // Panel state selectors
   const isListView = useUIStore(selectIsBubbleListOpen);
@@ -441,7 +445,7 @@ function BubblePromptView({ bubbleDefinition }: BubblePromptViewProps) {
           outputSchema: bubbleDefinition.outputSchema,
         },
         availableCredentials: bubbleDefinition.requiredCredentials,
-        userName: 'User', // TODO: Get from auth context
+        userName: user?.fullName || user?.emailAddresses?.[0]?.emailAddress || 'User',
         conversationHistory: [],
         model: selectedModel,
       },

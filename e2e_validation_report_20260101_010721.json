@@ -1,0 +1,69 @@
+{
+  "stage_results": {
+    "stage1": {
+      "timestamp": "2026-01-01T01:07:21.598302",
+      "result": {
+        "valid": true,
+        "message": "[OK] Extracted 4 constraints | [OK] Identified 1 assumptions | [OK] Bias analysis performed",
+        "output": {
+          "constraints": [
+            "Constraint(id='tc_constraint', type=<ConstraintType.HARD: 'hard'>, description='Critical temperature must be \u2265 77 K (liquid nitrogen temperature)', formalization='Tc \u2265 77 K', source='user', dependencies=[], verified=False, lean_theorem=None)",
+            "Constraint(id='jc_constraint', type=<ConstraintType.HARD: 'hard'>, description='Current density must be \u2265 10^6 A/cm\u00b2', formalization='Jc \u2265 10^6 A/cm\u00b2', source='user', dependencies=[], verified=False, lean_theorem=None)",
+            "Constraint(id='length_constraint', type=<ConstraintType.HARD: 'hard'>, description='Wire must be at least 10 meters in length', formalization='L \u2265 10 m', source='user', dependencies=[], verified=False, lean_theorem=None)",
+            "Constraint(id='equipment_constraint', type=<ConstraintType.SOFT: 'soft'>, description='Must use standard lab equipment (no specialized fabrication)', formalization='Equipment \u2208 StandardLabSet', source='user', dependencies=[], verified=False, lean_theorem=None)"
+          ],
+          "bias_report": {
+            "overall_bias_score": 0.5555555555555556,
+            "total_detections": 9
+          },
+          "assumptions": [
+            {
+              "id": "assumption_1",
+              "description": "Placeholder assumption"
+            }
+          ],
+          "contradictions_resolved": 0
+        }
+      }
+    },
+    "stage2": {
+      "timestamp": "2026-01-01T01:07:21.598302",
+      "result": {
+        "valid": true,
+        "message": "[OK] Constraint inversion performed | [OK] Created 0 ontology mappings | [OK] Isomorphism score: 0.750",
+        "output": {
+          "inverted_constraints": [],
+          "ontology_mappings": [],
+          "isomorphism_score": 0.75
+        }
+      }
+    },
+    "stage3": {
+      "timestamp": "2026-01-01T01:07:21.598302",
+      "result": {
+        "valid": true,
+        "message": "[OK] ACI value: 0.650 | [OK] MCTS iterations: 1000 | [OK] Search status: converged",
+        "output": {
+          "aci_value": 0.65,
+          "mcts_iterations": 1000,
+          "best_value": 0.85,
+          "converged": true
+        }
+      }
+    }
+  },
+  "metrics": {
+    "initial_memory_mb": 23.49609375,
+    "pipeline_execution_time": 1.9647026062011719,
+    "final_memory_mb": 260.98046875,
+    "memory_delta_mb": 237.484375,
+    "cpu_percent": 0.0
+  },
+  "errors": [
+    "Stage 4 failed: [\"cannot import name 'Problem' from partially initialized module 'phase4.aci_reduction_validator' (most likely due to a circular import) (C:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend\\\\rese\\\\phase4\\\\aci_reduction_validator.py)\", 'Traceback (most recent call last):\\n  File \"C:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend\\\\rese\\\\rese_pipeline.py\", line 521, in execute\\n    from phase4.aci_reduction_validator import (\\n  File \"C:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend\\\\rese\\\\phase4\\\\aci_reduction_validator.py\", line 29, in <module>\\n    from .independence_checker import IndependenceChecker\\n  File \"C:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend\\\\rese\\\\phase4\\\\independence_checker.py\", line 21, in <module>\\n    from .aci_reduction_validator import (\\nImportError: cannot import name \\'Problem\\' from partially initialized module \\'phase4.aci_reduction_validator\\' (most likely due to a circular import) (C:\\\\Users\\\\mmeadow\\\\Documents\\\\OpenEvolve\\\\Frontend\\\\rese\\\\phase4\\\\aci_reduction_validator.py)\\n']"
+  ],
+  "warnings": [],
+  "start_time": "2026-01-01T01:07:19.616153",
+  "end_time": "2026-01-01T01:07:21.599305",
+  "duration_seconds": 1.983152
+}

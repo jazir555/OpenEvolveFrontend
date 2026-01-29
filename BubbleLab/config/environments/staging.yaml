@@ -1,0 +1,1101 @@
+################################################################################
+# OpenEvolve BubbleLab Integration - Staging Environment Configuration
+################################################################################
+# This file contains all configuration parameters for the staging environment.
+# Following the LAW OF CONFIGURATION EXPLICITNESS: no magic defaults allowed.
+#
+# ENVIRONMENT: Staging
+# LAST_UPDATED: 2026-01-17T00:00:00Z
+# VERSION: 1.0.0
+################################################################################
+
+# =============================================================================
+# ENVIRONMENT METADATA
+# =============================================================================
+environment:
+  name: staging
+  short_name: staging
+  description: "Pre-production environment for testing and validation"
+  timezone: UTC
+  debug_mode: false
+  log_level: info
+
+# =============================================================================
+# SECURITY VALIDATION NOTICE
+# =============================================================================
+# ⚠️  CRITICAL: All example.com domains MUST be replaced before deployment
+# Set the following environment variables with your actual staging domain:
+#   - OPENEVOLVE_DOMAIN (e.g., staging.your-domain.com)
+#   - OPENEVOLVE_API_URL
+#   - APP_BASE_URL
+#
+# The application will fail to start if example domains are detected in staging/production.
+#
+
+# =============================================================================
+# OPENEVOLVE API ENDPOINTS
+# =============================================================================
+openevolve:
+  # Core API
+  # ⚠️  SECURITY WARNING: Use environment variable for production domains
+  # Example: export OPENEVOLVE_API_URL="https://staging-api.your-domain.com"
+  api_base_url: "${OPENEVOLVE_API_URL:-https://staging-api.openevolve.example.com}"
+  api_version: v1
+  api_timeout_ms: 30000
+  api_retries: 3
+  api_retry_delay_ms: 1000
+
+  # Service-specific endpoints
+  # ⚠️  SECURITY WARNING: Replace example domains with actual staging URLs
+  services:
+    # LeanAide Continuous Math Service
+    leanaide_continuous:
+      base_url: "${LENAIDE_CONTINUOUS_URL:-https://staging-leanaide-continuous.openevolve.example.com}"
+      health_check: "${LENAIDE_CONTINUOUS_URL:-https://staging-leanaide-continuous.openevolve.example.com}/health"
+      timeout_ms: 45000
+      enabled: true
+
+    # LeanAide Client (Formal Verification)
+    leanaide_client:
+      base_url: "${LENAIDE_CLIENT_URL:-https://staging-leanaide-client.openevolve.example.com}"
+      health_check: "${LENAIDE_CLIENT_URL:-https://staging-leanaide-client.openevolve.example.com}/health"
+      timeout_ms: 60000
+      enabled: true
+
+    # Knowledge Engine
+    knowledge_engine:
+      base_url: "${KNOWLEDGE_ENGINE_URL:-https://staging-knowledge-engine.openevolve.example.com}"
+      health_check: "${KNOWLEDGE_ENGINE_URL:-https://staging-knowledge-engine.openevolve.example.com}/health"
+      timeout_ms: 30000
+      enabled: true
+      indexer_url: "${KNOWLEDGE_ENGINE_URL:-https://staging-knowledge-engine.openevolve.example.com}/indexer"
+      query_url: "${KNOWLEDGE_ENGINE_URL:-https://staging-knowledge-engine.openevolve.example.com}/query"
+
+    # ACE MCP Tools (Advanced Code Evolution)
+    ace_mcp_tools:
+      base_url: "${ACE_MCP_TOOLS_URL:-https://staging-ace-mcp.openevolve.example.com}"
+      health_check: "${ACE_MCP_TOOLS_URL:-https://staging-ace-mcp.openevolve.example.com}/health"
+      timeout_ms: 30000
+      enabled: true
+
+    # Decomposition Engine
+    decomposition_engine:
+      base_url: "${DECOMPOSITION_ENGINE_URL:-https://staging-decomposition.openevolve.example.com}"
+      health_check: "${DECOMPOSITION_ENGINE_URL:-https://staging-decomposition.openevolve.example.com}/health"
+      timeout_ms: 60000
+      enabled: true
+
+    # Adversarial Testing System
+    adversarial_testing:
+      base_url: "${ADVERSARIAL_TESTING_URL:-https://staging-adversarial.openevolve.example.com}"
+      health_check: "${ADVERSARIAL_TESTING_URL:-https://staging-adversarial.openevolve.example.com}/health"
+      timeout_ms: 120000
+      enabled: true
+
+    # Evolutionary Optimization
+    evolutionary_optimization:
+      base_url: "${EVOLUTIONARY_OPTIMIZATION_URL:-https://staging-evolutionary.openevolve.example.com}"
+      health_check: "${EVOLUTIONARY_OPTIMIZATION_URL:-https://staging-evolutionary.openevolve.example.com}/health"
+      timeout_ms: 90000
+      enabled: true
+
+    # MDAP Engine (Multi-Domain Adaptive Planning)
+    mdap_engine:
+      base_url: "${MDAP_ENGINE_URL:-https://staging-mdap.openevolve.example.com}"
+      health_check: "${MDAP_ENGINE_URL:-https://staging-mdap.openevolve.example.com}/health"
+      timeout_ms: 60000
+      enabled: true
+
+    # Maker Engine (Invention Planning)
+    maker_engine:
+      base_url: "${MAKER_ENGINE_URL:-https://staging-maker.openevolve.example.com}"
+      health_check: "${MAKER_ENGINE_URL:-https://staging-maker.openevolve.example.com}/health"
+      timeout_ms: 90000
+      enabled: true
+
+    # Hybrid Maker Integration
+    hybrid_maker:
+      base_url: "${HYBRID_MAKER_URL:-https://staging-hybrid-maker.openevolve.example.com}"
+      health_check: "${HYBRID_MAKER_URL:-https://staging-hybrid-maker.openevolve.example.com}/health"
+      timeout_ms: 90000
+      enabled: true
+
+    # ROMA (Read-Only Memory Architecture)
+    roma:
+      base_url: "${ROMA_URL:-https://staging-roma.openevolve.example.com}"
+      health_check: "${ROMA_URL:-https://staging-roma.openevolve.example.com}/health"
+      timeout_ms: 30000
+      enabled: true
+
+    # Hephaestus Integration (Delegation System)
+    hephaestus:
+      base_url: "${HEPHAEUS_URL:-https://staging-hephaestus.openevolve.example.com}"
+      health_check: "${HEPHAEUS_URL:-https://staging-hephaestus.openevolve.example.com}/health"
+      timeout_ms: 45000
+      enabled: true
+      mcp_server_url: "${HEPHAEUS_URL:-https://staging-hephaestus.openevolve.example.com}/mcp"
+
+    # Generic Knowledge Extraction
+    generic_ke:
+      base_url: "${GENERIC_KE_URL:-https://staging-generic-ke.openevolve.example.com}"
+      health_check: "${GENERIC_KE_URL:-https://staging-generic-ke.openevolve.example.com}/health"
+      timeout_ms: 60000
+      enabled: true
+
+    # FRM (Formal Reasoning Mode)
+    frm:
+      base_url: "${FRM_URL:-https://staging-frm.openevolve.example.com}"
+      health_check: "${FRM_URL:-https://staging-frm.openevolve.example.com}/health"
+      timeout_ms: 120000
+      enabled: true
+
+    # Research Quest
+    research_quest:
+      base_url: "${RESEARCH_QUEST_URL:-https://staging-research-quest.openevolve.example.com}"
+      health_check: "${RESEARCH_QUEST_URL:-https://staging-research-quest.openevolve.example.com}/health"
+      timeout_ms: 45000
+      enabled: true
+
+    # DeepKE Integration
+    deepke:
+      base_url: "${DEEPKE_URL:-https://staging-deepke.openevolve.example.com}"
+      health_check: "${DEEPKE_URL:-https://staging-deepke.openevolve.example.com}/health"
+      timeout_ms: 60000
+      enabled: true
+
+    # End-to-End Invention
+    e2e_invention:
+      base_url: "${E2E_INVENTION_URL:-https://staging-e2e-invention.openevolve.example.com}"
+      health_check: "${E2E_INVENTION_URL:-https://staging-e2e-invention.openevolve.example.com}/health"
+      timeout_ms: 120000
+      enabled: true
+
+    # RAGBits Document Processor
+    ragbits:
+      base_url: "${RAGBITS_URL:-https://staging-ragbits.openevolve.example.com}"
+      health_check: "${RAGBITS_URL:-https://staging-ragbits.openevolve.example.com}/health"
+      timeout_ms: 45000
+      enabled: true
+
+    # RESE (Rare and Subtle Events)
+    rese:
+      base_url: "${RESE_URL:-https://staging-rese.openevolve.example.com}"
+      health_check: "${RESE_URL:-https://staging-rese.openevolve.example.com}/health"
+      timeout_ms: 60000
+      enabled: true
+
+    # Neural KG (Knowledge Graph)
+    neural_kg:
+      base_url: "${NEURAL_KG_URL:-https://staging-neural-kg.openevolve.example.com}"
+      health_check: "${NEURAL_KG_URL:-https://staging-neural-kg.openevolve.example.com}/health"
+      timeout_ms: 45000
+      enabled: true
+
+# =============================================================================
+# DATABASE CONFIGURATION
+# =============================================================================
+database:
+  # Primary Database (BubbleLab)
+  primary:
+    type: postgres
+    connection_string: "${DATABASE_URL}"  # Must be provided
+    pool_size: 20
+    timeout_seconds: 30
+    enable_foreign_keys: true
+    ssl_mode: require
+
+  # Knowledge Graph Database
+  knowledge_graph:
+    type: postgres
+    connection_string: "${KNOWLEDGE_GRAPH_DATABASE_URL}"
+    pool_size: 20
+    timeout_seconds: 30
+    ssl_mode: require
+
+  # Cache Database
+  cache:
+    type: redis
+    connection_string: "${REDIS_URL}"
+    pool_size: 20
+    timeout_seconds: 5
+    default_ttl_seconds: 3600
+    ssl_enabled: true
+
+  # Analytics Database
+  analytics:
+    type: postgres
+    connection_string: "${ANALYTICS_DATABASE_URL}"
+    pool_size: 10
+    timeout_seconds: 30
+    ssl_mode: require
+
+# =============================================================================
+# AUTHENTICATION & AUTHORIZATION
+# =============================================================================
+authentication:
+  # Clerk Authentication
+  clerk:
+    enabled: true  # REQUIRED in staging
+    publishable_key: "${CLERK_PUBLISHABLE_KEY}"
+    secret_key: "${CLERK_SECRET_KEY}"
+    issuer_dev: "${CLERK_ISSUER_DEV}"
+    issuer_prod: "${CLERK_ISSUER_PROD}"
+    jwt_expiry_seconds: 86400
+
+  # API Keys
+  api_keys:
+    enable_api_key_auth: true
+    header_name: X-API-Key
+    validation_enabled: true
+
+  # OAuth2 Integration
+  oauth:
+    google:
+      enabled: true
+      client_id: "${GOOGLE_OAUTH_CLIENT_ID}"
+      client_secret: "${GOOGLE_OAUTH_CLIENT_SECRET}"
+      # ⚠️  SECURITY WARNING: Use environment variable for production redirect URIs
+      redirect_uri: "${APP_BASE_URL:-https://staging.bubblelab.example.com}/auth/google/callback"
+      scopes:
+        - openid
+        - profile
+        - email
+
+# =============================================================================
+# WORKFLOW CONFIGURATION
+# =============================================================================
+workflow:
+  # Execution Settings
+  execution:
+    max_concurrent_workflows: 10
+    timeout_seconds: 600
+    retry_max_attempts: 3
+    retry_delay_seconds: 10
+    heartbeat_interval_seconds: 60
+
+  # Bubble Flow Settings
+  bubble_flow:
+    max_bubbles_per_flow: 100
+    max_connections_per_bubble: 50
+    validation_strict_mode: true
+    enable_auto_save: true
+    auto_save_interval_seconds: 60
+
+  # Template System
+  templates:
+    enabled: true
+    cache_enabled: true
+    auto_update_check: true
+    custom_templates_path: ./config/templates
+
+# =============================================================================
+# LEANAIDE CONFIGURATION (37 params)
+# =============================================================================
+leanaide:
+  # Continuous Math (10 params)
+  continuous_math:
+    enabled: true
+    ode_detection_threshold: 0.85
+    pde_detection_threshold: 0.80
+    integration_method: adaptive
+    step_size: 0.01
+    max_iterations: 1000
+    tolerance: 1e-6
+    cache_results: true
+    cache_ttl_seconds: 3600
+    parallel_processing: true
+
+  # MCTS/MDAP (15 params)
+  mcts_mdap:
+    enabled: true
+    simulations_per_step: 1000
+    exploration_weight: 1.41
+    depth_limit: 10
+    rollout_depth: 5
+    discount_factor: 0.95
+    learning_rate: 0.01
+    batch_size: 32
+    memory_size: 10000
+    target_network_update_freq: 100
+    warmup_steps: 1000
+    save_replay_buffer: true
+    replay_buffer_path: ./data/replay_buffer
+    enable_gpu: false
+    gpu_device: 0
+
+  # Red Flagging (8 params)
+  red_flagging:
+    enabled: true
+    confidence_threshold: 0.70
+    check_mathematical_validity: true
+    check_logical_consistency: true
+    check_formal_correctness: true
+    auto_fix_attempts: 3
+    generate_explanations: true
+    severity_levels: critical, high, medium, low
+
+  # Client Integration (4 params)
+  client:
+    timeout_seconds: 120
+    max_retries: 5
+    lean_path: lean
+    workspace_path: ./lean_workspace
+
+# =============================================================================
+# KNOWLEDGE ENGINE CONFIGURATION (42 params)
+# =============================================================================
+knowledge_engine:
+  # Core Settings (8 params)
+  core:
+    enabled: true
+    embedding_model: text-embedding-3-small
+    embedding_dimension: 1536
+    max_chunk_size: 1000
+    chunk_overlap: 200
+    batch_size: 20
+    parallel_processing: true
+    cache_embeddings: true
+
+  # Indexer (12 params)
+  indexer:
+    enabled: true
+    update_interval_seconds: 600
+    incremental_indexing: true
+    index_type: hierarchical
+    vector_index_type: hnsw
+    hnsw_m: 16
+    hnsw_ef_construction: 200
+    hnsw_ef_search: 50
+    compression_level: medium
+    deduplication_enabled: true
+    dedup_threshold: 0.95
+    index_persistence_path: ./data/indexes
+
+  # Query Engine (10 params)
+  query:
+    enabled: true
+    max_results: 20
+    similarity_threshold: 0.75
+    reranking_enabled: true
+    reranking_model: cross-encoder
+    hybrid_search_alpha: 0.5
+    context_window: 10
+    citation_enabled: true
+    query_cache_enabled: true
+    query_cache_ttl_seconds: 3600
+
+  # Knowledge Artifacts (12 params)
+  artifacts:
+    enabled: true
+    artifact_types:
+      - code_snippet
+      - theorem
+      - proof
+      - definition
+      - example
+      - counterexample
+    version_control: true
+    max_versions_per_artifact: 20
+    artifact_ttl_days: 365
+    relation_extraction: true
+    relation_types:
+      - depends_on
+      - refines
+      - contradicts
+      - generalizes
+    storage_backend: s3
+    storage_path: s3://openevolve-staging-artifacts
+    backup_enabled: true
+    backup_interval_hours: 12
+
+# =============================================================================
+# DECOMPOSITION ENGINE CONFIGURATION (28 params)
+# =============================================================================
+decomposition:
+  # Core Settings (10 params)
+  core:
+    enabled: true
+    max_decomposition_depth: 5
+    min_task_size: 5
+    max_task_size: 120
+    parallelism: 8
+    strategy: hierarchical
+    quality_threshold: 0.85
+    enable_caching: true
+    cache_ttl_seconds: 3600
+    checkpoint_interval: 100
+
+  # Task Analysis (8 params)
+  task_analysis:
+    complexity_metric: combined
+    dependency_detection: true
+    circular_dependency_check: true
+    prerequisite_detection: true
+    effort_estimation_method: ml
+    risk_analysis: true
+    priority_weighting: balanced
+    domain_detection: true
+
+  # Hephaestus Integration (10 params)
+  hephaestus:
+    enabled: true
+    # ⚠️  SECURITY WARNING: Use environment variable for production URLs
+    mcp_server_url: "${HEPHAEUS_URL:-https://staging-hephaestus.openevolve.example.com}/mcp"
+    delegation_timeout_seconds: 300
+    max_parallel_delegations: 10
+    retry_on_failure: true
+    max_retries: 3
+    heartbeat_interval_seconds: 30
+    result_validation: true
+    result_cache_enabled: true
+    result_cache_ttl_seconds: 1800
+    fallback_to_local: false
+
+# =============================================================================
+# ADVERSARIAL TESTING CONFIGURATION (35 params)
+# =============================================================================
+adversarial:
+  # Core Settings (8 params)
+  core:
+    enabled: true
+    test_suite_size: 500
+    max_iterations: 5000
+    convergence_threshold: 0.95
+    diversity_metric: entropy
+    random_seed: 42
+    parallel_execution: true
+    save_test_cases: true
+    test_output_path: ./data/adversarial_tests
+
+  # Evolutionary Settings (12 params)
+  evolutionary:
+    population_size: 100
+    generations: 50
+    mutation_rate: 0.1
+    crossover_rate: 0.7
+    selection_method: tournament
+    tournament_size: 3
+    elitism_count: 5
+    fitness_function: coverage
+    adaptive_mutation: true
+    crossover_method: single_point
+    niching_enabled: true
+    niche_radius: 0.1
+
+  # MDAP Integration (15 params)
+  mdap:
+    enabled: true
+    coevolution: true
+    domain_count: 5
+    domain_mutation_rate: 0.05
+    knowledge_transfer: true
+    transfer_learning_rate: 0.3
+    multi_objective_optimization: true
+    objectives:
+      - maximize_coverage
+      - minimize_false_positives
+      - maximize_diversity
+    pareto_front_size: 20
+    adaptive_domains: true
+    domain_merge_threshold: 0.8
+    domain_split_threshold: 0.5
+    knowledge_graph_integration: true
+    kg_similarity_threshold: 0.7
+
+# =============================================================================
+# EVOLUTIONARY OPTIMIZATION CONFIGURATION (32 params)
+# =============================================================================
+evolutionary:
+  # Core Settings (10 params)
+  core:
+    enabled: true
+    algorithm: nsga2
+    population_size: 200
+    generations: 100
+    convergence_threshold: 1e-6
+    random_seed: 42
+    parallel_evaluation: true
+    checkpoint_interval: 10
+    checkpoint_path: ./data/evolution_checkpoints
+    log_population_statistics: true
+
+  # Genetic Operators (10 params)
+  operators:
+    mutation_type: gaussian
+    mutation_rate: 0.1
+    mutation_strength: 0.2
+    crossover_type: simulated_binary
+    crossover_rate: 0.8
+    crossover_distribution_index: 15
+    selection_type: binary_tournament
+    tournament_size: 2
+    elitism_count: 2
+    adaptive_operators: true
+
+  # MDP Integration (12 params)
+  mdp:
+    enabled: true
+    state_representation: feature_vector
+    action_space: continuous
+    reward_shaping: true
+    discount_factor: 0.99
+    planning_horizon: 10
+    value_iteration_method: value_iteration
+    convergence_tolerance: 1e-4
+    max_iterations: 1000
+    enable_gpu: false
+    batch_planning: true
+    batch_size: 100
+    parallel_rollouts: 8
+
+# =============================================================================
+# MAKER ENGINE CONFIGURATION (38 params)
+# =============================================================================
+maker:
+  # Core Settings (10 params)
+  core:
+    enabled: true
+    planning_horizon: 15
+    max_inventions: 500
+    creativity_threshold: 0.75
+    novelty_metric: semantic
+    random_seed: 42
+    parallel_invention: true
+    save_inventions: true
+    invention_path: ./data/inventions
+    enable_caching: true
+    cache_ttl_seconds: 7200
+
+  # Problem Analysis (10 params)
+  problem_analysis:
+    domain_detection: true
+    difficulty_estimation: true
+    constraint_detection: true
+    objective_extraction: true
+    requirement_analysis: true
+    stakeholder_analysis: true
+    context_analysis: true
+    feasibility_check: true
+    impact_assessment: true
+    risk_analysis: true
+
+  # Solution Generation (10 params)
+  solution_generation:
+    method: hybrid
+    brainstorming_enabled: true
+    analogical_reasoning: true
+    cross_domain_inspiration: true
+    constraint_satisfaction: true
+    multi_objective: true
+    pareto_optimization: true
+    solution_diversity: true
+    novelty_enforcement: true
+    practicality_filter: true
+
+  # Evaluation (8 params)
+  evaluation:
+    criteria_count: 10
+    weighting_method: expert
+    feasibility_weight: 0.3
+    novelty_weight: 0.3
+    impact_weight: 0.2
+    practicality_weight: 0.2
+    peer_review_enabled: true
+    automated_testing: true
+    user_feedback_integration: true
+
+# =============================================================================
+# MDAP ENGINE CONFIGURATION (44 params)
+# =============================================================================
+mdap:
+  # Core Settings (10 params)
+  core:
+    enabled: true
+    domain_count: 10
+    adaptive_domains: true
+    domain_merge_threshold: 0.8
+    domain_split_threshold: 0.4
+    min_domain_size: 20
+    max_domain_size: 200
+    knowledge_transfer: true
+    transfer_learning_rate: 0.3
+    parallel_domains: true
+    checkpoint_interval: 100
+
+  # Multi-Objective Optimization (12 params)
+  optimization:
+    objectives:
+      - maximize_quality
+      - minimize_time
+      - minimize_cost
+      - maximize_reliability
+    pareto_front_size: 50
+    dominance_method: pareto
+    preference_elicitation: active
+    aggregation_method: weighted_sum
+    normalization_method: minmax
+    constraint_handling: penalty
+    penalty_coefficient: 1000
+    convergence_tolerance: 1e-6
+    max_iterations: 2000
+    adaptive_weights: true
+
+  # Coevolution (10 params)
+  coevolution:
+    enabled: true
+    coevolution_type: competitive
+    population_ratio: 1.0
+    fitness_sharing: true
+    sharing_sigma: 0.1
+    niche_count: 10
+    partner_selection: tournament
+    tournament_size: 5
+    collaboration_protocol: best_response
+    evaluation_interval: 10
+    knowledge_graph_guided: true
+
+  # Knowledge Integration (12 params)
+  knowledge:
+    knowledge_graph_enabled: true
+    graph_embedding: true
+    embedding_model: node2vec
+    embedding_dimension: 256
+    walk_length: 80
+    walks_per_node: 20
+    context_size: 10
+    semantic_similarity: true
+    similarity_threshold: 0.7
+    knowledge_reuse: true
+    reuse_strategy: similarity
+    knowledge_decay: true
+    decay_rate: 0.95
+
+# =============================================================================
+# ROMA CONFIGURATION (18 params)
+# =============================================================================
+roma:
+  # Core Settings (8 params)
+  core:
+    enabled: true
+    architecture: event_sourcing
+    event_store_type: postgres
+    query_model_enabled: true
+    materialized_view: true
+    view_update_strategy: async
+    snapshot_interval: 1000
+    snapshot_compression: true
+
+  # Read Optimization (5 params)
+  read_optimization:
+    cache_enabled: true
+    cache_type: redis
+    cache_ttl_seconds: 3600
+    query_optimization: true
+    index_hints_enabled: true
+
+  # Event Sourcing (5 params)
+  event_sourcing:
+    event_versioning: true
+    event_validation: true
+    event_schema_validation: strict
+    event_replay_enabled: true
+    event_replay_parallel: true
+
+# =============================================================================
+# CREDENTIAL MANAGEMENT
+# =============================================================================
+credentials:
+  # Encryption Settings
+  encryption:
+    algorithm: AES-256-GCM
+    key_length: 32
+    key_derivation: PBKDF2
+    iterations: 100000
+    salt_length: 16
+
+  # Storage
+  storage:
+    backend: vault  # Using HashiCorp Vault in staging
+    connection_string: "${VAULT_ADDR}"
+    encryption_enabled: true
+    backup_enabled: true
+    backup_path: ./backups/credentials
+    backup_retention_days: 30
+
+  # Validation
+  validation:
+    validate_on_load: true
+    validate_periodically: true
+    validation_interval_hours: 12
+    strict_validation: true
+
+# =============================================================================
+# LOGGING CONFIGURATION
+# =============================================================================
+logging:
+  # Log Levels
+  levels:
+    root: warn
+    api: info
+    workflow: info
+    database: warn
+    integration: info
+
+  # Log Format
+  format: json
+  include_timestamp: true
+  include_level: true
+  include_correlation_id: true
+  include_stack_trace: false
+
+  # Log Outputs
+  outputs:
+    - type: console
+      enabled: false
+      colorize: false
+    - type: file
+      enabled: true
+      path: ./logs/openevolve.log
+      rotation: daily
+      retention_days: 30
+      max_size_mb: 500
+    - type: database
+      enabled: true
+      connection_string: "${DATABASE_URL}"
+
+  # Structured Logging
+  structured:
+    service_name: openevolve-bubblelab
+    environment: staging
+    enable_performance_logging: true
+    enable_access_logging: true
+    enable_error_logging: true
+    correlation_id_header: X-Correlation-ID
+
+# =============================================================================
+# MONITORING & METRICS
+# =============================================================================
+monitoring:
+  # Metrics Collection
+  metrics:
+    enabled: true
+    provider: prometheus
+    port: 9090
+    path: /metrics
+    interval_seconds: 15
+
+  # Health Checks
+  health_checks:
+    enabled: true
+    endpoint: /health
+    check_interval_seconds: 30
+    timeout_seconds: 5
+    detailed_results: false
+
+  # Performance Monitoring
+  performance:
+    enabled: true
+    trace_requests: true
+    sampling_rate: 0.1  # 10% sampling
+    slow_query_threshold_ms: 5000
+    profile_memory: false
+    memory_interval_seconds: 300
+
+  # Alerting
+  alerting:
+    enabled: true
+    webhook_url: "${ALERT_WEBHOOK_URL}"
+    alert_on_errors: true
+    alert_on_slow_queries: true
+    alert_on_high_memory: true
+
+# =============================================================================
+# RATE LIMITING
+# =============================================================================
+rate_limiting:
+  # API Rate Limiting
+  api:
+    enabled: true
+    requests_per_minute: 1000
+    burst_size: 100
+    storage: redis
+
+  # Workflow Rate Limiting
+  workflow:
+    enabled: true
+    max_concurrent_per_user: 10
+    queue_size: 100
+    timeout_seconds: 600
+
+  # Service-Specific Limits
+  service_limits:
+    leanaide_continuous:
+      requests_per_minute: 60
+    knowledge_engine:
+      requests_per_minute: 120
+    decomposition_engine:
+      requests_per_minute: 30
+    adversarial_testing:
+      requests_per_minute: 10
+    maker_engine:
+      requests_per_minute: 20
+
+# =============================================================================
+# CIRCUIT BREAKER SETTINGS
+# =============================================================================
+circuit_breaker:
+  # Global Settings
+  enabled: true
+  failure_threshold: 5
+  success_threshold: 2
+  timeout_seconds: 60
+  half_open_max_calls: 3
+
+  # Service-Specific Breakers
+  services:
+    leanaide_continuous:
+      enabled: true
+      failure_threshold: 5
+      timeout_seconds: 60
+    knowledge_engine:
+      enabled: true
+      failure_threshold: 5
+      timeout_seconds: 60
+    decomposition_engine:
+      enabled: true
+      failure_threshold: 5
+      timeout_seconds: 60
+    adversarial_testing:
+      enabled: true
+      failure_threshold: 3
+      timeout_seconds: 120
+
+# =============================================================================
+# FEATURE FLAGS
+# =============================================================================
+features:
+  # Core Features
+  workflow_automation: true
+  template_system: true
+  credential_management: true
+  api_access: true
+
+  # OpenEvolve Integrations
+  leanaide_integration: true
+  knowledge_engine_integration: true
+  decomposition_integration: true
+  adversarial_testing_integration: true
+  evolutionary_optimization_integration: true
+  mdap_integration: true
+  maker_integration: true
+  roma_integration: true
+  hephaestus_integration: true
+
+  # Experimental Features
+  experimental_features: false
+  beta_features: true
+  debug_mode: false
+  verbose_logging: false
+
+  # Performance Features
+  caching: true
+  parallel_processing: true
+  batch_processing: true
+
+# =============================================================================
+# TIMEZONE & DATE/TIME SETTINGS
+# =============================================================================
+datetime:
+  timezone: UTC
+  date_format: ISO-8601
+  time_format: ISO-8601
+  parse_strict: true
+  convert_to_utc: true
+  dst_handling: fail
+
+# =============================================================================
+# CACHE CONFIGURATION
+# =============================================================================
+cache:
+  # Local Cache
+  local:
+    enabled: true
+    type: lru
+    max_size_mb: 500
+    ttl_seconds: 3600
+    cleanup_interval_seconds: 600
+
+  # Distributed Cache
+  distributed:
+    enabled: true
+    type: redis
+    connection_string: "${REDIS_URL}"
+    ttl_seconds: 3600
+    key_prefix: "openevolve:staging:"
+
+  # Cache Strategies
+  strategies:
+    workflow_results: true
+    api_responses: true
+    knowledge_embeddings: true
+    decomposition_results: true
+    maker_inventions: true
+
+# =============================================================================
+# BACKGROUND PROCESSING
+# =============================================================================
+background:
+  # Job Queue
+  queue:
+    enabled: true
+    type: bull  # Using Redis-backed Bull queue
+    max_concurrent_jobs: 20
+    job_timeout_seconds: 600
+    retry_attempts: 3
+    retry_delay_seconds: 60
+
+  # Scheduled Tasks
+  scheduled:
+    enabled: true
+    timezone: UTC
+    tasks:
+      - name: cache_cleanup
+        schedule: "0 */6 * * *"
+        enabled: true
+      - name: log_rotation
+        schedule: "0 0 * * *"
+        enabled: true
+      - name: metrics_flush
+        schedule: "*/15 * * * *"
+        enabled: true
+      - name: health_check
+        schedule: "* * * * *"
+        enabled: true
+
+# =============================================================================
+# API RATE LIMITS & QUOTAS
+# =============================================================================
+quotas:
+  # User Quotas
+  user:
+    max_workflows_per_day: 100
+    max_api_calls_per_day: 10000
+    max_storage_mb: 10240
+
+  # System Quotas
+  system:
+    max_concurrent_requests: 100
+    max_request_size_mb: 100
+    max_response_size_mb: 100
+    max_execution_time_seconds: 600
+
+# =============================================================================
+# TESTING CONFIGURATION
+# =============================================================================
+testing:
+  # Test Settings
+  enabled: false  # Disabled in staging
+  test_mode: false
+  mock_external_services: false
+  use_test_database: false
+  test_database_connection: ""
+
+  # Test Data
+  generate_test_data: false
+  test_data_size: small
+  seed_random: false
+  random_seed: 42
+
+  # Coverage
+  coverage_threshold: 90
+  coverage_report: false
+  coverage_report_path: ./coverage
+
+# =============================================================================
+# SECURITY SETTINGS (Staging)
+# =============================================================================
+security:
+  # TLS/SSL
+  tls_enabled: true
+  tls_cert_path: "/etc/ssl/certs/staging.crt"
+  tls_key_path: "/etc/ssl/private/staging.key"
+
+  # CORS
+  cors_enabled: true
+  # ⚠️  SECURITY WARNING: Use environment variable for production CORS origins
+  cors_origins:
+    - "${APP_BASE_URL:-https://staging.bubblelab.example.com}"
+    - "${OPENEVOLVE_API_URL:-https://staging-api.openevolve.example.com}"
+  cors_methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  cors_headers:
+    - Content-Type
+    - Authorization
+    - X-Correlation-ID
+
+  # CSRF
+  csrf_enabled: true
+  csrf_secret: "${CSRF_SECRET}"
+
+  # Rate Limiting
+  rate_limit_enabled: true
+
+  # Input Validation
+  validation_enabled: true
+  strict_validation: true
+  sanitize_input: true
+
+# =============================================================================
+# VALIDATION CONFIGURATION
+# =============================================================================
+validation:
+  # Schema Validation
+  schema_validation: true
+  validation_level: strict
+  fail_on_validation_error: true
+
+  # Data Validation
+  validate_on_ingest: true
+  validate_on_transform: true
+  validate_on_output: true
+
+  # Custom Validators
+  custom_validators_enabled: true
+  validators_path: ./config/validators
+
+# =============================================================================
+# MIGRATION & ROLLOUT
+# =============================================================================
+migration:
+  # Database Migration
+  auto_migration: true
+  migration_path: ./migrations
+  migration_table: schema_migrations
+
+  # Feature Rollout
+  gradual_rollout_enabled: true
+  rollout_percentage: 100
+  canary_deployment: true
+
+# =============================================================================
+# DOCUMENTATION
+# =============================================================================
+documentation:
+  # API Documentation
+  api_docs_enabled: true
+  api_docs_path: /docs
+  swagger_enabled: true
+  swagger_path: /swagger.json
+
+  # Guides
+  quick_start_enabled: true
+  tutorial_enabled: true
+  example_code_enabled: true
+
+################################################################################
+# END OF STAGING CONFIGURATION
+################################################################################

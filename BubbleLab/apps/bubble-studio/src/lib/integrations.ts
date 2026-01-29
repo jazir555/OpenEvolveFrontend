@@ -32,6 +32,7 @@ export const SERVICE_LOGOS: Readonly<Record<string, string>> = Object.freeze({
   Airtable: '/integrations/airtable.png',
   Notion: '/integrations/notion.svg',
   InsForge: '/integrations/insforge.svg',
+  RAGBits: '/integrations/ragbits.svg',
 
   // AI models (also used as fallbacks for vendor names)
   GPT: '/integrations/gpt.svg',
@@ -77,6 +78,7 @@ export const INTEGRATIONS: IntegrationLogo[] = [
   { name: 'Airtable', file: SERVICE_LOGOS['Airtable'] },
   { name: 'Notion', file: SERVICE_LOGOS['Notion'] },
   { name: 'InsForge', file: SERVICE_LOGOS['InsForge'] },
+  { name: 'RAGBits', file: SERVICE_LOGOS['RAGBits'] },
 ];
 
 // Scraping services (Apify actors and general web scraping)
@@ -193,6 +195,10 @@ const NAME_ALIASES: Readonly<Record<string, string>> = Object.freeze({
   'parse-document-workflow': 'Document Parser',
   'bubbleflow-validation-tool': 'Bubbleflow Validation',
   'code-edit-tool': 'Code Edit',
+  ragbits: 'RAGBits',
+  'ragbits-search': 'RAGBits',
+  'ragbits-ingest': 'RAGBits',
+  'ragbits-retrieval': 'RAGBits',
 });
 
 function normalize(value: string): string {

@@ -31,6 +31,8 @@ import * as githubPRCommenterTemplate from './template_codes/githubPRCommenter';
 import * as telegramBotTemplate from './template_codes/telegrambot';
 import * as notionApprovalMonitorTemplate from './template_codes/notionApprovalMonitor';
 import * as productImageTransformerTemplate from './template_codes/productImageTransformer';
+import * as nanobananaImageTemplate from './template_codes/nanobananaImagePipeline';
+import * as websiteLeadTemplate from './template_codes/websiteLeadGeneration';
 
 export interface TemplateMetadata {
   inputsSchema?: string;
@@ -98,6 +100,22 @@ export const TEMPLATES: TemplateDefinition[] = [
     code: productImageTransformerTemplate.templateCode,
     category: 'Marketing',
     isPopular: true,
+  },
+  {
+    id: 'nanobanana-image-pipeline',
+    name: 'Nanobanana Image Pipeline (Sheets -> AI -> Drive)',
+    prompt:
+      'Process a Google Sheet of image URLs + prompts, generate enhanced images, and upload results to Google Drive.',
+    code: nanobananaImageTemplate.templateCode,
+    category: 'Marketing',
+  },
+  {
+    id: 'website-lead-generation',
+    name: 'Website Lead Generation (Firecrawl, AI, Drive)',
+    prompt:
+      'Scrape the YC directory and generate a founder lead list based on a positioning document, then upload a report to Google Drive.',
+    code: websiteLeadTemplate.templateCode,
+    category: 'Lead Generation',
   },
   {
     id: 'notion-approval-monitor',

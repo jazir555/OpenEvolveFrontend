@@ -62,6 +62,26 @@ class SovereignIntegrationOrchestrator:
         self.reliability_config = config_manager.get_reliability_config()
         self.openevolve_config = config_manager.get_openevolve_config()
 
+        # Handle Presets
+        maker_cfg = kwargs.get("maker_config")
+        maker_preset = kwargs.get("maker_preset")
+        if maker_preset:
+            from openevolve_maker_integration import MAKERWorkflowConfig
+            # Convert preset name to actual config dict if needed or use from_preset logic
+            # For simplicity here, assume SubProblemSolver handles dict or config object
+            pass
+
+        adaptive_cfg = kwargs.get("adaptive_config")
+        adaptive_preset = kwargs.get("adaptive_preset")
+        if adaptive_preset:
+            from adaptive_mdap.config.profiles import ConfigProfile, get_profile_config
+            try:
+                profile = ConfigProfile(adaptive_preset.lower())
+                adaptive_cfg = get_profile_config(profile)
+                self.logger.info(f"Using adaptive preset: {adaptive_preset}")
+            except (ValueError, KeyError):
+                self.logger.warning(f"Unknown adaptive preset: {adaptive_preset}, using default")
+
         # Initialize core components with configurations
         self.db = SovereignDatabase(db_path=self.reliability_config.get("database", {}).get("db_path", "sovereign_decomposition.db"))
         self.error_handler = ErrorHandler() # ErrorHandler doesn't take config in __init__
@@ -90,8 +110,17 @@ class SovereignIntegrationOrchestrator:
         if not self.caching_optimizer:
             self.logger.warning("CachingOptimizer not found in orchestrator. Caching will be disabled for strategies.")
 
-        # Initialize DecompositionEngine with analyzer and caching_optimizer
-        self.engine = DecompositionEngine(self.analyzer, caching_optimizer=self.caching_optimizer)
+        # Initialize DecompositionEngine with analyzer, caching_optimizer and custom configs
+        maker_cfg = kwargs.get("maker_config")
+        adaptive_cfg = kwargs.get("adaptive_config")
+        enable_adaptive = kwargs.get("enable_adaptive_selection", True)
+        
+        self.engine = DecompositionEngine(
+            self.analyzer, 
+            caching_optimizer=self.caching_optimizer,
+            enable_adaptive_selection=enable_adaptive,
+            maker_config=maker_cfg
+        )
         
         self.gauntlet_system = GauntletSystem()
         self.team_coordinator = TeamCoordinator(self.gauntlet_system)
@@ -103,7 +132,14 @@ class SovereignIntegrationOrchestrator:
             self.team_coordinator
         )
         self.knowledge_manager = KnowledgeManager()
-        self.sub_problem_solver = SubProblemSolver() # Instantiate the new solver
+        
+        # Instantiate the new solver with custom configurations
+        self.sub_problem_solver = SubProblemSolver(
+            enable_adaptive_allocation=kwargs.get("enable_adaptive_allocation", True),
+            maker_config=maker_cfg,
+            adaptive_config=adaptive_cfg,
+            maker_preset=maker_preset
+        )
         
         # Register health checks
         self._register_health_checks()
@@ -227,9 +263,9 @@ class SovereignIntegrationOrchestrator:
                 self.logger.error(f"Team coordination failed: {e}")
                 team_feedback = []
             
-            # Phase 7: Solution Tracking Setup
-            self.logger.info("Phase 7: Setting up solution tracking...")
-            solutions = self._initialize_solution_tracking(plan)
+            # Phase 7: Adaptive Solution Execution
+            self.logger.info("Phase 7: Executing adaptive solutions for sub-problems...")
+            solutions = self.solve_sub_problems(plan)
             
             # Phase 8: Knowledge Extraction
             knowledge_extracted = False
@@ -831,6 +867,50 @@ def execute_complete_solution_workflow(
 
         self.logger.info("Team feedback successfully applied and plan refined.")
         return refined_plan
+
+    def solve_sub_problems(
+        self, 
+        plan: DecompositionPlan, 
+        workflow_epic_id: Optional[str] = None
+    ) -> List[SolutionAttempt]:
+        """
+        Solve all sub-problems in the plan using adaptive resource allocation.
+        
+        Args:
+            plan: Decomposition plan with sub-problems and dependency graph
+            workflow_epic_id: Optional epic ID for tracking
+            
+        Returns:
+            List of solution attempts
+        """
+        self.logger.info(f"Starting adaptive solution phase for plan: {plan.id}")
+        
+        # Get execution order from dependency graph
+        if not plan.dependency_graph or not plan.dependency_graph.nodes:
+            execution_order = [sp.id for sp in plan.sub_problems]
+        else:
+            # Assume dependency_manager can provide sorted order
+            execution_order = self.dependency_manager.get_execution_order(plan.dependency_graph)
+            
+        # Map IDs back to sub-problem objects
+        sp_map = {sp.id: sp for sp in plan.sub_problems}
+        
+        solutions = []
+        for sp_id in execution_order:
+            if sp_id not in sp_map:
+                continue
+                
+            sub_problem = sp_map[sp_id]
+            self.logger.info(f"Solving sub-problem: {sub_problem.id} ({sub_problem.title})")
+            
+            # Use the integrated adaptive solver
+            solution = self.sub_problem_solver.solve(sub_problem)
+            solutions.append(solution)
+            
+            # Update sub-problem status
+            sub_problem.status = SubProblemStatus.SOLVED if solution.status == "solved" else SubProblemStatus.FAILED
+            
+        return solutions
 
     def _register_health_checks(self):
         """Register health checks for critical components."""

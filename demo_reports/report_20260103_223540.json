@@ -1,0 +1,164 @@
+{
+  "plan_id": "demo-plan-20260103",
+  "problem": {
+    "title": "Build E-Commerce Platform",
+    "description": "Develop a full-featured e-commerce platform with product catalog, shopping cart, payment processing, and order management.",
+    "type": "software_development",
+    "priority": "high"
+  },
+  "strategy": "semantic",
+  "created_at": "2026-01-03T22:35:40.328356",
+  "sub_problems": [
+    {
+      "id": "sp-001",
+      "title": "Design Database Schema",
+      "description": "Create normalized database schema for products, users, orders, and payments.",
+      "status": "completed",
+      "type": "database",
+      "complexity": "medium",
+      "dependencies": [],
+      "quality_score": 88.0,
+      "success_criteria": [
+        "Schema normalized to 3NF",
+        "Proper indexing strategy",
+        "Foreign key relationships defined"
+      ]
+    },
+    {
+      "id": "sp-002",
+      "title": "Implement User Authentication",
+      "description": "Build secure user authentication with OAuth support and JWT tokens.",
+      "status": "completed",
+      "type": "security",
+      "complexity": "high",
+      "dependencies": [
+        "sp-001"
+      ],
+      "quality_score": 85.0,
+      "success_criteria": [
+        "OAuth 2.0 integration",
+        "JWT token management",
+        "Secure password hashing"
+      ]
+    },
+    {
+      "id": "sp-003",
+      "title": "Develop Product Catalog API",
+      "description": "Create REST API for product CRUD operations with search and filtering.",
+      "status": "in_progress",
+      "type": "backend",
+      "complexity": "high",
+      "dependencies": [
+        "sp-001"
+      ],
+      "quality_score": 75.0,
+      "success_criteria": [
+        "RESTful endpoints",
+        "Search functionality",
+        "Category filtering",
+        "API documentation"
+      ]
+    },
+    {
+      "id": "sp-004",
+      "title": "Build Shopping Cart",
+      "description": "Implement shopping cart functionality with session management.",
+      "status": "pending",
+      "type": "frontend",
+      "complexity": "medium",
+      "dependencies": [
+        "sp-003"
+      ],
+      "quality_score": 70.0,
+      "success_criteria": [
+        "Add/remove items",
+        "Quantity management",
+        "Session persistence",
+        "Cart calculations"
+      ]
+    },
+    {
+      "id": "sp-005",
+      "title": "Integrate Payment Gateway",
+      "description": "Integrate Stripe payment processing with secure card handling.",
+      "status": "pending",
+      "type": "integration",
+      "complexity": "high",
+      "dependencies": [
+        "sp-004"
+      ],
+      "quality_score": 72.0,
+      "success_criteria": [
+        "Stripe integration",
+        "Secure card handling",
+        "Payment confirmation",
+        "Error handling"
+      ]
+    },
+    {
+      "id": "sp-006",
+      "title": "Create Admin Dashboard",
+      "description": "Build admin interface for order and product management.",
+      "status": "pending",
+      "type": "frontend",
+      "complexity": "medium",
+      "dependencies": [
+        "sp-003"
+      ],
+      "quality_score": 68.0,
+      "success_criteria": [
+        "Product management",
+        "Order management",
+        "Analytics dashboard",
+        "User management"
+      ]
+    }
+  ],
+  "quality_scores": {
+    "overall_score": 76.3,
+    "completeness_score": 80.0,
+    "consistency_score": 75.0,
+    "feasibility_score": 78.0,
+    "dependency_score": 85.0,
+    "balance_score": 70.0,
+    "meets_thresholds": true,
+    "critical_issues": [],
+    "improvement_recommendations": [
+      "Consider breaking down payment integration into smaller tasks",
+      "Add more detailed testing criteria",
+      "Review dependency balance for frontend tasks"
+    ]
+  },
+  "dependency_graph": {
+    "total_edges": 5,
+    "critical_path": [
+      "sp-001",
+      "sp-003",
+      "sp-004",
+      "sp-005"
+    ]
+  },
+  "metadata": {
+    "generated_at": "2026-01-03T22:35:40.329357",
+    "generator_version": "1.0.0",
+    "plan_id": "demo-plan-20260103",
+    "problem_title": "Build E-Commerce Platform",
+    "strategy": "semantic",
+    "total_sub_problems": 6,
+    "completion_percentage": 33.33333333333333
+  },
+  "report_config": {
+    "format": "json",
+    "generated_at": "2026-01-03T22:35:40.329357",
+    "sections": [
+      "overview",
+      "sub_problems",
+      "quality_assessment"
+    ],
+    "branding": {
+      "primary_color": "#2C3E50",
+      "secondary_color": "#34495E",
+      "company_name": "Demo Corp"
+    }
+  }
+}

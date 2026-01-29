@@ -1,0 +1,114 @@
+# Alertmanager Configuration
+
+global:
+  resolve_timeout: 5m
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+# Route configuration
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default-receiver'
+
+  routes:
+    # Critical alerts
+    - match:
+        severity: critical
+      receiver: 'critical-receiver'
+      continue: true
+
+    # Warning alerts
+    - match:
+        severity: warning
+      receiver: 'warning-receiver'
+
+    # API-specific alerts
+    - match:
+        service: api-gateway
+      receiver: 'api-team-receiver'
+
+    # Database alerts
+    - match:
+        service: database
+      receiver: 'database-team-receiver'
+
+# Receivers configuration
+receivers:
+  - name: 'default-receiver'
+    slack_configs:
+      - channel: '#openevolve-alerts'
+        title: '{{ .GroupLabels.alertname }}'
+        text: >-
+          Summary: {{ .CommonAnnotations.summary }}
+          Description: {{ .CommonAnnotations.description }}
+          Severity: {{ .CommonLabels.severity }}
+
+  - name: 'critical-receiver'
+    slack_configs:
+      - channel: '#openevolve-critical'
+        send_resolved: true
+        title: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+        text: >-
+          *CRITICAL ALERT*
+          Summary: {{ .CommonAnnotations.summary }}
+          Description: {{ .CommonAnnotations.description }}
+          Severity: {{ .CommonLabels.severity }}
+          Service: {{ .CommonLabels.service }}
+          Environment: {{ .CommonLabels.environment }}
+    email_configs:
+      - to: 'oncall@openevolve.ai'
+        send_resolved: true
+        headers:
+          Subject: '🚨 CRITICAL: {{ .GroupLabels.alertname }}'
+
+  - name: 'warning-receiver'
+    slack_configs:
+      - channel: '#openevolve-warnings'
+        send_resolved: true
+        title: '⚠️ WARNING: {{ .GroupLabels.alertname }}'
+        color: 'warning'
+        text: >-
+          *WARNING ALERT*
+          Summary: {{ .CommonAnnotations.summary }}
+          Description: {{ .CommonAnnotations.description }}
+
+  - name: 'api-team-receiver'
+    slack_configs:
+      - channel: '#api-team'
+        send_resolved: true
+        title: 'API Alert: {{ .GroupLabels.alertname }}'
+        text: >-
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Summary:* {{ .Annotations.summary }}
+          *Description:* {{ .Annotations.description }}
+          {{ end }}
+
+  - name: 'database-team-receiver'
+    slack_configs:
+      - channel: '#database-team'
+        send_resolved: true
+        title: 'Database Alert: {{ .GroupLabels.alertname }}'
+        text: >-
+          {{ range .Alerts }}
+          *Alert:* {{ .Labels.alertname }}
+          *Summary:* {{ .Annotations.summary }}
+          {{ end }}
+
+# Inhibit rules
+inhibit_rules:
+  # Inhibit warning if critical is firing
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'service']
+
+  # Inhibit if alert is already resolved
+  - source_match:
+      status: 'resolved'
+    target_match_re:
+      status: '.+'

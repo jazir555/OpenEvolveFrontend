@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { logger } from '../utils/logger';
 
 interface InputParametersProps {
   flowName: string;
@@ -100,7 +101,10 @@ const sanitizeJSONString = (jsonString: string): string => {
 
 const parseJSONSchema = (schemaString: string): SchemaField[] => {
   if (!schemaString || typeof schemaString !== 'string') {
-    console.warn('Invalid schema string provided to parseJSONSchema');
+    logger.warn({
+      msg: 'Invalid schema string provided to parseJSONSchema',
+      component: 'InputParameters',
+    });
     return [];
   }
 
@@ -109,7 +113,9 @@ const parseJSONSchema = (schemaString: string): SchemaField[] => {
     const sanitizedSchema = sanitizeJSONString(schemaString);
 
     if (!isValidJSONString(sanitizedSchema)) {
-      console.error('Schema string is not valid JSON after sanitization:', {
+      logger.error({
+        msg: 'Schema string is not valid JSON after sanitization',
+        component: 'InputParameters',
         original:
           schemaString.substring(0, 200) +
           (schemaString.length > 200 ? '...' : ''),
@@ -123,7 +129,11 @@ const parseJSONSchema = (schemaString: string): SchemaField[] => {
     const schema = JSON.parse(sanitizedSchema);
 
     if (!schema || typeof schema !== 'object') {
-      console.error('Parsed schema is not a valid object:', schema);
+      logger.error({
+        msg: 'Parsed schema is not a valid object',
+        component: 'InputParameters',
+        schema,
+      });
       return [];
     }
 
@@ -169,7 +179,9 @@ const parseJSONSchema = (schemaString: string): SchemaField[] => {
 
     return fields;
   } catch (error) {
-    console.error('Failed to parse JSON schema:', {
+    logger.error({
+      msg: 'Failed to parse JSON schema',
+      component: 'InputParameters',
       error: error instanceof Error ? error.message : String(error),
       schema:
         schemaString.substring(0, 500) +
@@ -188,12 +200,12 @@ export const InputParameters: React.FC<InputParametersProps> = ({
 }) => {
   // Generate storage key based on flow name and inputs schema
   const storageKey = `flow-inputs-${flowName}-${btoa(inputsSchema || '').slice(0, 10)}`;
-  console.log(
-    '[InputParameters] Generated storage key:',
+  logger.debug({
+    msg: 'Generated storage key for flow inputs',
+    component: 'InputParameters',
     storageKey,
-    'for flowName:',
-    flowName
-  );
+    flowName,
+  });
 
   const [inputs, setInputs] = useState<Record<string, unknown>>({});
   const [fileNames, setFileNames] = useState<Record<string, string>>({});
@@ -216,17 +228,26 @@ export const InputParameters: React.FC<InputParametersProps> = ({
 
   // Load saved data from localStorage on component mount
   useEffect(() => {
-    console.log(
-      '[InputParameters] Attempting to load from localStorage with key:',
-      storageKey
-    );
+    logger.debug({
+      msg: 'Attempting to load from localStorage',
+      component: 'InputParameters',
+      storageKey,
+    });
     try {
       const saved = localStorage.getItem(storageKey);
-      console.log('[InputParameters] Raw saved data:', saved);
+      logger.debug({
+        msg: 'Raw saved data from localStorage',
+        component: 'InputParameters',
+        saved,
+      });
 
       if (saved) {
         const parsedData = JSON.parse(saved);
-        console.log('[InputParameters] Parsed saved data:', parsedData);
+        logger.debug({
+          msg: 'Parsed saved data from localStorage',
+          component: 'InputParameters',
+          parsedData,
+        });
 
         // Only load if data exists and is valid
         let dataLoaded = false;
@@ -261,10 +282,17 @@ export const InputParameters: React.FC<InputParametersProps> = ({
         }
         setHasLoadedFromStorage(dataLoaded);
       } else {
-        console.log('[InputParameters] No saved data found in localStorage');
+        logger.debug({
+          msg: 'No saved data found in localStorage',
+          component: 'InputParameters',
+        });
       }
     } catch (error) {
-      console.warn('[InputParameters] Error loading saved inputs:', error);
+      logger.warn({
+        msg: 'Error loading saved inputs from localStorage',
+        component: 'InputParameters',
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
 
     // Mark as initialized after loading attempt (successful or not)
@@ -274,7 +302,10 @@ export const InputParameters: React.FC<InputParametersProps> = ({
   // Save data to localStorage whenever inputs change (but only after initialization)
   useEffect(() => {
     if (!hasInitialized) {
-      console.log('[InputParameters] Skipping save - not yet initialized');
+      logger.debug({
+        msg: 'Skipping save - not yet initialized',
+        component: 'InputParameters',
+      });
       return;
     }
 
@@ -288,12 +319,17 @@ export const InputParameters: React.FC<InputParametersProps> = ({
         timestamp: Date.now(),
       };
       localStorage.setItem(storageKey, JSON.stringify(dataToSave));
-      console.log(
-        '[InputParameters] Saving inputs to localStorage:',
-        dataToSave
-      );
+      logger.debug({
+        msg: 'Saving inputs to localStorage',
+        component: 'InputParameters',
+        dataToSave,
+      });
     } catch (error) {
-      console.warn('[InputParameters] Error saving inputs:', error);
+      logger.warn({
+        msg: 'Error saving inputs to localStorage',
+        component: 'InputParameters',
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   }, [
     inputs,
@@ -379,7 +415,12 @@ export const InputParameters: React.FC<InputParametersProps> = ({
       // Regular field (non-nested)
       handleInputChange(fieldName, base64);
     } catch (error) {
-      console.error('Failed to upload file:', error);
+      logger.error({
+        msg: 'Failed to upload file',
+        component: 'InputParameters',
+        fieldName,
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   };
 
@@ -393,9 +434,16 @@ export const InputParameters: React.FC<InputParametersProps> = ({
       setArrayItemCounts({});
       setCustomFieldNames({});
       setHasLoadedFromStorage(false);
-      console.log('[InputParameters] Cleared saved inputs');
+      logger.debug({
+        msg: 'Cleared saved inputs',
+        component: 'InputParameters',
+      });
     } catch (error) {
-      console.warn('[InputParameters] Error clearing saved inputs:', error);
+      logger.warn({
+        msg: 'Error clearing saved inputs from localStorage',
+        component: 'InputParameters',
+        error: error instanceof Error ? error.message : String(error),
+      });
     }
   };
 

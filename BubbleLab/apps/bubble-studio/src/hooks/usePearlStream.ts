@@ -124,7 +124,7 @@ export interface GenerateCodeParams {
  * Starts a generation stream for a flow and stores events in pearlChatStore.
  * All events are processed through handleStreamingEvent for unified handling.
  */
-async function startGenerationStream(
+export async function startGenerationStream(
   params: GenerateCodeParams,
   options?: HandleStreamingEventOptions,
   maxRetries: number = 2

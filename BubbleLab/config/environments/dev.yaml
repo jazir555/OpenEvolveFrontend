@@ -1,0 +1,1089 @@
+################################################################################
+# OpenEvolve BubbleLab Integration - Development Environment Configuration
+################################################################################
+# This file contains all configuration parameters for the development environment.
+# Following the LAW OF CONFIGURATION EXPLICITNESS: no magic defaults allowed.
+#
+# ENVIRONMENT: Development
+# LAST_UPDATED: 2026-01-17T00:00:00Z
+# VERSION: 1.0.0
+################################################################################
+
+# =============================================================================
+# ENVIRONMENT METADATA
+# =============================================================================
+environment:
+  name: development
+  short_name: dev
+  description: "Local development environment with debug features enabled"
+  timezone: UTC
+  debug_mode: true
+  log_level: debug
+
+# =============================================================================
+# OPENEVOLVE API ENDPOINTS
+# =============================================================================
+openevolve:
+  # Core API
+  api_base_url: http://localhost:8000
+  api_version: v1
+  api_timeout_ms: 30000
+  api_retries: 3
+  api_retry_delay_ms: 1000
+
+  # Service-specific endpoints
+  services:
+    # LeanAide Continuous Math Service
+    leanaide_continuous:
+      base_url: http://localhost:8001
+      health_check: http://localhost:8001/health
+      timeout_ms: 45000
+      enabled: true
+
+    # LeanAide Client (Formal Verification)
+    leanaide_client:
+      base_url: http://localhost:8002
+      health_check: http://localhost:8002/health
+      timeout_ms: 60000
+      enabled: true
+
+    # Knowledge Engine
+    knowledge_engine:
+      base_url: http://localhost:8003
+      health_check: http://localhost:8003/health
+      timeout_ms: 30000
+      enabled: true
+      indexer_url: http://localhost:8003/indexer
+      query_url: http://localhost:8003/query
+
+    # ACE MCP Tools (Advanced Code Evolution)
+    ace_mcp_tools:
+      base_url: http://localhost:8004
+      health_check: http://localhost:8004/health
+      timeout_ms: 30000
+      enabled: true
+
+    # Decomposition Engine
+    decomposition_engine:
+      base_url: http://localhost:8005
+      health_check: http://localhost:8005/health
+      timeout_ms: 60000
+      enabled: true
+
+    # Adversarial Testing System
+    adversarial_testing:
+      base_url: http://localhost:8006
+      health_check: http://localhost:8006/health
+      timeout_ms: 120000
+      enabled: true
+
+    # Evolutionary Optimization
+    evolutionary_optimization:
+      base_url: http://localhost:8007
+      health_check: http://localhost:8007/health
+      timeout_ms: 90000
+      enabled: true
+
+    # MDAP Engine (Multi-Domain Adaptive Planning)
+    mdap_engine:
+      base_url: http://localhost:8008
+      health_check: http://localhost:8008/health
+      timeout_ms: 60000
+      enabled: true
+
+    # Maker Engine (Invention Planning)
+    maker_engine:
+      base_url: http://localhost:8009
+      health_check: http://localhost:8009/health
+      timeout_ms: 90000
+      enabled: true
+
+    # Hybrid Maker Integration
+    hybrid_maker:
+      base_url: http://localhost:8010
+      health_check: http://localhost:8010/health
+      timeout_ms: 90000
+      enabled: true
+
+    # ROMA (Read-Only Memory Architecture)
+    roma:
+      base_url: http://localhost:8011
+      health_check: http://localhost:8011/health
+      timeout_ms: 30000
+      enabled: true
+
+    # Hephaestus Integration (Delegation System)
+    hephaestus:
+      base_url: http://localhost:8012
+      health_check: http://localhost:8012/health
+      timeout_ms: 45000
+      enabled: true
+      mcp_server_url: http://localhost:8012/mcp
+
+    # Generic Knowledge Extraction
+    generic_ke:
+      base_url: http://localhost:8013
+      health_check: http://localhost:8013/health
+      timeout_ms: 60000
+      enabled: true
+
+    # FRM (Formal Reasoning Mode)
+    frm:
+      base_url: http://localhost:8014
+      health_check: http://localhost:8014/health
+      timeout_ms: 120000
+      enabled: true
+
+    # Research Quest
+    research_quest:
+      base_url: http://localhost:8015
+      health_check: http://localhost:8015/health
+      timeout_ms: 45000
+      enabled: true
+
+    # DeepKE Integration
+    deepke:
+      base_url: http://localhost:8016
+      health_check: http://localhost:8016/health
+      timeout_ms: 60000
+      enabled: true
+
+    # End-to-End Invention
+    e2e_invention:
+      base_url: http://localhost:8017
+      health_check: http://localhost:8017/health
+      timeout_ms: 120000
+      enabled: true
+
+    # RAGBits Document Processor
+    ragbits:
+      base_url: http://localhost:8018
+      health_check: http://localhost:8018/health
+      timeout_ms: 45000
+      enabled: true
+
+    # RESE (Rare and Subtle Events)
+    rese:
+      base_url: http://localhost:8019
+      health_check: http://localhost:8019/health
+      timeout_ms: 60000
+      enabled: true
+
+    # Neural KG (Knowledge Graph)
+    neural_kg:
+      base_url: http://localhost:8020
+      health_check: http://localhost:8020/health
+      timeout_ms: 45000
+      enabled: true
+
+# =============================================================================
+# DATABASE CONFIGURATION
+# =============================================================================
+database:
+  # Primary Database (BubbleLab)
+  primary:
+    type: sqlite
+    connection_string: file:./dev.db
+    pool_size: 5
+    timeout_seconds: 30
+    enable_foreign_keys: true
+    journal_mode: WAL
+
+  # Knowledge Graph Database
+  knowledge_graph:
+    type: postgres
+    # ⚠️  SECURITY WARNING: Never commit actual credentials to git
+    # Set via environment variable: KNOWLEDGE_GRAPH_DATABASE_URL
+    connection_string: "${KNOWLEDGE_GRAPH_DATABASE_URL:-postgresql://postgres:changeme@localhost:5432/knowledge_graph_dev}"
+    pool_size: 10
+    timeout_seconds: 30
+    ssl_mode: disable
+
+  # Cache Database
+  cache:
+    type: redis
+    # ⚠️  SECURITY WARNING: Never commit actual credentials to git
+    # Set via environment variable: REDIS_URL
+    connection_string: "${REDIS_URL:-redis://localhost:6379/0}"
+    pool_size: 10
+    timeout_seconds: 5
+    default_ttl_seconds: 3600
+
+  # Analytics Database
+  analytics:
+    type: postgres
+    # ⚠️  SECURITY WARNING: Never commit actual credentials to git
+    # Set via environment variable: ANALYTICS_DATABASE_URL
+    connection_string: "${ANALYTICS_DATABASE_URL:-postgresql://postgres:changeme@localhost:5432/analytics_dev}"
+    pool_size: 5
+    timeout_seconds: 30
+    ssl_mode: disable
+
+# =============================================================================
+# AUTHENTICATION & AUTHORIZATION
+# =============================================================================
+authentication:
+  # Clerk Authentication
+  clerk:
+    enabled: false  # Disabled in dev
+    publishable_key: ""
+    secret_key: ""
+    issuer_dev: ""
+    issuer_prod: ""
+    jwt_expiry_seconds: 86400
+
+  # API Keys
+  api_keys:
+    enable_api_key_auth: true
+    header_name: X-API-Key
+    validation_enabled: false  # Disabled in dev for ease of testing
+
+  # OAuth2 Integration
+  oauth:
+    google:
+      enabled: true
+      client_id: "${GOOGLE_OAUTH_CLIENT_ID}"
+      client_secret: "${GOOGLE_OAUTH_CLIENT_SECRET}"
+      redirect_uri: http://localhost:3000/auth/google/callback
+      scopes:
+        - openid
+        - profile
+        - email
+
+# =============================================================================
+# WORKFLOW CONFIGURATION
+# =============================================================================
+workflow:
+  # Execution Settings
+  execution:
+    max_concurrent_workflows: 5
+    timeout_seconds: 300
+    retry_max_attempts: 3
+    retry_delay_seconds: 5
+    heartbeat_interval_seconds: 30
+
+  # Bubble Flow Settings
+  bubble_flow:
+    max_bubbles_per_flow: 50
+    max_connections_per_bubble: 20
+    validation_strict_mode: false
+    enable_auto_save: true
+    auto_save_interval_seconds: 30
+
+  # Template System
+  templates:
+    enabled: true
+    cache_enabled: true
+    auto_update_check: false
+    custom_templates_path: ./config/templates
+
+# =============================================================================
+# LEANAIDE CONFIGURATION (37 params)
+# =============================================================================
+leanaide:
+  # Continuous Math (10 params)
+  continuous_math:
+    enabled: true
+    ode_detection_threshold: 0.85
+    pde_detection_threshold: 0.80
+    integration_method: adaptive  # adaptive, rk45, euler
+    step_size: 0.01
+    max_iterations: 1000
+    tolerance: 1e-6
+    cache_results: true
+    cache_ttl_seconds: 3600
+    parallel_processing: true
+
+  # MCTS/MDAP (15 params)
+  mcts_mdap:
+    enabled: true
+    simulations_per_step: 1000
+    exploration_weight: 1.41  # UCB1 constant
+    depth_limit: 10
+    rollout_depth: 5
+    discount_factor: 0.95
+    learning_rate: 0.01
+    batch_size: 32
+    memory_size: 10000
+    target_network_update_freq: 100
+    warmup_steps: 1000
+    save_replay_buffer: true
+    replay_buffer_path: ./data/replay_buffer
+    enable_gpu: false
+    gpu_device: 0
+
+  # Red Flagging (8 params)
+  red_flagging:
+    enabled: true
+    confidence_threshold: 0.70
+    check_mathematical_validity: true
+    check_logical_consistency: true
+    check_formal_correctness: true
+    auto_fix_attempts: 3
+    generate_explanations: true
+    severity_levels: critical, high, medium, low
+
+  # Client Integration (4 params)
+  client:
+    timeout_seconds: 120
+    max_retries: 5
+    lean_path: lean  # Path to Lean 4 executable
+    workspace_path: ./lean_workspace
+
+# =============================================================================
+# KNOWLEDGE ENGINE CONFIGURATION (42 params)
+# =============================================================================
+knowledge_engine:
+  # Core Settings (8 params)
+  core:
+    enabled: true
+    embedding_model: text-embedding-3-small
+    embedding_dimension: 1536
+    max_chunk_size: 1000
+    chunk_overlap: 200
+    batch_size: 10
+    parallel_processing: true
+    cache_embeddings: true
+
+  # Indexer (12 params)
+  indexer:
+    enabled: true
+    update_interval_seconds: 300
+    incremental_indexing: true
+    index_type: hierarchical  # hierarchical, flat, hybrid
+    vector_index_type: hnsw  # hnsw, ivf, flat
+    hnsw_m: 16
+    hnsw_ef_construction: 200
+    hnsw_ef_search: 50
+    compression_level: medium  # none, low, medium, high
+    deduplication_enabled: true
+    dedup_threshold: 0.95
+    index_persistence_path: ./data/indexes
+
+  # Query Engine (10 params)
+  query:
+    enabled: true
+    max_results: 10
+    similarity_threshold: 0.70
+    reranking_enabled: true
+    reranking_model: cross-encoder
+    hybrid_search_alpha: 0.5  # Balance between vector and keyword
+    context_window: 5
+    citation_enabled: true
+    query_cache_enabled: true
+    query_cache_ttl_seconds: 1800
+
+  # Knowledge Artifacts (12 params)
+  artifacts:
+    enabled: true
+    artifact_types:
+      - code_snippet
+      - theorem
+      - proof
+      - definition
+      - example
+      - counterexample
+    version_control: true
+    max_versions_per_artifact: 10
+    artifact_ttl_days: 365
+    relation_extraction: true
+    relation_types:
+      - depends_on
+      - refines
+      - contradicts
+      - generalizes
+    storage_backend: filesystem
+    storage_path: ./data/artifacts
+    backup_enabled: true
+    backup_interval_hours: 24
+
+# =============================================================================
+# DECOMPOSITION ENGINE CONFIGURATION (28 params)
+# =============================================================================
+decomposition:
+  # Core Settings (10 params)
+  core:
+    enabled: true
+    max_decomposition_depth: 5
+    min_task_size: 5  # minutes
+    max_task_size: 120  # minutes
+    parallelism: 4
+    strategy: hierarchical  # hierarchical, flat, adaptive
+    quality_threshold: 0.80
+    enable_caching: true
+    cache_ttl_seconds: 3600
+    checkpoint_interval: 100
+
+  # Task Analysis (8 params)
+  task_analysis:
+    complexity_metric: combined  # cyclomatic, cognitive, combined
+    dependency_detection: true
+    circular_dependency_check: true
+    prerequisite_detection: true
+    effort_estimation_method: ml  # linear, ml, expert
+    risk_analysis: true
+    priority_weighting: balanced  # speed, quality, balanced
+    domain_detection: true
+
+  # Hephaestus Integration (10 params)
+  hephaestus:
+    enabled: true
+    mcp_server_url: http://localhost:8012/mcp
+    delegation_timeout_seconds: 300
+    max_parallel_delegations: 5
+    retry_on_failure: true
+    max_retries: 3
+    heartbeat_interval_seconds: 30
+    result_validation: true
+    result_cache_enabled: true
+    result_cache_ttl_seconds: 1800
+    fallback_to_local: true
+
+# =============================================================================
+# ADVERSARIAL TESTING CONFIGURATION (35 params)
+# =============================================================================
+adversarial:
+  # Core Settings (8 params)
+  core:
+    enabled: true
+    test_suite_size: 100
+    max_iterations: 1000
+    convergence_threshold: 0.95
+    diversity_metric: entropy  # entropy, hamming, levenshtein
+    random_seed: 42
+    parallel_execution: true
+    save_test_cases: true
+    test_output_path: ./data/adversarial_tests
+
+  # Evolutionary Settings (12 params)
+  evolutionary:
+    population_size: 50
+    generations: 20
+    mutation_rate: 0.1
+    crossover_rate: 0.7
+    selection_method: tournament  # tournament, roulette, rank
+    tournament_size: 3
+    elitism_count: 2
+    fitness_function: coverage  # coverage, fault_detection, combined
+    adaptive_mutation: true
+    crossover_method: single_point  # single_point, two_point, uniform
+    niching_enabled: true
+    niche_radius: 0.1
+
+  # MDAP Integration (15 params)
+  mdap:
+    enabled: true
+    coevolution: true
+    domain_count: 3
+    domain_mutation_rate: 0.05
+    knowledge_transfer: true
+    transfer_learning_rate: 0.3
+    multi_objective_optimization: true
+    objectives:
+      - maximize_coverage
+      - minimize_false_positives
+      - maximize_diversity
+    pareto_front_size: 10
+    adaptive_domains: true
+    domain_merge_threshold: 0.8
+    domain_split_threshold: 0.5
+    knowledge_graph_integration: true
+    kg_similarity_threshold: 0.7
+
+# =============================================================================
+# EVOLUTIONARY OPTIMIZATION CONFIGURATION (32 params)
+# =============================================================================
+evolutionary:
+  # Core Settings (10 params)
+  core:
+    enabled: true
+    algorithm: nsga2  # nsga2, spea2, moead
+    population_size: 100
+    generations: 50
+    convergence_threshold: 1e-6
+    random_seed: 42
+    parallel_evaluation: true
+    checkpoint_interval: 10
+    checkpoint_path: ./data/evolution_checkpoints
+    log_population_statistics: true
+
+  # Genetic Operators (10 params)
+  operators:
+    mutation_type: gaussian  # gaussian, polynomial, adaptive
+    mutation_rate: 0.1
+    mutation_strength: 0.2
+    crossover_type: simulated_binary  # single_point, two_point, simulated_binary
+    crossover_rate: 0.8
+    crossover_distribution_index: 15
+    selection_type: binary_tournament  # roulette, tournament, rank
+    tournament_size: 2
+    elitism_count: 1
+    adaptive_operators: true
+
+  # MDP Integration (12 params)
+  mdp:
+    enabled: true
+    state_representation: feature_vector
+    action_space: continuous  # discrete, continuous
+    reward_shaping: true
+    discount_factor: 0.99
+    planning_horizon: 10
+    value_iteration_method: value_iteration  # value_iteration, policy_iteration
+    convergence_tolerance: 1e-4
+    max_iterations: 1000
+    enable_gpu: false
+    batch_planning: true
+    batch_size: 100
+    parallel_rollouts: 4
+
+# =============================================================================
+# MAKER ENGINE CONFIGURATION (38 params)
+# =============================================================================
+maker:
+  # Core Settings (10 params)
+  core:
+    enabled: true
+    planning_horizon: 10
+    max_inventions: 100
+    creativity_threshold: 0.70
+    novelty_metric: semantic  # semantic, structural, combined
+    random_seed: 42
+    parallel_invention: true
+    save_inventions: true
+    invention_path: ./data/inventions
+    enable_caching: true
+    cache_ttl_seconds: 7200
+
+  # Problem Analysis (10 params)
+  problem_analysis:
+    domain_detection: true
+    difficulty_estimation: true
+    constraint_detection: true
+    objective_extraction: true
+    requirement_analysis: true
+    stakeholder_analysis: true
+    context_analysis: true
+    feasibility_check: true
+    impact_assessment: true
+    risk_analysis: true
+
+  # Solution Generation (10 params)
+  solution_generation:
+    method: hybrid  # analytical, evolutionary, hybrid
+    brainstorming_enabled: true
+    analogical_reasoning: true
+    cross_domain_inspiration: true
+    constraint_satisfaction: true
+    multi_objective: true
+    pareto_optimization: true
+    solution_diversity: true
+    novelty_enforcement: true
+    practicality_filter: true
+
+  # Evaluation (8 params)
+  evaluation:
+    criteria_count: 5
+    weighting_method: expert  # expert, automated, hybrid
+    feasibility_weight: 0.3
+    novelty_weight: 0.3
+    impact_weight: 0.2
+    practicality_weight: 0.2
+    peer_review_enabled: false
+    automated_testing: true
+    user_feedback_integration: false
+
+# =============================================================================
+# MDAP ENGINE CONFIGURATION (44 params)
+# =============================================================================
+mdap:
+  # Core Settings (10 params)
+  core:
+    enabled: true
+    domain_count: 5
+    adaptive_domains: true
+    domain_merge_threshold: 0.8
+    domain_split_threshold: 0.4
+    min_domain_size: 10
+    max_domain_size: 100
+    knowledge_transfer: true
+    transfer_learning_rate: 0.3
+    parallel_domains: true
+    checkpoint_interval: 50
+
+  # Multi-Objective Optimization (12 params)
+  optimization:
+    objectives:
+      - maximize_quality
+      - minimize_time
+      - minimize_cost
+      - maximize_reliability
+    pareto_front_size: 20
+    dominance_method: pareto  # pareto, epsilon, preference
+    preference_elicitation: active  # active, passive, none
+    aggregation_method: weighted_sum  # weighted_sum, chebyshev, tchebycheff
+    normalization_method: minmax  # minmax, zscore, vector
+    constraint_handling: penalty  # penalty, feasibility, stochastic
+    penalty_coefficient: 1000
+    convergence_tolerance: 1e-6
+    max_iterations: 1000
+    adaptive_weights: true
+
+  # Coevolution (10 params)
+  coevolution:
+    enabled: true
+    coevolution_type: competitive  # cooperative, competitive, mixed
+    population_ratio: 1.0
+    fitness_sharing: true
+    sharing_sigma: 0.1
+    niche_count: 5
+    partner_selection: tournament  # random, tournament, fitness_based
+    tournament_size: 3
+    collaboration_protocol: best_response  # best_response, nash, Pareto
+    evaluation_interval: 5
+    knowledge_graph_guided: true
+
+  # Knowledge Integration (12 params)
+  knowledge:
+    knowledge_graph_enabled: true
+    graph_embedding: true
+    embedding_model: node2vec  # node2vec, deepwalk, gcn
+    embedding_dimension: 128
+    walk_length: 40
+    walks_per_node: 10
+    context_size: 5
+    semantic_similarity: true
+    similarity_threshold: 0.7
+    knowledge_reuse: true
+    reuse_strategy: similarity  # similarity, popularity, hybrid
+    knowledge_decay: true
+    decay_rate: 0.95
+
+# =============================================================================
+# ROMA CONFIGURATION (18 params)
+# =============================================================================
+roma:
+  # Core Settings (8 params)
+  core:
+    enabled: true
+    architecture: event_sourcing  # event_sourcing, cqrs, hybrid
+    event_store_type: sqlite  # sqlite, postgres, mongodb
+    query_model_enabled: true
+    materialized_view: true
+    view_update_strategy: async  # sync, async, on_demand
+    snapshot_interval: 100
+    snapshot_compression: true
+
+  # Read Optimization (5 params)
+  read_optimization:
+    cache_enabled: true
+    cache_type: redis  # redis, memcached, memory
+    cache_ttl_seconds: 1800
+    query_optimization: true
+    index_hints_enabled: true
+
+  # Event Sourcing (5 params)
+  event_sourcing:
+    event_versioning: true
+    event_validation: true
+    event_schema_validation: strict  # strict, lenient, none
+    event_replay_enabled: true
+    event_replay_parallel: true
+
+# =============================================================================
+# CREDENTIAL MANAGEMENT
+# =============================================================================
+credentials:
+  # Encryption Settings
+  encryption:
+    algorithm: AES-256-GCM
+    key_length: 32
+    key_derivation: PBKDF2
+    iterations: 100000
+    salt_length: 16
+
+  # Storage
+  storage:
+    backend: database  # database, vault, filesystem
+    connection_string: file:./credentials.db
+    encryption_enabled: true
+    backup_enabled: true
+    backup_path: ./backups/credentials
+    backup_retention_days: 90
+
+  # Validation
+  validation:
+    validate_on_load: true
+    validate_periodically: true
+    validation_interval_hours: 24
+    strict_validation: false  # Relaxed in dev
+
+# =============================================================================
+# LOGGING CONFIGURATION
+# =============================================================================
+logging:
+  # Log Levels
+  levels:
+    root: info
+    api: debug
+    workflow: debug
+    database: debug
+    integration: debug
+
+  # Log Format
+  format: json  # json, text, pretty
+  include_timestamp: true
+  include_level: true
+  include_correlation_id: true
+  include_stack_trace: true
+
+  # Log Outputs
+  outputs:
+    - type: console
+      enabled: true
+      colorize: true
+    - type: file
+      enabled: true
+      path: ./logs/openevolve.log
+      rotation: daily
+      retention_days: 7
+      max_size_mb: 100
+    - type: database
+      enabled: false
+      connection_string: "${DATABASE_URL}"
+
+  # Structured Logging
+  structured:
+    service_name: openevolve-bubblelab
+    environment: development
+    enable_performance_logging: true
+    enable_access_logging: true
+    enable_error_logging: true
+    correlation_id_header: X-Correlation-ID
+
+# =============================================================================
+# MONITORING & METRICS
+# =============================================================================
+monitoring:
+  # Metrics Collection
+  metrics:
+    enabled: true
+    provider: prometheus  # prometheus, datadog, cloudwatch
+    port: 9090
+    path: /metrics
+    interval_seconds: 15
+
+  # Health Checks
+  health_checks:
+    enabled: true
+    endpoint: /health
+    check_interval_seconds: 30
+    timeout_seconds: 5
+    detailed_results: true
+
+  # Performance Monitoring
+  performance:
+    enabled: true
+    trace_requests: true
+    sampling_rate: 1.0  # 100% in dev
+    slow_query_threshold_ms: 1000
+    profile_memory: true
+    memory_interval_seconds: 60
+
+  # Alerting
+  alerting:
+    enabled: false  # Disabled in dev
+    webhook_url: ""
+    alert_on_errors: false
+    alert_on_slow_queries: false
+    alert_on_high_memory: false
+
+# =============================================================================
+# RATE LIMITING
+# =============================================================================
+rate_limiting:
+  # API Rate Limiting
+  api:
+    enabled: false  # Disabled in dev
+    requests_per_minute: 1000
+    burst_size: 100
+    storage: memory  # memory, redis
+
+  # Workflow Rate Limiting
+  workflow:
+    enabled: false  # Disabled in dev
+    max_concurrent_per_user: 10
+    queue_size: 100
+    timeout_seconds: 300
+
+  # Service-Specific Limits
+  service_limits:
+    leanaide_continuous:
+      requests_per_minute: 60
+    knowledge_engine:
+      requests_per_minute: 120
+    decomposition_engine:
+      requests_per_minute: 30
+    adversarial_testing:
+      requests_per_minute: 10
+    maker_engine:
+      requests_per_minute: 20
+
+# =============================================================================
+# CIRCUIT BREAKER SETTINGS
+# =============================================================================
+circuit_breaker:
+  # Global Settings
+  enabled: true
+  failure_threshold: 5  # Open circuit after 5 failures
+  success_threshold: 2  # Close circuit after 2 successes
+  timeout_seconds: 60  # Wait 60s before attempting reset
+  half_open_max_calls: 3  # Allow 3 calls in half-open state
+
+  # Service-Specific Breakers
+  services:
+    leanaide_continuous:
+      enabled: true
+      failure_threshold: 3
+      timeout_seconds: 30
+    knowledge_engine:
+      enabled: true
+      failure_threshold: 5
+      timeout_seconds: 60
+    decomposition_engine:
+      enabled: true
+      failure_threshold: 3
+      timeout_seconds: 30
+    adversarial_testing:
+      enabled: true
+      failure_threshold: 2
+      timeout_seconds: 120
+
+# =============================================================================
+# FEATURE FLAGS
+# =============================================================================
+features:
+  # Core Features
+  workflow_automation: true
+  template_system: true
+  credential_management: true
+  api_access: true
+
+  # OpenEvolve Integrations
+  leanaide_integration: true
+  knowledge_engine_integration: true
+  decomposition_integration: true
+  adversarial_testing_integration: true
+  evolutionary_optimization_integration: true
+  mdap_integration: true
+  maker_integration: true
+  roma_integration: true
+  hephaestus_integration: true
+
+  # Experimental Features
+  experimental_features: true
+  beta_features: true
+  debug_mode: true
+  verbose_logging: true
+
+  # Performance Features
+  caching: true
+  parallel_processing: true
+  batch_processing: true
+
+# =============================================================================
+# TIMEZONE & DATE/TIME SETTINGS
+# =============================================================================
+datetime:
+  timezone: UTC
+  date_format: ISO-8601
+  time_format: ISO-8601
+  parse_strict: true
+  convert_to_utc: true
+  dst_handling: fail  # fail, adjust, ignore
+
+# =============================================================================
+# CACHE CONFIGURATION
+# =============================================================================
+cache:
+  # Local Cache
+  local:
+    enabled: true
+    type: memory  # memory, lru, ttl
+    max_size_mb: 100
+    ttl_seconds: 3600
+    cleanup_interval_seconds: 300
+
+  # Distributed Cache
+  distributed:
+    enabled: false  # Disabled in dev
+    type: redis
+    connection_string: "${REDIS_URL}"
+    ttl_seconds: 1800
+    key_prefix: "openevolve:"
+
+  # Cache Strategies
+  strategies:
+    workflow_results: true
+    api_responses: true
+    knowledge_embeddings: true
+    decomposition_results: true
+    maker_inventions: true
+
+# =============================================================================
+# BACKGROUND PROCESSING
+# =============================================================================
+background:
+  # Job Queue
+  queue:
+    enabled: true
+    type: memory  # memory, redis, bull
+    max_concurrent_jobs: 5
+    job_timeout_seconds: 300
+    retry_attempts: 3
+    retry_delay_seconds: 60
+
+  # Scheduled Tasks
+  scheduled:
+    enabled: true
+    timezone: UTC
+    tasks:
+      - name: cache_cleanup
+        schedule: "0 */6 * * *"  # Every 6 hours
+        enabled: true
+      - name: log_rotation
+        schedule: "0 0 * * *"  # Daily at midnight
+        enabled: true
+      - name: metrics_flush
+        schedule: "*/15 * * * *"  # Every 15 minutes
+        enabled: true
+      - name: health_check
+        schedule: "* * * * *"  # Every minute
+        enabled: true
+
+# =============================================================================
+# API RATE LIMITS & QUOTAS
+# =============================================================================
+quotas:
+  # User Quotas
+  user:
+    max_workflows_per_day: 1000  # Unlimited in dev
+    max_api_calls_per_day: 10000
+    max_storage_mb: 10240
+
+  # System Quotas
+  system:
+    max_concurrent_requests: 100
+    max_request_size_mb: 100
+    max_response_size_mb: 100
+    max_execution_time_seconds: 300
+
+# =============================================================================
+# TESTING CONFIGURATION
+# =============================================================================
+testing:
+  # Test Settings
+  enabled: true
+  test_mode: true
+  mock_external_services: false
+  use_test_database: true
+  test_database_connection: "sqlite:./test.db"
+
+  # Test Data
+  generate_test_data: true
+  test_data_size: small  # small, medium, large
+  seed_random: true
+  random_seed: 42
+
+  # Coverage
+  coverage_threshold: 80  # Relaxed in dev
+  coverage_report: true
+  coverage_report_path: ./coverage
+
+# =============================================================================
+# SECURITY SETTINGS (Development)
+# =============================================================================
+security:
+  # TLS/SSL
+  tls_enabled: false  # Disabled in dev
+  tls_cert_path: ""
+  tls_key_path: ""
+
+  # CORS
+  cors_enabled: true
+  cors_origins:
+    - http://localhost:3000
+    - http://localhost:3001
+    - http://localhost:8000
+  cors_methods:
+    - GET
+    - POST
+    - PUT
+    - DELETE
+    - OPTIONS
+  cors_headers:
+    - Content-Type
+    - Authorization
+    - X-Correlation-ID
+
+  # CSRF
+  csrf_enabled: false  # Disabled in dev
+  csrf_secret: ""
+
+  # Rate Limiting
+  rate_limit_enabled: false  # Disabled in dev
+
+  # Input Validation
+  validation_enabled: true
+  strict_validation: false  # Relaxed in dev
+  sanitize_input: true
+
+# =============================================================================
+# VALIDATION CONFIGURATION
+# =============================================================================
+validation:
+  # Schema Validation
+  schema_validation: true
+  validation_level: lenient  # strict, lenient, none
+  fail_on_validation_error: false  # Don't fail in dev
+
+  # Data Validation
+  validate_on_ingest: true
+  validate_on_transform: true
+  validate_on_output: false
+
+  # Custom Validators
+  custom_validators_enabled: true
+  validators_path: ./config/validators
+
+# =============================================================================
+# MIGRATION & ROLLOUT
+# =============================================================================
+migration:
+  # Database Migration
+  auto_migration: true
+  migration_path: ./migrations
+  migration_table: schema_migrations
+
+  # Feature Rollout
+  gradual_rollout_enabled: false
+  rollout_percentage: 100  # Full rollout in dev
+  canary_deployment: false
+
+# =============================================================================
+# DOCUMENTATION
+# =============================================================================
+documentation:
+  # API Documentation
+  api_docs_enabled: true
+  api_docs_path: /docs
+  swagger_enabled: true
+  swagger_path: /swagger.json
+
+  # Guides
+  quick_start_enabled: true
+  tutorial_enabled: true
+  example_code_enabled: true
+
+################################################################################
+# END OF DEVELOPMENT CONFIGURATION
+################################################################################

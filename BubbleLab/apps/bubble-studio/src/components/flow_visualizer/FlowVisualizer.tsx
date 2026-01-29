@@ -42,7 +42,10 @@ import { useEditor } from '@/hooks/useEditor';
 import CronScheduleNode from './nodes/CronScheduleNode';
 import { useEditorStore } from '@/stores/editorStore';
 import { getPearlChatStore } from '@/stores/pearlChatStore';
+import { startGenerationStream } from '@/hooks/usePearlStream';
 import { GeneratingOverlay } from './GeneratingOverlay';
+import { logger } from '@/utils/logger';
+import { notify } from '@/components/common/Notifications';
 
 // Keep backward compatibility - use the shared schema type
 type ParsedBubble = ParsedBubbleWithInfo;
@@ -109,7 +112,8 @@ function FlowVisualizerInner({
 
   // Get all data from global stores
   // Poll every 10 seconds when flow is in pending/generating state (code is empty and no error)
-  const { data: currentFlow, loading } = useBubbleFlow(flowId, {
+  const { data: currentFlow, loading, refetch, setOptimisticData } =
+    useBubbleFlow(flowId, {
     refetchInterval: (query) => {
       // Check if flow is in pending/generating state
       const data = query.state.data;
@@ -119,6 +123,7 @@ function FlowVisualizerInner({
         !data.generationError;
       // Poll every 10 seconds (10000ms) when pending, otherwise no polling
       return isPending ? 10000 : false;
+    },
     },
   });
   const { unsavedCode, setExecutionHighlight } = useEditor(flowId);
@@ -390,7 +395,11 @@ function FlowVisualizerInner({
         { top?: boolean; bottom?: boolean; left?: boolean; right?: boolean }
       >
     ) => {
-      console.log('createNodesFromDependencyGraph', dependencyNode);
+      logger.debug({
+        msg: 'Creating nodes from dependency graph',
+        component: 'FlowVisualizer',
+        dependencyNode,
+      });
       const subBubble: ParsedBubble = {
         variableId: dependencyNode.variableId || -1,
         bubbleName: dependencyNode.name,
@@ -1001,7 +1010,11 @@ function FlowVisualizerInner({
 
     // Extract steps with control flow graph from workflow
     const stepGraph = extractStepGraph(currentFlow?.workflow, bubbleParameters);
-    console.log('stepGraph', stepGraph);
+    logger.debug({
+      msg: 'Extracted step graph from workflow',
+      component: 'FlowVisualizer',
+      stepGraph,
+    });
     const steps = stepGraph.steps;
     const stepEdges = stepGraph.edges;
 
@@ -1557,7 +1570,11 @@ function FlowVisualizerInner({
             flowId: currentFlow?.id || flowId,
             transformationId: stepNodeId,
             onTransformationClick: () => {
-              console.log('onTransformationClick', step.transformationData);
+              logger.debug({
+                msg: 'Transformation clicked',
+                component: 'FlowVisualizer',
+                transformationData: step.transformationData,
+              });
               useUIStore.getState().showEditorPanel();
               setExecutionHighlight({
                 startLine: step.location.startLine,
@@ -1629,9 +1646,11 @@ function FlowVisualizerInner({
         });
 
         if (!bubbleEntry) {
-          console.warn(
-            `[FlowVisualizer] Bubble ${bubbleId} not found in bubbleParameters`
-          );
+          logger.warn({
+            msg: 'Bubble not found in bubbleParameters',
+            component: 'FlowVisualizer',
+            bubbleId,
+          });
           return;
         }
 
@@ -2451,6 +2470,67 @@ function FlowVisualizerInner({
 
   // Show generation error state
   if (currentFlow?.generationError) {
+    const handleRetryGeneration = async () => {
+      if (!currentFlow) {
+        notify({
+          type: 'error',
+          title: 'Unable to retry',
+          message: 'Workflow data is not available yet.',
+        });
+        return;
+      }
+
+      const flowIdToUse = currentFlow.id ?? flowId;
+      const pearlStore = getPearlChatStore(flowIdToUse);
+      const storeState = pearlStore.getState();
+      const prompt =
+        currentFlow.prompt || storeState.coffeeOriginalPrompt || '';
+
+      if (!prompt.trim()) {
+        notify({
+          type: 'error',
+          title: 'Missing prompt',
+          message: 'No prompt found to restart generation.',
+        });
+        return;
+      }
+
+      // Clear generation error locally so we can show the generating state
+      setOptimisticData({
+        ...currentFlow,
+        generationError: null,
+      });
+
+      // Reset generation flags to allow a new stream
+      storeState.cancelGenerationStream();
+      storeState.setGenerationCompleted(false);
+      storeState.setIsGenerating(false);
+      storeState.setIsCoffeeLoading(false);
+      storeState.removeLastTimelineEventIf((event) =>
+        event.type === 'generation_error'
+      );
+
+      try {
+        await startGenerationStream(
+          { flowId: flowIdToUse, prompt },
+          {
+            onGenerationComplete: async () => {
+              await refetch();
+            },
+          }
+        );
+      } catch (error) {
+        notify({
+          type: 'error',
+          title: 'Retry failed',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to restart generation.',
+        });
+      }
+    };
+
     return (
       <div
         className="h-full flex items-center justify-center"
@@ -2483,8 +2563,12 @@ function FlowVisualizerInner({
           <button
             type="button"
             onClick={() => {
-              // TODO: Implement retry generation
-              console.log('Retry generation for flow', flowId);
+              logger.debug({
+                msg: 'Retry generation requested',
+                component: 'FlowVisualizer',
+                flowId,
+              });
+              void handleRetryGeneration();
             }}
             className="bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-sm font-medium transition-colors"
           >
@@ -2559,7 +2643,11 @@ function FlowVisualizerInner({
               // Highlight the step container
               executionStore.highlightBubble(node.id);
 
-              console.log('addStepToContext', functionName);
+              logger.debug({
+                msg: 'Adding step to context',
+                component: 'FlowVisualizer',
+                functionName,
+              });
 
               // Add step to context (automatically clears bubble and transformation context)
               pearlChatStore.getState().addStepToContext(functionName);
@@ -2577,7 +2665,11 @@ function FlowVisualizerInner({
               // Highlight the transformation node
               executionStore.highlightBubble(node.id);
 
-              console.log('addTransformationToContext', functionName);
+              logger.debug({
+                msg: 'Adding transformation to context',
+                component: 'FlowVisualizer',
+                functionName,
+              });
 
               // Add transformation to context (automatically clears bubble context)
               pearlChatStore

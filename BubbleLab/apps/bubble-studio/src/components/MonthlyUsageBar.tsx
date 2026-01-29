@@ -5,6 +5,7 @@ import { UsageDetailsModal } from './UsageDetailsModal';
 import { useBubbleFlowList } from '../hooks/useBubbleFlowList';
 import { useNavigate } from '@tanstack/react-router';
 import { DISABLE_AUTH } from '../env';
+import { logger } from '../utils/logger';
 
 interface MonthlyUsageBarProps {
   subscription: SubscriptionStatusResponse;
@@ -19,7 +20,11 @@ export const MonthlyUsageBar: React.FC<MonthlyUsageBarProps> = ({
   const { data: bubbleFlowListResponse } = useBubbleFlowList();
   const navigate = useNavigate();
 
-  console.log('subscription', subscription);
+  logger.debug({
+    msg: 'Rendering subscription data',
+    component: 'MonthlyUsageBar',
+    subscription,
+  });
 
   const handleUpgradeClick = () => {
     navigate({ to: '/pricing' });

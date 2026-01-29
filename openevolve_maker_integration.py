@@ -100,6 +100,52 @@ class MAKERWorkflowConfig:
     # Metadata
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+    @classmethod
+    def from_preset(cls, preset_name: str, **overrides) -> 'MAKERWorkflowConfig':
+        """Create a config from a predefined preset."""
+        preset = MAKER_PRESETS.get(preset_name.upper(), MAKER_PRESETS["BALANCED"])
+        config_dict = {**preset, **overrides}
+        
+        # Handle mode enum
+        if isinstance(config_dict.get("mode"), str):
+            config_dict["mode"] = MAKERMode(config_dict["mode"])
+            
+        return cls(**config_dict)
+
+
+# Predefined MAKER Presets
+MAKER_PRESETS = {
+    "FAST": {
+        "mode": MAKERMode.SEQUENTIAL,
+        "k_ahead": 1,
+        "num_candidates": 3,
+        "max_depth": 2,
+        "enable_red_flagging": False
+    },
+    "BALANCED": {
+        "mode": MAKERMode.RECURSIVE,
+        "k_ahead": 3,
+        "num_candidates": 5,
+        "max_depth": 5,
+        "enable_red_flagging": True
+    },
+    "ZERO_ERROR": {
+        "mode": MAKERMode.RECURSIVE,
+        "k_ahead": 5,
+        "num_candidates": 9,
+        "max_depth": 10,
+        "enable_red_flagging": True,
+        "timeout_seconds": 600
+    },
+    "RESEARCH": {
+        "mode": MAKERMode.HYBRID,
+        "k_ahead": 2,
+        "num_candidates": 4,
+        "max_depth": 3,
+        "enable_red_flagging": True
+    }
+}
+
 
 # =============================================================================
 # OPENEVOLVE-ADAPTED MAKER COMPONENTS
@@ -795,6 +841,7 @@ __all__ = [
     # Configuration
     "MAKERWorkflowConfig",
     "MAKERMode",
+    "MAKER_PRESETS",
 
     # Factory functions
     "create_maker_config_from_workflow",

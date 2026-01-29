@@ -1,0 +1,146 @@
+{
+  "schema_name": "legal_extraction",
+  "schema_type": "domain_specific",
+  "description": "Legal domain schema for bilingual extraction from legal documents",
+  "version": "1.0",
+  "languages": ["en", "zh"],
+  "entity_types": [
+    {
+      "type": "PERSON",
+      "description": "Individuals involved in legal proceedings",
+      "examples_en": ["plaintiff", "defendant", "witness", "judge"],
+      "examples_zh": ["原告", "被告", "证人", "法官"]
+    },
+    {
+      "type": "ORGANIZATION",
+      "description": "Companies, institutions, government bodies",
+      "examples_en": ["Apple Inc.", "Department of Justice", "SEC"],
+      "examples_zh": ["苹果公司", "司法部", "证监会"]
+    },
+    {
+      "type": "COURT",
+      "description": "Courts and judicial bodies",
+      "examples_en": ["Supreme Court", "District Court", "International Court"],
+      "examples_zh": ["最高法院", "地方法院", "国际法院"]
+    },
+    {
+      "type": "LAW",
+      "description": "Laws, statutes, regulations, acts",
+      "examples_en": ["Copyright Act", "GDPR", "Section 230", "DMCA"],
+      "examples_zh": ["版权法", "通用数据保护条例", "第230条", "数字千年版权法"]
+    },
+    {
+      "type": "CASE",
+      "description": "Legal cases, lawsuits",
+      "examples_en": ["Roe v. Wade", "Apple v. Samsung", "Doe v. Google"],
+      "examples_zh": ["罗诉韦德案", "苹果诉三星案"]
+    },
+    {
+      "type": "DATE",
+      "description": "Important legal dates",
+      "examples_en": ["filing date", "court date", "effective date"],
+      "examples_zh": ["立案日期", "开庭日期", "生效日期"]
+    },
+    {
+      "type": "MONEY",
+      "description": "Damages, fines, settlements",
+      "examples_en": ["$1 billion damages", "$5 million settlement"],
+      "examples_zh": ["10亿美元赔偿", "500万美元和解"]
+    },
+    {
+      "type": "LEGAL_CONCEPT",
+      "description": "Legal concepts, principles",
+      "examples_en": ["copyright infringement", "patent violation", "antitrust"],
+      "examples_zh": ["版权侵犯", "专利侵权", "反垄断"]
+    }
+  ],
+  "relation_types": [
+    {
+      "type": "SUES",
+      "description": "Lawsuit filing",
+      "inverse": "SUED_BY",
+      "examples_en": ["Apple SUES Samsung"],
+      "examples_zh": ["苹果 起诉 三星"]
+    },
+    {
+      "type": "REPRESENTS",
+      "description": "Legal representation",
+      "inverse": "REPRESENTED_BY",
+      "examples_en": ["lawyer REPRESENTS plaintiff"],
+      "examples_zh": ["律师 代表 原告"]
+    },
+    {
+      "type": "VIOLATES",
+      "description": "Violation of law",
+      "inverse": "VIOLATED_BY",
+      "examples_en": ["company VIOLATES antitrust law"],
+      "examples_zh": ["公司 违反 反垄断法"]
+    },
+    {
+      "type": "RULES_ON",
+      "description": "Court ruling",
+      "inverse": "RULED_BY",
+      "examples_en": ["Supreme Court RULES_ON case"],
+      "examples_zh": ["最高法院 裁决 案件"]
+    },
+    {
+      "type": "SETS_PRECEDENT",
+      "description": "Legal precedent",
+      "inverse": "PRECEDENT_SET_BY",
+      "examples_en": ["case SETS_PRECEDENT for future cases"],
+      "examples_zh": ["案件 为 未来案件 设立 先例"]
+    },
+    {
+      "type": "AWARDS",
+      "description": "Awarding damages",
+      "inverse": "AWARDED_TO",
+      "examples_en": ["court AWARDS damages to plaintiff"],
+      "examples_zh": ["法院 裁定 赔偿金 给 原告"]
+    }
+  ],
+  "event_types": [
+    {
+      "type": "LAWSUIT_FILING",
+      "description": "Filing of a lawsuit",
+      "triggers_en": ["filed lawsuit", "sued", "filed complaint", "initiated legal action"],
+      "triggers_zh": ["提起诉讼", "起诉", "立案"],
+      "arguments": ["plaintiff", "defendant", "court", "claims", "date"]
+    },
+    {
+      "type": "COURT_DECISION",
+      "description": "Court judgment or ruling",
+      "triggers_en": ["ruled", "judgment", "decision", "verdict", "held"],
+      "triggers_zh": ["裁决", "判决", "裁定"],
+      "arguments": ["court", "case", "outcome", "reasoning", "date"]
+    },
+    {
+      "type": "SETTLEMENT",
+      "description": "Legal settlement agreement",
+      "triggers_en": ["settled", "reached settlement", "agreement"],
+      "triggers_zh": ["和解", "达成和解", "协议"],
+      "arguments": ["parties", "amount", "terms", "date"]
+    },
+    {
+      "type": "APPEAL",
+      "description": "Appeal filing",
+      "triggers_en": ["appealed", "filed appeal", "appellate court"],
+      "triggers_zh": ["上诉", "提起上诉"],
+      "arguments": ["appellant", "appellee", "court", "grounds", "date"]
+    },
+    {
+      "type": "REGULATION_ENACTMENT",
+      "description": "Enactment of laws or regulations",
+      "triggers_en": ["enacted", "passed into law", "implemented", "effective"],
+      "triggers_zh": ["颁布", "通过", "实施", "生效"],
+      "arguments": ["law", "legislative_body", "effective_date", "scope"]
+    }
+  ],
+  "extraction_rules": {
+    "minimum_confidence": 0.65,
+    "max_entities_per_document": 120,
+    "max_relations_per_document": 180,
+    "require_entity_types": true,
+    "allow_overlapping_entities": false,
+    "preserve_citations": true
+  }
+}

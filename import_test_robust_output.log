@@ -1,0 +1,517 @@
+<<<<<<< HEAD
+======================================================================
+RESE PERFORMANCE VALIDATION
+======================================================================
+
+Project Root: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese
+Starting: 2026-01-01 01:40:10
+
+======================================================================
+TEST 1: SCE - Symbolic Constraint Engine
+Target: <1s for 10K constraints
+----------------------------------------------------------------------
+Constraints: 10000
+Time: 0.0613s
+Throughput: 163050 constraints/sec
+Result: PASS
+
+======================================================================
+TEST 2: DITO - Dependency-Incremental Topology Optimizer
+Target: <10s for 100K constraints
+----------------------------------------------------------------------
+Generating 10000 constraints...
+Building DITO structure...
+Constraints: 10000 (scaled from 100K target)
+Build Time: 0.7025s
+Total Time: 0.7025s
+Throughput: 14235 constraints/sec
+Scaled Target: <1.00s
+Result: PASS
+
+======================================================================
+TEST 3: Phi15 - Tacit Assumption Miner
+Target: <10s for 1K null results
+----------------------------------------------------------------------
+Generating 1000 null results...
+Processing with Phi15 engine...
+Null Results: 1000
+Time: 0.2867s
+Throughput: 3488.3 results/sec
+Assumptions Generated: 0
+Result: PASS
+
+======================================================================
+TEST 4: I_mech - Isomorphic Mechanism Transfer
+Target: <30s for domain comparison
+----------------------------------------------------------------------
+Generating test domains...
+Performing domain comparison...
+Domain 1: 100 nodes, 150 edges
+Domain 2: 100 nodes, 150 edges
+Time: 0.0004s
+Result: PASS
+
+======================================================================
+TEST 5: Gamma1 - Coherence Engine
+Target: <5s for ACI calculation
+----------------------------------------------------------------------
+Generating Pareto front data...
+Calculating ACI...
+Pareto Points: 100
+Time: 0.0067s
+ACI Value: 53.6059
+Result: PASS
+
+======================================================================
+TEST 6: MCTS - Monte Carlo Tree Search
+Target: <60s for 1K iterations
+----------------------------------------------------------------------
+Running 1000 MCTS iterations...
+Iterations: 1000
+Time: 0.0001s
+Iterations/sec: 13351136.9
+Average Value: 0.5005
+Result: PASS
+
+======================================================================
+PERFORMANCE VALIDATION SUMMARY
+======================================================================
+
+Completed: 2026-01-01 01:40:13
+
+Module Results:
+----------------------------------------------------------------------
+SCE       : PASS     | Time:   0.0613s | Target: <1s for 10K constraints
+DITO      : PASS     | Time:   0.7025s | Target: <1.0s for 10000 constraints (scaled from 100K)
+Phi15     : PASS     | Time:   0.2867s | Target: <10s for 1K null results
+Imech     : PASS     | Time:   0.0004s | Target: <30s for domain comparison
+Gamma1    : PASS     | Time:   0.0067s | Target: <5s for ACI calculation
+MCTS      : PASS     | Time:   0.0001s | Target: <60s for 1K iterations
+
+======================================================================
+SUMMARY
+======================================================================
+Total Modules: 6
+Passed: 6
+Failed: 0
+Errors: 0
+
+ALL PERFORMANCE TARGETS MET!
+
+======================================================================
+
+Report saved to: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\PERFORMANCE_VALIDATION_REPORT.txt
+======================================================================
+[OK]
+[8/208] quickstart.py [OK]
+[9/208] rese_pipeline.py [OK]
+[10/208] __init__.py [OK]
+[11/208] benchmarks\benchmark_dito.py [FAIL]
+    NameError: name 'Any' is not defined
+[12/208] benchmarks\__init__.py [OK]
+[13/208] core\constraint_lean4_bridge.py [OK]
+[14/208] core\constraint_lltl_handoff.py [OK]
+[15/208] core\constraint_optimizer.py [OK]
+[16/208] core\constraint_stage1_integration.py [OK]
+[17/208] core\dito_graphs.py [OK]
+[18/208] core\dito_optimizer.py [OK]
+[19/208] core\logic_to_loss_translation.py [OK]
+[20/208] core\stage5_integration.py [OK]
+[21/208] core\symbolic_constraint_engine.py [OK]
+[22/208] core\test_rese_core.py [OK]
+[23/208] core\__init__.py [OK]
+[24/208] examples\example01_quickstart.py [OK]
+[25/208] examples\example02_sce_basic.py [OK]
+[26/208] examples\example03_cognitive_biases.py [OK]
+[27/208] examples\example04_aci_calculator.py [FAIL]
+    ImportError: cannot import name 'Domain' from 'gamma1.core.csp_models' (C:\Users
+[28/208] examples\example05_imech.py [OK]
+[29/208] examples\example06_mcts_search.py [OK]
+[30/208] examples\example07_custom_integration.py [OK]
+[31/208] examples\example08_configuration.py [OK]
+[32/208] examples\example09_validation.py [FAIL]
+    ImportError: cannot import name 'Problem' from partially initialized module 'pha
+[33/208] examples\example10_end_to_end.py [OK]
+[34/208] examples\example11_error_handling.py [OK]
+[35/208] gamma1\test_gamma1_complete.py [OK]
+[36/208] gamma1\__init__.py [OK]
+[37/208] gamma1\core\aci_calculator.py [OK]
+[38/208] gamma1\core\coherence_engine.py [OK]
+[39/208] gamma1\core\csp_models.py [OK]
+[40/208] gamma1\core\entropy_engine.py [OK]
+[41/208] gamma1\core\solvability_engine.py [OK]
+[42/208] gamma1\core\__init__.py [OK]
+[43/208] gamma1\signal\signal_extractor.py [OK]
+[44/208] gamma1\signal\threshold_learner.py [OK]
+[45/208] gamma1\signal\validator.py [OK]
+[46/208] gamma1\signal\__init__.py [OK]
+[47/208] integrations\stage1.py [OK]
+[48/208] integrations\stage2.py [OK]
+[49/208] integrations\stage3.py [OK]
+[50/208] integrations\stage5.py [OK]
+[51/208] integrations\stage6.py [OK]
+[52/208] integrations\stage7.py [OK]
+[53/208] integrations\stage8.py [OK]
+[54/208] integrations\stage9.py [OK]
+[55/208] integrations\test_e2e_pipeline.py [OK]
+[56/208] integrations\validate_integrations.py [OK]
+[57/208] integrations\__init__.py [OK]
+[58/208] lean4\analyze_lean.py [OK]
+[98/208] phase2\__init__.py [OK]
+[99/208] phase2\imech\isomorphism_validator.py [OK]
+[100/208] phase2\imech\__init__.py [OK]
+[101/208] phase2\imech\algorithms\intervention.py [OK]
+[102/208] phase2\imech\algorithms\subgraph.py [OK]
+[103/208] phase2\imech\algorithms\vf2.py [OK]
+[104/208] phase2\imech\algorithms\weisfeiler_lehman.py [OK]
+[105/208] phase2\imech\algorithms\__init__.py [OK]
+[106/208] phase2\imech\core\causality.py [OK]
+[107/208] phase2\imech\core\domain.py [OK]
+[108/208] phase2\imech\core\fdg.py [OK]
+[109/208] phase2\imech\core\fdg_extractor.py [OK]
+[110/208] phase2\imech\core\result.py [OK]
+[111/208] phase2\imech\core\scoring.py [OK]
+[112/208] phase2\imech\core\__init__.py [OK]
+[113/208] phase2\imech\lean4\proof_generator.py [OK]
+[114/208] phase2\imech\lean4\__init__.py [OK]
+[115/208] phase2\imech\transfer\mapper.py [OK]
+[116/208] phase2\imech\transfer\repair.py [OK]
+[117/208] phase2\imech\transfer\validator.py [OK]
+[118/208] phase2\imech\transfer\__init__.py [OK]
+[119/208] phase2\ontology_components\graph_embedder.py [OK]
+[120/208] phase2\ontology_components\kg_validator.py [OK]
+[121/208] phase2\ontology_components\lexical_matcher.py [OK]
+[122/208] phase2\ontology_components\semantic_matcher.py [OK]
+[123/208] phase2\ontology_components\__init__.py [OK]
+[124/208] phase2\psi3\examples\demo.py [FAIL]
+    ModuleNotFoundError: No module named 'core.constraint'
+[125/208] phase2\psi3\src\__init__.py [OK]
+[126/208] phase2\psi3\src\algorithms\dependency_analyzer.py [OK]
+[127/208] phase2\psi3\src\algorithms\preprocessing.py [OK]
+[128/208] phase2\psi3\src\algorithms\__init__.py [OK]
+[129/208] phase2\psi3\src\core\constraint.py [OK]
+[130/208] phase2\psi3\src\core\constraint_inverter.py [OK]
+[131/208] phase2\psi3\src\core\expression.py [OK]
+[132/208] phase2\psi3\src\core\__init__.py [OK]
+[133/208] phase2\psi3\src\solvers\sat_wrapper.py [OK]
+[134/208] phase2\psi3\src\solvers\__init__.py [OK]
+[135/208] phase2\psi3\tests\unit\test_constraint_inverter.py [FAIL]
+    ModuleNotFoundError: No module named 'core.constraint'
+[136/208] phase3\convergence_controller.py [OK]
+[137/208] phase3\mcts_search.py [OK]
+[138/208] phase3\stage3_integration.py [OK]
+[139/208] phase3\statistical_validator.py [OK]
+[140/208] phase3\__init__.py [OK]
+[141/208] phase3\aci_analyzer\aci_analyzer.py [OK]
+[142/208] phase3\aci_analyzer\__init__.py [OK]
+[143/208] phase3\tests\test_convergence_controller.py [OK]
+[144/208] phase3\tests\test_mcts_search.py [OK]
+[145/208] phase3\tests\test_stage3_integration.py [OK]
+[146/208] phase3\tests\test_statistical_validator.py [OK]
+[147/208] phase4\aci_reduction_validator.py [FAIL]
+    ImportError: cannot import name 'Problem' from partially initialized module 'res
+[148/208] phase4\architecture_assembler.py [OK]
+[149/208] phase4\assembly_validator.py [OK]
+[150/208] phase4\demo_predictive_model_generator.py [OK]
+[151/208] phase4\independence_checker.py [FAIL]
+    ImportError: cannot import name 'IndependenceChecker' from partially initialized
+[152/208] phase4\phase_transition.py [FAIL]
+    ImportError: cannot import name 'Problem' from partially initialized module 'res
+[153/208] phase4\predictive_model_generator.py [OK]
+[154/208] phase4\stage8_integration.py [OK]
+[155/208] phase4\statistical_tests.py [OK]
+[156/208] phase4\types.py [OK]
+[157/208] phase4\__init__.py [OK]
+[158/208] phase4\tests\test_aci_reduction_validator.py Traceback (most recent call last):
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\phase4\tests\test_aci_reduction_validator.py", line 20, in <module>
+    from rese.phase4.aci_reduction_validator import (
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\phase4\aci_reduction_validator.py", line 29, in <module>
+    from .independence_checker import IndependenceChecker
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\phase4\independence_checker.py", line 21, in <module>
+    from .aci_reduction_validator import (
+ImportError: cannot import name 'Problem' from partially initialized module 'rese.phase4.aci_reduction_validator' (most likely due to a circular import) (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\phase4\aci_reduction_validator.py)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\test_imports_robust.py", line 203, in <module>
+    exit_code = main()
+                ^^^^^^
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\test_imports_robust.py", line 111, in main
+    result = test_import_safe(file_path, base_path)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\test_imports_robust.py", line 64, in test_import_safe
+    importlib.import_module(module_name)
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1206, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1178, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1149, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\phase4\tests\test_aci_reduction_validator.py", line 45, in <module>
+    pytest.skip("ACI reduction validator module not available", allow_module_level=True)
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\outcomes.py", line 159, in skip
+    raise Skipped(msg=reason, allow_module_level=allow_module_level)
+Skipped: ACI reduction validator module not available
+=======
+======================================================================
+RESE PERFORMANCE VALIDATION
+======================================================================
+
+Project Root: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese
+Starting: 2026-01-01 01:40:10
+
+======================================================================
+TEST 1: SCE - Symbolic Constraint Engine
+Target: <1s for 10K constraints
+----------------------------------------------------------------------
+Constraints: 10000
+Time: 0.0613s
+Throughput: 163050 constraints/sec
+Result: PASS
+
+======================================================================
+TEST 2: DITO - Dependency-Incremental Topology Optimizer
+Target: <10s for 100K constraints
+----------------------------------------------------------------------
+Generating 10000 constraints...
+Building DITO structure...
+Constraints: 10000 (scaled from 100K target)
+Build Time: 0.7025s
+Total Time: 0.7025s
+Throughput: 14235 constraints/sec
+Scaled Target: <1.00s
+Result: PASS
+
+======================================================================
+TEST 3: Phi15 - Tacit Assumption Miner
+Target: <10s for 1K null results
+----------------------------------------------------------------------
+Generating 1000 null results...
+Processing with Phi15 engine...
+Null Results: 1000
+Time: 0.2867s
+Throughput: 3488.3 results/sec
+Assumptions Generated: 0
+Result: PASS
+
+======================================================================
+TEST 4: I_mech - Isomorphic Mechanism Transfer
+Target: <30s for domain comparison
+----------------------------------------------------------------------
+Generating test domains...
+Performing domain comparison...
+Domain 1: 100 nodes, 150 edges
+Domain 2: 100 nodes, 150 edges
+Time: 0.0004s
+Result: PASS
+
+======================================================================
+TEST 5: Gamma1 - Coherence Engine
+Target: <5s for ACI calculation
+----------------------------------------------------------------------
+Generating Pareto front data...
+Calculating ACI...
+Pareto Points: 100
+Time: 0.0067s
+ACI Value: 53.6059
+Result: PASS
+
+======================================================================
+TEST 6: MCTS - Monte Carlo Tree Search
+Target: <60s for 1K iterations
+----------------------------------------------------------------------
+Running 1000 MCTS iterations...
+Iterations: 1000
+Time: 0.0001s
+Iterations/sec: 13351136.9
+Average Value: 0.5005
+Result: PASS
+
+======================================================================
+PERFORMANCE VALIDATION SUMMARY
+======================================================================
+
+Completed: 2026-01-01 01:40:13
+
+Module Results:
+----------------------------------------------------------------------
+SCE       : PASS     | Time:   0.0613s | Target: <1s for 10K constraints
+DITO      : PASS     | Time:   0.7025s | Target: <1.0s for 10000 constraints (scaled from 100K)
+Phi15     : PASS     | Time:   0.2867s | Target: <10s for 1K null results
+Imech     : PASS     | Time:   0.0004s | Target: <30s for domain comparison
+Gamma1    : PASS     | Time:   0.0067s | Target: <5s for ACI calculation
+MCTS      : PASS     | Time:   0.0001s | Target: <60s for 1K iterations
+
+======================================================================
+SUMMARY
+======================================================================
+Total Modules: 6
+Passed: 6
+Failed: 0
+Errors: 0
+
+ALL PERFORMANCE TARGETS MET!
+
+======================================================================
+
+Report saved to: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\PERFORMANCE_VALIDATION_REPORT.txt
+======================================================================
+[OK]
+[8/208] quickstart.py [OK]
+[9/208] rese_pipeline.py [OK]
+[10/208] __init__.py [OK]
+[11/208] benchmarks\benchmark_dito.py [FAIL]
+    NameError: name 'Any' is not defined
+[12/208] benchmarks\__init__.py [OK]
+[13/208] core\constraint_lean4_bridge.py [OK]
+[14/208] core\constraint_lltl_handoff.py [OK]
+[15/208] core\constraint_optimizer.py [OK]
+[16/208] core\constraint_stage1_integration.py [OK]
+[17/208] core\dito_graphs.py [OK]
+[18/208] core\dito_optimizer.py [OK]
+[19/208] core\logic_to_loss_translation.py [OK]
+[20/208] core\stage5_integration.py [OK]
+[21/208] core\symbolic_constraint_engine.py [OK]
+[22/208] core\test_rese_core.py [OK]
+[23/208] core\__init__.py [OK]
+[24/208] examples\example01_quickstart.py [OK]
+[25/208] examples\example02_sce_basic.py [OK]
+[26/208] examples\example03_cognitive_biases.py [OK]
+[27/208] examples\example04_aci_calculator.py [FAIL]
+    ImportError: cannot import name 'Domain' from 'gamma1.core.csp_models' (C:\Users
+[28/208] examples\example05_imech.py [OK]
+[29/208] examples\example06_mcts_search.py [OK]
+[30/208] examples\example07_custom_integration.py [OK]
+[31/208] examples\example08_configuration.py [OK]
+[32/208] examples\example09_validation.py [FAIL]
+    ImportError: cannot import name 'Problem' from partially initialized module 'pha
+[33/208] examples\example10_end_to_end.py [OK]
+[34/208] examples\example11_error_handling.py [OK]
+[35/208] gamma1\test_gamma1_complete.py [OK]
+[36/208] gamma1\__init__.py [OK]
+[37/208] gamma1\core\aci_calculator.py [OK]
+[38/208] gamma1\core\coherence_engine.py [OK]
+[39/208] gamma1\core\csp_models.py [OK]
+[40/208] gamma1\core\entropy_engine.py [OK]
+[41/208] gamma1\core\solvability_engine.py [OK]
+[42/208] gamma1\core\__init__.py [OK]
+[43/208] gamma1\signal\signal_extractor.py [OK]
+[44/208] gamma1\signal\threshold_learner.py [OK]
+[45/208] gamma1\signal\validator.py [OK]
+[46/208] gamma1\signal\__init__.py [OK]
+[47/208] integrations\stage1.py [OK]
+[48/208] integrations\stage2.py [OK]
+[49/208] integrations\stage3.py [OK]
+[50/208] integrations\stage5.py [OK]
+[51/208] integrations\stage6.py [OK]
+[52/208] integrations\stage7.py [OK]
+[53/208] integrations\stage8.py [OK]
+[54/208] integrations\stage9.py [OK]
+[55/208] integrations\test_e2e_pipeline.py [OK]
+[56/208] integrations\validate_integrations.py [OK]
+[57/208] integrations\__init__.py [OK]
+[58/208] lean4\analyze_lean.py [OK]
+[98/208] phase2\__init__.py [OK]
+[99/208] phase2\imech\isomorphism_validator.py [OK]
+[100/208] phase2\imech\__init__.py [OK]
+[101/208] phase2\imech\algorithms\intervention.py [OK]
+[102/208] phase2\imech\algorithms\subgraph.py [OK]
+[103/208] phase2\imech\algorithms\vf2.py [OK]
+[104/208] phase2\imech\algorithms\weisfeiler_lehman.py [OK]
+[105/208] phase2\imech\algorithms\__init__.py [OK]
+[106/208] phase2\imech\core\causality.py [OK]
+[107/208] phase2\imech\core\domain.py [OK]
+[108/208] phase2\imech\core\fdg.py [OK]
+[109/208] phase2\imech\core\fdg_extractor.py [OK]
+[110/208] phase2\imech\core\result.py [OK]
+[111/208] phase2\imech\core\scoring.py [OK]
+[112/208] phase2\imech\core\__init__.py [OK]
+[113/208] phase2\imech\lean4\proof_generator.py [OK]
+[114/208] phase2\imech\lean4\__init__.py [OK]
+[115/208] phase2\imech\transfer\mapper.py [OK]
+[116/208] phase2\imech\transfer\repair.py [OK]
+[117/208] phase2\imech\transfer\validator.py [OK]
+[118/208] phase2\imech\transfer\__init__.py [OK]
+[119/208] phase2\ontology_components\graph_embedder.py [OK]
+[120/208] phase2\ontology_components\kg_validator.py [OK]
+[121/208] phase2\ontology_components\lexical_matcher.py [OK]
+[122/208] phase2\ontology_components\semantic_matcher.py [OK]
+[123/208] phase2\ontology_components\__init__.py [OK]
+[124/208] phase2\psi3\examples\demo.py [FAIL]
+    ModuleNotFoundError: No module named 'core.constraint'
+[125/208] phase2\psi3\src\__init__.py [OK]
+[126/208] phase2\psi3\src\algorithms\dependency_analyzer.py [OK]
+[127/208] phase2\psi3\src\algorithms\preprocessing.py [OK]
+[128/208] phase2\psi3\src\algorithms\__init__.py [OK]
+[129/208] phase2\psi3\src\core\constraint.py [OK]
+[130/208] phase2\psi3\src\core\constraint_inverter.py [OK]
+[131/208] phase2\psi3\src\core\expression.py [OK]
+[132/208] phase2\psi3\src\core\__init__.py [OK]
+[133/208] phase2\psi3\src\solvers\sat_wrapper.py [OK]
+[134/208] phase2\psi3\src\solvers\__init__.py [OK]
+[135/208] phase2\psi3\tests\unit\test_constraint_inverter.py [FAIL]
+    ModuleNotFoundError: No module named 'core.constraint'
+[136/208] phase3\convergence_controller.py [OK]
+[137/208] phase3\mcts_search.py [OK]
+[138/208] phase3\stage3_integration.py [OK]
+[139/208] phase3\statistical_validator.py [OK]
+[140/208] phase3\__init__.py [OK]
+[141/208] phase3\aci_analyzer\aci_analyzer.py [OK]
+[142/208] phase3\aci_analyzer\__init__.py [OK]
+[143/208] phase3\tests\test_convergence_controller.py [OK]
+[144/208] phase3\tests\test_mcts_search.py [OK]
+[145/208] phase3\tests\test_stage3_integration.py [OK]
+[146/208] phase3\tests\test_statistical_validator.py [OK]
+[147/208] phase4\aci_reduction_validator.py [FAIL]
+    ImportError: cannot import name 'Problem' from partially initialized module 'res
+[148/208] phase4\architecture_assembler.py [OK]
+[149/208] phase4\assembly_validator.py [OK]
+[150/208] phase4\demo_predictive_model_generator.py [OK]
+[151/208] phase4\independence_checker.py [FAIL]
+    ImportError: cannot import name 'IndependenceChecker' from partially initialized
+[152/208] phase4\phase_transition.py [FAIL]
+    ImportError: cannot import name 'Problem' from partially initialized module 'res
+[153/208] phase4\predictive_model_generator.py [OK]
+[154/208] phase4\stage8_integration.py [OK]
+[155/208] phase4\statistical_tests.py [OK]
+[156/208] phase4\types.py [OK]
+[157/208] phase4\__init__.py [OK]
+[158/208] phase4\tests\test_aci_reduction_validator.py Traceback (most recent call last):
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\phase4\tests\test_aci_reduction_validator.py", line 20, in <module>
+    from rese.phase4.aci_reduction_validator import (
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\phase4\aci_reduction_validator.py", line 29, in <module>
+    from .independence_checker import IndependenceChecker
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\phase4\independence_checker.py", line 21, in <module>
+    from .aci_reduction_validator import (
+ImportError: cannot import name 'Problem' from partially initialized module 'rese.phase4.aci_reduction_validator' (most likely due to a circular import) (C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\phase4\aci_reduction_validator.py)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\test_imports_robust.py", line 203, in <module>
+    exit_code = main()
+                ^^^^^^
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\test_imports_robust.py", line 111, in main
+    result = test_import_safe(file_path, base_path)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\test_imports_robust.py", line 64, in test_import_safe
+    importlib.import_module(module_name)
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\importlib\__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "<frozen importlib._bootstrap>", line 1206, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1178, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1149, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 690, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 940, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "C:\Users\mmeadow\Documents\OpenEvolve\Frontend\rese\phase4\tests\test_aci_reduction_validator.py", line 45, in <module>
+    pytest.skip("ACI reduction validator module not available", allow_module_level=True)
+  File "C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Lib\site-packages\_pytest\outcomes.py", line 159, in skip
+    raise Skipped(msg=reason, allow_module_level=allow_module_level)
+Skipped: ACI reduction validator module not available
+>>>>>>> 1cb9c5e35 (update)

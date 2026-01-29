@@ -1,0 +1,1102 @@
+################################################################################
+# OpenEvolve BubbleLab Integration - Service Discovery Configuration
+################################################################################
+# This file defines all OpenEvolve services, their endpoints, health checks,
+# dependencies, circuit breaker thresholds, and timeout configurations.
+#
+# This configuration follows the LAW OF CONFIGURATION EXPLICITNESS:
+# - No magic defaults
+# - All endpoints must be explicitly configured
+# - Health checks are mandatory
+# - Circuit breakers protect against cascading failures
+#
+# SECURITY WARNINGS:
+# ⚠️  TLS certificates must be validated before production deployment
+# ⚠️  All endpoint URLs must use HTTPS in production (except localhost)
+# ⚠️  Example domains (openevolve.example.com) must be replaced
+# ⚠️  Run validate-config.js before deploying to any environment
+#
+# LAST_UPDATED: 2026-01-17T00:00:00Z
+# VERSION: 1.0.0
+################################################################################
+
+# =============================================================================
+# SERVICE DISCOVERY METADATA
+# =============================================================================
+metadata:
+  version: "1.0.0"
+  last_updated: "2026-01-17T00:00:00Z"
+  discovery_method: static  # Options: static, consul, etcd, kubernetes
+  refresh_interval_seconds: 60
+  health_check_interval_seconds: 30
+  service_timeout_seconds: 10
+
+# =============================================================================
+# GLOBAL SERVICE SETTINGS
+# =============================================================================
+global_settings:
+  # Default timeouts (can be overridden per service)
+  default_timeouts:
+    connect_seconds: 5
+    read_seconds: 30
+    write_seconds: 30
+    health_check_seconds: 5
+
+  # Circuit breaker defaults
+  circuit_breaker:
+    enabled: true
+    failure_threshold: 5
+    success_threshold: 2
+    timeout_seconds: 60
+    half_open_max_calls: 3
+    rolling_window_size: 100
+    call_timeout: 30000  # milliseconds
+
+  # Retry defaults
+  retry:
+    max_attempts: 3
+    backoff_multiplier: 2
+    initial_delay_ms: 1000
+    max_delay_ms: 10000
+    jitter: true
+
+  # Health check defaults
+  health_check:
+    enabled: true
+    interval_seconds: 30
+    timeout_seconds: 5
+    unhealthy_threshold: 3
+    healthy_threshold: 2
+    deregister_critical_service_after: 300
+
+# =============================================================================
+# OPENEVOLVE CORE SERVICES
+# =============================================================================
+services:
+  # =============================================================================
+  # LEANAIDE CONTINUOUS MATH SERVICE
+  # =============================================================================
+  - id: leanaide_continuous
+    name: LeanAide Continuous Math Service
+    description: Detects and solves ODEs/PDEs using continuous mathematics
+    category: ai_services
+    version: "1.5.0"
+    status: active
+
+    # Service endpoints
+    endpoints:
+      - environment: development
+        url: http://localhost:8001
+        protocol: http
+        port: 8001
+      - environment: staging
+        url: https://staging-leanaide-continuous.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${LENAIDE_CONTINUOUS_URL}"
+        protocol: https
+        port: 443
+
+    # Health check configuration
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      expected_body: '{"status":"healthy"}'
+      interval_seconds: 30
+      timeout_seconds: 5
+
+    # Circuit breaker configuration
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 3
+      success_threshold: 2
+      timeout_seconds: 30
+      half_open_max_calls: 2
+
+    # Timeouts
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 45
+      write_seconds: 45
+
+    # Retry configuration
+    retry:
+      max_attempts: 3
+      initial_delay_ms: 1000
+      max_delay_ms: 5000
+
+    # Dependencies (services this service depends on)
+    dependencies: []
+
+    # Tags for service discovery
+    tags:
+      - ai
+      - mathematics
+      - ode
+      - pde
+      - continuous
+
+  # =============================================================================
+  # LEANAIDE CLIENT SERVICE
+  # =============================================================================
+  - id: leanaide_client
+    name: LeanAide Client Service
+    description: Formal verification using Lean 4 theorem prover
+    category: ai_services
+    version: "1.2.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:8002
+        protocol: http
+        port: 8002
+      - environment: staging
+        url: https://staging-leanaide-client.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${LENAIDE_CLIENT_URL}"
+        protocol: https
+        port: 443
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      interval_seconds: 60
+      timeout_seconds: 10
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 60
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 120
+      write_seconds: 120
+
+    retry:
+      max_attempts: 5
+      initial_delay_ms: 2000
+      max_delay_ms: 10000
+
+    dependencies:
+      - service: leanaide_continuous
+        required: false
+
+    tags:
+      - ai
+      - formal_verification
+      - lean4
+      - theorem_prover
+
+  # =============================================================================
+  # KNOWLEDGE ENGINE SERVICE
+  # =============================================================================
+  - id: knowledge_engine
+    name: Knowledge Engine Service
+    description: Document indexing, semantic search, and knowledge extraction
+    category: knowledge
+    version: "2.1.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:8003
+        protocol: http
+        port: 8003
+      - environment: staging
+        url: https://staging-knowledge-engine.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${KNOWLEDGE_ENGINE_URL}"
+        protocol: https
+        port: 443
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      interval_seconds: 30
+      timeout_seconds: 5
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 60
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 30
+      write_seconds: 30
+
+    retry:
+      max_attempts: 3
+      initial_delay_ms: 1000
+      max_delay_ms: 5000
+
+    dependencies:
+      - service: postgres_knowledge_graph
+        required: true
+      - service: redis
+        required: true
+      - service: elasticsearch
+        required: false
+
+    tags:
+      - knowledge
+      - search
+      - indexing
+      - semantic
+      - vector
+
+    # Sub-endpoints
+    sub_endpoints:
+      - name: indexer
+        path: /indexer
+        description: Document indexing endpoint
+      - name: query
+        path: /query
+        description: Semantic query endpoint
+      - name: artifacts
+        path: /artifacts
+        description: Knowledge artifacts management
+
+  # =============================================================================
+  # ACE MCP TOOLS SERVICE
+  # =============================================================================
+  - id: ace_mcp_tools
+    name: ACE MCP Tools Service
+    description: Advanced Code Evolution MCP tools
+    category: development
+    version: "1.0.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:8004
+        protocol: http
+        port: 8004
+      - environment: staging
+        url: https://staging-ace-mcp.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${ACE_MCP_TOOLS_URL}"
+        protocol: https
+        port: 443
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      interval_seconds: 30
+      timeout_seconds: 5
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 60
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 30
+      write_seconds: 30
+
+    retry:
+      max_attempts: 3
+      initial_delay_ms: 1000
+      max_delay_ms: 5000
+
+    dependencies: []
+
+    tags:
+      - mcp
+      - code_evolution
+      - development_tools
+
+  # =============================================================================
+  # DECOMPOSITION ENGINE SERVICE
+  # =============================================================================
+  - id: decomposition_engine
+    name: Decomposition Engine Service
+    description: Problem decomposition and task planning
+    category: automation
+    version: "1.8.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:8005
+        protocol: http
+        port: 8005
+      - environment: staging
+        url: https://staging-decomposition.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${DECOMPOSITION_ENGINE_URL}"
+        protocol: https
+        port: 443
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      interval_seconds: 30
+      timeout_seconds: 5
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 3
+      success_threshold: 2
+      timeout_seconds: 30
+      half_open_max_calls: 2
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 60
+      write_seconds: 60
+
+    retry:
+      max_attempts: 3
+      initial_delay_ms: 1000
+      max_delay_ms: 5000
+
+    dependencies:
+      - service: hephaestus
+        required: false
+      - service: knowledge_engine
+        required: false
+
+    tags:
+      - decomposition
+      - planning
+      - task_management
+
+  # =============================================================================
+  # ADVERSARIAL TESTING SERVICE
+  # =============================================================================
+  - id: adversarial_testing
+    name: Adversarial Testing Service
+    description: Automated adversarial test case generation
+    category: testing
+    version: "1.3.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:8006
+        protocol: http
+        port: 8006
+      - environment: staging
+        url: https://staging-adversarial.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${ADVERSARIAL_TESTING_URL}"
+        protocol: https
+        port: 443
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      interval_seconds: 60
+      timeout_seconds: 10
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 2
+      success_threshold: 2
+      timeout_seconds: 120
+      half_open_max_calls: 2
+
+    timeouts:
+      connect_seconds: 10
+      read_seconds: 120
+      write_seconds: 120
+
+    retry:
+      max_attempts: 2
+      initial_delay_ms: 2000
+      max_delay_ms: 10000
+
+    dependencies:
+      - service: mdap_engine
+        required: false
+
+    tags:
+      - testing
+      - adversarial
+      - qa
+      - quality
+
+  # =============================================================================
+  # EVOLUTIONARY OPTIMIZATION SERVICE
+  # =============================================================================
+  - id: evolutionary_optimization
+    name: Evolutionary Optimization Service
+    description: Evolutionary algorithms for optimization
+    category: optimization
+    version: "1.4.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:8007
+        protocol: http
+        port: 8007
+      - environment: staging
+        url: https://staging-evolutionary.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${EVOLUTIONARY_OPTIMIZATION_URL}"
+        protocol: https
+        port: 443
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      interval_seconds: 60
+      timeout_seconds: 10
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 90
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 90
+      write_seconds: 90
+
+    retry:
+      max_attempts: 3
+      initial_delay_ms: 1000
+      max_delay_ms: 5000
+
+    dependencies: []
+
+    tags:
+      - optimization
+      - evolutionary
+      - genetic_algorithm
+      - nsga2
+
+  # =============================================================================
+  # MDAP ENGINE SERVICE
+  # =============================================================================
+  - id: mdap_engine
+    name: MDAP Engine Service
+    description: Multi-Domain Adaptive Planning engine
+    category: optimization
+    version: "1.0.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:8008
+        protocol: http
+        port: 8008
+      - environment: staging
+        url: https://staging-mdap.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${MDAP_ENGINE_URL}"
+        protocol: https
+        port: 443
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      interval_seconds: 30
+      timeout_seconds: 5
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 60
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 60
+      write_seconds: 60
+
+    retry:
+      max_attempts: 3
+      initial_delay_ms: 1000
+      max_delay_ms: 5000
+
+    dependencies:
+      - service: knowledge_engine
+        required: false
+
+    tags:
+      - mdap
+      - multi_domain
+      - adaptive_planning
+      - coevolution
+
+  # =============================================================================
+  # MAKER ENGINE SERVICE
+  # =============================================================================
+  - id: maker_engine
+    name: Maker Engine Service
+    description: End-to-end invention planning and orchestration
+    category: automation
+    version: "1.2.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:8009
+        protocol: http
+        port: 8009
+      - environment: staging
+        url: https://staging-maker.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${MAKER_ENGINE_URL}"
+        protocol: https
+        port: 443
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      interval_seconds: 30
+      timeout_seconds: 10
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 90
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 90
+      write_seconds: 90
+
+    retry:
+      max_attempts: 3
+      initial_delay_ms: 1000
+      max_delay_ms: 5000
+
+    dependencies:
+      - service: knowledge_engine
+        required: true
+
+    tags:
+      - invention
+      - planning
+      - creativity
+      - problem_solving
+
+  # =============================================================================
+  # HYBRID MAKER SERVICE
+  # =============================================================================
+  - id: hybrid_maker
+    name: Hybrid Maker Service
+    description: Hybrid analytical and evolutionary invention
+    category: automation
+    version: "1.0.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:8010
+        protocol: http
+        port: 8010
+      - environment: staging
+        url: https://staging-hybrid-maker.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${HYBRID_MAKER_URL}"
+        protocol: https
+        port: 443
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      interval_seconds: 30
+      timeout_seconds: 10
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 90
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 90
+      write_seconds: 90
+
+    retry:
+      max_attempts: 3
+      initial_delay_ms: 1000
+      max_delay_ms: 5000
+
+    dependencies:
+      - service: maker_engine
+        required: true
+      - service: evolutionary_optimization
+        required: true
+
+    tags:
+      - invention
+      - hybrid
+      - analytical
+      - evolutionary
+
+  # =============================================================================
+  # ROMA SERVICE
+  # =============================================================================
+  - id: roma
+    name: ROMA Service
+    description: Read-Only Memory Architecture with event sourcing
+    category: storage
+    version: "1.0.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:8011
+        protocol: http
+        port: 8011
+      - environment: staging
+        url: https://staging-roma.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${ROMA_URL}"
+        protocol: https
+        port: 443
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      interval_seconds: 30
+      timeout_seconds: 5
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 60
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 30
+      write_seconds: 30
+
+    retry:
+      max_attempts: 3
+      initial_delay_ms: 1000
+      max_delay_ms: 5000
+
+    dependencies:
+      - service: postgres_primary
+        required: true
+
+    tags:
+      - event_sourcing
+      - cqrs
+      - storage
+      - roma
+
+  # =============================================================================
+  # HEPHAEUS SERVICE
+  # =============================================================================
+  - id: hephaestus
+    name: Hephaestus Service
+    description: Delegation and MCP server system
+    category: orchestration
+    version: "1.0.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:8012
+        protocol: http
+        port: 8012
+      - environment: staging
+        url: https://staging-hephaestus.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${HEPHAEUS_URL}"
+        protocol: https
+        port: 443
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      interval_seconds: 30
+      timeout_seconds: 5
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 3
+      success_threshold: 2
+      timeout_seconds: 30
+      half_open_max_calls: 2
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 45
+      write_seconds: 45
+
+    retry:
+      max_attempts: 3
+      initial_delay_ms: 1000
+      max_delay_ms: 5000
+
+    dependencies: []
+
+    tags:
+      - delegation
+      - mcp
+      - orchestration
+      - hephaestus
+
+    # Sub-endpoints
+    sub_endpoints:
+      - name: mcp_server
+        path: /mcp
+        description: Model Context Protocol server endpoint
+
+  # =============================================================================
+  # GENERIC KNOWLEDGE EXTRACTION SERVICE
+  # =============================================================================
+  - id: generic_ke
+    name: Generic Knowledge Extraction Service
+    description: Generic knowledge extraction from documents
+    category: knowledge
+    version: "1.0.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:8013
+        protocol: http
+        port: 8013
+      - environment: staging
+        url: https://staging-generic-ke.openevolve.example.com
+        protocol: https
+        port: 443
+      - environment: production
+        url: "${GENERIC_KE_URL}"
+        protocol: https
+        port: 443
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      expected_status: 200
+      interval_seconds: 30
+      timeout_seconds: 5
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 60
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 60
+      write_seconds: 60
+
+    retry:
+      max_attempts: 3
+      initial_delay_ms: 1000
+      max_delay_ms: 5000
+
+    dependencies:
+      - service: knowledge_engine
+        required: false
+
+    tags:
+      - extraction
+      - documents
+      - knowledge
+      - generic
+
+  # =============================================================================
+  # SUPPORTING SERVICES (Infrastructure)
+  # =============================================================================
+
+  # PostgreSQL - Primary Database
+  - id: postgres_primary
+    name: PostgreSQL Primary Database
+    description: Primary PostgreSQL database
+    category: database
+    version: "14.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: postgresql://postgres:devpassword@localhost:5432/bubble_lab
+        protocol: postgresql
+        port: 5432
+      - environment: staging
+        url: "${DATABASE_URL}"
+        protocol: postgresql
+        port: 5432
+      - environment: production
+        url: "${DATABASE_URL}"
+        protocol: postgresql
+        port: 5432
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      interval_seconds: 30
+      timeout_seconds: 5
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 30
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 30
+      write_seconds: 30
+
+    tags:
+      - database
+      - postgres
+      - primary
+      - storage
+
+  # PostgreSQL - Knowledge Graph
+  - id: postgres_knowledge_graph
+    name: PostgreSQL Knowledge Graph Database
+    description: Knowledge graph database
+    category: database
+    version: "14.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: postgresql://postgres:devpassword@localhost:5432/knowledge_graph_dev
+        protocol: postgresql
+        port: 5432
+      - environment: staging
+        url: "${KNOWLEDGE_GRAPH_DATABASE_URL}"
+        protocol: postgresql
+        port: 5432
+      - environment: production
+        url: "${KNOWLEDGE_GRAPH_DATABASE_URL}"
+        protocol: postgresql
+        port: 5432
+
+    health_check:
+      enabled: true
+      path: /health
+      method: GET
+      interval_seconds: 30
+      timeout_seconds: 5
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 30
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 30
+      write_seconds: 30
+
+    tags:
+      - database
+      - postgres
+      - knowledge_graph
+      - storage
+
+  # Redis - Cache
+  - id: redis
+    name: Redis Cache
+    description: Distributed cache and message broker
+    category: cache
+    version: "7.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: redis://localhost:6379/0
+        protocol: redis
+        port: 6379
+      - environment: staging
+        url: "${REDIS_URL}"
+        protocol: redis
+        port: 6379
+      - environment: production
+        url: "${REDIS_URL}"
+        protocol: redis
+        port: 6379
+
+    health_check:
+      enabled: true
+      command: PING
+      interval_seconds: 30
+      timeout_seconds: 5
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 30
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 5
+      write_seconds: 5
+
+    tags:
+      - cache
+      - redis
+      - distributed
+      - queue
+
+  # Elasticsearch - Search Engine
+  - id: elasticsearch
+    name: Elasticsearch
+    description: Full-text and vector search
+    category: search
+    version: "8.0"
+    status: active
+
+    endpoints:
+      - environment: development
+        url: http://localhost:9200
+        protocol: http
+        port: 9200
+      - environment: staging
+        url: "${ELASTICSEARCH_URL}"
+        protocol: https
+        port: 9200
+      - environment: production
+        url: "${ELASTICSEARCH_URL}"
+        protocol: https
+        port: 9200
+
+    health_check:
+      enabled: true
+      path: /_cluster/health
+      method: GET
+      interval_seconds: 30
+      timeout_seconds: 5
+
+    circuit_breaker:
+      enabled: true
+      failure_threshold: 5
+      success_threshold: 2
+      timeout_seconds: 30
+      half_open_max_calls: 3
+
+    timeouts:
+      connect_seconds: 5
+      read_seconds: 30
+      write_seconds: 30
+
+    tags:
+      - search
+      - elasticsearch
+      - vector
+      - fulltext
+
+# =============================================================================
+# SERVICE GROUPS
+# =============================================================================
+service_groups:
+  - id: ai_services
+    name: AI Services
+    services:
+      - leanaide_continuous
+      - leanaide_client
+      - knowledge_engine
+      - generic_ke
+    description: All AI-powered services
+
+  - id: optimization_services
+    name: Optimization Services
+    services:
+      - evolutionary_optimization
+      - mdap_engine
+      - adversarial_testing
+    description: Optimization and testing services
+
+  - id: automation_services
+    name: Automation Services
+    services:
+      - decomposition_engine
+      - maker_engine
+      - hybrid_maker
+      - hephaestus
+    description: Workflow automation services
+
+  - id: infrastructure_services
+    name: Infrastructure Services
+    services:
+      - postgres_primary
+      - postgres_knowledge_graph
+      - redis
+      - elasticsearch
+      - roma
+    description: Core infrastructure services
+
+################################################################################
+# END OF SERVICE DISCOVERY CONFIGURATION
+################################################################################

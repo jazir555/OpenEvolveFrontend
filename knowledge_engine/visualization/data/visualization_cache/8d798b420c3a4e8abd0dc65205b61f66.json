@@ -1,0 +1,19 @@
+{
+  "output_path": "data\\visualizations\\graph_20260109_070048_8d798b420c3a4e8abd0dc65205b61f66.html",
+  "node_count": 3,
+  "edge_count": 3,
+  "community_count": 1,
+  "statistics": {
+    "communities": 1,
+    "avg_community_size": 3.0,
+    "max_centrality": 0.6577350269189626,
+    "avg_centrality": 0.6577350269189626,
+    "graph_density": 1.0,
+    "is_connected": true,
+    "avg_clustering": 1.0,
+    "diameter": 1
+  },
+  "cache_key": "8d798b420c3a4e8abd0dc65205b61f66",
+  "generation_time": 0.006,
+  "timestamp": "2026-01-09T07:00:48.388181"
+}

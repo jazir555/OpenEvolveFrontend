@@ -1,0 +1,305 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model WaitList {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Devlogs {
+  id                 String   @id @default(uuid())
+  title              String   @unique
+  slug               String   @unique
+  content            String
+  coverImage         String?
+  publishedDate      DateTime @default(now())
+  updatedDate        DateTime @updatedAt
+  tags               String[]
+  categories         String[]
+  readingTime        Int?
+  excerpt            String?
+  seoTitleTag        String?
+  seoMetaDescription String?
+  seoCanonicalUrl    String?
+  ogTitle            String?
+  ogDescription      String?
+  ogImage            String?
+  twitterCard        String?
+  twitterTitle       String?
+  twitterDescription String?
+  twitterImage       String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model User {
+  id                String    @id
+  email             String    @unique
+  name              String?
+  username          String?   @unique
+  level             String?   @default("beginner")
+  preferredIde      String?   @default("vscode")
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  githubAccessToken String?
+  githubAvatarUrl   String?
+  githubConnectedAt DateTime?
+  githubEmail       String?
+  githubId          String?   @unique
+  githubUsername    String?   @unique
+  isGithubConnected Boolean   @default(false)
+  isGithubAppConnected Boolean   @default(false)
+  chats             Chat[]
+  subscription Subscription?
+  subscriptionPlan   SubscriptionPlan   @default(FREE)
+  projects Project[]
+  githubAppInstallation GitHubAppInstallation?
+}
+
+model Chat {
+  id             String          @id @default(uuid())
+  userId         String
+  messages       Json[]
+  title          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  architecture   Architecture[]
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contextualDocs ContextualDocs?
+}
+
+model Architecture {
+  id                    String   @id @default(uuid())
+  chatId                String   
+  domain                String?
+  complexity            String?
+  architectureRationale String?
+  components            Json
+  connectionLabels      Json?
+  componentPositions    Json?
+  requirement           String?
+  generatedAt           DateTime @default(now())
+  lastPositionUpdate    DateTime @default(now())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  chat                  Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+}
+
+model ContextualDocs {
+  id                         String   @id @default(uuid())
+  chatId                     String   @unique
+  projectRules               String?
+  humanReview                String?
+  plan                       String?
+  prd                        String?
+  bugTracking                String?
+  projectStructure           String?
+  uiUX                       String?
+  phases                     Json?
+  phaseCount                 Int?
+  requirement                String?
+  generatedAt                DateTime @default(now())
+  lastDocUpdate              DateTime @default(now())
+  isProjectRulesComplete     Boolean  @default(false)
+  isHumanReviewComplete      Boolean  @default(false)
+  isPlanComplete             Boolean  @default(false)
+  isPrdComplete              Boolean  @default(false)
+  isBugTrackingComplete      Boolean  @default(false)
+  isProjectStructureComplete Boolean  @default(false)
+  isUiUXComplete             Boolean  @default(false)
+  arePhasesComplete          Boolean  @default(false)
+  createdAt                  DateTime @default(now())
+  updatedAt                  DateTime @updatedAt
+  chat                       Chat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  userId    String
+  page    String
+  feedback  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Project {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  description String?
+  language  ProjectLanguage @default(TYPESCRIPT)
+  repoId String? @unique
+  repoFullName String?
+  githubInstallationId BigInt?
+  ProjectChat ProjectChat[]
+  packageJson Json?
+  framework String?
+  repoContent Json?
+  defaultBranch String?
+  detailedAnalysis String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ProjectArchitecture ProjectArchitecture[]
+  pythonPackages PythonPackage[]
+  @@index([language])
+}
+
+model ProjectArchitecture {
+  id        String   @id @default(uuid())
+  projectId String   @unique
+  architectureRationale String?
+  components            Json
+  connectionLabels      Json?
+  componentPositions    Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+model ProjectChat {
+  id        BigInt   @id @default(autoincrement())
+  title     String  @default("New Chat")
+  projectId String   
+  messages Json[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  ProjectContextDocs ProjectContextDocs[]
+}
+
+model ProjectContextDocs {
+  id        String   @id @default(uuid())
+  projectChatId BigInt  
+  summarizedContext String?
+  webSearchDocs Json?
+  contextName String?
+  projectRules String?
+  humanReview String?
+  plan String?
+  phases Json?
+  phaseCount Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  projectChat ProjectChat @relation(fields: [projectChatId], references: [id], onDelete: Cascade)
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  name      String
+  email     String
+  message   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum SubscriptionStatus {
+  NONE
+  ACTIVE
+  CANCELLED
+  ON_HOLD
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+}
+
+/// Project language support (Python, TypeScript, JavaScript)
+enum ProjectLanguage {
+  TYPESCRIPT
+  JAVASCRIPT
+  PYTHON
+}
+
+model Subscription {
+  id        String   @id @default(uuid())
+  userId    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  subscriptionId String? @unique
+  status SubscriptionStatus @default(NONE)
+  productId String?
+  quantity  Int              @default(1)
+  currency   String          @default("USD")
+  currentPeriodEnd DateTime?
+  canceledAt DateTime?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+/// GitHub App Installation records (introduced for GitHub App migration Phase 1)
+model GitHubAppInstallation {
+  id                  Int      @id
+  installationId      BigInt   @unique
+  accountLogin        String
+  accountId           BigInt
+  accountType         String
+  repositories        Json?
+  permissions         Json?
+  repositorySelection String?
+  lastSyncedAt        DateTime?
+  userId              String?   @unique
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  user                User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+}
+
+/// Webhook received events for idempotency/deduplication (Phase 1)
+model WebhookEvent {
+  id        Int      @id @default(autoincrement())
+  eventId   String   @unique
+  source    String
+  createdAt DateTime @default(now())
+}
+
+/// Temporary storage for GitHub App installation state matching
+model PendingGitHubInstallation {
+  id        String   @id @default(uuid())
+  state     String   @unique
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+}
+
+/// Python package tracking for projects
+model PythonPackage {
+  id        String   @id @default(uuid())
+  projectId String
+  name      String
+  version   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  @@unique([projectId, name])
+  @@index([name])
+  @@index([projectId])
+}
+
+/// Dead letter queue for failed operations
+model DeadLetter {
+  id          String   @id @default(uuid())
+  operation   String
+  userId      String
+  projectId   String?
+  payload     Json
+  error       String?
+  errorCode   String?
+  retryCount  Int      @default(0)
+  lastAttemptAt DateTime?
+  status      String   @default("PENDING") // PENDING, PROCESSING, PROCESSED, FAILED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId, status])
+  @@index([createdAt])
+  @@index([projectId])
+}
+ 

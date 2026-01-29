@@ -1,0 +1,32 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Environment files
+*.env
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend-old/
+
+# Claude
+.claude/
+CLAUDE.md
+
+# Output files
+mcts_output.json
+dts_output.json
+.cache/
+backend/debug_llm.py
