@@ -7,3 +7,4 @@ _pycache__/
 venv/
 env/
 envs/
+.git
