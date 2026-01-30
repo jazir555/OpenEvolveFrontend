@@ -1,0 +1,83 @@
+# Global directory configuration
+workspace_path: "./output-hello-world"
+
+# Global LLM configuration(optional)
+# If evaluator or other components do not have their own llm_config, this configuration will be used
+llm_config:
+  model: "deepseek-v3.2"
+
+# ------------------------------------------------------------------------------
+# Define the configuration for all available components
+# ------------------------------------------------------------------------------
+
+# All available Configuration for Planner
+planners:
+  general_planner:
+    # Planner's specific configuration, such as prompt templates, used LLM, etc.
+    # system_prompt: xxx
+    # build_in_tools: ["Skill", "Read", "Write", "Bash"]
+    # skills: ["skill-creator"]
+    permission_mode: "acceptEdits"
+    max_turns: 10
+    # max_thinking_tokens: 1000
+
+# All available Executor configuration
+executors:
+  general_executor:
+    # system_prompt: xxx
+    # build_in_tools: ["Skill", "Read", "Write", "Bash"]
+    # skills: ["skill-creator"]
+    max_rounds: 1
+    permission_mode: "acceptEdits"
+    max_turns: 20
+    # max_thinking_tokens: 1000
+
+# All available Summarizer configuration
+summarizers:
+  general_summarizer:
+    # Summarizer's specific configuration
+    # system_prompt: xxx
+    # build_in_tools: ["Skill", "Read", "Write", "Bash"]
+    # skills: ["skill-creator"]
+    permission_mode: "acceptEdits"
+    max_turns: 10
+    # max_thinking_tokens: 1000
+
+# ------------------------------------------------------------------------------
+# Define the main evolution process configuration
+# ------------------------------------------------------------------------------
+evolve:
+  # Task description, is the core objective of the entire evolution process
+  task: |
+    Help me write a documentation for the LoongFlow project.
+           
+  # Name of the component selected for current run
+  planner_name: "general_planner"
+  executor_name: "general_executor"
+  summary_name: "general_summarizer"
+
+  # Core parameters for the evolution process
+  max_iterations: 200
+  target_score: 0.5
+  concurrency: 1
+
+  # Evaluator configuration
+  evaluator:
+    timeout: 1200
+    agent:
+      # system_prompt: xxx
+      # build_in_tools: ["Skill", "Read", "Write", "Bash"]
+      # skills: ["skill-creator"]
+      permission_mode: "acceptEdits"
+      max_turns: 20
+      # max_thinking_tokens: 1000
+
+  # Database configuration
+  database:
+    storage_type: "in_memory"
+    num_islands: 1
+    population_size: 90
+    checkpoint_interval: 1
+    # If sampling_weight_power < 1, sampling weight has a weak effect
+    sampling_weight_power: 2
+

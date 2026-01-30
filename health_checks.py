@@ -47,7 +47,7 @@ def check_llm_service_availability() -> bool:
         else:
             logger.error("LLM service availability check failed.")
             return False
-    except Exception as e:
+    except (ImportError, ConnectionError, RuntimeError, ValueError) as e:
         logger.error(f"LLM service availability check failed: {e}")
         return False
 
@@ -64,6 +64,6 @@ def check_cache_health() -> bool:
         else:
             logger.error("Cache health check failed: value mismatch")
             return False
-    except Exception as e:
+    except (OSError, IOError, RuntimeError, ValueError, AttributeError) as e:
         logger.error(f"Cache health check failed: {e}")
         return False

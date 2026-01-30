@@ -2188,7 +2188,7 @@ def run_quality_diversity_evolution(
     if not config:
         try:
             config = create_evolution_configuration_from_session()
-        except:
+        except (AttributeError, KeyError, RuntimeError):
             config = create_evolution_configuration(evolution_mode='quality_diversity')
     
     # Ensure QD-specific parameters are set
@@ -2284,7 +2284,7 @@ def run_multi_objective_evolution(
     if not config:
         try:
             config = create_evolution_configuration_from_session()
-        except:
+        except (AttributeError, KeyError, RuntimeError):
             config = create_evolution_configuration(evolution_mode='multi_objective')
     
     # Ensure MO-specific parameters are set
@@ -2380,7 +2380,7 @@ def run_decomposition_evolution(
     if not config:
         try:
             config = create_evolution_configuration_from_session()
-        except:
+        except (AttributeError, KeyError, RuntimeError):
             config = create_evolution_configuration(evolution_mode='problem_decomposition')
     
     # Initialize decomposition metrics
@@ -3124,7 +3124,7 @@ def run_ultimate_comprehensive_evolution(
         # Create comprehensive configuration merging OpenEvolve + workflow parameters
         try:
             config = create_evolution_configuration_from_session()
-        except:
+        except (AttributeError, KeyError, RuntimeError):
             config = create_evolution_configuration(evolution_mode=evolution_mode, **kwargs)
         config.evolution_mode = evolution_mode
         

@@ -112,7 +112,7 @@ class CIPipeline:
         except FileNotFoundError:
             self.logger.warning("Git not found, skipping git status check")
             return True
-        except Exception as e:
+        except (OSError, IOError, subprocess.SubprocessError) as e:
             self.logger.error(f"Error checking git status: {e}")
             return False
     
@@ -147,7 +147,7 @@ class CIPipeline:
                 'report': {'error': 'Quality control module not available'},
                 'score': 0.0
             }
-        except Exception as e:
+        except (OSError, IOError, ValueError, TypeError) as e:
             self.logger.error(f"Error running quality checks: {e}")
             return {
                 'passed': False,
@@ -210,7 +210,7 @@ class CIPipeline:
                 'errors': 1,
                 'success_rate': 0.0
             }
-        except Exception as e:
+        except (OSError, IOError, ValueError, TypeError) as e:
             self.logger.error(f"Error running tests: {e}")
             return {
                 'passed': False,
@@ -252,7 +252,7 @@ class CIPipeline:
             
             return security_result
             
-        except Exception as e:
+        except (OSError, IOError, ValueError, TypeError, AttributeError) as e:
             self.logger.error(f"Error running security scan: {e}")
             return {
                 'passed': False,
@@ -381,7 +381,7 @@ class CDPipeline:
                 
                 self.logger.info(f"Environment configuration validated for {self.environment}")
                 return True
-            except Exception as e:
+            except (OSError, IOError, json.JSONDecodeError, KeyError) as e:
                 self.logger.error(f"Error parsing environment config: {e}")
                 return False
         else:
@@ -408,7 +408,7 @@ class CDPipeline:
             else:
                 self.logger.error("Database connection test failed")
                 return False
-        except Exception as e:
+        except (OSError, IOError, RuntimeError, ValueError) as e:
             self.logger.error(f"Database connection validation failed: {e}")
             return False
     
@@ -440,7 +440,7 @@ class CDPipeline:
         except ImportError:
             self.logger.warning("psutil not available, skipping resource checks")
             return True
-        except Exception as e:
+        except (OSError, IOError) as e:
             self.logger.error(f"Error checking resource availability: {e}")
             return False
     
@@ -477,7 +477,7 @@ class CDPipeline:
                 'size': zip_path.stat().st_size
             }
             
-        except Exception as e:
+        except (OSError, IOError, ValueError, TypeError) as e:
             self.logger.error(f"Error building artifacts: {e}")
             return {
                 'success': False,

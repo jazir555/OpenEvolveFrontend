@@ -106,7 +106,7 @@ class AnalyticsMonitoringDashboard:
                 # Sleep for a bit before next update
                 time.sleep(2)
                 
-            except Exception as e:
+            except (OSError, IOError, RuntimeError, ValueError, AttributeError) as e:
                 print(f"Error in monitoring loop: {e}")
                 time.sleep(5)  # Longer sleep on error
     

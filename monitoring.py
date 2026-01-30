@@ -128,7 +128,7 @@ class MetricsCollector:
                     ))
                     conn.commit()
                     return True
-        except Exception as e:
+        except (sqlite3.Error, OSError, IOError, TypeError) as e:
             self.logger.error(f"Failed to record metric {name}: {e}")
             return False
     
@@ -156,7 +156,7 @@ class MetricsCollector:
                     execution_time = time.time() - start_time
                     self.record_metric(f"{name}_duration_seconds", execution_time, MetricType.TIMER, labels, description)
                     return result
-                except Exception as e:
+                except (ValueError, TypeError, RuntimeError, OSError, IOError) as e:
                     self.record_metric(f"{name}_error_total", 1, MetricType.COUNTER, labels, f"Error in {name}")
                     raise e
             return wrapper
@@ -256,7 +256,7 @@ class MetricsCollector:
                 # Sleep for 1 hour before next cleanup
                 time.sleep(3600)
                 
-            except Exception as e:
+            except (sqlite3.Error, OSError, IOError) as e:
                 self.logger.error(f"Error during metrics cleanup: {e}")
                 time.sleep(3600)  # Wait before retrying
     
@@ -514,7 +514,7 @@ class ResourceMetricsCollector:
                 
                 time.sleep(interval)
                 
-            except Exception as e:
+            except (OSError, IOError, ImportError) as e:
                 self.logger.error(f"Error collecting resource metrics: {e}")
                 time.sleep(interval)
     
@@ -593,7 +593,7 @@ class HealthCheck:
             
             return check_result
             
-        except Exception as e:
+        except (OSError, IOError, RuntimeError, ValueError) as e:
             execution_time = time.time() - start_time
             error_msg = str(e)
             
@@ -750,7 +750,7 @@ class AlertManager:
             for handler in self.alert_handlers:
                 try:
                     handler(alert)
-                except Exception as e:
+                except (ValueError, TypeError, RuntimeError, AttributeError) as e:
                     self.logger.error(f"Error in alert handler: {e}")
 
 
@@ -832,7 +832,7 @@ def check_database_connection():
         with sqlite3.connect(metrics_collector.db_path) as conn:
             conn.execute("SELECT 1")
         return True
-    except:
+    except (sqlite3.Error, OSError, IOError):
         return False
 
 def check_decomposition_engine():
@@ -885,7 +885,7 @@ def run_alert_processing():
         try:
             alert_manager.process_alerts()
             time.sleep(60)  # Check alerts every minute
-        except Exception as e:
+        except (OSError, IOError, RuntimeError) as e:
             logging.getLogger(__name__).error(f"Error in alert processing: {e}")
             time.sleep(60)
 

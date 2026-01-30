@@ -53,7 +53,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
                     ],
                     'timestamp': results['timestamp']
                 })
-        except Exception as e:
+        except (OSError, IOError, RuntimeError, ValueError) as e:
             logger.error(f"Health check failed: {e}")
             self.send_json_response(500, {
                 'status': 'error',
@@ -66,7 +66,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
             monitor = get_health_monitor()
             results = monitor.run_health_checks()
             self.send_json_response(200, results)
-        except Exception as e:
+        except (OSError, IOError, RuntimeError, ValueError) as e:
             logger.error(f"Detailed health check failed: {e}")
             self.send_json_response(500, {
                 'status': 'error',
@@ -81,7 +81,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
                 'metrics': stats,
                 'status': 'ok'
             })
-        except Exception as e:
+        except (OSError, IOError, RuntimeError, ValueError) as e:
             logger.error(f"Metrics retrieval failed: {e}")
             self.send_json_response(500, {
                 'status': 'error',
@@ -97,7 +97,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
             self.send_header('Content-Type', 'text/plain; version=0.0.4')
             self.end_headers()
             self.wfile.write(payload.encode())
-        except Exception as e:
+        except (OSError, IOError, RuntimeError, ValueError) as e:
             logger.error(f"Prometheus metrics retrieval failed: {e}")
             self.send_json_response(500, {
                 'status': 'error',
@@ -124,7 +124,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
                     ],
                     'timestamp': results.get('timestamp')
                 })
-        except Exception as e:
+        except (OSError, IOError, RuntimeError, ValueError) as e:
             logger.error(f"Readiness check failed: {e}")
             self.send_json_response(500, {
                 'status': 'error',
@@ -137,7 +137,7 @@ class HealthCheckHandler(BaseHTTPRequestHandler):
             handler = get_error_handler()
             stats = handler.get_error_stats()
             self.send_json_response(200, stats)
-        except Exception as e:
+        except (OSError, IOError, RuntimeError, ValueError) as e:
             logger.error(f"Error stats retrieval failed: {e}")
             self.send_json_response(500, {
                 'status': 'error',

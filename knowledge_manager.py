@@ -73,7 +73,7 @@ class KnowledgeManager:
                 for artifact_id, artifact_data in data.items():
                     artifacts[artifact_id] = KnowledgeArtifact(**artifact_data)
                 return artifacts
-        except Exception as e:
+        except (OSError, IOError, json.JSONDecodeError, TypeError, KeyError) as e:
             print(f"Error loading knowledge artifacts: {e}")
             return {}
     
@@ -84,7 +84,7 @@ class KnowledgeManager:
             with open(self.metrics_file, 'r') as f:
                 data = json.load(f)
                 return [PerformanceMetrics(**metric_data) for metric_data in data]
-        except Exception as e:
+        except (OSError, IOError, json.JSONDecodeError, TypeError, KeyError) as e:
             print(f"Error loading performance metrics: {e}")
             return []
     
@@ -106,7 +106,7 @@ class KnowledgeManager:
                 }
             with open(self.artifacts_file, 'w') as f:
                 json.dump(data, f, indent=2)
-        except Exception as e:
+        except (OSError, IOError, TypeError) as e:
             print(f"Error saving knowledge artifacts: {e}")
     
     def _save_metrics(self):
@@ -124,7 +124,7 @@ class KnowledgeManager:
                 })
             with open(self.metrics_file, 'w') as f:
                 json.dump(data, f, indent=2)
-        except Exception as e:
+        except (OSError, IOError, TypeError) as e:
             print(f"Error saving performance metrics: {e}")
     
     def _convert_summary_to_artifact(self, file_summary: Dict) -> KnowledgeArtifact:
@@ -165,7 +165,7 @@ class KnowledgeManager:
             with open(file_path, "w", encoding="utf-8") as f:
                 f.write(file_content)
 
-        except Exception as e:
+        except (OSError, IOError, TypeError) as e:
             print(f"Warning: Could not save artifact content to file for indexing. Error: {e}")
 
     

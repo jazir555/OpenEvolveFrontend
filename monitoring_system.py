@@ -544,7 +544,7 @@ class ObservabilityManager:
                 self.alert_manager.check_metrics(self.metrics_collector)
                 
                 time.sleep(interval)
-            except Exception as e:
+            except (OSError, IOError, RuntimeError, ValueError) as e:
                 logger.error(f"Monitoring loop error: {e}")
                 time.sleep(interval)
     
@@ -559,7 +559,7 @@ class ObservabilityManager:
         
         try:
             yield span
-        except Exception as e:
+        except (OSError, IOError, RuntimeError, ValueError, TypeError) as e:
             span.set_attribute("error", str(e))
             span.end("ERROR")
             raise

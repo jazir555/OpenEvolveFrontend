@@ -121,7 +121,7 @@ class DeploymentManager:
             
             print(f"✓ Database initialized at {self.config['database_path']}")
             return True
-        except Exception as e:
+        except (OSError, IOError, RuntimeError, ValueError) as e:
             print(f"❌ Failed to initialize database: {e}")
             return False
     
@@ -146,7 +146,7 @@ class DeploymentManager:
             print(f"❌ Some tests failed")
             print(result.stdout[-500:])  # Print last 500 chars
             return False
-        except Exception as e:
+        except (OSError, IOError, subprocess.SubprocessError) as e:
             print(f"❌ Failed to run tests: {e}")
             return False
     
@@ -196,7 +196,7 @@ class DeploymentManager:
             print("✓ Created logging configuration")
             
             return True
-        except Exception as e:
+        except (OSError, IOError, TypeError) as e:
             print(f"❌ Failed to create config files: {e}")
             return False
     
@@ -215,7 +215,7 @@ class DeploymentManager:
                     from sovereign_persistence import SovereignDatabase
                     db = SovereignDatabase()
                     return db.connection is not None
-                except:
+                except (OSError, IOError, RuntimeError, ValueError):
                     return False
             
             def check_memory():
@@ -223,7 +223,7 @@ class DeploymentManager:
                     import psutil
                     memory = psutil.virtual_memory()
                     return memory.percent < 90  # Less than 90% used
-                except:
+                except (OSError, IOError, ImportError):
                     return True  # If can't check, assume OK
             
             monitor.register_check("database", check_database)
@@ -238,7 +238,7 @@ class DeploymentManager:
             else:
                 print("⚠ Health monitoring configured but system unhealthy")
                 return False
-        except Exception as e:
+        except (OSError, IOError, RuntimeError, ImportError) as e:
             print(f"❌ Failed to setup health monitoring: {e}")
             return False
     
@@ -271,7 +271,7 @@ python -m streamlit run api_server.py --server.port {self.config['api_port']}
             
             print(f"✓ Created startup script: {script_name}")
             return True
-        except Exception as e:
+        except (OSError, IOError) as e:
             print(f"❌ Failed to create startup script: {e}")
             return False
     
@@ -343,7 +343,7 @@ python -m streamlit run api_server.py --server.port {self.config['api_port']}
             
             print("✓ Rollback complete")
             return True
-        except Exception as e:
+        except (OSError, IOError) as e:
             print(f"❌ Rollback failed: {e}")
             return False
 
