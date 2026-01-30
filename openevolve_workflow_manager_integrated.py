@@ -46,7 +46,7 @@ from bubblelabs_integration import (
     BubbleEdge
 )
 from bubblelabs_analytics import BubbleLabsAnalytics
-from bubblelabs_hephaestus_bridge import (
+from bubblelabs_crewai_bridge import (
     BubbleLabsHephaestusBridge,
     BubbleLabsTicketConfig,
     ExtendedWorkflowStatus,

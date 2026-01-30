@@ -87,9 +87,9 @@ def test_hephaestus_integration() -> bool:
     print("🔍 Testing Hephaestus integration...")
     
     try:
-        from hephaestus_integration import HephaestusIntegrationManager
-        from hephaestus_client import HephaestusClient
-        from sovereign_decomposition_hephaestus_integration import SovereignDecompositionHephaestusIntegration
+        from crewai_integration import HephaestusIntegrationManager
+        from crewai_client import HephaestusClient
+        from sovereign_decomposition_crewai_integration import SovereignDecompositionHephaestusIntegration
         
         print("✅ Hephaestus integration components loaded successfully")
         return True
@@ -157,7 +157,7 @@ def test_integration_points() -> bool:
             parse_targeted_feedback
         )
         
-        from hephaestus_integration import (
+        from crewai_integration import (
             setup_hephaestus_integration
         )
         

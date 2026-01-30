@@ -125,7 +125,7 @@ def main():
     print("-" * 80)
 
     try:
-        from bubblelabs_hephaestus_bridge import (
+        from bubblelabs_crewai_bridge import (
             VALID_WORKFLOW_TRANSITIONS,
             VALID_TICKET_TRANSITIONS,
             validate_workflow_transition,

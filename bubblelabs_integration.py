@@ -20,7 +20,7 @@ from api_server import team_manager, gauntlet_manager  # Import managers only
 
 # Import state machine validation
 try:
-    from bubblelabs_hephaestus_bridge import (
+    from bubblelabs_crewai_bridge import (
         ExtendedWorkflowStatus,
         validate_workflow_transition,
         get_valid_workflow_transitions,

@@ -94,7 +94,7 @@ def test_hephaestus_bridge(result: TestResult):
     print_header("Testing BubbleLabs-Hephaestus Bridge")
 
     try:
-        from bubblelabs_hephaestus_bridge import (
+        from bubblelabs_crewai_bridge import (
             BubbleLabsHephaestusBridge,
             BubbleLabsTicketConfig,
             create_bridge
@@ -510,7 +510,7 @@ def test_full_integration(result: TestResult):
         result.add_pass()
 
         # Create Hephaestus ticket
-        from bubblelabs_hephaestus_bridge import create_bridge
+        from bubblelabs_crewai_bridge import create_bridge
         bridge = create_bridge(
             hephaestus_api_base="http://localhost:8000",
             hephaestus_api_key="test-key",

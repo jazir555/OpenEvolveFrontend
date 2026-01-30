@@ -94,7 +94,7 @@ except ImportError:
 
 # Import Hephaestus
 try:
-    from hephaestus_client import HephaestusClient
+    from crewai_client import HephaestusClient
     HEPHAESTUS_AVAILABLE = True
 except ImportError:
     HEPHAESTUS_AVAILABLE = False

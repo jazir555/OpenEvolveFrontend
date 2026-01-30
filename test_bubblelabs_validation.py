@@ -41,7 +41,7 @@ except ImportError as e:
 
 # Import BubbleLabs modules
 try:
-    from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+    from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
     from bubblelabs_mcp_tools import (
         create_bubblelabs_workflow,
         execute_bubblelabs_workflow,
@@ -481,7 +481,7 @@ class TestValidationCoverage(unittest.TestCase):
 
         if BUBBLELABS_AVAILABLE:
             try:
-                from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+                from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
                 modules_to_check.append(BubbleLabsHephaestusBridge)
             except ImportError:
                 pass

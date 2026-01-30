@@ -188,9 +188,9 @@ print('\n[TEST 4] Deadlock Prevention (TS-9)')
 print('-' * 80)
 
 try:
-    from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+    from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
-    bridge = ACEHephaestusWorkflowBridge()
+    bridge = ACECrewAIWorkflowBridge()
 
     # Test concurrent phase execution (could cause deadlock with nested locks)
     def execute_workflow(workflow_id):

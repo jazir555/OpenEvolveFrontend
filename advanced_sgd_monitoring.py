@@ -1,8 +1,8 @@
 """
-Enhanced Monitoring System for Hephaestus Integration with Sovereign-Grade Decomposition Workflows
+Enhanced Monitoring System for CrewAI Integration with Sovereign-Grade Decomposition Workflows
 
 This module provides comprehensive monitoring and reporting capabilities for the 
-Hephaestus integration with OpenEvolve's Sovereign-Grade Decomposition workflows.
+CrewAI integration with OpenEvolve's Sovereign-Grade Decomposition workflows."""}, {
 """
 import streamlit as st
 import pandas as pd
@@ -21,12 +21,12 @@ import json
 from enum import Enum
 import logging
 
-# Import the Hephaestus client from the main OpenEvolve directory
+# Import the CrewAI client (migrated from Hephaestus)
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from hephaestus_client import HephaestusClient
+from crewai_client import CrewAIClient
 from workflow_structures import WorkflowState, CritiqueReport, VerificationReport
 from openevolve_orchestrator import EvolutionWorkflow
 
@@ -65,7 +65,7 @@ class SGDMonitor:
         self.monitoring_active = False
         self.event_queue = queue.Queue()
         self.lock = threading.Lock()
-        self.hephaestus_client = HephaestusClient(hephaestus_api_base)
+        self.crewai_client = CrewAIClient()
         
         # Initialize session state for monitoring if not already done
         if "sgd_monitoring_data" not in st.session_state:

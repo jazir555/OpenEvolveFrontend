@@ -26,7 +26,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 # Import the bridge and related classes
 try:
-    from bubblelabs_hephaestus_bridge import (
+    from bubblelabs_crewai_bridge import (
         BubbleLabsHephaestusBridge,
         WorkflowTicketMapping,
         BubbleLabsTicketConfig

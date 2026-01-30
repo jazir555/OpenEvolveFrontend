@@ -365,7 +365,7 @@ class ComprehensiveBugFixTestSuite:
         """Bug #1: Verify execute_full_workflow uses correct parameter names"""
         # This tests the ACE integration bug where wrong parameters were passed
         try:
-            from ace_hephaestus_bridge import ACEHephaestusBridge
+            from ace_crewai_bridge import ACEHephaestusBridge
 
             # Create mock to test parameter passing
             import inspect
@@ -390,7 +390,7 @@ class ComprehensiveBugFixTestSuite:
     def test_timestamp_variable_defined(self):
         """Bug #2: Verify timestamp variable is defined before use"""
         try:
-            from ace_hephaestus_bridge import ACEHephaestusBridge
+            from ace_crewai_bridge import ACEHephaestusBridge
 
             # Check that timestamp is defined at the start of save_skillbook
             import inspect
@@ -446,7 +446,7 @@ class ComprehensiveBugFixTestSuite:
     def test_workflow_stops_on_failure(self):
         """Bug #4: Verify workflow stops when phase fails"""
         try:
-            from ace_hephaestus_bridge import ACEHephaestusBridge
+            from ace_crewai_bridge import ACEHephaestusBridge
 
             import inspect
             source = inspect.getsource(ACEHephaestusBridge.execute_full_workflow)
@@ -462,7 +462,7 @@ class ComprehensiveBugFixTestSuite:
     def test_context_type_validation(self):
         """Bug #5: Verify context type is validated"""
         try:
-            from ace_hephaestus_bridge import ACEHephaestusBridge
+            from ace_crewai_bridge import ACEHephaestusBridge
 
             import inspect
             source = inspect.getsource(ACEHephaestusBridge.execute_phase_2_solution)
@@ -1242,7 +1242,7 @@ class ComprehensiveBugFixTestSuite:
         """Verify checkpoints are saved and loaded correctly"""
         # Test checkpoint save/load
         try:
-            from ace_hephaestus_bridge import ACEHephaestusBridge
+            from ace_crewai_bridge import ACEHephaestusBridge
 
             import tempfile
             import os

@@ -31,7 +31,7 @@ except TypeError as e:
     all_passed = False
 
 try:
-    from roma_mdap_maker_hephaestus_bridge import execute_phase_2_solve
+    from roma_mdap_maker_crewai_bridge # MIGRATED import execute_phase_2_solve
     print("  [OK] roma_mdap_maker_hephaestus_bridge imports successfully (parameters fixed)")
 except TypeError as e:
     print(f"  [FAIL] {e}")

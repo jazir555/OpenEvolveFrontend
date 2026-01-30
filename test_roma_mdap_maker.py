@@ -104,9 +104,9 @@ def test_import_mcp_tools():
 
 
 def test_import_bridge():
-    """Test that Hephaestus bridge imports correctly"""
+    """Test that crewai bridge imports correctly"""
     try:
-        from roma_mdap_maker_hephaestus_bridge import (
+        from roma_mdap_maker_crewai_bridge import (
             execute_phase_1_setup,
             execute_phase_2_solve,
             execute_phase_3_critique,
@@ -202,7 +202,7 @@ def test_engine_status():
 def test_bridge_status():
     """Test bridge status function"""
     try:
-        from roma_mdap_maker_hephaestus_bridge import get_romamdapmaker_bridge_status
+        from roma_mdap_maker_crewai_bridge import get_romamdapmaker_bridge_status
 
         status = get_romamdapmaker_bridge_status()
 
@@ -354,7 +354,7 @@ def test_decomposition_status():
 def test_unified_bridge_status():
     """Test unified bridge status includes ROMA-MDAP-MAKER"""
     try:
-        from hephaestus_unified_bridge import get_unified_bridge_status
+        from crewai_unified_bridge import get_unified_bridge_status
 
         status = get_unified_bridge_status()
 
@@ -376,7 +376,7 @@ def test_unified_bridge_status():
 def test_phase_functions_exist():
     """Test that all 6 phase functions exist"""
     try:
-        from roma_mdap_maker_hephaestus_bridge import PHASE_FUNCTIONS
+        from roma_mdap_maker_crewai_bridge import PHASE_FUNCTIONS
 
         assert len(PHASE_FUNCTIONS) == 6
 
@@ -502,9 +502,9 @@ def test_end_to_end_integration():
         # Import all components
         from roma_mdap_maker_engine import get_roma_mdap_maker_status
         from roma_mdap_maker_mcp_tools import list_mcp_tools
-        from roma_mdap_maker_hephaestus_bridge import get_romamdapmaker_bridge_status
+        from roma_mdap_maker_crewai_bridge import get_romamdapmaker_bridge_status
         from decomposition_mcp_tools import get_decomposition_status
-        from hephaestus_unified_bridge import get_unified_bridge_status
+        from crewai_unified_bridge import get_unified_bridge_status
 
         # Check all statuses
         engine_status = get_roma_mdap_maker_status()

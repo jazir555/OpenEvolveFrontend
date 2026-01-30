@@ -77,7 +77,7 @@ else:
     MCP_AVAILABLE = True
 
 try:
-    from leanaide_hephaestus_bridge import (
+    from leanaide_crewai_bridge import (
         LeanAideHephaestusBridge,
         LeanAideClient as BridgeClient,
         LeanAideConfig as BridgeConfig,

@@ -40,7 +40,7 @@ from workflow_engine import (
     run_sovereign_workflow,
     generate_solution_for_sub_problem
 )
-from hephaestus_client import HephaestusClient
+from crewai_client import HephaestusClient
 from advanced_sgd_monitoring import SGDMonitor
 from advanced_validation_workflows import (
     AdvancedValidationOrchestrator, 

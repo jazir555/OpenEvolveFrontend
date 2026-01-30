@@ -1066,7 +1066,7 @@ class WorkflowState:
         Returns:
             HephaestusIntegrationManager instance
         """
-        from hephaestus_integration import HephaestusIntegrationManager
+        from crewai_integration # MIGRATED: was hephaestus_integration import HephaestusIntegrationManager
         return HephaestusIntegrationManager(api_base, api_key, project_id)
     
     def sync_subproblem_status_to_hephaestus(self, integration_manager, sub_problem_id: str, 

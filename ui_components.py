@@ -4267,7 +4267,7 @@ def render_monitoring_tab(workflow_state=None):
     the monitoring is done in the render_monitoring_tab UI function.
     """
     import time
-    from hephaestus_client import HephaestusClient
+    from crewai_client # MIGRATED: was hephaestus_client import HephaestusClient
     
     st.header("📊 Workflow Monitoring")
     

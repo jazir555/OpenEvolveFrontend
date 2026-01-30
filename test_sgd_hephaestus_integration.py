@@ -24,7 +24,7 @@ from workflow_structures import (
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
 from workflow_engine import run_sovereign_workflow
-from sovereign_decomposition_hephaestus_integration import (
+from sovereign_decomposition_crewai_integration # MIGRATED import (
     SovereignDecompositionHephaestusIntegration,
     initialize_sgd_hephaestus_integration,
     get_sgd_hephaestus_integration,

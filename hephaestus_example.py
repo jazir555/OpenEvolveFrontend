@@ -7,7 +7,7 @@ from typing import Optional
 
 from workflow_structures import (WorkflowState, DecompositionPlan, SubProblem, 
                                SolutionAttempt, CritiqueReport, VerificationReport)
-from hephaestus_integration import setup_hephaestus_integration, TicketStatus
+from crewai_integration # MIGRATED # MIGRATED: setup_hephaestus_integration -> setup_crewai_integration, TicketStatus
 
 def create_sample_workflow_state() -> WorkflowState:
     """Create a sample workflow state for demonstration"""

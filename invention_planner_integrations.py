@@ -3,7 +3,7 @@ Advanced Integrations for End-to-End Invention Planner
 
 This module provides all advanced integrations for Phase 4:
 - Task 4.1: BubbleLabs for analytics
-- Task 4.2: Hephaestus for task delegation
+- Task 4.2: CrewAI for task delegation (migrated from Hephaestus)
 - Task 4.3: Sovereign for quality assurance
 - Task 4.4: Claudiomiro/DataPizza/RAGBits for decomposition
 - Task 4.5: STEER for steering
@@ -41,14 +41,14 @@ except ImportError as e:
     WorkflowAnalytics = None
     NodeMetrics = None
 
-# Task 4.2: Hephaestus Integration
+# Task 4.2: CrewAI Integration (migrated from Hephaestus)
 try:
-    from hephaestus_client import HephaestusClient
-    HEPHAESTUS_AVAILABLE = True
+    from crewai_client import CrewAIClient
+    CREWAI_AVAILABLE = True
 except ImportError as e:
-    HEPHAESTUS_AVAILABLE = False
-    logger.warning(f"Hephaestus not available: {e} - task delegation will be local")
-    HephaestusClient = None
+    CREWAI_AVAILABLE = False
+    logger.warning(f"CrewAI not available: {e} - task delegation will be local")
+    CrewAIClient = None
 
 # Task 4.3: Sovereign Integration
 try:
@@ -66,27 +66,27 @@ except ImportError as e:
 
 # Task 4.4: Claudiomiro/DataPizza Integration
 try:
-    from claudiomiro_hephaestus_bridge import ClaudiomiroHephaestusWorkflowBridge
+    from claudiomiro_crewai_bridge import ClaudiomiroCrewAIWorkflowBridge
     CLAUDIOMIRO_AVAILABLE = True
 except ImportError as e:
     CLAUDIOMIRO_AVAILABLE = False
     logger.warning(f"Claudiomiro not available: {e} - using basic decomposition")
-    ClaudiomiroHephaestusWorkflowBridge = None
+    ClaudiomiroCrewAIWorkflowBridge = None
 
 try:
-    from datapizza_hephaestus_bridge import DataPizzaHephaestusBridge
+    from datapizza_crewai_bridge import DataPizzaCrewAIBridge
     DATAPIZZA_AVAILABLE = True
 except ImportError as e:
     DATAPIZZA_AVAILABLE = False
     logger.warning(f"DataPizza not available: {e} - decomposition will be basic")
-    DataPizzaHephaestusBridge = None
+    DataPizzaCrewAIBridge = None
 
 # RAGBits integration (for knowledge retrieval)
 RAGBITS_AVAILABLE = False  # RAGBits is a complex package, use basic knowledge retrieval
 
 # Task 4.5: STEER Integration
 try:
-    from steer_hephaestus_bridge import steer_capture, SteerVerificationError
+    from steer_crewai_bridge import steer_capture, SteerVerificationError
     from steer_mcp_tools import verify_json_output, verify_slop_filter
     STEER_AVAILABLE = True
 except ImportError as e:
@@ -351,7 +351,7 @@ class BubbleLabsIntegration:
 
 
 # =============================================================================
-# TASK 4.2: HEPHAESTUS DELEGATION INTEGRATION
+# TASK 4.2: CREWAI DELEGATION INTEGRATION
 # =============================================================================
 
 @dataclass
@@ -366,9 +366,9 @@ class DelegationResult:
     error: Optional[str] = None
 
 
-class HephaestusIntegration:
+class CrewAIIntegration:
     """
-    Integration with Hephaestus for distributed task delegation.
+    Integration with CrewAI for distributed task delegation (migrated from Hephaestus).
 
     Delegates heavy computational tasks:
     - Math formalization
@@ -385,22 +385,22 @@ class HephaestusIntegration:
 
     def __init__(self, base_url: str = "http://localhost:8001"):
         """
-        Initialize Hephaestus integration.
+        Initialize CrewAI integration.
 
         Args:
-            base_url: Base URL for Hephaestus server
+            base_url: Base URL for CrewAI server (if applicable)
         """
-        self.client: Optional[HephaestusClient] = None
+        self.client: Optional[CrewAIClient] = None
         self.base_url = base_url
         self.active_delegations: Dict[str, DelegationResult] = {}
 
-        if HEPHAESTUS_AVAILABLE:
+        if CREWAI_AVAILABLE:
             try:
-                self.client = HephaestusClient(base_url=base_url)
-                logger.info(f"Hephaestus integration initialized: {base_url}")
+                self.client = CrewAIClient(base_url=base_url)
+                logger.info(f"CrewAI integration initialized: {base_url}")
             except Exception as e:
-                logger.error(f"Failed to initialize Hephaestus: {e}")
-                HEPHAESTUS_AVAILABLE = False
+                logger.error(f"Failed to initialize CrewAI: {e}")
+                CREWAI_AVAILABLE = False
 
     async def delegate_math_formalization(
         self,
@@ -409,7 +409,7 @@ class HephaestusIntegration:
         workflow_id: str
     ) -> DelegationResult:
         """
-        Delegate math formalization to Hephaestus.
+        Delegate math formalization to CrewAI.
 
         Args:
             equations: List of mathematical equations to formalize
@@ -422,9 +422,9 @@ class HephaestusIntegration:
         task_id = f"{workflow_id}_math_{int(time.time())}"
         start_time = time.time()
 
-        if not HEPHAESTUS_AVAILABLE or not self.client:
+        if not CREWAI_AVAILABLE or not self.client:
             # Local fallback
-            logger.warning("Hephaestus not available - using local math formalization")
+            logger.warning("CrewAI not available - using local math formalization")
             return DelegationResult(
                 task_id=task_id,
                 task_type="math_formalization",
@@ -434,7 +434,7 @@ class HephaestusIntegration:
             )
 
         try:
-            # Create Hephaestus ticket for math formalization
+            # Create CrewAI workflow task for math formalization
             ticket = self.client.create_ticket(
                 title=f"Formalize {len(equations)} equations for {domain}",
                 description=f"Domain: {domain}\nEquations:\n" + "\n".join(equations),
@@ -472,7 +472,7 @@ class HephaestusIntegration:
         workflow_id: str
     ) -> DelegationResult:
         """
-        Delegate error analysis to Hephaestus.
+        Delegate error analysis to CrewAI.
 
         Args:
             decomposition: Decomposition data
@@ -485,8 +485,8 @@ class HephaestusIntegration:
         task_id = f"{workflow_id}_errors_{int(time.time())}"
         start_time = time.time()
 
-        if not HEPHAESTUS_AVAILABLE or not self.client:
-            logger.warning("Hephaestus not available - using local error analysis")
+        if not CREWAI_AVAILABLE or not self.client:
+            logger.warning("CrewAI not available - using local error analysis")
             return DelegationResult(
                 task_id=task_id,
                 task_type="error_analysis",
@@ -531,7 +531,7 @@ class HephaestusIntegration:
         workflow_id: str
     ) -> DelegationResult:
         """
-        Delegate red team testing to Hephaestus.
+        Delegate red team testing to CrewAI.
 
         Args:
             sop: SOP to test
@@ -544,8 +544,8 @@ class HephaestusIntegration:
         task_id = f"{workflow_id}_redteam_{int(time.time())}"
         start_time = time.time()
 
-        if not HEPHAESTUS_AVAILABLE or not self.client:
-            logger.warning("Hephaestus not available - using local red team testing")
+        if not CREWAI_AVAILABLE or not self.client:
+            logger.warning("CrewAI not available - using local red team testing")
             return DelegationResult(
                 task_id=task_id,
                 task_type="red_team_test",
@@ -584,7 +584,7 @@ class HephaestusIntegration:
             )
 
     def _fallback_math_formalization(self, equations: List[str], domain: str) -> List[Dict]:
-        """Fallback math formalization when Hephaestus unavailable"""
+        """Fallback math formalization when CrewAI unavailable"""
         return [
             {
                 "equation": eq,
@@ -596,7 +596,7 @@ class HephaestusIntegration:
         ]
 
     def _fallback_error_analysis(self, decomposition: Dict) -> List[Dict]:
-        """Fallback error analysis when Hephaestus unavailable"""
+        """Fallback error analysis when CrewAI unavailable"""
         steps = decomposition.get('steps', [])
         return [
             {
@@ -609,7 +609,7 @@ class HephaestusIntegration:
         ]
 
     def _fallback_red_team_test(self, sop: Dict, goal: str) -> List[str]:
-        """Fallback red team testing when Hephaestus unavailable"""
+        """Fallback red team testing when CrewAI unavailable"""
         return [
             "Potential undefined edge case in step 3",
             "Missing verification for critical parameter",
@@ -862,20 +862,20 @@ class MultiStrategyDecomposition:
 
     def __init__(self):
         """Initialize multi-strategy decomposition"""
-        self.claudiomiro: Optional[ClaudiomiroHephaestusWorkflowBridge] = None
-        self.datapizza: Optional[DataPizzaHephaestusBridge] = None
+        self.claudiomiro: Optional[ClaudiomiroCrewAIWorkflowBridge] = None
+        self.datapizza: Optional[DataPizzaCrewAIBridge] = None
 
         # Initialize available strategies
         if CLAUDIOMIRO_AVAILABLE:
             try:
-                self.claudiomiro = ClaudiomiroHephaestusWorkflowBridge()
+                self.claudiomiro = ClaudiomiroCrewAIWorkflowBridge()
                 logger.info("Claudiomiro decomposition initialized")
             except Exception as e:
                 logger.error(f"Failed to initialize Claudiomiro: {e}")
 
         if DATAPIZZA_AVAILABLE:
             try:
-                self.datapizza = DataPizzaHephaestusBridge()
+                self.datapizza = DataPizzaCrewAIBridge()
                 logger.info("DataPizza decomposition initialized")
             except Exception as e:
                 logger.error(f"Failed to initialize DataPizza: {e}")
@@ -980,7 +980,7 @@ class MultiStrategyDecomposition:
                 metadata={"available": False}
             )
 
-        # Would use ClaudiomiroHephaestusWorkflowBridge.execute_full_workflow
+        # Would use ClaudiomiroCrewAIWorkflowBridge.execute_full_workflow
         return DecompositionStrategy(
             strategy_name="Claudiomiro",
             decomposition={"steps": ["Autonomous step 1", "Autonomous step 2"]},
@@ -1000,7 +1000,7 @@ class MultiStrategyDecomposition:
                 metadata={"available": False}
             )
 
-        # Would use DataPizzaHephaestusBridge
+        # Would use DataPizzaCrewAIBridge
         return DecompositionStrategy(
             strategy_name="DataPizza",
             decomposition={"steps": ["Data-driven step 1", "Data-driven step 2"]},
@@ -1135,7 +1135,7 @@ class InventionPlannerIntegrations:
 
     This class provides a unified interface to all Phase 4 integrations:
     - BubbleLabs for analytics
-    - Hephaestus for delegation
+    - CrewAI for delegation (migrated from Hephaestus)
     - Sovereign for quality
     - Multi-strategy decomposition
     - STEER for steering
@@ -1155,7 +1155,7 @@ class InventionPlannerIntegrations:
 
         Args:
             enable_analytics: Enable BubbleLabs analytics
-            enable_delegation: Enable Hephaestus delegation
+            enable_delegation: Enable CrewAI delegation
             enable_quality: Enable Sovereign quality assurance
             enable_multi_decomposition: Enable multi-strategy decomposition
             enable_steer: Enable STEER steering
@@ -1163,7 +1163,7 @@ class InventionPlannerIntegrations:
         """
         # Initialize integrations
         self.bubblelabs = BubbleLabsIntegration() if enable_analytics else None
-        self.hephaestus = HephaestusIntegration() if enable_delegation else None
+        self.crewai = CrewAIIntegration() if enable_delegation else None
         self.sovereign = SovereignIntegration(quality_threshold) if enable_quality else None
         self.multi_decomp = MultiStrategyDecomposition() if enable_multi_decomposition else None
         self.steer = SteerIntegration() if enable_steer else None
@@ -1171,7 +1171,7 @@ class InventionPlannerIntegrations:
         # Track integration status
         self.status = {
             "bubblelabs": BUBBLELABS_AVAILABLE and enable_analytics,
-            "hephaestus": HEPHAESTUS_AVAILABLE and enable_delegation,
+            "crewai": CREWAI_AVAILABLE and enable_delegation,
             "sovereign": SOVEREIGN_AVAILABLE and enable_quality,
             "multi_decomposition": (CLAUDIOMIRO_AVAILABLE or DATAPIZZA_AVAILABLE) and enable_multi_decomposition,
             "steer": STEER_AVAILABLE and enable_steer
@@ -1195,7 +1195,7 @@ class InventionPlannerIntegrations:
 __all__ = [
     # Integration classes
     'BubbleLabsIntegration',
-    'HephaestusIntegration',
+    'CrewAIIntegration',
     'SovereignIntegration',
     'MultiStrategyDecomposition',
     'SteerIntegration',
@@ -1209,7 +1209,7 @@ __all__ = [
 
     # Availability flags
     'BUBBLELABS_AVAILABLE',
-    'HEPHAESTUS_AVAILABLE',
+    'CREWAI_AVAILABLE',
     'SOVEREIGN_AVAILABLE',
     'CLAUDIOMIRO_AVAILABLE',
     'DATAPIZZA_AVAILABLE',

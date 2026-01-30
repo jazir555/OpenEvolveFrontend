@@ -223,7 +223,7 @@ class VerificationReporter:
         # Test 1: None input handling
         print("  Testing None input handling...")
         try:
-            from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+            from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
             # This test would require a full instance setup
             # For now, just verify the module loads
             self.log_result("edge_case_tests", "None handling", True,

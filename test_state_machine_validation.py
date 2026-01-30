@@ -16,7 +16,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from bubblelabs_hephaestus_bridge import (
+    from bubblelabs_crewai_bridge # MIGRATED import (
         ExtendedWorkflowStatus,
         ExtendedTicketStatus,
         VALID_WORKFLOW_TRANSITIONS,
@@ -273,7 +273,7 @@ class TestWorkflowToTicketMapping(unittest.TestCase):
             self.skipTest("State validation not available")
 
         # Import the bridge class
-        from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+        from bubblelabs_crewai_bridge # MIGRATED import BubbleLabsHephaestusBridge
         from bubblelabs_integration import BubbleLabsIntegration
 
         self.bridge = BubbleLabsHephaestusBridge(

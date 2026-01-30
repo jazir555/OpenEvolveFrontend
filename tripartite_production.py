@@ -44,7 +44,7 @@ from sentence_transformers import SentenceTransformer
 
 # Import existing components
 from ace_steer_integration import AceSteerBridge
-from steer_crewai_bridge import SteerCrewAIWorkflowBridge  # Migrated from steer_hephaestus_bridge
+from steer_crewai_bridge import SteerCrewAIWorkflowBridge  # Migrated from steer_crewai_bridge # MIGRATED
 
 # ============================================================================
 # PRODUCTION CONFIGURATION MANAGEMENT

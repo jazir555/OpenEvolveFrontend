@@ -22,7 +22,7 @@ from unittest.mock import Mock, MagicMock, patch
 from typing import Dict, Any, List
 
 # Import components to test
-from hephaestus_integration import (
+from crewai_integration # MIGRATED import (
     HephaestusClient,
     HephaestusIntegrationManager,
     MDAPTaskSync,
@@ -575,7 +575,7 @@ from unittest.mock import Mock, MagicMock, patch
 from typing import Dict, Any, List
 
 # Import components to test
-from hephaestus_integration import (
+from crewai_integration # MIGRATED import (
     HephaestusClient,
     HephaestusIntegrationManager,
     MDAPTaskSync,

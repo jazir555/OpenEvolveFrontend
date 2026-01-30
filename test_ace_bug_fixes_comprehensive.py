@@ -15,7 +15,7 @@ print('\n[TEST 1] Import All ACE Integration Modules')
 print('-' * 80)
 try:
     from ace_mcp_tools import *
-    from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+    from ace_crewai_bridge import ACECrewAIWorkflowBridge
     from ace_analytics import SolutionPatternMiner, TeamPerformanceTracker, GauntletEffectivenessAnalyzer
     from ace_knowledge_artifacts import *
     from ace_workflow_knowledge_extractor import WorkflowKnowledgeExtractor, extract_knowledge_from_workflow
@@ -57,7 +57,7 @@ except Exception as e:
 print('\n[TEST 3] Verify ace_hephaestus_bridge.py Bug Fixes')
 print('-' * 80)
 try:
-    bridge = ACEHephaestusWorkflowBridge()
+    bridge = ACECrewAIWorkflowBridge()
 
     # Test context=None handling (should not crash)
     result = bridge.execute_phase_1_setup(

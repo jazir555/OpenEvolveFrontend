@@ -27,7 +27,7 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import the workflow bridge
-from hephaestus_workflow_bridge import (
+from crewai_unified_bridge # MIGRATED: was hephaestus_workflow_bridge import (
     execute_phase_1_decomposition,
     execute_phase_2_solving,
     execute_phase_3_critique,

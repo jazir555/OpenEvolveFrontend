@@ -30,7 +30,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, str(Path(__file__).parent))
 
 from bubblelabs_analytics import BubbleLabsAnalytics, cleanup_all_databases
-from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
 
 
 def print_section(title: str):

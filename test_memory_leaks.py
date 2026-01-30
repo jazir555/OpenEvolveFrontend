@@ -118,7 +118,7 @@ class BubbleLabsLeakDetector:
         print("=" * 80)
 
         try:
-            from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+            from bubblelabs_crewai_bridge # MIGRATED import BubbleLabsHephaestusBridge
             from bubblelabs_integration import BubbleLabsIntegration
         except ImportError as e:
             print(f"⚠️  Could not import: {e}")

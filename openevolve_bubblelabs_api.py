@@ -31,9 +31,9 @@ from analytics_manager import AnalyticsManager
 try:
     import sys
     import os
-    # Add parent directory to path to import bubblelabs_hephaestus_bridge
+    # Add parent directory to path to import bubblelabs_crewai_bridge
     sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from bubblelabs_hephaestus_bridge import (
+    from bubblelabs_crewai_bridge import (
         ExtendedWorkflowStatus,
         validate_workflow_transition,
         get_valid_workflow_transitions,

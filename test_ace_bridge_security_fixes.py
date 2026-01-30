@@ -23,7 +23,7 @@ from pathlib import Path
 def test_imports():
     """Test 1: Verify security utilities are imported"""
     print("\n[TEST 1] Import Security Utilities")
-    from ace_hephaestus_bridge import (
+    from ace_crewai_bridge import (
         validate_file_path_safe,
         validate_string_length,
         validate_list_size,
@@ -43,11 +43,11 @@ def test_initialization():
     """Test 2 & 11: Verify __init__ has path validation and thread lock"""
     print("\n[TEST 2 & 11] Initialization with Path Validation and Thread Lock")
 
-    from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+    from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Test normal initialization
-        bridge = ACEHephaestusWorkflowBridge(
+        bridge = ACECrewAIWorkflowBridge(
             model='gpt-4o-mini',
             checkpoint_dir=tmpdir
         )
@@ -61,7 +61,7 @@ def test_initialization():
 
         # Test path traversal prevention
         try:
-            bad_bridge = ACEHephaestusWorkflowBridge(
+            bad_bridge = ACECrewAIWorkflowBridge(
                 skillbook_path='../../etc/passwd'
             )
             print("  [OK] Path traversal blocked")
@@ -78,14 +78,14 @@ def test_phase_validations():
     """Test 3-8: Verify all phase methods have input validation"""
     print("\n[TEST 3-8] Phase Method Input Validations")
 
-    from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge, ACE_AVAILABLE
+    from ace_crewai_bridge import ACECrewAIWorkflowBridge, ACE_AVAILABLE
 
     if not ACE_AVAILABLE:
         print("  [SKIP] ACE not available, skipping phase tests")
         return True
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        bridge = ACEHephaestusWorkflowBridge(
+        bridge = ACECrewAIWorkflowBridge(
             model='gpt-4o-mini',
             checkpoint_dir=tmpdir
         )
@@ -132,14 +132,14 @@ def test_save_skillbook():
     """Test 12: Verify safe file operations in save_skillbook"""
     print("\n[TEST 12] Safe File Operations in save_skillbook")
 
-    from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge, ACE_AVAILABLE
+    from ace_crewai_bridge import ACECrewAIWorkflowBridge, ACE_AVAILABLE
 
     if not ACE_AVAILABLE:
         print("  [SKIP] ACE not available, skipping save test")
         return True
 
     with tempfile.TemporaryDirectory() as tmpdir:
-        bridge = ACEHephaestusWorkflowBridge(
+        bridge = ACECrewAIWorkflowBridge(
             model='gpt-4o-mini',
             checkpoint_dir=tmpdir
         )
@@ -163,9 +163,9 @@ def test_cleanup_methods():
     """Test 10: Verify cleanup methods exist"""
     print("\n[TEST 10] Cleanup Methods")
 
-    from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+    from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
-    bridge = ACEHephaestusWorkflowBridge(model='gpt-4o-mini')
+    bridge = ACECrewAIWorkflowBridge(model='gpt-4o-mini')
 
     assert hasattr(bridge, 'cleanup_old_skills'), "Missing cleanup_old_skills"
     print("  [OK] cleanup_old_skills method exists")
@@ -183,7 +183,7 @@ def test_cleanup_methods():
     print("  [OK] __exit__ context manager exists")
 
     # Test context manager
-    with ACEHephaestusWorkflowBridge(model='gpt-4o-mini') as bridge:
+    with ACECrewAIWorkflowBridge(model='gpt-4o-mini') as bridge:
         assert bridge is not None
     print("  [OK] Context manager works correctly")
 
@@ -194,9 +194,9 @@ def test_thread_safety():
     """Test thread safety mechanisms"""
     print("\n[THREAD SAFETY] Thread-Safe Skillbook Access")
 
-    from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+    from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
-    bridge = ACEHephaestusWorkflowBridge(model='gpt-4o-mini')
+    bridge = ACECrewAIWorkflowBridge(model='gpt-4o-mini')
 
     # Verify lock exists
     assert hasattr(bridge, '_skillbook_lock'), "Missing _skillbook_lock"

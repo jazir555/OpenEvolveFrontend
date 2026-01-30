@@ -31,7 +31,7 @@ from typing import Dict, Any
 sys.path.insert(0, str(Path(__file__).parent))
 
 from bubblelabs_analytics import BubbleLabsAnalytics, cleanup_all_databases
-from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge, WorkflowTicketMapping
+from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge, WorkflowTicketMapping
 
 
 class TestAnalyticsDatabaseCleanup(unittest.TestCase):

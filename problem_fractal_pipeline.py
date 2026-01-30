@@ -17,8 +17,8 @@ For questions, see: CREWAI_MIGRATION_MASTER_TASKLIST.md
 
 """
 Fractal Problem Pipeline Coordinator
-Orchestrates ROMA + Hephaestus decomposition, OpenEvolve gauntlet solving,
-ROMA + Hephaestus recomposition, and MDAP/MAKER verification.
+Orchestrates ROMA + CrewAI decomposition, OpenEvolve gauntlet solving,
+ROMA + CrewAI recomposition, and MDAP/MAKER verification.
 """
 
 import os

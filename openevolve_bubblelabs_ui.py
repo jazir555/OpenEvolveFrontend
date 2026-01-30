@@ -19,7 +19,7 @@ from bubblelabs_ui_component import BubbleLabsWorkflowUI
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
 from bubblelabs_analytics import BubbleLabsAnalytics
-from bubblelabs_hephaestus_bridge import BubbleLabsTicketConfig
+from bubblelabs_crewai_bridge import BubbleLabsTicketConfig
 
 # =============================================================================
 # SESSION STATE INITIALIZATION

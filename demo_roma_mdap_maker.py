@@ -36,9 +36,9 @@ def demo_1_status_check():
         MDAP_AVAILABLE,
     )
     from roma_mdap_maker_mcp_tools import list_mcp_tools
-    from roma_mdap_maker_hephaestus_bridge import get_romamdapmaker_bridge_status
+    from roma_mdap_maker_crewai_bridge import get_romamdapmaker_bridge_status
     from decomposition_mcp_tools import get_decomposition_status
-    from hephaestus_unified_bridge import get_unified_bridge_status
+    from crewai_unified_bridge import get_unified_bridge_status
 
     # Engine status
     print("ROMA-MDAP-MAKER Engine Status:")
@@ -453,10 +453,10 @@ print(f"Solution: {result['solution']}")
 print(f"Confidence: {result['confidence']}")
 """)
 
-    print("\nExample 2: Through Hephaestus Unified Bridge")
+    print("\nExample 2: Through CrewAI Unified Bridge")
     print("-" * 70)
     print("""
-from hephaestus_unified_bridge import execute_phase_1_setup
+from crewai_unified_bridge import execute_phase_1_setup
 
 # Auto-selects ROMA-MDAP-MAKER for critical tasks
 result = execute_phase_1_setup(
@@ -485,7 +485,7 @@ result = solve_sub_problem_with_team(
     print("\nExample 4: Full Workflow Execution")
     print("-" * 70)
     print("""
-from roma_mdap_maker_hephaestus_bridge import execute_full_workflow
+from roma_mdap_maker_crewai_bridge import execute_full_workflow
 
 result = execute_full_workflow(
     problem_statement="Design zero-error trading system",

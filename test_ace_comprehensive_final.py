@@ -501,7 +501,7 @@ print("-" * 80)
 print("\n[Module Import Test]")
 try:
     from ace_mcp_tools import *
-    from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+    from ace_crewai_bridge import ACECrewAIWorkflowBridge
     from ace_analytics import SolutionPatternMiner, TeamPerformanceTracker
     from ace_knowledge_artifacts import *
     from ace_workflow_knowledge_extractor import WorkflowKnowledgeExtractor
@@ -524,9 +524,9 @@ except Exception as e:
 
 print("\n[Context Manager Cleanup]")
 try:
-    from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+    from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
-    with ACEHephaestusWorkflowBridge() as bridge:
+    with ACECrewAIWorkflowBridge() as bridge:
         pass
 
     test_result("Context manager cleanup works", True)

@@ -70,7 +70,7 @@ class RecursiveCharacterTextSplitter:
 
 # Import existing ACE and Steer components
 from ace_steer_integration import AceSteerBridge
-from steer_hephaestus_bridge import SteerHephaestusWorkflowBridge
+from steer_crewai_bridge import SteerHephaestusWorkflowBridge
 
 logger = logging.getLogger(__name__)
 

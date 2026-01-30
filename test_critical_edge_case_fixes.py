@@ -2,7 +2,7 @@
 Test CRITICAL Edge Case Fixes
 
 This file tests the fixes for the 2 CRITICAL edge cases:
-1. No None check on workflow_definition in bubblelabs_hephaestus_bridge.py
+1. No None check on workflow_definition in bubblelabs_crewai_bridge.py
 2. No None check on workflow_definition in bubblelabs_typescript_export.py
 
 These tests verify that the code handles None inputs gracefully without crashing.
@@ -48,7 +48,7 @@ def test_edge_case_1_sync_workflow_to_ticket():
     """
     TEST 1: sync_workflow_to_ticket with None workflow
 
-    CRITICAL EDGE CASE: No None check on workflow_definition (bubblelabs_hephaestus_bridge.py line 128)
+    CRITICAL EDGE CASE: No None check on workflow_definition (bubblelabs_crewai_bridge.py line 128)
 
     BEFORE FIX: Would crash with AttributeError when trying to access workflow.id
     AFTER FIX: Returns False with proper error logging
@@ -60,7 +60,7 @@ def test_edge_case_1_sync_workflow_to_ticket():
     print("="*80)
 
     try:
-        from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+        from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
 
         # Create bridge with mock integration
         bridge = BubbleLabsHephaestusBridge(
@@ -276,7 +276,7 @@ def test_edge_case_5_sync_workflow_with_invalid_attributes():
     print("="*80)
 
     try:
-        from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+        from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
 
         # Mock that returns workflow with missing 'id'
         class MockBadWorkflow:

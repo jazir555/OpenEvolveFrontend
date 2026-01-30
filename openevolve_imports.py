@@ -212,7 +212,8 @@ def _import_leanaide() -> bool:
 
 
 def _import_hephaestus() -> bool:
-    """Attempt to import hephaestus integration module (now CrewAI)"""
+    """Attempt to # MIGRATED: hephaestus replaced with crewai
+import crewai_integration as crewai integration module (now CrewAI)"""
     global _hephaestus_module, HEPHAESTUS_AVAILABLE
     try:
         import crewai_integration  # CrewAI (MIT) - replaced Hephaestus (AGPL)

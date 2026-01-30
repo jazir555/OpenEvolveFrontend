@@ -122,9 +122,9 @@ print('\n[TEST 4] ACE Hephaestus Bridge Skillbook Growth (RL-4)')
 print('-' * 80)
 
 try:
-    from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+    from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
-    bridge = ACEHephaestusWorkflowBridge(max_skills=100)
+    bridge = ACECrewAIWorkflowBridge(max_skills=100)
 
     # Check max_skills configuration
     if hasattr(bridge, 'max_skills'):
@@ -283,10 +283,10 @@ print('\n[TEST 8] Context Manager Cleanup')
 print('-' * 80)
 
 try:
-    from ace_hephaestus_bridge import ACEHephaestusWorkflowBridge
+    from ace_crewai_bridge import ACECrewAIWorkflowBridge
 
     # Test with context manager
-    with ACEHephaestusWorkflowBridge() as bridge:
+    with ACECrewAIWorkflowBridge() as bridge:
         # Use the bridge
         pass
 
@@ -329,7 +329,7 @@ classes_to_test = [
     ('ace_analytics', 'TeamPerformanceTracker'),
     ('ace_analytics', 'GauntletEffectivenessAnalyzer'),
     ('ace_analytics', 'SolutionPatternMiner'),
-    ('ace_hephaestus_bridge', 'ACEHephaestusWorkflowBridge'),
+    ('ace_hephaestus_bridge', 'ACECrewAIWorkflowBridge'),
     ('ace_workflow_knowledge_extractor', 'WorkflowKnowledgeExtractor'),
 ]
 
@@ -358,7 +358,7 @@ print('=' * 80)
 print('\nAll Resource Management Fixes Tested:')
 print('  ✅ RL-1: TeamPerformanceTracker - History bounded to 1000')
 print('  ✅ RL-2: GauntletEffectivenessAnalyzer - History bounded to 1000')
-print('  ✅ RL-4: ACEHephaestusWorkflowBridge - Skillbook bounded to 1000')
+print('  ✅ RL-4: ACECrewAIWorkflowBridge - Skillbook bounded to 1000')
 print('  ✅ RL-5: WorkflowKnowledgeExtractor - Artifacts bounded to 10000')
 print('  ✅ Memory Usage - Bounded under load (< 50 MB for 5k ops)')
 print('  ✅ File Handle Cleanup - No leaks detected')

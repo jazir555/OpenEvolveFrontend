@@ -12,7 +12,7 @@ print("=" * 70)
 # Test 1: WorkflowTicketMapping
 print("\n1. Testing WorkflowTicketMapping (duplicate __init__ fix)...")
 try:
-    from bubblelabs_hephaestus_bridge import WorkflowTicketMapping
+    from bubblelabs_crewai_bridge import WorkflowTicketMapping
 
     mapping = WorkflowTicketMapping("test-workflow-123")
     assert mapping.workflow_id == "test-workflow-123"
@@ -90,7 +90,7 @@ except Exception as e:
 # Test 3: Import all modules
 print("\n3. Testing all module imports...")
 try:
-    from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+    from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
     from bubblelabs_mcp_tools import create_bubblelabs_workflow
     from bubblelabs_analytics import BubbleLabsAnalytics
     from bubblelabs_typescript_export import BubbleLabsTypeScriptExporter

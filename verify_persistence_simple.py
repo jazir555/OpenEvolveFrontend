@@ -18,7 +18,7 @@ print()
 
 # Check if the module exists
 try:
-    from bubblelabs_hephaestus_bridge import BubbleLabsHephaestusBridge
+    from bubblelabs_crewai_bridge # MIGRATED import BubbleLabsHephaestusBridge
     print("SUCCESS: Module imported successfully")
 except ImportError as e:
     print(f"FAILED: Could not import module: {e}")

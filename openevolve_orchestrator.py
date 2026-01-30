@@ -2098,7 +2098,7 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
             
             # Add Hephaestus client to check workflow status
             try:
-                from hephaestus_client import HephaestusClient
+                from crewai_client import HephaestusClient
                 client = HephaestusClient()
                 
                 # Get workflow tickets

@@ -31,7 +31,7 @@ class PhaseComparator:
             'files_migrated': 50,
             'code_reduction': 1592,
             'batches': 4,
-            'categories': ['core', 'adversarial', 'evolution', 'maker', 'mdap', 'crewai'],  # Updated from hephaestus
+            'categories': ['core', 'adversarial', 'evolution', 'maker', 'mdap', 'crewai'],  # Updated from crewai_integration # MIGRATED: was hephaestus
             'risk_levels': ['LOW', 'MEDIUM', 'HIGH'],
             'success_rate': 1.0,
             'issues_resolved': 15,

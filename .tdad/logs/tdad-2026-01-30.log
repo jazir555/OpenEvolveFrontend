@@ -40,3 +40,4 @@ Data: Using stylesheets: index-CqP4kAre.css
 [2026-01-30T06:13:35.527Z] [CANVAS] MVP: Canvas initialized with simple JSON storage
 [2026-01-30T06:13:35.568Z] [CANVAS] [FitView] isLoading=true, nodes.length=0, folderId=null
 [2026-01-30T06:13:35.679Z] [CANVAS] [FitView] isLoading=false, nodes.length=0, folderId=null
+[2026-01-30T07:54:41.707Z] [EXTENSION] Blueprint workflow changed (suppressed - internal save): c:\Users\mmeadow\Documents\OpenEvolve\Frontend\.tdad\workflows\root.workflow.json

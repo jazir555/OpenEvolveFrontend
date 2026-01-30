@@ -445,7 +445,7 @@ class TestBubbleLabsHephaestusBridgeEdgeCases(unittest.TestCase):
     def test_import_bridge(self):
         """Test that we can import the module"""
         try:
-            from bubblelabs_hephaestus_bridge import (
+            from bubblelabs_crewai_bridge import (
                 BubbleLabsHephaestusBridge,
                 validate_workflow_transition,
                 validate_ticket_transition
@@ -456,7 +456,7 @@ class TestBubbleLabsHephaestusBridgeEdgeCases(unittest.TestCase):
             print("✓ Successfully imported bubblelabs_hephaestus_bridge")
             return True
         except Exception as e:
-            print(f"✗ Failed to import bubblelabs_hephaestus_bridge: {e}")
+            print(f"✗ Failed to import bubblelabs_crewai_bridge: {e}")
             return False
 
     def test_1_none_values(self):
@@ -933,7 +933,7 @@ def run_all_edge_case_tests():
         f.write(f"- Errors: {len(result.errors)}\n\n")
         f.write("## Files Tested\n\n")
         f.write("- bubblelabs_analytics.py\n")
-        f.write("- bubblelabs_hephaestus_bridge.py\n")
+        f.write("- bubblelabs_crewai_bridge.py\n")
         f.write("- bubblelabs_typescript_export.py\n")
         f.write("- bubblelabs_mcp_tools.py\n\n")
 
