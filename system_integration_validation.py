@@ -157,11 +157,16 @@ def run_final_system_validation():
         try:
             auth_system = AuthenticationSystem(db_path=":memory:")
             
+            # Get test password from environment
+            test_password = os.environ.get('TEST_PASSWORD')
+            if not test_password:
+                raise ValueError("TEST_PASSWORD environment variable must be set for validation")
+            
             # Create a test user
             user = auth_system.create_user(
                 username="validation_user",
                 email="validation@example.com",
-                password="SecureValidation123!",
+                password=test_password,
                 roles=[],
                 permissions=[]
             )
@@ -173,7 +178,7 @@ def run_final_system_validation():
                 return False
             
             # Authentication test
-            authenticated = auth_system.authenticate("validation_user", "SecureValidation123!")
+            authenticated = auth_system.authenticate("validation_user", test_password)
             if authenticated:
                 print("   ✅ Authentication works")
             else:

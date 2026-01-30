@@ -13,6 +13,9 @@ from typing import Optional, Dict, Any, AsyncGenerator
 from datetime import datetime
 from pathlib import Path
 
+import jwt
+from jwt.exceptions import ExpiredSignatureError, InvalidTokenError, InvalidSignatureError
+
 from fastapi import FastAPI, HTTPException, Request, WebSocket, WebSocketDisconnect, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse, JSONResponse
@@ -279,6 +282,72 @@ async def emit_workflow_event(workflow_id: str, event_type: str, data: Dict[str,
 # Clerk JWT Validation
 # ============================================================================
 
+def validate_jwt_token(token: str) -> Dict[str, Any]:
+    """
+    Validate a JWT token using the Clerk JWT secret.
+    
+    Args:
+        token: The JWT token string to validate
+        
+    Returns:
+        Dict containing the decoded payload if valid
+        
+    Raises:
+        ValueError: If the token is expired, has invalid signature, 
+                    or any other validation error occurs
+    """
+    if not clerk_config:
+        raise ValueError("Clerk not configured. Unable to validate token.")
+    
+    secret_key = clerk_config.jwt_secret
+    
+    try:
+        # Decode and validate the token
+        payload = jwt.decode(
+            token,
+            secret_key,
+            algorithms=['HS256'],
+            options={
+                'verify_signature': True,
+                'verify_exp': True,
+                'verify_iat': True,
+                'require_exp': True,
+            }
+        )
+        
+        # Additional claim validations
+        if 'sub' not in payload:
+            raise ValueError("Invalid token: missing 'sub' (subject) claim")
+        
+        # Check if token is not yet valid (nbf claim)
+        if 'nbf' in payload:
+            nbf_timestamp = payload['nbf']
+            current_timestamp = datetime.utcnow().timestamp()
+            if current_timestamp < nbf_timestamp:
+                raise ValueError("Token not yet valid")
+        
+        # Validate issuer if configured
+        expected_issuer = os.getenv("CLERK_JWT_ISSUER")
+        if expected_issuer and payload.get('iss') != expected_issuer:
+            raise ValueError(f"Invalid token issuer: {payload.get('iss')}")
+        
+        # Validate audience if configured
+        expected_audience = os.getenv("CLERK_JWT_AUDIENCE")
+        if expected_audience and payload.get('aud') != expected_audience:
+            raise ValueError(f"Invalid token audience: {payload.get('aud')}")
+        
+        return payload
+        
+    except ExpiredSignatureError:
+        raise ValueError("Token has expired")
+    except InvalidSignatureError:
+        raise ValueError("Invalid token signature")
+    except InvalidTokenError as e:
+        raise ValueError(f"Invalid token: {str(e)}")
+    except Exception as e:
+        raise ValueError(f"Token validation failed: {str(e)}")
+
+
 class ClerkConfig(BaseModel):
     """Clerk authentication configuration"""
     jwt_secret: str = Field(..., description="Clerk JWT secret")
@@ -327,12 +396,13 @@ async def auth_middleware(request: Request, call_next):
 
     token = auth_header.replace("Bearer ", "")
 
-    # Validate token (placeholder - will implement full validation)
+    # Validate token
     try:
         if clerk_config:
-            # TODO: Implement actual JWT validation
-            # For now, just log the token presence
-            logger.debug(f"Auth token present: {token[:20]}...")
+            payload = validate_jwt_token(token)
+            # Store user info in request state for later use
+            request.state.user = payload
+            logger.debug(f"Auth token validated for user: {payload.get('sub', 'unknown')}")
         else:
             logger.debug("Clerk not configured, skipping auth validation")
 

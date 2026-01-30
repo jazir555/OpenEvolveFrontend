@@ -596,3 +596,114 @@ class ValidationCheckpoint:
         data = data.copy()
         data['results'] = [ValidationResult.from_dict(r) for r in data.get('results', [])]
         return cls(**data)
+
+
+
+@dataclass
+class HealthIssue:
+    """Represents a health issue found in decomposition or solution.
+    
+    Attributes:
+        id: Unique identifier for the issue
+        issue_type: Type of issue (circular_dependency, complexity_imbalance, missing_dependency, etc.)
+        severity: Severity level (critical, high, medium, low)
+        description: Human-readable description of the issue
+        affected_items: List of IDs of affected items
+        suggested_fix: Optional suggested fix
+        metadata: Additional metadata
+    """
+    id: str
+    issue_type: str
+    severity: str
+    description: str
+    affected_items: List[str] = field(default_factory=list)
+    suggested_fix: Optional[str] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'HealthIssue':
+        return cls(**data)
+
+
+@dataclass
+class HealingResult:
+    """Result of a healing operation.
+    
+    Attributes:
+        id: Unique identifier for the healing result
+        issue_id: ID of the issue that was addressed
+        success: Whether the healing was successful
+        strategy: Strategy used for healing
+        changes_made: Description of changes made
+        timestamp: When the healing was performed
+        before_state: Snapshot of state before healing
+        after_state: Snapshot of state after healing
+        metadata: Additional metadata
+    """
+    id: str
+    issue_id: str
+    success: bool
+    strategy: str
+    changes_made: str
+    timestamp: datetime = field(default_factory=datetime.now)
+    before_state: Optional[Dict[str, Any]] = None
+    after_state: Optional[Dict[str, Any]] = None
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        data = asdict(self)
+        data['timestamp'] = self.timestamp.isoformat()
+        return data
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'HealingResult':
+        data = data.copy()
+        data['timestamp'] = datetime.fromisoformat(data['timestamp'])
+        return cls(**data)
+
+
+@dataclass
+class EnhancedQualityScores:
+    """Enhanced quality scores for decomposition and solutions.
+    
+    Attributes:
+        overall_score: Overall quality score (0-100)
+        coherence: Coherence score (0-100)
+        completeness: Completeness score (0-100)
+        correctness: Correctness score (0-100)
+        clarity: Clarity score (0-100)
+        complexity_balance: Complexity balance score (0-100)
+        dependency_structure: Dependency structure score (0-100)
+        testability: Testability score (0-100)
+        maintainability: Maintainability score (0-100)
+        metadata: Additional metadata
+    """
+    overall_score: float = 0.0
+    coherence: float = 0.0
+    completeness: float = 0.0
+    correctness: float = 0.0
+    clarity: float = 0.0
+    complexity_balance: float = 0.0
+    dependency_structure: float = 0.0
+    testability: float = 0.0
+    maintainability: float = 0.0
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    
+    def to_dict(self) -> Dict[str, Any]:
+        return asdict(self)
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'EnhancedQualityScores':
+        return cls(**data)
+    
+    def get_average(self) -> float:
+        """Calculate average of all scores."""
+        scores = [
+            self.coherence, self.completeness, self.correctness,
+            self.clarity, self.complexity_balance, self.dependency_structure,
+            self.testability, self.maintainability
+        ]
+        return sum(scores) / len(scores) if scores else 0.0

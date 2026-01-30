@@ -288,7 +288,7 @@ class URLValidator:
 
             return True, ""
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, AttributeError) as e:
             error = f"URL validation error: {str(e)}"
             if file_logger:
                 file_logger.error(error, e)
@@ -384,7 +384,7 @@ class ConnectionStringValidator:
 
             return True, ""
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, AttributeError) as e:
             error = f"Connection string validation error: {str(e)}"
             if file_logger:
                 file_logger.error(error, e)
@@ -413,7 +413,7 @@ class ConnectionStringValidator:
 
             return True, ""
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, AttributeError) as e:
             error = f"Redis connection string validation error: {str(e)}"
             if file_logger:
                 file_logger.error(error, e)
@@ -548,7 +548,7 @@ class ConfigSchemaValidator:
 
             return True, ""
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, KeyError, TypeError) as e:
             error = f"Schema validation error: {str(e)}"
             if file_logger:
                 file_logger.error(error, e)
@@ -597,7 +597,7 @@ class EnvironmentValidator:
             if self.file_logger:
                 self.file_logger.info("pip validated")
             return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (subprocess.CalledProcessError, FileNotFoundError, OSError) as e:
             Logger.error(f"pip not available: {e}")
             error = "pip not available"
             self.errors.append(error)
@@ -615,7 +615,7 @@ class EnvironmentValidator:
             if self.file_logger:
                 self.file_logger.info(f"Directory writable: {directory}")
             return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (PermissionError, OSError) as e:
             Logger.error(f"Directory not writable: {directory}")
             error = f"Cannot write to {directory}"
             self.errors.append(error)
@@ -709,11 +709,11 @@ class DependencyInstaller:
                 if line.startswith('Version:'):
                     return line.split(':', 1)[1].strip()
             return None
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
-            return None
+        except (subprocess.CalledProcessError, FileNotFoundError, OSError) as e:
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Error: {e}", exc_info=True)
+            logger.debug(f"Package check failed: {e}")
+            return None
 
     def install_package(self, package: str) -> bool:
         """Install a single package"""
@@ -761,7 +761,7 @@ class DependencyInstaller:
             if self.file_logger:
                 self.file_logger.error(f"Package installation timeout: {package}")
             return False
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (subprocess.CalledProcessError, OSError) as e:
             error = f"{package} ({e})"
             Logger.error(f"✗ {error}")
             self.failed.append(package)
@@ -863,11 +863,11 @@ class BubbleLabClient:
             if self.file_logger:
                 self.file_logger.error(error)
             raise Exception(error)
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, AttributeError, RuntimeError) as e:
             error = f"API request failed: {e}"
             if self.file_logger:
                 self.file_logger.error(error, e)
-            raise Exception(error)
+            raise RuntimeError(error)
 
     def test_credentials(self) -> Tuple[bool, str]:
         """Test if API credentials are valid by calling /me endpoint"""
@@ -875,7 +875,7 @@ class BubbleLabClient:
             # Try to get user info (authenticates the API key)
             self._request('GET', '/me')
             return True, "Credentials validated"
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError, ValueError) as e:
             return False, str(e)
 
     def test_connection(self) -> Tuple[bool, str]:
@@ -884,29 +884,29 @@ class BubbleLabClient:
             # Try to list flows (lightweight endpoint)
             self._request('GET', '/bubble-flow?limit=1')
             return True, "Connection successful"
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError, ValueError) as e:
             return False, str(e)
 
     def get_system_status(self) -> Dict:
         """Get BubbleLab system status"""
         try:
             return self._request('GET', '/')
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
-            return {}
+        except (RuntimeError, ConnectionError, ValueError) as e:
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Error: {e}", exc_info=True)
+            logger.debug(f"Failed to get system status: {e}")
+            return {}
 
     def list_credentials(self) -> List[Dict]:
         """List all credentials"""
         try:
             result = self._request('GET', '/credentials')
             return result.get('credentials', [])
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
-            return []
+        except (RuntimeError, ConnectionError, ValueError, KeyError) as e:
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Error: {e}", exc_info=True)
+            logger.debug(f"Failed to list credentials: {e}")
+            return []
 
 # =============================================================================
 # Configuration Generator (Enhanced)
@@ -1046,7 +1046,7 @@ Thumbs.db
 
             return True
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, yaml.YAMLError) as e:
             Logger.error(f"Failed to generate configurations: {e}")
             if self.file_logger:
                 self.file_logger.error("Configuration generation failed", e)
@@ -1176,7 +1176,7 @@ class SetupOrchestrator:
                         Logger.error(f"✗ API connection failed: {message}")
                         Logger.warning("Setup will continue but API features won't work until fixed")
                         self.file_logger.error(f"API connection failed: {message}")
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                except (RuntimeError, ConnectionError, ValueError) as e:
                     Logger.warning(f"⚠️  Could not validate API: {e}")
                     Logger.info("This is OK if BubbleLab is not running yet")
                     self.file_logger.warning(f"API validation error: {e}")
@@ -1214,7 +1214,7 @@ class SetupOrchestrator:
 
             return critical_success
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, RuntimeError, ValueError) as e:
             Logger.error(f"\n\n✗ Fatal error during setup: {e}")
             if self.file_logger:
                 self.file_logger.error("Fatal error during setup", e)
@@ -1243,7 +1243,7 @@ class SetupOrchestrator:
             else:
                 Logger.error("✗ Configuration file not found")
                 tests_passed = False
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, yaml.YAMLError) as e:
             Logger.error(f"✗ Configuration test failed: {e}")
             if self.file_logger:
                 self.file_logger.error("Configuration test failed", e)
@@ -1368,7 +1368,7 @@ class DirectoryCreator:
                 if self.file_logger:
                     self.file_logger.info(f"Directory created: {directory}")
                 return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (PermissionError, OSError) as e:
             Logger.error(f"✗ {directory} ({e})")
             if self.file_logger:
                 self.file_logger.error(f"Failed to create directory: {directory}", e)
@@ -1456,7 +1456,7 @@ Examples:
         success = orchestrator.run()
         sys.exit(0 if success else 1)
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, RuntimeError, ValueError) as e:
         Logger.error(f"\n\n✗ Fatal error: {e}")
         Logger.detail(traceback.format_exc())
         sys.exit(1)
@@ -1467,7 +1467,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         Logger.warning("\n\n⚠️  Setup interrupted by user")
         sys.exit(130)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, RuntimeError, ValueError) as e:
         Logger.error(f"\n\n✗ Fatal error: {e}")
         Logger.detail(traceback.format_exc())
         sys.exit(1)

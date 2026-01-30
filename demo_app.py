@@ -145,7 +145,12 @@ All patient interactions must be documented in the electronic health record.""",
 
 def process_data(data):
     # Process data without proper validation
-    result = eval(data)  # Dangerous!
+    # SECURITY FIX: Replace eval() with safe ast.literal_eval() for basic data structures
+    import ast
+    try:
+        result = ast.literal_eval(data)  # Safe for basic data structures only
+    except (ValueError, SyntaxError):
+        raise ValueError("Invalid data format")
     return result"""
     }
     

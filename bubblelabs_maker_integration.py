@@ -311,7 +311,7 @@ class ToolRepository:
                         for tool_id, tool_data in data.get('tools', {}).items()
                     }
                 logger.info(f"Loaded {len(self.tools)} tools from repository")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, json.JSONDecodeError) as e:
             logger.error(f"Failed to load tool repository: {e}")
             self.tools = {}
 
@@ -327,7 +327,7 @@ class ToolRepository:
             }
             with open(self.storage_path, 'w') as f:
                 json.dump(data, f, indent=2)
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, json.JSONDecodeError) as e:
             logger.error(f"Failed to save tool repository: {e}")
 
 
@@ -396,7 +396,7 @@ class CrewAIDelegationManager:
             logger.info(f"Delegated MAKER run {run_id} to CrewAI workflow ticket {ticket_id}")
             return delegation
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError, ValueError) as e:
             logger.error(f"Failed to delegate MAKER run: {e}")
             return None
 
@@ -453,7 +453,7 @@ This task represents the execution of a tool created by the Maker Engine.
             logger.info(f"Delegated tool execution {tool_id} to CrewAI workflow ticket {ticket_id}")
             return delegation
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError, ValueError) as e:
             logger.error(f"Failed to delegate tool execution: {e}")
             return None
 
@@ -486,7 +486,7 @@ This task represents the execution of a tool created by the Maker Engine.
                         ticket_id=delegation.task_id,
                         status=ticket_status
                     )
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                except (RuntimeError, ConnectionError, ValueError) as e:
                     logger.error(f"Failed to sync status to CrewAI: {e}")
 
             return True
@@ -531,7 +531,7 @@ This task represents the execution of a tool created by the Maker Engine.
                         delegation.updated_at = datetime.now().isoformat()
                         synced += 1
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ConnectionError, ValueError) as e:
                 logger.error(f"Failed to sync delegation {delegation.delegation_id}: {e}")
 
         if synced > 0:
@@ -642,7 +642,7 @@ class MakerWorkflowManager:
 
             return tool, None
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to create tool workflow: {e}")
             return None, str(e)
 
@@ -719,7 +719,7 @@ class MakerWorkflowManager:
 
             return execution_result, None
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, ConnectionError) as e:
             logger.error(f"Failed to execute tool workflow: {e}")
             return None, str(e)
 

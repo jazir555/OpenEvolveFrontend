@@ -35,8 +35,9 @@ class DataEncryption:
         if encryption_key is not None:
             self.encryption_key = encryption_key
         elif password is not None:
-            # Derive key from password
-            salt = b'sovereign_decomposition_salt'  # In production, use a random salt per item
+            # Derive key from password with random salt
+            # Generate a random 16-byte salt for each encryption
+            salt = os.urandom(16)
             kdf = PBKDF2HMAC(
                 algorithm=hashes.SHA256(),
                 length=32,
@@ -44,6 +45,8 @@ class DataEncryption:
                 iterations=100000,
             )
             key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
+            # Store salt with encryption key for later decryption
+            self._encryption_salt = salt
             self.encryption_key = key
         else:
             # Get encryption key from environment or generate new one

@@ -113,7 +113,7 @@ class EdgeCaseAnalyzer:
                                     'alias': alias.asname,
                                     'line': node.lineno
                                 })
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, SyntaxError) as e:
                 print(f"Error parsing {py_file}: {e}")
 
     def _detect_circular_dependencies(self):
@@ -175,7 +175,7 @@ class EdgeCaseAnalyzer:
             self._check_dead_code(tree, module_name, content)
             self._check_encoding_issues(tree, module_name, content)
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, SyntaxError) as e:
             print(f"Error analyzing {file_path}: {e}")
 
     def _check_lazy_imports(self, tree: ast.AST, module_name: str, content: str):
@@ -639,7 +639,7 @@ class EdgeCaseAnalyzer:
                         class_name = class_match.group(1)
                         all_classes[class_name].append((str(py_file), i))
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, UnicodeDecodeError) as e:
                 # Skip files that can't be read
                 continue
 
@@ -674,14 +674,11 @@ class EdgeCaseAnalyzer:
                 content = py_file.read_text(encoding='utf-8', errors='ignore')
                 if any(re.search(pattern, content) for pattern in config_patterns):
                     config_files.append(str(py_file))
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, UnicodeDecodeError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
-                logger.warning(f"Continuing after error", exc_info=True)
+                logger.debug(f"Skipping file due to read error: {e}")
                 continue
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Error: {e}", exc_info=True)
 
         if len(config_files) > 1:
             self.edge_cases.append(EdgeCase(

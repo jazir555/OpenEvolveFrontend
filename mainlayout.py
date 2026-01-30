@@ -43,13 +43,6 @@ except ImportError:
     LogStreaming = None
     LOG_STREAMING_AVAILABLE = False
 
-# --- Optional Imports with Fallbacks ---
-try:
-    import matplotlib.pyplot as plt
-    MATPLOTLIB_AVAILABLE = True
-except ImportError:
-    MATPLOTLIB_AVAILABLE = False
-
 try:
     from streamlit_autorefresh import st_autorefresh
 except ImportError:

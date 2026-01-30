@@ -1842,7 +1842,12 @@ def authenticate_user(username, password):
 
 def process_data(data):
     # Process data without proper validation
-    result = eval(data)  # Dangerous!
+    # SECURITY FIX: Use ast.literal_eval for safe parsing of Python literals
+    import ast
+    try:
+        result = ast.literal_eval(data)
+    except (ValueError, SyntaxError):
+        raise ValueError("Invalid data format: data must be a valid Python literal")
     return result
 
 def main():

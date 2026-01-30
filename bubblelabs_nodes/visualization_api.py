@@ -194,11 +194,61 @@ async def get_cached_tree(
     Get cached visualization for a problem.
 
     This endpoint caches generated visualizations to improve performance
-    for frequently accessed problems.
+    for frequently accessed problems. Cache entries expire after 1 hour.
     """
-    # TODO: Implement caching
-    # For now, delegate to get_problem_tree
-    return await get_problem_tree(problem_id, format)
+    try:
+        # Convert format string to OutputFormat enum
+        try:
+            output_format = OutputFormat(format.lower())
+        except ValueError:
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Invalid format: {format}. Supported: ascii, html, dot"
+            )
+        
+        # Prepare options for cache key
+        options = {"format": format}
+        
+        # Try to get from cache first
+        cached_result = await get_cached_visualization(problem_id, output_format, options)
+        
+        if cached_result is not None:
+            logger.info(f"Cache hit for problem {problem_id} with format {format}")
+            
+            # Return appropriate response based on format
+            if format.lower() == "html":
+                return HTMLResponse(content=cached_result)
+            elif format.lower() == "dot":
+                return PlainTextResponse(
+                    content=cached_result, 
+                    media_type="text/vnd.graphviz"
+                )
+            else:
+                return PlainTextResponse(content=cached_result)
+        
+        # Cache miss - generate the visualization
+        logger.info(f"Cache miss for problem {problem_id} with format {format}")
+        
+        # Generate visualization using the main endpoint logic
+        result = await get_problem_tree(problem_id, format)
+        
+        # Cache the result for future requests
+        # Note: We need to extract the actual content from the response
+        if isinstance(result, (HTMLResponse, PlainTextResponse)):
+            visualization_content = result.body.decode('utf-8') if hasattr(result, 'body') else str(result)
+        else:
+            visualization_content = str(result)
+        
+        await cache_visualization(problem_id, output_format, options, visualization_content)
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error in cached tree retrieval: {e}")
+        # Fall back to non-cached version
+        return await get_problem_tree(problem_id, format)
 
 
 @app.get("/api/formats")

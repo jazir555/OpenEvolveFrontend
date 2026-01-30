@@ -338,7 +338,8 @@ class SolutionPatternMiner:
                         del tfidf_matrix
                     if cluster_model is not None:
                         del cluster_model
-                except Exception:
+                except (AttributeError, RuntimeError, TypeError):
+                    # Handle cleanup errors during destruction (interpreter shutdown)
                     pass
 
         return patterns
@@ -995,7 +996,8 @@ class TeamPerformanceTracker:
         """
         try:
             self.cleanup()
-        except Exception:
+        except (AttributeError, RuntimeError, OSError):
+            # Handle cleanup errors during destruction (interpreter may be shutting down)
             pass
 
     def __enter__(self):
@@ -1436,7 +1438,8 @@ class GauntletEffectivenessAnalyzer:
         """
         try:
             self.cleanup()
-        except Exception:
+        except (AttributeError, RuntimeError, OSError):
+            # Handle cleanup errors during destruction (interpreter may be shutting down)
             pass
 
     def __enter__(self):

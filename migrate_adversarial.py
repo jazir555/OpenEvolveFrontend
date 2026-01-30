@@ -20,6 +20,7 @@ import argparse
 import asyncio
 import json
 import logging
+import os
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -245,6 +246,12 @@ async def validate_migration(
     try:
         from adversarial import run_comprehensive_adversarial_testing
 
+        api_key = os.environ.get('OPENAI_API_KEY')
+        if not api_key:
+            logger.warning("OPENAI_API_KEY not set, skipping old system test")
+            validation["old_system"]["error"] = "OPENAI_API_KEY not set"
+            return validation
+
         old_result = await asyncio.to_thread(
             run_comprehensive_adversarial_testing,
             content=sample_content,
@@ -252,7 +259,7 @@ async def validate_migration(
             red_team_models=["gpt-4"],
             blue_team_models=["gpt-4"],
             evaluator_models=["gpt-4"],
-            api_key="test",
+            api_key=api_key,
             max_iterations=3
         )
 

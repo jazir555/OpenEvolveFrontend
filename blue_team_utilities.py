@@ -13,7 +13,7 @@ import hashlib
 import tempfile
 import shutil
 from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple, Callable, Set, Union
+from typing import Dict, List, Any, Optional, Tuple, Callable, Set, Union, Match
 from dataclasses import dataclass, field
 from datetime import datetime
 from collections import defaultdict
@@ -850,7 +850,7 @@ class Patch:
     description: str
     patch_type: str
     pattern: str  # Regex pattern to match
-    replacement: str  # Replacement pattern
+    replacement: Union[str, Callable[[re.Match], str]]  # Replacement pattern or callable
     flags: int = re.MULTILINE
     category: str = "general"
     severity: str = "medium"
@@ -885,6 +885,65 @@ class Patch:
             Number of matches
         """
         return len(re.findall(self.pattern, content, flags=self.flags))
+
+
+def _generate_docstring_template(match: re.Match) -> str:
+    """
+    Generate an intelligent docstring template for a function.
+    
+    Analyzes the function signature to create a meaningful docstring
+    with parameter descriptions and return type hints.
+    
+    Args:
+        match: Regex match object containing function definition groups
+        
+    Returns:
+        Formatted function definition with intelligent docstring
+    """
+    func_name = match.group(1)
+    params_str = match.group(2)
+    
+    # Parse parameters
+    params = []
+    if params_str.strip() and params_str.strip() != '':
+        # Simple param parsing - handles basic cases
+        for param in params_str.split(','):
+            param = param.strip()
+            if param and param != 'self' and param != 'cls':
+                # Extract parameter name (handles type hints)
+                if ':' in param:
+                    param_name = param.split(':')[0].strip()
+                    param_type = param.split(':')[1].split('=')[0].strip()
+                elif '=' in param:
+                    param_name = param.split('=')[0].strip()
+                    param_type = "optional"
+                else:
+                    param_name = param
+                    param_type = "any"
+                params.append((param_name, param_type))
+    
+    # Generate description from function name
+    words = func_name.replace('_', ' ').strip().split()
+    description = ' '.join(words).capitalize()
+    
+    # Build docstring
+    docstring_lines = [f'    """', f'    {description}.', f'    """']
+    
+    if params:
+        docstring_lines = [
+            f'    """',
+            f'    {description}.',
+            f'    ',
+            f'    Args:'
+        ]
+        for param_name, param_type in params:
+            docstring_lines.append(f'        {param_name} ({param_type}): Description of {param_name}.')
+        docstring_lines.append(f'    """')
+    
+    docstring = '\n'.join(docstring_lines)
+    
+    # Reconstruct the function definition
+    return f'def {func_name}({params_str}):\n{docstring}\n'
 
 
 class PatchLibrary:
@@ -975,7 +1034,7 @@ class PatchLibrary:
             description='Add basic docstring template to function',
             patch_type='documentation',
             pattern=r'def\s+(\w+)\s*\((.*?)\):\s*\n',
-            replacement=r'def \1(\2):\n    """\n    TODO: Add docstring\n    """\n',
+            replacement=_generate_docstring_template,
             category='quality',
             severity='low',
             tags=['documentation', 'docstring']

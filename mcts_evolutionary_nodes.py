@@ -415,7 +415,11 @@ class SequenceCrossover:
         """
         len1, len2 = len(parent1.actions), len(parent2.actions)
 
-        # Select crossover point
+        # Select crossover point with bounds checking
+        if len1 < 2 or len2 < 2:
+            # Return clones if arrays are too small for crossover
+            return parent1.clone(), parent2.clone()
+        
         point1 = random.randint(1, max(1, len1 - 1))
         point2 = random.randint(1, max(1, len2 - 1))
 
@@ -619,6 +623,8 @@ class SequenceMutation:
         mutated = sequence.copy()
 
         # Select random position and new tactic
+        if not mutated.actions:
+            return sequence
         pos = random.randint(0, len(mutated.actions) - 1)
         new_tactic = Tactic(name=random.choice(tactics))
 
@@ -646,7 +652,7 @@ class SequenceMutation:
         mutated = sequence.copy()
 
         # Select random position and tactic
-        pos = random.randint(0, len(mutated.actions))
+        pos = random.randint(0, len(mutated.actions)) if mutated.actions else 0
         new_tactic = Tactic(name=random.choice(tactics))
 
         mutated.actions.insert(pos, new_tactic)
@@ -670,6 +676,8 @@ class SequenceMutation:
         mutated = sequence.copy()
 
         # Select random position to delete
+        if not mutated.actions:
+            return sequence
         pos = random.randint(0, len(mutated.actions) - 1)
         mutated.actions.pop(pos)
 
@@ -695,6 +703,8 @@ class SequenceMutation:
         mutated = sequence.copy()
 
         # Select random subsequence
+        if len(mutated.actions) < 2:
+            return sequence
         start = random.randint(0, len(mutated.actions) - 2)
         end = random.randint(start + 1, len(mutated.actions) - 1)
 
@@ -835,12 +845,17 @@ class SequenceSelection:
         total_fitness = sum(adjusted_fitness)
 
         if total_fitness == 0:
+            # Fix: Check if population is empty before random.choice
+            if not population:
+                raise ValueError("Cannot select from empty population: no individuals available")
             return random.choice(population)
 
         # Calculate selection probabilities
         probabilities = [f / total_fitness for f in adjusted_fitness]
 
-        # Select individual
+        # Fix: Check population not empty before random.choices
+        if not population:
+            raise ValueError("Cannot select from empty population: no individuals available")
         return random.choices(population, weights=probabilities, k=1)[0]
 
     def rank_selection(self, population: List[ActionSequence]) -> ActionSequence:
@@ -1781,12 +1796,14 @@ class DistributedEvolutionaryMCTS:
             # Distribute evolution tasks
             if len(nodes_to_evolve) > 1:
                 await self._parallel_evolve(nodes_to_evolve, initial_context, workers)
-            else:
+            elif len(nodes_to_evolve) == 1:
+                # Fix: Only access [0] if list has exactly 1 element
                 await self.base_mcts.evolve_at_node(
                     nodes_to_evolve[0],
                     initial_context,
                     self.base_mcts.evolution_generations
                 )
+            # else: no nodes to evolve, skip
 
         # Compile result
         elapsed = time.time() - start_time

@@ -12,10 +12,10 @@ while i < len(lines):
     line = lines[i]
 
     # Check for print(f" pattern
-    if re.search(r'print\(f"', line):
-        # Check if line ends with backslash
-        stripped = line.strip()
-        if stripped.endswith('\\\\'):
+    if re.search(r'print\(f["\']', line):
+        # Check if line ends with backslash (fixed pattern)
+        stripped = line.rstrip()
+        if stripped.endswith('\\'):
             # This is the problem pattern
             # Get indent
             indent = len(line) - len(line.lstrip())

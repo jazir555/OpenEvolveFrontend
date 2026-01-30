@@ -278,7 +278,7 @@ class CustomStrategyBuilder:
                     try:
                         # In production, this would dynamically load and execute the function
                         logger.warning("Custom ordering functions not yet implemented, using sequential")
-                    except Exception as e:  # TODO: Catch specific exception instead of Exception
+                    except (ValueError, TypeError, RuntimeError) as e:
                         logger.error(f"Error applying custom ordering: {e}")
 
                 # Default: sequential (no reordering)
@@ -426,7 +426,7 @@ class CustomStrategyBuilder:
                     result.validation_checks['returns_valid_subproblems'] = False
                     result.is_valid = False
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, TypeError) as e:
                 result.errors.append(f"decompose() raised exception: {e}")
                 result.validation_checks['returns_valid_subproblems'] = False
                 result.is_valid = False
@@ -446,11 +446,11 @@ class CustomStrategyBuilder:
                 else:
                     result.warnings.append("Strategy may not handle invalid input gracefully")
                     result.validation_checks['handles_errors'] = False
-            except Exception:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, TypeError):
                 # It raised, but was it graceful?
                 result.validation_checks['handles_errors'] = False
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError) as e:
             result.warnings.append(f"Error handling test failed: {e}")
             result.validation_checks['handles_errors'] = False
 
@@ -546,7 +546,7 @@ class CustomStrategyBuilder:
                     results.tests_failed += 1
                     test_detail["errors"].append("Empty or invalid result")
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, TypeError) as e:
                 results.tests_failed += 1
                 test_detail["errors"].append(str(e))
                 logger.error(f"Strategy test error: {e}", exc_info=True)

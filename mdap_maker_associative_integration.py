@@ -114,11 +114,16 @@ class MDAPRecomposer:
         if MDAP_AVAILABLE:
             # Create default team if not provided
             if team is None:
+                # Get API key from environment
+                api_key = os.environ.get('OPENAI_API_KEY')
+                if not api_key:
+                    raise ValueError("OPENAI_API_KEY environment variable must be set")
+                
                 # Create a generic team with mock members for validation
                 mock_members = [
                     ModelConfig(
                         model_id=f"validation_agent_{i}",
-                        api_key = os.environ.get("MOCK_KEY", ""),
+                        api_key=api_key,
                         api_base="https://mock.validation"
                     )
                     for i in range(num_agents)
@@ -440,11 +445,16 @@ class MakerRecomposerWorkflow:
                 # Extract team from MDAP orchestrator
                 maker_team = self.mdap_recomposer.mdap_orchestrator.team
             else:
+                # Get API key from environment
+                api_key = os.environ.get('OPENAI_API_KEY')
+                if not api_key:
+                    raise ValueError("OPENAI_API_KEY environment variable must be set")
+                
                 # Create new team for MAKER
                 mock_members = [
                     ModelConfig(
                         model_id=f"maker_agent_{i}",
-                        api_key = os.environ.get("MOCK_KEY", ""),
+                        api_key=api_key,
                         api_base="https://mock.maker"
                     )
                     for i in range(3)

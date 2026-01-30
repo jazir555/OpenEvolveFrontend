@@ -11,6 +11,8 @@ This script performs a complete validation of all claimed fixes:
 - Syntax validation
 """
 
+__all__ = ['FileValidationResult', 'FinalHealthCheck']
+
 import os
 import re
 import ast
@@ -52,15 +54,17 @@ class FinalHealthCheck:
     def validate_syntax(self, filepath: str) -> bool:
         """Check if Python file has valid syntax."""
         try:
+            # Read file content and ensure handle is closed before parsing
             with open(filepath, 'r', encoding='utf-8') as f:
                 content = f.read()
-                ast.parse(content)
+            # Parse after file is closed to avoid holding file handles during CPU work
+            ast.parse(content)
             return True
         except SyntaxError as e:
-            print(f"  ❌ Syntax Error: {e}")
+            print(f"  [FAIL] Syntax Error: {e}")
             return False
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
-            print(f"  ⚠️  Error: {type(e).__name__}: {e}")
+        except (IOError, OSError, PermissionError, UnicodeDecodeError) as e:
+            print(f"  [WARN] File Error: {type(e).__name__}: {e}")
             return False
 
     def count_parameter_manager(self, content: str) -> Tuple[int, int]:

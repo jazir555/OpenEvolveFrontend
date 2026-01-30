@@ -6,6 +6,7 @@ File size: ~1800 lines (under the 2000 line limit)
 
 import streamlit as st
 import uuid
+import threading
 from datetime import datetime
 from typing import Dict, List, Optional
 
@@ -16,6 +17,10 @@ class CollaborationManager:
     """
 
     def __init__(self):
+        # Initialize thread lock if not exists
+        if "thread_lock" not in st.session_state:
+            st.session_state.thread_lock = threading.Lock()
+        
         # Initialize collaboration session if not exists
         if "collaboration_session" not in st.session_state:
             st.session_state.collaboration_session = {

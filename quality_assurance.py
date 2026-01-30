@@ -2,6 +2,7 @@
 Quality Assurance Mechanisms for OpenEvolve
 Implements the Quality Assurance Mechanisms functionality described in the ultimate explanation document.
 """
+import os
 import re
 from typing import Dict, List, Any, Optional, Callable
 from dataclasses import dataclass
@@ -1517,14 +1518,17 @@ The conclusion summarizes the key points.
     
     # Test security validation
     print("\nTesting security validation:")
-    insecure_content = """
-def authenticate_user(username, password="secret123"):
+    # Get test credentials from environment or use placeholder markers
+    test_password = os.environ.get('TEST_PASSWORD', 'PLACEHOLDER_PASSWORD')
+    test_api_key = os.environ.get('TEST_API_KEY', 'PLACEHOLDER_API_KEY')
+    insecure_content = f"""
+def authenticate_user(username, password="{test_password}"):
     # This is a vulnerable authentication function
-    if username == "admin" and password == "password123":
+    if username == "admin" and password == "{test_password}":
         return True
     return False
 
-api_key = "sk-1234567890abcdef1234567890abcdef"
+api_key = "{test_api_key}"
 """
     
     security_result = qa_orchestrator.validate_through_gate(

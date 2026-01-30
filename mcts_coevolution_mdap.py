@@ -707,17 +707,32 @@ class MDAPTreeCoevolution:
             next_gen.extend([e.clone() for e in elites])
 
             # Crossover and mutation
-            while len(next_gen) < self.population_size:
-                parent1, parent2 = random.sample(parents, 2)
+            if len(parents) < 2:
+                # Not enough parents for crossover, clone existing
+                # Fix: Check if population is empty before random.choice
+                if not population:
+                    raise ValueError("Cannot perform evolution: population is empty")
+                while len(next_gen) < self.population_size:
+                    next_gen.append(random.choice(population).clone())
+            else:
+                while len(next_gen) < self.population_size:
+                    parent1, parent2 = random.sample(parents, 2)
 
                 if random.random() < self.crossover_rate:
                     child1, child2 = self.crossover.subtree_crossover(
                         parent1, parent2, self.max_depth
                     )
+                    # Convert to MDAP trees only after successful crossover
                     child1 = self._convert_to_mdap(child1)
                     child2 = self._convert_to_mdap(child2)
                 else:
+                    # Clone and convert parents to ensure consistent types
                     child1, child2 = parent1.clone(), parent2.clone()
+                    # Ensure MDAP type consistency
+                    if not isinstance(child1, MDAPProofDecisionTree):
+                        child1 = self._convert_to_mdap(child1)
+                    if not isinstance(child2, MDAPProofDecisionTree):
+                        child2 = self._convert_to_mdap(child2)
 
                 # Mutation
                 if random.random() < self.mutation_rate:
@@ -838,6 +853,10 @@ class DecompositionTreeCoevolution:
         best_tree = None
         best_fitness = 0.0
 
+        # Fix: Check if test_theorems is empty before accessing [0]
+        if not test_theorems:
+            raise ValueError("Cannot evolve solvers: test_theorems list is empty")
+        
         for generation in range(self.mdap_coevolution.generations):
             # Evaluate trees
             for tree in population:
@@ -949,8 +968,13 @@ class DecompositionTreeCoevolution:
         new_pop = [t.clone() for t in population[:5]]
 
         # Generate offspring
+        # Fix: Ensure population has enough elements for sampling
+        parent_pool = population[:len(population)//2]
+        if len(parent_pool) < 2:
+            # Not enough parents, just return clones of existing population
+            return [t.clone() for t in population]
         while len(new_pop) < len(population):
-            parent1, parent2 = random.sample(population[:len(population)//2], 2)
+            parent1, parent2 = random.sample(parent_pool, 2)
 
             if random.random() < 0.9:
                 child1, child2 = self.mdap_coevolution.crossover.subtree_crossover(
@@ -1111,7 +1135,11 @@ class MDAPCompetitiveCoevolution:
     ) -> List[str]:
         """Select hardest problems for next generation"""
         # Simplified: random selection
-        return random.sample(all_problems, self.problem_pop_size)
+        # Fix: Ensure we don't sample more than available
+        if not all_problems:
+            return []
+        sample_size = min(self.problem_pop_size, len(all_problems))
+        return random.sample(all_problems, sample_size)
 
     async def _evolve_solvers(
         self,
@@ -1353,6 +1381,10 @@ class MDAPMultiObjectiveCoevolution:
         selected = []
 
         while len(selected) < self.population_size // 2:
+            # Fix: Check if population has at least 2 elements for sampling
+            if len(population) < 2:
+                selected.extend(population)
+                break
             ind1, ind2 = random.sample(population, 2)
 
             rank1 = ranks.get(ind1.tree_id, len(population))
@@ -1378,7 +1410,17 @@ class MDAPMultiObjectiveCoevolution:
         crossover = TreeCrossover()
         mutation = TreeMutation(self.generator)
 
+        if len(parents) < 2:
+            # Not enough parents, return clones of existing population
+            return [p.clone() for p in population[:self.population_size]]
+        
         while len(offspring) < self.population_size:
+            # Fix: Check if parents has at least 2 elements for crossover
+            if len(parents) < 2:
+                # Clone existing parents to fill offspring
+                while len(offspring) < self.population_size and parents:
+                    offspring.append(parents[len(offspring) % len(parents)].clone())
+                break
             parent1, parent2 = random.sample(parents, 2)
 
             if random.random() < 0.9:
@@ -1455,9 +1497,17 @@ class MDAPTreeEnsemble:
         # Return most common result
         if votes:
             winner_key = max(votes.keys(), key=lambda k: votes[k])
+            # Fix: Check if tree_results is not empty before accessing [0]
+            default_result = tree_results[0] if tree_results else ProofResult(
+                success=False,
+                proof_steps=[],
+                final_state="",
+                depth_reached=0,
+                time_taken=0.0
+            )
             return next(
                 (r for r in tree_results if str(r.proof_steps) == winner_key),
-                tree_results[0]
+                default_result
             )
 
         return tree_results[0] if tree_results else ProofResult(

@@ -748,12 +748,16 @@ if __name__ == "__main__":
     wm = get_webhook_manager()
 
     # Register a test webhook
+    webhook_secret = os.environ.get('WEBHOOK_SECRET')
+    if not webhook_secret:
+        raise ValueError("WEBHOOK_SECRET environment variable must be set for webhook signature verification")
+    
     webhook = WebhookConfig(
         id="test_webhook",
         name="Test Webhook",
         url="https://httpbin.org/post",
         events=[WebhookEvent.ON_DECOMPOSE.value, WebhookEvent.ON_COMPLETE.value],
-        secret="my_secret_key"
+        secret=webhook_secret
     )
 
     wm.register_webhook(webhook)

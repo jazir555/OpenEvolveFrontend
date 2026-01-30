@@ -144,7 +144,10 @@ class DiagramAnalyzer:
             
             # If there's high variation in pixel values, it might contain text
             return unique_values > 50
-        except:
+        except Exception as e:
+            # Log the specific error for debugging
+            import logging
+            logging.exception(f"Error in unique_values check: {e}")
             return False
 
 

@@ -4,6 +4,8 @@ This file manages default values and initialization for session state
 File size: ~500 lines (well under the 2000 line limit)
 """
 
+from typing import Any, Dict, List, Tuple
+
 import streamlit as st
 from session_utils import DEFAULTS
 from providers import PROVIDERS
@@ -14,10 +16,10 @@ class SessionDefaults:
     Manages default values and initialization for session state
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.defaults = DEFAULTS
 
-    def initialize_defaults(self):
+    def initialize_defaults(self) -> None:
         """
         Initialize default values in session state that don't exist
         """
@@ -26,26 +28,26 @@ class SessionDefaults:
             if key not in st.session_state:
                 st.session_state[key] = value
 
-    def get_default(self, key: str):
+    def get_default(self, key: str) -> Any:
         """
         Get a default value by key
         """
         return self.defaults.get(key)
 
-    def set_default(self, key: str, value):
+    def set_default(self, key: str, value: Any) -> None:
         """
         Set a default value
         """
         self.defaults[key] = value
 
-    def reset_all_defaults(self):
+    def reset_all_defaults(self) -> None:
         """
         Reset all session state values to their defaults
         """
         for key, value in self.defaults.items():
             st.session_state[key] = value
 
-    def reset_provider_defaults(self):
+    def reset_provider_defaults(self) -> None:
         """
         Reset provider-specific defaults
         """
@@ -56,13 +58,13 @@ class SessionDefaults:
         st.session_state.api_key = ""
         st.session_state.extra_headers = "{}"
 
-    def get_all_defaults(self):
+    def get_all_defaults(self) -> Dict[str, Any]:
         """
         Get all default values
         """
         return self.defaults.copy()
 
-    def update_defaults_from_config(self, config_dict: dict):
+    def update_defaults_from_config(self, config_dict: Dict[str, Any]) -> None:
         """
         Update defaults from a configuration dictionary
         """
@@ -73,7 +75,7 @@ class SessionDefaults:
                 if key in st.session_state:
                     st.session_state[key] = value
 
-    def validate_defaults(self):
+    def validate_defaults(self) -> Tuple[bool, List[str]]:
         """
         Validate that all required defaults are present
         """
@@ -98,7 +100,7 @@ class SessionDefaults:
 
         return len(missing) == 0, missing
 
-    def get_provider_defaults(self, provider_name: str) -> dict:
+    def get_provider_defaults(self, provider_name: str) -> Dict[str, Any]:
         """
         Get default values specific to a provider
         """
@@ -111,7 +113,7 @@ class SessionDefaults:
             }
         return provider_defaults
 
-    def set_provider_defaults(self, provider_name: str):
+    def set_provider_defaults(self, provider_name: str) -> None:
         """
         Set default values for a specific provider
         """

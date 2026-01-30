@@ -38,7 +38,9 @@ try:
         ROMA_MDAP_MAKER_AVAILABLE
     )
     from roma_mdap_maker_reliability_ssot import get_thorough_config
-except ImportError:
+except ImportError as e:
+    logger = logging.getLogger(__name__)
+    logger.debug(f"ROMA-MDAP-MAKER not available: {e}")
     ROMA_MDAP_MAKER_AVAILABLE = False
     get_thorough_config = None
 
@@ -54,7 +56,7 @@ if ROMA_MDAP_MAKER_AVAILABLE:
             # mdap_min_confidence=0.3     # Example: Override if preset doesn't match needs
         )
         robust_engine = ROMAMDAPMakerAssociativeEngine(_config)
-    except (ImportError, ConfigurationError, RuntimeError, OSError) as e:
+    except (ImportError, RuntimeError, OSError) as e:
         import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Error initializing ROMA-MDAP-MAKER engine in {__name__}: {e}", exc_info=True)
@@ -863,8 +865,8 @@ def solve_{sub_problem.id.replace('-', '_')}():
                 if "class " in code:
                     score += 0.1
 
-                # Completeness: check for implementation
-                if "pass" not in code or "TODO" not in code:
+                # Completeness: check for implementation (no pass/TODO means more complete)
+                if "pass" not in code and "TODO" not in code:
                     score += 0.2
 
                 # Documentation

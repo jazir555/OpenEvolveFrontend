@@ -119,8 +119,101 @@ def execute_claudiomiro_task(
             "message": CLAUDIOMIRO_IMPORT_ERROR or "claudiomiro CLI not installed or not in PATH",
         }
 
+    # ============================================================================
+    # Input Validation and Sanitization
+    # ============================================================================
+    import re
+    import shlex
+
+    # Validate task_id - only allow alphanumeric, hyphens, and underscores
+    if not task_id or not isinstance(task_id, str):
+        return {
+            "success": False,
+            "task_id": task_id,
+            "error": "Invalid task_id: must be a non-empty string",
+        }
+    if not re.match(r'^[a-zA-Z0-9_-]+$', task_id):
+        return {
+            "success": False,
+            "task_id": task_id,
+            "error": "Invalid task_id: contains unsafe characters. Use only alphanumeric, hyphens, and underscores.",
+        }
+
+    # Validate working_dir - prevent directory traversal attacks
+    if not working_dir or not isinstance(working_dir, str):
+        return {
+            "success": False,
+            "task_id": task_id,
+            "error": "Invalid working_dir: must be a non-empty string",
+        }
+    # Resolve to absolute path and check for path traversal
     try:
-        # Build command
+        resolved_working_dir = os.path.abspath(os.path.normpath(working_dir))
+        # Prevent access to system directories
+        system_paths = ['/bin', '/sbin', '/usr/bin', '/usr/sbin', '/etc', '/root', '/sys', '/proc']
+        for sys_path in system_paths:
+            if resolved_working_dir.startswith(sys_path):
+                return {
+                    "success": False,
+                    "task_id": task_id,
+                    "error": f"Invalid working_dir: access to system directory '{sys_path}' is not allowed",
+                }
+    except Exception as e:
+        return {
+            "success": False,
+            "task_id": task_id,
+            "error": f"Invalid working_dir: {e}",
+        }
+
+    # Validate prompt - check for shell injection attempts
+    if not prompt or not isinstance(prompt, str):
+        return {
+            "success": False,
+            "task_id": task_id,
+            "error": "Invalid prompt: must be a non-empty string",
+        }
+    # Check for common shell metacharacters that could indicate injection
+    dangerous_patterns = [
+        r'[;&|`$]',  # Command separators and shell operators
+        r'\$\(',     # Command substitution
+        r'`',        # Backtick command substitution
+        r'\$\{',     # Variable expansion
+        r'\|\|',    # OR operator
+        r'&&',       # AND operator
+        r'>>',       # Append redirection
+        r'2>&1',     # File descriptor redirection
+        r'/bin/',    # Attempts to access binaries
+        r'/usr/bin', # Attempts to access system binaries
+    ]
+    for pattern in dangerous_patterns:
+        if re.search(pattern, prompt):
+            logger.warning(f"Potentially dangerous pattern detected in prompt: {pattern}")
+            return {
+                "success": False,
+                "task_id": task_id,
+                "error": "Invalid prompt: contains potentially dangerous characters or patterns",
+            }
+
+    # Validate ai_provider
+    valid_providers = ["claude", "codex", "gemini", "deep-seek", "glm"]
+    if ai_provider not in valid_providers:
+        return {
+            "success": False,
+            "task_id": task_id,
+            "error": f"Invalid ai_provider: must be one of {valid_providers}",
+        }
+
+    # Validate max_cycles
+    if not isinstance(max_cycles, int) or max_cycles < 1 or max_cycles > 1000:
+        return {
+            "success": False,
+            "task_id": task_id,
+            "error": "Invalid max_cycles: must be an integer between 1 and 1000",
+        }
+
+    try:
+        # Build command using list format (shell=False by default)
+        # This prevents shell injection by passing arguments directly
         cmd = [CLAUDIOMIRO_PATH]
 
         # Add AI provider flag
@@ -134,21 +227,34 @@ def execute_claudiomiro_task(
         if ai_provider in provider_flags:
             cmd.append(provider_flags[ai_provider])
 
-        # Add directories
+        # Add directories (validated)
         if backend:
-            cmd.extend(["--backend", backend])
+            # Validate backend path
+            backend_path = os.path.abspath(os.path.normpath(str(backend)))
+            cmd.extend(["--backend", backend_path])
         if frontend:
-            cmd.extend(["--frontend", frontend])
+            # Validate frontend path
+            frontend_path = os.path.abspath(os.path.normpath(str(frontend)))
+            cmd.extend(["--frontend", frontend_path])
         if legacy:
-            cmd.extend(["--legacy", legacy])
+            # Validate legacy path
+            legacy_path = os.path.abspath(os.path.normpath(str(legacy)))
+            cmd.extend(["--legacy", legacy_path])
 
         # Add options
         cmd.extend(["--limit", str(max_cycles)])
 
         if fix_command:
-            cmd.extend(["--fix-command", fix_command])
+            # Validate fix_command - only allow safe characters
+            if not re.match(r'^[a-zA-Z0-9_\-\s\.\/]+$', str(fix_command)):
+                return {
+                    "success": False,
+                    "task_id": task_id,
+                    "error": "Invalid fix_command: contains unsafe characters",
+                }
+            cmd.extend(["--fix-command", str(fix_command)])
 
-        # Add prompt
+        # Add prompt (already validated above)
         cmd.extend(["--prompt", prompt])
 
         # Set environment variables

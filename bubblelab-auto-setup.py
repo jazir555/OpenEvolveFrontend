@@ -189,7 +189,7 @@ class RollbackManager:
                 Logger.detail(f"Rolling back: {operation}")
                 rollback_fn()
                 Logger.success(f"✓ Rolled back: {operation}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, RuntimeError, ValueError) as e:
                 Logger.error(f"✗ Rollback failed for {operation}: {e}")
                 self.logger.error(f"Rollback error: {e}", exc_info=True)
 
@@ -336,7 +336,7 @@ class ResourceValidator:
             else:
                 Logger.error(f"✗ Insufficient memory: {available_gb:.2f} GB available (need {self.MIN_MEMORY_GB} GB)")
                 return False, f"Need {self.MIN_MEMORY_GB} GB, have {available_gb:.2f} GB"
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, AttributeError) as e:
             Logger.warning(f"⚠️  Cannot check memory: {e}")
             return True, "Memory check skipped"
 
@@ -502,7 +502,7 @@ class ServiceHealthChecker:
             else:
                 Logger.warning("⚠️  API returning errors (database may be disconnected)")
                 return False, "API errors"
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (requests.exceptions.RequestException, ConnectionError) as e:
             Logger.warning(f"⚠️  Cannot verify database: {e}")
             return True, "Database check skipped"
 
@@ -786,29 +786,29 @@ class BubbleLabClient:
             # Try to list flows (lightweight endpoint)
             self._request('GET', '/bubble-flow?limit=1')
             return True, "Connection successful"
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError) as e:
             return False, str(e)
 
     def get_system_status(self) -> Dict:
         """Get BubbleLab system status"""
         try:
             return self._request('GET', '/')
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
-            return {}
+        except (RuntimeError, ConnectionError, ValueError) as e:
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Error: {e}", exc_info=True)
+            logger.debug(f"Failed to get system status: {e}")
+            return {}
 
     def list_credentials(self) -> List[Dict]:
         """List all credentials"""
         try:
             result = self._request('GET', '/credentials')
             return result.get('credentials', [])
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
-            return []
+        except (RuntimeError, ConnectionError, ValueError, KeyError) as e:
             import logging
             logger = logging.getLogger(__name__)
-            logger.error(f"Error: {e}", exc_info=True)
+            logger.debug(f"Failed to list credentials: {e}")
+            return []
 
     def create_credential(self, name: str, cred_type: str, value: str, description: str = "") -> Dict:
         """Create a credential"""
@@ -987,7 +987,7 @@ export class HealthCheckWorkflow extends BubbleFlow<'schedule/cron'> {
             Logger.success("✓ bubblelab-workflows/health-check.ts (example)")
 
             return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError) as e:
             Logger.error(f"Failed to generate configurations: {e}")
             return False
 
@@ -1179,7 +1179,7 @@ class SetupOrchestrator:
                 self.rollback_manager.rollback()
                 self.print_summary()
                 return False
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, ConnectionError) as e:
                 Logger.error(f"\n\n💥 Fatal error during setup: {e}")
                 self.logger.error(f"Fatal error: {e}", exc_info=True)
                 Logger.detail("See log file for full error details")
@@ -1376,7 +1376,7 @@ if __name__ == '__main__':
         Logger.error(f"\n\n💥 Fatal error: System error - {e}")
         Logger.info("Please check disk space and file system")
         sys.exit(1)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError) as e:
         Logger.error(f"\n\n💥 Fatal error: {e}")
         import traceback
         Logger.detail(traceback.format_exc())

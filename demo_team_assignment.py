@@ -40,11 +40,16 @@ def create_sample_teams():
     """Create sample teams for demonstration."""
     teams = []
 
+    # Get API key from environment
+    api_key = os.environ.get('OPENAI_API_KEY')
+    if not api_key:
+        raise ValueError("OPENAI_API_KEY environment variable must be set")
+    
     # Blue team - Security specialized
     blue_security = Team(
         name="Blue-Security",
         role="Blue",
-        members=[ModelConfig(model_id="gpt-4o", api_key = os.environ.get("TEST_KEY", ""), temperature=0.5)],
+        members=[ModelConfig(model_id="gpt-4o", api_key=api_key, temperature=0.5)],
         description="Security specialized blue team",
         domain_specialization=["security", "authentication", "cryptography"],
         problem_type_specialization=["implementation", "validation"],
@@ -57,7 +62,7 @@ def create_sample_teams():
     blue_general = Team(
         name="Blue-General",
         role="Blue",
-        members=[ModelConfig(model_id="gpt-4o", api_key = os.environ.get("TEST_KEY", ""), temperature=0.7)],
+        members=[ModelConfig(model_id="gpt-4o", api_key=api_key, temperature=0.7)],
         description="General purpose blue team",
         domain_specialization=["general", "implementation"],
         problem_type_specialization=["implementation", "design"],
@@ -70,7 +75,7 @@ def create_sample_teams():
     red_team = Team(
         name="Red-Critique",
         role="Red",
-        members=[ModelConfig(model_id="claude-3-opus", api_key = os.environ.get("TEST_KEY", ""), temperature=0.8)],
+        members=[ModelConfig(model_id="claude-3-opus", api_key=api_key, temperature=0.8)],
         description="Critique specialized red team",
         domain_specialization=["security", "testing"],
         problem_type_specialization=["validation", "analysis"],
@@ -82,7 +87,7 @@ def create_sample_teams():
     gold_team = Team(
         name="Gold-Verification",
         role="Gold",
-        members=[ModelConfig(model_id="gpt-4o", api_key = os.environ.get("TEST_KEY", ""), temperature=0.3)],
+        members=[ModelConfig(model_id="gpt-4o", api_key=api_key, temperature=0.3)],
         description="Verification specialized gold team",
         domain_specialization=["formal_verification", "testing"],
         problem_type_specialization=["validation"],

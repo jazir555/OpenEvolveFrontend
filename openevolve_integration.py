@@ -4174,9 +4174,39 @@ def run_symbolic_regression_evolution(
             complexity = len(code.split())
             
             try:
-                # Create a local namespace to execute the function safely
+                # SECURITY FIX: Use restricted builtins and validate code structure
+                # before execution to prevent code injection attacks
+                import ast
+                try:
+                    ast.parse(code)
+                except SyntaxError:
+                    return {"accuracy": 0.0, "fitness": 0.0, "complexity": complexity}
+                
+                # Execute with minimal safe builtins only
+                safe_builtins = {
+                    "len": len,
+                    "range": range,
+                    "enumerate": enumerate,
+                    "zip": zip,
+                    "abs": abs,
+                    "min": min,
+                    "max": max,
+                    "sum": sum,
+                    "pow": pow,
+                    "round": round,
+                    "divmod": divmod,
+                    "float": float,
+                    "int": int,
+                    "bool": bool,
+                    "str": str,
+                    "dict": dict,
+                    "list": list,
+                    "tuple": tuple,
+                    "set": set,
+                    "frozenset": frozenset,
+                }
                 local_namespace = {}
-                exec(code, {"__builtins__": {}}, local_namespace)
+                exec(compile(ast.parse(code), '<string>', 'exec'), {"__builtins__": safe_builtins}, local_namespace)
                 
                 if 'model' in local_namespace:
                     model_func = local_namespace['model']

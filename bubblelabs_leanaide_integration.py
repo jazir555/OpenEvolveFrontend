@@ -91,7 +91,7 @@ try:
     if result.returncode == 0:
         LEAN4_AVAILABLE = True
         logger.info("Lean4 lake available")
-except Exception:  # TODO: Catch specific exception instead of Exception
+except (subprocess.CalledProcessError, FileNotFoundError, OSError):
     logger.info("Lean4 lake not detected")
 
 
@@ -399,7 +399,7 @@ class LeanAideIntegrationBridge:
                 try:
                     server_status = get_leanaide_status()
                     status["server_status"] = server_status
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                except (ConnectionError, RuntimeError, ValueError) as e:
                     status["server_status"] = {"error": str(e)}
 
             return status
@@ -465,7 +465,7 @@ class LeanAideIntegrationBridge:
 
             return exec_result
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError, ConnectionError) as e:
             execution_time = time.time() - start_time
             logger.error(f"Task execution failed: {e}", exc_info=True)
 
@@ -627,7 +627,7 @@ class LeanAideIntegrationBridge:
                 }
             }
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, ConnectionError) as e:
             logger.error(f"MCTS search failed: {e}", exc_info=True)
             return {"success": False, "error": str(e)}
 
@@ -815,7 +815,7 @@ class LeanAideIntegrationBridge:
         if self._client:
             try:
                 asyncio.run(self._client.close())
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ConnectionError, ValueError) as e:
                 logger.warning(f"Error closing client: {e}")
 
         # Clear storage
@@ -920,15 +920,15 @@ def register_bubblelabs_tools():
                 try:
                     # In a real implementation, this would register with BubbleLabs
                     logger.info(f"Registered tool: {tool_id}")
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                except (RuntimeError, ValueError, TypeError) as e:
                     logger.warning(f"Failed to register tool {tool_id}: {e}")
 
         logger.info("LeanAide tools registered with BubbleLabs")
         return True
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        logger.error(f"Failed to register tools: {e}", exc_info=True)
-        return False
+        except (RuntimeError, ValueError, ImportError) as e:
+            logger.error(f"Failed to register tools: {e}", exc_info=True)
+            return False
 
 
 # =============================================================================
@@ -957,9 +957,9 @@ def initialize_leanaide_integration():
         bridge = get_leanaide_bridge()
         status["bridge_available"] = True
         logger.info("LeanAide bridge created successfully")
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        logger.error(f"Failed to create bridge: {e}", exc_info=True)
-        return status
+        except (RuntimeError, ValueError, ConnectionError) as e:
+            logger.error(f"Failed to create bridge: {e}", exc_info=True)
+            return status
 
     # Get bridge status
     bridge_status = bridge.get_status()

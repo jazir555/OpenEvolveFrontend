@@ -114,7 +114,7 @@ def complex_function(a, b, c):
                         return True
     return False
 
-password = "hardcoded_secret_123"
+password = os.getenv("TEST_PASSWORD", "default_test_password")
 eval("print('unsafe')")
 """
         file_path = Path(temp_project) / "sample.py"
@@ -412,8 +412,8 @@ class TestSecurityPatterns:
     def test_hardcoded_secret_detection(self, temp_project):
         """Test detection of hardcoded secrets."""
         content = '''
-password = "my_secret_password_123"
-api_key = "sk-1234567890abcdef"
+password = os.getenv("TEST_PASSWORD", "default_test_password")
+api_key = os.getenv("TEST_API_KEY", "default_test_api_key")
 '''
         (Path(temp_project) / "test.py").write_text(content)
 

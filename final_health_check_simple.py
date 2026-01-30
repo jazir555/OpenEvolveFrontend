@@ -267,10 +267,12 @@ class FinalHealthCheck:
             status = "[OK]" if result.docstring_coverage >= 80 else "[!]"
             print(f"  {status} {filename}: {result.docstring_coverage:.1f}% coverage")
 
+        # Guard against division by zero
         if file_count > 0:
             avg_coverage = total_coverage / file_count
             print(f"\n[*] Average docstring coverage: {avg_coverage:.1f}%")
             return avg_coverage >= 70  # Accept 70% as threshold
+        print("\n[!] No files found for coverage check")
         return False
 
     def check_tests_passing(self) -> bool:

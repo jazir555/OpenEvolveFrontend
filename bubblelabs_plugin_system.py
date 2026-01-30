@@ -234,7 +234,7 @@ class EventBus:
                     await asyncio.get_event_loop().run_in_executor(
                         None, handler, event
                     )
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, TypeError, AttributeError) as e:
                 logger.error(
                     f"Error in event handler for {event.type.value}: {e}",
                     exc_info=True,
@@ -572,7 +572,7 @@ class PluginRegistry:
                 logger.info(f"Loaded plugin: {name}")
                 return instance
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, TypeError, AttributeError) as e:
                 logger.error(f"Failed to load plugin {name}: {e}", exc_info=True)
                 await self._event_bus.publish(
                     Event(
@@ -614,7 +614,7 @@ class PluginRegistry:
                 logger.info(f"Started plugin: {name}")
                 return True
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, TypeError) as e:
                 logger.error(f"Failed to start plugin {name}: {e}", exc_info=True)
                 instance._status.state = PluginState.ERROR
                 instance._status.error = e
@@ -662,7 +662,7 @@ class PluginRegistry:
                 logger.info(f"Stopped plugin: {name}")
                 return True
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError) as e:
                 logger.error(f"Failed to stop plugin {name}: {e}", exc_info=True)
                 return False
 
@@ -706,7 +706,7 @@ class PluginRegistry:
                 logger.info(f"Unloaded plugin: {name}")
                 return True
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError) as e:
                 logger.error(f"Failed to unload plugin {name}: {e}", exc_info=True)
                 return False
 
@@ -773,7 +773,7 @@ class PluginRegistry:
         for name, instance in instances:
             try:
                 health_status[name] = await instance.health_check()
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, AttributeError) as e:
                 logger.error(f"Health check failed for {name}: {e}")
                 health_status[name] = False
         return health_status

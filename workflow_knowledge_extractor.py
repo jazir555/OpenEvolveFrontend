@@ -10,71 +10,168 @@ Enhanced with OneKE integration for schema-guided domain knowledge extraction.
 
 import time
 import uuid
+import logging
 from typing import Dict, List, Any, Optional, Tuple
+from datetime import datetime
 import json
 import asyncio
+import dataclasses
 
-from workflow_structures import (
-    WorkflowState,
-    SolutionPatternArtifact,
-    TeamPerformanceArtifact,
-    GauntletEffectivenessArtifact,
-    KnowledgeArtifactManager,
-    Team,
-    GauntletDefinition,
-    SolutionAttempt,
-    CritiqueReport,
-    VerificationReport,
-    DecompositionPlan,
-)
+# Import from workflow_structures - handle missing optional dependencies gracefully
+try:
+    from workflow_structures import (
+        WorkflowState,
+        SolutionPatternArtifact,
+        TeamPerformanceArtifact,
+        GauntletEffectivenessArtifact,
+        CritiqueInsightArtifact,
+        KnowledgeArtifact,
+        Team,
+        GauntletDefinition,
+        SolutionAttempt,
+        CritiqueReport,
+        VerificationReport,
+        DecompositionPlan,
+
+    )
+except ImportError as e:
+    logging.warning(f"Could not import from workflow_structures: {e}")
+    # Define minimal classes for type hints if imports fail
+    WorkflowState = Any
+    SolutionPatternArtifact = Any
+    TeamPerformanceArtifact = Any
+    GauntletEffectivenessArtifact = Any
+    CritiqueInsightArtifact = Any
+    KnowledgeArtifact = Any
+    Team = Any
+    GauntletDefinition = Any
+    SolutionAttempt = Any
+    CritiqueReport = Any
+    VerificationReport = Any
+    DecompositionPlan = Any
+    ProblemAnalysis = Any
+
+# Optional ACE client import
+try:
+    from ace_client import ACEClient
+except ImportError:
+    ACEClient = Any
+    logging.warning("ACE client not available. Install ace_client for enhanced extraction.")
+
+# Optional knowledge engine import
+try:
+    from knowledge_engine.orchestration import KnowledgeEngine
+except ImportError:
+    KnowledgeEngine = Any
+    logging.warning("KnowledgeEngine not available. Install knowledge_engine for enhanced extraction.")
+
+
+logger = logging.getLogger(__name__)
+
+
+class KnowledgeArtifactManager:
+    """
+    Manager for storing and retrieving knowledge artifacts.
+    
+    This class provides a simple in-memory and file-based storage mechanism
+    for knowledge artifacts extracted from workflows.
+    
+    Attributes:
+        db_path: Path to the artifact database
+        artifacts: In-memory cache of artifacts
+    """
+    
+    def __init__(self, db_path: str = "./knowledge_artifacts.db"):
+        """
+        Initialize the artifact manager.
+        
+        Args:
+            db_path: Path to the artifact database
+        """
+        self.db_path = db_path
+        self.artifacts: Dict[str, KnowledgeArtifact] = {}
+        self.solution_patterns: Dict[str, SolutionPatternArtifact] = {}
+        self.team_performances: Dict[str, TeamPerformanceArtifact] = {}
+        self.gauntlet_effectiveness: Dict[str, GauntletEffectivenessArtifact] = {}
+    
+    def create_solution_pattern(self, artifact: SolutionPatternArtifact) -> str:
+        """Store a solution pattern artifact."""
+        artifact_id = getattr(artifact, 'artifact_id', str(uuid.uuid4()))
+        self.solution_patterns[artifact_id] = artifact
+        return artifact_id
+    
+    def create_team_performance(self, artifact: TeamPerformanceArtifact) -> str:
+        """Store a team performance artifact."""
+        artifact_id = getattr(artifact, 'artifact_id', str(uuid.uuid4()))
+        self.team_performances[artifact_id] = artifact
+        return artifact_id
+    
+    def create_gauntlet_effectiveness(self, artifact: GauntletEffectivenessArtifact) -> str:
+        """Store a gauntlet effectiveness artifact."""
+        artifact_id = getattr(artifact, 'artifact_id', str(uuid.uuid4()))
+        self.gauntlet_effectiveness[artifact_id] = artifact
+        return artifact_id
+    
+    def get_artifact(self, artifact_id: str) -> Optional[KnowledgeArtifact]:
+        """Retrieve an artifact by ID."""
+        return self.artifacts.get(artifact_id)
+    
+    def search_artifacts(self, artifact_type: Optional[str] = None, 
+                        domain: Optional[str] = None) -> List[KnowledgeArtifact]:
+        """Search artifacts by type and/or domain."""
+        results = []
+        for artifact in self.artifacts.values():
+            if artifact_type and getattr(artifact, 'artifact_type', None) != artifact_type:
+                continue
+            if domain and getattr(artifact, 'domain', None) != domain:
+                continue
+            results.append(artifact)
+        return results
 
 
 class WorkflowKnowledgeExtractor:
     """
     Extracts knowledge artifacts from workflow executions.
-
+    
     This class analyzes workflow data from all stages to extract:
     - Solution patterns (successful problem-solving approaches)
     - Team performance insights (which teams work best for which problems)
     - Gauntlet effectiveness (which quality checks work best)
-
+    - Domain detection patterns
+    - Decomposition strategies
+    - Self-healing patterns
+    - Learning patterns
+    
     Attributes:
+        knowledge_engine: Optional knowledge engine for enhanced extraction
+        ace_client: Optional ACE client for LLM-based extraction
         artifact_manager: Manager for storing/retrieving artifacts
-        llm_client: Optional LLM client for semantic extraction
         extraction_prompts: Dictionary of prompts for each extraction type
     """
-
-    def __init__(self, db_path: str = "./knowledge_artifacts.db", llm_client: Optional[Any] = None,
-                 use_oneke: bool = False):
+    
+    def __init__(self, knowledge_engine: Optional[Any] = None, ace_client: Optional[Any] = None):
         """
         Initialize the knowledge extractor.
-
+        
         Args:
-            db_path: Path to artifact database
-            llm_client: Optional LLM client for advanced extraction
-            use_oneke: Whether to use OneKE for schema-guided extraction (default: False)
+            knowledge_engine: Optional knowledge engine for enhanced extraction
+            ace_client: Optional ACE client for LLM-based extraction
         """
-        self.artifact_manager = KnowledgeArtifactManager(db_path)
-        self.llm_client = llm_client
-        self.use_oneke = use_oneke
-        self.oneke_bridge = None
+        self.knowledge_engine = knowledge_engine
+        self.ace_client = ace_client
+        self.artifact_manager = KnowledgeArtifactManager()
         self.extraction_prompts = self._init_extraction_prompts()
-
-        # Initialize OneKE bridge if enabled
-        if use_oneke:
-            try:
-                # Import here to avoid hard dependency
-                from integrations.oneke import OneKEBridge
-                self.oneke_bridge = OneKEBridge()
-                # Don't auto-initialize - require explicit call
-                self._oneke_initialized = False
-                logger.info("OneKE bridge created. Call ensure_oneke_initialized() before use.")
-            except ImportError:
-                print("OneKE not available. Install with: pip install integrations/oneke")
-                self.use_oneke = False
-                self.oneke_bridge = None
-                self._oneke_initialized = False
-
+        self._oneke_initialized = False
+        self.oneke_bridge = None
+        
+        # Try to initialize OneKE if available
+        try:
+            from integrations.oneke import OneKEBridge
+            self.oneke_bridge = OneKEBridge()
+            logger.info("OneKE bridge created. Call ensure_oneke_initialized() before use.")
+        except ImportError:
+            logger.debug("OneKE not available. Install with: pip install integrations/oneke")
+    
     def _init_extraction_prompts(self) -> Dict[str, str]:
         """Initialize LLM prompts for different extraction tasks."""
         return {
@@ -97,7 +194,6 @@ Extract and describe:
 Return as JSON with keys: problem_characteristics, solution_approach, decomposition_strategy,
 code_patterns, optimization_techniques, typical_refinements, domain, complexity (1-10).
 """,
-
             "decomposition_strategy": """
 Analyze the following decomposition strategy and extract insights:
 
@@ -118,7 +214,6 @@ Extract and describe:
 Return as JSON with keys: framework, decision_points, rationale, domain_approaches,
 dependencies, integration_strategy, effectiveness, complexity (1-10).
 """,
-
             "team_performance": """
 Analyze the following team's performance:
 
@@ -139,7 +234,6 @@ Extract:
 
 Return as JSON with keys: velocity, quality_metrics, optimal_domains, skill_gaps, training_recommendations.
 """,
-
             "gauntlet_effectiveness": """
 Analyze the following gauntlet's effectiveness:
 
@@ -160,480 +254,569 @@ Extract:
 Return as JSON with keys: catch_rate, false_positive_rate, problem_type_effectiveness,
 rule_effectiveness, recommended_improvements.
 """,
-        }
+            "domain_detection": """
+Analyze the following problem statement and extract domain detection patterns:
 
+Problem: {problem_statement}
+Detected Domain: {detected_domain}
+Confidence: {confidence}
+
+Extract:
+1. Domain keywords and indicators
+2. Problem type classification
+3. Complexity indicators
+4. Domain-specific requirements
+5. Related domains
+
+Return as JSON with keys: domain_keywords, problem_type, complexity_indicators, 
+domain_requirements, related_domains.
+""",
+            "self_healing": """
+Analyze the following self-healing execution and extract patterns:
+
+Problem: {problem_statement}
+Refinement Loop Count: {refinement_count}
+Issues Found: {issues_found}
+Resolution Strategy: {resolution_strategy}
+Success: {success}
+
+Extract:
+1. Common issue patterns
+2. Effective resolution strategies
+3. Refinement loop effectiveness
+4. Self-healing triggers
+5. Prevention recommendations
+
+Return as JSON with keys: issue_patterns, resolution_strategies, refinement_effectiveness,
+healing_triggers, prevention_recommendations.
+""",
+            "learning_patterns": """
+Analyze the following workflow execution and extract learning patterns:
+
+Workflow ID: {workflow_id}
+Problem: {problem_statement}
+Success: {success}
+Execution Time: {execution_time}
+Quality Score: {quality_score}
+
+Extract:
+1. What worked well
+2. What could be improved
+3. Key learnings
+4. Reusable patterns
+5. Adaptation recommendations
+
+Return as JSON with keys: success_factors, improvement_areas, key_learnings,
+reusable_patterns, adaptation_recommendations.
+""",
+        }
+    
+    # ========== Main Extraction Method ==========
+    
+    def extract_from_workflow(self, workflow_state: WorkflowState) -> List[KnowledgeArtifact]:
+        """
+        Extract all knowledge artifacts from a workflow state.
+        
+        This is the main entry point that extracts artifacts from all stages
+        of the workflow where relevant data exists.
+        
+        Args:
+            workflow_state: The workflow state to extract from
+            
+        Returns:
+            List of extracted KnowledgeArtifact instances
+        """
+        artifacts = []
+        
+        # Extract from Stage 0: Problem Definition
+        try:
+            stage_0_artifacts = self._extract_from_stage_0(workflow_state)
+            artifacts.extend(stage_0_artifacts)
+            logger.debug(f"Extracted {len(stage_0_artifacts)} artifacts from Stage 0")
+        except Exception as e:
+            logger.warning(f"Failed to extract from Stage 0: {e}")
+        
+        # Extract from Stage 1: Decomposition
+        try:
+            stage_1_artifacts = self._extract_from_stage_1(workflow_state)
+            artifacts.extend(stage_1_artifacts)
+            logger.debug(f"Extracted {len(stage_1_artifacts)} artifacts from Stage 1")
+        except Exception as e:
+            logger.warning(f"Failed to extract from Stage 1: {e}")
+        
+        # Skip Stage 2 (Planning) - usually doesn't have extractable patterns
+        
+        # Extract from Stage 3: Solution & Critique
+        try:
+            stage_3_artifacts = self._extract_from_stage_3(workflow_state)
+            artifacts.extend(stage_3_artifacts)
+            logger.debug(f"Extracted {len(stage_3_artifacts)} artifacts from Stage 3")
+        except Exception as e:
+            logger.warning(f"Failed to extract from Stage 3: {e}")
+        
+        # Skip Stage 4 (Verification) - patterns extracted in Stage 5
+        
+        # Extract from Stage 5: Quality Assessment & Self-Healing
+        try:
+            stage_5_artifacts = self._extract_from_stage_5(workflow_state)
+            artifacts.extend(stage_5_artifacts)
+            logger.debug(f"Extracted {len(stage_5_artifacts)} artifacts from Stage 5")
+        except Exception as e:
+            logger.warning(f"Failed to extract from Stage 5: {e}")
+        
+        # Extract from Stage 6: Execution Results & Learning
+        try:
+            stage_6_artifacts = self._extract_from_stage_6(workflow_state)
+            artifacts.extend(stage_6_artifacts)
+            logger.debug(f"Extracted {len(stage_6_artifacts)} artifacts from Stage 6")
+        except Exception as e:
+            logger.warning(f"Failed to extract from Stage 6: {e}")
+        
+        return artifacts
+    
     # ========== Stage 0: Problem Definition ==========
-
-    def extract_from_problem_definition(self, workflow: WorkflowState) -> List[str]:
+    
+    def _extract_from_stage_0(self, workflow_state: WorkflowState) -> List[KnowledgeArtifact]:
         """
-        Extract insights from Stage 0 (Problem Definition).
-
+        Extract domain detection patterns from Stage 0 (Problem Definition).
+        
         Args:
-            workflow: The workflow state
-
+            workflow_state: The workflow state
+            
         Returns:
-            List of problem characteristics
+            List of KnowledgeArtifacts with domain detection patterns
         """
-        characteristics = []
-
-        # Extract domain
-        domain = self._classify_domain(workflow.problem_statement)
-        if domain:
-            characteristics.append(f"domain: {domain}")
-
-        # Extract complexity
-        complexity = self._estimate_complexity(workflow.problem_statement)
-        characteristics.append(f"complexity: {complexity}")
-
-        # Extract constraints
-        constraints = self._extract_constraints(workflow.problem_statement)
-        characteristics.extend([f"constraint: {c}" for c in constraints])
-
-        return characteristics
-
-    # ========== Stage 1: Decomposition ==========
-
-    def extract_from_decomposition(self, workflow: WorkflowState) -> Optional[SolutionPatternArtifact]:
-        """
-        Extract solution patterns from Stage 1 (Decomposition).
-
-        Args:
-            workflow: The workflow state
-
-        Returns:
-            SolutionPatternArtifact if extraction successful
-        """
-        if not workflow.decomposition_plan:
-            return None
-
-        # Extract decomposition strategy
-        strategy = workflow.decomposition_plan.decomposition_method if hasattr(workflow.decomposition_plan, 'decomposition_method') else "unknown"
-
-        # Use LLM for detailed extraction
-        if self.llm_client:
-            prompt = self.extraction_prompts["solution_pattern"].format(
-                problem_statement=workflow.problem_statement,
-                decomposition_strategy=strategy,
-                final_solution="",
-                success=False
-            )
-            try:
-                response = self.llm_client.generate(prompt)
-                extracted_data = json.loads(response)
-
-                artifact = SolutionPatternArtifact(
-                    artifact_id=f"pattern_{uuid.uuid4().hex[:16]}",
-                    source_workflow_id=workflow.workflow_id,
-                    problem_characteristics=extracted_data.get("problem_characteristics", []),
-                    solution_approach=extracted_data.get("solution_approach", ""),
-                    decomposition_strategy=strategy,
-                    code_patterns=extracted_data.get("code_patterns", []),
-                    optimization_techniques=extracted_data.get("optimization_techniques", []),
-                    typical_refinements=extracted_data.get("typical_refinements", []),
-                    domain=extracted_data.get("domain", ""),
-                    complexity=extracted_data.get("complexity", 5),
-                )
-                artifact.pattern_signature = artifact.calculate_signature()
-                return artifact
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
-                print(f"LLM extraction failed: {e}")
-
-        # Fallback: Create basic artifact
-        artifact = SolutionPatternArtifact(
-            artifact_id=f"pattern_{uuid.uuid4().hex[:16]}",
-            source_workflow_id=workflow.workflow_id,
-            decomposition_strategy=strategy,
-            problem_characteristics=self.extract_from_problem_definition(workflow),
-        )
-        artifact.pattern_signature = artifact.calculate_signature()
-        return artifact
-
-    def extract_decomposition_strategy(self, workflow: WorkflowState) -> Optional[SolutionPatternArtifact]:
-        """
-        Extract decomposition strategy (ROMA/MAKER/MDAP) from workflow.
-
-        This is an alias for extract_from_decomposition() to satisfy MASTER_TASKLIST requirements.
-
-        Args:
-            workflow: The workflow state
-
-        Returns:
-            SolutionPatternArtifact with decomposition strategy information
-        """
-        return self.extract_from_decomposition(workflow)
-
-    # ========== Stage 3: Code Generation ==========
-
-    def extract_from_code_generation(self, workflow: WorkflowState) -> List[str]:
-        """
-        Extract code patterns from Stage 3 (Code Generation).
-
-        Args:
-            workflow: The workflow state
-
-        Returns:
-            List of code patterns
-        """
-        patterns = []
-
-        for sub_problem_id, solution in (workflow.sub_problem_solutions or {}).items():
-            if not solution:
-                logger.warning(f"Skipping None solution for {sub_problem_id}")
-                continue
-
-            if solution.final_code:
-                # Extract language
-                patterns.append(f"language: {solution.code_language if hasattr(solution, 'code_language') else 'python'}")
-
-                # Extract common patterns from code
-                code = solution.final_code
-                if "def " in code:
-                    patterns.append("pattern: function_definition")
-                if "class " in code:
-                    patterns.append("pattern: class_definition")
-                if "import " in code:
-                    patterns.append("pattern: module_import")
-                if "try:" in code or "except" in code:
-                    patterns.append("pattern: error_handling")
-
-        return list(set(patterns))  # Deduplicate
-
-    # ========== Stage 5: Quality Assessment ==========
-
-    def extract_from_quality_assessment(self, workflow: WorkflowState) -> Dict[str, Any]:
-        """
-        Extract quality insights from Stage 5 (Quality Assessment).
-
-        Args:
-            workflow: The workflow state
-
-        Returns:
-            Dictionary of quality insights
-        """
-        insights = {
-            "total_critiques": len(workflow.all_critique_reports),
-            "total_verifications": len(workflow.all_verification_reports),
-            "critique_types": [],
-            "verification_methods": [],
+        artifacts = []
+        
+        if not hasattr(workflow_state, 'problem_statement') or not workflow_state.problem_statement:
+            return artifacts
+        
+        problem_statement = workflow_state.problem_statement
+        
+        # Classify domain
+        domain = self._classify_domain(problem_statement)
+        complexity = self._estimate_complexity(problem_statement)
+        constraints = self._extract_constraints(problem_statement)
+        
+        # Create domain detection artifact
+        content = {
+            "domain": domain,
+            "complexity": complexity,
+            "constraints": constraints,
+            "domain_keywords": self._extract_domain_keywords(problem_statement, domain),
+            "problem_type": self._classify_problem_type(problem_statement),
         }
-
-        for critique in (workflow.all_critique_reports or []):
+        
+        artifact = KnowledgeArtifact(
+            artifact_id=f"domain_{uuid.uuid4().hex[:16]}",
+            artifact_type="domain_knowledge",
+            source_workflow_id=getattr(workflow_state, 'workflow_id', 'unknown'),
+            source_stage=0,
+            timestamp=datetime.now(),
+            confidence=0.8,
+            title=f"Domain Detection: {domain}",
+            description=f"Domain detection patterns for {domain} problems",
+            content=content,
+            tags=["domain_detection", domain, f"complexity_{complexity}"],
+        )
+        artifacts.append(artifact)
+        
+        # Use LLM for enhanced extraction if available
+        if self.ace_client:
+            try:
+                prompt = self.extraction_prompts["domain_detection"].format(
+                    problem_statement=problem_statement,
+                    detected_domain=domain,
+                    confidence=0.8
+                )
+                response = self._call_llm(prompt)
+                if response:
+                    extracted_data = json.loads(response)
+                    content.update({
+                        "domain_keywords": extracted_data.get("domain_keywords", []),
+                        "problem_type": extracted_data.get("problem_type", "unknown"),
+                        "complexity_indicators": extracted_data.get("complexity_indicators", []),
+                        "domain_requirements": extracted_data.get("domain_requirements", []),
+                        "related_domains": extracted_data.get("related_domains", []),
+                    })
+                    artifact.content = content
+            except Exception as e:
+                logger.warning(f"LLM domain detection failed: {e}")
+        
+        return artifacts
+    
+    # ========== Stage 1: Decomposition ==========
+    
+    def _extract_from_stage_1(self, workflow_state: WorkflowState) -> List[KnowledgeArtifact]:
+        """
+        Extract decomposition strategies from Stage 1 (Decomposition).
+        
+        Args:
+            workflow_state: The workflow state
+            
+        Returns:
+            List of KnowledgeArtifacts with decomposition strategies
+        """
+        artifacts = []
+        
+        if not hasattr(workflow_state, 'decomposition_plan') or not workflow_state.decomposition_plan:
+            return artifacts
+        
+        decomposition_plan = workflow_state.decomposition_plan
+        
+        # Extract decomposition strategy
+        strategy = getattr(decomposition_plan, 'decomposition_method', 'unknown')
+        framework = getattr(decomposition_plan, 'framework', 'unknown')
+        
+        # Get sub-problems count
+        sub_problems = getattr(decomposition_plan, 'sub_problems', [])
+        num_sub_problems = len(sub_problems)
+        
+        # Create decomposition strategy artifact
+        content = {
+            "framework": framework,
+            "strategy": strategy,
+            "num_sub_problems": num_sub_problems,
+            "sub_problem_types": [getattr(sp, 'type', 'unknown') for sp in sub_problems],
+            "dependencies": getattr(decomposition_plan, 'dependencies', []),
+        }
+        
+        artifact = KnowledgeArtifact(
+            artifact_id=f"decomp_{uuid.uuid4().hex[:16]}",
+            artifact_type="decomposition_strategy",
+            source_workflow_id=getattr(workflow_state, 'workflow_id', 'unknown'),
+            source_stage=1,
+            timestamp=datetime.now(),
+            confidence=0.85,
+            title=f"Decomposition Strategy: {framework}",
+            description=f"Decomposition strategy using {framework} framework",
+            content=content,
+            tags=["decomposition", framework, strategy],
+        )
+        artifacts.append(artifact)
+        
+        # Use LLM for enhanced extraction if available
+        if self.ace_client:
+            try:
+                prompt = self.extraction_prompts["decomposition_strategy"].format(
+                    problem_statement=getattr(workflow_state, 'problem_statement', ''),
+                    decomposition_strategy=strategy,
+                    framework=framework,
+                    num_sub_problems=num_sub_problems,
+                    success=getattr(workflow_state, 'status', '') == 'completed'
+                )
+                response = self._call_llm(prompt)
+                if response:
+                    extracted_data = json.loads(response)
+                    content.update({
+                        "decision_points": extracted_data.get("decision_points", []),
+                        "rationale": extracted_data.get("rationale", ""),
+                        "domain_approaches": extracted_data.get("domain_approaches", []),
+                        "integration_strategy": extracted_data.get("integration_strategy", ""),
+                        "effectiveness": extracted_data.get("effectiveness", 0.5),
+                    })
+                    artifact.content = content
+            except Exception as e:
+                logger.warning(f"LLM decomposition extraction failed: {e}")
+        
+        return artifacts
+    
+    # ========== Stage 3: Solution & Critique ==========
+    
+    def _extract_from_stage_3(self, workflow_state: WorkflowState) -> List[KnowledgeArtifact]:
+        """
+        Extract solution patterns and critique insights from Stage 3 (Solution & Critique).
+        
+        Args:
+            workflow_state: The workflow state
+            
+        Returns:
+            List of SolutionPatternArtifacts and CritiqueInsightArtifacts
+        """
+        artifacts = []
+        
+        # Extract solution patterns from sub-problem solutions
+        sub_problem_solutions = getattr(workflow_state, 'sub_problem_solutions', {})
+        for sub_problem_id, solution in sub_problem_solutions.items():
+            if not solution:
+                continue
+            
+            # Filter for high-quality solutions (>0.8 score)
+            quality_score = getattr(solution, 'quality_score', 0.0)
+            if quality_score < 0.8:
+                continue
+            
+            # Create solution pattern artifact
+            pattern = self._create_solution_pattern_from_solution(
+                workflow_state, sub_problem_id, solution
+            )
+            if pattern:
+                artifacts.append(pattern)
+        
+        # Extract critique insights
+        critique_reports = getattr(workflow_state, 'all_critique_reports', [])
+        for critique in critique_reports:
             if not critique:
                 continue
-            insights["critique_types"].append(critique.critique_type if hasattr(critique, 'critique_type') else "general")
-
-        for verification in workflow.all_verification_reports:
-            if verification:
-                insights["verification_methods"].append(str(verification.verification_method) if hasattr(verification, 'verification_method') else "standard")
-
-        return insights
-
-    # ========== Stage 6: Execution Results ==========
-
-    def extract_from_execution_results(self, workflow: WorkflowState) -> List[SolutionPatternArtifact]:
-        """
-        Extract solution patterns from Stage 6 (Execution Results).
-
-        Args:
-            workflow: The workflow state
-
-        Returns:
-            List of SolutionPatternArtifacts
-        """
-        artifacts = []
-
-        # Check if workflow was successful
-        success = workflow.final_solution is not None and workflow.status == "completed"
-
-        if success and workflow.final_solution:
-            # Create pattern from successful solution
+            
+            critique_artifact = self._create_critique_insight(workflow_state, critique)
+            if critique_artifact:
+                artifacts.append(critique_artifact)
+        
+        return artifacts
+    
+    def _create_solution_pattern_from_solution(self, workflow_state: WorkflowState, 
+                                                sub_problem_id: str,
+                                                solution: SolutionAttempt) -> Optional[SolutionPatternArtifact]:
+        """Create a SolutionPatternArtifact from a solution attempt."""
+        try:
+            content = {
+                "sub_problem_id": sub_problem_id,
+                "code_language": getattr(solution, 'code_language', 'python'),
+                "solution_quality": getattr(solution, 'quality_score', 0.0),
+                "approach": getattr(solution, 'approach_description', ''),
+            }
+            
+            # Extract code patterns
+            final_code = getattr(solution, 'final_code', '')
+            if final_code:
+                content["code_patterns"] = self._extract_code_patterns(final_code)
+            
             artifact = SolutionPatternArtifact(
                 artifact_id=f"pattern_{uuid.uuid4().hex[:16]}",
-                source_workflow_id=workflow.workflow_id,
-                success_rate=1.0,
-                confidence=0.9,
-                solution_approach="Final solution from " + workflow.workflow_id,
-                problem_characteristics=self.extract_from_problem_definition(workflow),
-                code_patterns=self.extract_from_code_generation(workflow),
+                artifact_type="solution_pattern",
+                source_workflow_id=getattr(workflow_state, 'workflow_id', 'unknown'),
+                source_stage=3,
+                timestamp=datetime.now(),
+                confidence=getattr(solution, 'quality_score', 0.8),
+                title=f"Solution Pattern: {sub_problem_id}",
+                description=f"Solution pattern from sub-problem {sub_problem_id}",
+                content=content,
+                pattern_category=getattr(solution, 'approach_type', 'general'),
+                problem_domains=[self._classify_domain(getattr(workflow_state, 'problem_statement', ''))],
+                approach_signature={"quality_score": getattr(solution, 'quality_score', 0.0)},
+                success_rate=1.0 if getattr(solution, 'is_successful', False) else 0.0,
+                avg_execution_time=getattr(solution, 'execution_time', 0.0),
+                tags=["solution_pattern", sub_problem_id, getattr(solution, 'code_language', 'python')],
             )
-
-            # Extract decomposition strategy
-            if workflow.decomposition_plan:
-                artifact.decomposition_strategy = workflow.decomposition_plan.decomposition_method if hasattr(workflow.decomposition_plan, 'decomposition_method') else "unknown"
-
-            artifact.pattern_signature = artifact.calculate_signature()
-            artifacts.append(artifact)
-
-        return artifacts
-
-    # ========== Solution Pattern Extraction ==========
-
-    def extract_solution_patterns(self, workflow: WorkflowState) -> List[SolutionPatternArtifact]:
+            return artifact
+        except Exception as e:
+            logger.warning(f"Failed to create solution pattern: {e}")
+            return None
+    
+    def _create_critique_insight(self, workflow_state: WorkflowState, 
+                                  critique: CritiqueReport) -> Optional[CritiqueInsightArtifact]:
+        """Create a CritiqueInsightArtifact from a critique report."""
+        try:
+            content = {
+                "critique_type": getattr(critique, 'critique_type', 'general'),
+                "issues_found": getattr(critique, 'issues', []),
+                "suggestions": getattr(critique, 'suggestions', []),
+                "severity": getattr(critique, 'severity', 'medium'),
+            }
+            
+            artifact = CritiqueInsightArtifact(
+                artifact_id=f"critique_{uuid.uuid4().hex[:16]}",
+                artifact_type="critique_insight",
+                source_workflow_id=getattr(workflow_state, 'workflow_id', 'unknown'),
+                source_stage=3,
+                timestamp=datetime.now(),
+                confidence=0.75,
+                title=f"Critique Insight: {getattr(critique, 'critique_type', 'general')}",
+                description=f"Insights from {getattr(critique, 'critique_type', 'general')} critique",
+                content=content,
+                critique_type=getattr(critique, 'critique_type', 'general'),
+                common_issues=[issue.get('type', 'unknown') for issue in getattr(critique, 'issues', [])],
+                improvement_suggestions=getattr(critique, 'suggestions', []),
+                tags=["critique", getattr(critique, 'critique_type', 'general')],
+            )
+            return artifact
+        except Exception as e:
+            logger.warning(f"Failed to create critique insight: {e}")
+            return None
+    
+    # ========== Stage 5: Quality Assessment & Self-Healing ==========
+    
+    def _extract_from_stage_5(self, workflow_state: WorkflowState) -> List[KnowledgeArtifact]:
         """
-        Extract all solution patterns from a workflow.
-
+        Extract self-healing patterns from Stage 5 (Quality Assessment).
+        
         Args:
-            workflow: The workflow state
-
+            workflow_state: The workflow state
+            
         Returns:
-            List of SolutionPatternArtifacts
-        """
-        patterns = []
-
-        # Extract from decomposition
-        decomposition_pattern = self.extract_from_decomposition(workflow)
-        if decomposition_pattern:
-            patterns.append(decomposition_pattern)
-
-        # Extract from execution results
-        execution_patterns = self.extract_from_execution_results(workflow)
-        patterns.extend(execution_patterns)
-
-        return patterns
-
-    # ========== Team Performance Extraction ==========
-
-    def extract_team_performance(self, workflow: WorkflowState) -> List[TeamPerformanceArtifact]:
-        """
-        Extract team performance insights from a workflow.
-
-        Args:
-            workflow: The workflow state
-
-        Returns:
-            List of TeamPerformanceArtifacts
+            List of KnowledgeArtifacts with self-healing patterns
         """
         artifacts = []
-
-        # Extract solver team performance
-        if workflow.solver_team:
-            artifact = self._analyze_team_performance(workflow, workflow.solver_team, "solver")
-            if artifact:
-                artifacts.append(artifact)
-
-        # Extract evaluator team performance (Gold Team)
-        if workflow.final_gold_gauntlet:
-            gold_team = workflow.final_gold_gauntlet.team if hasattr(workflow.final_gold_gauntlet, 'team') else None
-            if gold_team:
-                artifact = self._analyze_team_performance(workflow, gold_team, "gold")
-                if artifact:
-                    artifacts.append(artifact)
-
-        return artifacts
-
-    def _analyze_team_performance(self, workflow: WorkflowState, team: Team, team_role: str) -> Optional[TeamPerformanceArtifact]:
-        """
-        Analyze performance of a specific team.
-
-        Args:
-            workflow: The workflow state
-            team: The team to analyze
-            team_role: Role of the team (solver, gold, etc.)
-
-        Returns:
-            TeamPerformanceArtifact if analysis successful
-        """
-        # Calculate basic metrics
-        total_problems = len(workflow.sub_problem_solutions)
-        solved_problems = len(workflow.solved_sub_problem_ids)
-        success_rate = solved_problems / total_problems if total_problems > 0 else 0.0
-
-        # Calculate velocity (problems per hour)
-        elapsed_time = time.time() - workflow.start_time
-        elapsed_hours = elapsed_time / 3600
-
-        # Prevent unrealistically high velocities from very small time windows
-        min_elapsed_hours = 0.001  # 3.6 seconds minimum
-        if elapsed_hours < min_elapsed_hours:
-            velocity = float(solved_problems)  # Problems per second (very high but not infinite)
-        else:
-            velocity = solved_problems / elapsed_hours
-
-        # Create artifact
-        artifact = TeamPerformanceArtifact(
-            artifact_id=f"team_perf_{team_role}_{workflow.workflow_id}_{uuid.uuid4().hex[:8]}",
-            source_workflow_id=workflow.workflow_id,
-            team_id=team.team_id if hasattr(team, 'team_id') else team_role,
-            team_composition={"models": [m.model_id for m in team.models] if hasattr(team, 'models') else [], "role": team_role},
-            velocity=velocity,
-            quality_metrics={"success_rate": success_rate, "problems_solved": solved_problems},
-            confidence=0.8,
-        )
-
-        # Use LLM for deeper analysis if available
-        if self.llm_client:
-            prompt = self.extraction_prompts["team_performance"].format(
-                team_id=artifact.team_id,
-                team_composition=json.dumps(artifact.team_composition),
-                num_solved=solved_problems,
-                total_problems=total_problems,
-                quality_metrics=json.dumps(artifact.quality_metrics),
-                domains=self._extract_domains_from_problem(problem),  # Extract domains from problem
-                complexities=self._extract_complexities_from_problem(problem),  # Extract complexities from problem
-            )
-            try:
-                response = self.llm_client.generate(prompt)
-                extracted_data = json.loads(response)
-                artifact.optimal_domains = extracted_data.get("optimal_domains", [])
-                artifact.skill_gaps = extracted_data.get("skill_gaps", [])
-                artifact.training_recommendations = extracted_data.get("training_recommendations", [])
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
-                print(f"LLM team analysis failed: {e}")
-
-        return artifact
-
-    # ========== Gauntlet Effectiveness Extraction ==========
-
-    def extract_gauntlet_effectiveness(self, workflow: WorkflowState) -> List[GauntletEffectivenessArtifact]:
-        """
-        Extract gauntlet effectiveness insights from a workflow.
-
-        Args:
-            workflow: The workflow state
-
-        Returns:
-            List of GauntletEffectivenessArtifacts
-        """
-        artifacts = []
-
-        # Analyze solver generation gauntlet
-        if workflow.solver_generation_gauntlet:
-            artifact = self._analyze_gauntlet_effectiveness(workflow, workflow.solver_generation_gauntlet)
-            if artifact:
-                artifacts.append(artifact)
-
-        # Analyze final gold gauntlet
-        if workflow.final_gold_gauntlet:
-            artifact = self._analyze_gauntlet_effectiveness(workflow, workflow.final_gold_gauntlet)
-            if artifact:
-                artifacts.append(artifact)
-
-        return artifacts
-
-    def _analyze_gauntlet_effectiveness(self, workflow: WorkflowState, gauntlet: GauntletDefinition) -> Optional[GauntletEffectivenessArtifact]:
-        """
-        Analyze effectiveness of a specific gauntlet.
-
-        Args:
-            workflow: The workflow state
-            gauntlet: The gauntlet to analyze
-
-        Returns:
-            GauntletEffectivenessArtifact if analysis successful
-        """
-        gauntlet_id = gauntlet.gaugment_id if hasattr(gauntlet, 'gauntlet_id') else gauntlet.name if hasattr(gauntlet, 'name') else "unknown"
-        gauntlet_type = gauntlet.gaugment_type if hasattr(gauntlet, 'gauntlet_type') else "custom"
-
-        # Calculate actual metrics from workflow data
-        total_checks = len(workflow.all_verification_reports) if hasattr(workflow, 'all_verification_reports') else 1
-        issues_caught = len([r for r in workflow.all_verification_reports if r and hasattr(r, 'passed') and not r.passed]) if hasattr(workflow, 'all_verification_reports') else 0
-        false_positives = self._calculate_false_positives(workflow)
-
-        catch_rate = issues_caught / total_checks if total_checks > 0 else 0.0
-        false_positive_rate = false_positives / total_checks if total_checks > 0 else 0.0
-        execution_time = getattr(workflow, 'execution_time', 5.0)  # Use workflow's execution time if available
-
-        # Basic metrics (calculated from actual workflow data)
-        artifact = GauntletEffectivenessArtifact(
-            artifact_id=f"gauntlet_{gauntlet_id}_{workflow.workflow_id}_{uuid.uuid4().hex[:8]}",
-            source_workflow_id=workflow.workflow_id,
-            gauntlet_id=gauntlet_id,
-            gauntlet_type=gauntlet_type,
-            catch_rate=catch_rate,
-            false_positive_rate=false_positive_rate,
-            execution_time=execution_time,
-            confidence=0.7,
-        )
-
-        # Use LLM for detailed analysis if available
-        if self.llm_client:
-            prompt = self.extraction_prompts["gauntlet_effectiveness"].format(
-                gauntlet_id=gauntlet_id,
-                gauntlet_type=gauntlet_type,
-                total_checks=len(workflow.all_verification_reports),
-                issues_caught=len([r for r in workflow.all_verification_reports if r and hasattr(r, 'passed') and not r.passed]),
-                false_positives=self._calculate_false_positives(workflow),  # Calculate false positives
-                execution_time=artifact.execution_time,
-            )
-            try:
-                response = self.llm_client.generate(prompt)
-                extracted_data = json.loads(response)
-                artifact.catch_rate = extracted_data.get("catch_rate", artifact.catch_rate)
-                artifact.false_positive_rate = extracted_data.get("false_positive_rate", artifact.false_positive_rate)
-                artifact.rule_effectiveness = extracted_data.get("rule_effectiveness", {})
-                artifact.recommended_improvements = extracted_data.get("recommended_improvements", [])
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
-                print(f"LLM gauntlet analysis failed: {e}")
-
-        return artifact
-
-    # ========== End-to-End Extraction ==========
-
-    def extract_all_knowledge(self, workflow: WorkflowState, store: bool = True) -> Dict[str, int]:
-        """
-        Extract all knowledge artifacts from a workflow.
-
-        Args:
-            workflow: The workflow state
-            store: Whether to store artifacts in database
-
-        Returns:
-            Dictionary with counts of extracted artifacts
-        """
-        counts = {
-            "solution_patterns": 0,
-            "team_performance": 0,
-            "gauntlet_effectiveness": 0,
+        
+        refinement_count = getattr(workflow_state, 'refinement_loop_count', 0)
+        if refinement_count == 0:
+            return artifacts  # No self-healing occurred
+        
+        # Extract self-healing patterns
+        content = {
+            "refinement_loop_count": refinement_count,
+            "max_refinement_loops": getattr(workflow_state, 'max_refinement_loops', 3),
+            "refinement_effective": refinement_count < getattr(workflow_state, 'max_refinement_loops', 3),
+            "verification_reports_count": len(getattr(workflow_state, 'all_verification_reports', [])),
         }
-
-        # Extract solution patterns
-        patterns = self.extract_solution_patterns(workflow)
-        counts["solution_patterns"] = len(patterns)
-        if store:
-            for pattern in patterns:
-                self.artifact_manager.create_solution_pattern(pattern)
-
-        # Extract team performance
-        team_artifacts = self.extract_team_performance(workflow)
-        counts["team_performance"] = len(team_artifacts)
-        if store:
-            for artifact in team_artifacts:
-                self.artifact_manager.create_team_performance(artifact)
-
-        # Extract gauntlet effectiveness
-        gauntlet_artifacts = self.extract_gauntlet_effectiveness(workflow)
-        counts["gauntlet_effectiveness"] = len(gauntlet_artifacts)
-        if store:
-            for artifact in gauntlet_artifacts:
-                self.artifact_manager.create_gauntlet_effectiveness(artifact)
-
-        return counts
-
+        
+        # Analyze issues found
+        issues_found = []
+        for report in getattr(workflow_state, 'all_verification_reports', []):
+            if report and hasattr(report, 'passed') and not report.passed:
+                issues_found.append({
+                    "type": getattr(report, 'verification_method', 'unknown'),
+                    "details": getattr(report, 'errors', []),
+                })
+        
+        content["issues_found"] = issues_found
+        
+        artifact = KnowledgeArtifact(
+            artifact_id=f"healing_{uuid.uuid4().hex[:16]}",
+            artifact_type="self_healing_pattern",
+            source_workflow_id=getattr(workflow_state, 'workflow_id', 'unknown'),
+            source_stage=5,
+            timestamp=datetime.now(),
+            confidence=0.75,
+            title=f"Self-Healing Pattern: {refinement_count} refinements",
+            description=f"Self-healing pattern with {refinement_count} refinement loops",
+            content=content,
+            tags=["self_healing", f"refinements_{refinement_count}"],
+        )
+        artifacts.append(artifact)
+        
+        # Use LLM for enhanced extraction if available
+        if self.ace_client:
+            try:
+                prompt = self.extraction_prompts["self_healing"].format(
+                    problem_statement=getattr(workflow_state, 'problem_statement', ''),
+                    refinement_count=refinement_count,
+                    issues_found=len(issues_found),
+                    resolution_strategy="auto" if refinement_count > 0 else "none",
+                    success=getattr(workflow_state, 'status', '') == 'completed'
+                )
+                response = self._call_llm(prompt)
+                if response:
+                    extracted_data = json.loads(response)
+                    content.update({
+                        "issue_patterns": extracted_data.get("issue_patterns", []),
+                        "resolution_strategies": extracted_data.get("resolution_strategies", []),
+                        "refinement_effectiveness": extracted_data.get("refinement_effectiveness", 0.5),
+                        "healing_triggers": extracted_data.get("healing_triggers", []),
+                        "prevention_recommendations": extracted_data.get("prevention_recommendations", []),
+                    })
+                    artifact.content = content
+            except Exception as e:
+                logger.warning(f"LLM self-healing extraction failed: {e}")
+        
+        return artifacts
+    
+    # ========== Stage 6: Execution Results & Learning ==========
+    
+    def _extract_from_stage_6(self, workflow_state: WorkflowState) -> List[KnowledgeArtifact]:
+        """
+        Extract learning patterns from Stage 6 (Execution Results).
+        
+        Args:
+            workflow_state: The workflow state
+            
+        Returns:
+            List of KnowledgeArtifacts with learning patterns
+        """
+        artifacts = []
+        
+        # Only extract from completed workflows
+        if getattr(workflow_state, 'status', '') != 'completed':
+            return artifacts
+        
+        # Calculate execution metrics
+        start_time = getattr(workflow_state, 'start_time', time.time())
+        end_time = getattr(workflow_state, 'end_time', time.time())
+        execution_time = end_time - start_time if end_time else 0
+        
+        # Calculate quality score from final solution
+        final_solution = getattr(workflow_state, 'final_solution', None)
+        quality_score = 0.0
+        if final_solution and hasattr(final_solution, 'quality_score'):
+            quality_score = final_solution.quality_score
+        
+        # Create learning pattern artifact
+        content = {
+            "execution_time": execution_time,
+            "quality_score": quality_score,
+            "success": True,
+            "sub_problems_solved": len(getattr(workflow_state, 'solved_sub_problem_ids', set())),
+            "total_sub_problems": len(getattr(workflow_state, 'sub_problem_solutions', {})),
+        }
+        
+        artifact = KnowledgeArtifact(
+            artifact_id=f"learning_{uuid.uuid4().hex[:16]}",
+            artifact_type="learning_pattern",
+            source_workflow_id=getattr(workflow_state, 'workflow_id', 'unknown'),
+            source_stage=6,
+            timestamp=datetime.now(),
+            confidence=quality_score if quality_score > 0 else 0.8,
+            title="Learning Pattern: Successful Execution",
+            description="Learning patterns from successful workflow execution",
+            content=content,
+            tags=["learning", "execution", "success"],
+        )
+        artifacts.append(artifact)
+        
+        # Use LLM for enhanced extraction if available
+        if self.ace_client:
+            try:
+                prompt = self.extraction_prompts["learning_patterns"].format(
+                    workflow_id=getattr(workflow_state, 'workflow_id', 'unknown'),
+                    problem_statement=getattr(workflow_state, 'problem_statement', ''),
+                    success=True,
+                    execution_time=execution_time,
+                    quality_score=quality_score
+                )
+                response = self._call_llm(prompt)
+                if response:
+                    extracted_data = json.loads(response)
+                    content.update({
+                        "success_factors": extracted_data.get("success_factors", []),
+                        "improvement_areas": extracted_data.get("improvement_areas", []),
+                        "key_learnings": extracted_data.get("key_learnings", []),
+                        "reusable_patterns": extracted_data.get("reusable_patterns", []),
+                        "adaptation_recommendations": extracted_data.get("adaptation_recommendations", []),
+                    })
+                    artifact.content = content
+            except Exception as e:
+                logger.warning(f"LLM learning extraction failed: {e}")
+        
+        return artifacts
+    
     # ========== Helper Methods ==========
-
+    
     def _classify_domain(self, problem_statement: str) -> str:
         """Classify the domain of a problem."""
         problem_lower = problem_statement.lower()
-
+        
         domain_keywords = {
-            "algorithms": ["algorithm", "sorting", "searching", "optimization"],
-            "data_structures": ["array", "list", "tree", "graph", "hash"],
-            "machine_learning": ["train", "model", "predict", "classify", "regression"],
-            "web_development": ["api", "server", "client", "http", "database"],
-            "system_design": ["scale", "distributed", "architecture", "design"],
+            "algorithms": ["algorithm", "sorting", "searching", "optimization", "graph", "tree"],
+            "data_structures": ["array", "list", "tree", "graph", "hash", "queue", "stack"],
+            "machine_learning": ["train", "model", "predict", "classify", "regression", "neural"],
+            "web_development": ["api", "server", "client", "http", "database", "rest", "endpoint"],
+            "system_design": ["scale", "distributed", "architecture", "design", "microservice"],
+            "mathematics": ["equation", "theorem", "proof", "calculus", "algebra", "geometry"],
+            "physics": ["quantum", "mechanics", "thermodynamics", "electromagnetism", "particle"],
+            "chemistry": ["molecule", "reaction", "chemical", "bond", "catalyst", "synthesis"],
         }
-
+        
         for domain, keywords in domain_keywords.items():
             if any(kw in problem_lower for kw in keywords):
                 return domain
-
+        
         return "general"
-
+    
     def _estimate_complexity(self, problem_statement: str) -> int:
         """Estimate complexity (1-10) of a problem."""
-        # Heuristic: longer problem statements tend to be more complex
         word_count = len(problem_statement.split())
-
+        
         if word_count < 20:
             return 3
         elif word_count < 50:
@@ -642,13 +825,12 @@ rule_effectiveness, recommended_improvements.
             return 7
         else:
             return 9
-
+    
     def _extract_constraints(self, problem_statement: str) -> List[str]:
         """Extract constraints from a problem statement."""
         constraints = []
         problem_lower = problem_statement.lower()
-
-        # Common constraint patterns
+        
         if "time limit" in problem_lower or "timeout" in problem_lower:
             constraints.append("time_constraint")
         if "memory" in problem_lower:
@@ -657,250 +839,382 @@ rule_effectiveness, recommended_improvements.
             constraints.append("restriction")
         if "must" in problem_lower or "require" in problem_lower:
             constraints.append("requirement")
-
+        
         return constraints
-
-    def _extract_domains_from_problem(self, problem: Any) -> List[str]:
-        """Extract domains from a problem object."""
-        # Try to get problem statement from the problem object
-        problem_statement = getattr(problem, 'problem_statement', '')
-        if not problem_statement:
-            problem_statement = getattr(problem, 'description', '')
-        if not problem_statement:
-            problem_statement = str(problem)  # fallback to string representation
-
-        # Use existing domain classification method
-        domain = self._classify_domain(problem_statement)
-        return [domain]  # Return as list to match expected return type
-
-    def _extract_complexities_from_problem(self, problem: Any) -> List[int]:
-        """Extract complexities from a problem object."""
-        # Try to get problem statement from the problem object
-        problem_statement = getattr(problem, 'problem_statement', '')
-        if not problem_statement:
-            problem_statement = getattr(problem, 'description', '')
-        if not problem_statement:
-            problem_statement = str(problem)  # fallback to string representation
-
-        # Use existing complexity estimation method
-        complexity = self._estimate_complexity(problem_statement)
-        return [complexity]  # Return as list to match expected return type
-
-    def _calculate_false_positives(self, workflow: WorkflowState) -> int:
-        """Calculate false positive rate from workflow verification reports."""
-        false_positives = 0
-        if hasattr(workflow, 'all_verification_reports') and workflow.all_verification_reports:
-            for report in workflow.all_verification_reports:
-                if report and hasattr(report, 'false_positive'):
-                    if getattr(report, 'false_positive', False):
-                        false_positives += 1
-                # Alternative check if false_positive attribute doesn't exist
-                elif hasattr(report, 'passed') and hasattr(report, 'expected_result'):
-                    # If a report passed but wasn't expected to, or failed when expected to pass
-                    passed = getattr(report, 'passed', False)
-                    expected = getattr(report, 'expected_result', True)
-                    if passed and not expected:  # This could be considered a false positive
-                        false_positives += 1
-        return false_positives
-
-    # ========== OneKE Integration ==========
-
-    async def ensure_oneke_initialized(self) -> bool:
-        """
-        Ensure OneKE bridge is initialized before use.
-
-        Returns:
-            True if initialization succeeded, False otherwise
-        """
-        if not self.use_oneke or not self.oneke_bridge:
-            return False
-
-        if self._oneke_initialized:
-            return True
-
-        try:
-            await self.oneke_bridge.initialize()
-            self._oneke_initialized = True
-            logger.info("OneKE bridge initialized successfully")
-            return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
-            logger.error(f"Failed to initialize OneKE bridge: {e}")
-            self.oneke_bridge = None
-            self._oneke_initialized = False
-            return False
-
-    async def _init_oneke_async(self) -> None:
-        """Initialize OneKE bridge asynchronously."""
-        if self.oneke_bridge:
-            try:
-                await self.oneke_bridge.initialize()
-                print("OneKE bridge initialized successfully")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
-                print(f"Failed to initialize OneKE bridge: {e}")
-                self.oneke_bridge = None
-                self.use_oneke = False
-
-    async def extract_domain_knowledge(self, workflow: WorkflowState, domains: Optional[List[str]] = None) -> Dict[str, Any]:
-        """
-        Extract domain-specific knowledge using OneKE.
-
-        This method fills GAP-2 (Physics Domain Knowledge) and enhances GAP-10.
-
-        Args:
-            workflow: The workflow state
-            domains: List of domains to extract ('physics', 'chemistry', 'general')
-
-        Returns:
-            Dictionary of domain knowledge with extracted entities, relations, and events
-        """
-        if not await self.ensure_oneke_initialized():
-            return {}
-
-        if domains is None:
-            # Auto-detect domains from problem statement
-            domains = self._detect_domains(workflow)
-
-        knowledge = {}
-
-        if 'physics' in domains:
-            try:
-                physics_knowledge = await self.oneke_bridge.extract_physics_knowledge(workflow)
-                knowledge['physics'] = physics_knowledge
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
-                print(f"Failed to extract physics knowledge: {e}")
-
-        if 'chemistry' in domains:
-            try:
-                chemistry_knowledge = await self.oneke_bridge.extract_chemistry_knowledge(workflow)
-                knowledge['chemistry'] = chemistry_knowledge
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
-                print(f"Failed to extract chemistry knowledge: {e}")
-
-        # Extract general relations for all domains
-        try:
-            relations = await self.oneke_bridge.extract_relations(workflow)
-            knowledge['relations'] = relations
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
-            print(f"Failed to extract relations: {e}")
-
-        return knowledge
-
-    def _detect_domains(self, workflow: WorkflowState) -> List[str]:
-        """
-        Detect relevant domains from workflow problem statement.
-
-        Args:
-            workflow: The workflow state
-
-        Returns:
-            List of detected domains
-        """
-        domains = []
-        problem_lower = workflow.problem_statement.lower()
-
-        # Physics keywords
-        physics_keywords = [
-            'quantum', 'oscillator', 'hamiltonian', 'wavefunction', 'eigen',
-            'momentum', 'energy', 'particle', 'spin', 'entangle', 'schrodinger'
-        ]
-        if any(kw in problem_lower for kw in physics_keywords):
-            domains.append('physics')
-
-        # Chemistry keywords
-        chemistry_keywords = [
-            'molecule', 'atom', 'reaction', 'chemical', 'bond', 'catalyst',
-            'synthesis', 'combust', 'oxid', 'reduct', 'polymer'
-        ]
-        if any(kw in problem_lower for kw in chemistry_keywords):
-            domains.append('chemistry')
-
-        # Default to general
-        if not domains:
-            domains.append('general')
-
-        return domains
-
-    async def extract_enhanced_solution_patterns(self, workflow: WorkflowState) -> List[SolutionPatternArtifact]:
-        """
-        Extract solution patterns enhanced with OneKE schema-guided extraction.
-
-        This combines traditional extraction with OneKE for better pattern recognition.
-
-        Args:
-            workflow: The workflow state
-
-        Returns:
-            List of SolutionPatternArtifacts with enhanced information
-        """
-        # Extract traditional patterns
-        patterns = self.extract_solution_patterns(workflow)
-
-        # Enhance with OneKE if available
-        if self.use_oneke and self.oneke_bridge:
-            try:
-                # Extract domain-specific patterns
-                detected_domains = self._detect_domains(workflow)
-                domain = detected_domains[0] if detected_domains else 'general'
-                oneke_patterns = await self.oneke_bridge.extract_solution_patterns(workflow, domain)
-
-                # Enhance existing patterns with OneKE data
-                for pattern in patterns:
-                    if oneke_patterns.get('patterns'):
-                        pattern.domain_entities = oneke_patterns['patterns']
-                    if oneke_patterns.get('techniques'):
-                        pattern.enhanced_techniques = oneke_patterns['techniques']
-
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
-                print(f"Failed to enhance patterns with OneKE: {e}")
-
+    
+    def _extract_domain_keywords(self, problem_statement: str, domain: str) -> List[str]:
+        """Extract domain-specific keywords from problem statement."""
+        problem_lower = problem_statement.lower()
+        words = problem_lower.split()
+        
+        # Simple keyword extraction - in production, use NLP
+        keywords = []
+        for word in words:
+            if len(word) > 4 and word.isalpha():
+                keywords.append(word)
+        
+        return list(set(keywords))[:10]  # Limit to top 10
+    
+    def _classify_problem_type(self, problem_statement: str) -> str:
+        """Classify the type of problem."""
+        problem_lower = problem_statement.lower()
+        
+        if any(word in problem_lower for word in ["implement", "create", "build", "develop"]):
+            return "implementation"
+        elif any(word in problem_lower for word in ["fix", "debug", "error", "bug"]):
+            return "debugging"
+        elif any(word in problem_lower for word in ["optimize", "improve", "performance", "speed"]):
+            return "optimization"
+        elif any(word in problem_lower for word in ["refactor", "restructure", "redesign"]):
+            return "refactoring"
+        else:
+            return "general"
+    
+    def _extract_code_patterns(self, code: str) -> List[str]:
+        """Extract code patterns from solution code."""
+        patterns = []
+        
+        if "def " in code:
+            patterns.append("function_definition")
+        if "class " in code:
+            patterns.append("class_definition")
+        if "import " in code or "from " in code:
+            patterns.append("module_import")
+        if "try:" in code or "except" in code:
+            patterns.append("error_handling")
+        if "async " in code or "await " in code:
+            patterns.append("async_programming")
+        if "@" in code:
+            patterns.append("decorators")
+        if "list comprehension" in code or "[x for x in" in code:
+            patterns.append("list_comprehension")
+        if "lambda" in code:
+            patterns.append("lambda_functions")
+        if "with " in code and ":" in code:
+            patterns.append("context_managers")
+        
         return patterns
+    
+    def _call_llm(self, prompt: str) -> Optional[str]:
+        """Call LLM through ace_client if available."""
+        if not self.ace_client:
+            return None
+        
+        try:
+            if hasattr(self.ace_client, 'generate'):
+                return self.ace_client.generate(prompt)
+            elif hasattr(self.ace_client, 'chat'):
+                return self.ace_client.chat(prompt)
+            elif hasattr(self.ace_client, 'complete'):
+                return self.ace_client.complete(prompt)
+        except Exception as e:
+            logger.warning(f"LLM call failed: {e}")
+        
+        return None
 
-    async def extract_all_knowledge_enhanced(self, workflow: WorkflowState, store: bool = True) -> Dict[str, int]:
+
+class SolutionPatternExtractor:
+    """
+    Specialized extractor for solution patterns from successful solutions.
+    
+    This class focuses on extracting reusable solution patterns that can be
+    applied to similar problems in the future.
+    
+    Attributes:
+        ace_client: Optional ACE client for LLM-based extraction
+    """
+    
+    def __init__(self, ace_client: Optional[Any] = None):
         """
-        Extract all knowledge artifacts with OneKE enhancement.
-
-        This is the enhanced version of extract_all_knowledge that includes
-        domain-specific knowledge extraction.
-
+        Initialize the solution pattern extractor.
+        
         Args:
-            workflow: The workflow state
-            store: Whether to store artifacts in database
-
-        Returns:
-            Dictionary with counts of extracted artifacts
+            ace_client: Optional ACE client for LLM-based extraction
         """
-        # Extract standard artifacts
-        counts = self.extract_all_knowledge(workflow, store=store)
+        self.ace_client = ace_client
+    
+    def extract_patterns(self, solutions: List[SolutionAttempt]) -> List[SolutionPatternArtifact]:
+        """
+        Extract solution patterns from a list of solutions.
+        
+        Args:
+            solutions: List of solution attempts to analyze
+            
+        Returns:
+            List of SolutionPatternArtifacts
+        """
+        patterns = []
+        
+        for solution in solutions:
+            if not solution:
+                continue
+            
+            # Filter for high-quality solutions (>0.8 score)
+            quality_score = getattr(solution, 'quality_score', 0.0)
+            if quality_score < 0.8:
+                continue
+            
+            pattern = self._analyze_solution_pattern(solution)
+            if pattern:
+                patterns.append(pattern)
+        
+        return patterns
+    
+    def _analyze_solution_pattern(self, solution: SolutionAttempt) -> Optional[SolutionPatternArtifact]:
+        """
+        Analyze a single solution to extract its pattern.
+        
+        Args:
+            solution: The solution attempt to analyze
+            
+        Returns:
+            SolutionPatternArtifact if analysis successful
+        """
+        try:
+            # Extract pattern characteristics
+            content = {
+                "code_language": getattr(solution, 'code_language', 'python'),
+                "solution_quality": getattr(solution, 'quality_score', 0.0),
+                "approach": getattr(solution, 'approach_description', ''),
+                "complexity": getattr(solution, 'complexity_score', 5),
+            }
+            
+            # Extract code patterns from final code
+            final_code = getattr(solution, 'final_code', '')
+            if final_code:
+                content["code_patterns"] = self._extract_code_patterns_from_code(final_code)
+                content["code_structure"] = self._analyze_code_structure(final_code)
+            
+            # Create the artifact
+            artifact = SolutionPatternArtifact(
+                artifact_id=f"solution_pattern_{uuid.uuid4().hex[:16]}",
+                artifact_type="solution_pattern",
+                source_workflow_id=getattr(solution, 'workflow_id', 'unknown'),
+                source_stage=3,
+                timestamp=datetime.now(),
+                confidence=getattr(solution, 'quality_score', 0.8),
+                title=f"Solution Pattern: {getattr(solution, 'approach_type', 'General')}",
+                description=getattr(solution, 'approach_description', 'Solution pattern extracted from successful execution'),
+                content=content,
+                pattern_category=getattr(solution, 'approach_type', 'general'),
+                problem_domains=[getattr(solution, 'domain', 'general')],
+                approach_signature={
+                    "quality_score": getattr(solution, 'quality_score', 0.0),
+                    "complexity": getattr(solution, 'complexity_score', 5),
+                    "language": getattr(solution, 'code_language', 'python'),
+                },
+                success_rate=1.0 if getattr(solution, 'is_successful', False) else 0.5,
+                avg_execution_time=getattr(solution, 'execution_time', 0.0),
+                tags=["solution_pattern", getattr(solution, 'code_language', 'python'), 
+                      getattr(solution, 'approach_type', 'general')],
+            )
+            
+            return artifact
+            
+        except Exception as e:
+            logger.warning(f"Failed to analyze solution pattern: {e}")
+            return None
+    
+    def _extract_code_patterns_from_code(self, code: str) -> List[str]:
+        """Extract code patterns from solution code."""
+        patterns = []
+        
+        if "def " in code:
+            patterns.append("function_definition")
+        if "class " in code:
+            patterns.append("class_definition")
+        if "import " in code or "from " in code:
+            patterns.append("module_import")
+        if "try:" in code or "except" in code:
+            patterns.append("error_handling")
+        if "async " in code or "await " in code:
+            patterns.append("async_programming")
+        if "@" in code:
+            patterns.append("decorators")
+        if "[x for x in" in code:
+            patterns.append("list_comprehension")
+        if "lambda" in code:
+            patterns.append("lambda_functions")
+        if "with " in code and ":" in code:
+            patterns.append("context_managers")
+        if "if __name__ ==" in code:
+            patterns.append("main_guard")
+        
+        return patterns
+    
+    def _analyze_code_structure(self, code: str) -> Dict[str, Any]:
+        """Analyze the structure of code."""
+        lines = code.split('\n')
+        return {
+            "total_lines": len(lines),
+            "non_empty_lines": len([l for l in lines if l.strip()]),
+            "function_count": code.count("def "),
+            "class_count": code.count("class "),
+            "import_count": code.count("import ") + code.count("from "),
+            "has_docstrings": '"""' in code or "'''" in code,
+            "has_type_hints": ": " in code and "->" in code,
+        }
 
-        # Extract domain knowledge if OneKE enabled
-        if self.use_oneke and self.oneke_bridge:
-            try:
-                domain_knowledge = await self.extract_domain_knowledge(workflow)
 
-                # Add domain knowledge counts
-                for domain, knowledge in domain_knowledge.items():
-                    count_key = f"{domain}_entities"
-                    counts[count_key] = len(knowledge.get('entities', []) if isinstance(knowledge, dict) else [])
-
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
-                print(f"Failed to extract domain knowledge: {e}")
-
-        return counts
+class DecompositionStrategyExtractor:
+    """
+    Specialized extractor for decomposition strategies from execution results.
+    
+    This class focuses on extracting reusable decomposition strategies that can be
+    applied to similar problems in the future.
+    
+    Attributes:
+        ace_client: Optional ACE client for LLM-based extraction
+    """
+    
+    def __init__(self, ace_client: Optional[Any] = None):
+        """
+        Initialize the decomposition strategy extractor.
+        
+        Args:
+            ace_client: Optional ACE client for LLM-based extraction
+        """
+        self.ace_client = ace_client
+    
+    def extract_strategies(self, execution_results: List[Dict[str, Any]]) -> List[KnowledgeArtifact]:
+        """
+        Extract decomposition strategies from execution results.
+        
+        Args:
+            execution_results: List of execution results to analyze
+            
+        Returns:
+            List of KnowledgeArtifacts containing decomposition strategies
+        """
+        artifacts = []
+        
+        for result in execution_results:
+            if not result:
+                continue
+            
+            artifact = self._analyze_decomposition_strategy(result)
+            if artifact:
+                artifacts.append(artifact)
+        
+        return artifacts
+    
+    def _analyze_decomposition_strategy(self, result: Dict[str, Any]) -> Optional[KnowledgeArtifact]:
+        """
+        Analyze a single execution result to extract decomposition strategy.
+        
+        Args:
+            result: The execution result to analyze
+            
+        Returns:
+            KnowledgeArtifact if analysis successful
+        """
+        try:
+            decomposition_plan = result.get('decomposition_plan')
+            if not decomposition_plan:
+                return None
+            
+            # Extract strategy characteristics
+            framework = getattr(decomposition_plan, 'framework', 'unknown')
+            strategy = getattr(decomposition_plan, 'decomposition_method', 'unknown')
+            
+            content = {
+                "framework": framework,
+                "strategy": strategy,
+                "num_sub_problems": len(getattr(decomposition_plan, 'sub_problems', [])),
+                "success": result.get('success', False),
+                "execution_time": result.get('execution_time', 0),
+            }
+            
+            # Extract sub-problem characteristics
+            sub_problems = getattr(decomposition_plan, 'sub_problems', [])
+            content["sub_problem_types"] = [
+                getattr(sp, 'type', 'unknown') for sp in sub_problems
+            ]
+            
+            # Extract dependencies if available
+            dependencies = getattr(decomposition_plan, 'dependencies', [])
+            content["dependency_pattern"] = self._analyze_dependency_pattern(dependencies)
+            
+            # Create the artifact
+            artifact = KnowledgeArtifact(
+                artifact_id=f"decomp_strategy_{uuid.uuid4().hex[:16]}",
+                artifact_type="decomposition_strategy",
+                source_workflow_id=result.get('workflow_id', 'unknown'),
+                source_stage=1,
+                timestamp=datetime.now(),
+                confidence=0.85 if result.get('success') else 0.6,
+                title=f"Decomposition Strategy: {framework}",
+                description=f"Decomposition strategy using {framework} with {strategy} method",
+                content=content,
+                tags=["decomposition", framework, strategy],
+            )
+            
+            return artifact
+            
+        except Exception as e:
+            logger.warning(f"Failed to analyze decomposition strategy: {e}")
+            return None
+    
+    def _analyze_dependency_pattern(self, dependencies: List[Any]) -> Dict[str, Any]:
+        """Analyze the dependency pattern of sub-problems."""
+        if not dependencies:
+            return {"type": "independent", "count": 0}
+        
+        # Simple analysis - can be enhanced with graph analysis
+        return {
+            "type": "sequential" if len(dependencies) > 0 else "independent",
+            "count": len(dependencies),
+            "chains": len(set(str(d) for d in dependencies)),
+        }
 
 
 # ========== Convenience Functions ==========
 
-def extract_knowledge_from_workflow(workflow: WorkflowState, db_path: str = "./knowledge_artifacts.db", llm_client: Optional[Any] = None) -> Dict[str, int]:
+def extract_knowledge_from_workflow(workflow_state: WorkflowState, 
+                                    knowledge_engine: Optional[Any] = None,
+                                    ace_client: Optional[Any] = None) -> List[KnowledgeArtifact]:
     """
     Convenience function to extract all knowledge from a workflow.
-
+    
     Args:
-        workflow: The workflow state
-        db_path: Path to artifact database
-        llm_client: Optional LLM client for advanced extraction
-
+        workflow_state: The workflow state to extract from
+        knowledge_engine: Optional knowledge engine for enhanced extraction
+        ace_client: Optional ACE client for LLM-based extraction
+        
     Returns:
-        Dictionary with counts of extracted artifacts
+        List of extracted KnowledgeArtifacts
     """
-    extractor = WorkflowKnowledgeExtractor(db_path, llm_client)
-    return extractor.extract_all_knowledge(workflow, store=True)
+    extractor = WorkflowKnowledgeExtractor(knowledge_engine, ace_client)
+    return extractor.extract_from_workflow(workflow_state)
+
+
+def extract_solution_patterns(solutions: List[SolutionAttempt],
+                              ace_client: Optional[Any] = None) -> List[SolutionPatternArtifact]:
+    """
+    Convenience function to extract solution patterns from solutions.
+    
+    Args:
+        solutions: List of solution attempts
+        ace_client: Optional ACE client for LLM-based extraction
+        
+    Returns:
+        List of SolutionPatternArtifacts
+    """
+    extractor = SolutionPatternExtractor(ace_client)
+    return extractor.extract_patterns(solutions)
+
+
+def extract_decomposition_strategies(execution_results: List[Dict[str, Any]],
+                                     ace_client: Optional[Any] = None) -> List[KnowledgeArtifact]:
+    """
+    Convenience function to extract decomposition strategies.
+    
+    Args:
+        execution_results: List of execution results
+        ace_client: Optional ACE client for LLM-based extraction
+        
+    Returns:
+        List of KnowledgeArtifacts containing decomposition strategies
+    """
+    extractor = DecompositionStrategyExtractor(ace_client)
+    return extractor.extract_strategies(execution_results)

@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 import streamlit as st
 from providercatalogue import get_providers
 from session_utils import reset_defaults, save_user_preferences
@@ -6,7 +8,6 @@ from parameter_manager import ParameterManager, ParameterType
 import json
 import os
 import sys
-import subprocess
 import threading
 import requests
 import time
@@ -17,12 +18,12 @@ logger = logging.getLogger(__name__)
 
 # Initialize parameter manager
 @st.cache_resource
-def get_parameter_manager():
+def get_parameter_manager() -> ParameterManager:
     """Get cached parameter manager instance"""
     return ParameterManager()
 
 # Parameter management using ParameterManager
-def get_default_generation_params():
+def get_default_generation_params() -> Dict[str, Any]:
     """Returns a dictionary of default generation parameters."""
     param_manager = get_parameter_manager()
     defaults = param_manager.get_defaults()
@@ -44,7 +45,7 @@ def get_default_generation_params():
     return generation_params
 
 
-def get_default_evolution_params():
+def get_default_evolution_params() -> Dict[str, Any]:
     """Returns a dictionary of default evolution parameters."""
     param_manager = get_parameter_manager()
     defaults = param_manager.get_defaults()
@@ -68,7 +69,7 @@ def get_default_evolution_params():
     
     return evolution_params
 
-def get_project_root():
+def get_project_root() -> str:
     """
     Returns the absolute path to the project's root directory.
     This is a local copy to avoid import issues in threaded contexts.
@@ -83,7 +84,7 @@ def get_project_root():
         # Fallback to current working directory
         return os.getcwd()
 
-def load_settings_for_scope():
+def load_settings_for_scope() -> None:
     """
     Loads parameters into session_state for the UI based on the selected scope.
     It applies settings hierarchically: Global -> Provider -> Model.
@@ -146,13 +147,13 @@ def load_settings_for_scope():
         st.session_state[key] = value
 
 
-def on_provider_change():
+def on_provider_change() -> None:
     """Handler for provider change, resets defaults and loads new settings."""
     reset_defaults()
     load_settings_for_scope()
 
 
-def create_tooltip_html(label, description):
+def create_tooltip_html(label: str, description: str) -> str:
     return f"""
     <div style="display: block; margin-bottom: 5px;">
         <span style="display: inline-block; vertical-align: middle;">{label}</span>
@@ -164,7 +165,7 @@ def create_tooltip_html(label, description):
     """
 
 
-def display_sidebar():
+def display_sidebar() -> None:
     # Initialize settings structures in session state if they don't exist
     if "user_preferences" not in st.session_state:
         st.session_state.user_preferences = {}
@@ -345,7 +346,7 @@ def display_sidebar():
             )
         
         @st.cache_resource(ttl=3600, show_spinner=False) # Cache for 1 hour, disable default spinner message
-        def _get_cached_providers(_api_instance): # Added underscore
+        def _get_cached_providers(_api_instance: OpenEvolveAPI) -> Dict[str, Any]: # Added underscore
             return get_providers(_api_instance)
 
         api = st.session_state.openevolve_api_instance

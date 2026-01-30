@@ -30,9 +30,9 @@ def fix_ace_mcp_tools_fixed():
             filepath.unlink()
             print("    [OK] Deleted corrupted file (no original found)")
             return True
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"    [!] Error: {e}")
-        return False
+        except (OSError, IOError, shutil.Error) as e:
+            print(f"    [!] Error: {e}")
+            return False
 
 
 def fix_demo_mcts_mdap():
@@ -110,9 +110,9 @@ def fix_demo_mcts_mdap():
             # Try more aggressive fix
             return fix_demo_mcts_mdap_aggressive(filepath, backup)
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"    [!] Error: {e}")
-        return False
+        except (OSError, IOError, shutil.Error) as e:
+            print(f"    [!] Error: {e}")
+            return False
 
 
 def fix_demo_mcts_mdap_aggressive(filepath, backup):
@@ -186,9 +186,9 @@ def fix_demo_mcts_mdap_aggressive(filepath, backup):
             print(f"    [!] Still error at line {e.lineno}: {e.msg}")
             return False
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"    [!] Error: {e}")
-        return False
+        except (OSError, IOError, shutil.Error) as e:
+            print(f"    [!] Error: {e}")
+            return False
 
 
 def fix_leanaide_mdap_demo():
@@ -276,9 +276,9 @@ def fix_leanaide_mdap_demo():
             print(f"    [!] Still error at line {e.lineno}: {e.msg}")
             return False
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"    [!] Error: {e}")
-        return False
+        except (OSError, IOError, shutil.Error) as e:
+            print(f"    [!] Error: {e}")
+            return False
 
 
 def fix_missing_except_blocks(filename):
@@ -358,9 +358,9 @@ def fix_missing_except_blocks(filename):
             print(f"    [!] Still error at line {e.lineno}: {e.msg}")
             return False
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"    [!] Error: {e}")
-        return False
+        except (OSError, IOError, shutil.Error) as e:
+            print(f"    [!] Error: {e}")
+            return False
 
 
 def fix_await_outside_async(filename):
@@ -410,9 +410,9 @@ def fix_await_outside_async(filename):
             print(f"    [!] Still error at line {e.lineno}: {e.msg}")
             return False
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"    [!] Error: {e}")
-        return False
+        except (OSError, IOError, shutil.Error) as e:
+            print(f"    [!] Error: {e}")
+            return False
 
 
 def fix_generic_syntax(filename):
@@ -501,9 +501,9 @@ def fix_generic_syntax(filename):
 
             return False
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"    [!] Error: {e}")
-        return False
+        except (OSError, IOError, shutil.Error) as e:
+            print(f"    [!] Error: {e}")
+            return False
 
 
 def main():
@@ -546,7 +546,7 @@ def main():
                 results['fixed'].append(filename)
             else:
                 results['failed'].append(filename)
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, SyntaxError) as e:
             print(f"[!] Exception fixing {filename}: {e}")
             results['failed'].append(filename)
 

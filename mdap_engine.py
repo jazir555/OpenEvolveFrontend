@@ -3,12 +3,63 @@ import json
 import logging
 import random
 import re
+import threading
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
 from llm_utils import _compose_messages, _request_openai_compatible_chat
 from workflow_structures import ModelConfig, Team
+
+
+# SECURITY: Input validation helpers to prevent injection attacks
+def _validate_string_input(value: Any, name: str, max_length: int = 10000) -> str:
+    """
+    Validate string input to prevent injection attacks.
+    
+    Args:
+        value: The input value to validate
+        name: Name of the field for error messages
+        max_length: Maximum allowed length
+        
+    Returns:
+        str: Validated string value
+        
+    Raises:
+        TypeError: If value is not a string
+        ValueError: If value contains suspicious patterns
+    """
+    if not isinstance(value, str):
+        raise TypeError(f"{name} must be a string, got {type(value).__name__}")
+    
+    if len(value) > max_length:
+        raise ValueError(f"{name} exceeds maximum length of {max_length} characters")
+    
+    # Check for null bytes
+    if '\x00' in value:
+        raise ValueError(f"{name} contains null bytes")
+    
+    return value
+
+
+def _validate_id_string(value: str, name: str) -> str:
+    """
+    Validate ID string to ensure it only contains safe characters.
+    
+    Args:
+        value: The ID string to validate
+        name: Name of the field for error messages
+        
+    Returns:
+        str: Validated ID string
+    """
+    value = _validate_string_input(value, name, max_length=256)
+    
+    # IDs should only contain alphanumeric, underscore, hyphen, and dot
+    if not re.match(r'^[a-zA-Z0-9_.\-:]+$', value):
+        raise ValueError(f"{name} contains invalid characters. Only alphanumeric, underscore, hyphen, colon, and dot are allowed: {value[:50]}")
+    
+    return value
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +73,7 @@ def _approx_token_count(text: str) -> int:
 def _safe_json_loads(payload: str) -> Tuple[Optional[Any], Optional[str]]:
     try:
         return json.loads(payload), None
-    except Exception as exc:
+    except (json.JSONDecodeError, TypeError, ValueError) as exc:
         return None, str(exc)
 
 
@@ -127,6 +178,21 @@ class RedFlagger:
 
 @dataclass
 class MDAPStep:
+    def __post_init__(self):
+        """Validate inputs after initialization to prevent injection attacks."""
+        # Validate step_id
+        self.step_id = _validate_id_string(self.step_id, "step_id")
+        
+        # Validate prompt (allow more characters but check length and null bytes)
+        self.prompt = _validate_string_input(self.prompt, "prompt", max_length=50000)
+        
+        # Validate task_type
+        self.task_type = _validate_string_input(self.task_type, "task_type", max_length=100)
+        
+        # Validate system_prompt if provided
+        if self.system_prompt is not None:
+            self.system_prompt = _validate_string_input(self.system_prompt, "system_prompt", max_length=50000)
+    
     step_id: str
     prompt: str
     expected_schema: Optional[Dict[str, Any]] = None
@@ -141,6 +207,18 @@ class MDAPStep:
 
 @dataclass
 class MDAPTask:
+    def __post_init__(self):
+        """Validate inputs after initialization to prevent injection attacks."""
+        # Validate task_id
+        self.task_id = _validate_id_string(self.task_id, "task_id")
+        
+        # Validate description
+        self.description = _validate_string_input(self.description, "description", max_length=10000)
+        
+        # Validate steps is a list
+        if not isinstance(self.steps, list):
+            raise TypeError(f"steps must be a list, got {type(self.steps).__name__}")
+    
     task_id: str
     description: str
     steps: List[MDAPStep]
@@ -216,7 +294,11 @@ class MDAPCache:
     def _evict_lru(self):
         if not self._access:
             return
-        lru_key = min(self._access, key=self._access.get)
+        # Safe min() with check for empty dict
+        try:
+            lru_key = min(self._access, key=self._access.get)
+        except ValueError:
+            return  # Empty access dict, nothing to evict
         self._cache.pop(lru_key, None)
         self._access.pop(lru_key, None)
 
@@ -243,6 +325,9 @@ class AgentSelector:
 
         total = sum(weights)
         if total <= 0:
+            # Fix: Check if members list is empty before accessing [0]
+            if not members:
+                raise ValueError("Cannot select agent from empty team: no members available")
             return members[0]
 
         pick = self.rng.uniform(0, total)

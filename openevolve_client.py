@@ -3,6 +3,7 @@ OpenEvolve Client - Unified interface for all OpenEvolve operations
 Provides a clean API for all files to interact with OpenEvolve backend
 """
 
+import os
 import time
 from typing import Any, Dict, List, Optional, Callable
 from dataclasses import dataclass, field
@@ -303,9 +304,11 @@ class OpenEvolveClient:
         else:
             # Create a fallback configuration for testing
             self.logger.warning("No API key provided, creating fallback configuration")
+            # Get fallback key from environment or use a placeholder
+            fallback_key = os.environ.get('FALLBACK_API_KEY', 'fallback-key-not-set')
             fallback_config = LLMModelConfig(
                 name='fallback-model',
-                api_key='fallback-key',
+                api_key=fallback_key,
                 api_base='http://localhost:8000/v1',  # Local fallback
                 temperature=0.7,
                 max_tokens=2048

@@ -8,11 +8,14 @@ Usage:
     python fix_syntax_errors.py [--dry-run]
 """
 
+__all__ = ['SYNTAX_ERROR_FILES', 'SyntaxErrorFixer', 'fix_all_syntax_errors']
+
 import os
 import re
 import shutil
 from pathlib import Path
 from datetime import datetime
+from typing import Optional
 import logging
 
 logging.basicConfig(
@@ -54,77 +57,104 @@ class SyntaxErrorFixer:
     def fix(self) -> bool:
         """Attempt to fix syntax errors."""
         try:
-            with open(self.filepath, 'r', encoding='utf-8') as f:
-                content = f.read()
-                original_content = content
-
-            filename = self.filepath.name
-            logger.info(f"\n[*] Processing: {filename}")
-
-            # Try to compile and get the actual error
-            try:
-                compile(content, str(self.filepath), 'exec')
-                logger.info(f"  ✓ No syntax errors found")
-                return False
-            except SyntaxError as e:
-                logger.info(f"  ✗ Syntax error at line {e.lineno}: {e.msg}")
-                logger.info(f"     Text: {e.text.strip() if e.text else 'N/A'}")
-
-            # Apply specific fixes based on filename
-            if filename == 'demo_mcts_mdap.py':
-                content = self._fix_demo_mcts_mdap(content)
-            elif filename == 'leanaide_mdap_demo.py':
-                content = self._fix_leanaide_mdap_demo(content)
-            elif filename == 'workflow_stage_functions.py':
-                content = self._fix_workflow_stage_functions(content)
-            elif filename == 'adversarial_adapter.py':
-                content = self._fix_adversarial_adapter(content)
-            elif filename == 'bubblelabs_evolution_integration.py':
-                content = self._fix_bubblelabs_evolution_integration(content)
-            elif filename == 'simple_verify_implementation.py':
-                content = self._fix_simple_verify_implementation(content)
-            elif filename == 'adversarial_error_handling.py':
-                content = self._fix_adversarial_error_handling(content)
-            elif filename == 'hybrid_error_handling.py':
-                content = self._fix_hybrid_error_handling(content)
-            elif filename == 'sovereign_gauntlets.py':
-                content = self._fix_sovereign_gauntlets(content)
-            elif filename in ['ace_mcp_tools_FIXED.py', 'leanaide_sop_integration.py',
-                            'openevolve_leanaide_bridge.py']:
-                content = self._fix_generic_invalid_syntax(content)
-
-            # Verify the fix
-            try:
-                compile(content, str(self.filepath), 'exec')
-                logger.info(f"  ✓ FIXED: File now compiles successfully")
-                self.fixes_applied.append("Syntax error fixed")
-
-                if content != original_content:
-                    if not self.dry_run:
-                        # Create backup
-                        backup_path = str(self.filepath) + '.backup'
-                        shutil.copy2(self.filepath, backup_path)
-
-                        # Write fixed content
-                        with open(self.filepath, 'w', encoding='utf-8') as f:
-                            f.write(content)
-
-                        logger.info(f"  ✓ Saved (backup: {backup_path})")
-                    else:
-                        logger.info(f"  [DRY RUN] Would save changes")
-
-                    return True
-                else:
-                    logger.info(f"  ! No changes made")
-                    return False
-
-            except SyntaxError as e:
-                logger.info(f"  ✗ STILL BROKEN: {e.msg} at line {e.lineno}")
-                return False
-
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
-            logger.error(f"  ✗ Error processing {self.filepath.name}: {e}")
+            content = self._read_source_file()
+        except (IOError, OSError) as e:
+            logger.error(f"  [ERROR] Cannot read {self.filepath.name}: {e}")
             return False
+
+        original_content = content
+        filename = self.filepath.name
+        logger.info(f"\n[*] Processing: {filename}")
+
+        # Check if file has syntax errors
+        syntax_error = self._check_syntax_error(content)
+        if not syntax_error:
+            logger.info(f"  [OK] No syntax errors found")
+            return False
+
+        logger.info(f"  [ERROR] Syntax error at line {syntax_error.lineno}: {syntax_error.msg}")
+        logger.info(f"     Text: {syntax_error.text.strip() if syntax_error.text else 'N/A'}")
+
+        # Apply specific fix based on filename
+        content = self._apply_fix_by_filename(filename, content)
+
+        # Verify the fix worked
+        if self._check_syntax_error(content):
+            logger.info(f"  [FAIL] STILL BROKEN: {syntax_error.msg} at line {syntax_error.lineno}")
+            return False
+
+        logger.info(f"  [FIXED] File now compiles successfully")
+        self.fixes_applied.append("Syntax error fixed")
+
+        if content == original_content:
+            logger.info(f"  [INFO] No changes made")
+            return False
+
+        return self._save_fixed_content(content)
+
+    def _read_source_file(self) -> str:
+        """Read the source file content."""
+        with open(self.filepath, 'r', encoding='utf-8') as f:
+            return f.read()
+
+    def _check_syntax_error(self, content: str) -> Optional[SyntaxError]:
+        """Check if content has syntax errors. Returns the error or None."""
+        try:
+            compile(content, str(self.filepath), 'exec')
+            return None
+        except SyntaxError as e:
+            return e
+
+    def _apply_fix_by_filename(self, filename: str, content: str) -> str:
+        """Apply the appropriate fix based on filename."""
+        fix_methods = {
+            'demo_mcts_mdap.py': self._fix_demo_mcts_mdap,
+            'leanaide_mdap_demo.py': self._fix_leanaide_mdap_demo,
+            'workflow_stage_functions.py': self._fix_workflow_stage_functions,
+            'adversarial_adapter.py': self._fix_adversarial_adapter,
+            'bubblelabs_evolution_integration.py': self._fix_bubblelabs_evolution_integration,
+            'simple_verify_implementation.py': self._fix_simple_verify_implementation,
+            'adversarial_error_handling.py': self._fix_adversarial_error_handling,
+            'hybrid_error_handling.py': self._fix_hybrid_error_handling,
+            'sovereign_gauntlets.py': self._fix_sovereign_gauntlets,
+        }
+
+        if filename in fix_methods:
+            return fix_methods[filename](content)
+
+        if filename in ['ace_mcp_tools_FIXED.py', 'leanaide_sop_integration.py',
+                        'openevolve_leanaide_bridge.py']:
+            return self._fix_generic_invalid_syntax(content)
+
+        return content
+
+    def _save_fixed_content(self, content: str) -> bool:
+        """Save the fixed content with backup handling."""
+        backup_path = str(self.filepath) + '.backup'
+
+        if self.dry_run:
+            logger.info(f"  [DRY RUN] Would save changes")
+            return True
+
+        try:
+            shutil.copy2(self.filepath, backup_path)
+            with open(self.filepath, 'w', encoding='utf-8') as f:
+                f.write(content)
+            logger.info(f"  [SAVED] (backup: {backup_path})")
+            return True
+        except (IOError, OSError, shutil.Error) as e:
+            self._cleanup_backup(backup_path)
+            logger.error(f"  [ERROR] Failed to save: {e}")
+            return False
+
+    def _cleanup_backup(self, backup_path: str) -> None:
+        """Clean up backup file if it exists."""
+        if os.path.exists(backup_path):
+            try:
+                os.remove(backup_path)
+                logger.info(f"  [INFO] Cleaned up backup file after error")
+            except OSError:
+                pass
 
     def _fix_demo_mcts_mdap(self, content: str) -> str:
         """Fix f-string with backslash in demo_mcts_mdap.py line 604."""

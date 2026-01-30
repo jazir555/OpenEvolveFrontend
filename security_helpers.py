@@ -63,13 +63,26 @@ class EncryptionManager:
         except Exception as e:
             raise SecurityError(f"Failed to initialize encryption cipher: {e}")
 
-    def _create_cipher(self) -> Fernet:
-        """Create Fernet cipher from encryption key."""
+    def _create_cipher(self, salt: Optional[bytes] = None) -> Fernet:
+        """Create Fernet cipher from encryption key.
+        
+        Args:
+            salt: Optional salt bytes. If None, generates a random salt.
+                  The salt should be stored with the ciphertext for decryption.
+        
+        Returns:
+            Fernet cipher instance
+        """
         # Use PBKDF2HMAC to derive a proper Fernet key from the encryption key
+        # Generate random salt if not provided (for new encryptions)
+        if salt is None:
+            salt = os.urandom(16)
+            self._last_salt = salt  # Store for retrieval by caller
+        
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
-            salt=b'openevolve_encryption_salt',  # In production, use a random salt
+            salt=salt,
             iterations=100000,
         )
         key = base64.urlsafe_b64encode(kdf.derive(self.encryption_key.encode()))

@@ -694,9 +694,12 @@ def example_usage():
     # Example 1: Run quality checks on a file
     checker = CodeQualityChecker()
     
+    # Get test password from environment
+    test_password = os.environ.get('TEST_PASSWORD', 'placeholder_password')
+    
     # Create a temporary file for testing
     with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
-        f.write("""
+        f.write(f"""
 def bad_function_name():
     '''Missing parameters and return type'''
     return "Hello World"
@@ -705,7 +708,7 @@ class bad_class_name:
     pass
 
 # Hardcoded password
-password = "secret123"
+password = "{test_password}"
 
 def long_function(arg1, arg2, arg3, arg4, arg5, arg6):
     '''This function is too long and has too many parameters'''

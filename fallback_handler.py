@@ -3,9 +3,16 @@ Fallback Handler - Provides fallback strategies when OpenEvolve unavailable
 Handles graceful degradation and caching of fallback results
 """
 
+__all__ = ['FallbackResult', 'FallbackCache', 'FallbackHandler']
+
 import time
+
+# Constants
+DEFAULT_CACHE_SIZE = 100
+DEFAULT_FALLBACK_SCORE = 0.5
+import threading
 import logging
-from typing import Any, Dict, Optional, Callable
+from typing import Any, Dict, Optional
 from dataclasses import dataclass
 
 
@@ -20,27 +27,31 @@ class FallbackResult:
 
 
 class FallbackCache:
-    """Caches fallback results"""
+    """Caches fallback results with thread-safe operations"""
     
-    def __init__(self, max_size: int = 100):
+    def __init__(self, max_size: int = DEFAULT_CACHE_SIZE):
         self.cache: Dict[str, Any] = {}
         self.max_size = max_size
         self.access_times: Dict[str, float] = {}
+        self._lock = threading.Lock()
     
     def get(self, key: str) -> Optional[Any]:
-        """Get cached result"""
-        if key in self.cache:
-            self.access_times[key] = time.time()
-            return self.cache[key]
-        return None
+        """Get cached result with thread-safe access"""
+        with self._lock:
+            if key in self.cache:
+                self.access_times[key] = time.time()
+                return self.cache[key]
+            return None
     
     def set(self, key: str, value: Any):
-        """Cache result"""
-        if len(self.cache) >= self.max_size:
-            self._evict_oldest()
-        
-        self.cache[key] = value
-        self.access_times[key] = time.time()
+        """Cache result with thread-safe size check and eviction"""
+        with self._lock:
+            # Thread-safe cache size check and eviction
+            if len(self.cache) >= self.max_size and self.cache:
+                self._evict_oldest()
+            
+            self.cache[key] = value
+            self.access_times[key] = time.time()
     
     def _evict_oldest(self):
         """Evict least recently used item"""
@@ -52,9 +63,10 @@ class FallbackCache:
         del self.access_times[oldest_key]
     
     def clear(self):
-        """Clear cache"""
-        self.cache.clear()
-        self.access_times.clear()
+        """Clear cache with thread-safe operation"""
+        with self._lock:
+            self.cache.clear()
+            self.access_times.clear()
 
 
 class FallbackHandler:
@@ -127,27 +139,48 @@ class FallbackHandler:
         
         return "_".join(key_parts)
     
+    def _create_fallback_result(
+        self,
+        result_data: Dict[str, Any],
+        fallback_reason: str = 'OpenEvolve unavailable'
+    ) -> Dict[str, Any]:
+        """
+        Helper to create standardized fallback results.
+        
+        Args:
+            result_data: The result data to include
+            fallback_reason: Reason for using fallback
+            
+        Returns:
+            Dict with fallback metadata merged in
+        """
+        result_data['fallback_used'] = True
+        result_data['fallback_reason'] = fallback_reason
+        return result_data
+
     def _fallback_evolution(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Fallback for evolution operation"""
         content = input_data.get('content', '')
-        
-        return {
+        return self._create_fallback_result({
             'success': True,
             'best_code': content,
-            'best_score': 0.5,
+            'best_score': DEFAULT_FALLBACK_SCORE,
             'iterations_completed': 0,
-            'metrics': {
-                'fallback_used': True,
-                'fallback_reason': 'OpenEvolve unavailable'
-            }
-        }
-    
+            'metrics': {}
+        })
+
     def _fallback_blue_team_solution(self, input_data: Dict[str, Any]) -> Any:
         """Fallback for Blue Team solution generation"""
-        from blue_team import BlueTeamAssessment, BlueTeamFix
-        
+        try:
+            from blue_team import BlueTeamAssessment
+        except ImportError as e:
+            self.logger.error(f"Failed to import BlueTeam classes: {e}")
+            return self._create_fallback_result({
+                'success': False,
+                'error': f'BlueTeam import failed: {e}'
+            })
+
         content = input_data.get('content', '')
-        
         return BlueTeamAssessment(
             original_content=content,
             fixed_content=content,
@@ -160,29 +193,31 @@ class FallbackHandler:
             fixes_by_type={},
             fixes_by_priority={}
         )
-    
+
     def _fallback_red_team_critique(self, input_data: Dict[str, Any]) -> Any:
         """Fallback for Red Team critique"""
         from red_team import RedTeamAssessment
-        
+
         return RedTeamAssessment(
             findings=[],
             assessment_summary="Fallback mode - OpenEvolve unavailable",
-            confidence_score=0.5,
+            confidence_score=DEFAULT_FALLBACK_SCORE,
             time_taken=0.0,
             assessment_metadata={'fallback_used': True},
             issues_by_severity={},
             issues_by_category={}
         )
-    
+
     def _fallback_evaluator_assessment(self, input_data: Dict[str, Any]) -> Any:
         """Fallback for Evaluator assessment"""
-        from evaluator_team import EvaluatorAssessment, EvaluationScore, EvaluationMetric, EvaluationConfidence
-        
+        from evaluator_team import (
+            EvaluatorAssessment, EvaluationConfidence
+        )
+
         return EvaluatorAssessment(
             evaluator_id="fallback",
             scores=[],
-            composite_score=50.0,
+            composite_score=50.0,  # Neutral score on 0-100 scale
             assessment_summary="Fallback mode - OpenEvolve unavailable",
             confidence_level=EvaluationConfidence.LOW,
             time_taken=0.0,
@@ -190,29 +225,27 @@ class FallbackHandler:
             criteria_used=[],
             detailed_feedback={}
         )
-    
+
     def _fallback_content_analysis(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Fallback for content analysis"""
         content = input_data.get('content', '')
-        
-        return {
+        summary = content[:200] + '...' if len(content) > 200 else content
+        return self._create_fallback_result({
             'domain': 'general',
             'keywords': [],
             'estimated_complexity': 5,
             'potential_challenges': [],
             'required_expertise': [],
-            'summary': content[:200] + '...' if len(content) > 200 else content,
-            'fallback_used': True
-        }
-    
+            'summary': summary
+        })
+
     def _fallback_decomposition(self, input_data: Dict[str, Any]) -> Any:
         """Fallback for decomposition"""
         from workflow_structures import DecompositionPlan, SubProblem
-        
+
         problem_statement = input_data.get('problem_statement', '')
         analyzed_context = input_data.get('analyzed_context', {})
-        
-        # Create a single sub-problem as fallback
+
         sub_problem = SubProblem(
             id="sp_1",
             description=problem_statement,
@@ -222,20 +255,19 @@ class FallbackHandler:
             red_gauntlet_name=None,
             gold_gauntlet_name=None
         )
-        
+
         return DecompositionPlan(
             problem_statement=problem_statement,
             analyzed_context=analyzed_context,
             sub_problems=[sub_problem]
         )
-    
+
     def _fallback_generic(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         """Generic fallback"""
-        return {
+        return self._create_fallback_result({
             'success': False,
-            'fallback_used': True,
             'error': 'OpenEvolve unavailable and no specific fallback defined'
-        }
+        })
     
     def get_fallback_stats(self) -> Dict[str, Any]:
         """Get fallback usage statistics"""

@@ -757,6 +757,10 @@ class RecursiveMAKERSolver:
         context: Dict[str, Any]
     ) -> Optional[TaskDecomposition]:
         """Sample a single decomposition using LLM."""
+        # Fix: Check if team has members before accessing [0]
+        if not self.team.members:
+            logger.error("Cannot sample decomposition: team has no members")
+            return None
         agent = self.team.members[0]  # Use primary agent
 
         prompt = self._build_decomposition_prompt(task, context)
@@ -938,7 +942,8 @@ Provide your solution. Be specific and actionable."""
         # For now, return first non-None
         # In full implementation, would use discriminator agents
         for solution in solutions:
-            if solution is not None and not isinstance(solution, dict) or not solution.get("error"):
+            # Fix: proper operator precedence with empty list handling
+            if solution is not None and (not isinstance(solution, dict) or not solution.get("error")):
                 return solution
 
         return solutions[0] if solutions else {"error": "No valid solutions"}
@@ -988,6 +993,10 @@ Provide your solution. Be specific and actionable."""
         context: Dict[str, Any]
     ) -> Optional[Any]:
         """Sample a single composition using LLM."""
+        # Fix: Check if team has members before accessing [0]
+        if not self.team.members:
+            logger.error("Cannot sample composition: team has no members")
+            return None
         agent = self.team.members[0]
 
         prompt = self._build_composition_prompt(

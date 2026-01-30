@@ -43,17 +43,19 @@ class CollaborationServer:
             await self.broadcast_presence()
             async for message in websocket:
                 data = json.loads(message)
-                if data["type"] == "update_presence":
-                    self.user_info[websocket].update(data["payload"])
+                # Use .get() for safe dictionary access
+                msg_type = data.get("type")
+                if msg_type == "update_presence":
+                    self.user_info[websocket].update(data.get("payload", {}))
                     await self.broadcast_presence()
-                elif data["type"] == "share_config":
-                    await self.broadcast_config(data["payload"])
-                elif data["type"] == "share_results":
-                    await self.broadcast_results(data["payload"])
-                elif data["type"] == "cursor_update":
-                    await self.broadcast_cursor(websocket, data["payload"])
-                elif data["type"] == "text_update":
-                    await self.broadcast_text(websocket, data["payload"])
+                elif msg_type == "share_config":
+                    await self.broadcast_config(data.get("payload", {}))
+                elif msg_type == "share_results":
+                    await self.broadcast_results(data.get("payload", {}))
+                elif msg_type == "cursor_update":
+                    await self.broadcast_cursor(websocket, data.get("payload", {}))
+                elif msg_type == "text_update":
+                    await self.broadcast_text(websocket, data.get("payload", {}))
         finally:
             self.users.remove(websocket)
             del self.user_info[websocket]

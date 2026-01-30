@@ -4,6 +4,13 @@ Fixed Comprehensive Edge Case Analyzer
 Properly handles AST parent references
 """
 
+__all__ = [
+    'set_parent_references',
+    'ImportGraphBuilder',
+    'EdgeCaseAnalyzer',
+    'analyze_project_edge_cases'
+]
+
 import ast
 import os
 import sys
@@ -182,7 +189,7 @@ class EdgeCaseDetector(ast.NodeVisitor):
                             break
                         parent = getattr(parent, 'parent', None)
 
-                    if not in_try_except:  # TODO: Specify exception type
+                    if not in_try_except:
                         self.issues.append({
                             'category': 'Lazy Import',
                             'severity': 'MEDIUM',

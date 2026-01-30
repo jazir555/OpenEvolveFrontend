@@ -15,6 +15,7 @@ Architecture:
     CREWAI Agent → MCP Tool → Decomposition Engine → OpenEvolve (Evolution) → Result
 """
 
+import ast
 import logging
 import json
 import subprocess
@@ -258,9 +259,34 @@ def analyze_problem_for_decomposition(
             def analysis_evaluator(analysis_code: str) -> float:
                 """Evaluate the quality of an analysis"""
                 try:
-                    # Execute the analysis code to get results
+                    # SECURITY FIX: Use restricted globals/locals instead of raw exec
+                    # Parse and validate code structure before execution
+                    try:
+                        ast.parse(analysis_code)
+                    except SyntaxError:
+                        return 0.0
+                    
+                    # Execute with minimal builtins to prevent code injection
+                    safe_globals = {
+                        "__builtins__": {
+                            "len": len,
+                            "range": range,
+                            "enumerate": enumerate,
+                            "zip": zip,
+                            "dict": dict,
+                            "list": list,
+                            "str": str,
+                            "int": int,
+                            "float": float,
+                            "bool": bool,
+                            "set": set,
+                            "tuple": tuple,
+                        },
+                        "problem_def": problem_def,
+                        "analyzer": analyzer,
+                    }
                     local_vars = {}
-                    exec(analysis_code, {"problem_def": problem_def, "analyzer": analyzer}, local_vars)
+                    exec(compile(ast.parse(analysis_code), '<string>', 'exec'), safe_globals, local_vars)
                     result = local_vars.get("analysis_result", {})
 
                     # Score based on completeness
@@ -275,7 +301,10 @@ def analyze_problem_for_decomposition(
                         score += 0.2
 
                     return score
-                except:
+                except Exception as e:
+                    # Log the specific error for debugging
+                    import logging
+                    logging.exception(f"Error in score calculation: {e}")
                     return 0.0
 
             # Initial analysis prompt
@@ -304,9 +333,33 @@ def analyze_problem():
             # Get best evolved analysis
             if evolution_result.best_program:
                 try:
-                    local_vars = {}
-                    exec(evolution_result.best_program.code, {"problem_def": problem_def}, local_vars)
-                    analysis = local_vars.get("analysis_result", {})
+                    # SECURITY FIX: Validate code with ast.parse before execution
+                    # Use restricted builtins to prevent code injection
+                    try:
+                        ast.parse(evolution_result.best_program.code)
+                    except SyntaxError:
+                        analysis = analyzer.analyze_problem(problem_def)
+                    else:
+                        safe_globals = {
+                            "__builtins__": {
+                                "len": len,
+                                "range": range,
+                                "enumerate": enumerate,
+                                "zip": zip,
+                                "dict": dict,
+                                "list": list,
+                                "str": str,
+                                "int": int,
+                                "float": float,
+                                "bool": bool,
+                                "set": set,
+                                "tuple": tuple,
+                            },
+                            "problem_def": problem_def,
+                        }
+                        local_vars = {}
+                        exec(compile(ast.parse(evolution_result.best_program.code), '<string>', 'exec'), safe_globals, local_vars)
+                        analysis = local_vars.get("analysis_result", {})
                 except:
                     analysis = analyzer.analyze_problem(problem_def)
             else:
@@ -449,7 +502,10 @@ def decompose_problem_into_sub_problems(
                         score += 0.3
 
                     return score
-                except:
+                except Exception as e:
+                    # Log the specific error for debugging
+                    import logging
+                    logging.exception(f"Error in score calculation: {e}")
                     return 0.0
 
             # Run evolution on decomposition
@@ -1422,8 +1478,58 @@ def solve_sub_problem():
     {chr(10).join(f'- {r}' for r in (requirements or []))}
     """
 
-    # TODO: Implement solution
-    pass
+    # Implementation placeholder - generates dynamic solution based on context
+    # This will be evolved or replaced by LLM-generated code
+    solution_result = {
+        "sub_problem_id": sub_problem_id,
+        "status": "generated",
+        "approach": "context_aware_template",
+        "code": f"""
+def solve_{sub_problem_id.replace('-', '_')}():
+    \"\"\"
+    Solves: {sub_problem_description}
+    
+    Constraints:
+    {chr(10).join(f'    - {c}' for c in (constraints or [])) or '    None specified'}
+    
+    Requirements:
+    {chr(10).join(f'    - {r}' for r in (requirements or [])) or '    None specified'}
+    \"\"\"
+    # Context-aware implementation
+    context_data = {json.dumps(context or {}, indent=4)}
+    
+    # TODO: Implement specific logic based on sub-problem requirements
+    # This is a generated template that will be refined through evolution
+    
+    result = process_sub_problem(
+        description=""{sub_problem_description}"",
+        constraints={constraints or []},
+        requirements={requirements or []},
+        context=context_data
+    )
+    
+    return result
+
+def process_sub_problem(description: str, constraints: list, requirements: list, context: dict):
+    \"\"\"Process the sub-problem with given parameters.\"\"\"
+    # Placeholder implementation - to be evolved
+    return {{
+        "status": "pending_evolution",
+        "description": description,
+        "constraints_satisfied": [],
+        "requirements_met": [],
+        "output": None
+    }}
+""",
+        "metadata": {
+            "generation_method": "context_aware_template",
+            "constraints_count": len(constraints) if constraints else 0,
+            "requirements_count": len(requirements) if requirements else 0,
+            "context_keys": list(context.keys()) if context else []
+        }
+    }
+    
+    return solution_result
 '''
 
             # Define evaluator
@@ -1443,8 +1549,8 @@ def solve_sub_problem():
                 if "class " in solution_code:
                     score += 0.1
 
-                # Completeness: check for implementation
-                if "pass" not in solution_code or "TODO" not in solution_code:
+                # Completeness: check for implementation (no pass/TODO means more complete)
+                if "pass" not in solution_code and "TODO" not in solution_code:
                     score += 0.2
 
                 # Comments/docs

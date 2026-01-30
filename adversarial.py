@@ -1981,7 +1981,10 @@ def run_ultimate_adversarial_testing(
                 if adversarial_config is None:
                     try:
                         adversarial_config = create_adversarial_configuration_from_session()
-                    except:
+                    except Exception as e:
+                        # Log the specific error for debugging
+                        import logging
+                        logging.exception(f"Error creating adversarial configuration from session: {e}")
                         adversarial_config = create_adversarial_configuration()
                 
                 # Run comprehensive adversarial testing

@@ -19,7 +19,10 @@ import argparse
 
 def prepare_ib():
     cmd = "modprobe rdma_cm && modprobe udp_tunnel && modprobe ip6_udp_tunnel && modprobe ib_uverbs"
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    # SECURITY FIX: Split command to avoid shell=True for security
+    import shlex
+    cmd_parts = shlex.split(cmd)
+    p = subprocess.Popen(cmd_parts, shell=False, stdout=subprocess.PIPE)
     if p.wait():
         outs, _ = p.communicate()
         print("Valkey Over RDMA probe modules of IB [FAILED]")
@@ -31,7 +34,10 @@ def prepare_ib():
 
 def prepare_rxe(interface):
     # is there any builtin rdma_rxe.ko?
-    p = subprocess.Popen("modprobe rdma_rxe 2> /dev/null", shell=True, stdout=subprocess.PIPE)
+    # SECURITY FIX: Split command to avoid shell=True for security
+    import shlex
+    cmd_parts = shlex.split("modprobe rdma_rxe 2> /dev/null")
+    p = subprocess.Popen(cmd_parts, shell=False, stdout=subprocess.PIPE)
     if p.wait():
         valkeydir = os.path.dirname(os.path.abspath(__file__)) + "/../.."
         rxedir = valkeydir + "/tests/rdma/rxe"
@@ -48,7 +54,10 @@ def prepare_rxe(interface):
             os._exit(1);
 
         cmd = "insmod " + rxekmod
-        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+        # SECURITY FIX: Split command to avoid shell=True for security
+        import shlex
+        cmd_parts = shlex.split(cmd)
+        p = subprocess.Popen(cmd_parts, shell=False, stdout=subprocess.PIPE)
         if p.wait():
             os._exit(1);
 
@@ -56,7 +65,10 @@ def prepare_rxe(interface):
 
     softrdma = "rxe_" + interface
     cmd = "rdma link add " + softrdma + " type rxe netdev " + interface
-    p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
+    # SECURITY FIX: Split command to avoid shell=True for security
+    import shlex
+    cmd_parts = shlex.split(cmd)
+    p = subprocess.Popen(cmd_parts, shell=False, stdout=subprocess.PIPE)
     if p.wait():
         outs, _ = p.communicate()
         print("Valkey Over RDMA install RXE [FAILED]")
@@ -103,16 +115,25 @@ def cleanup_rdma():
             # Ex, /sys/class/infiniband/rxe_eth0/ports/1/gid_attrs/ndevs/0
             origpath = os.readlink(ibclass + dev)
             if "virtual" in origpath:
-                subprocess.Popen("rdma link del " + dev, shell=True).wait()
+                # SECURITY FIX: Split command to avoid shell=True for security
+                import shlex
+                cmd_parts = shlex.split("rdma link del " + dev)
+                subprocess.Popen(cmd_parts, shell=False).wait()
                 print("Remove virtual RDMA device : " + dev + " [OK]")
     except os.error:
         return None
 
     # try to remove RXE driver from kernel, ignore error
-    subprocess.Popen("rmmod rdma_rxe 2> /dev/null", shell=True).wait()
+    # SECURITY FIX: Split command to avoid shell=True for security
+    import shlex
+    cmd_parts = shlex.split("rmmod rdma_rxe 2> /dev/null")
+    subprocess.Popen(cmd_parts, shell=False).wait()
 
     # try to remove SIW driver from kernel, ignore error
-    subprocess.Popen("rmmod rdma_siw 2> /dev/null", shell=True).wait()
+    # SECURITY FIX: Split command to avoid shell=True for security
+    import shlex
+    cmd_parts = shlex.split("rmmod rdma_siw 2> /dev/null")
+    subprocess.Popen(cmd_parts, shell=False).wait()
 
     return None
 

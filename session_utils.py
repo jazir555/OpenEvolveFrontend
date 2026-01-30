@@ -1638,7 +1638,7 @@ def _load_user_preferences() -> Dict:
             return {}
     return {}
 
-def reset_defaults():
+def reset_defaults() -> None:
     p = st.session_state.provider
     if p in PROVIDERS:
         st.session_state.base_url = PROVIDERS[p].get("api_base", "")
@@ -1668,7 +1668,7 @@ def save_user_preferences(preferences: Dict, parameter_settings: Dict) -> bool:
         return False
 
 
-def toggle_theme():
+def toggle_theme() -> str:
     """
     Toggle between light and dark theme.
     """
@@ -1683,7 +1683,7 @@ def toggle_theme():
 
     return new_theme
 
-def get_project_root():
+def get_project_root() -> str:
     """
     Returns the absolute path to the project's root directory.
     """

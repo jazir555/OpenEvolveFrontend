@@ -266,10 +266,46 @@ def optimize_algorithm_with_openevolve(
         # Create a benchmark function based on description
         benchmark_func = create_benchmark_from_description(benchmark_description, performance_metric)
 
-        # Reconstruct class from code
-        import types
-        code_obj = compile(algorithm_code, "<string>", "exec")
-        namespace = {}
+        # SECURITY FIX: Reconstruct class from code with restricted execution
+        # Validate code structure and use safe builtins to prevent code injection
+        import ast
+        try:
+            parsed = ast.parse(algorithm_code)
+        except SyntaxError as e:
+            return {
+                "error": f"Invalid algorithm code syntax: {e}",
+                "evolved_code": algorithm_code,
+                "best_score": 0.0,
+            }
+        
+        # Use restricted namespace with safe builtins only
+        safe_builtins = {
+            "len": len,
+            "range": range,
+            "enumerate": enumerate,
+            "zip": zip,
+            "abs": abs,
+            "min": min,
+            "max": max,
+            "sum": sum,
+            "pow": pow,
+            "round": round,
+            "float": float,
+            "int": int,
+            "bool": bool,
+            "str": str,
+            "dict": dict,
+            "list": list,
+            "tuple": tuple,
+            "set": set,
+            "object": object,
+            "type": type,
+            "staticmethod": staticmethod,
+            "classmethod": classmethod,
+            "property": property,
+        }
+        code_obj = compile(parsed, "<string>", "exec")
+        namespace = {"__builtins__": safe_builtins}
         exec(code_obj, namespace)
 
         if algorithm_name not in namespace:

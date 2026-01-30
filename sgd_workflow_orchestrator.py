@@ -510,7 +510,7 @@ Reassembled from {len(workflow_state.sub_problem_solutions)} sub-problem solutio
                 logger.error(f"Error in continuous monitoring: {e}")
                 await asyncio.sleep(5)
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """
         Shutdown the orchestrator
         """

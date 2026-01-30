@@ -42,6 +42,29 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+__all__ = [
+    'GauntletTemplates',
+    'ReviewStatus',
+    'HumanReviewItem',
+    'AdaptiveMetrics',
+    'HumanReviewQueue',
+    'GauntletSystem'
+]
+
+# Standard evaluation prompt templates
+EVAL_PROMPT_AUTOMATED_TESTS = "Evaluate solution against automated tests"
+EVAL_PROMPT_RED_TEAM_REVIEW = "Perform adversarial review to find flaws and edge cases"
+EVAL_PROMPT_GOLD_TEAM_VERIFICATION = "Perform thorough verification of correctness and quality"
+EVAL_PROMPT_SECURITY_SCAN = "Scan for common security vulnerabilities"
+EVAL_PROMPT_PENETRATION_TEST = "Attempt to exploit security flaws and bypass controls"
+EVAL_PROMPT_SECURITY_AUDIT = "Verify compliance with security standards and best practices"
+EVAL_PROMPT_PERFORMANCE_BENCHMARK = "Run performance benchmarks and load tests"
+EVAL_PROMPT_STRESS_TEST = "Attempt to overwhelm system with extreme load"
+EVAL_PROMPT_PERFORMANCE_ANALYSIS = "Analyze performance characteristics and optimization opportunities"
+EVAL_PROMPT_RESEARCH_REPRODUCIBILITY = "Verify reproducibility of research results"
+EVAL_PROMPT_METHODOLOGY_REVIEW = "Critically evaluate methodology and identify potential flaws"
+EVAL_PROMPT_PEER_REVIEW = "Perform thorough peer review and validate contributions"
+
 
 class GauntletTemplates:
     """Predefined gauntlet templates for common use cases."""
@@ -58,7 +81,7 @@ class GauntletTemplates:
                 min_score=0.8,
                 max_attempts=3,
                 evaluator="automated",
-                evaluation_prompt="Evaluate solution against automated tests",
+                evaluation_prompt=EVAL_PROMPT_AUTOMATED_TESTS,
                 success_criteria=["All tests pass", "Code quality checks pass"],
                 is_required=True,
                 can_fail_gracefully=False
@@ -71,7 +94,7 @@ class GauntletTemplates:
                 min_score=0.7,
                 max_attempts=2,
                 evaluator="red_team_auto",
-                evaluation_prompt="Perform adversarial review to find flaws and edge cases",
+                evaluation_prompt=EVAL_PROMPT_RED_TEAM_REVIEW,
                 success_criteria=["No critical flaws found", "Edge cases addressed"],
                 is_required=True,
                 can_fail_gracefully=True
@@ -84,7 +107,7 @@ class GauntletTemplates:
                 min_score=0.9,
                 max_attempts=2,
                 evaluator="gold_team_auto",
-                evaluation_prompt="Perform thorough verification of correctness and quality",
+                evaluation_prompt=EVAL_PROMPT_GOLD_TEAM_VERIFICATION,
                 success_criteria=["Meets all quality standards", "Solution is correct"],
                 is_required=True,
                 can_fail_gracefully=False
@@ -113,7 +136,7 @@ class GauntletTemplates:
                 min_score=0.85,
                 max_attempts=3,
                 evaluator="automated",
-                evaluation_prompt="Scan for common security vulnerabilities",
+                evaluation_prompt=EVAL_PROMPT_SECURITY_SCAN,
                 success_criteria=["No critical vulnerabilities", "No high-severity issues"],
                 is_required=True
             ),
@@ -125,7 +148,7 @@ class GauntletTemplates:
                 min_score=0.75,
                 max_attempts=3,
                 evaluator="red_team_auto",
-                evaluation_prompt="Attempt to exploit security flaws and bypass controls",
+                evaluation_prompt=EVAL_PROMPT_PENETRATION_TEST,
                 success_criteria=["Resists penetration attempts", "No unauthorized access possible"],
                 is_required=True
             ),
@@ -137,7 +160,7 @@ class GauntletTemplates:
                 min_score=0.9,
                 max_attempts=2,
                 evaluator="gold_team_auto",
-                evaluation_prompt="Verify compliance with security standards and best practices",
+                evaluation_prompt=EVAL_PROMPT_SECURITY_AUDIT,
                 success_criteria=["Complies with security standards", "Follows secure coding practices"],
                 is_required=True
             )
@@ -167,7 +190,7 @@ class GauntletTemplates:
                 min_score=0.75,
                 max_attempts=3,
                 evaluator="automated",
-                evaluation_prompt="Run performance benchmarks and load tests",
+                evaluation_prompt=EVAL_PROMPT_PERFORMANCE_BENCHMARK,
                 success_criteria=["Meets performance baselines", "Scales under load"],
                 is_required=True
             ),
@@ -179,7 +202,7 @@ class GauntletTemplates:
                 min_score=0.7,
                 max_attempts=2,
                 evaluator="red_team_auto",
-                evaluation_prompt="Attempt to overwhelm system with extreme load",
+                evaluation_prompt=EVAL_PROMPT_STRESS_TEST,
                 success_criteria=["Graceful degradation under stress", "No catastrophic failures"],
                 is_required=True,
                 can_fail_gracefully=True
@@ -192,7 +215,7 @@ class GauntletTemplates:
                 min_score=0.85,
                 max_attempts=2,
                 evaluator="gold_team_auto",
-                evaluation_prompt="Analyze performance characteristics and optimization opportunities",
+                evaluation_prompt=EVAL_PROMPT_PERFORMANCE_ANALYSIS,
                 success_criteria=["Efficient resource usage", "Optimal performance"],
                 is_required=True
             )
@@ -220,7 +243,7 @@ class GauntletTemplates:
                 min_score=0.8,
                 max_attempts=3,
                 evaluator="automated",
-                evaluation_prompt="Verify reproducibility of research results",
+                evaluation_prompt=EVAL_PROMPT_RESEARCH_REPRODUCIBILITY,
                 success_criteria=["Results are reproducible", "Methodology is clear"],
                 is_required=True
             ),
@@ -232,7 +255,7 @@ class GauntletTemplates:
                 min_score=0.7,
                 max_attempts=2,
                 evaluator="red_team_auto",
-                evaluation_prompt="Critically evaluate methodology and identify potential flaws",
+                evaluation_prompt=EVAL_PROMPT_METHODOLOGY_REVIEW,
                 success_criteria=["Methodology is sound", "No logical fallacies"],
                 is_required=True
             ),
@@ -244,7 +267,7 @@ class GauntletTemplates:
                 min_score=0.9,
                 max_attempts=2,
                 evaluator="gold_team_auto",
-                evaluation_prompt="Perform thorough peer review and validate contributions",
+                evaluation_prompt=EVAL_PROMPT_PEER_REVIEW,
                 success_criteria=["Novel contribution validated", "Meets research standards"],
                 is_required=True
             )
@@ -320,7 +343,7 @@ class HumanReviewQueue:
     Manages queuing, assignment, and tracking of human reviews.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Initialize the human review queue."""
         self._queue: Dict[str, HumanReviewItem] = {}
         self._lock = Lock()
@@ -451,6 +474,18 @@ class HumanReviewQueue:
                 if item.assigned_to == reviewer and item.status == ReviewStatus.IN_PROGRESS
             )
 
+    def clear(self) -> None:
+        """
+        Clear all items from the review queue.
+        
+        Thread-safe operation that removes all pending, in-progress,
+        and completed reviews from the queue.
+        """
+        with self._lock:
+            count = len(self._queue)
+            self._queue.clear()
+            self.logger.info(f"Cleared {count} items from review queue")
+
 
 class GauntletSystem:
     """
@@ -513,6 +548,60 @@ class GauntletSystem:
                 self.logger.info("ROMAMDAPMakerAssociativeEngine initialized for GauntletSystem")
             except Exception as e:
                 self.logger.warning(f"Failed to initialize ROMA engine: {e}")
+
+    def cleanup(self) -> None:
+        """
+        Clean up resources used by the GauntletSystem.
+        
+        Properly disposes of the ROMAMDAPMakerAssociativeEngine and other
+        resources to prevent memory leaks.
+        """
+        self.logger.info("Cleaning up GauntletSystem resources")
+        
+        # Clean up ROMA engine
+        if self.roma_engine is not None:
+            try:
+                # Call dispose method if available
+                if hasattr(self.roma_engine, 'dispose') and callable(getattr(self.roma_engine, 'dispose')):
+                    self.roma_engine.dispose()
+                    self.logger.info("ROMAMDAPMakerAssociativeEngine disposed successfully")
+                # Clear reference to allow garbage collection
+                self.roma_engine = None
+            except Exception as e:
+                self.logger.warning(f"Error during ROMA engine cleanup: {e}")
+        
+        # Clean up OpenEvolve client if it has a close method
+        if self.openevolve_client is not None:
+            try:
+                if hasattr(self.openevolve_client, 'close') and callable(getattr(self.openevolve_client, 'close')):
+                    self.openevolve_client.close()
+                    self.logger.info("OpenEvolveClient closed successfully")
+            except Exception as e:
+                self.logger.warning(f"Error during OpenEvolve client cleanup: {e}")
+        
+        # Clear review queue
+        if hasattr(self, 'review_queue') and self.review_queue is not None:
+            try:
+                self.review_queue.clear()
+            except Exception as e:
+                self.logger.warning(f"Error during review queue cleanup: {e}")
+
+    def __enter__(self) -> "GauntletSystem":
+        """Context manager entry - returns self."""
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb) -> bool:
+        """Context manager exit - ensures cleanup is called."""
+        self.cleanup()
+        return False  # Don't suppress exceptions
+
+    def __del__(self) -> None:
+        """Destructor - ensures cleanup is called even if not using context manager."""
+        try:
+            self.cleanup()
+        except Exception:
+            # Suppress errors during garbage collection
+            pass
 
     def create_gauntlet(
         self,
@@ -580,10 +669,14 @@ class GauntletSystem:
         execution.execution_duration = (execution.end_time - execution.start_time).total_seconds()
         execution.overall_passed = execution.rounds_passed >= len(gauntlet.rounds) - (1 if gauntlet.stop_on_first_failure else 0)
 
-        if execution.rounds_passed + execution.rounds_failed > 0:
-            execution.final_score = execution.rounds_passed / (execution.rounds_passed + execution.rounds_failed)
+        # Calculate final score with proper guards
+        total_rounds_executed = execution.rounds_passed + execution.rounds_failed
+        if total_rounds_executed > 0:
+            execution.final_score = execution.rounds_passed / total_rounds_executed
         else:
             execution.final_score = 0.0
+            # If no rounds were executed, mark as failed
+            execution.overall_passed = False
 
         self.logger.info(f"Gauntlet execution complete: passed={execution.overall_passed}, score={execution.final_score:.2f}")
         return execution
@@ -594,7 +687,7 @@ class GauntletSystem:
         solution: SolutionAttempt,
         sub_problem: SubProblem,
         execution: GauntletExecution
-    ):
+    ) -> None:
         """Execute rounds sequentially."""
         for round_rule in gauntlet.rounds:
             result = self._execute_round(round_rule, solution, sub_problem)
@@ -744,7 +837,7 @@ class GauntletSystem:
         solution: SolutionAttempt,
         sub_problem: SubProblem,
         execution: GauntletExecution
-    ):
+    ) -> None:
         """
         Execute rounds with adaptive difficulty adjustment.
 
@@ -924,7 +1017,7 @@ class GauntletSystem:
         self,
         execution: GauntletExecution,
         score: float
-    ):
+    ) -> None:
         """Update adaptive metrics with latest execution data."""
         self.adaptive_metrics.total_rounds_completed += len(execution.round_results)
         self.adaptive_metrics.total_rounds_passed += execution.rounds_passed
@@ -1000,7 +1093,7 @@ class GauntletSystem:
         solution: SolutionAttempt,
         sub_problem: SubProblem,
         execution: GauntletExecution
-    ):
+    ) -> None:
         """Increase difficulty by executing harder rounds."""
         harder_rounds = self._create_adaptive_rounds(gauntlet, phase="harder")
 
@@ -1024,7 +1117,7 @@ class GauntletSystem:
         solution: SolutionAttempt,
         sub_problem: SubProblem,
         execution: GauntletExecution
-    ):
+    ) -> None:
         """Decrease difficulty by providing easier rounds with guidance."""
         easier_rounds = self._create_adaptive_rounds(gauntlet, phase="easier")
 
@@ -1048,7 +1141,7 @@ class GauntletSystem:
         solution: SolutionAttempt,
         sub_problem: SubProblem,
         execution: GauntletExecution
-    ):
+    ) -> None:
         """Add additional scrutiny rounds for borderline performance."""
         scrutiny_rounds = self._create_adaptive_rounds(gauntlet, phase="scrutiny")
 
@@ -1426,6 +1519,7 @@ Be thorough and precise. Your approval certifies the solution is ready."""
                 if "test" in criterion.lower() or "check" in criterion.lower():
                     checks_passed += 1
 
+            # Guard against division by zero
             score = checks_passed / total_checks if total_checks > 0 else 0.8
             passed = score >= round_rule.min_score
 

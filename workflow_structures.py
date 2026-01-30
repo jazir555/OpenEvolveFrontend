@@ -3,6 +3,8 @@ from typing import List, Dict, Any, Optional, Literal, Set, Union
 import time
 import json
 from enum import Enum
+from datetime import datetime
+import uuid
 
 # ============================================================================
 # Lean 4 / LeanAide Integration Data Structures
@@ -827,9 +829,553 @@ class VerificationReport:
 
 # --- Knowledge Management ---
 
+# ============================================================================
+# Knowledge Artifact Schema (Phase 1 Implementation)
+# ============================================================================
+
 @dataclasses.dataclass
 class KnowledgeArtifact:
-    """Represents a piece of knowledge extracted from a workflow execution."""
+    """
+    Represents a piece of knowledge extracted from a workflow execution.
+    
+    This is the base class for all knowledge artifacts in the system.
+    It captures metadata about when, where, and how the knowledge was generated,
+    along with content and usage tracking.
+    
+    Attributes:
+        artifact_id: Unique identifier (UUID-based) for this artifact
+        artifact_type: Type of knowledge artifact (solution_pattern, team_performance, etc.)
+        source_workflow_id: ID of the workflow this artifact was extracted from
+        source_stage: Workflow stage (0-6) where this artifact was created
+        timestamp: When this artifact was created
+        confidence: Confidence score (0.0-1.0) in the artifact's validity
+        title: Human-readable title for the artifact
+        description: Detailed description of the artifact's content
+        content: Structured content specific to the artifact type
+        metadata: Additional metadata about the artifact
+        related_artifacts: List of related artifact IDs for linking
+        citations: List of citations or references
+        tags: List of searchable tags
+        usage_count: Number of times this artifact has been used
+        last_used: Timestamp of last usage (if any)
+        effectiveness_score: Measured effectiveness score (if evaluated)
+    """
+    artifact_id: str
+    artifact_type: Literal[
+        "solution_pattern", 
+        "team_performance", 
+        "gauntlet_effectiveness", 
+        "critique_insight", 
+        "decomposition_strategy", 
+        "verification_method"
+    ]
+    source_workflow_id: str
+    source_stage: Literal[0, 1, 2, 3, 4, 5, 6]
+    timestamp: datetime
+    confidence: float
+    title: str
+    description: str
+    content: Dict[str, Any]
+    metadata: Dict[str, Any] = dataclasses.field(default_factory=dict)
+    related_artifacts: List[str] = dataclasses.field(default_factory=list)
+    citations: List[str] = dataclasses.field(default_factory=list)
+    tags: List[str] = dataclasses.field(default_factory=list)
+    usage_count: int = 0
+    last_used: Optional[datetime] = None
+    effectiveness_score: Optional[float] = None
+
+    def __post_init__(self):
+        """Generate artifact_id if not provided."""
+        if not self.artifact_id:
+            self.artifact_id = str(uuid.uuid4())
+        if not self.timestamp:
+            self.timestamp = datetime.now()
+
+    def validate(self) -> bool:
+        """
+        Validates all fields of the knowledge artifact.
+        
+        Raises:
+            ValueError: If any field is invalid
+            
+        Returns:
+            True if all fields are valid
+        """
+        # Validate artifact_id
+        if not self.artifact_id or not isinstance(self.artifact_id, str):
+            raise ValueError("artifact_id must be a non-empty string")
+        
+        # Validate artifact_type
+        valid_types = [
+            "solution_pattern", "team_performance", "gauntlet_effectiveness",
+            "critique_insight", "decomposition_strategy", "verification_method"
+        ]
+        if self.artifact_type not in valid_types:
+            raise ValueError(f"artifact_type must be one of {valid_types}")
+        
+        # Validate source_workflow_id
+        if not self.source_workflow_id or not isinstance(self.source_workflow_id, str):
+            raise ValueError("source_workflow_id must be a non-empty string")
+        
+        # Validate source_stage
+        if self.source_stage not in [0, 1, 2, 3, 4, 5, 6]:
+            raise ValueError("source_stage must be an integer between 0 and 6")
+        
+        # Validate timestamp
+        if not isinstance(self.timestamp, datetime):
+            raise ValueError("timestamp must be a datetime object")
+        
+        # Validate confidence
+        if not isinstance(self.confidence, (int, float)) or not 0.0 <= self.confidence <= 1.0:
+            raise ValueError("confidence must be a float between 0.0 and 1.0")
+        
+        # Validate title
+        if not self.title or not isinstance(self.title, str):
+            raise ValueError("title must be a non-empty string")
+        
+        # Validate description
+        if not isinstance(self.description, str):
+            raise ValueError("description must be a string")
+        
+        # Validate content
+        if not isinstance(self.content, dict):
+            raise ValueError("content must be a dictionary")
+        
+        # Validate metadata
+        if not isinstance(self.metadata, dict):
+            raise ValueError("metadata must be a dictionary")
+        
+        # Validate related_artifacts (should be list of strings)
+        if not isinstance(self.related_artifacts, list):
+            raise ValueError("related_artifacts must be a list")
+        if not all(isinstance(aid, str) for aid in self.related_artifacts):
+            raise ValueError("all related_artifacts must be strings")
+        
+        # Validate citations
+        if not isinstance(self.citations, list):
+            raise ValueError("citations must be a list")
+        if not all(isinstance(c, str) for c in self.citations):
+            raise ValueError("all citations must be strings")
+        
+        # Validate tags
+        if not isinstance(self.tags, list):
+            raise ValueError("tags must be a list")
+        if not all(isinstance(t, str) for t in self.tags):
+            raise ValueError("all tags must be strings")
+        
+        # Validate usage_count
+        if not isinstance(self.usage_count, int) or self.usage_count < 0:
+            raise ValueError("usage_count must be a non-negative integer")
+        
+        # Validate last_used (optional, but if present must be datetime)
+        if self.last_used is not None and not isinstance(self.last_used, datetime):
+            raise ValueError("last_used must be a datetime object or None")
+        
+        # Validate effectiveness_score (optional, but if present must be float 0-1)
+        if self.effectiveness_score is not None:
+            if not isinstance(self.effectiveness_score, (int, float)):
+                raise ValueError("effectiveness_score must be a float or None")
+            if not 0.0 <= self.effectiveness_score <= 1.0:
+                raise ValueError("effectiveness_score must be between 0.0 and 1.0")
+        
+        return True
+
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Serializes the artifact to a dictionary with ISO datetime format.
+        
+        Returns:
+            Dictionary representation of the artifact
+        """
+        return {
+            "artifact_id": self.artifact_id,
+            "artifact_type": self.artifact_type,
+            "source_workflow_id": self.source_workflow_id,
+            "source_stage": self.source_stage,
+            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
+            "confidence": self.confidence,
+            "title": self.title,
+            "description": self.description,
+            "content": self.content,
+            "metadata": self.metadata,
+            "related_artifacts": self.related_artifacts,
+            "citations": self.citations,
+            "tags": self.tags,
+            "usage_count": self.usage_count,
+            "last_used": self.last_used.isoformat() if self.last_used else None,
+            "effectiveness_score": self.effectiveness_score,
+        }
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "KnowledgeArtifact":
+        """
+        Deserializes an artifact from a dictionary.
+        
+        Args:
+            data: Dictionary containing artifact data
+            
+        Returns:
+            KnowledgeArtifact instance
+        """
+        data = data.copy()
+        
+        # Parse timestamp from ISO format
+        if data.get("timestamp") and isinstance(data["timestamp"], str):
+            data["timestamp"] = datetime.fromisoformat(data["timestamp"])
+        
+        # Parse last_used from ISO format
+        if data.get("last_used") and isinstance(data["last_used"], str):
+            data["last_used"] = datetime.fromisoformat(data["last_used"])
+        
+        return cls(**data)
+
+    def record_usage(self):
+        """Records that this artifact has been used."""
+        self.usage_count += 1
+        self.last_used = datetime.now()
+
+    def add_related_artifact(self, artifact_id: str):
+        """Adds a related artifact ID if not already present."""
+        if artifact_id not in self.related_artifacts:
+            self.related_artifacts.append(artifact_id)
+
+    def add_tag(self, tag: str):
+        """Adds a tag if not already present."""
+        if tag not in self.tags:
+            self.tags.append(tag)
+
+    def add_citation(self, citation: str):
+        """Adds a citation if not already present."""
+        if citation not in self.citations:
+            self.citations.append(citation)
+
+
+@dataclasses.dataclass
+class SolutionPatternArtifact(KnowledgeArtifact):
+    """
+    Specialized artifact for solution patterns extracted from successful workflows.
+    
+    This artifact captures reusable solution approaches that can be applied
+    to similar problems in the future.
+    
+    Attributes:
+        pattern_category: Category classification for the pattern
+        problem_domains: List of problem domains this pattern applies to
+        approach_signature: Signature defining the approach (parameters, constraints)
+        success_rate: Historical success rate (0.0-1.0) of this pattern
+        avg_execution_time: Average execution time in seconds
+    """
+    pattern_category: str = ""
+    problem_domains: List[str] = dataclasses.field(default_factory=list)
+    approach_signature: Dict[str, Any] = dataclasses.field(default_factory=dict)
+    success_rate: float = 0.0
+    avg_execution_time: float = 0.0
+    artifact_type: str = dataclasses.field(default="solution_pattern", init=False)
+
+    def validate(self) -> bool:
+        """Validates solution pattern specific fields."""
+        # First validate base fields
+        super().validate()
+        
+        # Validate pattern_category
+        if not isinstance(self.pattern_category, str):
+            raise ValueError("pattern_category must be a string")
+        
+        # Validate problem_domains
+        if not isinstance(self.problem_domains, list):
+            raise ValueError("problem_domains must be a list")
+        if not all(isinstance(d, str) for d in self.problem_domains):
+            raise ValueError("all problem_domains must be strings")
+        
+        # Validate approach_signature
+        if not isinstance(self.approach_signature, dict):
+            raise ValueError("approach_signature must be a dictionary")
+        
+        # Validate success_rate
+        if not isinstance(self.success_rate, (int, float)):
+            raise ValueError("success_rate must be a float")
+        if not 0.0 <= self.success_rate <= 1.0:
+            raise ValueError("success_rate must be between 0.0 and 1.0")
+        
+        # Validate avg_execution_time
+        if not isinstance(self.avg_execution_time, (int, float)):
+            raise ValueError("avg_execution_time must be a number")
+        if self.avg_execution_time < 0:
+            raise ValueError("avg_execution_time must be non-negative")
+        
+        return True
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializes to dictionary including solution pattern fields."""
+        base_dict = super().to_dict()
+        base_dict.update({
+            "pattern_category": self.pattern_category,
+            "problem_domains": self.problem_domains,
+            "approach_signature": self.approach_signature,
+            "success_rate": self.success_rate,
+            "avg_execution_time": self.avg_execution_time,
+        })
+        return base_dict
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "SolutionPatternArtifact":
+        """Deserializes from dictionary."""
+        data = data.copy()
+        # Remove artifact_type as it's set automatically
+        data.pop('artifact_type', None)
+        # Parse timestamp fields
+        if data.get('timestamp') and isinstance(data['timestamp'], str):
+            data['timestamp'] = datetime.fromisoformat(data['timestamp'])
+        if data.get('last_used') and isinstance(data['last_used'], str):
+            data['last_used'] = datetime.fromisoformat(data['last_used'])
+        return cls(**data)
+
+
+@dataclasses.dataclass
+class TeamPerformanceArtifact(KnowledgeArtifact):
+    """
+    Specialized artifact for team performance data.
+    
+    Captures metrics and insights about team effectiveness,
+    composition, and optimal use cases.
+    
+    Attributes:
+        team_id: Identifier for the team being evaluated
+        team_composition: Details about team members and configuration
+        performance_metrics: Quantitative performance metrics
+        strengths: Identified team strengths
+        weaknesses: Identified team weaknesses
+        optimal_problem_types: Problem types this team excels at
+    """
+    team_id: str = ""
+    team_composition: Dict[str, Any] = dataclasses.field(default_factory=dict)
+    performance_metrics: Dict[str, float] = dataclasses.field(default_factory=dict)
+    strengths: List[str] = dataclasses.field(default_factory=list)
+    weaknesses: List[str] = dataclasses.field(default_factory=list)
+    optimal_problem_types: List[str] = dataclasses.field(default_factory=list)
+    artifact_type: str = dataclasses.field(default="team_performance", init=False)
+
+    def validate(self) -> bool:
+        """Validates team performance specific fields."""
+        # First validate base fields
+        super().validate()
+        
+        # Validate team_id
+        if not isinstance(self.team_id, str):
+            raise ValueError("team_id must be a string")
+        
+        # Validate team_composition
+        if not isinstance(self.team_composition, dict):
+            raise ValueError("team_composition must be a dictionary")
+        
+        # Validate performance_metrics
+        if not isinstance(self.performance_metrics, dict):
+            raise ValueError("performance_metrics must be a dictionary")
+        for key, value in self.performance_metrics.items():
+            if not isinstance(key, str):
+                raise ValueError("all performance_metrics keys must be strings")
+            if not isinstance(value, (int, float)):
+                raise ValueError(f"performance_metrics['{key}'] must be a number")
+        
+        # Validate strengths
+        if not isinstance(self.strengths, list):
+            raise ValueError("strengths must be a list")
+        if not all(isinstance(s, str) for s in self.strengths):
+            raise ValueError("all strengths must be strings")
+        
+        # Validate weaknesses
+        if not isinstance(self.weaknesses, list):
+            raise ValueError("weaknesses must be a list")
+        if not all(isinstance(w, str) for w in self.weaknesses):
+            raise ValueError("all weaknesses must be strings")
+        
+        # Validate optimal_problem_types
+        if not isinstance(self.optimal_problem_types, list):
+            raise ValueError("optimal_problem_types must be a list")
+        if not all(isinstance(pt, str) for pt in self.optimal_problem_types):
+            raise ValueError("all optimal_problem_types must be strings")
+        
+        return True
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializes to dictionary including team performance fields."""
+        base_dict = super().to_dict()
+        base_dict.update({
+            "team_id": self.team_id,
+            "team_composition": self.team_composition,
+            "performance_metrics": self.performance_metrics,
+            "strengths": self.strengths,
+            "weaknesses": self.weaknesses,
+            "optimal_problem_types": self.optimal_problem_types,
+        })
+        return base_dict
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "TeamPerformanceArtifact":
+        """Deserializes from dictionary."""
+        data = data.copy()
+        data.pop('artifact_type', None)
+        if data.get('timestamp') and isinstance(data['timestamp'], str):
+            data['timestamp'] = datetime.fromisoformat(data['timestamp'])
+        if data.get('last_used') and isinstance(data['last_used'], str):
+            data['last_used'] = datetime.fromisoformat(data['last_used'])
+        return cls(**data)
+
+
+@dataclasses.dataclass
+class GauntletEffectivenessArtifact(KnowledgeArtifact):
+    """
+    Specialized artifact for gauntlet effectiveness data.
+    
+    Captures metrics about how well a gauntlet (evaluation process)
+    identifies issues and approves quality solutions.
+    
+    Attributes:
+        gauntlet_id: Identifier for the gauntlet being evaluated
+        rule_effectiveness: Effectiveness scores for individual rules
+        catch_rate: Rate at which the gauntlet catches issues (0.0-1.0)
+        false_positive_rate: Rate of false positives (0.0-1.0)
+        optimal_contexts: Contexts where this gauntlet performs best
+    """
+    gauntlet_id: str = ""
+    rule_effectiveness: Dict[str, float] = dataclasses.field(default_factory=dict)
+    catch_rate: float = 0.0
+    false_positive_rate: float = 0.0
+    optimal_contexts: List[str] = dataclasses.field(default_factory=list)
+    artifact_type: str = dataclasses.field(default="gauntlet_effectiveness", init=False)
+
+    def validate(self) -> bool:
+        """Validates gauntlet effectiveness specific fields."""
+        # First validate base fields
+        super().validate()
+        
+        # Validate gauntlet_id
+        if not isinstance(self.gauntlet_id, str):
+            raise ValueError("gauntlet_id must be a string")
+        
+        # Validate rule_effectiveness
+        if not isinstance(self.rule_effectiveness, dict):
+            raise ValueError("rule_effectiveness must be a dictionary")
+        for key, value in self.rule_effectiveness.items():
+            if not isinstance(key, str):
+                raise ValueError("all rule_effectiveness keys must be strings")
+            if not isinstance(value, (int, float)):
+                raise ValueError(f"rule_effectiveness['{key}'] must be a number")
+            if not 0.0 <= value <= 1.0:
+                raise ValueError(f"rule_effectiveness['{key}'] must be between 0.0 and 1.0")
+        
+        # Validate catch_rate
+        if not isinstance(self.catch_rate, (int, float)):
+            raise ValueError("catch_rate must be a float")
+        if not 0.0 <= self.catch_rate <= 1.0:
+            raise ValueError("catch_rate must be between 0.0 and 1.0")
+        
+        # Validate false_positive_rate
+        if not isinstance(self.false_positive_rate, (int, float)):
+            raise ValueError("false_positive_rate must be a float")
+        if not 0.0 <= self.false_positive_rate <= 1.0:
+            raise ValueError("false_positive_rate must be between 0.0 and 1.0")
+        
+        # Validate optimal_contexts
+        if not isinstance(self.optimal_contexts, list):
+            raise ValueError("optimal_contexts must be a list")
+        if not all(isinstance(c, str) for c in self.optimal_contexts):
+            raise ValueError("all optimal_contexts must be strings")
+        
+        return True
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializes to dictionary including gauntlet effectiveness fields."""
+        base_dict = super().to_dict()
+        base_dict.update({
+            "gauntlet_id": self.gauntlet_id,
+            "rule_effectiveness": self.rule_effectiveness,
+            "catch_rate": self.catch_rate,
+            "false_positive_rate": self.false_positive_rate,
+            "optimal_contexts": self.optimal_contexts,
+        })
+        return base_dict
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "GauntletEffectivenessArtifact":
+        """Deserializes from dictionary."""
+        data = data.copy()
+        data.pop('artifact_type', None)
+        if data.get('timestamp') and isinstance(data['timestamp'], str):
+            data['timestamp'] = datetime.fromisoformat(data['timestamp'])
+        if data.get('last_used') and isinstance(data['last_used'], str):
+            data['last_used'] = datetime.fromisoformat(data['last_used'])
+        return cls(**data)
+
+
+@dataclasses.dataclass
+class CritiqueInsightArtifact(KnowledgeArtifact):
+    """
+    Specialized artifact for critique insights.
+    
+    Captures patterns and learnings from critique processes,
+    including common issues and improvement suggestions.
+    
+    Attributes:
+        critique_type: Type of critique (code_review, solution_review, etc.)
+        common_issues: Frequently identified issues
+        improvement_suggestions: Suggested improvements
+    """
+    critique_type: str = ""
+    common_issues: List[str] = dataclasses.field(default_factory=list)
+    improvement_suggestions: List[str] = dataclasses.field(default_factory=list)
+    artifact_type: str = dataclasses.field(default="critique_insight", init=False)
+
+    def validate(self) -> bool:
+        """Validates critique insight specific fields."""
+        # First validate base fields
+        super().validate()
+        
+        # Validate critique_type
+        if not isinstance(self.critique_type, str):
+            raise ValueError("critique_type must be a string")
+        
+        # Validate common_issues
+        if not isinstance(self.common_issues, list):
+            raise ValueError("common_issues must be a list")
+        if not all(isinstance(i, str) for i in self.common_issues):
+            raise ValueError("all common_issues must be strings")
+        
+        # Validate improvement_suggestions
+        if not isinstance(self.improvement_suggestions, list):
+            raise ValueError("improvement_suggestions must be a list")
+        if not all(isinstance(s, str) for s in self.improvement_suggestions):
+            raise ValueError("all improvement_suggestions must be strings")
+        
+        return True
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Serializes to dictionary including critique insight fields."""
+        base_dict = super().to_dict()
+        base_dict.update({
+            "critique_type": self.critique_type,
+            "common_issues": self.common_issues,
+            "improvement_suggestions": self.improvement_suggestions,
+        })
+        return base_dict
+
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> "CritiqueInsightArtifact":
+        """Deserializes from dictionary."""
+        data = data.copy()
+        data.pop('artifact_type', None)
+        if data.get('timestamp') and isinstance(data['timestamp'], str):
+            data['timestamp'] = datetime.fromisoformat(data['timestamp'])
+        if data.get('last_used') and isinstance(data['last_used'], str):
+            data['last_used'] = datetime.fromisoformat(data['last_used'])
+        return cls(**data)
+
+
+# Legacy KnowledgeArtifact for backward compatibility
+# This is kept for existing code that uses the old structure
+@dataclasses.dataclass
+class LegacyKnowledgeArtifact:
+    """Represents a piece of knowledge extracted from a workflow execution (Legacy version)."""
     id: str  # Unique identifier for this knowledge artifact
     artifact_type: Literal["solution_pattern", "problem_solution_mapping", "critique_insight", "team_performance", "gauntlet_effectiveness"]
     content: Dict[str, Any]  # Content of the knowledge artifact
@@ -1066,7 +1612,7 @@ class WorkflowState:
         Returns:
             CrewAIIntegrationManager instance
         """
-        from crewai_integration # MIGRATED: was crewai_integration import crewai # MIGRATED: was CrewAIIntegrationManager
+        from crewai_integration import CrewAIIntegrationManager
         return CrewAIIntegrationManager(api_base, api_key, project_id)
     
     def sync_subproblem_status_to_CrewAI(self, integration_manager, sub_problem_id: str, 

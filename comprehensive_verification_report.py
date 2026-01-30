@@ -356,7 +356,10 @@ class VerificationReporter:
                 # Close connection before cleanup
                 try:
                     conn.close()
-                except:
+                except Exception as e:
+                    # Log the specific error for debugging
+                    import logging
+                    logging.warning(f"Error closing database connection: {e}")
                     pass
 
                 # Clean up test database

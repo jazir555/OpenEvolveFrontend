@@ -1,5 +1,6 @@
 import yaml
 import os
+import threading
 from typing import Dict, Any
 import logging
 
@@ -8,13 +9,18 @@ logger = logging.getLogger(__name__)
 class ConfigurationManager:
     """
     Manages loading and providing configuration settings from config.yaml.
+    Thread-safe singleton pattern with double-checked locking.
     """
     _instance = None
+    _lock = threading.Lock()
 
     def __new__(cls, config_path: str = "config.yaml", env: str = "default"):
+        # Double-checked locking for thread-safe singleton
         if cls._instance is None:
-            cls._instance = super(ConfigurationManager, cls).__new__(cls)
-            cls._instance._initialized = False
+            with cls._lock:
+                if cls._instance is None:
+                    cls._instance = super(ConfigurationManager, cls).__new__(cls)
+                    cls._instance._initialized = False
         return cls._instance
 
     def __init__(self, config_path: str = "config.yaml", env: str = "default"):

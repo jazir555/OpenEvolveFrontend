@@ -16,6 +16,7 @@ import sqlite3
 import sys
 import json
 import logging
+import re
 from typing import Dict, List, Any, Optional, Tuple, Set
 from dataclasses import dataclass
 from pathlib import Path
@@ -61,7 +62,8 @@ class DataConsistencyVerifier:
         Args:
             db_path: Path to the analytics database
         """
-        self.db_path = db_path
+        # SECURITY: Validate db_path to prevent path traversal and injection attacks
+        self.db_path = self._validate_db_path(db_path)
         self.issues: List[ConsistencyIssue] = []
         self.stats = {
             "checks_performed": 0,
@@ -108,25 +110,24 @@ class DataConsistencyVerifier:
         logger.info("=" * 70)
 
         try:
-            conn = sqlite3.connect(self.db_path)
-            cursor = conn.cursor()
+            # Use context manager to ensure connection is always closed
+            with sqlite3.connect(self.db_path) as conn:
+                cursor = conn.cursor()
 
-            # Check 1: Foreign key integrity
-            self._check_foreign_keys(cursor)
+                # Check 1: Foreign key integrity
+                self._check_foreign_keys(cursor)
 
-            # Check 2: Unique constraint violations
-            self._check_unique_constraints(cursor)
+                # Check 2: Unique constraint violations
+                self._check_unique_constraints(cursor)
 
-            # Check 3: Orphaned records
-            self._check_orphaned_records(cursor)
+                # Check 3: Orphaned records
+                self._check_orphaned_records(cursor)
 
-            # Check 4: Transaction atomicity (workflow + node_metrics + provider_metrics)
-            self._check_transaction_atomicity(cursor)
+                # Check 4: Transaction atomicity (workflow + node_metrics + provider_metrics)
+                self._check_transaction_atomicity(cursor)
 
-            # Check 5: Numeric consistency (totals match sums)
-            self._check_numeric_consistency(cursor)
-
-            conn.close()
+                # Check 5: Numeric consistency (totals match sums)
+                self._check_numeric_consistency(cursor)
 
         except sqlite3.Error as e:
             self._add_issue(
@@ -407,7 +408,7 @@ class DataConsistencyVerifier:
 
             conn.close()
 
-        except sqlite3.Error as e:
+        except (sqlite3.Error, IOError, OSError) as e:
             self._add_issue(
                 severity="CRITICAL",
                 category="STATE",
@@ -547,6 +548,78 @@ class DataConsistencyVerifier:
         elif len(affected_records) > 5:
             logger.warning(f"  - {affected_records[0]} ... and {len(affected_records) - 1} more")
 
+    def _validate_db_path(self, db_path: str) -> str:
+        """
+        Validate database path to prevent path traversal and injection attacks.
+        
+        Args:
+            db_path: The database path to validate
+            
+        Returns:
+            str: Sanitized database path
+            
+        Raises:
+            ValueError: If the path contains suspicious patterns
+        """
+        # Type validation
+        if not isinstance(db_path, str):
+            raise TypeError(f"db_path must be a string, got {type(db_path).__name__}")
+        
+        # Length validation
+        if len(db_path) > 1024:
+            raise ValueError("db_path exceeds maximum length of 1024 characters")
+        
+        # Check for null bytes
+        if '\x00' in db_path:
+            raise ValueError("db_path contains null bytes")
+        
+        # Check for SQL injection patterns in path
+        sql_injection_patterns = [
+            r"['\";]",  # Quote or semicolon
+            r"--",      # SQL comment
+            r"/\*",    # Start of block comment
+            r"\*/",    # End of block comment
+            r"\\",    # Backslash (escape attempts)
+        ]
+        for pattern in sql_injection_patterns:
+            if re.search(pattern, db_path):
+                raise ValueError(f"db_path contains potentially dangerous characters matching pattern: {pattern}")
+        
+        # Normalize path and check for path traversal
+        try:
+            path_obj = Path(db_path)
+            # Resolve to absolute path
+            abs_path = path_obj.resolve()
+            
+            # Check for suspicious path components
+            suspicious_components = ['..', '~', '$', '`']
+            for part in path_obj.parts:
+                for suspicious in suspicious_components:
+                    if suspicious in part:
+                        raise ValueError(f"db_path contains suspicious component: {suspicious}")
+            
+        except (OSError, ValueError) as e:
+            raise ValueError(f"Invalid db_path: {e}")
+        
+        return str(Path(db_path))
+
+    def _execute_query(self, cursor: sqlite3.Cursor, query: str, params: Optional[Tuple] = None) -> None:
+        """
+        Execute a SQL query with optional parameters.
+        
+        SECURITY: Always use parameterized queries with params tuple to prevent SQL injection.
+        Never use string formatting (%, .format(), f-strings) for query construction.
+        
+        Args:
+            cursor: Database cursor
+            query: SQL query string with ? placeholders
+            params: Optional tuple of parameters to substitute
+        """
+        if params:
+            cursor.execute(query, params)
+        else:
+            cursor.execute(query)
+
     def _generate_summary(self) -> Dict[str, Any]:
         """Generate summary of verification results."""
         logger.info("\n" + "=" * 70)
@@ -562,7 +635,7 @@ class DataConsistencyVerifier:
         print(f"  LOW:      {self.stats['low']}")
 
         # Group issues by category
-        issues_by_category = {
+        issues_by_category: Dict[str, List[ConsistencyIssue]] = {
             "DATABASE": [],
             "CACHE": [],
             "STATE": [],
@@ -571,7 +644,8 @@ class DataConsistencyVerifier:
         }
 
         for issue in self.issues:
-            issues_by_category[issue.category].append(issue)
+            if issue.category in issues_by_category:
+                issues_by_category[issue.category].append(issue)
 
         # Print issues by category
         for category, issues in issues_by_category.items():
@@ -588,7 +662,7 @@ class DataConsistencyVerifier:
                 if len(issues) > 10:
                     print(f"  ... and {len(issues) - 10} more {category} issues")
 
-        # Generate report
+        # Generate report dict
         report = {
             "timestamp": datetime.now().isoformat(),
             "database_path": self.db_path,

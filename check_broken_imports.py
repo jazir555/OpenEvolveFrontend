@@ -49,8 +49,8 @@ def check_module_exists(module_name: str) -> Tuple[bool, str]:
         return True, "OK"
     except ImportError as e:
         return False, str(e)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        return False, f"Error: {str(e)}"
+        except (ImportError, ModuleNotFoundError, AttributeError) as e:
+            return False, f"Error: {str(e)}"
 
 
 def check_file_exists(filepath: str, import_line: str) -> bool:
@@ -149,19 +149,19 @@ def check_file_for_broken_imports(filepath: Path) -> List[Dict]:
             'import_name': 'N/A',
             'error': f"Syntax error: {e.msg}"
         })
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        try:
-            rel_path = filepath.relative_to(Path.cwd())
-        except ValueError:
-            rel_path = filepath
+        except (OSError, IOError, UnicodeDecodeError) as e:
+            try:
+                rel_path = filepath.relative_to(Path.cwd())
+            except ValueError:
+                rel_path = filepath
 
-        issues.append({
-            'file': str(rel_path),
-            'line': 0,
-            'import_type': 'PARSE_ERROR',
-            'import_name': 'N/A',
-            'error': f"Parse error: {str(e)}"
-        })
+            issues.append({
+                'file': str(rel_path),
+                'line': 0,
+                'import_type': 'PARSE_ERROR',
+                'import_name': 'N/A',
+                'error': f"Parse error: {str(e)}"
+            })
 
     return issues
 

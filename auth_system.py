@@ -4,6 +4,7 @@ Implements role-based access controls for workflow management and sensitive oper
 """
 
 import hashlib
+import os
 import secrets
 import jwt
 import time
@@ -721,17 +722,21 @@ if __name__ == "__main__":
     secure_api = get_secure_api()
     
     # Create an admin user
+    admin_password = os.environ.get('ADMIN_PASSWORD')
+    if not admin_password:
+        raise ValueError("ADMIN_PASSWORD environment variable must be set")
+    
     admin_user = auth.create_user(
         username="admin",
         email="admin@example.com",
-        password="secure_password",
+        password=admin_password,
         roles=[Role.ADMIN]
     )
     
     print(f"Created admin user: {admin_user.username}")
     
     # Authenticate as admin
-    authenticated_user = auth.authenticate("admin", "secure_password")
+    authenticated_user = auth.authenticate("admin", admin_password)
     if authenticated_user:
         print(f"Successfully authenticated user: {authenticated_user.username}")
         

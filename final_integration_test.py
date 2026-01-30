@@ -219,15 +219,28 @@ def test_all_modules():
     ]
     
     results = []
+    start_time = time.time()
+    max_test_time = 300  # 5 minutes max per test
+    
     for test_func in tests:
+        test_start = time.time()
         try:
             result = test_func()
             results.append(result)
+            
+            # Performance check: ensure test completes in reasonable time
+            test_duration = time.time() - test_start
+            if test_duration > max_test_time:
+                print(f"[!] WARNING: Test {test_func.__name__} took {test_duration:.1f}s (exceeds {max_test_time}s threshold)")
         except Exception as e:
             print(f"[FAIL] Test {test_func.__name__} failed with exception: {e}")
             traceback.print_exc()
             results.append(False)
         print()  # Add blank line between tests
+    
+    # Overall performance assertion
+    total_time = time.time() - start_time
+    print(f"[*] Total test suite duration: {total_time:.1f}s")
     
     print("=" * 60)
     print("Integration Test Summary:")

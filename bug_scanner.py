@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 """Comprehensive bug scanner for OpenEvolve Frontend Python files."""
+
+__all__ = ['scan_file', 'scan_all_files', 'generate_report', 'bugs']
+
 import ast
 import os
 import sys

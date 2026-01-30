@@ -617,7 +617,7 @@ class MDAPPolicyEvaluator(PolicyEvaluator):
 
                 total_time += result.time_elapsed
 
-            except Exception as e:
+            except (ConnectionError, TimeoutError, ValueError, RuntimeError, KeyError, AttributeError) as e:
                 logger.warning(f"Evaluation failed for theorem {theorem}: {e}")
                 total_time += timeout
 
@@ -2047,7 +2047,7 @@ class LeanAideMDAPPolicyEvolution:
                     "confidence": verification.confidence,
                     "errors": verification.errors
                 }
-            except Exception as e:
+            except (ConnectionError, TimeoutError, ValueError, RuntimeError) as e:
                 logger.warning(f"Lean verification failed: {e}")
                 return {"is_valid": False, "error": str(e)}
 

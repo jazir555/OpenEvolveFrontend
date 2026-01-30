@@ -289,7 +289,12 @@ class SystemTester:
             
             def process_data(data):
                 # This function uses eval() which is dangerous
-                result = eval(data)
+                # SECURITY FIX: Replace eval() with safe ast.literal_eval() for basic data structures
+                import ast
+                try:
+                    result = ast.literal_eval(data)
+                except (ValueError, SyntaxError):
+                    raise ValueError("Invalid data format: data must be a valid Python literal")
                 return result
             """
             
@@ -365,7 +370,12 @@ class SystemTester:
                 return False
             
             def process_data(data):
-                result = eval(data)
+                # SECURITY FIX: Replace eval() with safe ast.literal_eval() for basic data structures
+                import ast
+                try:
+                    result = ast.literal_eval(data)
+                except (ValueError, SyntaxError):
+                    raise ValueError("Invalid data format: data must be a valid Python literal")
                 return result
             """
             

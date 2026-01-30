@@ -125,10 +125,10 @@ class BubbleLabClient:
             try:
                 error_data = response.json()
                 error_msg = error_data.get('error', error_msg)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ValueError, json.JSONDecodeError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
-                logger.error(f"Error in bubblelab-automation.py: {e}", exc_info=True)
+                logger.debug(f"JSON parsing error in response: {e}")
                 raise
             raise Exception(f"API Error ({response.status_code}): {error_msg}")
 
@@ -303,7 +303,7 @@ class WorkflowManager:
                         self.client.activate_flow(flow['id'])
                         print(f"     ▶️  Activated")
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, RuntimeError) as e:
                 results['failed'].append({
                     'workflow': workflow_name,
                     'error': str(e)
@@ -472,7 +472,7 @@ def cmd_setup(args):
                 status = "▶️" if flow.get('isActive') else "⏸️"
                 print(f"  {status} {flow['name']}")
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ConnectionError, RuntimeError, ValueError) as e:
         print(f"❌ Connection failed: {e}")
         print("\nPlease verify:")
         print("  1. BubbleLab is running")
@@ -513,8 +513,8 @@ def cmd_list(args):
             print(f"   ID: {flow['id']}")
             print()
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"❌ Error: {e}")
+        except (ConnectionError, RuntimeError, ValueError) as e:
+            print(f"❌ Error: {e}")
         sys.exit(1)
 
 
@@ -553,8 +553,8 @@ def cmd_create(args):
             client.activate_flow(flow['id'])
             print("   ▶️  Activated")
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"❌ Error: {e}")
+        except (ConnectionError, RuntimeError, ValueError) as e:
+            print(f"❌ Error: {e}")
         sys.exit(1)
 
 
@@ -613,8 +613,8 @@ def cmd_generate(args):
             print(f"\n📝 Explanation:")
             print(f"   {result['explanation'][:200]}...")
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"\n❌ Error: {e}")
+        except (RuntimeError, ConnectionError) as e:
+            print(f"\n❌ Error: {e}")
         sys.exit(1)
 
 
@@ -630,8 +630,8 @@ def cmd_export(args):
     try:
         files = manager.export_all_workflows(output_dir)
         print(f"\n✅ Exported {len(files)} workflows")
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"❌ Error: {e}")
+        except (ConnectionError, RuntimeError, ValueError) as e:
+            print(f"❌ Error: {e}")
         sys.exit(1)
 
 
@@ -645,8 +645,8 @@ def cmd_backup(args):
     try:
         backup_path = manager.backup_workflows(backup_dir)
         print(f"\n✅ Backup created at: {backup_path}")
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"❌ Error: {e}")
+        except (ConnectionError, RuntimeError, ValueError) as e:
+            print(f"❌ Error: {e}")
         sys.exit(1)
 
 
@@ -715,14 +715,14 @@ def cmd_sync(args):
 
     environment = args.environment or 'development'
 
-    try:
-        results = manager.sync_environment(environment)
+        try:
+            results = manager.sync_environment(environment)
 
-        if results['failed']:
+            if results['failed']:
+                sys.exit(1)
+        except (RuntimeError, ConnectionError) as e:
+            print(f"\n❌ Error: {e}")
             sys.exit(1)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"\n❌ Error: {e}")
-        sys.exit(1)
 
 
 def cmd_status(args):
@@ -749,20 +749,20 @@ def cmd_status(args):
         print(f"   Active: {active_count}")
         print(f"   Total Executions: {total_executions}")
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        print(f"   Status: ❌ Disconnected")
-        print(f"   Error: {e}")
-        return
+        except (ConnectionError, RuntimeError) as e:
+            print(f"   Status: ❌ Disconnected")
+            print(f"   Error: {e}")
+            return
 
     # Templates
     try:
         templates = client.get_templates()
         print(f"\n📋 Templates: {len(templates)}")
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Error in bubblelab-automation.py: {e}", exc_info=True)
-        raise
+        except (ConnectionError, RuntimeError) as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.debug(f"Failed to get templates: {e}")
+            print(f"\n📋 Templates: 0")
 
     # Configuration
     print(f"\n⚙️  Configuration:")

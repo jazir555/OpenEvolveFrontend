@@ -2,6 +2,7 @@
 OpenEvolve Model Orchestration System
 Manages multi-model coordination, load balancing, and intelligent ensemble operations
 """
+import os
 import streamlit as st
 import time
 import threading
@@ -1337,12 +1338,18 @@ def test_model_orchestration():
     # Create orchestrator
     orchestrator = ModelOrchestrator()
     
+    # Get API key from environment
+    api_key = os.environ.get('OPENAI_API_KEY')
+    if not api_key:
+        print("Warning: OPENAI_API_KEY not set. Using placeholder for demonstration.")
+        api_key = "sk-" + "x" * 48  # Placeholder for demo only
+    
     # Register sample models
     orchestrator.register_model(
         model_name="gpt-4o",
         role=ModelRole.RED_TEAM,
         weight=1.0,
-        api_key="test-key",
+        api_key=api_key,
         api_base="https://api.openai.com/v1"
     )
     
@@ -1350,7 +1357,7 @@ def test_model_orchestration():
         model_name="claude-3-opus",
         role=ModelRole.BLUE_TEAM,
         weight=1.0,
-        api_key="test-key",
+        api_key=api_key,
         api_base="https://api.anthropic.com/v1"
     )
     
@@ -1358,7 +1365,7 @@ def test_model_orchestration():
         model_name="gemini-1.5-pro",
         role=ModelRole.EVALUATOR,
         weight=1.0,
-        api_key="test-key",
+        api_key=api_key,
         api_base="https://generativelanguage.googleapis.com/v1beta/openai/"
     )
     

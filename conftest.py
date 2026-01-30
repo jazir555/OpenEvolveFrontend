@@ -89,3 +89,23 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "integration: marks tests as integration tests")
     config.addinivalue_line("markers", "unit: marks tests as unit tests")
     config.addinivalue_line("markers", "slow: marks tests as slow running")
+
+
+# Platform detection for skip logic
+import platform
+
+def is_windows() -> bool:
+    """Check if running on Windows."""
+    return platform.system() == "Windows"
+
+def has_cuda() -> bool:
+    """Check if CUDA is available."""
+    try:
+        import torch
+        return torch.cuda.is_available()
+    except ImportError:
+        return False
+
+# Skip markers for platform-specific tests
+skip_on_windows = pytest.mark.skipif(is_windows(), reason="Test skipped on Windows")
+skip_without_cuda = pytest.mark.skipif(not has_cuda(), reason="Test requires CUDA")

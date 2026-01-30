@@ -83,9 +83,12 @@ class CoverageReporter:
             
             # Run tests to gather coverage data
             self.logger.info(f"Running tests: {test_command}")
+            # SECURITY FIX: Split command to avoid shell=True for security
+            import shlex
+            cmd_parts = shlex.split(test_command) if isinstance(test_command, str) else test_command
             result = subprocess.run(
-                test_command,
-                shell=True,
+                cmd_parts,
+                shell=False,
                 capture_output=True,
                 text=True,
                 cwd=self.project_root

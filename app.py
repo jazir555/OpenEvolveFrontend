@@ -40,7 +40,7 @@ def main():
     - No input validation
     """
     
-    print("\\n1. Content Analysis")
+    print("\n1. Content Analysis")
     print("-" * 20)
     
     # Analyze content
