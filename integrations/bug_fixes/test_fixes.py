@@ -43,18 +43,18 @@ def test_config_provider():
     print("[OK] ConfigProvider works correctly")
 
 
-def test_hephaestus_config_override():
-    """Test HephaestusConfigOverride"""
-    print("\n=== Testing HephaestusConfigOverride ===")
+def test_crewai_config_override():
+    """Test crewaiConfigOverride"""
+    print("\n=== Testing crewaiConfigOverride ===")
 
-    from integrations.bug_fixes import HephaestusConfigOverride
+    from integrations.bug_fixes import crewaiConfigOverride
 
-    override = HephaestusConfigOverride()
+    override = crewaiConfigOverride()
     config = override.get_fixed_config()
 
     # Check path fixes
     assert 'paths' in config, "Config should have 'paths' section"
-    assert config['paths']['worktree_base'] == './hephaestus_worktrees', \
+    assert config['paths']['worktree_base'] == './crewai_worktrees', \
         "worktree_base should be corrected"
     assert config['paths']['project_root'] == '.', \
         "project_root should be corrected"
@@ -66,7 +66,7 @@ def test_hephaestus_config_override():
     assert config['git']['main_repo_path'] == '.', \
         "main_repo_path should be corrected"
 
-    print("[OK] HephaestusConfigOverride works correctly")
+    print("[OK] crewaiConfigOverride works correctly")
     print(f"  - worktree_base: {config['paths']['worktree_base']}")
     print(f"  - project_root: {config['paths']['project_root']}")
     print(f"  - phases_folder: {config['paths']['phases_folder']}")
@@ -179,7 +179,7 @@ def test_all_fixes():
 
     try:
         test_config_provider()
-        test_hephaestus_config_override()
+        test_crewai_config_override()
         test_evolution_configuration_wrapper()
         test_adversarial_import_resolver()
 

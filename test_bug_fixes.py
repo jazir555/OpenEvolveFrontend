@@ -90,7 +90,7 @@ except Exception as e:
 # Test 3: Import all modules
 print("\n3. Testing all module imports...")
 try:
-    from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
+    from bubblelabs_crewai_bridge import BubbleLabsCREWAIBridge
     from bubblelabs_mcp_tools import create_bubblelabs_workflow
     from bubblelabs_analytics import BubbleLabsAnalytics
     from bubblelabs_typescript_export import BubbleLabsTypeScriptExporter

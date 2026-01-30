@@ -4,7 +4,7 @@ version: '3.8'
 # OpenEvolve Infrastructure - Phase 0 Foundation
 # =============================================================================
 # This docker-compose file sets up the core infrastructure services needed
-# for the Hephaestus → Vibe-Kanban migration and OpenEvolve operations.
+# for the crewai → Vibe-Kanban migration and OpenEvolve operations.
 #
 # Services:
 #   - Qdrant: Vector database for embeddings and semantic search
@@ -22,7 +22,7 @@ services:
   # Used for:
   #   - Storing embeddings for semantic search
   #   - Knowledge graph vectorization
-  #   - Hephaestus task memory
+  #   - crewai task memory
   # ===========================================================================
   qdrant:
     image: qdrant/qdrant:v1.11.0

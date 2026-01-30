@@ -1,7 +1,7 @@
 """
-Comprehensive Integration Test for OpenEvolve and Hephaestus
+Comprehensive Integration Test for OpenEvolve and CREWAI
 
-This module provides tests to verify the complete integration between OpenEvolve and Hephaestus:
+This module provides tests to verify the complete integration between OpenEvolve and CREWAI:
 1. Data structure compatibility
 2. API endpoint functionality
 3. Frontend component integration
@@ -23,20 +23,20 @@ from gauntlet_manager import GauntletManager
 from sgd_workflow_orchestrator import SGDWorkflowOrchestrator
 
 
-class TestOpenEvolveHephaestusIntegration:
+class TestOpenEvolveCrewAIIntegration:
     """
-    Comprehensive test suite for OpenEvolve-Hephaestus integration
+    Comprehensive test suite for OpenEvolve-CREWAI integration
     """
     
     def __init__(self):
-        self.hephaestus_api_base = "http://localhost:8002"
+        self.CREWAI_api_base = "http://localhost:8002"
         self.openevolve_api_base = "http://localhost:8000"
         self.session = requests.Session()
         self.session.headers.update({"Content-Type": "application/json"})
 
     def test_data_structures_compatibility(self):
         """
-        Test that data structures are compatible between OpenEvolve and Hephaestus
+        Test that data structures are compatible between OpenEvolve and CREWAI
         """
         print("Testing data structure compatibility...")
         
@@ -202,11 +202,11 @@ class TestOpenEvolveHephaestusIntegration:
         print("GauntletManager functionality verified ✓")
         return True
 
-    def test_hephaestus_api_endpoints(self):
+    def test_CREWAI_api_endpoints(self):
         """
-        Test Hephaestus API endpoints for OpenEvolve integration
+        Test CREWAI API endpoints for OpenEvolve integration
         """
-        print("Testing Hephaestus API endpoints...")
+        print("Testing CREWAI API endpoints...")
         
         try:
             # Test teams endpoints
@@ -229,14 +229,14 @@ class TestOpenEvolveHephaestusIntegration:
             }
             
             response = self.session.post(
-                f"{self.hephaestus_api_base}/openevolve/teams",
+                f"{self.CREWAI_api_base}/openevolve/teams",
                 json=team_data
             )
             assert response.status_code == 201 or response.status_code == 200, f"Failed to create team via API: {response.status_code}"
             print("  ✓ Team creation via API successful")
             
             # Get teams via API
-            response = self.session.get(f"{self.hephaestus_api_base}/openevolve/teams")
+            response = self.session.get(f"{self.CREWAI_api_base}/openevolve/teams")
             assert response.status_code == 200, f"Failed to get teams: {response.status_code}"
             teams_data = response.json()
             assert "teams" in teams_data, "Teams data not found in response"
@@ -261,34 +261,34 @@ class TestOpenEvolveHephaestusIntegration:
             }
             
             response = self.session.post(
-                f"{self.hephaestus_api_base}/openevolve/gauntlets",
+                f"{self.CREWAI_api_base}/openevolve/gauntlets",
                 json=gauntlet_data
             )
             assert response.status_code == 201 or response.status_code == 200, f"Failed to create gauntlet via API: {response.status_code}"
             print("  ✓ Gauntlet creation via API successful")
             
             # Get gauntlets via API
-            response = self.session.get(f"{self.hephaestus_api_base}/openevolve/gauntlets")
+            response = self.session.get(f"{self.CREWAI_api_base}/openevolve/gauntlets")
             assert response.status_code == 200, f"Failed to get gauntlets: {response.status_code}"
             gauntlets_data = response.json()
             assert "gauntlets" in gauntlets_data, "Gauntlets data not found in response"
             print("  ✓ Gauntlet listing via API successful")
             
             # Cleanup: delete created resources
-            response = self.session.delete(f"{self.hephaestus_api_base}/openevolve/teams/api-test-team")
+            response = self.session.delete(f"{self.CREWAI_api_base}/openevolve/teams/api-test-team")
             if response.status_code in [200, 404]:  # 404 means it was already deleted
                 print("  ✓ Team cleanup successful")
             
-            response = self.session.delete(f"{self.hephaestus_api_base}/openevolve/gauntlets/api-test-gauntlet")
+            response = self.session.delete(f"{self.CREWAI_api_base}/openevolve/gauntlets/api-test-gauntlet")
             if response.status_code in [200, 404]:  # 404 means it was already deleted
                 print("  ✓ Gauntlet cleanup successful")
             
-            print("Hephaestus API endpoints verified ✓")
+            print("CREWAI API endpoints verified ✓")
             return True
             
         except requests.exceptions.ConnectionError:
-            print("⚠ Hephaestus API not accessible - server may not be running")
-            print("  To run the server: python -m hephaestus.main")
+            print("⚠ CREWAI API not accessible - server may not be running")
+            print("  To run the server: python -m CREWAI.main")
             return False
         except Exception as e:
             print(f"✗ Error testing API endpoints: {e}")
@@ -296,7 +296,7 @@ class TestOpenEvolveHephaestusIntegration:
 
     def test_ticket_with_verification(self):
         """
-        Test creating a ticket with verification gauntlets in Hephaestus
+        Test creating a ticket with verification gauntlets in CREWAI
         """
         print("Testing ticket creation with verification...")
         
@@ -311,7 +311,7 @@ class TestOpenEvolveHephaestusIntegration:
             }
             
             response = self.session.post(
-                f"{self.hephaestus_api_base}/tickets/create",
+                f"{self.CREWAI_api_base}/tickets/create",
                 json=ticket_data
             )
             
@@ -332,7 +332,7 @@ class TestOpenEvolveHephaestusIntegration:
                     }
                     
                     update_response = self.session.post(
-                        f"{self.hephaestus_api_base}/tickets/update",
+                        f"{self.CREWAI_api_base}/tickets/update",
                         json=update_data
                     )
                     
@@ -340,7 +340,7 @@ class TestOpenEvolveHephaestusIntegration:
                         print("  ✓ Ticket solution content updated")
                         
                         # Get the updated ticket to verify verification status
-                        ticket_response = self.session.get(f"{self.hephaestus_api_base}/tickets/{ticket_id}")
+                        ticket_response = self.session.get(f"{self.CREWAI_api_base}/tickets/{ticket_id}")
                         if ticket_response.status_code == 200:
                             ticket = ticket_response.json().get("ticket")
                             if ticket:
@@ -350,7 +350,7 @@ class TestOpenEvolveHephaestusIntegration:
                                 # Clean up the ticket
                                 # Note: There's no delete endpoint in the current server, so we'll just update status
                                 cleanup_response = self.session.post(
-                                    f"{self.hephaestus_api_base}/tickets/update",
+                                    f"{self.CREWAI_api_base}/tickets/update",
                                     json={
                                         "ticket_id": ticket_id,
                                         "updates": {"status": "archived"}
@@ -367,8 +367,8 @@ class TestOpenEvolveHephaestusIntegration:
                 return False
                 
         except requests.exceptions.ConnectionError:
-            print("⚠ Hephaestus server not accessible - unable to test ticket functionality")
-            print("  To run the server: python -m hephaestus.main")
+            print("⚠ CREWAI server not accessible - unable to test ticket functionality")
+            print("  To run the server: python -m CREWAI.main")
             return False
         except Exception as e:
             print(f"✗ Error testing ticket functionality: {e}")
@@ -383,7 +383,7 @@ class TestOpenEvolveHephaestusIntegration:
         try:
             # Create orchestrator instance
             orchestrator = SGDWorkflowOrchestrator(
-                hephaestus_api_base=self.hephaestus_api_base,
+                CREWAI_api_base=self.CREWAI_api_base,
                 openevolve_api_base=self.openevolve_api_base
             )
             
@@ -428,14 +428,14 @@ class TestOpenEvolveHephaestusIntegration:
         Run all integration tests and return overall status
         """
         print("="*60)
-        print("OPENEVOLVE-HEPHAESTUS INTEGRATION TEST SUITE")
+        print("OPENEVOLVE-CREWAI INTEGRATION TEST SUITE")
         print("="*60)
         
         tests = [
             ("Data Structures Compatibility", self.test_data_structures_compatibility),
             ("Team Manager Functionality", self.test_team_manager_functionality),
             ("Gauntlet Manager Functionality", self.test_gauntlet_manager_functionality),
-            ("Hephaestus API Endpoints", self.test_hephaestus_api_endpoints),
+            ("CREWAI API Endpoints", self.test_CREWAI_api_endpoints),
             ("Ticket Verification Workflow", self.test_ticket_with_verification),
             ("SGD Workflow Orchestration", self.test_sgd_workflow_orchestration),
         ]
@@ -478,7 +478,7 @@ class TestOpenEvolveHephaestusIntegration:
         print(f"OVERALL INTEGRATION STATUS: {'SUCCESS' if overall_success else 'NEEDS ATTENTION'}")
         
         if failed == 0:
-            print("\n🎉 All integration tests passed! OpenEvolve and Hephaestus are fully integrated.")
+            print("\n🎉 All integration tests passed! OpenEvolve and CREWAI are fully integrated.")
         else:
             print(f"\n⚠ {failed} test(s) failed. Please review the output above and address any issues.")
         
@@ -489,7 +489,7 @@ def main():
     """
     Main function to run the integration tests
     """
-    tester = TestOpenEvolveHephaestusIntegration()
+    tester = TestOpenEvolveCrewAIIntegration()
     success = tester.run_all_tests()
     
     # Exit with appropriate code

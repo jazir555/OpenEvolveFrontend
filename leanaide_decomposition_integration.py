@@ -15,7 +15,7 @@ Architecture:
                           LeanSubProblemGenerator
                                   |
                                   v
-                          ROMA/Hephaestus Tickets
+                          ROMA/CREWAI Tickets
 
 Key Features:
 1. Mathematical structure identification (theorems, lemmas, definitions)
@@ -23,7 +23,7 @@ Key Features:
 3. Complexity estimation for formalization
 4. Lean 4 code generation via LeanAide client
 5. Integration with ROMA for recursive decomposition
-6. Hephaestus ticket creation for tracking
+6. CREWAI ticket creation for tracking
 7. Parallel formalization support
 8. Context-aware decomposition
 
@@ -226,7 +226,7 @@ class LeanSubProblem:
     context: str  # Previous definitions and theorems
     imports: List[str]  # Required Lean imports
     lean_code: Optional[str] = None  # Generated Lean code
-    verification_ticket: Optional[str] = None  # Hephaestus ticket ID
+    verification_ticket: Optional[str] = None  # CREWAI ticket ID
     status: LeanProofStatus = LeanProofStatus.PENDING
 
     def to_subproblem(self) -> "SubProblem":
@@ -1063,23 +1063,23 @@ class LeanSubProblemGenerator:
     Generates SubProblems for Lean 4 formalization workflow.
 
     Takes decomposition plans and converts them into SubProblem objects
-    that can be processed by the workflow engine, ROMA, and Hephaestus.
+    that can be processed by the workflow engine, ROMA, and CREWAI.
     """
 
     def __init__(
         self,
         leanaide_client: Optional["LeanAideClient"] = None,
-        enable_hephaestus: bool = True
+        enable_CREWAI: bool = True
     ):
         """
         Initialize sub-problem generator.
 
         Args:
             leanaide_client: Optional LeanAide client for code generation
-            enable_hephaestus: Whether to create Hephaestus tickets
+            enable_CREWAI: Whether to create CREWAI tickets
         """
         self.leanaide_client = leanaide_client
-        self.enable_hephaestus = enable_hephaestus
+        self.enable_CREWAI = enable_CREWAI
         self.logger = logging.getLogger(__name__)
 
     async def generate_lean_subproblems(

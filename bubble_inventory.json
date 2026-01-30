@@ -161,12 +161,12 @@
       "full_path": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\hello-world.ts"
     },
     {
-      "name": "HephaestusBubble",
-      "path": "packages\\bubble-core\\src\\bubbles\\service-bubble\\hephaestus-bubble.ts",
+      "name": "crewaiBubble",
+      "path": "packages\\bubble-core\\src\\bubbles\\service-bubble\\crewai-bubble.ts",
       "operations": 33,
       "has_tests": false,
       "subcategory": "Service",
-      "full_path": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\hephaestus-bubble.ts"
+      "full_path": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\packages\\bubble-core\\src\\bubbles\\service-bubble\\crewai-bubble.ts"
     },
     {
       "name": "HttpBubble",
@@ -457,12 +457,12 @@
       "full_path": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\integrations\\openevolve\\service-bubbles\\gmail-bubble.ts"
     },
     {
-      "name": "HephaestusBubble",
-      "path": "integrations\\openevolve\\service-bubbles\\hephaestus-bubble.ts",
+      "name": "crewaiBubble",
+      "path": "integrations\\openevolve\\service-bubbles\\crewai-bubble.ts",
       "operations": 15,
       "has_tests": false,
       "subcategory": "Service",
-      "full_path": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\integrations\\openevolve\\service-bubbles\\hephaestus-bubble.ts"
+      "full_path": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\BubbleLab\\integrations\\openevolve\\service-bubbles\\crewai-bubble.ts"
     },
     {
       "name": "HttpBubble",

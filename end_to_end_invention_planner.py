@@ -134,12 +134,12 @@ try:
     from invention_planner_integrations import (
         InventionPlannerIntegrations,
         BubbleLabsIntegration,
-        HephaestusIntegration,
+        CrewAIIntegration,
         SovereignIntegration,
         MultiStrategyDecomposition,
         SteerIntegration,
         BUBBLELABS_AVAILABLE,
-        HEPHAESTUS_AVAILABLE,
+        CREWAI_AVAILABLE,
         SOVEREIGN_AVAILABLE,
         CLAUDIOMIRO_AVAILABLE,
         DATAPIZZA_AVAILABLE,
@@ -474,18 +474,18 @@ class EndToEndInventionPlanner:
         # Stage 4: Formalize all math
         stage_start = time.time()
 
-        # Phase 4 Integration: Delegate to Hephaestus if available
-        if self.enable_integrations and self.integrations and self.integrations.hephaestus:
-            logger.info("Delegating math formalization to Hephaestus...")
+        # Phase 4 Integration: Delegate to CREWAI if available
+        if self.enable_integrations and self.integrations and self.integrations.CREWAI:
+            logger.info("Delegating math formalization to CREWAI...")
             equations = self._extract_equations(goal, knowledge)
-            delegation_result = await self.integrations.hephaestus.delegate_math_formalization(
+            delegation_result = await self.integrations.CREWAI.delegate_math_formalization(
                 equations=equations,
                 domain=domain,
                 workflow_id=workflow_id
             )
             if delegation_result.success:
                 formalized_math = self._parse_delegated_math(delegation_result.result)
-                logger.info(f"Hephaestus formalized {len(formalized_math)} equations")
+                logger.info(f"CREWAI formalized {len(formalized_math)} equations")
             else:
                 formalized_math = await self._formalize_math(goal, decomposition, knowledge)
         else:
@@ -511,17 +511,17 @@ class EndToEndInventionPlanner:
         # Stage 6: Analyze all error sources
         stage_start = time.time()
 
-        # Phase 4 Integration: Delegate to Hephaestus
-        if self.enable_integrations and self.integrations and self.integrations.hephaestus:
-            logger.info("Delegating error analysis to Hephaestus...")
-            delegation_result = await self.integrations.hephaestus.delegate_error_analysis(
+        # Phase 4 Integration: Delegate to CREWAI
+        if self.enable_integrations and self.integrations and self.integrations.CREWAI:
+            logger.info("Delegating error analysis to CREWAI...")
+            delegation_result = await self.integrations.CREWAI.delegate_error_analysis(
                 decomposition=decomposition,
                 domain=domain,
                 workflow_id=workflow_id
             )
             if delegation_result.success:
                 error_sources = self._parse_delegated_errors(delegation_result.result)
-                logger.info(f"Hephaestus identified {len(error_sources)} error sources")
+                logger.info(f"CREWAI identified {len(error_sources)} error sources")
             else:
                 error_sources = await self._analyze_error_sources(goal, decomposition, knowledge)
         else:
@@ -537,10 +537,10 @@ class EndToEndInventionPlanner:
         # Stage 7: Red/blue team testing
         stage_start = time.time()
 
-        # Phase 4 Integration: Delegate red team to Hephaestus
-        if self.enable_integrations and self.integrations and self.integrations.hephaestus:
-            logger.info("Delegating red team testing to Hephaestus...")
-            delegation_result = await self.integrations.hephaestus.delegate_red_team_test(
+        # Phase 4 Integration: Delegate red team to CREWAI
+        if self.enable_integrations and self.integrations and self.integrations.CREWAI:
+            logger.info("Delegating red team testing to CREWAI...")
+            delegation_result = await self.integrations.CREWAI.delegate_red_team_test(
                 sop={"goal": goal.__dict__, "decomposition": decomposition},
                 goal=goal.target,
                 workflow_id=workflow_id
@@ -548,7 +548,7 @@ class EndToEndInventionPlanner:
             if delegation_result.success:
                 red_findings = delegation_result.result
                 blue_fixes = await self._generate_blue_fixes(red_findings)
-                logger.info(f"Hephaestus found {len(red_findings)} vulnerabilities")
+                logger.info(f"CREWAI found {len(red_findings)} vulnerabilities")
             else:
                 red_findings, blue_fixes = await self._red_blue_team_test(goal, decomposition, error_sources)
         else:

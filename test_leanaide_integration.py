@@ -4,7 +4,7 @@ Comprehensive Integration Tests for LeanAide
 This test suite provides comprehensive testing for LeanAide integration including:
 - Client connection and health checks
 - All 8 MCP tools
-- Hephaestus bridge phases (6 phases)
+- CREWAI bridge phases (6 phases)
 - Workflow stage integration (Stage 3C, Stage 5)
 - Error handling and edge cases
 - Performance and caching
@@ -78,7 +78,7 @@ else:
 
 try:
     from leanaide_crewai_bridge import (
-        LeanAideHephaestusBridge,
+        LeanAideCREWAIBridge,
         LeanAideClient as BridgeClient,
         LeanAideConfig as BridgeConfig,
         LeanAideResult as BridgeResult,
@@ -87,7 +87,7 @@ try:
         MathematicalDomain,
         ExecutionMode,
         VerificationStatus,
-        HephaestusTicket,
+        CREWAITicket,
         analyze_and_verify_math_problem,
         run_sync
     )
@@ -688,7 +688,7 @@ class TestMCPTool8_GetStatus:
 
 
 # =============================================================================
-# UNIT TESTS: HEPHAESTUS BRIDGE PHASES (6 PHASES)
+# UNIT TESTS: CREWAI BRIDGE PHASES (6 PHASES)
 # =============================================================================
 
 @mark.unit
@@ -699,7 +699,7 @@ class TestMathematicalProblemDetector:
     def detector(self):
         """Create detector instance."""
         if not BRIDGE_AVAILABLE:
-            pytest.skip("Hephaestus bridge not available")
+            pytest.skip("CREWAI bridge not available")
         return MathematicalProblemDetector()
 
     def test_detect_mathematical_content_true(self, detector):
@@ -745,10 +745,10 @@ class TestBridgePhase1_Analysis:
     async def test_phase1_with_math_content(self):
         """Test Phase 1 with mathematical content."""
         if not BRIDGE_AVAILABLE:
-            pytest.skip("Hephaestus bridge not available")
+            pytest.skip("CREWAI bridge not available")
 
         config = BridgeConfig(enable_tickets=False)
-        bridge = LeanAideHephaestusBridge(config)
+        bridge = LeanAideCREWAIBridge(config)
 
         result = await bridge.execute_phase_1_analysis(
             "Prove that there are infinitely many prime numbers"
@@ -763,10 +763,10 @@ class TestBridgePhase1_Analysis:
     async def test_phase1_without_math_content(self):
         """Test Phase 1 without mathematical content."""
         if not BRIDGE_AVAILABLE:
-            pytest.skip("Hephaestus bridge not available")
+            pytest.skip("CREWAI bridge not available")
 
         config = BridgeConfig(enable_tickets=False)
-        bridge = LeanAideHephaestusBridge(config)
+        bridge = LeanAideCREWAIBridge(config)
 
         result = await bridge.execute_phase_1_analysis(
             "The weather is nice today"
@@ -785,10 +785,10 @@ class TestBridgePhase2_Translate:
     async def test_phase2_translation(self):
         """Test Phase 2 translation."""
         if not BRIDGE_AVAILABLE:
-            pytest.skip("Hephaestus bridge not available")
+            pytest.skip("CREWAI bridge not available")
 
         config = BridgeConfig(enable_tickets=False, enable_verification=False)
-        bridge = LeanAideHephaestusBridge(config)
+        bridge = LeanAideCREWAIBridge(config)
 
         # Mock translation result
         with patch.object(bridge.client, 'translate_to_lean') as mock_translate:
@@ -814,10 +814,10 @@ class TestBridgePhase3_Verify:
     async def test_phase3_verification(self):
         """Test Phase 3 verification."""
         if not BRIDGE_AVAILABLE:
-            pytest.skip("Hephaestus bridge not available")
+            pytest.skip("CREWAI bridge not available")
 
         config = BridgeConfig(enable_tickets=False, enable_verification=False)
-        bridge = LeanAideHephaestusBridge(config)
+        bridge = LeanAideCREWAIBridge(config)
 
         result = await bridge.execute_phase_3_verify(
             lean_code="theorem test : True := by trivial"
@@ -835,10 +835,10 @@ class TestBridgePhase4_ProofCheck:
     async def test_phase4_proof_check_complete(self):
         """Test Phase 4 with complete proof."""
         if not BRIDGE_AVAILABLE:
-            pytest.skip("Hephaestus bridge not available")
+            pytest.skip("CREWAI bridge not available")
 
         config = BridgeConfig(enable_tickets=False, enable_verification=False)
-        bridge = LeanAideHephaestusBridge(config)
+        bridge = LeanAideCREWAIBridge(config)
 
         result = await bridge.execute_phase_4_proof_check(
             lean_code="theorem test : True := by trivial",
@@ -853,10 +853,10 @@ class TestBridgePhase4_ProofCheck:
     async def test_phase4_proof_check_with_sorry(self):
         """Test Phase 4 detection of sorry placeholders."""
         if not BRIDGE_AVAILABLE:
-            pytest.skip("Hephaestus bridge not available")
+            pytest.skip("CREWAI bridge not available")
 
         config = BridgeConfig(enable_tickets=False, enable_verification=False)
-        bridge = LeanAideHephaestusBridge(config)
+        bridge = LeanAideCREWAIBridge(config)
 
         result = await bridge.execute_phase_4_proof_check(
             lean_code="theorem test : True := by sorry",
@@ -876,10 +876,10 @@ class TestBridgePhase5_FormalVerification:
     async def test_phase5_strict_verification(self):
         """Test Phase 5 with strict verification."""
         if not BRIDGE_AVAILABLE:
-            pytest.skip("Hephaestus bridge not available")
+            pytest.skip("CREWAI bridge not available")
 
         config = BridgeConfig(enable_tickets=False, enable_verification=False)
-        bridge = LeanAideHephaestusBridge(config)
+        bridge = LeanAideCREWAIBridge(config)
 
         result = await bridge.execute_phase_5_formal_verification(
             lean_code="theorem test : True := by trivial",
@@ -898,10 +898,10 @@ class TestBridgePhase6_KnowledgeExtraction:
     async def test_phase6_extraction(self):
         """Test Phase 6 knowledge extraction."""
         if not BRIDGE_AVAILABLE:
-            pytest.skip("Hephaestus bridge not available")
+            pytest.skip("CREWAI bridge not available")
 
         config = BridgeConfig(enable_tickets=False)
-        bridge = LeanAideHephaestusBridge(config)
+        bridge = LeanAideCREWAIBridge(config)
 
         lean_code = """
 theorem test_theorem : True := by trivial
@@ -936,14 +936,14 @@ class TestFullWorkflowIntegration:
     async def test_full_6_phase_workflow(self):
         """Test complete 6-phase workflow."""
         if not BRIDGE_AVAILABLE:
-            pytest.skip("Hephaestus bridge not available")
+            pytest.skip("CREWAI bridge not available")
 
         config = BridgeConfig(
             enable_tickets=False,
             enable_verification=False,
             enable_caching=True
         )
-        bridge = LeanAideHephaestusBridge(config)
+        bridge = LeanAideCREWAIBridge(config)
 
         problem = "Prove that there are infinitely many prime numbers"
 
@@ -968,10 +968,10 @@ class TestFullWorkflowIntegration:
     async def test_workflow_with_non_mathematical_content(self):
         """Test workflow behavior with non-mathematical content."""
         if not BRIDGE_AVAILABLE:
-            pytest.skip("Hephaestus bridge not available")
+            pytest.skip("CREWAI bridge not available")
 
         config = BridgeConfig(enable_tickets=False, enable_caching=True)
-        bridge = LeanAideHephaestusBridge(config)
+        bridge = LeanAideCREWAIBridge(config)
 
         result = await bridge.execute_full_workflow(
             "This is just regular text without mathematics"
@@ -1197,7 +1197,7 @@ class TestLeanAideIntegrationSuite:
     This suite organizes all tests into logical groups:
     1. Client Connection Tests
     2. MCP Tool Tests (8 tools)
-    3. Hephaestus Bridge Tests (6 phases)
+    3. CREWAI Bridge Tests (6 phases)
     4. Integration Tests
     5. Error Handling Tests
     6. Performance Tests

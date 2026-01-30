@@ -117,8 +117,8 @@ except Exception as e:
     import traceback
     traceback.print_exc()
 
-# Test 4: ACE Hephaestus Bridge Skillbook Growth (RL-4)
-print('\n[TEST 4] ACE Hephaestus Bridge Skillbook Growth (RL-4)')
+# Test 4: ACE CREWAI Bridge Skillbook Growth (RL-4)
+print('\n[TEST 4] ACE CREWAI Bridge Skillbook Growth (RL-4)')
 print('-' * 80)
 
 try:
@@ -329,7 +329,7 @@ classes_to_test = [
     ('ace_analytics', 'TeamPerformanceTracker'),
     ('ace_analytics', 'GauntletEffectivenessAnalyzer'),
     ('ace_analytics', 'SolutionPatternMiner'),
-    ('ace_hephaestus_bridge', 'ACECrewAIWorkflowBridge'),
+    ('ace_CREWAI_bridge', 'ACECrewAIWorkflowBridge'),
     ('ace_workflow_knowledge_extractor', 'WorkflowKnowledgeExtractor'),
 ]
 

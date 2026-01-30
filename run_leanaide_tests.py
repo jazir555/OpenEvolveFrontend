@@ -144,7 +144,7 @@ def build_pytest_command(args):
         cmd.extend([
             "--cov=leanaide_client",
             "--cov=leanaide_mcp_tools",
-            "--cov=leanaide_hephaestus_bridge",
+            "--cov=leanaide_CREWAI_bridge",
             "--cov-report=html",
             "--cov-report=term-missing"
         ])

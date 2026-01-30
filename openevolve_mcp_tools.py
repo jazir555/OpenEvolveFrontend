@@ -1,7 +1,7 @@
 """
-OpenEvolve MCP Tools for Hephaestus Agents
+OpenEvolve MCP Tools for CREWAI Agents
 
-This module provides Model Context Protocol (MCP) tools that Hephaestus agents
+This module provides Model Context Protocol (MCP) tools that CREWAI agents
 can use to call OpenEvolve's evolutionary coding capabilities.
 
 IMPORTANT: OpenEvolve is an evolutionary coding agent that optimizes code through
@@ -15,7 +15,7 @@ OpenEvolve API:
 - evolve_code() - Evolve arbitrary code
 
 Architecture:
-    Hephaestus Agent → MCP Tool → OpenEvolve API → Optimized Code
+    CREWAI Agent → MCP Tool → OpenEvolve API → Optimized Code
 """
 
 import json
@@ -88,7 +88,7 @@ def evolve_code_with_openevolve(
     """
     Evolve/optimize code using OpenEvolve's evolutionary algorithm.
 
-    This tool is used by Hephaestus agents to optimize code segments
+    This tool is used by CREWAI agents to optimize code segments
     through iterative LLM-based mutations.
 
     Args:
@@ -164,7 +164,7 @@ def evolve_function_with_openevolve(
     """
     Evolve a Python function based on test cases using OpenEvolve.
 
-    This tool is used by Hephaestus agents to optimize specific functions
+    This tool is used by CREWAI agents to optimize specific functions
     through test-driven evolution.
 
     Args:
@@ -240,7 +240,7 @@ def optimize_algorithm_with_openevolve(
     """
     Evolve an algorithm class using OpenEvolve with a custom benchmark.
 
-    This tool is used by Hephaestus agents to discover optimized algorithms
+    This tool is used by CREWAI agents to discover optimized algorithms
     through evolutionary search.
 
     Args:
@@ -317,7 +317,7 @@ def discover_algorithm_with_openevolve(
     """
     Use OpenEvolve to discover novel algorithms for a problem.
 
-    This tool is used by Hephaestus agents to perform algorithm discovery
+    This tool is used by CREWAI agents to perform algorithm discovery
     through open-ended evolutionary search.
 
     Args:
@@ -390,7 +390,7 @@ def optimize_prompt_with_openevolve(
     """
     Evolve a prompt using OpenEvolve for better LLM performance.
 
-    This tool is used by Hephaestus agents to optimize prompts
+    This tool is used by CREWAI agents to optimize prompts
     through evolutionary search.
 
     Args:

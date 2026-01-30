@@ -1,12 +1,12 @@
 """
-ACE (Agentic Context Engine) MCP Tools for Hephaestus Integration
+ACE (Agentic Context Engine) MCP Tools for CREWAI Integration
 SECURITY HARDENED VERSION - All 156 fixes applied
 
-This module provides Model Context Protocol (MCP) tools that enable Hephaestus
+This module provides Model Context Protocol (MCP) tools that enable CREWAI
 agents to leverage ACE's self-improving capabilities with comprehensive security,
 thread safety, and resource management.
 
-Architecture: Hephaestus (Orchestrator) -> ACE (Learning Layer) -> LLM Providers
+Architecture: CREWAI (Orchestrator) -> ACE (Learning Layer) -> LLM Providers
 
 Security Features:
 - Path traversal prevention

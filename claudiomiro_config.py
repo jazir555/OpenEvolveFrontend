@@ -2,10 +2,10 @@
 Claudiomiro Configuration System
 
 This module provides comprehensive configuration classes for Claudiomiro integration
-at every stage of the Hephaestus workflow.
+at every stage of the CREWAI workflow.
 
 Architecture:
-    HephaestusConfig (Top-level)
+    CREWAIConfig (Top-level)
         ├── ClaudiomiroPhase1Config (Problem Setup)
         ├── ClaudiomiroPhase2Config (Solution Generation)
         ├── ClaudiomiroPhase3Config (Adversarial Critique)
@@ -348,9 +348,9 @@ class ClaudiomiroMultiRepoConfig:
 # =============================================================================
 
 @dataclass
-class HephaestusClaudiomiroConfig:
+class CREWAIClaudiomiroConfig:
     """
-    Complete configuration for Hephaestus workflow with Claudiomiro
+    Complete configuration for CREWAI workflow with Claudiomiro
 
     This is the top-level configuration that encompasses all phases.
     """
@@ -429,14 +429,14 @@ class ClaudiomiroConfigBuilder:
     """Builder pattern for creating Claudiomiro configurations"""
 
     @staticmethod
-    def default() -> HephaestusClaudiomiroConfig:
+    def default() -> CREWAIClaudiomiroConfig:
         """Create default configuration"""
-        return HephaestusClaudiomiroConfig()
+        return CREWAIClaudiomiroConfig()
 
     @staticmethod
-    def autonomous_development() -> HephaestusClaudiomiroConfig:
+    def autonomous_development() -> CREWAIClaudiomiroConfig:
         """Create configuration for autonomous development"""
-        config = HephaestusClaudiomiroConfig()
+        config = CREWAIClaudiomiroConfig()
         config.phase2.development_mode = "autonomous"
         config.phase2.enable_implementation = True
         config.phase2.enable_testing = True
@@ -444,17 +444,17 @@ class ClaudiomiroConfigBuilder:
         return config
 
     @staticmethod
-    def assisted_development() -> HephaestusClaudiomiroConfig:
+    def assisted_development() -> CREWAIClaudiomiroConfig:
         """Create configuration for assisted development"""
-        config = HephaestusClaudiomiroConfig()
+        config = CREWAIClaudiomiroConfig()
         config.phase2.development_mode = "assisted"
         config.phase2.max_cycles = 10
         return config
 
     @staticmethod
-    def multi_repo() -> HephaestusClaudiomiroConfig:
+    def multi_repo() -> CREWAIClaudiomiroConfig:
         """Create configuration for multi-repo project"""
-        config = HephaestusClaudiomiroConfig()
+        config = CREWAIClaudiomiroConfig()
         config.multi_repo = ClaudiomiroMultiRepoConfig(
             backend_type="python",
             frontend_type="react",
@@ -487,7 +487,7 @@ class ClaudiomiroConfigBuilder:
         return config_class(**kwargs)
 
     @staticmethod
-    def from_dict(config_dict: Dict[str, Any]) -> HephaestusClaudiomiroConfig:
+    def from_dict(config_dict: Dict[str, Any]) -> CREWAIClaudiomiroConfig:
         """Create configuration from dictionary"""
         # Extract phase configs if present
         phase_configs = {}
@@ -510,7 +510,7 @@ class ClaudiomiroConfigBuilder:
             multi_repo_config = ClaudiomiroMultiRepoConfig(**config_dict['multi_repo'])
 
         # Create main config
-        config = HephaestusClaudiomiroConfig(**{k: v for k, v in config_dict.items()
+        config = CREWAIClaudiomiroConfig(**{k: v for k, v in config_dict.items()
                                                   if k not in [f'phase{i}' for i in range(1, 7)] and k != 'multi_repo'})
 
         # Apply phase configs
@@ -531,9 +531,9 @@ class ClaudiomiroConfigPresets:
     """Pre-configured settings for common use cases"""
 
     @staticmethod
-    def rapid_prototyping() -> HephaestusClaudiomiroConfig:
+    def rapid_prototyping() -> CREWAIClaudiomiroConfig:
         """Rapid prototyping - quick development, minimal checks"""
-        config = HephaestusClaudiomiroConfig()
+        config = CREWAIClaudiomiroConfig()
 
         config.phase1.planning_depth = "quick"
         config.phase1.max_files_to_analyze = 20
@@ -553,9 +553,9 @@ class ClaudiomiroConfigPresets:
         return config
 
     @staticmethod
-    def production_ready() -> HephaestusClaudiomiroConfig:
+    def production_ready() -> CREWAIClaudiomiroConfig:
         """Production ready - comprehensive checks, testing, documentation"""
-        config = HephaestusClaudiomiroConfig()
+        config = CREWAIClaudiomiroConfig()
 
         config.phase1.planning_depth = "detailed"
         config.phase1.max_files_to_analyze = 100
@@ -587,9 +587,9 @@ class ClaudiomiroConfigPresets:
         return config
 
     @staticmethod
-    def security_focused() -> HephaestusClaudiomiroConfig:
+    def security_focused() -> CREWAIClaudiomiroConfig:
         """Security focused - emphasis on security analysis and best practices"""
-        config = HephaestusClaudiomiroConfig()
+        config = CREWAIClaudiomiroConfig()
 
         config.phase2.enable_linting = True
         config.phase2.linter = "bandit"  # Python security linter
@@ -606,9 +606,9 @@ class ClaudiomiroConfigPresets:
         return config
 
     @staticmethod
-    def testing_focused() -> HephaestusClaudiomiroConfig:
+    def testing_focused() -> CREWAIClaudiomiroConfig:
         """Testing focused - emphasis on test generation and quality"""
-        config = HephaestusClaudiomiroConfig()
+        config = CREWAIClaudiomiroConfig()
 
         config.phase2.enable_testing = True
         config.phase2.test_framework = "pytest"
@@ -628,9 +628,9 @@ class ClaudiomiroConfigPresets:
         return config
 
     @staticmethod
-    def minimal_resource_usage() -> HephaestusClaudiomiroConfig:
+    def minimal_resource_usage() -> CREWAIClaudiomiroConfig:
         """Minimal resource usage - single cycle, no extra features"""
-        config = HephaestusClaudiomiroConfig()
+        config = CREWAIClaudiomiroConfig()
 
         config.phase1.enable_planning_mode = False
         config.phase1.enable_codebase_analysis = False

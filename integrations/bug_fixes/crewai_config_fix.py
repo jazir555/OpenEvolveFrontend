@@ -6,7 +6,7 @@ Uses YAML override pattern to provide corrected configuration.
 
 Bug Fixed:
 - phases_folder: ./example_workflows/crackme_solving → ./example_workflows/prd_to_software
-- worktree_base: /tmp/hephaestus_worktrees → ./hephaestus_worktrees
+- worktree_base: /tmp/crewai_worktrees → ./crewai_worktrees
 - project_root: /tmp/test_3gaur34 → .
 - main_repo_path: /tmp/test_3gaur34 → .
 
@@ -41,7 +41,7 @@ class CrewAIConfigOverride:
     # Path corrections (core paths → fixed paths)
     PATH_FIXES = {
         'phases_folder': './example_workflows/prd_to_software',
-        'worktree_base': './hephaestus_worktrees',
+        'worktree_base': './crewai_worktrees',
         'project_root': '.',
     }
 
@@ -59,9 +59,9 @@ class CrewAIConfigOverride:
         if config_path is None:
             # Auto-detect CrewAI config
             possible_paths = [
-                './Hephaestus/crewai_config.yaml',
-                '../Hephaestus/crewai_config.yaml',
-                '../../Hephaestus/crewai_config.yaml',
+                './crewai/crewai_config.yaml',
+                '../crewai/crewai_config.yaml',
+                '../../crewai/crewai_config.yaml',
             ]
             for path in possible_paths:
                 if os.path.exists(path):

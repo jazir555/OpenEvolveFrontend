@@ -28,7 +28,7 @@ print("=" * 70)
 print("\n1. Initializing OpenEvolve Workflow Manager...")
 manager = OpenEvolveWorkflowManager(
     analytics_db_path='demo_openevolve_analytics.db',
-    enable_hephaestus=False  # Disable for demo
+    enable_CREWAI=False  # Disable for demo
 )
 print("   ✓ Manager initialized")
 
@@ -112,7 +112,7 @@ print("\n" + "=" * 70)
 print("Demo Complete!")
 print("=" * 70)
 print("\nNext Steps:")
-print("1. Enable Hephaestus integration for project management")
+print("1. Enable CREWAI integration for project management")
 print("2. Use MCP tools for external agent control")
 print("3. Integrate with BubbleLabs UI for visual workflow design")
 print("4. Explore other workflow templates")

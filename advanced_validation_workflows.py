@@ -1,5 +1,5 @@
 """
-Advanced Validation Workflows for Hephaestus Integration with OpenEvolve
+Advanced Validation Workflows for CREWAI Integration with OpenEvolve
 
 This module implements advanced validation workflows including:
 - Multi-stage validation with cascading gauntlets
@@ -856,7 +856,7 @@ async def example_usage():
     result = await validation_manager.run_cascading_validation(
         content=sample_content,
         content_type="code_python",
-        context={"source": "hephaestus_ticket", "priority": "high"},
+        context={"source": "CREWAI_ticket", "priority": "high"},
         workflow_id="sgdw-workflow-123",
         ticket_id="ticket-456"
     )

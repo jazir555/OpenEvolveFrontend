@@ -2,7 +2,7 @@
 RAGBits Agents Module
 
 Provides agent coordination and A2A protocol integration for workflow teams.
-Bridges RAGBits agent framework with Hephaestus LLM management.
+Bridges RAGBits agent framework with CREWAI LLM management.
 """
 
 from ragbits_integration.agents.base_agent import BaseWorkflowAgent

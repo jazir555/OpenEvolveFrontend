@@ -1,8 +1,8 @@
 """
 Production-Ready Tripartite System for OpenEvolve
 
-MIGRATION NOTICE: Hephaestus (AGPL) → CrewAI (MIT)
-This module has been migrated from Hephaestus to CrewAI orchestration.
+MIGRATION NOTICE: CrewAI (AGPL) → CrewAI (MIT)
+This module has been migrated from crewai # MIGRATED: was CrewAI to CrewAI orchestration.
 
 This module provides a robust, production-ready implementation of the ACE + Steer + LangChain tripartite system.
 
@@ -448,7 +448,7 @@ class ProductionTripartiteSystem:
                 f"{self.config.ace_steer['default_agent_id']}.json"
             )
         )
-        self.steer_workflow = SteerHephaestusWorkflowBridge()
+        self.steer_workflow = SteerCrewAIWorkflowBridge()
         
         # Initialize metrics
         self._execution_count = 0

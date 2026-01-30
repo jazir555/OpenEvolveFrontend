@@ -27,7 +27,7 @@ from langchain_chroma_integration import (
 
 # Import individual components for isolated testing
 from ace_steer_integration import AceSteerBridge
-from steer_crewai_bridge # MIGRATED import SteerHephaestusWorkflowBridge
+from steer_crewai_bridge # MIGRATED import SteerCrewAIWorkflowBridge
 
 class TestTripartiteIntegration:
     """Comprehensive test suite for the tripartite system."""
@@ -428,7 +428,7 @@ from langchain_chroma_integration import (
 
 # Import individual components for isolated testing
 from ace_steer_integration import AceSteerBridge
-from steer_crewai_bridge # MIGRATED import SteerHephaestusWorkflowBridge
+from steer_crewai_bridge # MIGRATED import SteerCrewAIWorkflowBridge
 
 class TestTripartiteIntegration:
     """Comprehensive test suite for the tripartite system."""

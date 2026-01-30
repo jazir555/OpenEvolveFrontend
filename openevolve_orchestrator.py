@@ -2067,7 +2067,7 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
             
             if approval_status == "approved":
                 workflow_state.decomposition_plan = approved_plan
-                workflow_state.current_stage = "Delegate to Hephaestus"
+                workflow_state.current_stage = "Delegate to CREWAI"
                 workflow_state.status = "running"
                 st.success("Plan approved. Resuming workflow...")
                 st.rerun() # Rerun to continue the workflow engine
@@ -2089,20 +2089,20 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
         st.progress(workflow_state.progress)
         st.info(f"Status: {workflow_state.status.capitalize()}")
 
-        # Enhanced monitoring for Hephaestus workflow
-        if workflow_state.current_stage == "Monitoring" and workflow_state.hephaestus_workflow_id:
-            st.subheader("🔄 Hephaestus Workflow Monitoring")
+        # Enhanced monitoring for CREWAI workflow
+        if workflow_state.current_stage == "Monitoring" and workflow_state.crewai_workflow_id:
+            st.subheader("🔄 CREWAI Workflow Monitoring")
             
-            # Display Hephaestus workflow ID
-            st.markdown(f"**Hephaestus Workflow ID**: `{workflow_state.hephaestus_workflow_id}`")
+            # Display CREWAI workflow ID
+            st.markdown(f"**CREWAI Workflow ID**: `{workflow_state.crewai_workflow_id}`")
             
-            # Add Hephaestus client to check workflow status
+            # Add CREWAI client to check workflow status
             try:
-                from crewai_client import HephaestusClient
-                client = HephaestusClient()
+                from crewai_client import CrewAIClient
+                client = CrewAIClient()
                 
                 # Get workflow tickets
-                tickets = client.get_workflow_tickets(workflow_state.hephaestus_workflow_id)
+                tickets = client.get_workflow_tickets(workflow_state.crewai_workflow_id)
                 
                 if tickets:
                     # Display ticket summary
@@ -2153,11 +2153,11 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
                         st.rerun()
                         
                 else:
-                    st.info("Waiting for Hephaestus to initialize workflow tickets...")
+                    st.info("Waiting for CREWAI to initialize workflow tickets...")
                     st.rerun()
                     
             except Exception as e:
-                st.warning(f"Could not connect to Hephaestus: {e}")
+                st.warning(f"Could not connect to CREWAI: {e}")
                 if st.button("🔄 Retry Connection"):
                     st.rerun()
 

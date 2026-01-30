@@ -1,7 +1,7 @@
 """
-Claudiomiro MCP Tools for Hephaestus Integration
+Claudiomiro MCP Tools for CREWAI Integration
 
-This module provides Model Context Protocol (MCP) tools that enable Hephaestus
+This module provides Model Context Protocol (MCP) tools that enable CREWAI
 agents to leverage Claudiomiro's autonomous development capabilities.
 
 Claudiomiro is an AI-powered development CLI that:
@@ -11,7 +11,7 @@ Claudiomiro is an AI-powered development CLI that:
 - Runs tasks in parallel using DAG execution
 - Provides production-ready code with automatic testing
 
-Architecture: Hephaestus (Orchestrator) -> Claudiomiro (Autonomous Development)
+Architecture: CREWAI (Orchestrator) -> Claudiomiro (Autonomous Development)
 """
 
 from typing import Any, Dict, List, Optional, Union

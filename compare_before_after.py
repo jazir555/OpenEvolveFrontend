@@ -2,8 +2,8 @@
 """
 Before/After Comparison Script
 
-MIGRATION NOTICE: Hephaestus (AGPL) → CrewAI (MIT)
-This module has been migrated from Hephaestus to CrewAI orchestration.
+MIGRATION NOTICE: crewai (AGPL) → CrewAI (MIT)
+This module has been migrated from crewai to CrewAI orchestration.
 
 This script compares the codebase before and after the migration to
 CrewAI orchestration, showing metrics on code reduction, duplication
@@ -111,7 +111,7 @@ def analyze_batch1_files() -> Dict[str, int]:
         'openevolve_orchestrator.py',
         'decomposition_engine.py',
         'leanaide_client.py',
-        'hephaestus_integration.py',
+        'crewai_integration.py',
         'generic_maker_integration.py',
         'evolution_maker_integration.py',
         'adversarial_maker_integration.py'

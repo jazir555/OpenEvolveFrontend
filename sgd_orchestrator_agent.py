@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 SGD (Sovereign-Grade Decomposition) Orchestrator Agent
-Connects OpenEvolve's structured decomposition workflow with Hephaestus' adaptive agentic framework
+Connects OpenEvolve's structured decomposition workflow with CrewAI' adaptive agentic framework
 """
 import asyncio
 import logging
@@ -18,10 +18,10 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class WorkflowSynchronization:
-    """Represents synchronization state between OpenEvolve SGDW and Hephaestus"""
+    """Represents synchronization state between OpenEvolve SGDW and CrewAI"""
     sgdw_workflow_id: str
-    hephaestus_board_id: str
-    sub_problem_mapping: Dict[str, str]  # Maps SGDW sub-problem IDs to Hephaestus ticket IDs
+    CrewAI_board_id: str
+    sub_problem_mapping: Dict[str, str]  # Maps SGDW sub-problem IDs to CrewAI ticket IDs
     last_sync_time: float
     status: str  # "synced", "syncing", "error", "paused"
 
@@ -29,26 +29,26 @@ class WorkflowSynchronization:
 class SGDOrchestratorAgent:
     """
     Orchestrator agent that bridges OpenEvolve's Sovereign-Grade Decomposition Workflow (SGDW)
-    with Hephaestus' adaptive agentic framework for enhanced problem-solving capabilities.
+    with CrewAI' adaptive agentic framework for enhanced problem-solving capabilities.
     """
     
-    def __init__(self, hephaestus_api_base: str, openevolve_api_base: str, polling_interval: int = 30):
+    def __init__(self, CrewAI_api_base: str, openevolve_api_base: str, polling_interval: int = 30):
         """
         Initialize the SGD orchestrator agent
         
         Args:
-            hephaestus_api_base: Base URL for the Hephaestus API
+            CrewAI_api_base: Base URL for the CrewAI API
             openevolve_api_base: Base URL for the OpenEvolve API
             polling_interval: Interval in seconds to check for synchronization updates
         """
-        self.hephaestus_api_base = hephaestus_api_base.rstrip('/')
+        self.crewai_api_base = CrewAI_api_base.rstrip('/')
         self.openevolve_api_base = openevolve_api_base.rstrip('/')
         self.polling_interval = polling_interval
         self.running = False
         self.synchronization_states: Dict[str, WorkflowSynchronization] = {}
         
         # HTTP clients for both systems
-        self.hephaestus_client = httpx.AsyncClient(timeout=httpx.Timeout(30.0))
+        self.crewai_client = httpx.AsyncClient(timeout=httpx.Timeout(30.0))
         self.openevolve_client = httpx.AsyncClient(timeout=httpx.Timeout(30.0))
     
     async def start(self):
@@ -76,21 +76,21 @@ class SGDOrchestratorAgent:
         """
         logger.info("Stopping SGD Orchestrator Agent...")
         self.running = False
-        await self.hephaestus_client.aclose()
+        await self.crewai_client.aclose()
         await self.openevolve_client.aclose()
     
     async def synchronize_workflows(self):
         """
-        Synchronize the state between OpenEvolve's SGDW and Hephaestus ticket system
+        Synchronize the state between OpenEvolve's SGDW and CrewAI ticket system
         """
         try:
-            # Process new sub-problems in SGDW to convert to Hephaestus tickets
+            # Process new sub-problems in SGDW to convert to CrewAI tickets
             await self.process_new_sub_problems()
             
-            # Update SGDW with progress from Hephaestus agents
+            # Update SGDW with progress from crewai # MIGRATED: was CrewAI agents
             await self.update_sub_problem_status()
             
-            # Process any issues discovered by Hephaestus agents that affect SGDW
+            # Process any issues discovered by CrewAI agents that affect SGDW
             await self.process_agent_discoveries()
             
         except Exception as e:
@@ -98,7 +98,7 @@ class SGDOrchestratorAgent:
     
     async def process_new_sub_problems(self):
         """
-        Check for new sub-problems in SGDW to convert to Hephaestus tickets
+        Check for new sub-problems in SGDW to convert to CrewAI tickets
         """
         # Get active SGDW workflows from OpenEvolve
         sgdw_workflows = await self.get_active_sgd_workflows()
@@ -111,7 +111,7 @@ class SGDOrchestratorAgent:
                 # Initialize synchronization for this workflow
                 sync_state = WorkflowSynchronization(
                     sgdw_workflow_id=workflow_id,
-                    hephaestus_board_id=f"board_{workflow_id}",
+                    CrewAI_board_id=f"board_{workflow_id}",
                     sub_problem_mapping={},
                     last_sync_time=time.time(),
                     status="initializing"
@@ -127,24 +127,24 @@ class SGDOrchestratorAgent:
                 # Check if this sub-problem already has a corresponding ticket
                 sync_state = self.synchronization_states[workflow_id]
                 if sub_problem_id not in sync_state.sub_problem_mapping:
-                    # Create a Hephaestus ticket for this sub-problem
-                    ticket_id = await self.create_hephaestus_ticket_for_sub_problem(
+                    # Create a CrewAI ticket for this sub-problem
+                    ticket_id = await self.create_CrewAI_ticket_for_sub_problem(
                         workflow_id, sub_problem
                     )
                     
                     if ticket_id:
                         # Update the mapping
                         sync_state.sub_problem_mapping[sub_problem_id] = ticket_id
-                        logger.info(f"Created Hephaestus ticket {ticket_id} for sub-problem {sub_problem_id}")
+                        logger.info(f"Created CrewAI ticket {ticket_id} for sub-problem {sub_problem_id}")
     
     async def update_sub_problem_status(self):
         """
-        Update SGDW with progress from Hephaestus agents
+        Update SGDW with progress from crewai # MIGRATED: was CrewAI agents
         """
         for workflow_id, sync_state in self.synchronization_states.items():
-            # Get ticket statuses from Hephaestus
+            # Get ticket statuses from crewai # MIGRATED: was CrewAI
             for sub_problem_id, ticket_id in sync_state.sub_problem_mapping.items():
-                ticket_status = await self.get_hephaestus_ticket_status(ticket_id)
+                ticket_status = await self.get_CrewAI_ticket_status(ticket_id)
                 
                 if ticket_status:
                     # Update the corresponding sub-problem status in OpenEvolve
@@ -152,10 +152,10 @@ class SGDOrchestratorAgent:
     
     async def process_agent_discoveries(self):
         """
-        Process any issues discovered by Hephaestus agents that affect SGDW
+        Process any issues discovered by CrewAI agents that affect SGDW
         """
-        # Check for new tickets created by Hephaestus agents that weren't part of original decomposition
-        discovered_tickets = await self.get_discovered_hephaestus_tickets()
+        # Check for new tickets created by CrewAI agents that weren't part of original decomposition
+        discovered_tickets = await self.get_discovered_CrewAI_tickets()
         
         for ticket in discovered_tickets:
             # These might be new sub-problems discovered during execution
@@ -186,9 +186,9 @@ class SGDOrchestratorAgent:
             logger.error(f"Error getting active SGDW workflows: {e}")
             return []
     
-    async def create_hephaestus_ticket_for_sub_problem(self, workflow_id: str, sub_problem: Dict[str, Any]) -> Optional[str]:
+    async def create_CrewAI_ticket_for_sub_problem(self, workflow_id: str, sub_problem: Dict[str, Any]) -> Optional[str]:
         """
-        Create a Hephaestus ticket for a given sub-problem
+        Create a CrewAI ticket for a given sub-problem
         
         Args:
             workflow_id: ID of the parent workflow
@@ -217,19 +217,19 @@ class SGDOrchestratorAgent:
                 'status': 'backlog'
             }
             
-            response = await self.hephaestus_client.post(f"{self.hephaestus_api_base}/tickets", json=ticket_data)
+            response = await self.crewai_client.post(f"{self.crewai_api_base}/tickets", json=ticket_data)
             response.raise_for_status()
             
             ticket_response = response.json()
             return ticket_response.get('ticket_id')
             
         except Exception as e:
-            logger.error(f"Error creating Hephaestus ticket for sub-problem {sub_problem.get('id')}: {e}")
+            logger.error(f"Error creating CrewAI ticket for sub-problem {sub_problem.get('id')}: {e}")
             return None
     
     def determine_phase_for_sub_problem(self, sub_problem: Dict[str, Any]) -> str:
         """
-        Determine the appropriate Hephaestus phase for a sub-problem based on its characteristics
+        Determine the appropriate CrewAI phase for a sub-problem based on its characteristics
         
         Args:
             sub_problem: Sub-problem dictionary from SGDW
@@ -252,7 +252,7 @@ class SGDOrchestratorAgent:
     
     def calculate_ticket_priority(self, sub_problem: Dict[str, Any]) -> str:
         """
-        Calculate priority for a Hephaestus ticket based on sub-problem characteristics
+        Calculate priority for a CrewAI ticket based on sub-problem characteristics
         
         Args:
             sub_problem: Sub-problem dictionary from SGDW
@@ -269,36 +269,36 @@ class SGDOrchestratorAgent:
         else:
             return 'low'
     
-    async def get_hephaestus_ticket_status(self, ticket_id: str) -> Optional[Dict[str, Any]]:
+    async def get_CrewAI_ticket_status(self, ticket_id: str) -> Optional[Dict[str, Any]]:
         """
-        Get the status of a Hephaestus ticket
+        Get the status of a CrewAI ticket
         
         Args:
-            ticket_id: ID of the Hephaestus ticket
+            ticket_id: ID of the CrewAI ticket
             
         Returns:
             Ticket status information, or None if not found
         """
         try:
-            response = await self.hephaestus_client.get(f"{self.hephaestus_api_base}/tickets/{ticket_id}")
+            response = await self.crewai_client.get(f"{self.crewai_api_base}/tickets/{ticket_id}")
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            logger.error(f"Error getting Hephaestus ticket status for {ticket_id}: {e}")
+            logger.error(f"Error getting CrewAI ticket status for {ticket_id}: {e}")
             return None
     
     async def update_sgdw_sub_problem_status(self, workflow_id: str, sub_problem_id: str, ticket_status: Dict[str, Any]):
         """
-        Update the status of a sub-problem in the SGDW based on Hephaestus ticket status
+        Update the status of a sub-problem in the SGDW based on CrewAI ticket status
         
         Args:
             workflow_id: ID of the parent workflow
             sub_problem_id: ID of the sub-problem to update
-            ticket_status: Status information from Hephaestus ticket
+            ticket_status: Status information from crewai # MIGRATED: was CrewAI ticket
         """
         try:
-            # Map Hephaestus ticket status to SGDW status
-            hephaestus_status = ticket_status.get('status', 'unknown')
+            # Map CrewAI ticket status to SGDW status
+            CrewAI_status = ticket_status.get('status', 'unknown')
             
             sgdw_status_mapping = {
                 'backlog': 'pending',
@@ -309,7 +309,7 @@ class SGDOrchestratorAgent:
                 'cancelled': 'failed'
             }
             
-            sgdw_status = sgdw_status_mapping.get(hephaestus_status, 'in_progress')
+            sgdw_status = sgdw_status_mapping.get(CrewAI_status, 'in_progress')
             
             # Update the sub-problem status in OpenEvolve
             update_data = {
@@ -329,9 +329,9 @@ class SGDOrchestratorAgent:
         except Exception as e:
             logger.error(f"Error updating SGDW sub-problem status: {e}")
     
-    async def get_discovered_hephaestus_tickets(self) -> List[Dict[str, Any]]:
+    async def get_discovered_CrewAI_tickets(self) -> List[Dict[str, Any]]:
         """
-        Get tickets that were created dynamically by Hephaestus agents during execution
+        Get tickets that were created dynamically by CrewAI agents during execution
         
         Returns:
             List of discovery tickets
@@ -342,19 +342,19 @@ class SGDOrchestratorAgent:
                 'created_by': 'agent',
                 'discovery_type': 'auto'
             }
-            response = await self.hephaestus_client.get(f"{self.hephaestus_api_base}/tickets", params=params)
+            response = await self.crewai_client.get(f"{self.crewai_api_base}/tickets", params=params)
             response.raise_for_status()
             return response.json()
         except Exception as e:
-            logger.error(f"Error getting discovered Hephaestus tickets: {e}")
+            logger.error(f"Error getting discovered CrewAI tickets: {e}")
             return []
     
     async def create_sgdw_sub_problem_from_discovery(self, ticket: Dict[str, Any]):
         """
-        Create a new sub-problem in the SGDW based on a Hephaestus discovery
+        Create a new sub-problem in the SGDW based on a CrewAI discovery
         
         Args:
-            ticket: Discovery ticket from Hephaestus
+            ticket: Discovery ticket from crewai # MIGRATED: was CrewAI
         """
         try:
             discovery_context = ticket.get('workflow_context', {})
@@ -389,7 +389,7 @@ class SGDOrchestratorAgent:
     
     async def mark_sgdw_sub_problem_for_rework(self, ticket_id: str):
         """
-        Mark a sub-problem in the SGDW for rework based on Hephaestus discovery
+        Mark a sub-problem in the SGDW for rework based on CrewAI discovery
         
         Args:
             ticket_id: ID of the ticket that triggered the rework requirement
@@ -411,7 +411,7 @@ if __name__ == "__main__":
     async def main():
         # Create the orchestrator agent
         agent = SGDOrchestratorAgent(
-            hephaestus_api_base="http://localhost:8001",  # Default Hephaestus port
+            CrewAI_api_base="http://localhost:8001",  # Default CrewAI port
             openevolve_api_base="http://localhost:8000",  # Default OpenEvolve port
             polling_interval=30  # Check every 30 seconds
         )

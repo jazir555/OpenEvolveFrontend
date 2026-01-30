@@ -374,7 +374,7 @@ def analyze_bubblelabs_files():
     """Analyze all BubbleLabs integration files."""
 
     files = [
-        'bubblelabs_hephaestus_bridge.py',
+        'bubblelabs_CREWAI_bridge.py',
         'bubblelabs_mcp_tools.py',
         'bubblelabs_analytics.py',
         'bubblelabs_typescript_export.py',

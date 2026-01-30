@@ -365,11 +365,11 @@ class ComprehensiveBugFixTestSuite:
         """Bug #1: Verify execute_full_workflow uses correct parameter names"""
         # This tests the ACE integration bug where wrong parameters were passed
         try:
-            from ace_crewai_bridge import ACEHephaestusBridge
+            from ace_crewai_bridge import ACECREWAIBridge
 
             # Create mock to test parameter passing
             import inspect
-            sig = inspect.signature(ACEHephaestusBridge.execute_phase_3_critique)
+            sig = inspect.signature(ACECREWAIBridge.execute_phase_3_critique)
             params = list(sig.parameters.keys())
 
             # Verify correct parameters exist
@@ -390,11 +390,11 @@ class ComprehensiveBugFixTestSuite:
     def test_timestamp_variable_defined(self):
         """Bug #2: Verify timestamp variable is defined before use"""
         try:
-            from ace_crewai_bridge import ACEHephaestusBridge
+            from ace_crewai_bridge import ACECREWAIBridge
 
             # Check that timestamp is defined at the start of save_skillbook
             import inspect
-            source = inspect.getsource(ACEHephaestusBridge.save_skillbook)
+            source = inspect.getsource(ACECREWAIBridge.save_skillbook)
 
             # Verify timestamp is defined early in the function
             lines = source.split('\n')
@@ -446,10 +446,10 @@ class ComprehensiveBugFixTestSuite:
     def test_workflow_stops_on_failure(self):
         """Bug #4: Verify workflow stops when phase fails"""
         try:
-            from ace_crewai_bridge import ACEHephaestusBridge
+            from ace_crewai_bridge import ACECREWAIBridge
 
             import inspect
-            source = inspect.getsource(ACEHephaestusBridge.execute_full_workflow)
+            source = inspect.getsource(ACECREWAIBridge.execute_full_workflow)
 
             # Check for phase failure checks
             assert 'if not phase2_result.get("success"' in source or \
@@ -462,10 +462,10 @@ class ComprehensiveBugFixTestSuite:
     def test_context_type_validation(self):
         """Bug #5: Verify context type is validated"""
         try:
-            from ace_crewai_bridge import ACEHephaestusBridge
+            from ace_crewai_bridge import ACECREWAIBridge
 
             import inspect
-            source = inspect.getsource(ACEHephaestusBridge.execute_phase_2_solution)
+            source = inspect.getsource(ACECREWAIBridge.execute_phase_2_solution)
 
             # Check for context type checking
             assert 'isinstance(context, dict)' in source or \
@@ -1242,14 +1242,14 @@ class ComprehensiveBugFixTestSuite:
         """Verify checkpoints are saved and loaded correctly"""
         # Test checkpoint save/load
         try:
-            from ace_crewai_bridge import ACEHephaestusBridge
+            from ace_crewai_bridge import ACECREWAIBridge
 
             import tempfile
             import os
 
             # Create temporary directory
             with tempfile.TemporaryDirectory() as tmpdir:
-                bridge = ACEHephaestusBridge(checkpoint_dir=tmpdir)
+                bridge = ACECREWAIBridge(checkpoint_dir=tmpdir)
 
                 # Save checkpoint
                 result = bridge.save_skillbook()

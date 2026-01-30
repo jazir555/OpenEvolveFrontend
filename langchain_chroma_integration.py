@@ -70,7 +70,7 @@ class RecursiveCharacterTextSplitter:
 
 # Import existing ACE and Steer components
 from ace_steer_integration import AceSteerBridge
-from steer_crewai_bridge import SteerHephaestusWorkflowBridge
+from steer_crewai_bridge import SteerCrewAIWorkflowBridge
 
 logger = logging.getLogger(__name__)
 
@@ -421,7 +421,7 @@ class TripartiteAgentSystem:
         self.langchain = LangChainIntegration()
         
         # Initialize Steer workflow bridge
-        self.steer_workflow = SteerHephaestusWorkflowBridge()
+        self.steer_workflow = SteerCrewAIWorkflowBridge()
         
         logger.info(f"Tripartite Agent System initialized: {agent_id}")
     

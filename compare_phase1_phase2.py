@@ -2,8 +2,8 @@
 Compare Phase 1 and Phase 2 Results
 ===================================
 
-MIGRATION NOTICE: Hephaestus (AGPL) → CrewAI (MIT)
-This module has been migrated from Hephaestus to CrewAI orchestration.
+MIGRATION NOTICE: crewai (AGPL) → CrewAI (MIT)
+This module has been migrated from crewai to CrewAI orchestration.
 
 This script compares Phase 1 and Phase 2 results:
 - Files migrated per phase
@@ -31,7 +31,7 @@ class PhaseComparator:
             'files_migrated': 50,
             'code_reduction': 1592,
             'batches': 4,
-            'categories': ['core', 'adversarial', 'evolution', 'maker', 'mdap', 'crewai'],  # Updated from crewai_integration # MIGRATED: was hephaestus
+            'categories': ['core', 'adversarial', 'evolution', 'maker', 'mdap', 'crewai'],  # Updated from crewai_integration # MIGRATED: was crewai
             'risk_levels': ['LOW', 'MEDIUM', 'HIGH'],
             'success_rate': 1.0,
             'issues_resolved': 15,

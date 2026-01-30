@@ -456,8 +456,8 @@ def fix_ace_stage6_integration(content: str) -> Tuple[str, List[str]]:
     return content, fixes
 
 
-def fix_ace_hephaestus_bridge(content: str) -> Tuple[str, List[str]]:
-    """Apply Phase 4 fixes to ace_hephaestus_bridge.py"""
+def fix_ace_CREWAI_bridge(content: str) -> Tuple[str, List[str]]:
+    """Apply Phase 4 fixes to ace_CREWAI_bridge.py"""
     fixes = []
 
     # Fix 1: execute_phase_1_setup - Add validation
@@ -523,7 +523,7 @@ def apply_all_fixes():
 
     files_and_fixers = [
         ('ace_mcp_tools.py', fix_ace_mcp_tools),
-        ('ace_hephaestus_bridge.py', fix_ace_hephaestus_bridge),
+        ('ace_CREWAI_bridge.py', fix_ace_CREWAI_bridge),
         ('ace_analytics.py', fix_ace_analytics),
         ('ace_knowledge_artifacts.py', fix_ace_knowledge_artifacts),
         ('ace_workflow_knowledge_extractor.py', fix_ace_workflow_knowledge_extractor),

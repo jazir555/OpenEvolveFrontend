@@ -34,7 +34,7 @@ python-jose[cryptography]>=3.3.0  # For JWT tokens
 -e ./openevolve
 
 # Optional dependencies
-hephaestus-client>=0.1.0; extra=="hephaestus"
+crewai-client>=0.1.0; extra=="crewai"
 
 # Provider SDKs
 boto3==1.34.140

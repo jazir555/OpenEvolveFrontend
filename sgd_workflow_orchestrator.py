@@ -1,7 +1,7 @@
 """
-Sovereign-Grade Decomposition (SGD) Workflow Orchestrator for Hephaestus
+Sovereign-Grade Decomposition (SGD) Workflow Orchestrator for CREWAI
 
-This module implements the full Sovereign-Grade Decomposition workflow within Hephaestus,
+This module implements the full Sovereign-Grade Decomposition workflow within CREWAI,
 integrating with OpenEvolve for team and gauntlet management.
 """
 
@@ -40,12 +40,12 @@ class SGDWorkflowStatus(Enum):
 
 class SGDWorkflowOrchestrator:
     """
-    Orchestrates the complete Sovereign-Grade Decomposition Workflow within Hephaestus
+    Orchestrates the complete Sovereign-Grade Decomposition Workflow within CREWAI
     """
     
-    def __init__(self, hephaestus_api_base: str = "http://localhost:8002", 
+    def __init__(self, CREWAI_api_base: str = "http://localhost:8002", 
                  openevolve_api_base: str = "http://localhost:8000"):
-        self.hephaestus_api_base = hephaestus_api_base
+        self.CREWAI_api_base = CREWAI_api_base
         self.openevolve_api_base = openevolve_api_base
         self.active_workflows: Dict[str, WorkflowState] = {}
         self.running = True
@@ -247,7 +247,7 @@ class SGDWorkflowOrchestrator:
 
     async def _solve_sub_problems(self, workflow_state: WorkflowState) -> Dict[str, SolutionAttempt]:
         """
-        Solve all sub-problems using Hephaestus tickets and OpenEvolve verification
+        Solve all sub-problems using CREWAI tickets and OpenEvolve verification
         """
         solutions = {}
         
@@ -257,7 +257,7 @@ class SGDWorkflowOrchestrator:
         for sub_problem in workflow_state.decomposition_plan.sub_problems:
             logger.info(f"Creating ticket for sub-problem {sub_problem.id}")
             
-            # Create a Hephaestus ticket for the sub-problem
+            # Create a CREWAI ticket for the sub-problem
             ticket_data = {
                 "title": f"Sub-problem {sub_problem.id}: {sub_problem.description[:50]}...",
                 "description": f"""
@@ -277,9 +277,9 @@ Upon completion, this task will be validated using the following gauntlets:
             }
             
             try:
-                # Create ticket in Hephaestus
+                # Create ticket in CREWAI
                 response = self.session.post(
-                    f"{self.hephaestus_api_base}/tickets/create",
+                    f"{self.CREWAI_api_base}/tickets/create",
                     json=ticket_data
                 )
                 response.raise_for_status()
@@ -294,7 +294,7 @@ Upon completion, this task will be validated using the following gauntlets:
                     await asyncio.sleep(2)  # Simulate work time
                     
                     # Get the ticket status after "completion"
-                    ticket_response = self.session.get(f"{self.hephaestus_api_base}/tickets/{ticket_id}")
+                    ticket_response = self.session.get(f"{self.CREWAI_api_base}/tickets/{ticket_id}")
                     if ticket_response.status_code == 200:
                         ticket = ticket_response.json().get("ticket")
                         if ticket and ticket.get("verification_status") in ["verified", "failed_verification"]:

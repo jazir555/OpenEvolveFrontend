@@ -402,8 +402,8 @@ def validate_api_key_format(api_key: str, provider: str) -> bool:
         # Google API keys are alphanumeric, typically 39 characters
         return bool(re.match(r'^[A-Za-z0-9_-]{39}$', api_key))
 
-    elif provider == "hephaestus":
-        # Hephaestus keys - flexible format
+    elif provider == "CREWAI":
+        # CREWAI keys - flexible format
         return len(api_key) >= 20
 
     else:

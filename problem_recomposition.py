@@ -134,13 +134,13 @@ except ImportError:
     solve_with_roma = None
     ROMA_RECOMPOSITION_AVAILABLE = False
 
-# Optional Hephaestus integration for recomposition tracking
+# Optional CREWAI integration for recomposition tracking
 try:
     import requests
-    HEPHAESTUS_RECOMPOSITION_AVAILABLE = True
+    CREWAI_RECOMPOSITION_AVAILABLE = True
 except ImportError:
     requests = None
-    HEPHAESTUS_RECOMPOSITION_AVAILABLE = False
+    CREWAI_RECOMPOSITION_AVAILABLE = False
 
 # Import OpenEvolveClient for LLM-mediated resolution
 try:
@@ -992,10 +992,10 @@ class SolutionAssembler:
         roma_execution_mode: str = "recursive",
         roma_provider: Optional[str] = None,
         roma_model: Optional[str] = None,
-        hephaestus_api_base: Optional[str] = None,
-        hephaestus_api_key: Optional[str] = None,
-        hephaestus_workflow_id: Optional[str] = None,
-        hephaestus_agent_id: str = "recomposition-system",
+        CREWAI_api_base: Optional[str] = None,
+        CREWAI_api_key: Optional[str] = None,
+        crewai_workflow_id: Optional[str] = None,
+        CREWAI_agent_id: str = "recomposition-system",
     ):
         """Initialize with optional conflict resolver."""
         self.conflict_detector = conflict_detector or ConflictDetector(openevolve_client)
@@ -1006,15 +1006,15 @@ class SolutionAssembler:
         self.roma_execution_mode = roma_execution_mode
         self.roma_provider = roma_provider
         self.roma_model = roma_model
-        self.hephaestus_api_base = hephaestus_api_base or os.getenv(
-            "HEPHAESTUS_API_BASE",
+        self.CREWAI_api_base = CREWAI_api_base or os.getenv(
+            "CREWAI_API_BASE",
             "http://localhost:8000",
         )
-        self.hephaestus_api_key = hephaestus_api_key or os.getenv("HEPHAESTUS_API_KEY")
-        self.hephaestus_workflow_id = hephaestus_workflow_id or os.getenv(
-            "HEPHAESTUS_WORKFLOW_ID"
+        self.CREWAI_api_key = CREWAI_api_key or os.getenv("CREWAI_API_KEY")
+        self.crewai_workflow_id = crewai_workflow_id or os.getenv(
+            "crewai_workflow_ID"
         )
-        self.hephaestus_agent_id = hephaestus_agent_id
+        self.CREWAI_agent_id = CREWAI_agent_id
 
         # Initialize ROMA-MDAP-MAKER Engine for robust recomposition
         self.roma_engine = None
@@ -1044,7 +1044,7 @@ class SolutionAssembler:
         Args:
             decomposition_plan: Original decomposition with dependencies
             sub_solutions: Dict mapping sub_problem_id -> SolutionAttempt
-            assembly_strategy: "hierarchical", "linear", "parallel", "adaptive", "roma", "roma_hephaestus"
+            assembly_strategy: "hierarchical", "linear", "parallel", "adaptive", "roma", "roma_CREWAI"
 
         Returns:
             IntegratedSolution with final assembled solution
@@ -1085,13 +1085,13 @@ class SolutionAssembler:
                 decomposition_plan,
                 sub_solutions
             )
-        elif assembly_strategy in {"roma", "roma_hephaestus"}:
+        elif assembly_strategy in {"roma", "roma_CREWAI"}:
             assembled_content, integration_order = self._assemble_with_roma(
                 decomposition_plan,
                 sub_solutions,
                 conflicts,
                 resolved_conflicts,
-                track_in_hephaestus=(assembly_strategy == "roma_hephaestus"),
+                track_in_CREWAI=(assembly_strategy == "roma_CREWAI"),
             )
         else:
             logger.warning(f"Unknown assembly strategy: {assembly_strategy}, using hierarchical")
@@ -1124,8 +1124,8 @@ class SolutionAssembler:
                 'num_sub_solutions': len(sub_solutions),
                 'num_conflicts': len(conflicts),
                 'num_resolved': len([c for c in resolved_conflicts if c.status == 'resolved']),
-                'roma_recomposition': assembly_strategy in {"roma", "roma_hephaestus"},
-                'hephaestus_tracking': assembly_strategy == "roma_hephaestus",
+                'roma_recomposition': assembly_strategy in {"roma", "roma_CREWAI"},
+                'CREWAI_tracking': assembly_strategy == "roma_CREWAI",
             }
         )
 
@@ -1248,7 +1248,7 @@ class SolutionAssembler:
         sub_solutions: Dict[str, SolutionAttempt],
         conflicts: List[Conflict],
         resolved_conflicts: List[Conflict],
-        track_in_hephaestus: bool = False,
+        track_in_CREWAI: bool = False,
         **roma_kwargs
     ) -> Tuple[str, List[str]]:
         """
@@ -1273,7 +1273,7 @@ class SolutionAssembler:
             sub_solutions: Dict of solved sub-problems
             conflicts: List of detected conflicts
             resolved_conflicts: List of resolved conflicts
-            track_in_hephaestus: Whether to track in Hephaestus
+            track_in_CREWAI: Whether to track in CREWAI
             **roma_kwargs: Additional ROMA parameters:
                 - roma_deterministic: Use deterministic assembly (default: True)
                 - roma_context: Custom context string
@@ -1299,15 +1299,15 @@ class SolutionAssembler:
                 sub_solutions=sub_solutions,
                 conflicts=conflicts,
                 resolved_conflicts=resolved_conflicts,
-                track_in_hephaestus=track_in_hephaestus,
+                track_in_CREWAI=track_in_CREWAI,
                 **roma_kwargs
             )
 
         logger.info("Starting CREATIVE ROMA recomposition (sub-solutions may be rewritten)")
 
-        # Track in Hephaestus if requested
-        if track_in_hephaestus:
-            self._create_hephaestus_recomposition_task(plan, sub_solutions, conflicts)
+        # Track in CREWAI if requested
+        if track_in_CREWAI:
+            self._create_CREWAI_recomposition_task(plan, sub_solutions, conflicts)
 
         # Build enhanced recomposition context
         integration_order = [sp.id for sp in plan.sub_problems if sp.id in sub_solutions]
@@ -1367,7 +1367,7 @@ class SolutionAssembler:
         sub_solutions: Dict[str, SolutionAttempt],
         conflicts: List[Conflict],
         resolved_conflicts: List[Conflict],
-        track_in_hephaestus: bool = False,
+        track_in_CREWAI: bool = False,
         **roma_kwargs
     ) -> Tuple[str, List[str]]:
         """
@@ -1388,7 +1388,7 @@ class SolutionAssembler:
             sub_solutions: Dict of solved sub-problems
             conflicts: List of detected conflicts
             resolved_conflicts: List of resolved conflicts
-            track_in_hephaestus: Whether to track in Hephaestus
+            track_in_CREWAI: Whether to track in CREWAI
             **roma_kwargs: Additional ROMA parameters
 
         Returns:
@@ -1400,9 +1400,9 @@ class SolutionAssembler:
 
         logger.info("Starting DETERMINISTIC ROMA assembly (metadata-based structural decisions)")
 
-        # Track in Hephaestus if requested
-        if track_in_hephaestus:
-            self._create_hephaestus_recomposition_task(plan, sub_solutions, conflicts)
+        # Track in CREWAI if requested
+        if track_in_CREWAI:
+            self._create_CREWAI_recomposition_task(plan, sub_solutions, conflicts)
 
         # STEP 1: Extract immutable metadata from sub-solutions
         logger.info("Extracting metadata from sub-solutions (immutable extraction)")
@@ -1995,15 +1995,15 @@ Begin recomposition now:"""
         else:
             return "linear assembly with quality checks"
 
-    def _create_hephaestus_recomposition_task(
+    def _create_CREWAI_recomposition_task(
         self,
         plan: DecompositionPlan,
         sub_solutions: Dict[str, SolutionAttempt],
         conflicts: List[Conflict],
     ) -> None:
-        if not HEPHAESTUS_RECOMPOSITION_AVAILABLE or not requests:
+        if not CREWAI_RECOMPOSITION_AVAILABLE or not requests:
             return
-        if not (self.hephaestus_api_base and self.hephaestus_api_key and self.hephaestus_workflow_id):
+        if not (self.CREWAI_api_base and self.CREWAI_api_key and self.crewai_workflow_id):
             return
 
         task_description = (
@@ -2014,27 +2014,27 @@ Begin recomposition now:"""
         payload = {
             "task_description": task_description,
             "done_definition": done_definition,
-            "ai_agent_id": self.hephaestus_agent_id,
-            "workflow_id": self.hephaestus_workflow_id,
+            "ai_agent_id": self.CREWAI_agent_id,
+            "workflow_id": self.crewai_workflow_id,
             "priority": "medium",
         }
 
         try:
             response = requests.post(
-                f"{self.hephaestus_api_base.rstrip('/')}/create_task",
+                f"{self.CREWAI_api_base.rstrip('/')}/create_task",
                 json=payload,
-                headers={"X-API-Key": self.hephaestus_api_key},
+                headers={"X-API-Key": self.CREWAI_api_key},
                 timeout=10,
             )
             if response.status_code >= 400:
                 logger.warning(
-                    "Hephaestus recomposition task creation failed: %s",
+                    "CREWAI recomposition task creation failed: %s",
                     response.text,
                 )
             else:
-                logger.info("Hephaestus recomposition task created")
+                logger.info("CREWAI recomposition task created")
         except Exception as exc:  # TODO: Catch specific exception instead of Exception
-            logger.warning("Hephaestus recomposition task creation error: %s", exc)
+            logger.warning("CREWAI recomposition task creation error: %s", exc)
 
     def _build_dependency_graph(self, sub_problems: List[SubProblem]) -> Dict[str, List[str]]:
         """Build dependency graph from sub-problems."""

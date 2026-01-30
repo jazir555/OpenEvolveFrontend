@@ -30,7 +30,7 @@ def init_session_state():
     if 'openevolve_workflow_manager' not in st.session_state:
         st.session_state.openevolve_workflow_manager = OpenEvolveWorkflowManager(
             analytics_db_path='openevolve_analytics.db',
-            enable_hephaestus=True
+            enable_CREWAI=True
         )
 
     if 'selected_workflow_id' not in st.session_state:

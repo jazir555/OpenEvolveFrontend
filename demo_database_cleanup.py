@@ -2,7 +2,7 @@
 Database Cleanup Demonstration
 
 This script demonstrates the automatic database cleanup functionality for
-BubbleLabs analytics and Hephaestus mappings databases.
+BubbleLabs analytics and CREWAI mappings databases.
 
 Features demonstrated:
 1. Creating test data of various ages
@@ -30,7 +30,7 @@ from datetime import datetime, timedelta
 sys.path.insert(0, str(Path(__file__).parent))
 
 from bubblelabs_analytics import BubbleLabsAnalytics, cleanup_all_databases
-from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
+from bubblelabs_crewai_bridge import BubbleLabsCREWAIBridge
 
 
 def print_section(title: str):
@@ -235,7 +235,7 @@ def demo_mappings_cleanup():
     conn.close()
 
     # Create bridge
-    bridge = BubbleLabsHephaestusBridge()
+    bridge = BubbleLabsCREWAIBridge()
     bridge._mappings_db_path = db_path
 
     try:
@@ -396,7 +396,7 @@ def demo_cleanup_all_databases():
 
         # Create mappings database
         import sqlite3
-        conn = sqlite3.connect(os.path.join(demo_dir, "hephaestus_workflow_mappings.db"))
+        conn = sqlite3.connect(os.path.join(demo_dir, "crewai_workflow_mappings.db"))
         cursor = conn.cursor()
         cursor.execute("""
             CREATE TABLE IF NOT EXISTS workflow_ticket_mappings (

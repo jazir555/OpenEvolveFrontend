@@ -58,7 +58,7 @@ class KnowledgeEnricher:
     Enriches knowledge entities with additional information.
 
     Usage:
-        enricher = KnowledgeEnricher(storage_manager, hephaestus_client)
+        enricher = KnowledgeEnricher(storage_manager, crewai_client)
 
         result = await enricher.enrich_entities(
             entities=extracted_entities,
@@ -66,16 +66,16 @@ class KnowledgeEnricher:
         )
     """
 
-    def __init__(self, storage_manager=None, hephaestus_client=None):
+    def __init__(self, storage_manager=None, crewai_client=None):
         """
         Initialize knowledge enricher.
 
         Args:
             storage_manager: Storage manager for context retrieval
-            hephaestus_client: Optional LLM client for enrichment
+            crewai_client: Optional LLM client for enrichment
         """
         self.storage_manager = storage_manager
-        self.hephaestus_client = hephaestus_client
+        self.crewai_client = crewai_client
 
         # Enrichment statistics
         self.enrichment_stats = {

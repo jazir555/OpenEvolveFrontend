@@ -54,8 +54,8 @@ setup(
     install_requires=read_requirements("requirements.txt"),
     extras_require={
         "testing": read_requirements("requirements_with_testing.txt"),
-        "hephaestus": [
-            "hephaestus-client>=0.1.0",
+        "CREWAI": [
+            "CREWAI-client>=0.1.0",
         ],
         "dev": [
             "pytest>=7.0.0",

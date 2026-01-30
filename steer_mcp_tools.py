@@ -1,11 +1,11 @@
 """
-Steer MCP Tools for Hephaestus Agents
+Steer MCP Tools for CREWAI Agents
 
-This module provides Model Context Protocol (MCP) tools that Hephaestus agents
+This module provides Model Context Protocol (MCP) tools that CREWAI agents
 can use to leverage Steer's reliability layer for AI agent outputs.
 
 CRITICAL ARCHITECTURE:
-    Hephaestus (Orchestrator) → Agent Function → Steer Reality Locks → Verified Output
+    CREWAI (Orchestrator) → Agent Function → Steer Reality Locks → Verified Output
 
 Steer provides deterministic verification of probabilistic LLM outputs through:
 - JSON structure validation
@@ -17,7 +17,7 @@ Steer provides deterministic verification of probabilistic LLM outputs through:
 - Custom regex patterns
 
 Architecture:
-    Hephaestus Agent → MCP Tool → Steer Judge → Verification Result → Block/Pass
+    CREWAI Agent → MCP Tool → Steer Judge → Verification Result → Block/Pass
 """
 
 import logging
@@ -112,7 +112,7 @@ def verify_json_output(
     """
     Verify that agent output is valid JSON.
 
-    This is used by Hephaestus agents to validate structured outputs.
+    This is used by CREWAI agents to validate structured outputs.
 
     Args:
         output: The agent output to verify
@@ -193,7 +193,7 @@ def verify_slop_filter(
     Verify that agent output doesn't contain "AI slop" - low-entropy,
     sycophantic language that pollutes data protocols.
 
-    This is used by Hephaestus agents to maintain brand voice quality.
+    This is used by CREWAI agents to maintain brand voice quality.
 
     Args:
         output: The agent output to verify
@@ -345,7 +345,7 @@ def verify_pii_safety(
     """
     Verify that agent output doesn't contain PII or sensitive information.
 
-    This is used by Hephaestus agents for safety compliance.
+    This is used by CREWAI agents for safety compliance.
 
     Args:
         output: The agent output to verify
@@ -423,7 +423,7 @@ def verify_citations(
     """
     Verify that agent output includes required source citations.
 
-    This is used by Hephaestus agents for RAG grounding verification.
+    This is used by CREWAI agents for RAG grounding verification.
 
     Args:
         output: The agent output to verify
@@ -496,7 +496,7 @@ def verify_sql_security(
     """
     Verify that SQL output doesn't contain destructive commands.
 
-    This is used by Hephaestus agents for SQL security enforcement.
+    This is used by CREWAI agents for SQL security enforcement.
 
     Args:
         output: The SQL query to verify
@@ -582,7 +582,7 @@ def run_all_verifications(
     """
     Run multiple Steer verifications on agent output.
 
-    This is used by Hephaestus agents to run comprehensive verification checks.
+    This is used by CREWAI agents to run comprehensive verification checks.
 
     Args:
         output: The agent output to verify

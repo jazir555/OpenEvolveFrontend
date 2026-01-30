@@ -1,7 +1,7 @@
 """
-LeanAide MCP Tools for Hephaestus Agents
+LeanAide MCP Tools for CREWAI Agents
 
-This module provides Model Context Protocol (MCP) tools that enable Hephaestus
+This module provides Model Context Protocol (MCP) tools that enable CREWAI
 agents to leverage LeanAide's AI-powered formal mathematics capabilities.
 
 LeanAide provides:
@@ -12,7 +12,7 @@ LeanAide provides:
     - Math Q&A: Answering mathematical questions
     - Definition translation: Natural language to Lean definition conversion
 
-Architecture: Hephaestus (Orchestrator) -> LeanAide MCP Tools -> LeanAide Server -> Lean Theorem Prover
+Architecture: CREWAI (Orchestrator) -> LeanAide MCP Tools -> LeanAide Server -> Lean Theorem Prover
 """
 
 import asyncio

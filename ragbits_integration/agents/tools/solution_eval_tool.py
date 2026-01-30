@@ -35,7 +35,7 @@ class SolutionEvaluationTool(AgentTool):
         Initialize the solution evaluation tool.
 
         Args:
-            llm_client: LLM client for evaluation (can be Hephaestus)
+            llm_client: LLM client for evaluation (can be CREWAI)
             storage_manager: Optional storage manager for retrieving benchmarks
         """
         super().__init__(
@@ -170,7 +170,7 @@ Reasoning: [Your analysis]
     async def _call_llm(self, prompt: str) -> str:
         """Call LLM for evaluation"""
         if hasattr(self.llm, 'generate'):
-            # Hephaestus or similar client
+            # CREWAI or similar client
             response = await self.llm.generate(prompt=prompt)
             return response.get("text", response) if isinstance(response, dict) else str(response)
         elif hasattr(self.llm, '__call__'):

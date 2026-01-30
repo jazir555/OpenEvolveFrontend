@@ -3,7 +3,7 @@ Advanced Integrations for End-to-End Invention Planner
 
 This module provides all advanced integrations for Phase 4:
 - Task 4.1: BubbleLabs for analytics
-- Task 4.2: CrewAI for task delegation (migrated from Hephaestus)
+- Task 4.2: CrewAI for task delegation (migrated from crewai # MIGRATED: was CrewAI)
 - Task 4.3: Sovereign for quality assurance
 - Task 4.4: Claudiomiro/DataPizza/RAGBits for decomposition
 - Task 4.5: STEER for steering
@@ -41,7 +41,7 @@ except ImportError as e:
     WorkflowAnalytics = None
     NodeMetrics = None
 
-# Task 4.2: CrewAI Integration (migrated from Hephaestus)
+# Task 4.2: CrewAI Integration (migrated from crewai # MIGRATED: was CrewAI)
 try:
     from crewai_client import CrewAIClient
     CREWAI_AVAILABLE = True
@@ -368,7 +368,7 @@ class DelegationResult:
 
 class CrewAIIntegration:
     """
-    Integration with CrewAI for distributed task delegation (migrated from Hephaestus).
+    Integration with CrewAI for distributed task delegation (migrated from crewai # MIGRATED: was CrewAI).
 
     Delegates heavy computational tasks:
     - Math formalization
@@ -1135,7 +1135,7 @@ class InventionPlannerIntegrations:
 
     This class provides a unified interface to all Phase 4 integrations:
     - BubbleLabs for analytics
-    - CrewAI for delegation (migrated from Hephaestus)
+    - CrewAI for delegation (migrated from crewai # MIGRATED: was CrewAI)
     - Sovereign for quality
     - Multi-strategy decomposition
     - STEER for steering

@@ -5,7 +5,7 @@ Verification Script for Config and Utility Files
 
 Checks all 20 files from CREWAI_MIGRATION_MASTER_TASKLIST.md:
 1. Import status verification
-2. Hephaestus reference detection
+2. CrewAI reference detection
 3. Syntax validation
 4. Migration notice verification
 
@@ -35,7 +35,7 @@ class FileVerificationResult:
     exists: bool
     import_status: str  # "OK", "FAIL", "SKIP"
     syntax_valid: bool
-    hephaestus_refs: List[str] = field(default_factory=list)
+    CrewAI_refs: List[str] = field(default_factory=list)
     migration_notice: bool = False
     issues: List[str] = field(default_factory=list)
 
@@ -76,11 +76,11 @@ class ConfigUtilVerifier:
             for node in ast.walk(tree):
                 if isinstance(node, ast.Import):
                     for alias in node.names:
-                        if 'hephaestus' in alias.name.lower():
-                            issues.append(f"Found Hephaestus import: {alias.name}")
+                        if 'CrewAI' in alias.name.lower():
+                            issues.append(f"Found CrewAI import: {alias.name}")
                 elif isinstance(node, ast.ImportFrom):
-                    if node.module and 'hephaestus' in node.module.lower():
-                        issues.append(f"Found Hephaestus from import: {node.module}")
+                    if node.module and 'CrewAI' in node.module.lower():
+                        issues.append(f"Found CrewAI from import: {node.module}")
 
             if issues:
                 return "FAIL", issues
@@ -91,22 +91,22 @@ class ConfigUtilVerifier:
         except Exception as e:
             return "FAIL", [f"Error checking imports: {str(e)}"]
 
-    def check_hephaestus_references(self, file_path: Path) -> List[str]:
-        """Find all Hephaestus references in file."""
+    def check_CrewAI_references(self, file_path: Path) -> List[str]:
+        """Find all CrewAI references in file."""
         try:
             with open(file_path, 'r', encoding='utf-8') as f:
                 content = f.read()
 
             refs = []
 
-            # Check for various Hephaestus references
+            # Check for various CrewAI references
             patterns = [
-                r'Hephaestus\w+',  # CamelCase class names
-                r'hephaestus_\w+',  # snake_case variable/function names
-                r'\bfrom\s+hephaestus',  # from imports
-                r'\bimport\s+hephaestus',  # direct imports
-                r'HephaestusIntegration',  # Specific class
-                r'HephaestusClient',  # Specific class
+                r'CrewAI\w+',  # CamelCase class names
+                r'CrewAI_\w+',  # snake_case variable/function names
+                r'\bfrom\s+CrewAI',  # from imports
+                r'\bimport\s+CrewAI',  # direct imports
+                r'CrewAIIntegration',  # Specific class
+                r'CrewAIClient',  # Specific class
             ]
 
             for pattern in patterns:
@@ -140,7 +140,7 @@ class ConfigUtilVerifier:
             lines = content.split('\n')[:50]
             content_sample = '\n'.join(lines)
 
-            return 'MIGRATION NOTICE' in content_sample and 'Hephaestus (AGPL) → CrewAI (MIT)' in content_sample
+            return 'MIGRATION NOTICE' in content_sample and 'CrewAI (AGPL) → CrewAI (MIT)' in content_sample
 
         except Exception:
             return False
@@ -164,8 +164,8 @@ class ConfigUtilVerifier:
         # Check imports
         import_status, import_issues = self.check_imports(full_path)
 
-        # Check Hephaestus references
-        hephaestus_refs = self.check_hephaestus_references(full_path)
+        # Check CrewAI references
+        CrewAI_refs = self.check_CrewAI_references(full_path)
 
         # Check migration notice
         migration_notice = self.check_migration_notice(full_path)
@@ -178,7 +178,7 @@ class ConfigUtilVerifier:
             exists=True,
             import_status=import_status,
             syntax_valid=syntax_valid,
-            hephaestus_refs=hephaestus_refs,
+            CrewAI_refs=CrewAI_refs,
             migration_notice=migration_notice,
             issues=all_issues
         )
@@ -224,8 +224,8 @@ class ConfigUtilVerifier:
                 print("❌ SKIP (not found)")
             elif result.import_status == "FAIL" or not result.syntax_valid:
                 print("❌ FAIL")
-            elif result.hephaestus_refs:
-                print("⚠️  WARN (Hephaestus refs)")
+            elif result.CrewAI_refs:
+                print("⚠️  WARN (CrewAI refs)")
             else:
                 print("✅ PASS")
 
@@ -252,7 +252,7 @@ class ConfigUtilVerifier:
                 skipped.append((file_path, result))
             elif result.import_status == "FAIL" or not result.syntax_valid:
                 failed.append((file_path, result))
-            elif result.hephaestus_refs:
+            elif result.CrewAI_refs:
                 warnings.append((file_path, result))
             else:
                 passed.append((file_path, result))
@@ -262,7 +262,7 @@ class ConfigUtilVerifier:
         report.append("SUMMARY")
         report.append("─" * 80)
         report.append(f"✅ PASS: {len(passed)} files")
-        report.append(f"⚠️  WARN: {len(warnings)} files (Hephaestus references)")
+        report.append(f"⚠️  WARN: {len(warnings)} files (CrewAI references)")
         report.append(f"❌ FAIL: {len(failed)} files")
         report.append(f"⏭️  SKIP: {len(skipped)} files (not found)")
         report.append("")
@@ -279,21 +279,21 @@ class ConfigUtilVerifier:
                 report.append(f"   - Migration Notice: {'✓' if result.migration_notice else '✗'}")
                 report.append("")
 
-        # Warnings (Hephaestus references)
+        # Warnings (CrewAI references)
         if warnings:
             report.append("─" * 80)
-            report.append("⚠️  WARNINGS (Hephaestus References Found)")
+            report.append("⚠️  WARNINGS (CrewAI References Found)")
             report.append("─" * 80)
             for file_path, result in warnings:
                 report.append(f"⚠️  {file_path}")
                 report.append(f"   - Import Status: {result.import_status}")
                 report.append(f"   - Syntax Valid: {result.syntax_valid}")
                 report.append(f"   - Migration Notice: {'✓' if result.migration_notice else '✗'}")
-                report.append(f"   - Hephaestus References ({len(result.hephaestus_refs)}):")
-                for ref in result.hephaestus_refs[:5]:  # Show first 5
+                report.append(f"   - CrewAI References ({len(result.CrewAI_refs)}):")
+                for ref in result.CrewAI_refs[:5]:  # Show first 5
                     report.append(f"     • {ref}")
-                if len(result.hephaestus_refs) > 5:
-                    report.append(f"     ... and {len(result.hephaestus_refs) - 5} more")
+                if len(result.CrewAI_refs) > 5:
+                    report.append(f"     ... and {len(result.CrewAI_refs) - 5} more")
                 report.append("")
 
         # Failed files
@@ -327,13 +327,13 @@ class ConfigUtilVerifier:
         report.append("─" * 80)
 
         if warnings:
-            report.append("1. ⚠️  Hephaestus References Detected:")
-            report.append("   The following files still contain Hephaestus references:")
+            report.append("1. ⚠️  CrewAI References Detected:")
+            report.append("   The following files still contain CrewAI references:")
             for file_path, _ in warnings:
                 report.append(f"   - {file_path}")
             report.append("")
             report.append("   Action Required:")
-            report.append("   - Update HephaestusIntegrationConfig in ragbits_integration/config.py")
+            report.append("   - Update CrewAIIntegrationConfig in ragbits_integration/config.py")
             report.append("   - Replace with CrewAIIntegrationConfig")
             report.append("   - Update all references to use CrewAI instead")
             report.append("")
@@ -352,7 +352,7 @@ class ConfigUtilVerifier:
 
         if not warnings and not failed:
             report.append("✅ All files verified successfully!")
-            report.append("   Migration from Hephaestus (AGPL) to CrewAI (MIT) is complete.")
+            report.append("   Migration from crewai # MIGRATED: was CrewAI (AGPL) to CrewAI (MIT) is complete.")
             report.append("")
 
         report.append("=" * 80)

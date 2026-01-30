@@ -1049,33 +1049,33 @@ class WorkflowState:
     leanaide_verification_method: Literal["leanaide_only", "leanaide_primary", "standard_primary"] = "standard_primary"  # Verification method priority
     leanaide_timeout: int = 300  # Timeout for LeanAide verification in seconds
 
-    # Hephaestus integration attributes
-    hephaestus_workflow_id: Optional[str] = None
+    # CrewAI integration attributes
+    CrewAI_workflow_id: Optional[str] = None
     id_to_ticket_id_map: Dict[str, str] = dataclasses.field(default_factory=dict)
     ticket_id_to_subproblem_id_map: Dict[str, str] = dataclasses.field(default_factory=dict)
     
-    def get_hephaestus_integration(self, api_base: str, api_key: str, project_id: str):
+    def get_crewai_integration(self, api_base: str, api_key: str, project_id: str):
         """
-        Get a configured Hephaestus integration manager for this workflow
+        Get a configured CrewAI integration manager for this workflow
         
         Args:
-            api_base: Base URL for Hephaestus API
+            api_base: Base URL for CrewAI API
             api_key: API key for authentication
-            project_id: Project ID in Hephaestus
+            project_id: Project ID in CrewAI
             
         Returns:
-            HephaestusIntegrationManager instance
+            CrewAIIntegrationManager instance
         """
-        from crewai_integration # MIGRATED: was hephaestus_integration import HephaestusIntegrationManager
-        return HephaestusIntegrationManager(api_base, api_key, project_id)
+        from crewai_integration # MIGRATED: was crewai_integration import crewai # MIGRATED: was CrewAIIntegrationManager
+        return CrewAIIntegrationManager(api_base, api_key, project_id)
     
-    def sync_subproblem_status_to_hephaestus(self, integration_manager, sub_problem_id: str, 
+    def sync_subproblem_status_to_CrewAI(self, integration_manager, sub_problem_id: str, 
                                            new_status: str, solution_content: Optional[str] = None) -> bool:
         """
-        Sync a specific sub-problem status to Hephaestus
+        Sync a specific sub-problem status to CrewAI
         
         Args:
-            integration_manager: HephaestusIntegrationManager instance
+            integration_manager: CrewAIIntegrationManager instance
             sub_problem_id: ID of the sub-problem to sync
             new_status: New status to set
             solution_content: Optional solution content to include
@@ -1085,13 +1085,13 @@ class WorkflowState:
         """
         return integration_manager.update_subproblem_status(self, sub_problem_id, new_status, solution_content)
     
-    def sync_solution_to_hephaestus_ticket(self, integration_manager, sub_problem_id: str, 
+    def sync_solution_to_CrewAI_ticket(self, integration_manager, sub_problem_id: str, 
                                          solution: 'SolutionAttempt') -> bool:
         """
-        Sync a solution to its corresponding Hephaestus ticket
+        Sync a solution to its corresponding CrewAI ticket
         
         Args:
-            integration_manager: HephaestusIntegrationManager instance
+            integration_manager: CrewAIIntegrationManager instance
             sub_problem_id: ID of the sub-problem
             solution: SolutionAttempt to sync
             
@@ -1100,13 +1100,13 @@ class WorkflowState:
         """
         return integration_manager.sync_solution_to_ticket(self, sub_problem_id, solution)
     
-    def sync_critique_to_hephaestus_ticket(self, integration_manager, sub_problem_id: str, 
+    def sync_critique_to_CrewAI_ticket(self, integration_manager, sub_problem_id: str, 
                                          critique: 'CritiqueReport') -> bool:
         """
-        Sync a critique report to its corresponding Hephaestus ticket
+        Sync a critique report to its corresponding CrewAI ticket
         
         Args:
-            integration_manager: HephaestusIntegrationManager instance
+            integration_manager: CrewAIIntegrationManager instance
             sub_problem_id: ID of the sub-problem
             critique: CritiqueReport to sync
             
@@ -1115,13 +1115,13 @@ class WorkflowState:
         """
         return integration_manager.sync_critique_to_ticket(self, sub_problem_id, critique)
     
-    def sync_verification_to_hephaestus_ticket(self, integration_manager, sub_problem_id: str, 
+    def sync_verification_to_CrewAI_ticket(self, integration_manager, sub_problem_id: str, 
                                              verification: 'VerificationReport') -> bool:
         """
-        Sync a verification report to its corresponding Hephaestus ticket
+        Sync a verification report to its corresponding CrewAI ticket
         
         Args:
-            integration_manager: HephaestusIntegrationManager instance
+            integration_manager: CrewAIIntegrationManager instance
             sub_problem_id: ID of the sub-problem
             verification: VerificationReport to sync
             

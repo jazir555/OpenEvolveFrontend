@@ -7,7 +7,7 @@ for multi-model ensemble inference with CrewAI integration.
 EXAMPLES INCLUDED:
     1. Basic ensemble initialization and inference
     2. Team consensus for Decomposition workflow
-    3. Hephaestus phase-specific configuration
+    3. CREWAI phase-specific configuration
     4. Ensemble cache management
     5. Error handling and graceful degradation
     6. Comparison with baseline models
@@ -25,7 +25,7 @@ try:
         initialize_c2c_ensemble,
         run_c2c_inference,
         run_team_consensus_with_c2c,
-        configure_c2c_for_hephaestus_phase,
+        configure_c2c_for_CREWAI_phase,
         get_c2c_status,
         load_c2c_checkpoint,
         compare_c2c_vs_baseline,
@@ -233,13 +233,13 @@ def example_4_team_consensus(ensemble_id: str = "demo-ensemble-1"):
 
 
 # ============================================================================
-# EXAMPLE 5: Configure C2C for Hephaestus Phases
+# EXAMPLE 5: Configure C2C for CREWAI Phases
 # ============================================================================
 
-def example_5_hephaestus_configuration():
-    """Example 5: Configure C2C for different Hephaestus phases."""
+def example_5_CREWAI_configuration():
+    """Example 5: Configure C2C for different CREWAI phases."""
     print("\n" + "="*70)
-    print("EXAMPLE 5: Configure C2C for Hephaestus Phases")
+    print("EXAMPLE 5: Configure C2C for CREWAI Phases")
     print("="*70)
 
     if not C2C_AVAILABLE:
@@ -250,8 +250,8 @@ def example_5_hephaestus_configuration():
 
     for phase in phases:
         print(f"\n--- Phase: {phase.upper()} ---")
-        result = configure_c2c_for_hephaestus_phase(
-            phase_id=f"hephaestus-{phase}",
+        result = configure_c2c_for_CREWAI_phase(
+            phase_id=f"CREWAI-{phase}",
             base_model="Qwen/Qwen3-0.6B",
             phase_type=phase,
             ensemble_config={"device": "cpu"},
@@ -569,7 +569,7 @@ def main():
     example_2_initialize_ensemble()
     example_3_run_inference()
     example_4_team_consensus()
-    example_5_hephaestus_configuration()
+    example_5_CREWAI_configuration()
     example_6_cache_management()
     example_7_compare_baseline()
     example_8_error_handling()

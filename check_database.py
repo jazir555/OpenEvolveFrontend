@@ -2,7 +2,7 @@
 import sqlite3
 import os
 
-db_path = "hephaestus_workflow_mappings.db"
+db_path = "crewai_workflow_mappings.db"
 
 if os.path.exists(db_path):
     print(f"Database file exists: {db_path}")

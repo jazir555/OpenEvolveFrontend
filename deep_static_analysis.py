@@ -671,7 +671,7 @@ def main():
     """Main analysis entry point."""
     # Files to analyze
     files_to_analyze = [
-        r"C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_hephaestus_bridge.py",
+        r"C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_CREWAI_bridge.py",
         r"C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_analytics.py",
         r"C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_typescript_export.py",
         r"C:\Users\mmeadow\Documents\OpenEvolve\Frontend\bubblelabs_mcp_tools.py",

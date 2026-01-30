@@ -102,7 +102,7 @@ class KnowledgeExtractor:
     to identify valuable knowledge entities.
 
     Usage:
-        extractor = KnowledgeExtractor(hephaestus_client)
+        extractor = KnowledgeExtractor(crewai_client)
 
         result = await extractor.extract_from_artifact(
             artifact_id="art_123",
@@ -173,14 +173,14 @@ class KnowledgeExtractor:
         ]
     }
 
-    def __init__(self, hephaestus_client=None):
+    def __init__(self, crewai_client=None):
         """
         Initialize knowledge extractor.
 
         Args:
-            hephaestus_client: Optional Hephaestus client for LLM-based extraction
+            crewai_client: Optional CREWAI client for LLM-based extraction
         """
-        self.hephaestus_client = hephaestus_client
+        self.crewai_client = crewai_client
 
         # Extraction statistics
         self.extraction_stats = {
@@ -228,7 +228,7 @@ class KnowledgeExtractor:
         entities.extend(pattern_entities)
 
         # LLM-based extraction (if enabled)
-        if use_llm and self.hephaestus_client:
+        if use_llm and self.crewai_client:
             llm_entities = await self._extract_by_llm(
                 content,
                 artifact_id,
@@ -325,7 +325,7 @@ class KnowledgeExtractor:
         artifact_type: str
     ) -> List[KnowledgeEntity]:
         """Extract entities using LLM"""
-        if not self.hephaestus_client:
+        if not self.crewai_client:
             return []
 
         try:
@@ -354,7 +354,7 @@ Format as JSON:
     ]
 }}"""
 
-            response = await self.hephaestus_client.generate(
+            response = await self.crewai_client.generate(
                 prompt,
                 temperature=0.3
             )

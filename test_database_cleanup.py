@@ -2,7 +2,7 @@
 Database Cleanup Test Suite
 
 This module tests the automatic database cleanup functionality for both
-BubbleLabs analytics and Hephaestus mappings databases.
+BubbleLabs analytics and CREWAI mappings databases.
 
 Test Coverage:
 - Manual cleanup of old workflows
@@ -31,7 +31,7 @@ from typing import Dict, Any
 sys.path.insert(0, str(Path(__file__).parent))
 
 from bubblelabs_analytics import BubbleLabsAnalytics, cleanup_all_databases
-from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge, WorkflowTicketMapping
+from bubblelabs_crewai_bridge import BubbleLabsCREWAIBridge, WorkflowTicketMapping
 
 
 class TestAnalyticsDatabaseCleanup(unittest.TestCase):
@@ -295,7 +295,7 @@ class TestAnalyticsDatabaseCleanup(unittest.TestCase):
 
 
 class TestMappingsDatabaseCleanup(unittest.TestCase):
-    """Test cleanup functionality for Hephaestus mappings database."""
+    """Test cleanup functionality for CREWAI mappings database."""
 
     def setUp(self):
         """Set up test fixtures with temporary database."""
@@ -304,7 +304,7 @@ class TestMappingsDatabaseCleanup(unittest.TestCase):
         self.db_path = os.path.join(self.test_dir, "test_mappings.db")
 
         # Create bridge
-        self.bridge = BubbleLabsHephaestusBridge()
+        self.bridge = BubbleLabsCREWAIBridge()
 
         # Override database path
         self.bridge._mappings_db_path = self.db_path
@@ -457,7 +457,7 @@ class TestCleanupAllDatabases(unittest.TestCase):
 
         # Create test databases
         self.analytics_db = os.path.join(self.test_dir, "bubblelabs_analytics.db")
-        self.mappings_db = os.path.join(self.test_dir, "hephaestus_workflow_mappings.db")
+        self.mappings_db = os.path.join(self.test_dir, "crewai_workflow_mappings.db")
 
         # Create analytics database with test data
         analytics = BubbleLabsAnalytics(db_path=self.analytics_db)

@@ -4,7 +4,7 @@ API Consistency Fixes for ACE Modules
 
 This script applies all API consistency fixes to:
 1. ace_mcp_tools.py
-2. ace_hephaestus_bridge.py
+2. ace_CREWAI_bridge.py
 3. ace_stage6_integration.py
 
 Fixes include:
@@ -71,8 +71,8 @@ from ace_api_utils import (
         content = content.replace(imports_section, new_imports, 1)
 
         # Add parameter naming conventions to docstring
-        old_docstring_end = 'Architecture: Hephaestus (Orchestrator) -> ACE (Learning Layer) -> LLM Providers'
-        new_docstring_end = '''Architecture: Hephaestus (Orchestrator) -> ACE (Learning Layer) -> LLM Providers
+        old_docstring_end = 'Architecture: CREWAI (Orchestrator) -> ACE (Learning Layer) -> LLM Providers'
+        new_docstring_end = '''Architecture: CREWAI (Orchestrator) -> ACE (Learning Layer) -> LLM Providers
 
 Parameter Naming Conventions:
 - skillbook_path: Path to skillbook JSON file
@@ -202,7 +202,7 @@ Parameter Naming Conventions:
 
     def fix_parameter_order(self, file_path: str) -> bool:
         """Fix parameter order in execute_full_workflow if applicable."""
-        if "ace_hephaestus_bridge.py" not in file_path:
+        if "ace_CREWAI_bridge.py" not in file_path:
             return True
 
         path = self.base_dir / file_path
@@ -294,7 +294,7 @@ def main():
 
     files_to_fix = [
         "ace_mcp_tools.py",
-        "ace_hephaestus_bridge.py",
+        "ace_CREWAI_bridge.py",
         "ace_stage6_integration.py",
     ]
 

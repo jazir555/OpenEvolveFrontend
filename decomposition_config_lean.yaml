@@ -333,8 +333,8 @@ subproblem_generation:
   # Generate evolutionary configuration for difficult problems
   include_evolutionary_config: true
 
-  # Create Hephaestus tickets for Lean sub-problems
-  create_hephaestus_tickets: true
+  # Create crewai tickets for Lean sub-problems
+  create_crewai_tickets: true
 
   # Ticket priority calculation
   ticket_priority:
@@ -374,11 +374,11 @@ roma_integration:
     max_similar_proofs: 5
 
 # =============================================================================
-# HEPHAESTUS INTEGRATION
+# crewai INTEGRATION
 # =============================================================================
 
-hephaestus_integration:
-  # Enable Hephaestus ticket creation
+crewai_integration:
+  # Enable crewai ticket creation
   enabled: true
 
   # Ticket configuration
@@ -481,8 +481,8 @@ logging:
   # Log ROMA integration
   log_roma: false
 
-  # Log Hephaestus integration
-  log_hephaestus: false
+  # Log crewai integration
+  log_crewai: false
 
 # =============================================================================
 # VALIDATION AND QUALITY CONTROL

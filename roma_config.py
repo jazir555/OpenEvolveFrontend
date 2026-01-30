@@ -2,10 +2,10 @@
 ROMA Configuration System
 
 This module provides comprehensive configuration classes for ROMA integration
-at every stage of the Hephaestus workflow.
+at every stage of the CREWAI workflow.
 
 Architecture:
-    HephaestusConfig (Top-level)
+    CREWAIConfig (Top-level)
         ├── Phase1Config (Problem Setup)
         ├── Phase2Config (Solution Generation)
         ├── Phase3Config (Adversarial Critique)
@@ -318,9 +318,9 @@ class ROMAHybridConfig:
 # =============================================================================
 
 @dataclass
-class HephaestusROMAConfig:
+class CREWAIROMAConfig:
     """
-    Complete configuration for Hephaestus workflow with ROMA
+    Complete configuration for CREWAI workflow with ROMA
 
     This is the top-level configuration that encompasses all phases.
     """
@@ -416,22 +416,22 @@ class ROMAConfigBuilder:
     """Builder pattern for creating ROMA configurations"""
 
     @staticmethod
-    def default() -> HephaestusROMAConfig:
+    def default() -> CREWAIROMAConfig:
         """Create default configuration"""
-        return HephaestusROMAConfig()
+        return CREWAIROMAConfig()
 
     @staticmethod
-    def roma_native() -> HephaestusROMAConfig:
+    def roma_native() -> CREWAIROMAConfig:
         """Create configuration for ROMA native workflow"""
-        config = HephaestusROMAConfig()
+        config = CREWAIROMAConfig()
         config.execution_method = "roma"
         config.use_roma_native_workflow = True
         return config
 
     @staticmethod
-    def roma_hybrid() -> HephaestusROMAConfig:
+    def roma_hybrid() -> CREWAIROMAConfig:
         """Create configuration for ROMA-Decomposition hybrid"""
-        config = HephaestusROMAConfig()
+        config = CREWAIROMAConfig()
         config.execution_method = "hybrid"
         config.hybrid = ROMAHybridConfig()
         return config
@@ -457,7 +457,7 @@ class ROMAConfigBuilder:
         return config_class(**kwargs)
 
     @staticmethod
-    def from_dict(config_dict: Dict[str, Any]) -> HephaestusROMAConfig:
+    def from_dict(config_dict: Dict[str, Any]) -> CREWAIROMAConfig:
         """Create configuration from dictionary"""
         # Extract phase configs if present
         phase_configs = {}
@@ -480,7 +480,7 @@ class ROMAConfigBuilder:
             hybrid_config = ROMAHybridConfig(**config_dict['hybrid'])
 
         # Create main config
-        config = HephaestusROMAConfig(**{k: v for k, v in config_dict.items()
+        config = CREWAIROMAConfig(**{k: v for k, v in config_dict.items()
                                          if k not in [f'phase{i}' for i in range(1, 7)] and k != 'hybrid'})
 
         # Apply phase configs
@@ -501,9 +501,9 @@ class ROMAConfigPresets:
     """Pre-configured settings for common use cases"""
 
     @staticmethod
-    def fast_development() -> HephaestusROMAConfig:
+    def fast_development() -> CREWAIROMAConfig:
         """Fast development - lower depth, fewer features"""
-        config = HephaestusROMAConfig()
+        config = CREWAIROMAConfig()
 
         config.phase1.max_depth_analysis = 2
         config.phase2.max_depth_solving = 1
@@ -515,9 +515,9 @@ class ROMAConfigPresets:
         return config
 
     @staticmethod
-    def comprehensive_analysis() -> HephaestusROMAConfig:
+    def comprehensive_analysis() -> CREWAIROMAConfig:
         """Comprehensive analysis - maximum depth, all features"""
-        config = HephaestusROMAConfig()
+        config = CREWAIROMAConfig()
 
         config.phase1.max_depth_analysis = 5
         config.phase1.include_dag_visualization = True
@@ -543,9 +543,9 @@ class ROMAConfigPresets:
         return config
 
     @staticmethod
-    def security_focused() -> HephaestusROMAConfig:
+    def security_focused() -> CREWAIROMAConfig:
         """Security-focused analysis"""
-        config = HephaestusROMAConfig()
+        config = CREWAIROMAConfig()
 
         config.phase1.analysis_type = "dependencies"
         config.phase1.identify_dependencies = True
@@ -567,9 +567,9 @@ class ROMAConfigPresets:
         return config
 
     @staticmethod
-    def performance_focused() -> HephaestusROMAConfig:
+    def performance_focused() -> CREWAIROMAConfig:
         """Performance-focused analysis"""
-        config = HephaestusROMAConfig()
+        config = CREWAIROMAConfig()
 
         config.phase1.analysis_type = "complexity"
         config.phase1.calculate_complexity_scores = True
@@ -590,9 +590,9 @@ class ROMAConfigPresets:
         return config
 
     @staticmethod
-    def minimal_resource_usage() -> HephaestusROMAConfig:
+    def minimal_resource_usage() -> CREWAIROMAConfig:
         """Minimal resource usage - lowest depth, essential features only"""
-        config = HephaestusROMAConfig()
+        config = CREWAIROMAConfig()
 
         config.phase1.max_depth_analysis = 1
         config.phase1.include_dag_visualization = False

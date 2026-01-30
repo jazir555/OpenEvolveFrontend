@@ -60,12 +60,12 @@ def test_edge_case_1_sync_workflow_to_ticket():
     print("="*80)
 
     try:
-        from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
+        from bubblelabs_crewai_bridge import BubbleLabsCrewAIBridge
 
         # Create bridge with mock integration
-        bridge = BubbleLabsHephaestusBridge(
+        bridge = BubbleLabsCrewAIBridge(
             bubblelabs_integration=MockBubbleLabsIntegration(),
-            hephaestus_client=None
+            crewai_client=None
         )
 
         # Test with workflow that returns None
@@ -276,7 +276,7 @@ def test_edge_case_5_sync_workflow_with_invalid_attributes():
     print("="*80)
 
     try:
-        from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
+        from bubblelabs_crewai_bridge import BubbleLabsCrewAIBridge
 
         # Mock that returns workflow with missing 'id'
         class MockBadWorkflow:
@@ -289,9 +289,9 @@ def test_edge_case_5_sync_workflow_with_invalid_attributes():
                 return MockBadWorkflow()  # Returns workflow without 'id'
 
         # Create bridge
-        bridge = BubbleLabsHephaestusBridge(
+        bridge = BubbleLabsCrewAIBridge(
             bubblelabs_integration=MockBubbleLabsBad(),
-            hephaestus_client=None
+            crewai_client=None
         )
 
         # Test with workflow missing 'id'

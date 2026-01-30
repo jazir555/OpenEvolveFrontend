@@ -1,5 +1,5 @@
 """
-Test Security Fixes Applied to ace_hephaestus_bridge.py
+Test Security Fixes Applied to ace_CREWAI_bridge.py
 
 This test validates all 12 security fixes were properly applied:
 1. Import Security Utilities (including threading)
@@ -221,7 +221,7 @@ def test_thread_safety():
 def main():
     """Run all tests"""
     print("=" * 70)
-    print("ACE Hephaestus Bridge Security Fixes Validation")
+    print("ACE CREWAI Bridge Security Fixes Validation")
     print("=" * 70)
 
     tests = [

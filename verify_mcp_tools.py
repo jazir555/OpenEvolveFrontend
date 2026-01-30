@@ -4,7 +4,7 @@ Comprehensive MCP Tools Verification Script
 Verifies all 13 MCP tool files for:
 1. Import success
 2. Logger ordering (before try/except)
-3. Hephaestus references (should be only in comments)
+3. CREWAI references (should be only in comments)
 4. MCP tool registration
 5. Tool schema validity
 """
@@ -55,7 +55,7 @@ def verify_file(filepath: str) -> Dict[str, Any]:
         'import_status': 'UNKNOWN',
         'has_logger': False,
         'logger_before_try': False,
-        'hephaestus_imports': [],
+        'CREWAI_imports': [],
         'crewai_imports': [],
         'tool_count': 0,
         'registration_mechanism': None,
@@ -95,12 +95,12 @@ def verify_file(filepath: str) -> Dict[str, Any]:
     if logger_line is not None and first_try_line is not None:
         result['logger_before_try'] = logger_line < first_try_line
 
-    # Check for Hephaestus imports
+    # Check for CREWAI imports
     for i, line in enumerate(lines):
         # Check for active imports (not commented)
         if re.match(r'^\s*(from|import)\s+', line):
-            if 'hephaestus' in line.lower() and not line.strip().startswith('#'):
-                result['hephaestus_imports'].append((i+1, line.strip()))
+            if 'CREWAI' in line.lower() and not line.strip().startswith('#'):
+                result['CREWAI_imports'].append((i+1, line.strip()))
             if 'crewai' in line.lower() and not line.strip().startswith('#'):
                 result['crewai_imports'].append((i+1, line.strip()))
 
@@ -122,9 +122,9 @@ def verify_file(filepath: str) -> Dict[str, Any]:
     # Determine overall status
     if result['errors']:
         result['status'] = 'FAIL'
-    elif result['hephaestus_imports']:
+    elif result['CREWAI_imports']:
         result['status'] = 'FAIL'
-        result['errors'].append(f'Found {len(result["hephaestus_imports"])} active Hephaestus imports')
+        result['errors'].append(f'Found {len(result["CREWAI_imports"])} active CREWAI imports')
     elif not result['logger_before_try'] and result['has_logger']:
         result['status'] = 'WARN'
         result['warnings'].append('Logger defined after try/except block')
@@ -183,7 +183,7 @@ if __name__ == '__main__':
             print(f' ({"Before try/except" if result["logger_before_try"] else "After try/except - WARN"})')
         else:
             print()
-        print(f'  Hephaestus imports: {len(result["hephaestus_imports"])}')
+        print(f'  CREWAI imports: {len(result["CREWAI_imports"])}')
         print(f'  CrewAI imports: {len(result["crewai_imports"])}')
         print(f'  MCP tools detected: {result["tool_count"]}')
         print(f'  Registration: {result["registration_mechanism"] or "None detected"}')

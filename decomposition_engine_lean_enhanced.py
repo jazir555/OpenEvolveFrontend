@@ -11,7 +11,7 @@ Key Enhancements:
 4. Lean-friendly sub-problem creation
 5. Proof complexity estimation
 6. Evolutionary strategy suggestion
-7. ROMA/Hephaestus integration for Lean tickets
+7. ROMA/CREWAI integration for Lean tickets
 
 Author: OpenEvolve
 Created: 2025-12-30

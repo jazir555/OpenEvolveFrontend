@@ -1308,9 +1308,9 @@ def cleanup_all_databases(base_path: str = ".", retention_days: int = 90) -> Dic
         logger.error(f"Error cleaning analytics database: {e}")
         results["analytics"] = {"error": str(e)}
 
-    # Cleanup mappings database (Hephaestus workflow mappings)
+    # Cleanup mappings database (CREWAI workflow mappings)
     try:
-        mappings_db = os.path.join(base_path, "hephaestus_workflow_mappings.db")
+        mappings_db = os.path.join(base_path, "crewai_workflow_mappings.db")
         if os.path.exists(mappings_db):
             import sqlite3
             conn = sqlite3.connect(mappings_db)

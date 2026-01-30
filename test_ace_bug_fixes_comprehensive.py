@@ -53,8 +53,8 @@ try:
 except Exception as e:
     print(f'ERROR: {e}')
 
-# Test 3: Verify ace_hephaestus_bridge.py fixes
-print('\n[TEST 3] Verify ace_hephaestus_bridge.py Bug Fixes')
+# Test 3: Verify ace_CREWAI_bridge.py fixes
+print('\n[TEST 3] Verify ace_CREWAI_bridge.py Bug Fixes')
 print('-' * 80)
 try:
     bridge = ACECrewAIWorkflowBridge()
@@ -254,7 +254,7 @@ print('    - Added dedup_threshold validation (0-1 range)')
 print('    - Fixed skillbook clear action (uses remove() method)')
 print('    - Added skillbook_path parameter to execute_task_with_ace')
 print('  ')
-print('  [ace_hephaestus_bridge.py]')
+print('  [ace_CREWAI_bridge.py]')
 print('    - Fixed execute_full_workflow (all 6 phases now execute)')
 print('    - Fixed AttributeError risk with None context handling')
 print('  ')

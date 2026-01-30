@@ -2,7 +2,7 @@
 ACE API Utilities - Standard API Response Formats and Constants
 
 This module provides standardized utilities for all ACE-related API endpoints
-to ensure consistency across ace_mcp_tools.py, ace_hephaestus_bridge.py, and
+to ensure consistency across ace_mcp_tools.py, ace_CREWAI_bridge.py, and
 ace_stage6_integration.py.
 
 Key Features:

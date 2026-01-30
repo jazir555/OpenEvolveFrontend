@@ -1,5 +1,5 @@
 """
-Test workflow-to-ticket mappings persistence in BubbleLabs-Hephaestus Bridge.
+Test workflow-to-ticket mappings persistence in BubbleLabs-CrewAI Bridge.
 
 This test verifies that:
 1. Mappings are saved to database when created
@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 # Import the bridge and related classes
 try:
     from bubblelabs_crewai_bridge import (
-        BubbleLabsHephaestusBridge,
+        BubbleLabsCrewAIBridge,
         WorkflowTicketMapping,
         BubbleLabsTicketConfig
     )
@@ -54,10 +54,10 @@ class TestBubbleLabsPersistence(unittest.TestCase):
         self.mock_bubblelabs = Mock(spec=BubbleLabsIntegration)
         self.mock_bubblelabs.workflow_definitions = {}
 
-        # Create mock Hephaestus client
-        self.mock_hephaestus = Mock()
-        self.mock_hephaestus.create_ticket = Mock(return_value="TEST-123")
-        self.mock_hephaestus.update_ticket = Mock(return_value=True)
+        # Create mock CrewAI client
+        self.mock_CrewAI = Mock()
+        self.mock_CrewAI.create_ticket = Mock(return_value="TEST-123")
+        self.mock_CrewAI.update_ticket = Mock(return_value=True)
 
     def tearDown(self):
         """Clean up after each test."""
@@ -72,11 +72,11 @@ class TestBubbleLabsPersistence(unittest.TestCase):
             except:
                 pass
 
-    def _create_bridge(self) -> BubbleLabsHephaestusBridge:
+    def _create_bridge(self) -> BubbleLabsCrewAIBridge:
         """Create a bridge instance for testing."""
-        bridge = BubbleLabsHephaestusBridge(
+        bridge = BubbleLabsCrewAIBridge(
             bubblelabs_integration=self.mock_bubblelabs,
-            hephaestus_client=self.mock_hephaestus,
+            crewai_client=self.mock_CrewAI,
             batch_size=10,
             mappings_db_path=self.test_db_path  # Use test database path
         )
@@ -402,7 +402,7 @@ def run_persistence_tests():
 
 if __name__ == "__main__":
     print("=" * 80)
-    print("BubbleLabs-Hephaestus Bridge Persistence Tests")
+    print("BubbleLabs-CrewAI Bridge Persistence Tests")
     print("=" * 80)
     print()
 

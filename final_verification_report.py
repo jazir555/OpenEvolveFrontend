@@ -58,7 +58,7 @@ def main():
         'bubblelabs_mcp_tools.py',
         'bubblelabs_typescript_export.py',
         'bubblelabs_security.py',
-        'bubblelabs_hephaestus_bridge.py',
+        'bubblelabs_CREWAI_bridge.py',
         'bubblelabs_integration.py',
         'openevolve_bubblelabs_api.py'
     ]
@@ -82,7 +82,7 @@ def main():
         ("bubblelabs_mcp_tools", "create_bubblelabs_workflow"),
         ("bubblelabs_typescript_export", "BubbleLabsTypeScriptExporter"),
         ("bubblelabs_security", "AuthenticationManager"),
-        ("bubblelabs_hephaestus_bridge", "BubbleLabsHephaestusBridge"),
+        ("bubblelabs_CREWAI_bridge", "BubbleLabsCREWAIBridge"),
         ("bubblelabs_integration", "BubbleLabsIntegration"),
         ("openevolve_bubblelabs_api", "OpenEvolveBubbleLabsIntegration"),
     ]
@@ -174,7 +174,7 @@ def main():
     files_to_check = [
         'bubblelabs_mcp_tools.py',
         'bubblelabs_analytics.py',
-        'bubblelabs_hephaestus_bridge.py',
+        'bubblelabs_CREWAI_bridge.py',
         'bubblelabs_integration.py'
     ]
 
@@ -205,7 +205,7 @@ def main():
     try:
         # Check for defensive programming patterns
         edge_case_files = [
-            ('bubblelabs_hephaestus_bridge.py', [
+            ('bubblelabs_CREWAI_bridge.py', [
                 'if.*is None',
                 'try:',
                 'except',

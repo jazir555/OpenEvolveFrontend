@@ -273,10 +273,10 @@ class TestWorkflowToTicketMapping(unittest.TestCase):
             self.skipTest("State validation not available")
 
         # Import the bridge class
-        from bubblelabs_crewai_bridge # MIGRATED import BubbleLabsHephaestusBridge
+        from bubblelabs_crewai_bridge # MIGRATED import BubbleLabsCREWAIBridge
         from bubblelabs_integration import BubbleLabsIntegration
 
-        self.bridge = BubbleLabsHephaestusBridge(
+        self.bridge = BubbleLabsCREWAIBridge(
             bubblelabs_integration=BubbleLabsIntegration()
         )
 

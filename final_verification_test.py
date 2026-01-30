@@ -82,19 +82,19 @@ def test_ui_components() -> bool:
         print(f"❌ Failed to import UI components: {e}")
         return False
 
-def test_hephaestus_integration() -> bool:
-    """Test that Hephaestus integration is implemented"""
-    print("🔍 Testing Hephaestus integration...")
+def test_crewai_integration() -> bool:
+    """Test that CrewAI integration is implemented"""
+    print("🔍 Testing CrewAI integration...")
     
     try:
-        from crewai_integration import HephaestusIntegrationManager
-        from crewai_client import HephaestusClient
-        from sovereign_decomposition_crewai_integration import SovereignDecompositionHephaestusIntegration
+        from crewai_integration import crewai # MIGRATED: was CrewAIIntegrationManager
+        from crewai_client import CrewAIClient
+        from sovereign_decomposition_crewai_integration import SovereignDecompositionCrewAIIntegration
         
-        print("✅ Hephaestus integration components loaded successfully")
+        print("✅ CrewAI integration components loaded successfully")
         return True
     except ImportError as e:
-        print(f"❌ Failed to import Hephaestus integration: {e}")
+        print(f"❌ Failed to import crewai # MIGRATED: was CrewAI integration: {e}")
         return False
 
 def test_main_orchestrator() -> bool:
@@ -158,7 +158,7 @@ def test_integration_points() -> bool:
         )
         
         from crewai_integration import (
-            setup_hephaestus_integration
+            setup_crewai_integration
         )
         
         print("✅ Integration points are properly implemented")
@@ -178,7 +178,7 @@ def run_comprehensive_verification() -> Dict[str, Any]:
         ("Gauntlet System", test_gauntlet_system),
         ("Workflow Engine", test_workflow_engine),
         ("UI Components", test_ui_components),
-        ("Hephaestus Integration", test_hephaestus_integration),
+        ("CrewAI Integration", test_crewai_integration),
         ("Main Orchestrator", test_main_orchestrator),
         ("Workflow Stages", test_workflow_stages),
         ("Integration Points", test_integration_points)
@@ -216,7 +216,7 @@ def run_comprehensive_verification() -> Dict[str, Any]:
         print("• Gauntlet system with programmable rules")
         print("• End-to-end workflow stages 0-6")
         print("• UI/UX components")
-        print("• Complete Hephaestus integration")
+        print("• Complete CrewAI integration")
         print("• Real-time monitoring and analytics")
         print("• Knowledge extraction and learning")
         print("• Self-healing automation")

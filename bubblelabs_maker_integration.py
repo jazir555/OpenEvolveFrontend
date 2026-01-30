@@ -177,7 +177,7 @@ class ToolExecutionResult:
     success: bool
     error_message: Optional[str] = None
     metrics: Optional[Dict[str, Any]] = None
-    hephaestus_ticket_id: Optional[str] = None
+    CREWAI_ticket_id: Optional[str] = None
     timestamp: str = field(default_factory=lambda: datetime.now().isoformat())
 
 
@@ -699,7 +699,7 @@ class MakerWorkflowManager:
                 success=result.get("success", False),
                 error_message=result.get("error"),
                 metrics=result.get("metrics"),
-                hephaestus_ticket_id=delegation.task_id if delegation else None
+                CREWAI_ticket_id=delegation.task_id if delegation else None
             )
 
             # Store result
@@ -783,7 +783,7 @@ class BubbleLabsMakerUI:
             self._render_tool_executor()
 
         with tabs[3]:
-            self._render_hephaestus_tracker()
+            self._render_CREWAI_tracker()
 
         with tabs[4]:
             self._render_workflow_analytics()
@@ -1067,8 +1067,8 @@ class BubbleLabsMakerUI:
                             # Display result
                             st.success(f"✅ Execution completed in {result.execution_time:.2f}s")
 
-                            if result.hephaestus_ticket_id:
-                                st.info(f"📋 CrewAI Ticket: {result.hephaestus_ticket_id}")
+                            if result.CREWAI_ticket_id:
+                                st.info(f"📋 CrewAI Ticket: {result.CREWAI_ticket_id}")
 
                             # Tabs for result details
                             tabs = st.tabs(["Output", "Metrics", "Input"])

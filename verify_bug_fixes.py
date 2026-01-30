@@ -32,7 +32,7 @@ except TypeError as e:
 
 try:
     from roma_mdap_maker_crewai_bridge # MIGRATED import execute_phase_2_solve
-    print("  [OK] roma_mdap_maker_hephaestus_bridge imports successfully (parameters fixed)")
+    print("  [OK] roma_mdap_maker_CREWAI_bridge imports successfully (parameters fixed)")
 except TypeError as e:
     print(f"  [FAIL] {e}")
     all_passed = False

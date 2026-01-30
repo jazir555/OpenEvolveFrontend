@@ -51,19 +51,19 @@ async def run_phase_2_integration_test():
 
     # Create agents
     blue_agent = BlueTeamAgent(
-        hephaestus_client=llm_client,
+        crewai_client=llm_client,
         storage_manager=storage,
         knowledge_retriever=None
     )
 
     red_agent = RedTeamAgent(
-        hephaestus_client=llm_client,
+        crewai_client=llm_client,
         storage_manager=storage,
         knowledge_retriever=None
     )
 
     gold_agent = GoldTeamAgent(
-        hephaestus_client=llm_client,
+        crewai_client=llm_client,
         storage_manager=storage,
         knowledge_retriever=None
     )
@@ -308,7 +308,7 @@ async def test_agent_tools_integration():
 
     # Create Blue Team agent with tools
     blue_agent = BlueTeamAgent(
-        hephaestus_client=llm_client,
+        crewai_client=llm_client,
         storage_manager=storage,
         knowledge_retriever=retriever
     )

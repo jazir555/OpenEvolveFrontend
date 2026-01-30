@@ -65,7 +65,7 @@ class VerificationReporter:
             "bubblelabs_mcp_tools.py",
             "bubblelabs_typescript_export.py",
             "bubblelabs_security.py",
-            "bubblelabs_hephaestus_bridge.py",
+            "bubblelabs_CREWAI_bridge.py",
             "bubblelabs_integration.py",
             "openevolve_bubblelabs_api.py",
             "env_helpers.py",
@@ -104,7 +104,7 @@ class VerificationReporter:
             ("bubblelabs_mcp_tools", "create_bubblelabs_workflow", "mcp_tools"),
             ("bubblelabs_typescript_export", "BubbleLabsTypeScriptExporter", "typescript"),
             ("bubblelabs_security", "AuthenticationManager", "security"),
-            ("bubblelabs_hephaestus_bridge", "BubbleLabsHephaestusBridge", "bridge"),
+            ("bubblelabs_CREWAI_bridge", "BubbleLabsCREWAIBridge", "bridge"),
             ("bubblelabs_integration", "BubbleLabsIntegration", "integration"),
             ("openevolve_bubblelabs_api", "OpenEvolveBubbleLabsIntegration", "api"),
             ("env_helpers", "env_var_int", "env_helpers"),
@@ -223,7 +223,7 @@ class VerificationReporter:
         # Test 1: None input handling
         print("  Testing None input handling...")
         try:
-            from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
+            from bubblelabs_crewai_bridge import BubbleLabsCREWAIBridge
             # This test would require a full instance setup
             # For now, just verify the module loads
             self.log_result("edge_case_tests", "None handling", True,

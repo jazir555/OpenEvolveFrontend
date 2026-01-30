@@ -1,18 +1,18 @@
 """
-Decomposition Workflow MCP Tools for Hephaestus Agents
+Decomposition Workflow MCP Tools for CREWAI Agents
 
-This module provides Model Context Protocol (MCP) tools that Hephaestus agents
+This module provides Model Context Protocol (MCP) tools that CREWAI agents
 can use to execute the Sovereign-Grade Decomposition Workflow.
 
 CRITICAL ARCHITECTURE:
-    Hephaestus (Orchestrator) → Decomposition Workflow → OpenEvolve (Evolutionary Engine)
+    CREWAI (Orchestrator) → Decomposition Workflow → OpenEvolve (Evolutionary Engine)
 
 The Decomposition Workflow leverages OpenEvolve for evolutionary permutations
 in ALL stages - problem analysis, solution generation, critique, verification,
 and reassembly all use OpenEvolve's evolutionary iteration capabilities.
 
 Architecture:
-    Hephaestus Agent → MCP Tool → Decomposition Engine → OpenEvolve (Evolution) → Result
+    CREWAI Agent → MCP Tool → Decomposition Engine → OpenEvolve (Evolution) → Result
 """
 
 import logging
@@ -195,7 +195,7 @@ def analyze_problem_for_decomposition(
 
     Uses OpenEvolve to evolve multiple analysis perspectives and select the best.
 
-    This is used by Hephaestus Phase 1 agents for content analysis (Stage 0).
+    This is used by CREWAI Phase 1 agents for content analysis (Stage 0).
 
     Args:
         problem_statement: The problem to analyze
@@ -367,7 +367,7 @@ def decompose_problem_into_sub_problems(
 
     Uses OpenEvolve to evolve multiple decomposition strategies and select the best.
 
-    This is used by Hephaestus Phase 1 agents for AI-assisted decomposition (Stage 1).
+    This is used by CREWAI Phase 1 agents for AI-assisted decomposition (Stage 1).
 
     Args:
         problem_statement: The problem to decompose
@@ -530,7 +530,7 @@ def create_decomposition_plan(
     """
     Create a complete decomposition plan with team and gauntlet assignments.
 
-    This is used by Hephaestus Phase 1 agents to finalize the decomposition plan.
+    This is used by CREWAI Phase 1 agents to finalize the decomposition plan.
 
     Args:
         problem_statement: Original problem statement
@@ -866,7 +866,7 @@ def critique_solution_with_gauntlet(
 
     Uses OpenEvolve to evolve multiple critique perspectives and find the most comprehensive critique.
 
-    This is used by Hephaestus Phase 3 agents for adversarial critique (Stage 3B).
+    This is used by CREWAI Phase 3 agents for adversarial critique (Stage 3B).
 
     Args:
         solution: The solution to critique
@@ -1014,7 +1014,7 @@ def verify_solution_with_gauntlet(
 
     Uses OpenEvolve to evolve multiple verification perspectives.
 
-    This is used by Hephaestus Phase 4 agents for solution verification (Stage 3C).
+    This is used by CREWAI Phase 4 agents for solution verification (Stage 3C).
 
     Args:
         solution: The solution to verify

@@ -41,7 +41,7 @@ except ImportError as e:
 
 # Import BubbleLabs modules
 try:
-    from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
+    from bubblelabs_crewai_bridge import BubbleLabsCREWAIBridge
     from bubblelabs_mcp_tools import (
         create_bubblelabs_workflow,
         execute_bubblelabs_workflow,
@@ -292,8 +292,8 @@ class TestValidationModule(unittest.TestCase):
             self.assertEqual(result, valid_action.lower())
 
 
-class TestBubbleLabsHephaestusBridgeValidation(unittest.TestCase):
-    """Test validation in BubbleLabsHephaestusBridge."""
+class TestBubbleLabsCREWAIBridgeValidation(unittest.TestCase):
+    """Test validation in BubbleLabsCREWAIBridge."""
 
     def setUp(self):
         if not BUBBLELABS_AVAILABLE:
@@ -301,7 +301,7 @@ class TestBubbleLabsHephaestusBridgeValidation(unittest.TestCase):
 
     def test_create_ticket_from_workflow_rejects_none(self):
         """Test that create_ticket_from_workflow rejects None workflow."""
-        bridge = BubbleLabsHephaestusBridge()
+        bridge = BubbleLabsCREWAIBridge()
 
         # Should raise ValueError for None workflow
         with self.assertRaises(ValueError) as context:
@@ -311,7 +311,7 @@ class TestBubbleLabsHephaestusBridgeValidation(unittest.TestCase):
 
     def test_update_ticket_progress_rejects_invalid_progress(self):
         """Test that update_ticket_progress rejects out-of-range progress."""
-        bridge = BubbleLabsHephaestusBridge()
+        bridge = BubbleLabsCREWAIBridge()
 
         # Should raise ValueError for progress > 1.0
         with self.assertRaises(ValueError) as context:
@@ -481,8 +481,8 @@ class TestValidationCoverage(unittest.TestCase):
 
         if BUBBLELABS_AVAILABLE:
             try:
-                from bubblelabs_crewai_bridge import BubbleLabsHephaestusBridge
-                modules_to_check.append(BubbleLabsHephaestusBridge)
+                from bubblelabs_crewai_bridge import BubbleLabsCREWAIBridge
+                modules_to_check.append(BubbleLabsCREWAIBridge)
             except ImportError:
                 pass
 
@@ -523,7 +523,7 @@ def run_validation_tests():
         suite.addTests(loader.loadTestsFromTestCase(TestValidationModule))
 
     if BUBBLELABS_AVAILABLE:
-        suite.addTests(loader.loadTestsFromTestCase(TestBubbleLabsHephaestusBridgeValidation))
+        suite.addTests(loader.loadTestsFromTestCase(TestBubbleLabsCREWAIBridgeValidation))
         suite.addTests(loader.loadTestsFromTestCase(TestBubbleLabsMCPToolsValidation))
         suite.addTests(loader.loadTestsFromTestCase(TestBubbleLabsAnalyticsValidation))
         suite.addTests(loader.loadTestsFromTestCase(TestBubbleLabsIntegrationValidation))

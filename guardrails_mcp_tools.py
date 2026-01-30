@@ -6,7 +6,7 @@ agents to leverage Guardrails' validation capabilities for ensuring LLM outputs
 meet specified quality and safety standards.
 
 MIGRATION NOTICE:
-    Previous: Hephaestus agent orchestration
+    Previous: CREWAI agent orchestration
     Current: CrewAI agent orchestration (MIT-licensed)
 
 Architecture: CrewAI (Orchestrator) -> Guardrails Adapter (Validation) -> LLM Outputs

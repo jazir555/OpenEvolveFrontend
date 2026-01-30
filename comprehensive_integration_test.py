@@ -1,8 +1,8 @@
 """
-Comprehensive Integration Test Suite for Hephaestus Integration with OpenEvolve
+Comprehensive Integration Test Suite for CREWAI Integration with OpenEvolve
 
 This module provides comprehensive integration tests for:
-- Core functionality between OpenEvolve and Hephaestus
+- Core functionality between OpenEvolve and CREWAI
 - End-to-end workflows with Sovereign-Grade Decomposition
 - Advanced validation workflows
 - Performance and scalability features
@@ -40,7 +40,7 @@ from workflow_engine import (
     run_sovereign_workflow,
     generate_solution_for_sub_problem
 )
-from crewai_client import HephaestusClient
+from crewai_client import CrewAIClient
 from advanced_sgd_monitoring import SGDMonitor
 from advanced_validation_workflows import (
     AdvancedValidationOrchestrator, 
@@ -58,8 +58,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
-class TestHephaestusIntegration(unittest.TestCase):
-    """Integration tests for Hephaestus with OpenEvolve."""
+class TestCrewAIIntegration(unittest.TestCase):
+    """Integration tests for CREWAI with OpenEvolve."""
     
     def setUp(self):
         """Set up test environment."""
@@ -119,7 +119,7 @@ class TestHephaestusIntegration(unittest.TestCase):
         return gauntlet
 
 
-class TestCoreIntegration(TestHephaestusIntegration):
+class TestCoreIntegration(TestCrewAIIntegration):
     """Test core integration functionality."""
     
     def test_team_manager_integration(self):
@@ -181,7 +181,7 @@ class TestCoreIntegration(TestHephaestusIntegration):
         self.assertEqual(decomposition_plan.sub_problems[0].id, "sp_1.1")
 
 
-class TestAdvancedValidationIntegration(TestHephaestusIntegration):
+class TestAdvancedValidationIntegration(TestCrewAIIntegration):
     """Test advanced validation workflows integration."""
     
     def test_advanced_validation_creation(self):
@@ -256,7 +256,7 @@ class TestAdvancedValidationIntegration(TestHephaestusIntegration):
         self.assertIn("overall_status", result)
 
 
-class TestSovereignWorkflowIntegration(TestHephaestusIntegration):
+class TestSovereignWorkflowIntegration(TestCrewAIIntegration):
     """Test sovereign-grade workflow integration."""
     
     def test_workflow_state_creation(self):
@@ -285,7 +285,7 @@ class TestSovereignWorkflowIntegration(TestHephaestusIntegration):
         self.assertIn("authentication", attempt.content.lower())
 
 
-class TestMonitoringIntegration(TestHephaestusIntegration):
+class TestMonitoringIntegration(TestCrewAIIntegration):
     """Test monitoring and reporting integration."""
     
     def test_sgd_monitor_creation(self):
@@ -304,7 +304,7 @@ class TestMonitoringIntegration(TestHephaestusIntegration):
         self.assertIsInstance(current_metrics, dict)
 
 
-class TestPerformanceIntegration(TestHephaestusIntegration):
+class TestPerformanceIntegration(TestCrewAIIntegration):
     """Test performance optimization integration."""
     
     def test_performance_optimizer_initialization(self):
@@ -337,7 +337,7 @@ class TestPerformanceIntegration(TestHephaestusIntegration):
         self.assertIsInstance(metrics, object)  # PerformanceMetrics dataclass
 
 
-class TestEndToEndIntegration(TestHephaestusIntegration):
+class TestEndToEndIntegration(TestCrewAIIntegration):
     """Test end-to-end integration scenarios."""
     
     def test_complete_workflow_simulation(self):
@@ -400,7 +400,7 @@ class TestEndToEndIntegration(TestHephaestusIntegration):
             logger.info(f"Expected exception in solution generation test: {e}")
 
 
-class TestErrorHandlingIntegration(TestHephaestusIntegration):
+class TestErrorHandlingIntegration(TestCrewAIIntegration):
     """Test error handling and resilience."""
     
     def test_missing_team_handling(self):
@@ -528,7 +528,7 @@ def create_integration_test_report(results: Dict[str, Any]) -> str:
     Create a comprehensive integration test report.
     """
     report = [
-        "# Hephaestus Integration Test Report",
+        "# CREWAI Integration Test Report",
         "",
         f"**Test Run Date**: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         f"**Integration Status**: {'✅ PASSED' if results['overall_success'] else '❌ FAILED'}",
@@ -553,7 +553,7 @@ def create_integration_test_report(results: Dict[str, Any]) -> str:
         report.extend([
             "## Integration Summary",
             "",
-            "✅ The Hephaestus integration with OpenEvolve is functioning correctly.",
+            "✅ The CREWAI integration with OpenEvolve is functioning correctly.",
             "✅ All core components are working as expected.",
             "✅ End-to-end workflows are operational.",
             "✅ Performance optimization features are implemented.",
@@ -566,7 +566,7 @@ def create_integration_test_report(results: Dict[str, Any]) -> str:
         report.extend([
             "## Integration Issues",
             "",
-            "❌ The Hephaestus integration has critical issues that need to be addressed:",
+            "❌ The CREWAI integration has critical issues that need to be addressed:",
             "❌ See detailed results above for specific failures and errors.",
             ""
         ])
@@ -588,7 +588,7 @@ async def main():
     """
     Main function to run comprehensive integration tests.
     """
-    print("Starting Comprehensive Hephaestus Integration Tests...")
+    print("Starting Comprehensive CREWAI Integration Tests...")
     print("="*60)
     
     # Run the tests
@@ -629,7 +629,7 @@ def validate_integration_components():
             "functional": True,
             "tested": True
         },
-        "Hephaestus Client": {
+        "CREWAI Client": {
             "exists": True,
             "functional": True,
             "tested": True

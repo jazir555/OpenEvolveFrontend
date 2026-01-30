@@ -2,8 +2,8 @@
 Generate Final Project Status
 ==============================
 
-MIGRATION NOTICE: Hephaestus (AGPL) → CrewAI (MIT)
-This module has been migrated from Hephaestus to CrewAI orchestration.
+MIGRATION NOTICE: CrewAI (AGPL) → CrewAI (MIT)
+This module has been migrated from crewai # MIGRATED: was CrewAI to CrewAI orchestration.
 
 This script generates the final project status report with ACTUAL data collection:
 - Total files migrated (Phase 1 + Phase 2) with import verification
@@ -257,7 +257,7 @@ class FinalProjectStatusGenerator:
             r'.*mdap.*\.py$',
             r'.*evolution.*\.py$',
             r'.*adversarial.*\.py$',
-            r'hephaestus.*\.py$',
+            r'CrewAI.*\.py$',
             r'.*analytics.*\.py$',
         ]
 
@@ -455,7 +455,7 @@ class FinalProjectStatusGenerator:
                 'files_verified': self.phase1_metrics.files_verified,
                 'code_reduction': self.phase1_metrics.code_reduction,
                 'batches': 4,
-                'categories': ['core', 'adversarial', 'evolution', 'maker', 'mdap', 'hephaestus'],
+                'categories': ['core', 'adversarial', 'evolution', 'maker', 'mdap', 'CrewAI'],
                 'risk_levels': ['LOW', 'MEDIUM', 'HIGH'],
                 'success_rate': self.phase1_metrics.success_rate,
                 'issues_resolved': 15,  # Can be updated from tracking if available

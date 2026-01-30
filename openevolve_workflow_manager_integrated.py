@@ -47,7 +47,7 @@ from bubblelabs_integration import (
 )
 from bubblelabs_analytics import BubbleLabsAnalytics
 from bubblelabs_crewai_bridge import (
-    BubbleLabsHephaestusBridge,
+    BubbleLabsCREWAIBridge,
     BubbleLabsTicketConfig,
     ExtendedWorkflowStatus,
     validate_workflow_transition
@@ -101,14 +101,14 @@ class OpenEvolveWorkflowManager:
     - Calls actual workflow functions from workflow_engine.py
     - Integrates with TeamManager and GauntletManager
     - Provides BubbleLabs visualization and control
-    - Tracks analytics and integrates with Hephaestus
+    - Tracks analytics and integrates with CREWAI
     """
 
     def __init__(
         self,
         analytics_db_path: Optional[str] = None,
-        enable_hephaestus: bool = False,
-        hephaestus_config: Optional[BubbleLabsTicketConfig] = None
+        enable_CREWAI: bool = False,
+        CREWAI_config: Optional[BubbleLabsTicketConfig] = None
     ):
         """Initialize the properly integrated workflow manager."""
         # Core managers (use ACTUAL managers)
@@ -123,15 +123,15 @@ class OpenEvolveWorkflowManager:
         else:
             self.analytics = None
 
-        # Hephaestus integration
-        self.enable_hephaestus = enable_hephaestus
-        if enable_hephaestus:
-            self.hephaestus_bridge = BubbleLabsHephaestusBridge(
+        # CREWAI integration
+        self.enable_CREWAI = enable_CREWAI
+        if enable_CREWAI:
+            self.CREWAI_bridge = BubbleLabsCREWAIBridge(
                 bubblelabs_integration=self.bubblelabs,
-                config=hephaestus_config or BubbleLabsTicketConfig()
+                config=CREWAI_config or BubbleLabsTicketConfig()
             )
         else:
-            self.hephaestus_bridge = None
+            self.CREWAI_bridge = None
 
         # Workflow storage (store ACTUAL WorkflowState objects)
         self.workflow_states: Dict[str, WorkflowState] = {}
@@ -299,15 +299,15 @@ class OpenEvolveWorkflowManager:
         # Create BubbleLabs instance
         self._create_bubblelabs_instance(workflow_id, instance_id, workflow_state)
 
-        # Create Hephaestus ticket
-        if self.enable_hephaestus and self.hephaestus_bridge:
+        # Create CREWAI ticket
+        if self.enable_CREWAI and self.CREWAI_bridge:
             try:
-                self.hephaestus_bridge.create_ticket_for_workflow(
+                self.CREWAI_bridge.create_ticket_for_workflow(
                     workflow_definition_id=workflow_id,
                     workflow_name=workflow_state.workflow_type
                 )
             except Exception as e:
-                logger.error(f"Failed to create Hephaestus ticket: {e}")
+                logger.error(f"Failed to create CREWAI ticket: {e}")
 
         # Execute workflow stages
         try:
@@ -374,9 +374,9 @@ class OpenEvolveWorkflowManager:
             if self.analytics:
                 self.analytics.end_workflow_tracking(workflow_id, "completed")
 
-            # Close Hephaestus ticket
-            if self.enable_hephaestus and self.hephaestus_bridge:
-                self.hephaestus_bridge.close_ticket_on_completion(
+            # Close CREWAI ticket
+            if self.enable_CREWAI and self.CREWAI_bridge:
+                self.CREWAI_bridge.close_ticket_on_completion(
                     workflow_instance_id=instance_id,
                     success=True
                 )
@@ -421,8 +421,8 @@ class OpenEvolveWorkflowManager:
             if self.analytics:
                 self.analytics.end_workflow_tracking(workflow_id, "failed")
 
-            if self.enable_hephaestus and self.hephaestus_bridge:
-                self.hephaestus_bridge.close_ticket_on_completion(
+            if self.enable_CREWAI and self.CREWAI_bridge:
+                self.CREWAI_bridge.close_ticket_on_completion(
                     workflow_instance_id=instance_id,
                     success=False
                 )

@@ -1,14 +1,14 @@
 """
-ACE (Agentic Context Engine) MCP Tools for Hephaestus Integration
+ACE (Agentic Context Engine) MCP Tools for CREWAI Integration
 
-This module provides Model Context Protocol (MCP) tools that enable Hephaestus
+This module provides Model Context Protocol (MCP) tools that enable CREWAI
 agents to leverage ACE's self-improving capabilities. ACE enables agents to learn
 from their execution feedback through three specialized roles:
 - Agent: Executes tasks using learned skills
 - Reflector: Analyzes what worked and what didn't
 - SkillManager: Updates the skillbook with new skills
 
-Architecture: Hephaestus (Orchestrator) -> ACE (Learning Layer) -> LLM Providers
+Architecture: CREWAI (Orchestrator) -> ACE (Learning Layer) -> LLM Providers
 """
 
 from typing import Any, Dict, List, Optional, Union

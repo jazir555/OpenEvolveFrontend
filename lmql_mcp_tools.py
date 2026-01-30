@@ -6,7 +6,7 @@ agents to leverage LMQL's constrained generation capabilities for reliable
 token-level control over LLM outputs.
 
 MIGRATION NOTICE:
-    Previous: Hephaestus agent orchestration
+    Previous: CREWAI agent orchestration
     Current: CrewAI agent orchestration (MIT-licensed)
 
 Architecture: CrewAI (Orchestrator) -> LMQL Adapter (Constrained Generation) -> LLM Providers

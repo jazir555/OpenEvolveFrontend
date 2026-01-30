@@ -109,7 +109,7 @@ def validate_leanaide_modules() -> List[Tuple[bool, str, str]]:
     modules = [
         ("leanaide_client", "Client"),
         ("leanaide_mcp_tools", "MCP Tools"),
-        ("leanaide_hephaestus_bridge", "Bridge"),
+        ("leanaide_CREWAI_bridge", "Bridge"),
     ]
 
     for module, name in modules:

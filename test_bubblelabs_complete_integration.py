@@ -3,7 +3,7 @@
 Comprehensive Test Suite for BubbleLabs Complete Integration
 
 Tests all newly implemented components:
-1. BubbleLabs-Hephaestus Bridge
+1. BubbleLabs-CREWAI Bridge
 2. BubbleLabs MCP Tools
 3. BubbleLabs Analytics
 4. BubbleLabs TypeScript Export
@@ -86,21 +86,21 @@ def print_info(text: str):
 
 
 # =============================================================================
-# HEPHAESTUS BRIDGE TESTS
+# CREWAI BRIDGE TESTS
 # =============================================================================
 
-def test_hephaestus_bridge(result: TestResult):
-    """Test BubbleLabs-Hephaestus bridge."""
-    print_header("Testing BubbleLabs-Hephaestus Bridge")
+def test_CREWAI_bridge(result: TestResult):
+    """Test BubbleLabs-CREWAI bridge."""
+    print_header("Testing BubbleLabs-CREWAI Bridge")
 
     try:
         from bubblelabs_crewai_bridge import (
-            BubbleLabsHephaestusBridge,
+            BubbleLabsCREWAIBridge,
             BubbleLabsTicketConfig,
             create_bridge
         )
 
-        print_success("Hephaestus bridge imports successful")
+        print_success("CREWAI bridge imports successful")
         result.add_pass()
 
         # Test config creation
@@ -116,9 +116,9 @@ def test_hephaestus_bridge(result: TestResult):
 
         # Test bridge creation
         bridge = create_bridge(
-            hephaestus_api_base="http://localhost:8000",
-            hephaestus_api_key="test-key",
-            hephaestus_project_id="test-project",
+            CREWAI_api_base="http://localhost:8000",
+            CREWAI_api_key="test-key",
+            CREWAI_project_id="test-project",
             config=config
         )
         print_success("Bridge created successfully")
@@ -135,7 +135,7 @@ def test_hephaestus_bridge(result: TestResult):
         from bubblelabs_integration import BubbleLabsIntegration
         integration = BubbleLabsIntegration()
         definition = integration.create_workflow_definition_from_openevolve(
-            problem_statement="Test workflow for Hephaestus integration",
+            problem_statement="Test workflow for CREWAI integration",
             team_config={"planner_team": "Test-Team"},
             gauntlet_config={}
         )
@@ -173,8 +173,8 @@ def test_hephaestus_bridge(result: TestResult):
         result.add_pass()
 
     except Exception as e:
-        print_error(f"Hephaestus bridge test failed: {str(e)}")
-        result.add_fail(f"Hephaestus bridge: {str(e)}")
+        print_error(f"CREWAI bridge test failed: {str(e)}")
+        result.add_fail(f"CREWAI bridge: {str(e)}")
         traceback.print_exc()
 
 
@@ -509,16 +509,16 @@ def test_full_integration(result: TestResult):
         print_success("Created workflow for integration test")
         result.add_pass()
 
-        # Create Hephaestus ticket
+        # Create CREWAI ticket
         from bubblelabs_crewai_bridge import create_bridge
         bridge = create_bridge(
-            hephaestus_api_base="http://localhost:8000",
-            hephaestus_api_key="test-key",
-            hephaestus_project_id="test-project"
+            CREWAI_api_base="http://localhost:8000",
+            CREWAI_api_key="test-key",
+            CREWAI_project_id="test-project"
         )
         ticket_id = bridge.create_ticket_from_workflow(definition)
         assert ticket_id is not None, "Failed to create ticket"
-        print_success(f"Hephaestus ticket created: {ticket_id}")
+        print_success(f"CREWAI ticket created: {ticket_id}")
         result.add_pass()
 
         # Create analytics tracker
@@ -595,7 +595,7 @@ def main():
     result = TestResult()
 
     # Run all test suites
-    test_hephaestus_bridge(result)
+    test_CREWAI_bridge(result)
     test_mcp_tools(result)
     test_analytics(result)
     test_typescript_export(result)

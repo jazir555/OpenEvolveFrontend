@@ -103,12 +103,12 @@ except ImportError:
     MAKER_AVAILABLE = False
     logger.warning("MAKER integration not available")
 
-# Import Hephaestus
+# import crewai # MIGRATED: was CrewAI
 try:
-    from crewai_client import HephaestusClient
-    HEPHAESTUS_AVAILABLE = True
+    from crewai_client import CrewAIClient
+    CREWAI_AVAILABLE = True
 except ImportError:
-    HEPHAESTUS_AVAILABLE = False
+    CREWAI_AVAILABLE = False
 
 # Import Knowledge Engine
 try:
@@ -182,8 +182,8 @@ class LeanMDAPConfig:
     fallback_to_evolution: bool = True
     fallback_to_single: bool = True
 
-    # Hephaestus Integration
-    hephaestus_enabled: bool = False
+    # CrewAI Integration
+    CrewAI_enabled: bool = False
     track_mdap_tickets: bool = True
 
     # Metadata
@@ -333,7 +333,7 @@ class LeanMDAPWorkflowIntegrator:
 
         # Initialize components
         self.leanaide_integrator: Optional[LeanAideWorkflowIntegrator] = None
-        self.hephaestus_client: Optional[HephaestusClient] = None
+        self.crewai_client: Optional[CrewAIClient] = None
         self.ace_manager: Optional[ACEKnowledgeManager] = None
 
         # Task tracking
@@ -358,9 +358,9 @@ class LeanMDAPWorkflowIntegrator:
             )
             self.leanaide_integrator = LeanAideWorkflowIntegrator(leanaide_config)
 
-        # Initialize Hephaestus if enabled
-        if self.config.hephaestus_enabled and HEPHAESTUS_AVAILABLE:
-            self.hephaestus_client = HephaestusClient(timeout=self.config.agent_timeout)
+        # Initialize CrewAI if enabled
+        if self.config.CrewAI_enabled and CREWAI_AVAILABLE:
+            self.crewai_client = CrewAIClient(timeout=self.config.agent_timeout)
 
         # Initialize ACE manager
         if ACE_AVAILABLE:
@@ -1514,7 +1514,7 @@ __all__ = [
     "MDAP_AVAILABLE",
     "MAKER_AVAILABLE",
     "WORKFLOW_AVAILABLE",
-    "HEPHAESTUS_AVAILABLE",
+    "CREWAI_AVAILABLE",
     "ACE_AVAILABLE"
 ]
 

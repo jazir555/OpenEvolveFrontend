@@ -111,14 +111,14 @@ class BubbleLabsLeakDetector:
         self.errors: List[str] = []
         self.warnings: List[str] = []
 
-    def test_bubblelabs_hephaestus_bridge(self):
-        """Test BubbleLabs-Hephaestus bridge for memory leaks."""
+    def test_bubblelabs_CREWAI_bridge(self):
+        """Test BubbleLabs-CREWAI bridge for memory leaks."""
         print("\n" + "=" * 80)
-        print("TEST 1: BubbleLabs-Hephaestus Bridge Memory Leak Detection")
+        print("TEST 1: BubbleLabs-CREWAI Bridge Memory Leak Detection")
         print("=" * 80)
 
         try:
-            from bubblelabs_crewai_bridge # MIGRATED import BubbleLabsHephaestusBridge
+            from bubblelabs_crewai_bridge # MIGRATED import BubbleLabsCREWAIBridge
             from bubblelabs_integration import BubbleLabsIntegration
         except ImportError as e:
             print(f"⚠️  Could not import: {e}")
@@ -129,7 +129,7 @@ class BubbleLabsLeakDetector:
 
         # Create bridge
         bubblelabs = BubbleLabsIntegration()
-        bridge = BubbleLabsHephaestusBridge(bubblelabs_integration=bubblelabs)
+        bridge = BubbleLabsCREWAIBridge(bubblelabs_integration=bubblelabs)
         self.profiler.take_snapshot("After bridge creation")
 
         # Create multiple workflow definitions
@@ -505,7 +505,7 @@ class BubbleLabsLeakDetector:
         tracemalloc.start()
 
         # Run tests
-        self.test_bubblelabs_hephaestus_bridge()
+        self.test_bubblelabs_CREWAI_bridge()
         self.test_bubblelabs_mcp_tools()
         self.test_bubblelabs_analytics()
         self.test_bubblelabs_integration()

@@ -191,7 +191,7 @@ def main():
 
     files_to_fix = [
         'ace_mcp_tools.py',
-        'ace_hephaestus_bridge.py',
+        'ace_CREWAI_bridge.py',
         'ace_analytics.py',
         'ace_knowledge_artifacts.py',
         'ace_workflow_knowledge_extractor.py',

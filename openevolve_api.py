@@ -1,8 +1,8 @@
 """
-OpenEvolve API Endpoints for Hephaestus Integration
+OpenEvolve API Endpoints for CREWAI Integration
 
 This module provides API endpoints for managing OpenEvolve teams and gauntlets
-within the Hephaestus framework.
+within the CREWAI framework.
 """
 
 from fastapi import FastAPI, HTTPException, Depends, Header, status
@@ -28,8 +28,8 @@ logger = logging.getLogger(__name__)
 
 # Initialize FastAPI app
 app = FastAPI(
-    title="OpenEvolve Hephaestus Integration API",
-    description="API for managing OpenEvolve teams and gauntlets within Hephaestus",
+    title="OpenEvolve CREWAI Integration API",
+    description="API for managing OpenEvolve teams and gauntlets within CREWAI",
     version="1.0.0"
 )
 
@@ -84,7 +84,7 @@ class GauntletUpdateRequest(BaseModel):
 def root():
     """Root endpoint."""
     return {
-        "message": "OpenEvolve Hephaestus Integration API",
+        "message": "OpenEvolve CREWAI Integration API",
         "version": "1.0.0",
         "docs": "/docs"
     }

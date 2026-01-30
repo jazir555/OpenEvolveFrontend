@@ -138,7 +138,7 @@ def mock_retriever():
 def blue_agent(mock_llm, mock_storage, mock_retriever):
     """Create Blue Team agent"""
     return BlueTeamAgent(
-        hephaestus_client=mock_llm,
+        crewai_client=mock_llm,
         storage_manager=mock_storage,
         knowledge_retriever=mock_retriever
     )
@@ -148,7 +148,7 @@ def blue_agent(mock_llm, mock_storage, mock_retriever):
 def red_agent(mock_llm, mock_storage, mock_retriever):
     """Create Red Team agent"""
     return RedTeamAgent(
-        hephaestus_client=mock_llm,
+        crewai_client=mock_llm,
         storage_manager=mock_storage,
         knowledge_retriever=mock_retriever
     )
@@ -158,7 +158,7 @@ def red_agent(mock_llm, mock_storage, mock_retriever):
 def gold_agent(mock_llm, mock_storage, mock_retriever):
     """Create Gold Team agent"""
     return GoldTeamAgent(
-        hephaestus_client=mock_llm,
+        crewai_client=mock_llm,
         storage_manager=mock_storage,
         knowledge_retriever=mock_retriever
     )
@@ -248,7 +248,7 @@ async def test_agent_tool_usage():
     mock_tool.execute = AsyncMock(return_value="tool result")
 
     agent = BlueTeamAgent(
-        hephaestus_client=None,
+        crewai_client=None,
         tools=[mock_tool]
     )
 
@@ -374,7 +374,7 @@ async def test_message_builder():
 async def test_agent_metadata():
     """Test agent metadata"""
     agent = BlueTeamAgent(
-        hephaestus_client=None
+        crewai_client=None
     )
 
     metadata = agent.get_metadata()
@@ -389,7 +389,7 @@ async def test_agent_metadata():
 async def test_agent_conversation_history():
     """Test conversation history tracking"""
     agent = BlueTeamAgent(
-        hephaestus_client=None
+        crewai_client=None
     )
 
     # Add some conversation turns

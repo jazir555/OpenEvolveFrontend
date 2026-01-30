@@ -9,7 +9,7 @@ from ragbits_integration.config import (
     VectorStoreConfig,
     DocumentSearchConfig,
     StorageConfig,
-    HephaestusIntegrationConfig,
+    CrewAIIntegrationConfig,
     get_default_config,
     get_production_config
 )
@@ -71,7 +71,7 @@ def test_config_to_dict():
     assert "vector_store" in config_dict
     assert "document_search" in config_dict
     assert "storage" in config_dict
-    assert "hephaestus" in config_dict
+    assert "CREWAI" in config_dict
 
 
 def test_config_from_dict():
@@ -86,7 +86,7 @@ def test_config_from_dict():
         "storage": {
             "enable_cache": True
         },
-        "hephaestus": {
+        "CREWAI": {
             "blue_team_model": "gpt-4"
         },
         "log_level": "INFO"
@@ -97,7 +97,7 @@ def test_config_from_dict():
     assert config.vector_store.store_type == "in_memory"
     assert config.document_search.default_top_k == 10
     assert config.storage.enable_cache is True
-    assert config.hephaestus.blue_team_model == "gpt-4"
+    assert config.CREWAI.blue_team_model == "gpt-4"
 
 
 def test_config_from_env():
@@ -173,9 +173,9 @@ def test_storage_config():
     assert config.enable_versioning is True
 
 
-def test_hephaestus_config():
-    """Test Hephaestus integration configuration"""
-    config = HephaestusIntegrationConfig(
+def test_CREWAI_config():
+    """Test CREWAI integration configuration"""
+    config = CrewAIIntegrationConfig(
         blue_team_model="gpt-4",
         red_team_model="claude-opus",
         gold_team_model="gpt-4-turbo"

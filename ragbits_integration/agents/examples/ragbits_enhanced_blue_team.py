@@ -1,14 +1,14 @@
 """
 ragbits_enhanced_blue_team.py - CrewAI Integration
 
-This file has been migrated from Hephaestus (AGPL) to CrewAI (MIT).
+This file has been migrated from crewai (AGPL) to CrewAI (MIT).
 
 Migration Date: 2026-01-21
 Migration Status: Complete
 
-All Hephaestus references have been replaced with CrewAI equivalents.
+All crewai references have been replaced with CrewAI equivalents.
 The functionality remains the same, but now uses local CrewAI execution
-instead of remote Hephaestus API calls.
+instead of remote crewai API calls.
 
 For questions, see: CREWAI_MIGRATION_MASTER_TASKLIST.md
 """
@@ -45,7 +45,7 @@ class RAGBitsEnhancedBlueTeamAgent(BaseWorkflowAgent):
 
     Usage:
         agent = RAGBitsEnhancedBlueTeamAgent(
-            crewai_client=hephaestus,
+            crewai_client=crewai,
             storage_manager=storage
         )
 
@@ -70,7 +70,7 @@ class RAGBitsEnhancedBlueTeamAgent(BaseWorkflowAgent):
         Initialize the RAGBits-enhanced blue team agent.
 
         Args:
-            crewai_client: Hephaestus client for LLM access
+            crewai_client: crewai client for LLM access
             model_config: Model configuration
             storage_manager: Storage manager for artifacts
             knowledge_retriever: Knowledge retriever (creates default if not provided)
@@ -338,7 +338,7 @@ async def demo_ragbits_blue_team():
 
     logger.info("🚀 Starting RAGBits-enhanced blue team agent demo")
 
-    # Create agent (without Hephaestus for demo)
+    # Create agent (without crewai for demo)
     agent = RAGBitsEnhancedBlueTeamAgent(
         crewai_client=None,
         enable_ragbits=True

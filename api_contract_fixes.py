@@ -321,14 +321,14 @@ def fix_mcp_tools():
 
 
 # =============================================================================
-# FIX 8, 11, 17, 22: bubblelabs_hephaestus_bridge.py
+# FIX 8, 11, 17, 22: bubblelabs_CREWAI_bridge.py
 # =============================================================================
 
 HEPHAEUSTUS_FIXES = '''
     # Fix 8: Side effects documentation
     def create_ticket_from_workflow(...) -> Optional[str]:
         """
-        Create a Hephaestus ticket from a BubbleLabs workflow definition.
+        Create a CREWAI ticket from a BubbleLabs workflow definition.
 
         Returns:
             Ticket ID if successful, None otherwise
@@ -337,7 +337,7 @@ HEPHAEUSTUS_FIXES = '''
             - Stores mapping in self.mappings
             - Updates instance_to_definition_map cache
             - Mutates self.mappings[workflow_definition.id]
-            - Calls hephaestus.create_ticket() if available
+            - Calls CREWAI.create_ticket() if available
         """
         # ... implementation
 
@@ -372,24 +372,24 @@ HEPHAEUSTUS_FIXES = '''
     # Fix 17: Error raises documentation
     def update_ticket_progress(...) -> bool:
         """
-        Update Hephaestus ticket with workflow progress.
+        Update CREWAI ticket with workflow progress.
 
         Returns:
             True if successful, False otherwise
 
         Raises:
             KeyError: If workflow_instance_id not found
-            ConnectionError: If Hephaestus API connection fails
+            ConnectionError: If CREWAI API connection fails
             ValueError: If progress not in [0.0, 1.0]
 
         Side Effects:
             - Updates self.mappings
-            - Calls hephaestus.update_ticket()
+            - Calls CREWAI.update_ticket()
         """
 '''
 
-def fix_hephaestus_bridge():
-    """Apply fixes to bubblelabs_hephaestus_bridge.py"""
+def fix_CREWAI_bridge():
+    """Apply fixes to bubblelabs_CREWAI_bridge.py"""
     fixes = [
         "create_ticket_from_workflow() - Added Side Effects: section",
         "stop_background_sync() - Changed return to str enum: stopped/already_stopped/timeout",
@@ -537,7 +537,7 @@ def generate_fix_report():
         print(f"{i}. {fix}")
         all_fixes.append(fix)
 
-    fixes_8 = fix_hephaestus_bridge()
+    fixes_8 = fix_CREWAI_bridge()
     for i, fix in enumerate(fixes_8[:1], len(all_fixes) + 1):
         print(f"{i}. {fix}")
         all_fixes.append(fix)
@@ -566,7 +566,7 @@ def generate_fix_report():
         print(f"{i}. {fix}")
         all_fixes.append(fix)
 
-    fixes_17 = fix_hephaestus_bridge()
+    fixes_17 = fix_CREWAI_bridge()
     for i, fix in enumerate(fixes_17[2:3], len(all_fixes) + 1):  # Error raises
         print(f"{i}. {fix}")
         all_fixes.append(fix)
@@ -595,7 +595,7 @@ def generate_fix_report():
         print(f"{i}. {fix}")
         all_fixes.append(fix)
 
-    fixes_22 = fix_hephaestus_bridge()
+    fixes_22 = fix_CREWAI_bridge()
     for i, fix in enumerate(fixes_22[3:], len(all_fixes) + 1):  # Thread safety
         print(f"{i}. {fix}")
         all_fixes.append(fix)
@@ -617,7 +617,7 @@ def generate_fix_report():
         "bubblelabs_analytics.py",
         "bubblelabs_typescript_export.py",
         "bubblelabs_mcp_tools.py",
-        "bubblelabs_hephaestus_bridge.py",
+        "bubblelabs_CREWAI_bridge.py",
         "bubblelabs_integration.py",
         "bubblelabs_ui_component.py"
     ]

@@ -78,7 +78,7 @@ class AdvancedRAGEngine:
     Advanced RAG engine with hybrid search and reranking.
 
     Usage:
-        engine = AdvancedRAGEngine(document_search, hephaestus_client)
+        engine = AdvancedRAGEngine(document_search, crewai_client)
 
         # Simple query
         result = await engine.query(
@@ -95,16 +95,16 @@ class AdvancedRAGEngine:
         )
     """
 
-    def __init__(self, document_search=None, hephaestus_client=None):
+    def __init__(self, document_search=None, crewai_client=None):
         """
         Initialize advanced RAG engine.
 
         Args:
             document_search: Document search instance
-            hephaestus_client: Optional LLM client for reranking/expansion
+            crewai_client: Optional LLM client for reranking/expansion
         """
         self.document_search = document_search
-        self.hephaestus_client = hephaestus_client
+        self.crewai_client = crewai_client
 
         # Search statistics
         self.search_stats = {
@@ -160,7 +160,7 @@ class AdvancedRAGEngine:
 
         # Query expansion
         expanded_queries = []
-        if expand_query and self.hephaestus_client:
+        if expand_query and self.crewai_client:
             expanded_queries = await self._expand_query(query_text)
 
         # Execute search based on type
@@ -334,7 +334,7 @@ class AdvancedRAGEngine:
 
     async def _expand_query(self, query_text: str) -> List[str]:
         """Expand query using LLM"""
-        if not self.hephaestus_client:
+        if not self.crewai_client:
             return []
 
         try:
@@ -348,7 +348,7 @@ Generate only the queries, one per line:
 2.
 3."""
 
-            response = await self.hephaestus_client.generate(
+            response = await self.crewai_client.generate(
                 prompt,
                 temperature=0.5
             )
@@ -388,7 +388,7 @@ Generate only the queries, one per line:
         if not documents:
             return documents
 
-        if self.hephaestus_client:
+        if self.crewai_client:
             return await self._llm_rerank(query, documents)
         else:
             return self._score_rerank(query, documents)
@@ -414,7 +414,7 @@ Documents:
 
 Return ranking as comma-separated numbers (e.g., 3,1,2,4):"""
 
-            response = await self.hephaestus_client.generate(
+            response = await self.crewai_client.generate(
                 prompt,
                 temperature=0.3
             )

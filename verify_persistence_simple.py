@@ -18,7 +18,7 @@ print()
 
 # Check if the module exists
 try:
-    from bubblelabs_crewai_bridge # MIGRATED import BubbleLabsHephaestusBridge
+    from bubblelabs_crewai_bridge # MIGRATED import BubbleLabsCREWAIBridge
     print("SUCCESS: Module imported successfully")
 except ImportError as e:
     print(f"FAILED: Could not import module: {e}")
@@ -33,7 +33,7 @@ print()
 
 try:
     print("1. Creating bridge with test database...")
-    bridge = BubbleLabsHephaestusBridge(
+    bridge = BubbleLabsCREWAIBridge(
         mappings_db_path=test_db
     )
     print("   SUCCESS: Bridge created")

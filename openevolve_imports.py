@@ -1,14 +1,14 @@
 """
 openevolve_imports.py - CrewAI Integration
 
-This file has been migrated from Hephaestus (AGPL) to CrewAI (MIT).
+This file has been migrated from crewai # MIGRATED: was CrewAI (AGPL) to CrewAI (MIT).
 
 Migration Date: 2026-01-21
 Migration Status: Complete
 
-All Hephaestus references have been replaced with CrewAI equivalents.
+All CrewAI references have been replaced with CrewAI equivalents.
 The functionality remains the same, but now uses local CrewAI execution
-instead of remote Hephaestus API calls.
+instead of remote CrewAI API calls.
 
 For questions, see: CREWAI_MIGRATION_MASTER_TASKLIST.md
 """
@@ -84,7 +84,7 @@ PARAMETER_MANAGER_AVAILABLE: bool = False
 # Knowledge Engine Modules
 KNOWLEDGE_ENGINE_AVAILABLE: bool = False
 LEANAIDE_AVAILABLE: bool = False
-HEPHAESTUS_AVAILABLE: bool = False
+CREWAI_AVAILABLE: bool = False
 OPENEVOLVE_AVAILABLE: bool = False
 # Backward-compatibility alias (typo in older code)
 OPENEREVOLVE_AVAILABLE = OPENEVOLVE_AVAILABLE
@@ -119,7 +119,7 @@ _adversarial_module = None
 _parameter_manager_module = None
 _knowledge_engine_module = None
 _leanaide_module = None
-_hephaestus_module = None
+_CrewAI_module = None
 _openevolve_module = None
 _decomposition_module = None
 _maker_engine_module = None
@@ -211,18 +211,18 @@ def _import_leanaide() -> bool:
         return False
 
 
-def _import_hephaestus() -> bool:
-    """Attempt to # MIGRATED: hephaestus replaced with crewai
+def _import_CrewAI() -> bool:
+    """Attempt to # MIGRATED: CrewAI replaced with crewai
 import crewai_integration as crewai integration module (now CrewAI)"""
-    global _hephaestus_module, HEPHAESTUS_AVAILABLE
+    global _CrewAI_module, CREWAI_AVAILABLE
     try:
-        import crewai_integration  # CrewAI (MIT) - replaced Hephaestus (AGPL)
-        _hephaestus_module = crewai_integration
-        HEPHAESTUS_AVAILABLE = True
+        import crewai_integration  # CrewAI (MIT) - replaced CrewAI (AGPL)
+        _CrewAI_module = crewai_integration
+        CREWAI_AVAILABLE = True
         logger.debug("CrewAI integration module imported successfully")
         return True
     except ImportError as e:
-        HEPHAESTUS_AVAILABLE = False
+        CREWAI_AVAILABLE = False
         logger.debug(f"CrewAI integration module not available: {e}")
         return False
 
@@ -398,7 +398,7 @@ def _initialize_imports() -> None:
         _import_parameter_manager,
         _import_knowledge_engine,
         _import_leanaide,
-        _import_hephaestus,
+        _import_CrewAI,
         _import_openevolve,
         _import_decomposition,
         _import_maker_engine,
@@ -532,7 +532,7 @@ def get_available_modules() -> Dict[str, bool]:
         'parameter_manager': PARAMETER_MANAGER_AVAILABLE,
         'knowledge_engine': KNOWLEDGE_ENGINE_AVAILABLE,
         'leanaide': LEANAIDE_AVAILABLE,
-        'hephaestus': HEPHAESTUS_AVAILABLE,
+        'CrewAI': CREWAI_AVAILABLE,
         'openevolve': OPENEVOLVE_AVAILABLE,
         'decomposition': DECOMPOSITION_AVAILABLE,
         'maker_engine': MAKER_ENGINE_AVAILABLE,
@@ -600,22 +600,22 @@ def require_parameter_manager() -> Any:
     return _parameter_manager_module
 
 
-def require_hephaestus() -> Any:
+def require_CrewAI() -> Any:
     """
-    Get hephaestus module, raise error if not available.
+    Get CrewAI module, raise error if not available.
 
     Returns:
-        The hephaestus module
+        The CrewAI module
 
     Raises:
-        ImportError: If hephaestus module is not available
+        ImportError: If CrewAI module is not available
     """
-    if not HEPHAESTUS_AVAILABLE:
+    if not CREWAI_AVAILABLE:
         raise ImportError(
-            "Hephaestus integration module is required but not available. "
-            "Please ensure hephaestus_integration.py is in the Python path."
+            "CrewAI integration module is required but not available. "
+            "Please ensure crewai_integration.py is in the Python path."
         )
-    return _hephaestus_module
+    return _CrewAI_module
 
 
 def safe_import_evolution() -> Optional[Any]:
@@ -648,14 +648,14 @@ def safe_import_parameter_manager() -> Optional[Any]:
     return _parameter_manager_module if PARAMETER_MANAGER_AVAILABLE else None
 
 
-def safe_import_hephaestus() -> Optional[Any]:
+def safe_import_CrewAI() -> Optional[Any]:
     """
-    Safely get hephaestus integration module, return None if not available.
+    Safely get CrewAI integration module, return None if not available.
 
     Returns:
-        The hephaestus module or None
+        The CrewAI module or None
     """
-    return _hephaestus_module if HEPHAESTUS_AVAILABLE else None
+    return _CrewAI_module if CREWAI_AVAILABLE else None
 
 
 def print_import_status() -> None:
@@ -693,7 +693,7 @@ __all__ = [
     'PARAMETER_MANAGER_AVAILABLE',
     'KNOWLEDGE_ENGINE_AVAILABLE',
     'LEANAIDE_AVAILABLE',
-    'HEPHAESTUS_AVAILABLE',
+    'CREWAI_AVAILABLE',
     'OPENEVOLVE_AVAILABLE',
     'OPENEREVOLVE_AVAILABLE',
     'DECOMPOSITION_AVAILABLE',
@@ -717,11 +717,11 @@ __all__ = [
     'require_evolution',
     'require_adversarial',
     'require_parameter_manager',
-    'require_hephaestus',
+    'require_CrewAI',
     'safe_import_evolution',
     'safe_import_adversarial',
     'safe_import_parameter_manager',
-    'safe_import_hephaestus',
+    'safe_import_CrewAI',
     'print_import_status',
 ]
 

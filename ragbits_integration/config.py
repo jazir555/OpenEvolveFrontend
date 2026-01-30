@@ -76,11 +76,11 @@ class StorageConfig:
 
 
 @dataclass
-class HephaestusIntegrationConfig:
-    """Configuration for Hephaestus integration"""
+class CrewAIIntegrationConfig:
+    """Configuration for CREWAI integration"""
 
-    # Hephaestus endpoint
-    hephaestus_endpoint: Optional[str] = None
+    # CREWAI endpoint
+    CREWAI_endpoint: Optional[str] = None
 
     # Model mappings for different teams
     blue_team_model: str = "gpt-4"
@@ -104,7 +104,7 @@ class RagbitsIntegrationConfig:
     vector_store: VectorStoreConfig = field(default_factory=VectorStoreConfig)
     document_search: DocumentSearchConfig = field(default_factory=DocumentSearchConfig)
     storage: StorageConfig = field(default_factory=StorageConfig)
-    hephaestus: HephaestusIntegrationConfig = field(default_factory=HephaestusIntegrationConfig)
+    CREWAI: CrewAIIntegrationConfig = field(default_factory=CrewAIIntegrationConfig)
 
     # Feature flags
     enable_intermediary_storage: bool = True
@@ -128,7 +128,7 @@ class RagbitsIntegrationConfig:
         - RAGBITS_QDRANT_API_KEY: Qdrant API key
         - RAGBITS_PGVECTOR_CONN: PGVector connection string
         - RAGBITS_EMBEDDING_MODEL: Embedding model name
-        - RAGBITS_HEPHAESTUS_ENDPOINT: Hephaestus endpoint
+        - RAGBITS_CREWAI_ENDPOINT: CREWAI endpoint
         - RAGBITS_LOG_LEVEL: Logging level
         """
         vector_store = VectorStoreConfig(
@@ -140,13 +140,13 @@ class RagbitsIntegrationConfig:
             embedding_model=os.getenv("RAGBITS_EMBEDDING_MODEL", "text-embedding-3-small")
         )
 
-        hephaestus = HephaestusIntegrationConfig(
-            hephaestus_endpoint=os.getenv("RAGBITS_HEPHAESTUS_ENDPOINT")
+        CREWAI = CrewAIIntegrationConfig(
+            CREWAI_endpoint=os.getenv("RAGBITS_CREWAI_ENDPOINT")
         )
 
         return cls(
             vector_store=vector_store,
-            hephaestus=hephaestus,
+            CREWAI=CREWAI,
             log_level=os.getenv("RAGBITS_LOG_LEVEL", "INFO")
         )
 
@@ -164,15 +164,15 @@ class RagbitsIntegrationConfig:
         vector_store_config = VectorStoreConfig(**config_dict.get("vector_store", {}))
         document_search_config = DocumentSearchConfig(**config_dict.get("document_search", {}))
         storage_config = StorageConfig(**config_dict.get("storage", {}))
-        hephaestus_config = HephaestusIntegrationConfig(**config_dict.get("hephaestus", {}))
+        CREWAI_config = CrewAIIntegrationConfig(**config_dict.get("CREWAI", {}))
 
         return cls(
             vector_store=vector_store_config,
             document_search=document_search_config,
             storage=storage_config,
-            hephaestus=hephaestus_config,
+            CREWAI=CREWAI_config,
             **{k: v for k, v in config_dict.items()
-               if k not in ["vector_store", "document_search", "storage", "hephaestus"]}
+               if k not in ["vector_store", "document_search", "storage", "CREWAI"]}
         )
 
     def to_dict(self) -> Dict[str, Any]:
@@ -205,12 +205,12 @@ class RagbitsIntegrationConfig:
                 "max_versions_per_artifact": self.storage.max_versions_per_artifact,
                 "enable_lifecycle_tracking": self.storage.enable_lifecycle_tracking
             },
-            "hephaestus": {
-                "hephaestus_endpoint": self.hephaestus.hephaestus_endpoint,
-                "blue_team_model": self.hephaestus.blue_team_model,
-                "red_team_model": self.hephaestus.red_team_model,
-                "gold_team_model": self.hephaestus.gold_team_model,
-                "fallback_model": self.hephaestus.fallback_model
+            "CREWAI": {
+                "CREWAI_endpoint": self.CREWAI.CREWAI_endpoint,
+                "blue_team_model": self.CREWAI.blue_team_model,
+                "red_team_model": self.CREWAI.red_team_model,
+                "gold_team_model": self.CREWAI.gold_team_model,
+                "fallback_model": self.CREWAI.fallback_model
             },
             "enable_intermediary_storage": self.enable_intermediary_storage,
             "enable_semantic_search": self.enable_semantic_search,
@@ -254,9 +254,9 @@ class RagbitsIntegrationConfig:
 
         # Validate model names
         if not all([
-            self.hephaestus.blue_team_model,
-            self.hephaestus.red_team_model,
-            self.hephaestus.gold_team_model
+            self.CREWAI.blue_team_model,
+            self.CREWAI.red_team_model,
+            self.CREWAI.gold_team_model
         ]):
             errors.append("All team models must be specified")
 

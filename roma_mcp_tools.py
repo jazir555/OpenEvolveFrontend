@@ -1,7 +1,7 @@
 """
-ROMA MCP Tools for Hephaestus Agents
+ROMA MCP Tools for CREWAI Agents
 
-This module provides Model Context Protocol (MCP) tools that Hephaestus agents
+This module provides Model Context Protocol (MCP) tools that CREWAI agents
 can use to leverage ROMA's (Recursive Open Meta-Agents) framework.
 
 ROMA Architecture:

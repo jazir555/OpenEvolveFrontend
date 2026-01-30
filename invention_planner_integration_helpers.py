@@ -92,10 +92,10 @@ class IntegrationHelpers:
     @staticmethod
     def parse_delegated_math(delegated_result: List[Dict]) -> List[ValidatedMath]:
         """
-        Parse math formalization results from Hephaestus delegation.
+        Parse math formalization results from crewai # MIGRATED: was CrewAI delegation.
 
         Args:
-            delegated_result: Result from Hephaestus delegation
+            delegated_result: Result from crewai # MIGRATED: was CrewAI delegation
 
         Returns:
             List of ValidatedMath objects
@@ -107,10 +107,10 @@ class IntegrationHelpers:
                 formalized.append(ValidatedMath(
                     description=item.get("equation", "Unknown"),
                     lean_theorem=item.get("formalized", "theorem unknown : Prop := by sorry"),
-                    lean_proof="-- Proof delegated to Hephaestus",
+                    lean_proof="-- Proof delegated to CrewAI",
                     variables={},
                     assumptions=[],
-                    verification_method="Hephaestus delegation",
+                    verification_method="CrewAI delegation",
                     confidence=item.get("confidence", 0.85)
                 ))
 
@@ -119,10 +119,10 @@ class IntegrationHelpers:
     @staticmethod
     def parse_delegated_errors(delegated_result: List[Dict]) -> List[ErrorSource]:
         """
-        Parse error analysis results from Hephaestus delegation.
+        Parse error analysis results from crewai # MIGRATED: was CrewAI delegation.
 
         Args:
-            delegated_result: Result from Hephaestus delegation
+            delegated_result: Result from crewai # MIGRATED: was CrewAI delegation
 
         Returns:
             List of ErrorSource objects
@@ -137,7 +137,7 @@ class IntegrationHelpers:
                     probability=item.get("probability", 0.1),
                     impact=item.get("impact", "medium"),
                     mitigation_strategy=item.get("mitigation", "Verify all parameters"),
-                    verification_method="Hephaestus delegation",
+                    verification_method="CrewAI delegation",
                     acceptance_criteria="Error within acceptable tolerance"
                 ))
 
@@ -178,7 +178,7 @@ class IntegrationHelpers:
             return integrations.get_integration_status()
         return {
             "bubblelabs": False,
-            "hephaestus": False,
+            "CrewAI": False,
             "sovereign": False,
             "multi_decomposition": False,
             "steer": False

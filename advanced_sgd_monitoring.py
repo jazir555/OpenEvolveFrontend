@@ -21,7 +21,7 @@ import json
 from enum import Enum
 import logging
 
-# Import the CrewAI client (migrated from Hephaestus)
+# Import the CrewAI client (migrated from crewai)
 import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -58,7 +58,7 @@ class SGDMonitoringStatus(Enum):
 class SGDMonitor:
     """Specialized monitor for Sovereign-Grade Decomposition workflows."""
     
-    def __init__(self, hephaestus_api_base: str = "http://localhost:8000"):
+    def __init__(self, crewai_api_base: str = "http://localhost:8000"):
         self.events: List[SGDMonitoringEvent] = []
         self.status = SGDMonitoringStatus.IDLE
         self.monitoring_thread: Optional[threading.Thread] = None
@@ -157,12 +157,12 @@ class SGDMonitor:
             else:
                 st.session_state.sgd_monitoring_metrics["active_workflows"] = 0
             
-            # Get Hephaestus workflow status if available
+            # Get crewai workflow status if available
             if "active_sovereign_workflow" in st.session_state:
                 workflow = st.session_state.active_sovereign_workflow
-                if hasattr(workflow, 'hephaestus_workflow_id') and workflow.hephaestus_workflow_id:
+                if hasattr(workflow, 'crewai_workflow_id') and workflow.crewai_workflow_id:
                     try:
-                        tickets = self.hephaestus_client.get_workflow_tickets(workflow.hephaestus_workflow_id)
+                        tickets = self.crewai_client.get_workflow_tickets(workflow.crewai_workflow_id)
                         active_tickets = len([t for t in tickets if t.get('status') in ['in_progress', 'pending']])
                         completed_tickets = len([t for t in tickets if t.get('status') == 'completed'])
                         failed_tickets = len([t for t in tickets if t.get('status') == 'failed'])
@@ -171,7 +171,7 @@ class SGDMonitor:
                         st.session_state.sgd_monitoring_metrics["completed_tickets"] = completed_tickets
                         st.session_state.sgd_monitoring_metrics["failed_tickets"] = failed_tickets
                     except Exception as e:
-                        st.warning(f"Could not fetch Hephaestus tickets: {e}")
+                        st.warning(f"Could not fetch crewai tickets: {e}")
             
             # Update gauntlet statistics from workflow state
             if "active_sovereign_workflow" in st.session_state:
@@ -208,7 +208,7 @@ class SGDMonitor:
     def get_ticket_status_breakdown(self, workflow_id: str) -> Dict[str, Any]:
         """Get detailed status breakdown for a specific workflow's tickets."""
         try:
-            tickets = self.hephaestus_client.get_workflow_tickets(workflow_id)
+            tickets = self.crewai_client.get_workflow_tickets(workflow_id)
             status_counts = {}
             for ticket in tickets:
                 status = ticket.get('status', 'unknown')
@@ -342,8 +342,8 @@ def render_sgd_monitoring_dashboard():
             st.write(f"**Current Workflow**: `{workflow.workflow_id}`")
             st.write(f"**Current Stage**: `{workflow.current_stage}`")
             
-            if hasattr(workflow, 'hephaestus_workflow_id') and workflow.hephaestus_workflow_id:
-                st.write(f"**Hephaestus Workflow ID**: `{workflow.hephaestus_workflow_id}`")
+            if hasattr(workflow, 'crewai_workflow_id') and workflow.crewai_workflow_id:
+                st.write(f"**crewai Workflow ID**: `{workflow.crewai_workflow_id}`")
             
             # Progress bar for the workflow
             progress_col, stage_col = st.columns([2, 1])
@@ -379,13 +379,13 @@ def render_sgd_monitoring_dashboard():
             st.info("No active Sovereign-Grade Workflow. Start a workflow in the Orchestrator tab.")
     
     with tabs[1]:  # Ticket Status
-        st.subheader("Hephaestus Ticket Status")
+        st.subheader("crewai Ticket Status")
         
         if "active_sovereign_workflow" in st.session_state:
             workflow = st.session_state.active_sovereign_workflow
-            if hasattr(workflow, 'hephaestus_workflow_id') and workflow.hephaestus_workflow_id:
+            if hasattr(workflow, 'crewai_workflow_id') and workflow.crewai_workflow_id:
                 try:
-                    tickets = monitor.hephaestus_client.get_workflow_tickets(workflow.hephaestus_workflow_id)
+                    tickets = monitor.crewai_client.get_workflow_tickets(workflow.crewai_workflow_id)
                     
                     if tickets:
                         # Create a dataframe for ticket status
@@ -404,7 +404,7 @@ def render_sgd_monitoring_dashboard():
                         st.dataframe(df, use_container_width=True)
                         
                         # Status breakdown chart
-                        status_counts = monitor.get_ticket_status_breakdown(workflow.hephaestus_workflow_id)
+                        status_counts = monitor.get_ticket_status_breakdown(workflow.crewai_workflow_id)
                         if status_counts:
                             status_df = pd.DataFrame(
                                 list(status_counts.items()), 
@@ -425,7 +425,7 @@ def render_sgd_monitoring_dashboard():
                 except Exception as e:
                     st.error(f"Could not fetch ticket data: {e}")
             else:
-                st.info("No Hephaestus workflow ID available for this SGD workflow.")
+                st.info("No crewai workflow ID available for this SGD workflow.")
         else:
             st.info("No active Sovereign-Grade Workflow.")
     
@@ -563,7 +563,7 @@ def render_sgd_monitoring_dashboard():
                     "Content Analysis", 
                     "AI-Assisted Decomposition",
                     "Manual Review & Override",
-                    "Delegate to Hephaestus",
+                    "Delegate to crewai",
                     "Monitoring",
                     "Sub-Problem Solving Loop",
                     "Configurable Reassembly",
@@ -672,11 +672,11 @@ def render_sgd_monitoring_dashboard():
 
 
 def render_integration_monitoring():
-    """Render the integration monitoring dashboard showing both OpenEvolve and Hephaestus metrics."""
+    """Render the integration monitoring dashboard showing both OpenEvolve and crewai metrics."""
     st.header("🔗 Integration Monitoring Dashboard")
     
     st.markdown("""
-    This dashboard monitors the integration between OpenEvolve and Hephaestus,
+    This dashboard monitors the integration between OpenEvolve and crewai,
     showing how Sovereign-Grade Decomposition workflows are executed across both systems.
     """)
     
@@ -684,7 +684,7 @@ def render_integration_monitoring():
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("Hephaestus API", "✅ Connected", "Ready")
+        st.metric("crewai API", "✅ Connected", "Ready")
     with col2:
         st.metric("OpenEvolve API", "✅ Connected", "Ready")
     with col3:
@@ -695,15 +695,15 @@ def render_integration_monitoring():
     # Integration workflow visualization
     st.subheader("Integration Workflow")
     
-    # Create a visualization of the workflow between OpenEvolve and Hephaestus
+    # Create a visualization of the workflow between OpenEvolve and crewai
     flow_data = [
         {"Step": 1, "Component": "OpenEvolve", "Task": "Content Analysis"},
         {"Step": 2, "Component": "OpenEvolve", "Task": "AI-Assisted Decomposition"},
         {"Step": 3, "Component": "OpenEvolve", "Task": "Manual Review"},
-        {"Step": 4, "Component": "OpenEvolve", "Task": "Delegate to Hephaestus"},
-        {"Step": 5, "Component": "Hephaestus", "Task": "Ticket Processing"},
-        {"Step": 6, "Component": "Hephaestus", "Task": "Agent Execution"},
-        {"Step": 7, "Component": "Hephaestus", "Task": "Solution Verification"},
+        {"Step": 4, "Component": "OpenEvolve", "Task": "Delegate to crewai"},
+        {"Step": 5, "Component": "crewai", "Task": "Ticket Processing"},
+        {"Step": 6, "Component": "crewai", "Task": "Agent Execution"},
+        {"Step": 7, "Component": "crewai", "Task": "Solution Verification"},
         {"Step": 8, "Component": "OpenEvolve", "Task": "Final Assembly"},
         {"Step": 9, "Component": "OpenEvolve", "Task": "Final Verification"}
     ]
@@ -727,14 +727,14 @@ def render_integration_monitoring():
     col1, col2 = st.columns(2)
     
     with col1:
-        st.markdown("### OpenEvolve → Hephaestus")
+        st.markdown("### OpenEvolve → crewai")
         st.info("✅ Ticket Creation API: Active")
         st.info("✅ Dependency Management API: Active")
         st.info("✅ Status Check API: Active")
         st.info("✅ Workflow Initiation: Active")
     
     with col2:
-        st.markdown("### Hephaestus → OpenEvolve")
+        st.markdown("### crewai → OpenEvolve")
         st.info("✅ Gauntlet Execution API: Active")
         st.info("✅ Report Submission API: Active")
         st.info("✅ Validation Results API: Active")

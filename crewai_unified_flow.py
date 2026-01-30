@@ -1,7 +1,7 @@
 """
-CrewAI Unified Flow - Complete Replacement for Hephaestus Unified Bridge
+CrewAI Unified Flow - Complete Replacement for crewai Unified Bridge
 
-This module provides the unified flow for CrewAI that replaces the Hephaestus
+This module provides the unified flow for CrewAI that replaces the crewai
 service-based architecture with local event-driven workflow execution.
 
 Architecture:
@@ -16,7 +16,7 @@ Execution Methods:
 6. Hybrid - ROMA + Decomposition Workflow teams
 7. Auto - Intelligent selection
 
-License: MIT (replaces AGPL Hephaestus)
+License: MIT (replaces AGPL crewai)
 """
 
 import logging
@@ -76,7 +76,7 @@ from claudiomiro_config import (
     ClaudiomiroConfigPresets,
 )
 
-# Import bridge functions (will be ported from Hephaestus bridges)
+# Import bridge functions (will be ported from crewai bridges)
 try:
     from decomposition_crewai_bridge import (
         execute_phase_1_setup as decomposition_phase_1_setup,
@@ -183,7 +183,7 @@ class ExecutionMethod(str, Enum):
 
 class CrewAIUnifiedFlow:
     """
-    Unified CrewAI flow that replaces Hephaestus unified bridge.
+    Unified CrewAI flow that replaces crewai unified bridge.
 
     Provides:
     - Event-driven workflow execution

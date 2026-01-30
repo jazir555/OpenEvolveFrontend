@@ -16,7 +16,7 @@ Core Projects (DO NOT EDIT):
 
 Bug Fixes:
 - CrewAIConfigOverride: Fixes invalid paths in crewai config
-- HephaestusConfigOverride: Legacy fixes for hephaestus config (deprecated)
+- crewaiConfigOverride: Legacy fixes for crewai config (deprecated)
 - EvolutionConfigurationWrapper: Fixes duplicate dataclass fields
 - AdversarialImportResolver: Fixes circular import issues
 - ConfigProvider: Provides configuration overrides
@@ -26,7 +26,7 @@ Date: 2026-01-21
 """
 
 from .crewai_config_fix import CrewAIConfigOverride
-from .hephaestus_config_fix import HephaestusConfigOverride
+from .crewai_config_fix import crewaiConfigOverride
 from .evolution_wrapper import EvolutionConfigurationWrapper
 from .adversarial_import_resolver import (
     AdversarialImportResolver,
@@ -38,7 +38,7 @@ from .config_provider import ConfigProvider
 
 __all__ = [
     'CrewAIConfigOverride',
-    'HephaestusConfigOverride',  # Legacy - kept for backwards compatibility
+    'crewaiConfigOverride',  # Legacy - kept for backwards compatibility
     'EvolutionConfigurationWrapper',
     'AdversarialImportResolver',
     'RedTeamStrategyProxy',

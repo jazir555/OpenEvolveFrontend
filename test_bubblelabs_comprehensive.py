@@ -7,7 +7,7 @@ This test suite covers all BubbleLabs integrations:
 - LeanAide Integration (translation, proof generation, verification, MCTS visualization)
 - Evolution Integration (workflow creation, adversarial testing, progress tracking)
 - Knowledge Engine Integration (graph queries, multi-source querying, visualization)
-- Maker/Hephaestus Integration (tool creation, delegation, repository management)
+- Maker/CrewAI Integration (tool creation, delegation, repository management)
 - UI Components (parameter rendering, visualization, export/import, security)
 
 Author: BubbleLabs Test Suite
@@ -60,7 +60,7 @@ def mock_workflow_state():
     workflow.maker_enabled = False
     workflow.ace_enabled = False
     workflow.ace_agent_id = None
-    workflow.hephaestus_workflow_id = None
+    workflow.CrewAI_workflow_id = None
     workflow.id_to_ticket_id_map = {}
     workflow.ticket_id_to_subproblem_id_map = {}
     workflow.solved_sub_problem_ids = []
@@ -98,11 +98,11 @@ def mock_leanaide_client():
 
 
 @pytest.fixture
-def mock_hephaestus_client():
-    """Mock Hephaestus client for testing"""
+def mock_crewai_client():
+    """Mock CrewAI client for testing"""
     client = Mock()
-    client.api_base = "https://hephaestus.test.com"
-    client.api_key = "test-hephaestus-key"
+    client.api_base = "https://CrewAI.test.com"
+    client.api_key = "test-CrewAI-key"
     client.project_id = "test-project"
     client.session = Mock()
     return client
@@ -689,14 +689,14 @@ class TestKnowledgeEngineIntegration:
 
 
 # =============================================================================
-# Maker/Hephaestus Integration Tests
+# Maker/CrewAI Integration Tests
 # =============================================================================
 
-class TestMakerHephaestusIntegration:
-    """Test suite for Maker/Hephaestus integration"""
+class TestMakerCrewAIIntegration:
+    """Test suite for Maker/CrewAI integration"""
 
-    def test_tool_creation_workflow(self, mock_hephaestus_client):
-        """Test tool can be created via Hephaestus"""
+    def test_tool_creation_workflow(self, mock_crewai_client):
+        """Test tool can be created via CrewAI"""
         tool_spec = {
             "name": "test_tool",
             "description": "A test tool",
@@ -706,9 +706,9 @@ class TestMakerHephaestusIntegration:
             "implementation": "def test_tool(input): return input.upper()"
         }
 
-        mock_hephaestus_client.create_ticket = Mock(return_value="ticket-001")
+        mock_crewai_client.create_ticket = Mock(return_value="ticket-001")
 
-        ticket_id = mock_hephaestus_client.create_ticket(
+        ticket_id = mock_crewai_client.create_ticket(
             title=f"Tool: {tool_spec['name']}",
             description=tool_spec["description"]
         )
@@ -716,17 +716,17 @@ class TestMakerHephaestusIntegration:
         assert ticket_id == "ticket-001"
         assert tool_spec["name"] == "test_tool"
 
-    def test_hephaestus_delegation(self):
-        """Test tasks can be delegated to Hephaestus"""
+    def test_CrewAI_delegation(self):
+        """Test tasks can be delegated to CrewAI"""
         delegation = {
             "task_id": "delegated-001",
-            "delegated_to": "Hephaestus",
+            "delegated_to": "CrewAI",
             "status": "pending",
             "assigned_to": "agent_001",
             "created_at": datetime.now().isoformat()
         }
 
-        assert delegation["delegated_to"] == "Hephaestus"
+        assert delegation["delegated_to"] == "CrewAI"
         assert delegation["status"] == "pending"
 
     def test_tool_repository_management(self):
@@ -743,11 +743,11 @@ class TestMakerHephaestusIntegration:
         assert repository["total_tools"] == 2
         assert repository["tools"]["tool_001"]["enabled"] is True
 
-    def test_ticket_creation(self, mock_hephaestus_client):
-        """Test Hephaestus ticket creation"""
-        mock_hephaestus_client.create_ticket = Mock(return_value="ticket-123")
+    def test_ticket_creation(self, mock_crewai_client):
+        """Test CrewAI ticket creation"""
+        mock_crewai_client.create_ticket = Mock(return_value="ticket-123")
 
-        ticket_id = mock_hephaestus_client.create_ticket(
+        ticket_id = mock_crewai_client.create_ticket(
             title="Test Ticket",
             description="Test description",
             ticket_type="task"
@@ -755,18 +755,18 @@ class TestMakerHephaestusIntegration:
 
         assert ticket_id == "ticket-123"
 
-    def test_ticket_update(self, mock_hephaestus_client):
-        """Test Hephaestus ticket update"""
-        mock_hephaestus_client.update_ticket = Mock(return_value=True)
+    def test_ticket_update(self, mock_crewai_client):
+        """Test CrewAI ticket update"""
+        mock_crewai_client.update_ticket = Mock(return_value=True)
 
-        success = mock_hephaestus_client.update_ticket(
+        success = mock_crewai_client.update_ticket(
             ticket_id="ticket-123",
             status="in_progress"
         )
 
         assert success is True
 
-    def test_mdap_task_sync(self, mock_hephaestus_client):
+    def test_mdap_task_sync(self, mock_crewai_client):
         """Test MDAP task synchronization"""
         mdap_task = Mock()
         mdap_task.task_id = "mdap-001"
@@ -779,7 +779,7 @@ class TestMakerHephaestusIntegration:
         assert synced["task_id"] == "mdap-001"
         assert synced["synced"] is True
 
-    def test_maker_run_sync(self, mock_hephaestus_client):
+    def test_maker_run_sync(self, mock_crewai_client):
         """Test MAKER run synchronization"""
         maker_run = {
             "run_id": "maker-001",
@@ -999,15 +999,15 @@ class TestFullIntegration:
         assert len(kb_result["theorems"]) == 2
         assert maker_output["confidence"] >= 0.8
 
-    def test_hephaestus_ticket_lifecycle(
+    def test_CrewAI_ticket_lifecycle(
         self,
-        mock_hephaestus_client,
+        mock_crewai_client,
         mock_workflow_state
     ):
-        """Test complete Hephaestus ticket lifecycle"""
+        """Test complete CrewAI ticket lifecycle"""
         # Create ticket
-        mock_hephaestus_client.create_ticket = Mock(return_value="ticket-001")
-        ticket_id = mock_hephaestus_client.create_ticket(
+        mock_crewai_client.create_ticket = Mock(return_value="ticket-001")
+        ticket_id = mock_crewai_client.create_ticket(
             title="Test Task",
             description="Test description"
         )
@@ -1015,8 +1015,8 @@ class TestFullIntegration:
         assert ticket_id == "ticket-001"
 
         # Update to in_progress
-        mock_hephaestus_client.update_ticket = Mock(return_value=True)
-        success = mock_hephaestus_client.update_ticket(
+        mock_crewai_client.update_ticket = Mock(return_value=True)
+        success = mock_crewai_client.update_ticket(
             ticket_id=ticket_id,
             status="in_progress"
         )
@@ -1024,7 +1024,7 @@ class TestFullIntegration:
         assert success is True
 
         # Complete ticket
-        success = mock_hephaestus_client.update_ticket(
+        success = mock_crewai_client.update_ticket(
             ticket_id=ticket_id,
             status="done"
         )
@@ -1282,7 +1282,7 @@ This test suite covers all BubbleLabs integrations:
 - LeanAide Integration (translation, proof generation, verification, MCTS visualization)
 - Evolution Integration (workflow creation, adversarial testing, progress tracking)
 - Knowledge Engine Integration (graph queries, multi-source querying, visualization)
-- Maker/Hephaestus Integration (tool creation, delegation, repository management)
+- Maker/CrewAI Integration (tool creation, delegation, repository management)
 - UI Components (parameter rendering, visualization, export/import, security)
 
 Author: BubbleLabs Test Suite
@@ -1335,7 +1335,7 @@ def mock_workflow_state():
     workflow.maker_enabled = False
     workflow.ace_enabled = False
     workflow.ace_agent_id = None
-    workflow.hephaestus_workflow_id = None
+    workflow.CrewAI_workflow_id = None
     workflow.id_to_ticket_id_map = {}
     workflow.ticket_id_to_subproblem_id_map = {}
     workflow.solved_sub_problem_ids = []
@@ -1373,11 +1373,11 @@ def mock_leanaide_client():
 
 
 @pytest.fixture
-def mock_hephaestus_client():
-    """Mock Hephaestus client for testing"""
+def mock_crewai_client():
+    """Mock CrewAI client for testing"""
     client = Mock()
-    client.api_base = "https://hephaestus.test.com"
-    client.api_key = "test-hephaestus-key"
+    client.api_base = "https://CrewAI.test.com"
+    client.api_key = "test-CrewAI-key"
     client.project_id = "test-project"
     client.session = Mock()
     return client
@@ -1964,14 +1964,14 @@ class TestKnowledgeEngineIntegration:
 
 
 # =============================================================================
-# Maker/Hephaestus Integration Tests
+# Maker/CrewAI Integration Tests
 # =============================================================================
 
-class TestMakerHephaestusIntegration:
-    """Test suite for Maker/Hephaestus integration"""
+class TestMakerCrewAIIntegration:
+    """Test suite for Maker/CrewAI integration"""
 
-    def test_tool_creation_workflow(self, mock_hephaestus_client):
-        """Test tool can be created via Hephaestus"""
+    def test_tool_creation_workflow(self, mock_crewai_client):
+        """Test tool can be created via CrewAI"""
         tool_spec = {
             "name": "test_tool",
             "description": "A test tool",
@@ -1981,9 +1981,9 @@ class TestMakerHephaestusIntegration:
             "implementation": "def test_tool(input): return input.upper()"
         }
 
-        mock_hephaestus_client.create_ticket = Mock(return_value="ticket-001")
+        mock_crewai_client.create_ticket = Mock(return_value="ticket-001")
 
-        ticket_id = mock_hephaestus_client.create_ticket(
+        ticket_id = mock_crewai_client.create_ticket(
             title=f"Tool: {tool_spec['name']}",
             description=tool_spec["description"]
         )
@@ -1991,17 +1991,17 @@ class TestMakerHephaestusIntegration:
         assert ticket_id == "ticket-001"
         assert tool_spec["name"] == "test_tool"
 
-    def test_hephaestus_delegation(self):
-        """Test tasks can be delegated to Hephaestus"""
+    def test_CrewAI_delegation(self):
+        """Test tasks can be delegated to CrewAI"""
         delegation = {
             "task_id": "delegated-001",
-            "delegated_to": "Hephaestus",
+            "delegated_to": "CrewAI",
             "status": "pending",
             "assigned_to": "agent_001",
             "created_at": datetime.now().isoformat()
         }
 
-        assert delegation["delegated_to"] == "Hephaestus"
+        assert delegation["delegated_to"] == "CrewAI"
         assert delegation["status"] == "pending"
 
     def test_tool_repository_management(self):
@@ -2018,11 +2018,11 @@ class TestMakerHephaestusIntegration:
         assert repository["total_tools"] == 2
         assert repository["tools"]["tool_001"]["enabled"] is True
 
-    def test_ticket_creation(self, mock_hephaestus_client):
-        """Test Hephaestus ticket creation"""
-        mock_hephaestus_client.create_ticket = Mock(return_value="ticket-123")
+    def test_ticket_creation(self, mock_crewai_client):
+        """Test CrewAI ticket creation"""
+        mock_crewai_client.create_ticket = Mock(return_value="ticket-123")
 
-        ticket_id = mock_hephaestus_client.create_ticket(
+        ticket_id = mock_crewai_client.create_ticket(
             title="Test Ticket",
             description="Test description",
             ticket_type="task"
@@ -2030,18 +2030,18 @@ class TestMakerHephaestusIntegration:
 
         assert ticket_id == "ticket-123"
 
-    def test_ticket_update(self, mock_hephaestus_client):
-        """Test Hephaestus ticket update"""
-        mock_hephaestus_client.update_ticket = Mock(return_value=True)
+    def test_ticket_update(self, mock_crewai_client):
+        """Test CrewAI ticket update"""
+        mock_crewai_client.update_ticket = Mock(return_value=True)
 
-        success = mock_hephaestus_client.update_ticket(
+        success = mock_crewai_client.update_ticket(
             ticket_id="ticket-123",
             status="in_progress"
         )
 
         assert success is True
 
-    def test_mdap_task_sync(self, mock_hephaestus_client):
+    def test_mdap_task_sync(self, mock_crewai_client):
         """Test MDAP task synchronization"""
         mdap_task = Mock()
         mdap_task.task_id = "mdap-001"
@@ -2054,7 +2054,7 @@ class TestMakerHephaestusIntegration:
         assert synced["task_id"] == "mdap-001"
         assert synced["synced"] is True
 
-    def test_maker_run_sync(self, mock_hephaestus_client):
+    def test_maker_run_sync(self, mock_crewai_client):
         """Test MAKER run synchronization"""
         maker_run = {
             "run_id": "maker-001",
@@ -2274,15 +2274,15 @@ class TestFullIntegration:
         assert len(kb_result["theorems"]) == 2
         assert maker_output["confidence"] >= 0.8
 
-    def test_hephaestus_ticket_lifecycle(
+    def test_CrewAI_ticket_lifecycle(
         self,
-        mock_hephaestus_client,
+        mock_crewai_client,
         mock_workflow_state
     ):
-        """Test complete Hephaestus ticket lifecycle"""
+        """Test complete CrewAI ticket lifecycle"""
         # Create ticket
-        mock_hephaestus_client.create_ticket = Mock(return_value="ticket-001")
-        ticket_id = mock_hephaestus_client.create_ticket(
+        mock_crewai_client.create_ticket = Mock(return_value="ticket-001")
+        ticket_id = mock_crewai_client.create_ticket(
             title="Test Task",
             description="Test description"
         )
@@ -2290,8 +2290,8 @@ class TestFullIntegration:
         assert ticket_id == "ticket-001"
 
         # Update to in_progress
-        mock_hephaestus_client.update_ticket = Mock(return_value=True)
-        success = mock_hephaestus_client.update_ticket(
+        mock_crewai_client.update_ticket = Mock(return_value=True)
+        success = mock_crewai_client.update_ticket(
             ticket_id=ticket_id,
             status="in_progress"
         )
@@ -2299,7 +2299,7 @@ class TestFullIntegration:
         assert success is True
 
         # Complete ticket
-        success = mock_hephaestus_client.update_ticket(
+        success = mock_crewai_client.update_ticket(
             ticket_id=ticket_id,
             status="done"
         )

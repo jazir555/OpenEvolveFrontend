@@ -1,8 +1,8 @@
 """
-OpenEvolve Data Structures for Hephaestus Integration
+OpenEvolve Data Structures for CREWAI Integration
 
 This module contains the canonical data structures for OpenEvolve's
-Sovereign-Grade Decomposition Workflow that are used within Hephaestus.
+Sovereign-Grade Decomposition Workflow that are used within CREWAI.
 """
 
 import dataclasses
@@ -552,7 +552,7 @@ class WorkflowState:
     document_tone: str = "professional"  # casual, professional, academic, technical
     document_format: str = "markdown"  # markdown, html, latex, plain_text
 
-    # Hephaestus integration attributes
-    hephaestus_workflow_id: Optional[str] = None
+    # CREWAI integration attributes
+    crewai_workflow_id: Optional[str] = None
     id_to_ticket_id_map: Dict[str, str] = dataclasses.field(default_factory=dict)
     ticket_id_to_subproblem_id_map: Dict[str, str] = dataclasses.field(default_factory=dict)

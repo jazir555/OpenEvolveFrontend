@@ -2,10 +2,10 @@
 DataPizza Configuration System
 
 This module provides comprehensive configuration classes for DataPizza integration
-at every stage of the Hephaestus workflow.
+at every stage of the CREWAI workflow.
 
 Architecture:
-    HephaestusConfig (Top-level)
+    CREWAIConfig (Top-level)
         ├── DataPizzaPhase1Config (Problem Setup)
         ├── DataPizzaPhase2Config (Solution Generation)
         ├── DataPizzaPhase3Config (Adversarial Critique)
@@ -326,9 +326,9 @@ class DataPizzaMultiAgentConfig:
 # =============================================================================
 
 @dataclass
-class HephaestusDataPizzaConfig:
+class CREWAIDataPizzaConfig:
     """
-    Complete configuration for Hephaestus workflow with DataPizza
+    Complete configuration for CREWAI workflow with DataPizza
 
     This is the top-level configuration that encompasses all phases.
     """
@@ -407,14 +407,14 @@ class DataPizzaConfigBuilder:
     """Builder pattern for creating DataPizza configurations"""
 
     @staticmethod
-    def default() -> HephaestusDataPizzaConfig:
+    def default() -> CREWAIDataPizzaConfig:
         """Create default configuration"""
-        return HephaestusDataPizzaConfig()
+        return CREWAIDataPizzaConfig()
 
     @staticmethod
-    def multi_agent() -> HephaestusDataPizzaConfig:
+    def multi_agent() -> CREWAIDataPizzaConfig:
         """Create configuration for multi-agent workflow"""
-        config = HephaestusDataPizzaConfig()
+        config = CREWAIDataPizzaConfig()
         config.multi_agent = DataPizzaMultiAgentConfig(
             workflow="blue_red_gold",
             enable_agent_to_agent_communication=True,
@@ -423,9 +423,9 @@ class DataPizzaConfigBuilder:
         return config
 
     @staticmethod
-    def parallel() -> HephaestusDataPizzaConfig:
+    def parallel() -> CREWAIDataPizzaConfig:
         """Create configuration for parallel execution"""
-        config = HephaestusDataPizzaConfig()
+        config = CREWAIDataPizzaConfig()
         config.phase1.workflow = "parallel"
         config.phase5.workflow = "parallel"
         config.multi_agent = DataPizzaMultiAgentConfig(
@@ -455,7 +455,7 @@ class DataPizzaConfigBuilder:
         return config_class(**kwargs)
 
     @staticmethod
-    def from_dict(config_dict: Dict[str, Any]) -> HephaestusDataPizzaConfig:
+    def from_dict(config_dict: Dict[str, Any]) -> CREWAIDataPizzaConfig:
         """Create configuration from dictionary"""
         # Extract phase configs if present
         phase_configs = {}
@@ -478,7 +478,7 @@ class DataPizzaConfigBuilder:
             multi_agent_config = DataPizzaMultiAgentConfig(**config_dict['multi_agent'])
 
         # Create main config
-        config = HephaestusDataPizzaConfig(**{k: v for k, v in config_dict.items()
+        config = CREWAIDataPizzaConfig(**{k: v for k, v in config_dict.items()
                                                if k not in [f'phase{i}' for i in range(1, 7)] and k != 'multi_agent'})
 
         # Apply phase configs
@@ -499,9 +499,9 @@ class DataPizzaConfigPresets:
     """Pre-configured settings for common use cases"""
 
     @staticmethod
-    def fast_analysis() -> HephaestusDataPizzaConfig:
+    def fast_analysis() -> CREWAIDataPizzaConfig:
         """Fast analysis - fewer steps, less detail"""
-        config = HephaestusDataPizzaConfig()
+        config = CREWAIDataPizzaConfig()
 
         config.phase1.analysis_depth = "quick"
         config.phase1.num_parallel_agents = 1
@@ -518,9 +518,9 @@ class DataPizzaConfigPresets:
         return config
 
     @staticmethod
-    def comprehensive_analysis() -> HephaestusDataPizzaConfig:
+    def comprehensive_analysis() -> CREWAIDataPizzaConfig:
         """Comprehensive analysis - maximum detail, all features"""
-        config = HephaestusDataPizzaConfig()
+        config = CREWAIDataPizzaConfig()
 
         config.phase1.analysis_depth = "thorough"
         config.phase1.num_parallel_agents = 5
@@ -556,9 +556,9 @@ class DataPizzaConfigPresets:
         return config
 
     @staticmethod
-    def research_focused() -> HephaestusDataPizzaConfig:
+    def research_focused() -> CREWAIDataPizzaConfig:
         """Research-focused - heavy use of web search and analysis"""
-        config = HephaestusDataPizzaConfig()
+        config = CREWAIDataPizzaConfig()
 
         config.phase1.analysis_depth = "thorough"
         config.phase1.include_research = True
@@ -582,9 +582,9 @@ class DataPizzaConfigPresets:
         return config
 
     @staticmethod
-    def code_generation() -> HephaestusDataPizzaConfig:
+    def code_generation() -> CREWAIDataPizzaConfig:
         """Code generation focused - filesystem access, implementation"""
-        config = HephaestusDataPizzaConfig()
+        config = CREWAIDataPizzaConfig()
 
         config.phase2.solution_detail_level = "comprehensive"
         config.phase2.include_implementation_code = True
@@ -603,9 +603,9 @@ class DataPizzaConfigPresets:
         return config
 
     @staticmethod
-    def minimal_resource_usage() -> HephaestusDataPizzaConfig:
+    def minimal_resource_usage() -> CREWAIDataPizzaConfig:
         """Minimal resource usage - single agent, fewer steps"""
-        config = HephaestusDataPizzaConfig()
+        config = CREWAIDataPizzaConfig()
 
         config.phase1.num_parallel_agents = 1
         config.phase1.analysis_depth = "quick"

@@ -2,7 +2,7 @@
 ROMA-MDAP-MAKER MCP Tools
 
 This module provides Model Context Protocol (MCP) tools for the ROMA-MDAP-MAKER
-integration system. These tools allow Hephaestus agents and the Decomposition
+integration system. These tools allow CREWAI agents and the Decomposition
 Workflow to leverage ROMA's hierarchical decomposition with MAKER's zero-error
 voting mechanisms.
 

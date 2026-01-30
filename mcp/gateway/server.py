@@ -2,7 +2,7 @@
 FastAPI Gateway Server for Unified MCP Gateway.
 
 This module provides the HTTP API server that exposes the unified gateway
-to clients, including Hephaestus agents and ROMA.
+to clients, including CREWAI agents and ROMA.
 """
 
 import logging

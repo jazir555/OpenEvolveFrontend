@@ -1,7 +1,7 @@
 """
 Base Workflow Agent
 
-Provides the foundation for RAGBits-integrated agents with Hephaestus LLM management.
+Provides the foundation for RAGBits-integrated agents with crewai LLM management.
 """
 
 from typing import List, Dict, Any, Optional, Callable
@@ -31,10 +31,10 @@ class AgentTool:
 
 class BaseWorkflowAgent(ABC):
     """
-    Base class for workflow agents integrated with RAGBits and Hephaestus.
+    Base class for workflow agents integrated with RAGBits and crewai.
 
     Provides:
-    - LLM management via Hephaestus
+    - LLM management via crewai
     - Tool management and execution
     - Prompt construction
     - Response parsing
@@ -59,7 +59,7 @@ class BaseWorkflowAgent(ABC):
     def __init__(
         self,
         role: str,
-        hephaestus_client=None,
+        crewai_client=None,
         model_config: Optional[Dict[str, Any]] = None,
         tools: Optional[List[AgentTool]] = None,
         storage_manager=None,
@@ -70,14 +70,14 @@ class BaseWorkflowAgent(ABC):
 
         Args:
             role: Agent role (blue_team, red_team, gold_team, etc.)
-            hephaestus_client: Hephaestus client for LLM access
+            crewai_client: crewai client for LLM access
             model_config: Model configuration (model_id, temperature, etc.)
             tools: List of tools available to the agent
             storage_manager: IntermediaryStorageManager for artifact storage
             knowledge_retriever: KnowledgeRetriever for semantic search
         """
         self.role = role
-        self.hephaestus = hephaestus_client
+        self.crewai = crewai_client
         self.storage = storage_manager
         self.knowledge_retriever = knowledge_retriever
 
@@ -148,7 +148,7 @@ class BaseWorkflowAgent(ABC):
         **kwargs
     ) -> str:
         """
-        Call LLM via Hephaestus.
+        Call LLM via crewai.
 
         Args:
             prompt: User prompt
@@ -158,20 +158,20 @@ class BaseWorkflowAgent(ABC):
         Returns:
             LLM response text
         """
-        if not self.hephaestus:
-            # Fallback for testing without Hephaestus
-            logger.warning("No Hephaestus client - returning mock response")
+        if not self.crewai:
+            # Fallback for testing without crewai
+            logger.warning("No crewai client - returning mock response")
             return f"Mock response for: {prompt[:100]}..."
 
         try:
             # Merge model config with kwargs
             params = {**self.model_config, **kwargs}
 
-            # Call Hephaestus
+            # Call crewai
             if system_prompt:
                 params["system_message"] = system_prompt
 
-            response = await self.hephaestus.generate(
+            response = await self.crewai.generate(
                 prompt=prompt,
                 **params
             )

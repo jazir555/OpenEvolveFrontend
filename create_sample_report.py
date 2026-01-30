@@ -52,8 +52,8 @@ report = {
             'check_name': 'Instance-to-Definition Cache Inconsistency',
             'description': 'Cache updated asynchronously via background sync thread, can be stale',
             'affected_count': 1,
-            'affected_samples': ['instance_to_definition_map in bubblelabs_hephaestus_bridge.py'],
-            'location': 'bubblelabs_hephaestus_bridge.py:571-593',
+            'affected_samples': ['instance_to_definition_map in bubblelabs_CREWAI_bridge.py'],
+            'location': 'bubblelabs_CREWAI_bridge.py:571-593',
             'recommendation': 'Update cache immediately on instance creation'
         },
         {
@@ -62,8 +62,8 @@ report = {
             'check_name': 'Bridge Mappings Not Persisted',
             'description': 'Mappings dict tracks workflow-to-ticket mappings but is not persisted. Lost on restart.',
             'affected_count': 1,
-            'affected_samples': ['mappings dict in bubblelabs_hephaestus_bridge.py'],
-            'location': 'bubblelabs_hephaestus_bridge.py:110-111',
+            'affected_samples': ['mappings dict in bubblelabs_CREWAI_bridge.py'],
+            'location': 'bubblelabs_CREWAI_bridge.py:110-111',
             'recommendation': 'Persist mappings to database table'
         },
         {

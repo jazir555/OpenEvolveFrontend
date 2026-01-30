@@ -4,7 +4,7 @@ Comprehensive verification script for all test and demo files mentioned in CREWA
 
 Checks:
 1. Import status (syntax errors)
-2. Hephaestus references (should be removed)
+2. CREWAI references (should be removed)
 3. Bug fix presence (SolutionAttempt, generate_id, ValidationResult)
 4. Recent regressions from changes
 """
@@ -22,7 +22,7 @@ class FileVerificationResult:
         self.exists = os.path.exists(filepath)
         self.can_import = False
         self.has_syntax_error = False
-        self.hephaestus_references = []
+        self.CREWAI_references = []
         self.crewai_imports = []
         self.bug_fixes_present = {
             'solution_attempt_fallback': False,
@@ -38,7 +38,7 @@ class FileVerificationResult:
             'exists': self.exists,
             'can_import': self.can_import,
             'has_syntax_error': self.has_syntax_error,
-            'hephaestus_references': self.hephaestus_references,
+            'CREWAI_references': self.CREWAI_references,
             'crewai_imports': self.crewai_imports,
             'bug_fixes_present': self.bug_fixes_present,
             'import_errors': self.import_errors,
@@ -57,8 +57,8 @@ def check_syntax(filepath: str) -> Tuple[bool, str]:
     except Exception as e:
         return False, str(e)
 
-def scan_for_hephaestus(content: str) -> List[str]:
-    """Scan content for active Hephaestus references (excluding comments)"""
+def scan_for_CREWAI(content: str) -> List[str]:
+    """Scan content for active CREWAI references (excluding comments)"""
     references = []
     lines = content.split('\n')
 
@@ -68,14 +68,14 @@ def scan_for_hephaestus(content: str) -> List[str]:
         if stripped.startswith('#'):
             continue
 
-        # Check for active Hephaestus references
-        if 'hephaestus' in line.lower():
+        # Check for active CREWAI references
+        if 'CREWAI' in line.lower():
             # Import statements
-            if 'import' in line and 'hephaestus' in line.lower():
+            if 'import' in line and 'CREWAI' in line.lower():
                 references.append(f"Line {i}: {line.strip()}")
             # String literals that might be imports/references
             elif '"' in line or "'" in line:
-                if 'hephaestus' in line.lower():
+                if 'CREWAI' in line.lower():
                     references.append(f"Line {i}: {line.strip()}")
 
     return references
@@ -148,8 +148,8 @@ def verify_file(filepath: str) -> FileVerificationResult:
         result.import_errors.append(f"Read error: {str(e)}")
         return result
 
-    # Scan for Hephaestus references
-    result.hephaestus_references = scan_for_hephaestus(content)
+    # Scan for CREWAI references
+    result.CREWAI_references = scan_for_CREWAI(content)
 
     # Scan for CrewAI imports
     result.crewai_imports = scan_for_crewai(content)
@@ -241,7 +241,7 @@ def print_results(results: List[FileVerificationResult]):
         # Determine pass/fail
         is_pass = (
             not result.has_syntax_error and
-            len(result.hephaestus_references) == 0
+            len(result.CREWAI_references) == 0
         )
 
         status = "✅ PASS" if is_pass else "❌ FAIL"
@@ -249,12 +249,12 @@ def print_results(results: List[FileVerificationResult]):
         print(f"  Exists: {result.exists}")
         print(f"  Can Import: {result.can_import}")
         print(f"  Syntax Error: {result.has_syntax_error}")
-        print(f"  Hephaestus Refs: {len(result.hephaestus_references)}")
+        print(f"  CREWAI Refs: {len(result.CREWAI_references)}")
         print(f"  CrewAI Imports: {len(result.crewai_imports)}")
 
-        if result.hephaestus_references:
-            print(f"  ⚠️  Hephaestus References:")
-            for ref in result.hephaestus_references[:3]:
+        if result.CREWAI_references:
+            print(f"  ⚠️  CREWAI References:")
+            for ref in result.CREWAI_references[:3]:
                 print(f"     - {ref}")
 
         if result.bug_fixes_present.get('solution_attempt_fallback') or \
@@ -295,7 +295,7 @@ def print_results(results: List[FileVerificationResult]):
         # Determine pass/fail
         is_pass = (
             not result.has_syntax_error and
-            len(result.hephaestus_references) == 0
+            len(result.CREWAI_references) == 0
         )
 
         status = "✅ PASS" if is_pass else "❌ FAIL"
@@ -303,12 +303,12 @@ def print_results(results: List[FileVerificationResult]):
         print(f"  Exists: {result.exists}")
         print(f"  Can Import: {result.can_import}")
         print(f"  Syntax Error: {result.has_syntax_error}")
-        print(f"  Hephaestus Refs: {len(result.hephaestus_references)}")
+        print(f"  CREWAI Refs: {len(result.CREWAI_references)}")
         print(f"  CrewAI Imports: {len(result.crewai_imports)}")
 
-        if result.hephaestus_references:
-            print(f"  ⚠️  Hephaestus References:")
-            for ref in result.hephaestus_references[:3]:
+        if result.CREWAI_references:
+            print(f"  ⚠️  CREWAI References:")
+            for ref in result.CREWAI_references[:3]:
                 print(f"     - {ref}")
 
         if result.bug_fixes_present.get('solution_attempt_fallback') or \
@@ -340,9 +340,9 @@ def print_results(results: List[FileVerificationResult]):
     if failed > 0:
         print("\n## DETAILED FAILURES:\n")
         for result in results:
-            if result.exists and not result.has_syntax_error and len(result.hephaestus_references) > 0:
+            if result.exists and not result.has_syntax_error and len(result.CREWAI_references) > 0:
                 print(f"\n{result.filepath}:")
-                for ref in result.hephaestus_references:
+                for ref in result.CREWAI_references:
                     print(f"  - {ref}")
 
 def main():
@@ -394,7 +394,7 @@ def main():
     print_results(results)
 
     # Return exit code based on failures
-    failed_count = sum(1 for r in results if r.exists and (r.has_syntax_error or len(r.hephaestus_references) > 0))
+    failed_count = sum(1 for r in results if r.exists and (r.has_syntax_error or len(r.CREWAI_references) > 0))
     sys.exit(0 if failed_count == 0 else 1)
 
 if __name__ == "__main__":

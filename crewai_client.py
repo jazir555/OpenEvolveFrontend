@@ -1,14 +1,14 @@
 """
-CrewAI Client - Local Execution Replacement for Hephaestus API Client
+CrewAI Client - Local Execution Replacement for crewai API Client
 
 This module provides the client interface for executing CrewAI workflows locally,
-replacing the Hephaestus HTTP API client with local CrewAI flow execution.
+replacing the crewai HTTP API client with local CrewAI flow execution.
 
-Key Differences from Hephaestus:
+Key Differences from crewai:
 - No HTTP API (local execution only)
 - No remote database (local JSON state files)
 - No ticket system (state-based workflow)
-- MIT license (replaces AGPL Hephaestus)
+- MIT license (replaces AGPL crewai)
 
 License: MIT
 """
@@ -100,7 +100,7 @@ class CrewAIClient:
     """
     Client for executing CrewAI workflows locally.
 
-    Replaces HephaestusClient with local execution:
+    Replaces CrewAIClient with local execution:
     - No HTTP API calls
     - Local state management
     - Direct CrewAI flow execution

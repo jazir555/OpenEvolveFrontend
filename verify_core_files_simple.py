@@ -22,7 +22,7 @@ def verify_file(filepath: Path, filename: str) -> dict:
         'file': filename,
         'exists': False,
         'can_parse': False,
-        'hephaestus_imports': [],
+        'CREWAI_imports': [],
         'classes_found': [],
         'syntax_errors': [],
         'bug_fixes': [],
@@ -46,17 +46,17 @@ def verify_file(filepath: Path, filename: str) -> dict:
         result['syntax_errors'].append(str(e))
         return result
 
-    # Check for Hephaestus imports
+    # Check for CREWAI imports
     for node in ast.walk(tree):
         if isinstance(node, (ast.Import, ast.ImportFrom)):
             if isinstance(node, ast.ImportFrom):
                 module = node.module.lower() if node.module else ""
-                if 'hephaestus' in module:
-                    result['hephaestus_imports'].append(f"Line {node.lineno}: from {node.module} import ...")
+                if 'CREWAI' in module:
+                    result['CREWAI_imports'].append(f"Line {node.lineno}: from {node.module} import ...")
             elif isinstance(node, ast.Import):
                 for alias in node.names:
-                    if 'hephaestus' in alias.name.lower():
-                        result['hephaestus_imports'].append(f"Line {node.lineno}: import {alias.name}")
+                    if 'CREWAI' in alias.name.lower():
+                        result['CREWAI_imports'].append(f"Line {node.lineno}: import {alias.name}")
 
     # Find all class definitions
     for node in ast.walk(tree):
@@ -129,7 +129,7 @@ def main():
         is_pass = (
             result['exists'] and
             result['can_parse'] and
-            len(result['hephaestus_imports']) == 0 and
+            len(result['CREWAI_imports']) == 0 and
             len(result['syntax_errors']) == 0
         )
 
@@ -149,13 +149,13 @@ def main():
         # Parse status
         print(f"[?] Can Parse: {result['can_parse']}")
 
-        # Hephaestus imports
-        if result['hephaestus_imports']:
-            print(f"\n[!] Hephaestus Imports Found ({len(result['hephaestus_imports'])}):")
-            for imp in result['hephaestus_imports']:
+        # CREWAI imports
+        if result['CREWAI_imports']:
+            print(f"\n[!] CREWAI Imports Found ({len(result['CREWAI_imports'])}):")
+            for imp in result['CREWAI_imports']:
                 print(f"   [X] {imp}")
         else:
-            print(f"\n[OK] No Hephaestus imports (only in comments/docs)")
+            print(f"\n[OK] No CREWAI imports (only in comments/docs)")
 
         # Syntax errors
         if result['syntax_errors']:
@@ -193,11 +193,11 @@ def main():
     print("REGRESSION CHECKS")
     print("="*80)
 
-    all_hephaestus_free = all(len(r['hephaestus_imports']) == 0 for r in results if r['exists'])
+    all_CREWAI_free = all(len(r['CREWAI_imports']) == 0 for r in results if r['exists'])
     all_parseable = all(r['can_parse'] for r in results if r['exists'])
     no_syntax_errors = all(len(r['syntax_errors']) == 0 for r in results if r['exists'])
 
-    print(f"[OK] All files Hephaestus-free: {all_hephaestus_free}")
+    print(f"[OK] All files CREWAI-free: {all_CREWAI_free}")
     print(f"[OK] All files parseable: {all_parseable}")
     print(f"[OK] No syntax errors: {no_syntax_errors}")
 
@@ -244,7 +244,7 @@ def main():
     print("\n" + "="*80)
 
     # Exit with appropriate code
-    if all(r['exists'] and r['can_parse'] and len(r['hephaestus_imports']) == 0 for r in results):
+    if all(r['exists'] and r['can_parse'] and len(r['CREWAI_imports']) == 0 for r in results):
         print("\n[SUCCESS] ALL VERIFICATIONS PASSED!")
         return 0
     else:

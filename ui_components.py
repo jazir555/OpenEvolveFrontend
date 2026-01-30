@@ -4262,31 +4262,31 @@ def render_quality_diversity_archive(archive_data: List[Dict[str, Any]], feature
 
 def render_monitoring_tab(workflow_state=None):
     """
-    Renders the monitoring tab for tracking Hephaestus workflow execution.
+    Renders the monitoring tab for tracking CrewAI workflow execution.
     This function handles the stage mentioned in workflow_engine.py where
     the monitoring is done in the render_monitoring_tab UI function.
     """
     import time
-    from crewai_client # MIGRATED: was hephaestus_client import HephaestusClient
+    from crewai_client # MIGRATED: was crewai_client import CrewAIClient
     
     st.header("📊 Workflow Monitoring")
     
-    if not workflow_state or not hasattr(workflow_state, 'hephaestus_workflow_id') or not workflow_state.hephaestus_workflow_id:
-        st.info("No active Hephaestus workflow to monitor. Workflow delegation has not been initiated yet.")
+    if not workflow_state or not hasattr(workflow_state, 'CrewAI_workflow_id') or not workflow_state.CrewAI_workflow_id:
+        st.info("No active CrewAI workflow to monitor. Workflow delegation has not been initiated yet.")
         return
     
-    st.subheader(f"Monitoring Workflow: {workflow_state.hephaestus_workflow_id}")
+    st.subheader(f"Monitoring Workflow: {workflow_state.CrewAI_workflow_id}")
     
-    # Initialize Hephaestus client
-    client = HephaestusClient()
+    # Initialize CrewAI client
+    client = CrewAIClient()
     
-    # If we have the mapping of SGDW IDs to Hephaestus ticket IDs
+    # If we have the mapping of SGDW IDs to CrewAI ticket IDs
     if hasattr(workflow_state, 'id_to_ticket_id_map') and workflow_state.id_to_ticket_id_map:
         st.info("Tracking individual tickets...")
         
         try:
-            # Get all tickets for this workflow from Hephaestus
-            workflow_tickets = client.get_workflow_tickets(workflow_state.hephaestus_workflow_id)
+            # Get all tickets for this workflow from crewai # MIGRATED: was CrewAI
+            workflow_tickets = client.get_workflow_tickets(workflow_state.CrewAI_workflow_id)
             
             if workflow_tickets:
                 st.write(f"Found {len(workflow_tickets)} tickets in the workflow")
@@ -4337,13 +4337,13 @@ def render_monitoring_tab(workflow_state=None):
                     time.sleep(30)
                     st.rerun()
             else:
-                st.warning("No tickets found for this workflow in Hephaestus yet.")
+                st.warning("No tickets found for this workflow in CrewAI yet.")
                 
         except Exception as e:
-            st.error(f"Error fetching tickets from Hephaestus: {e}")
+            st.error(f"Error fetching tickets from crewai # MIGRATED: was CrewAI: {e}")
             st.info("This may indicate that the tickets haven't been created yet or there's a connection issue.")
     else:
-        st.info("Waiting for workflow delegation to Hephaestus to complete...")
+        st.info("Waiting for workflow delegation to CrewAI to complete...")
         
     # Refresh button
     if st.button("Refresh Status"):

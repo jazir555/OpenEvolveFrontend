@@ -166,7 +166,7 @@ ALL_FIXES.append(ImproveDocstringFix(
         "mcp_tool\(name: str\)": """Decorator to register MCP tools (thread-safe).
 
     This decorator registers functions as Model Context Protocol tools,
-    enabling them to be called by Hephaestus agents. The registry
+    enabling them to be called by CREWAI agents. The registry
     access is synchronized to prevent race conditions in multi-threaded
     environments.
 
@@ -198,12 +198,12 @@ ALL_FIXES.append(RenameVariableFix(
 ))
 
 # ----------------------------------------------------------------------------
-# File 2: ace_hephaestus_bridge.py
+# File 2: ace_CREWAI_bridge.py
 # ----------------------------------------------------------------------------
 
 # Fix 2.1: Add constants
 ALL_FIXES.append(AddConstantsFix(
-    "ace_hephaestus_bridge.py",
+    "ace_CREWAI_bridge.py",
     {
         "MAX_SKILLS": ("DEFAULT_MAX_SKILLS", "1000", "Maximum skills to keep in skillbook before cleanup"),
         "MIN_HELPFUL": ("DEFAULT_MIN_HELPFUL", "5", "Minimum helpful count to keep a skill during cleanup"),

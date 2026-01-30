@@ -100,12 +100,12 @@ except ImportError:
     EVOLUTIONARY_AVAILABLE = False
     logger.warning("LeanAide evolutionary workflow not available")
 
-# Import Hephaestus integration
+# import crewai # MIGRATED: was CrewAI integration
 try:
-    from crewai_client import HephaestusClient
-    HEPHAESTUS_AVAILABLE = True
+    from crewai_client import CrewAIClient
+    CREWAI_AVAILABLE = True
 except ImportError:
-    HEPHAESTUS_AVAILABLE = False
+    CREWAI_AVAILABLE = False
 
 # Import ACE knowledge storage
 try:
@@ -176,9 +176,9 @@ class MCTSWorkflowConfig:
     lean_mcts_store_patterns: bool = True
     lean_mcts_track_statistics: bool = True
 
-    # Hephaestus integration
-    hephaestus_enabled: bool = False
-    hephaestus_timeout: float = 600.0
+    # CrewAI integration
+    CrewAI_enabled: bool = False
+    CrewAI_timeout: float = 600.0
 
     # ACE integration
     ace_learning_enabled: bool = True
@@ -454,7 +454,7 @@ class MCTSWorkflowIntegrator:
 
         # Initialize integrators
         self.leanaide_integrator: Optional[LeanAideWorkflowIntegrator] = None
-        self.hephaestus_client: Optional[HephaestusClient] = None
+        self.crewai_client: Optional[CrewAIClient] = None
         self.ace_manager: Optional[ACEKnowledgeManager] = None
         self.evolutionary_stage: Optional[LeanEvolutionaryWorkflowStage] = None
 
@@ -481,9 +481,9 @@ class MCTSWorkflowIntegrator:
             )
             self.leanaide_integrator = LeanAideWorkflowIntegrator(leanaide_config)
 
-        # Initialize Hephaestus client if enabled
-        if self.config.hephaestus_enabled and HEPHAESTUS_AVAILABLE:
-            self.hephaestus_client = HephaestusClient(timeout=self.config.hephaestus_timeout)
+        # Initialize CrewAI client if enabled
+        if self.config.CrewAI_enabled and CREWAI_AVAILABLE:
+            self.crewai_client = CrewAIClient(timeout=self.config.CrewAI_timeout)
 
         # Initialize ACE manager if enabled
         if self.config.ace_learning_enabled and ACE_AVAILABLE:

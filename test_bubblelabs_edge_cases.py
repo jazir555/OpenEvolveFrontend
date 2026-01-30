@@ -430,8 +430,8 @@ class TestBubbleLabsAnalyticsEdgeCases(unittest.TestCase):
         print("✓ Invalid path tests completed")
 
 
-class TestBubbleLabsHephaestusBridgeEdgeCases(unittest.TestCase):
-    """Test edge cases for BubbleLabsHephaestusBridge"""
+class TestBubbleLabsCREWAIBridgeEdgeCases(unittest.TestCase):
+    """Test edge cases for BubbleLabsCREWAIBridge"""
 
     def setUp(self):
         self.temp_dir = tempfile.mkdtemp()
@@ -446,14 +446,14 @@ class TestBubbleLabsHephaestusBridgeEdgeCases(unittest.TestCase):
         """Test that we can import the module"""
         try:
             from bubblelabs_crewai_bridge import (
-                BubbleLabsHephaestusBridge,
+                BubbleLabsCREWAIBridge,
                 validate_workflow_transition,
                 validate_ticket_transition
             )
-            self.BubbleLabsHephaestusBridge = BubbleLabsHephaestusBridge
+            self.BubbleLabsCREWAIBridge = BubbleLabsCREWAIBridge
             self.validate_workflow_transition = validate_workflow_transition
             self.validate_ticket_transition = validate_ticket_transition
-            print("✓ Successfully imported bubblelabs_hephaestus_bridge")
+            print("✓ Successfully imported bubblelabs_CREWAI_bridge")
             return True
         except Exception as e:
             print(f"✗ Failed to import bubblelabs_crewai_bridge: {e}")
@@ -467,7 +467,7 @@ class TestBubbleLabsHephaestusBridgeEdgeCases(unittest.TestCase):
             self.skipTest("Cannot import module")
 
         try:
-            bridge = self.BubbleLabsHephaestusBridge(batch_size=None)
+            bridge = self.BubbleLabsCREWAIBridge(batch_size=None)
             print("⚠ Accepted None batch_size")
         except (ValueError, TypeError):
             print("✓ Rejected None batch_size")
@@ -481,7 +481,7 @@ class TestBubbleLabsHephaestusBridgeEdgeCases(unittest.TestCase):
         if not self.test_import_bridge():
             self.skipTest("Cannot import module")
 
-        bridge = self.BubbleLabsHephaestusBridge(mappings_db_path=self.test_db)
+        bridge = self.BubbleLabsCREWAIBridge(mappings_db_path=self.test_db)
 
         result = bridge.sync_workflow_to_ticket("")
         if not result:
@@ -505,12 +505,12 @@ class TestBubbleLabsHephaestusBridgeEdgeCases(unittest.TestCase):
             self.skipTest("Cannot import module")
 
         try:
-            bridge = self.BubbleLabsHephaestusBridge(batch_size=-1)
+            bridge = self.BubbleLabsCREWAIBridge(batch_size=-1)
             print("⚠ Accepted negative batch_size")
         except ValueError:
             print("✓ Rejected negative batch_size")
 
-        bridge = self.BubbleLabsHephaestusBridge(mappings_db_path=self.test_db)
+        bridge = self.BubbleLabsCREWAIBridge(mappings_db_path=self.test_db)
         try:
             bridge.stop_background_sync(timeout=-10)
             print("⚠ Accepted negative timeout")
@@ -533,12 +533,12 @@ class TestBubbleLabsHephaestusBridgeEdgeCases(unittest.TestCase):
             self.skipTest("Cannot import module")
 
         try:
-            bridge = self.BubbleLabsHephaestusBridge(batch_size=10**9)
+            bridge = self.BubbleLabsCREWAIBridge(batch_size=10**9)
             print("⚠ Accepted very large batch_size")
         except ValueError:
             print("✓ Rejected very large batch_size")
 
-        bridge = self.BubbleLabsHephaestusBridge(mappings_db_path=self.test_db)
+        bridge = self.BubbleLabsCREWAIBridge(mappings_db_path=self.test_db)
         try:
             bridge.stop_background_sync(timeout=10**9)
             print("⚠ Accepted very large timeout")
@@ -903,7 +903,7 @@ def run_all_edge_case_tests():
     suite = unittest.TestSuite()
 
     suite.addTests(loader.loadTestsFromTestCase(TestBubbleLabsAnalyticsEdgeCases))
-    suite.addTests(loader.loadTestsFromTestCase(TestBubbleLabsHephaestusBridgeEdgeCases))
+    suite.addTests(loader.loadTestsFromTestCase(TestBubbleLabsCREWAIBridgeEdgeCases))
     suite.addTests(loader.loadTestsFromTestCase(TestBubbleLabsTypeScriptExportEdgeCases))
     suite.addTests(loader.loadTestsFromTestCase(TestBubbleLabsMCPToolsEdgeCases))
 

@@ -27,7 +27,7 @@ class GoldTeamAgent(BaseWorkflowAgent):
 
     Usage:
         agent = GoldTeamAgent(
-            hephaestus_client=hephaestus,
+            crewai_client=crewai,
             storage_manager=storage,
             knowledge_retriever=retriever
         )
@@ -41,7 +41,7 @@ class GoldTeamAgent(BaseWorkflowAgent):
 
     def __init__(
         self,
-        hephaestus_client=None,
+        crewai_client=None,
         storage_manager=None,
         knowledge_retriever=None,
         tools: Optional[List[AgentTool]] = None
@@ -55,7 +55,7 @@ class GoldTeamAgent(BaseWorkflowAgent):
 
         super().__init__(
             role=self.ROLE_GOLD_TEAM,
-            hephaestus_client=hephaestus_client,
+            crewai_client=crewai_client,
             model_config=model_config,
             storage_manager=storage_manager,
             knowledge_retriever=knowledge_retriever,
@@ -66,8 +66,8 @@ class GoldTeamAgent(BaseWorkflowAgent):
         if self.knowledge_retriever:
             self.add_tool(KnowledgeSearchTool(self.knowledge_retriever))
 
-        if hephaestus_client:
-            self.add_tool(SolutionEvaluationTool(hephaestus_client, storage_manager))
+        if crewai_client:
+            self.add_tool(SolutionEvaluationTool(crewai_client, storage_manager))
 
     async def execute(
         self,

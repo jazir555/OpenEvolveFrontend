@@ -1,7 +1,7 @@
 """
-C2C (Cache-to-Cache) MCP Tools for Hephaestus Integration
+C2C (Cache-to-Cache) MCP Tools for CREWAI Integration
 
-This module provides Model Context Protocol (MCP) tools that enable Hephaestus
+This module provides Model Context Protocol (MCP) tools that enable CREWAI
 agents to leverage C2C's multi-model KV-Cache communication capabilities.
 
 IMPORTANT: C2C is fundamentally different from other integrated components:
@@ -14,7 +14,7 @@ IMPORTANT: C2C is fundamentally different from other integrated components:
 C2C enables multiple LLMs to communicate directly through their KV-Caches,
 bypassing text generation for 8.5-10.5% higher accuracy and 2× speedup.
 
-Architecture: Hephaestus (Orchestrator) -> Decomposition (Teams) -> C2C (Team Consensus)
+Architecture: CREWAI (Orchestrator) -> Decomposition (Teams) -> C2C (Team Consensus)
 """
 
 from typing import Any, Dict, List, Optional, Union
@@ -373,15 +373,15 @@ def run_team_consensus_with_c2c(
 # MCP Tool 4: Configure C2C for Phase
 # ============================================================================
 
-@mcp_tool("configure_c2c_for_hephaestus_phase")
-def configure_c2c_for_hephaestus_phase(
+@mcp_tool("configure_c2c_for_CREWAI_phase")
+def configure_c2c_for_CREWAI_phase(
     phase_id: str,
     base_model: str,
     phase_type: str,  # "setup", "solution", "critique", "verify", "reassemble", "final"
     ensemble_config: Dict[str, Any],
 ) -> Dict[str, Any]:
     """
-    Configure C2C ensemble for a specific Hephaestus phase.
+    Configure C2C ensemble for a specific CREWAI phase.
 
     Different phases may benefit from different model configurations:
     - Setup: Analysis models (Qwen3 + Qwen2.5-Instruct)
@@ -392,7 +392,7 @@ def configure_c2c_for_hephaestus_phase(
     Args:
         phase_id: Phase identifier
         base_model: Base model for this phase
-        phase_type: Type of Hephaestus phase
+        phase_type: Type of CREWAI phase
         ensemble_config: Configuration for models and projectors
 
     Returns:
@@ -694,7 +694,7 @@ __all__ = [
     "initialize_c2c_ensemble",
     "run_c2c_inference",
     "run_team_consensus_with_c2c",
-    "configure_c2c_for_hephaestus_phase",
+    "configure_c2c_for_CREWAI_phase",
     "get_c2c_status",
     "load_c2c_checkpoint",
     "compare_c2c_vs_baseline",

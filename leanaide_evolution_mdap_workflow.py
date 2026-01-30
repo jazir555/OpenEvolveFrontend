@@ -12,7 +12,7 @@ Key Features:
 - Stage 3A/B/C integration with MDAP-enhanced evolution
 - Configuration integration with WorkflowState
 - Fallback strategies and error handling
-- Integration with LeanAide, Hephaestus, Knowledge Engine, and ACE
+- Integration with LeanAide, CrewAI, Knowledge Engine, and ACE
 
 Author: OpenEvolve
 Created: 2025-12-30
@@ -92,12 +92,12 @@ except ImportError:
     LEANAIDE_AVAILABLE = False
     logger.warning("LeanAide workflow integration not available")
 
-# Import Hephaestus
+# import crewai # MIGRATED: was CrewAI
 try:
-    from crewai_client import HephaestusClient
-    HEPHAESTUS_AVAILABLE = True
+    from crewai_client import CrewAIClient
+    CREWAI_AVAILABLE = True
 except ImportError:
-    HEPHAESTUS_AVAILABLE = False
+    CREWAI_AVAILABLE = False
 
 # Import ACE Knowledge Manager
 try:
@@ -154,7 +154,7 @@ class MDAPEvolutionConfig:
     fallback_to_standard: bool = True
 
     # Integration
-    hephaestus_enabled: bool = False
+    CrewAI_enabled: bool = False
     ace_learning_enabled: bool = True
     verify_with_leanaide: bool = True
     verification_timeout: float = 60.0
@@ -248,7 +248,7 @@ class MDAPEvolutionWorkflowIntegrator:
         self.evolutionary_stage: Optional[LeanEvolutionaryWorkflowStage] = None
         self.mdap_integrator: Optional[LeanMDAPWorkflowIntegrator] = None
         self.leanaide_integrator: Optional[LeanAideWorkflowIntegrator] = None
-        self.hephaestus_client: Optional[HephaestusClient] = None
+        self.crewai_client: Optional[CrewAIClient] = None
         self.ace_manager: Optional[ACEKnowledgeManager] = None
 
         # Progress tracking
@@ -309,9 +309,9 @@ class MDAPEvolutionWorkflowIntegrator:
             )
             self.leanaide_integrator = LeanAideWorkflowIntegrator(leanaide_config)
 
-        # Initialize Hephaestus if enabled
-        if self.config.hephaestus_enabled and HEPHAESTUS_AVAILABLE:
-            self.hephaestus_client = HephaestusClient(timeout=self.config.agent_timeout)
+        # Initialize CrewAI if enabled
+        if self.config.CrewAI_enabled and CREWAI_AVAILABLE:
+            self.crewai_client = CrewAIClient(timeout=self.config.agent_timeout)
 
         # Initialize ACE manager
         if self.config.ace_learning_enabled and ACE_AVAILABLE:
@@ -1746,7 +1746,7 @@ __all__ = [
     "EVOLUTION_WORKFLOW_AVAILABLE",
     "MDAP_WORKFLOW_AVAILABLE",
     "LEANAIDE_AVAILABLE",
-    "HEPHAESTUS_AVAILABLE",
+    "CREWAI_AVAILABLE",
     "ACE_AVAILABLE"
 ]
 
@@ -1769,7 +1769,7 @@ if __name__ == "__main__":
         print(f"  Evolution Workflow: {EVOLUTION_WORKFLOW_AVAILABLE}")
         print(f"  MDAP Workflow: {MDAP_WORKFLOW_AVAILABLE}")
         print(f"  LeanAide: {LEANAIDE_AVAILABLE}")
-        print(f"  Hephaestus: {HEPHAESTUS_AVAILABLE}")
+        print(f"  CrewAI: {CREWAI_AVAILABLE}")
         print(f"  ACE: {ACE_AVAILABLE}")
         print()
 

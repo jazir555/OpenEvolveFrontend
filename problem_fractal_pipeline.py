@@ -3,14 +3,14 @@ from __future__ import annotations
 """
 problem_fractal_pipeline.py - CrewAI Integration
 
-This file has been migrated from Hephaestus (AGPL) to CrewAI (MIT).
+This file has been migrated from crewai # MIGRATED: was CrewAI (AGPL) to CrewAI (MIT).
 
 Migration Date: 2026-01-21
 Migration Status: Complete
 
-All Hephaestus references have been replaced with CrewAI equivalents.
+All CrewAI references have been replaced with CrewAI equivalents.
 The functionality remains the same, but now uses local CrewAI execution
-instead of remote Hephaestus API calls.
+instead of remote CrewAI API calls.
 
 For questions, see: CREWAI_MIGRATION_MASTER_TASKLIST.md
 """
@@ -139,13 +139,13 @@ class FractalPipelineConfig:
 
     enable_fallback_judge: bool = True
 
-    use_hephaestus_mirroring: bool = True
+    use_CrewAI_mirroring: bool = True
     crewai_api_base: Optional[str] = None
     crewai_api_key: Optional[str] = None
     crewai_workflow_id: Optional[str] = None
-    hephaestus_agent_id: str = "fractal-pipeline"
-    hephaestus_results_timeout_s: int = 300
-    hephaestus_results_poll_s: int = 5
+    CrewAI_agent_id: str = "fractal-pipeline"
+    CrewAI_results_timeout_s: int = 300
+    CrewAI_results_poll_s: int = 5
 
     decomposition_strategy: DecompositionStrategy = DecompositionStrategy.ROMA
     fallback_decomposition_strategy: DecompositionStrategy = DecompositionStrategy.SEMANTIC
@@ -192,7 +192,7 @@ def execute_mdap_step(
 ) -> SolutionAttempt:
     """
     Execute a single atomic sub-problem using encapsulated MDAP/MAKER + gauntlets.
-    This is the atomic unit exposed to Hephaestus.
+    This is the atomic unit exposed to CrewAI.
     """
     solve_result = solve_sub_problem_with_team(
         sub_problem_id=sub_problem_id,
@@ -267,8 +267,8 @@ class FractalPipelineCoordinator:
         logger.info("Starting fractal pipeline run")
         decomposition_plan, component_map = self._decompose(problem_statement)
         sub_solutions = self._solve_sub_problems(decomposition_plan, component_map, requirements)
-        if self.config.use_hephaestus_mirroring:
-            sub_solutions = self._wait_for_hephaestus_results(decomposition_plan, sub_solutions)
+        if self.config.use_CrewAI_mirroring:
+            sub_solutions = self._wait_for_CrewAI_results(decomposition_plan, sub_solutions)
         recomposed_solution = self._recompose(problem_statement, decomposition_plan, sub_solutions)
         final_accepted, final_metadata = self._final_verify(recomposed_solution, requirements)
 
@@ -319,19 +319,19 @@ class FractalPipelineCoordinator:
                     [content],
                 )
 
-        if self.config.use_hephaestus_mirroring:
-            parent_task_id = self._create_hephaestus_task(
+        if self.config.use_CrewAI_mirroring:
+            parent_task_id = self._create_CrewAI_task(
                 task_description=f"Decompose problem: {content[:80]}",
                 done_definition="Decomposition complete",
             )
             for comp in result.components:
-                task_id = self._create_hephaestus_task(
+                task_id = self._create_CrewAI_task(
                     task_description=f"Subproblem {comp.id}: {comp.title}",
                     done_definition=f"Solve subproblem {comp.id}",
                     parent_task_id=parent_task_id,
                 )
                 if task_id:
-                    plan.metadata.setdefault("hephaestus_tasks", {})[comp.id] = task_id
+                    plan.metadata.setdefault("CrewAI_tasks", {})[comp.id] = task_id
 
         return plan, component_map
 
@@ -357,15 +357,15 @@ class FractalPipelineCoordinator:
                 red_gauntlet=red_gauntlet,
                 gold_gauntlet=gold_gauntlet,
                 depth=0,
-                parent_task_id=plan.metadata.get("hephaestus_tasks", {}).get(sub_problem.id),
+                parent_task_id=plan.metadata.get("CrewAI_tasks", {}).get(sub_problem.id),
             )
             sub_solutions[sub_problem.id] = attempt
 
-            if self.config.use_hephaestus_mirroring:
-                task_id = plan.metadata.get("hephaestus_tasks", {}).get(sub_problem.id)
+            if self.config.use_CrewAI_mirroring:
+                task_id = plan.metadata.get("CrewAI_tasks", {}).get(sub_problem.id)
                 solution_text = attempt.solution_content
                 if task_id:
-                    self._complete_hephaestus_task(
+                    self._complete_CrewAI_task(
                         task_id=task_id,
                         summary=f"Solved subproblem {sub_problem.id}",
                         key_learnings=[solution_text[:400]] if solution_text else [],
@@ -417,8 +417,8 @@ class FractalPipelineCoordinator:
                 nested_solutions = {}
                 for nested_component in nested.components:
                     task_id = None
-                    if self.config.use_hephaestus_mirroring:
-                        task_id = self._create_hephaestus_task(
+                    if self.config.use_CrewAI_mirroring:
+                        task_id = self._create_CrewAI_task(
                             task_description=f"Nested subproblem {nested_component.id}: {nested_component.title}",
                             done_definition=f"Solve nested subproblem {nested_component.id}",
                             parent_task_id=parent_task_id,
@@ -434,7 +434,7 @@ class FractalPipelineCoordinator:
                     )
                     nested_solutions[nested_component.id] = attempt
                     if task_id:
-                        self._complete_hephaestus_task(
+                        self._complete_CrewAI_task(
                             task_id=task_id,
                             summary=f"Solved nested subproblem {nested_component.id}",
                             key_learnings=[attempt.solution_content[:400]] if attempt.solution_content else [],
@@ -453,10 +453,10 @@ class FractalPipelineCoordinator:
                     roma_execution_mode="recursive",
                     roma_provider=self.config.roma_provider,
                     roma_model=self.config.roma_model,
-                    crewai_api_base=self._hephaestus_api_base(),
-                    crewai_api_key=self._hephaestus_api_key(),
-                    crewai_workflow_id=self._hephaestus_workflow_id(),
-                    hephaestus_agent_id=self.config.hephaestus_agent_id,
+                    crewai_api_base=self._CrewAI_api_base(),
+                    crewai_api_key=self._CrewAI_api_key(),
+                    crewai_workflow_id=self._CrewAI_workflow_id(),
+                    CrewAI_agent_id=self.config.CrewAI_agent_id,
                 )
                 integrated = assembler.assemble_solution(
                     nested_plan,
@@ -494,7 +494,7 @@ class FractalPipelineCoordinator:
     ) -> str:
         assembly_strategy = "hierarchical"
         if self.config.enable_roma_recomposition:
-            assembly_strategy = "roma_hephaestus" if self.config.use_hephaestus_mirroring else "roma"
+            assembly_strategy = "roma_CrewAI" if self.config.use_CrewAI_mirroring else "roma"
 
         assembler = SolutionAssembler(
             enable_roma=self.config.enable_roma_recomposition,
@@ -502,10 +502,10 @@ class FractalPipelineCoordinator:
             roma_execution_mode="recursive",
             roma_provider=self.config.roma_provider,
             roma_model=self.config.roma_model,
-            crewai_api_base=self._hephaestus_api_base(),
-            crewai_api_key=self._hephaestus_api_key(),
-            crewai_workflow_id=self._hephaestus_workflow_id(),
-            hephaestus_agent_id=self.config.hephaestus_agent_id,
+            crewai_api_base=self._CrewAI_api_base(),
+            crewai_api_key=self._CrewAI_api_key(),
+            crewai_workflow_id=self._CrewAI_workflow_id(),
+            CrewAI_agent_id=self.config.CrewAI_agent_id,
         )
 
         plan.metadata["problem_statement"] = problem_statement
@@ -531,13 +531,13 @@ class FractalPipelineCoordinator:
                     ["coherence", "consistency", "integration"],
                 )
 
-        if self.config.use_hephaestus_mirroring:
-            task_id = self._create_hephaestus_task(
+        if self.config.use_CrewAI_mirroring:
+            task_id = self._create_CrewAI_task(
                 task_description="Recompose solved subproblems into final solution",
                 done_definition="Recomposition complete",
             )
             if task_id:
-                self._complete_hephaestus_task(
+                self._complete_CrewAI_task(
                     task_id=task_id,
                     summary="Recomposition complete",
                     key_learnings=[integrated.assembled_content[:400]],
@@ -683,34 +683,34 @@ class FractalPipelineCoordinator:
                 return {"passed": "true" in text.lower(), "reason": text}
         return _fallback_judge(solution, requirements)
 
-    def _hephaestus_api_base(self) -> Optional[str]:
+    def _CrewAI_api_base(self) -> Optional[str]:
         return self.config.crewai_api_base or os.getenv("CREWAI_API_BASE", "http://localhost:8000")
 
-    def _hephaestus_api_key(self) -> Optional[str]:
+    def _CrewAI_api_key(self) -> Optional[str]:
         return self.config.crewai_api_key or os.getenv("CREWAI_API_KEY")
 
-    def _hephaestus_workflow_id(self) -> Optional[str]:
-        return self.config.crewai_workflow_id or os.getenv("HEPHAESTUS_WORKFLOW_ID")
+    def _CrewAI_workflow_id(self) -> Optional[str]:
+        return self.config.crewai_workflow_id or os.getenv("CrewAI_WORKFLOW_ID")
 
-    def _create_hephaestus_task(
+    def _create_CrewAI_task(
         self,
         task_description: str,
         done_definition: str,
         parent_task_id: Optional[str] = None,
     ) -> Optional[str]:
-        if not (self.config.use_hephaestus_mirroring and REQUESTS_AVAILABLE):
+        if not (self.config.use_CrewAI_mirroring and REQUESTS_AVAILABLE):
             return None
-        api_key = self._hephaestus_api_key()
+        api_key = self._CrewAI_api_key()
         if not api_key:
             return None
-        workflow_id = self._hephaestus_workflow_id()
+        workflow_id = self._CrewAI_workflow_id()
         if not workflow_id:
             return None
 
         payload = {
             "task_description": task_description,
             "done_definition": done_definition,
-            "ai_agent_id": self.config.hephaestus_agent_id,
+            "ai_agent_id": self.config.CrewAI_agent_id,
             "workflow_id": workflow_id,
             "priority": "medium",
             "parent_task_id": parent_task_id,
@@ -718,7 +718,7 @@ class FractalPipelineCoordinator:
 
         try:
             response = requests.post(
-                f"{self._hephaestus_api_base().rstrip('/')}/create_task",
+                f"{self._CrewAI_api_base().rstrip('/')}/create_task",
                 json=payload,
                 headers={"X-API-Key": api_key},
                 timeout=10,
@@ -727,19 +727,19 @@ class FractalPipelineCoordinator:
             data = response.json()
             return data.get("task_id") or data.get("id")
         except Exception as exc:  # TODO: Catch specific exception instead of Exception
-            logger.warning("Hephaestus task creation failed: %s", exc)
+            logger.warning("CrewAI task creation failed: %s", exc)
             return None
 
-    def _complete_hephaestus_task(
+    def _complete_CrewAI_task(
         self,
         task_id: str,
         summary: str,
         key_learnings: List[str],
         solution_payload: Optional[Dict[str, Any]] = None,
     ) -> None:
-        if not (self.config.use_hephaestus_mirroring and REQUESTS_AVAILABLE):
+        if not (self.config.use_CrewAI_mirroring and REQUESTS_AVAILABLE):
             return
-        api_key = self._hephaestus_api_key()
+        api_key = self._CrewAI_api_key()
         if not api_key:
             return
         agent_id = self._fetch_assigned_agent(task_id)
@@ -755,22 +755,22 @@ class FractalPipelineCoordinator:
         }
         try:
             requests.post(
-                f"{self._hephaestus_api_base().rstrip('/')}/update_task_status",
+                f"{self._CrewAI_api_base().rstrip('/')}/update_task_status",
                 json=payload,
                 headers={"X-API-Key": api_key, "X-Agent-ID": agent_id},
                 timeout=10,
             )
         except Exception as exc:  # TODO: Catch specific exception instead of Exception
-            logger.warning("Hephaestus task completion failed: %s", exc)
+            logger.warning("CrewAI task completion failed: %s", exc)
 
         if solution_payload:
-            self._submit_hephaestus_result(agent_id, solution_payload)
+            self._submit_CrewAI_result(agent_id, solution_payload)
 
-    def _submit_hephaestus_result(self, agent_id: str, payload: Dict[str, Any]) -> None:
-        api_key = self._hephaestus_api_key()
+    def _submit_CrewAI_result(self, agent_id: str, payload: Dict[str, Any]) -> None:
+        api_key = self._CrewAI_api_key()
         if not api_key:
             return
-        base = self._hephaestus_api_base()
+        base = self._CrewAI_api_base()
         if not base:
             return
         try:
@@ -786,18 +786,18 @@ class FractalPipelineCoordinator:
                 timeout=10,
             )
         except Exception as exc:  # TODO: Catch specific exception instead of Exception
-            logger.warning("Hephaestus submit_result failed: %s", exc)
+            logger.warning("CrewAI submit_result failed: %s", exc)
 
-    def _fetch_hephaestus_results(self) -> List[Dict[str, Any]]:
-        api_key = self._hephaestus_api_key()
-        workflow_id = self._hephaestus_workflow_id()
-        base = self._hephaestus_api_base()
+    def _fetch_CrewAI_results(self) -> List[Dict[str, Any]]:
+        api_key = self._CrewAI_api_key()
+        workflow_id = self._CrewAI_workflow_id()
+        base = self._CrewAI_api_base()
         if not (api_key and workflow_id and base and REQUESTS_AVAILABLE):
             return []
         try:
             response = requests.get(
                 f"{base.rstrip('/')}/workflows/{workflow_id}/results",
-                headers={"X-API-Key": api_key, "X-Agent-ID": self.config.hephaestus_agent_id},
+                headers={"X-API-Key": api_key, "X-Agent-ID": self.config.CrewAI_agent_id},
                 timeout=10,
             )
             if response.status_code != 200:
@@ -807,14 +807,14 @@ class FractalPipelineCoordinator:
                 return data
             return []
         except Exception as exc:  # TODO: Catch specific exception instead of Exception
-            logger.warning("Hephaestus results fetch failed: %s", exc)
+            logger.warning("CrewAI results fetch failed: %s", exc)
             return []
 
     def _fetch_assigned_agent(self, task_id: str) -> Optional[str]:
-        api_key = self._hephaestus_api_key()
+        api_key = self._CrewAI_api_key()
         if not api_key:
             return None
-        base = self._hephaestus_api_base()
+        base = self._CrewAI_api_base()
         if not base:
             return None
 
@@ -823,7 +823,7 @@ class FractalPipelineCoordinator:
                 response = requests.get(
                     f"{base.rstrip('/')}/task_progress",
                     params={"task_id": task_id},
-                    headers={"X-API-Key": api_key, "X-Agent-ID": self.config.hephaestus_agent_id},
+                    headers={"X-API-Key": api_key, "X-Agent-ID": self.config.CrewAI_agent_id},
                     timeout=10,
                 )
                 if response.status_code == 200:
@@ -837,8 +837,8 @@ class FractalPipelineCoordinator:
                 time.sleep(1)
         return None
 
-    def _aggregate_hephaestus_results(self) -> Dict[str, str]:
-        results = self._fetch_hephaestus_results()
+    def _aggregate_CrewAI_results(self) -> Dict[str, str]:
+        results = self._fetch_CrewAI_results()
         sub_results: Dict[str, str] = {}
         for item in results:
             payload = item.get("explanation")
@@ -868,22 +868,22 @@ class FractalPipelineCoordinator:
             return self.config.roma_max_depth
         return min(self.config.roma_max_depth, limit)
 
-    def _wait_for_hephaestus_results(
+    def _wait_for_CrewAI_results(
         self,
         plan: DecompositionPlan,
         sub_solutions: Dict[str, SolutionAttempt],
     ) -> Dict[str, SolutionAttempt]:
         expected_ids = {sp.id for sp in plan.sub_problems}
-        deadline = time.time() + self.config.hephaestus_results_timeout_s
+        deadline = time.time() + self.config.CrewAI_results_timeout_s
 
         while time.time() < deadline:
-            heph_results = self._aggregate_hephaestus_results()
+            heph_results = self._aggregate_CrewAI_results()
             if heph_results:
                 for sub_id, solution in heph_results.items():
                     if sub_id in sub_solutions and solution:
                         sub_solutions[sub_id].solution_content = solution
             if expected_ids.issubset(heph_results.keys()):
                 break
-            time.sleep(self.config.hephaestus_results_poll_s)
+            time.sleep(self.config.CrewAI_results_poll_s)
 
         return sub_solutions

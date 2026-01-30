@@ -4,7 +4,7 @@ import time
 import json
 import uuid
 import threading # Added for parallel execution in gauntlets
-import os # Added for path manipulation in OpenEvolve integration and env vars for Hephaestus
+import os # Added for path manipulation in OpenEvolve integration and env vars for crewai
 import re # Added for regex parsing in targeted feedback
 from typing import Any, Dict, List, Literal, Optional
 import asyncio
@@ -1256,7 +1256,7 @@ async def run_sovereign_workflow(
         if review_status == "approved":
             workflow_state.decomposition_plan = approved_plan
             st.success("[Manual Review & Override] Decomposition plan approved by user.")
-            workflow_state.current_stage = "Delegate to Hephaestus" # Transition to delegation stage.
+            workflow_state.current_stage = "Delegate to crewai" # Transition to delegation stage.
             workflow_state.status = "running" # Resume workflow execution.
             workflow_state.progress = 0.5 # Update overall progress.
             st.rerun() # Rerun to continue the workflow immediately.
@@ -1270,51 +1270,51 @@ async def run_sovereign_workflow(
             # and wait for the next Streamlit rerun triggered by user interaction in the UI.
             return
 
-    # STAGE 3: DELEGATE TO HEPHAESTUS
-    if workflow_state.current_stage == "Delegate to Hephaestus":
-        st.info("Initializing comprehensive Hephaestus workflow integration...")
+    # STAGE 3: DELEGATE TO crewai
+    if workflow_state.current_stage == "Delegate to crewai":
+        st.info("Initializing comprehensive crewai workflow integration...")
         
-        # Get Hephaestus configuration from environment - NO DEFAULTS FOR SECURITY
-        hephaestus_api_base = os.getenv("HEPHAESTUS_API_BASE", "http://localhost:8080")
-        hephaestus_api_key = os.getenv("HEPHAESTUS_API_KEY")
-        hephaestus_project_id = os.getenv("HEPHAESTUS_PROJECT_ID", "openevolve-workflows")
+        # Get crewai configuration from environment - NO DEFAULTS FOR SECURITY
+        crewai_api_base = os.getenv("crewai_API_BASE", "http://localhost:8080")
+        crewai_api_key = os.getenv("crewai_API_KEY")
+        crewai_project_id = os.getenv("crewai_PROJECT_ID", "openevolve-workflows")
 
         # Validate that API key is set
-        if not hephaestus_api_key:
-            st.error("Hephaestus API key not configured. Please set HEPHAESTUS_API_KEY environment variable.")
-            st.info("To set up Hephaestus integration:\n"
-                   "1. Set HEPHAESTUS_API_KEY environment variable\n"
-                   "2. Optionally set HEPHAESTUS_API_BASE (default: http://localhost:8080)\n"
-                   "3. Optionally set HEPHAESTUS_PROJECT_ID (default: openevolve-workflows)")
+        if not crewai_api_key:
+            st.error("crewai API key not configured. Please set crewai_API_KEY environment variable.")
+            st.info("To set up crewai integration:\n"
+                   "1. Set crewai_API_KEY environment variable\n"
+                   "2. Optionally set crewai_API_BASE (default: http://localhost:8080)\n"
+                   "3. Optionally set crewai_PROJECT_ID (default: openevolve-workflows)")
             workflow_state.status = "failed"
             _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
             return
         
-        # Initialize the comprehensive Hephaestus integration
-        integration_manager = workflow_state.get_hephaestus_integration(
-            hephaestus_api_base,
-            hephaestus_api_key, 
-            hephaestus_project_id
+        # Initialize the comprehensive crewai integration
+        integration_manager = workflow_state.get_crewai_integration(
+            crewai_api_base,
+            crewai_api_key, 
+            crewai_project_id
         )
         
-        # Initialize the workflow in Hephaestus with full lifecycle support
+        # Initialize the workflow in crewai with full lifecycle support
         success = integration_manager.initialize_workflow_sync(workflow_state)
         if not success:
-            st.error("Fatal: Failed to initialize Hephaestus workflow. Error creating main workflow epic or sub-problem tickets.")
+            st.error("Fatal: Failed to initialize crewai workflow. Error creating main workflow epic or sub-problem tickets.")
             workflow_state.status = "failed"
             _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
             return
         
-        st.success("Hephaestus workflow initialized successfully with complete integration.")
+        st.success("crewai workflow initialized successfully with complete integration.")
         workflow_state.current_stage = "Monitoring"
         st.rerun()
 
     # STAGE 4: MONITORING
     if workflow_state.current_stage == "Monitoring":
-        st.info("Monitoring Hephaestus workflow execution...")
+        st.info("Monitoring crewai workflow execution...")
         # This stage is now handled in the render_monitoring_tab UI function
         # The workflow engine's job is done for this stage
-        # We just wait for the workflow to complete in Hephaestus
+        # We just wait for the workflow to complete in crewai
         return
 
     # --- Stage 5: Sub-Problem Solving Loop ---
@@ -1538,35 +1538,35 @@ async def run_sovereign_workflow(
                 timestamp=time.time()
             )
             
-            # Sync to Hephaestus if integration is active
-            hephaestus_api_base = os.getenv("HEPHAESTUS_API_BASE", "http://localhost:8080")
-            hephaestus_api_key = os.getenv("HEPHAESTUS_API_KEY")
-            hephaestus_project_id = os.getenv("HEPHAESTUS_PROJECT_ID", "openevolve-workflows")
+            # Sync to crewai if integration is active
+            crewai_api_base = os.getenv("crewai_API_BASE", "http://localhost:8080")
+            crewai_api_key = os.getenv("crewai_API_KEY")
+            crewai_project_id = os.getenv("crewai_PROJECT_ID", "openevolve-workflows")
             
-            # Only update Hephaestus if integration is available
-            if workflow_state.hephaestus_workflow_id and workflow_state.id_to_ticket_id_map.get(current_sp_id):
+            # Only update crewai if integration is available
+            if workflow_state.crewai_workflow_id and workflow_state.id_to_ticket_id_map.get(current_sp_id):
                 try:
-                    integration_manager = workflow_state.get_hephaestus_integration(
-                        hephaestus_api_base,
-                        hephaestus_api_key,
-                        hephaestus_project_id
+                    integration_manager = workflow_state.get_crewai_integration(
+                        crewai_api_base,
+                        crewai_api_key,
+                        crewai_project_id
                     )
                     if integration_manager:
-                        workflow_state.sync_solution_to_hephaestus_ticket(
+                        workflow_state.sync_solution_to_crewai_ticket(
                             integration_manager, 
                             current_sp_id, 
                             solution_attempt
                         )
                         # Update ticket status to reflect that solution is submitted
-                        workflow_state.sync_subproblem_status_to_hephaestus(
+                        workflow_state.sync_subproblem_status_to_crewai(
                             integration_manager,
                             current_sp_id,
                             "in_review",
                             generated_content
                         )
-                        st.info(f"Solution synced to Hephaestus ticket for {current_sp_id}")
+                        st.info(f"Solution synced to crewai ticket for {current_sp_id}")
                 except Exception as e:
-                    st.warning(f"Could not sync solution to Hephaestus for {current_sp_id}: {e}")
+                    st.warning(f"Could not sync solution to crewai for {current_sp_id}: {e}")
             
             # --- Step B: Red Team Gauntlet (Critique) ---
             # Determine the actual red gauntlet for this sub-problem (can be specified per sub-problem or global).
@@ -1598,27 +1598,27 @@ async def run_sovereign_workflow(
                     }
                 )
                 
-                # Sync critique report to Hephaestus if integration is active
-                hephaestus_api_base = os.getenv("HEPHAESTUS_API_BASE", "http://localhost:8080")
-                hephaestus_api_key = os.getenv("HEPHAESTUS_API_KEY")
-                hephaestus_project_id = os.getenv("HEPHAESTUS_PROJECT_ID", "openevolve-workflows")
+                # Sync critique report to crewai if integration is active
+                crewai_api_base = os.getenv("crewai_API_BASE", "http://localhost:8080")
+                crewai_api_key = os.getenv("crewai_API_KEY")
+                crewai_project_id = os.getenv("crewai_PROJECT_ID", "openevolve-workflows")
                 
-                if workflow_state.hephaestus_workflow_id and workflow_state.id_to_ticket_id_map.get(current_sp_id):
+                if workflow_state.crewai_workflow_id and workflow_state.id_to_ticket_id_map.get(current_sp_id):
                     try:
-                        integration_manager = workflow_state.get_hephaestus_integration(
-                            hephaestus_api_base,
-                            hephaestus_api_key,
-                            hephaestus_project_id
+                        integration_manager = workflow_state.get_crewai_integration(
+                            crewai_api_base,
+                            crewai_api_key,
+                            crewai_project_id
                         )
                         if integration_manager:
-                            workflow_state.sync_critique_to_hephaestus_ticket(
+                            workflow_state.sync_critique_to_crewai_ticket(
                                 integration_manager, 
                                 current_sp_id, 
                                 red_gauntlet_result['critique_report']
                             )
-                            st.info(f"Red Team critique synced to Hephaestus ticket for {current_sp_id}")
+                            st.info(f"Red Team critique synced to crewai ticket for {current_sp_id}")
                     except Exception as e:
-                        st.warning(f"Could not sync critique to Hephaestus for {current_sp_id}: {e}")
+                        st.warning(f"Could not sync critique to crewai for {current_sp_id}: {e}")
                 
                 if not red_gauntlet_result['is_approved']:
                     st.warning(f"  - Red Team rejected solution for {current_sp_id}. Marking for rework.")
@@ -1686,27 +1686,27 @@ async def run_sovereign_workflow(
                     }
                 )
 
-                # Sync verification report to Hephaestus if integration is active
-                hephaestus_api_base = os.getenv("HEPHAESTUS_API_BASE", "http://localhost:8080")
-                hephaestus_api_key = os.getenv("HEPHAESTUS_API_KEY")
-                hephaestus_project_id = os.getenv("HEPHAESTUS_PROJECT_ID", "openevolve-workflows")
+                # Sync verification report to crewai if integration is active
+                crewai_api_base = os.getenv("crewai_API_BASE", "http://localhost:8080")
+                crewai_api_key = os.getenv("crewai_API_KEY")
+                crewai_project_id = os.getenv("crewai_PROJECT_ID", "openevolve-workflows")
                 
-                if workflow_state.hephaestus_workflow_id and workflow_state.id_to_ticket_id_map.get(current_sp_id):
+                if workflow_state.crewai_workflow_id and workflow_state.id_to_ticket_id_map.get(current_sp_id):
                     try:
-                        integration_manager = workflow_state.get_hephaestus_integration(
-                            hephaestus_api_base,
-                            hephaestus_api_key,
-                            hephaestus_project_id
+                        integration_manager = workflow_state.get_crewai_integration(
+                            crewai_api_base,
+                            crewai_api_key,
+                            crewai_project_id
                         )
                         if integration_manager:
-                            workflow_state.sync_verification_to_hephaestus_ticket(
+                            workflow_state.sync_verification_to_crewai_ticket(
                                 integration_manager, 
                                 current_sp_id, 
                                 gold_gauntlet_result['verification_report']
                             )
-                            st.info(f"Gold Team verification synced to Hephaestus ticket for {current_sp_id}")
+                            st.info(f"Gold Team verification synced to crewai ticket for {current_sp_id}")
                     except Exception as e:
-                        st.warning(f"Could not sync verification to Hephaestus for {current_sp_id}: {e}")
+                        st.warning(f"Could not sync verification to crewai for {current_sp_id}: {e}")
 
                 if not gold_gauntlet_result['is_approved']:
                     st.warning(f"  - Gold Team rejected solution for {current_sp_id}. Marking for rework.")
@@ -1744,29 +1744,29 @@ async def run_sovereign_workflow(
             else:
                 st.info(f"  - No Gold Team Gauntlet configured for {current_sp_id}. Skipping Gold Team evaluation.")
             
-            # Sync completion status to Hephaestus if integration is active
-            hephaestus_api_base = os.getenv("HEPHAESTUS_API_BASE", "http://localhost:8080")
-            hephaestus_api_key = os.getenv("HEPHAESTUS_API_KEY")
-            hephaestus_project_id = os.getenv("HEPHAESTUS_PROJECT_ID", "openevolve-workflows")
+            # Sync completion status to crewai if integration is active
+            crewai_api_base = os.getenv("crewai_API_BASE", "http://localhost:8080")
+            crewai_api_key = os.getenv("crewai_API_KEY")
+            crewai_project_id = os.getenv("crewai_PROJECT_ID", "openevolve-workflows")
             
-            if workflow_state.hephaestus_workflow_id and workflow_state.id_to_ticket_id_map.get(current_sp_id):
+            if workflow_state.crewai_workflow_id and workflow_state.id_to_ticket_id_map.get(current_sp_id):
                 try:
-                    integration_manager = workflow_state.get_hephaestus_integration(
-                        hephaestus_api_base,
-                        hephaestus_api_key,
-                        hephaestus_project_id
+                    integration_manager = workflow_state.get_crewai_integration(
+                        crewai_api_base,
+                        crewai_api_key,
+                        crewai_project_id
                     )
                     if integration_manager:
                         # Update ticket status to done/completed
-                        workflow_state.sync_subproblem_status_to_hephaestus(
+                        workflow_state.sync_subproblem_status_to_crewai(
                             integration_manager,
                             current_sp_id,
                             "solved",
                             solution_attempt.content
                         )
-                        st.info(f"Sub-problem {current_sp_id} completion synced to Hephaestus ticket")
+                        st.info(f"Sub-problem {current_sp_id} completion synced to crewai ticket")
                 except Exception as e:
-                    st.warning(f"Could not sync completion to Hephaestus for {current_sp_id}: {e}")
+                    st.warning(f"Could not sync completion to crewai for {current_sp_id}: {e}")
 
             # Update overall progress based on solved sub-problems.
             # Stage 3 (Sub-Problem Solving) accounts for 30% of total progress (0.4 to 0.7).
@@ -1879,10 +1879,10 @@ async def run_sovereign_workflow(
 
     # STAGE 4: MONITORING
     if workflow_state.current_stage == "Monitoring":
-        st.info("Monitoring Hephaestus workflow execution...")
+        st.info("Monitoring crewai workflow execution...")
         # This stage is now handled in the render_monitoring_tab UI function
         # The workflow engine's job is done for this stage
-        # We just wait for the workflow to complete in Hephaestus
+        # We just wait for the workflow to complete in crewai
         return
 
     # --- Stage 5: Final Verification & Self-Healing Loop ---
@@ -2074,26 +2074,26 @@ async def run_sovereign_workflow(
             )
             _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "completed")
             
-            # Close workflow in Hephaestus if integration is active
-            hephaestus_api_base = os.getenv("HEPHAESTUS_API_BASE", "http://localhost:8080")
-            hephaestus_api_key = os.getenv("HEPHAESTUS_API_KEY")
-            hephaestus_project_id = os.getenv("HEPHAESTUS_PROJECT_ID", "openevolve-workflows")
+            # Close workflow in crewai if integration is active
+            crewai_api_base = os.getenv("crewai_API_BASE", "http://localhost:8080")
+            crewai_api_key = os.getenv("crewai_API_KEY")
+            crewai_project_id = os.getenv("crewai_PROJECT_ID", "openevolve-workflows")
             
-            if workflow_state.hephaestus_workflow_id:
+            if workflow_state.crewai_workflow_id:
                 try:
-                    integration_manager = workflow_state.get_hephaestus_integration(
-                        hephaestus_api_base,
-                        hephaestus_api_key,
-                        hephaestus_project_id
+                    integration_manager = workflow_state.get_crewai_integration(
+                        crewai_api_base,
+                        crewai_api_key,
+                        crewai_project_id
                     )
                     if integration_manager:
                         success = integration_manager.close_workflow_sync(workflow_state)
                         if success:
-                            st.info(f"Workflow completion synced to Hephaestus: {workflow_state.hephaestus_workflow_id}")
+                            st.info(f"Workflow completion synced to crewai: {workflow_state.crewai_workflow_id}")
                         else:
-                            st.warning(f"Could not close workflow in Hephaestus: {workflow_state.hephaestus_workflow_id}")
+                            st.warning(f"Could not close workflow in crewai: {workflow_state.crewai_workflow_id}")
                 except Exception as e:
-                    st.warning(f"Could not sync workflow completion to Hephaestus: {e}")
+                    st.warning(f"Could not sync workflow completion to crewai: {e}")
             
             # --- Stage 6: Knowledge Extraction & Learning ---
             st.info("[Knowledge Extraction] Extracting knowledge from workflow execution...")
@@ -2126,26 +2126,26 @@ async def run_sovereign_workflow(
         )
         _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
         
-        # Close workflow in Hephaestus if integration is active
-        hephaestus_api_base = os.getenv("HEPHAESTUS_API_BASE", "http://localhost:8080")
-        hephaestus_api_key = os.getenv("HEPHAESTUS_API_KEY", "demo_key")
-        hephaestus_project_id = os.getenv("HEPHAESTUS_PROJECT_ID", "openevolve-workflows")
+        # Close workflow in crewai if integration is active
+        crewai_api_base = os.getenv("crewai_API_BASE", "http://localhost:8080")
+        crewai_api_key = os.getenv("crewai_API_KEY", "demo_key")
+        crewai_project_id = os.getenv("crewai_PROJECT_ID", "openevolve-workflows")
         
-        if workflow_state.hephaestus_workflow_id:
+        if workflow_state.crewai_workflow_id:
             try:
-                integration_manager = workflow_state.get_hephaestus_integration(
-                    hephaestus_api_base,
-                    hephaestus_api_key,
-                    hephaestus_project_id
+                integration_manager = workflow_state.get_crewai_integration(
+                    crewai_api_base,
+                    crewai_api_key,
+                    crewai_project_id
                 )
                 if integration_manager:
                     success = integration_manager.close_workflow_sync(workflow_state)
                     if success:
-                        st.info(f"Workflow failure synced to Hephaestus: {workflow_state.hephaestus_workflow_id}")
+                        st.info(f"Workflow failure synced to crewai: {workflow_state.crewai_workflow_id}")
                     else:
-                        st.warning(f"Could not close workflow in Hephaestus: {workflow_state.hephaestus_workflow_id}")
+                        st.warning(f"Could not close workflow in crewai: {workflow_state.crewai_workflow_id}")
             except Exception as e:
-                st.warning(f"Could not sync workflow failure to Hephaestus: {e}")
+                st.warning(f"Could not sync workflow failure to crewai: {e}")
         
         st.info("INFO: Workflow failed.")
 

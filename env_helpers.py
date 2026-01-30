@@ -455,7 +455,7 @@ def validate_all_api_keys() -> None:
         "OPENAI_API_KEY",
         "ANTHROPIC_API_KEY",
         "GOOGLE_API_KEY",
-        "HEPHAESTUS_API_KEY",
+        "CREWAI_API_KEY",
         "BUBBLELABS_API_KEY",
     ]
 

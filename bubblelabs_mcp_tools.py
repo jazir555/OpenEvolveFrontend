@@ -2,7 +2,7 @@
 BubbleLabs MCP Tools for Model Context Protocol Integration
 
 This module provides Model Context Protocol (MCP) tools that enable
-Hephaestus agents and other systems to interact with BubbleLabs workflows.
+CREWAI agents and other systems to interact with BubbleLabs workflows.
 
 MCP Tools allow agents to:
 - Create BubbleLabs workflows from natural language
