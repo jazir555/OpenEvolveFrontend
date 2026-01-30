@@ -27,7 +27,7 @@ try:
     nltk.download('wordnet', quiet=True)
     from nltk.corpus import wordnet
     NLTK_AVAILABLE = True
-except Exception:
+except (ImportError, OSError):
     wordnet = None
     NLTK_AVAILABLE = False
 
@@ -68,7 +68,7 @@ class ContentAnalyzer:
                     'to', 'was', 'will', 'with', 'the', 'this', 'but', 'they', 'have',
                     'had', 'what', 'when', 'where', 'who', 'which', 'why', 'how'
                 }
-        except Exception:
+        except (LookupError, AttributeError):
             self.stop_words = set()
         self.content_type_patterns = {
             ContentType.CODE: [
@@ -185,7 +185,7 @@ class ContentAnalyzer:
             try:
                 sentences = sent_tokenize(content)
                 words = word_tokenize(content.lower())
-            except Exception:
+            except (LookupError, ValueError, TypeError):
                 # Fallback to simple tokenization
                 sentences = self._simple_sent_tokenize(content)
                 words = self._simple_word_tokenize(content.lower())

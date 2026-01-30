@@ -514,7 +514,7 @@ def lmql_constrained_generation(
             "fallback_used": False,
         }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         logger.error(f"[{correlation_id}] LMQL constrained generation failed: {e}", extra={
             "correlation_id": correlation_id,
             "error": str(e),
@@ -631,7 +631,7 @@ def lmql_structured_generation(
             "correlation_id": correlation_id,
         }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         logger.error(f"[{correlation_id}] LMQL structured generation failed: {e}", extra={
             "correlation_id": correlation_id,
             "error": str(e),
@@ -788,7 +788,7 @@ def lmql_roma_decompose(
             "stats": stats,
         }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         logger.error(f"[{correlation_id}] LMQL ROMA decomposition failed: {e}", extra={
             "correlation_id": correlation_id,
             "error": str(e),
@@ -919,7 +919,7 @@ def lmql_generate_mdap_vote(
             "error": result.error if not result.success else None,
         }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         logger.error(f"[{correlation_id}] LMQL MDAP vote generation failed: {e}", extra={
             "correlation_id": correlation_id,
             "error": str(e),

@@ -218,7 +218,7 @@ class QualityAssessmentEngine:
                 response.raise_for_status()
                 llm_result = response.json()
                 llm_score = json.loads(llm_result["choices"][0]["message"]["content"]).get("score", 0.7)
-            except Exception as llm_e:
+            except (requests.RequestException, json.JSONDecodeError, KeyError) as llm_e:
                 print(f"Error getting LLM feedback for quality evaluator: {llm_e}. Falling back to default score.")
                 llm_score = 0.7  # Fallback if LLM call fails
 
@@ -228,13 +228,13 @@ class QualityAssessmentEngine:
                 "content_length": len(content),
                 "assessment_completed": True
             }
-        except Exception as e:
-                        print(f"Error in quality evaluator: {e}")
-                        return {
-                            "score": 0.0,
-                            "timestamp": datetime.now().timestamp(),
-                            "error": str(e)
-                        }
+        except (ValueError, TypeError, RuntimeError) as e:
+            print(f"Error in quality evaluator: {e}")
+            return {
+                "score": 0.0,
+                "timestamp": datetime.now().timestamp(),
+                "error": str(e)
+            }
     
     def _generate_openevolve_quality_result(self, content: str, content_type: str,
                                           result, custom_requirements: Optional[Dict[str, Any]]) -> QualityAssessmentResult:
@@ -1466,5 +1466,5 @@ Provide a quality score (0-100) and detailed feedback."""
             'consensus': max(scores) - min(scores) < 20 if scores else False,
             'metrics': result.get('metrics', {})
         }
-    except Exception as e:
+    except (ValueError, TypeError, RuntimeError, AttributeError) as e:
         return {'error': str(e)}

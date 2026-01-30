@@ -406,7 +406,7 @@ class NeuroMANCERAdapter(OptimizationInterface):
             self.template_cache.clear()
             self.initialized = False
             return True
-        except Exception:
+        except (AttributeError, TypeError, RuntimeError):
             return False
 
     async def get_template(self, template_name: str) -> Dict[str, Any]:
@@ -448,7 +448,7 @@ class NeuroMANCERAdapter(OptimizationInterface):
                 timeout=10
             )
             return self.pytorch_env in result.stdout
-        except Exception:
+        except (subprocess.SubprocessError, subprocess.TimeoutExpired, OSError):
             return False
 
     def _get_device_info(self) -> Dict[str, Any]:
@@ -468,7 +468,7 @@ class NeuroMANCERAdapter(OptimizationInterface):
                 for template_file in template_dir.glob("*.yaml"):
                     with open(template_file, 'r') as f:
                         self.template_cache[template_file.stem] = yaml.safe_load(f)
-            except Exception:
+            except (ImportError, yaml.YAMLError, OSError):
                 pass  # Templates are optional
 
     async def _invoke_solver(
@@ -522,7 +522,7 @@ class NeuroMANCERAdapter(OptimizationInterface):
                 # Clean up script
                 try:
                     os.unlink(script_path)
-                except Exception:
+                except (OSError, IOError):
                     pass
 
     def _create_solver_script(self, problem_file: str, solution_file: str, problem_type: str) -> str:

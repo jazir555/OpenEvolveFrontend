@@ -55,7 +55,7 @@ except FileNotFoundError:
     CLAUDIOMIRO_IMPORT_ERROR = "claudiomiro CLI not found in PATH"
 except subprocess.TimeoutExpired:
     CLAUDIOMIRO_IMPORT_ERROR = "claudiomiro CLI timeout"
-except Exception as e:
+except (OSError, subprocess.SubprocessError) as e:
     CLAUDIOMIRO_IMPORT_ERROR = str(e)
 
 # Logging configuration

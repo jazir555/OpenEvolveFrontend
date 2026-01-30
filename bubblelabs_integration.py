@@ -451,12 +451,12 @@ class BubbleLabsIntegration:
                 if hasattr(thread, "cancel_event"):
                     try:
                         thread.cancel_event.set()
-                    except Exception:
+                    except (RuntimeError, AttributeError):
                         logger.debug(f"Failed to set cancel_event for {instance_id}")
                 if hasattr(thread, "stop_event"):
                     try:
                         thread.stop_event.set()
-                    except Exception:
+                    except (RuntimeError, AttributeError):
                         logger.debug(f"Failed to set stop_event for {instance_id}")
 
             # CRITICAL FIX: Join thread with timeout to ensure it stops

@@ -222,7 +222,7 @@ def solve_with_roma(
             "token_usage": token_usage,
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"[CrewAI] Failed to solve with ROMA: {e}", exc_info=True)
         return {
             "error": str(e),
@@ -389,7 +389,7 @@ def analyze_with_roma(
             "execution_engine": "crewai",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"[CrewAI] Failed to analyze with ROMA: {e}", exc_info=True)
         return {
             "error": str(e),
@@ -472,7 +472,7 @@ def verify_with_roma(
             "execution_engine": "crewai",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"[CrewAI] Failed to verify with ROMA: {e}", exc_info=True)
         return {
             "error": str(e),
@@ -551,7 +551,7 @@ def critique_with_roma(
             "execution_engine": "crewai",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"[CrewAI] Failed to critique with ROMA: {e}", exc_info=True)
         return {
             "error": str(e),

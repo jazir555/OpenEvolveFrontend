@@ -435,7 +435,7 @@ class LeanEvolutionaryWorkflowStage:
 
             return solution
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"Evolutionary solution failed for {sub_problem_id}: {e}")
             progress.errors.append(str(e))
             progress.status = "failed"
@@ -605,7 +605,7 @@ class LeanEvolutionaryWorkflowStage:
                 )
                 if solution.status == "verified":
                     return solution
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.warning(f"Adversarial evolution failed: {e}")
             progress.warnings.append(f"Adversarial failed: {e}")
 
@@ -617,7 +617,7 @@ class LeanEvolutionaryWorkflowStage:
                 )
                 if solution.status == "verified":
                     return solution
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.warning(f"Pure evolution failed: {e}")
             progress.warnings.append(f"Evolution failed: {e}")
 
@@ -1003,7 +1003,7 @@ Verification Method: {result.verification_method}
 
             self.ace_manager.store_artifact(artifact)
             logger.info(f"Stored evolved proof for {sub_problem.id} in knowledge base")
-        except Exception as e:
+        except (IOError, AttributeError, KeyError, ValueError) as e:
             logger.error(f"Failed to store evolved proof: {e}")
 
     def get_progress(self, sub_problem_id: str) -> Optional[EvolutionaryProgress]:

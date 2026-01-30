@@ -375,7 +375,7 @@ class TestCompleteSystemIntegration(unittest.TestCase):
                 )
                 # Even if validation passes, the input should be sanitized
                 self.assertNotIn("<script", is_valid.lower())
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 # It's okay if validation fails for malicious input
                 pass
         
@@ -470,7 +470,7 @@ class TestCompleteSystemIntegration(unittest.TestCase):
             # This should fail but not corrupt the database
             invalid_result = db.create_problem(invalid_problem)
             # Result might be False or raise an exception - either is acceptable
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # Exception is also acceptable behavior for invalid input
             pass
         

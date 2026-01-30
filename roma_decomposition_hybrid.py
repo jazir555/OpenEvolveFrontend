@@ -157,7 +157,7 @@ class ROMADecompositionHybrid:
                     max_depth=self.config.roma_max_depth_solving,
                 )
                 logger.info("ROMA solver initialized for hybrid mode")
-            except Exception as e:
+            except (RuntimeError, ImportError, ValueError) as e:
                 logger.error(f"Failed to initialize ROMA solver: {e}")
 
         # Initialize gauntlet manager if available
@@ -166,7 +166,7 @@ class ROMADecompositionHybrid:
             try:
                 self.gauntlet_manager = GauntletManager()
                 logger.info("Gauntlet manager initialized for hybrid mode")
-            except Exception as e:
+            except (RuntimeError, ImportError) as e:
                 logger.error(f"Failed to initialize gauntlet manager: {e}")
 
     def execute_hybrid_workflow(
@@ -378,7 +378,7 @@ Problem Statement:
 
                     logger.info("Stage 6 complete: Gauntlet validation passed")
 
-                except Exception as e:
+                except (RuntimeError, ValueError) as e:
                     logger.warning(f"Gauntlet validation failed (continuing): {e}")
                     results["stages"]["stage_6_gauntlets"] = {
                         "status": "skipped",
@@ -405,7 +405,7 @@ Problem Statement:
 
             return results
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Hybrid workflow failed: {e}")
             return {
                 "workflow": "roma_decomposition_hybrid",
@@ -457,7 +457,7 @@ Problem Statement:
                 "overall": "passed",
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError) as e:
             logger.error(f"Gauntlet validation failed: {e}")
             return {"error": str(e)}
 

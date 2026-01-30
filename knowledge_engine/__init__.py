@@ -1021,7 +1021,7 @@ class OpenEvolveKnowledgeEngine:
             else:
                 # Otherwise, run the cleanup synchronously
                 asyncio.run(self.close())
-        except Exception:
+        except (RuntimeError, AttributeError):
             # If no event loop is available, just pass
             pass
 

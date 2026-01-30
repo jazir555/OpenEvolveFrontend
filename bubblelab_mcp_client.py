@@ -35,7 +35,7 @@ class BubbleLabMCPClient:
             response = await self.client.get(f"{self.server_url}/health")
             response.raise_for_status()
             return response.json()
-        except Exception as e:
+        except (ConnectionError, TimeoutError, IOError) as e:
             logger.error(f"Health check failed: {e}")
             return {"status": "unhealthy", "error": str(e)}
     
@@ -45,7 +45,7 @@ class BubbleLabMCPClient:
             response = await self.client.get(f"{self.server_url}/tools")
             response.raise_for_status()
             return response.json()["tools"]
-        except Exception as e:
+        except (ConnectionError, TimeoutError, IOError) as e:
             logger.error(f"Failed to list tools: {e}")
             return []
     
@@ -58,7 +58,7 @@ class BubbleLabMCPClient:
             )
             response.raise_for_status()
             return response.json()
-        except Exception as e:
+        except (ConnectionError, TimeoutError, IOError) as e:
             logger.error(f"Failed to call tool {tool_name}: {e}")
             return {"error": str(e), "success": False}
     
@@ -153,7 +153,7 @@ class BubbleLabMCPClient:
             )
             response.raise_for_status()
             return response.json()
-        except Exception as e:
+        except (ConnectionError, TimeoutError, IOError) as e:
             logger.error(f"Failed to create crew via API: {e}")
             return {"error": str(e), "success": False}
     
@@ -170,7 +170,7 @@ class BubbleLabMCPClient:
             )
             response.raise_for_status()
             return response.json()
-        except Exception as e:
+        except (ConnectionError, TimeoutError, IOError) as e:
             logger.error(f"Failed to execute crew {crew_id}: {e}")
             return {"error": str(e), "success": False}
     
@@ -389,7 +389,7 @@ async def example_usage():
         workflow_result = await bridge.run_multi_stage_workflow(stages)
         print(f"Workflow result: {workflow_result}")
         
-    except Exception as e:
+    except (ConnectionError, TimeoutError, RuntimeError) as e:
         print(f"Error in example usage: {e}")
     finally:
         # Close the client

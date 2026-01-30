@@ -718,7 +718,7 @@ def execute_full_workflow(
             reliability_overrides=reliability_overrides,
         )
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, ConnectionError) as e:
         logger.error(f"Full workflow failed: {e}")
         return {
             "workflow": "unified_crewai",

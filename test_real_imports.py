@@ -40,7 +40,7 @@ def test_real_imports():
         assert callable(create_knowledge_engine)
         assert ProcessingResult is not None
         assert QueryResult is not None
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, AttributeError, TypeError) as e:
         print(f"  FAIL: {e}")
         all_passed = False
 
@@ -88,7 +88,7 @@ def test_real_imports():
         assert GraphitiContradictionDetector is not None
         assert callable(validate_config)
         assert callable(health_check_quick)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, AttributeError, TypeError) as e:
         print(f"  FAIL: {e}")
         all_passed = False
 
@@ -121,7 +121,7 @@ def test_real_imports():
         assert ExtractionPipeline is not None
         assert DeduplicationEngine is not None
         assert KGGenMCPServer is not None
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, AttributeError, TypeError) as e:
         print(f"  FAIL: {e}")
         all_passed = False
 
@@ -147,7 +147,7 @@ def test_real_imports():
         assert OneKEModelAdapter is not None
         assert MultiTaskExtractionFramework is not None
         assert TaskType is not None
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, AttributeError, TypeError) as e:
         print(f"  FAIL: {e}")
         all_passed = False
 
@@ -176,7 +176,7 @@ def test_real_imports():
         assert TemporalVisualizer is not None
         assert CommunityVisualizer is not None
         assert ExportHandler is not None
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, AttributeError, TypeError) as e:
         print(f"  FAIL: {e}")
         all_passed = False
 

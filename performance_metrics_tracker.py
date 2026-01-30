@@ -285,7 +285,7 @@ class PerformanceMetricsTracker:
                 with open(self.storage_path, 'r', encoding='utf-8') as f:
                     self.metrics = json.load(f)
                 logger.info(f"Loaded metrics from {self.storage_path}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, json.JSONDecodeError) as e:
                 logger.error(f"Failed to load metrics: {e}", exc_info=True)
                 self.metrics = {
                     'decomposition_metrics': [],
@@ -304,7 +304,7 @@ class PerformanceMetricsTracker:
             with open(self.storage_path, 'w', encoding='utf-8') as f:
                 json.dump(self.metrics, f, indent=2, ensure_ascii=False)
             logger.debug(f"Saved metrics to {self.storage_path}")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError) as e:
             logger.error(f"Failed to save metrics: {e}", exc_info=True)
 
     def record_decomposition_metrics(
@@ -385,7 +385,7 @@ class PerformanceMetricsTracker:
             self._save_metrics()
             logger.debug(f"Recorded decomposition metrics for {problem.id}")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, KeyError) as e:
             logger.error(f"Failed to record decomposition metrics: {e}", exc_info=True)
 
     def record_solution_metrics(
@@ -441,7 +441,7 @@ class PerformanceMetricsTracker:
             self._save_metrics()
             logger.debug(f"Recorded solution metrics for {sub_problem_id}")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, KeyError) as e:
             logger.error(f"Failed to record solution metrics: {e}", exc_info=True)
 
     def record_validation_metrics(
@@ -470,7 +470,7 @@ class PerformanceMetricsTracker:
             self._save_metrics()
             logger.debug(f"Recorded validation metrics")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, KeyError) as e:
             logger.error(f"Failed to record validation metrics: {e}", exc_info=True)
 
     def get_strategy_performance(
@@ -557,7 +557,7 @@ class PerformanceMetricsTracker:
                 last_used=last_used or ''
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, KeyError, statistics.StatisticsError) as e:
             logger.error(f"Failed to get strategy performance: {e}", exc_info=True)
             return None
 
@@ -603,7 +603,7 @@ class PerformanceMetricsTracker:
                 trend=trend
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, KeyError, statistics.StatisticsError) as e:
             logger.error(f"Failed to get team performance: {e}", exc_info=True)
             return None
 
@@ -644,7 +644,7 @@ class PerformanceMetricsTracker:
                 avg_decomposition_time=statistics.mean(data['decomposition_times']) if data['decomposition_times'] else 0.0
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, KeyError, statistics.StatisticsError) as e:
             logger.error(f"Failed to get domain performance: {e}", exc_info=True)
             return None
 
@@ -669,7 +669,7 @@ class PerformanceMetricsTracker:
                 strategy_breakdown={k: v for k, v in self.metrics['strategy_metrics'].items()}
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, KeyError, statistics.StatisticsError) as e:
             logger.error(f"Failed to get overall performance: {e}", exc_info=True)
             return OverallPerformanceMetrics()
 
@@ -744,7 +744,7 @@ class PerformanceMetricsTracker:
                 trend_analyses=trend_analyses
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, KeyError, statistics.StatisticsError) as e:
             logger.error(f"Failed to generate performance report: {e}", exc_info=True)
             return PerformanceReport(
                 report_id=generate_id("perf_report"),
@@ -800,7 +800,7 @@ class PerformanceMetricsTracker:
                     if avg_quality < 0.6:
                         improvements.append(f"Domain '{domain}' shows lower quality. Consider domain-specific optimizations.")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, KeyError, statistics.StatisticsError) as e:
             logger.error(f"Failed to identify improvement areas: {e}", exc_info=True)
 
         return improvements
@@ -897,7 +897,7 @@ class PerformanceMetricsTracker:
                 prediction_confidence=prediction_confidence
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, KeyError, statistics.StatisticsError) as e:
             logger.error(f"Failed to calculate trends: {e}", exc_info=True)
             return TrendAnalysis(
                 metric_name=metric_name,

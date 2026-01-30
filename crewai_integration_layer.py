@@ -124,7 +124,7 @@ class CrewAIService:
                 "status": "created",
                 "timestamp": datetime.utcnow().isoformat()
             }
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError) as e:
             logger.error(f"Error creating agent from template {template_name}: {e}")
             raise
     
@@ -183,7 +183,7 @@ class CrewAIService:
                 "status": "created",
                 "timestamp": datetime.utcnow().isoformat()
             }
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError) as e:
             logger.error(f"Error creating custom agent: {e}")
             raise
     
@@ -297,7 +297,7 @@ class CrewAIService:
                 "task_count": len(tasks),
                 "timestamp": datetime.utcnow().isoformat()
             }
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError) as e:
             logger.error(f"Error creating crew: {e}")
             raise
     
@@ -362,7 +362,7 @@ class CrewAIService:
                 "status": "completed",
                 "timestamp": datetime.utcnow().isoformat()
             }
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.error(f"Error executing crew {crew_id}: {e}")
             raise
     

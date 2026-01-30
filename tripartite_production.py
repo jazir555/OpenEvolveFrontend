@@ -258,14 +258,14 @@ class ProductionKnowledgeBase:
                 self.logger.logger.info(
                     f"Loaded knowledge base with {self.collection.count()} documents"
                 )
-            except Exception:  # TODO: Catch specific exception instead of Exception
+            except (KeyError, ValueError, RuntimeError):
                 # Create new collection
                 self.collection = self.client.create_collection(
                     name=self.config.knowledge_base["collection_name"]
                 )
                 self.logger.logger.info("Created new knowledge base")
                 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, RuntimeError, OSError) as e:
             self.logger.logger.error(f"Failed to initialize knowledge base: {e}")
             raise RuntimeError(f"Knowledge base initialization failed: {e}")
     
@@ -327,7 +327,7 @@ class ProductionKnowledgeBase:
             
             return True, [doc_id]
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, RuntimeError, ValueError) as e:
             duration = time.time() - start_time
             self.logger.logger.error(f"Failed to add knowledge: {e}")
             self.logger.log_execution("add_knowledge", False, duration, error=str(e))
@@ -391,7 +391,7 @@ class ProductionKnowledgeBase:
             
             return True, formatted_results
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, RuntimeError, ValueError) as e:
             duration = time.time() - start_time
             self.logger.logger.error(f"Failed to retrieve knowledge: {e}")
             self.logger.log_execution("retrieve_knowledge", False, duration, error=str(e))
@@ -406,7 +406,7 @@ class ProductionKnowledgeBase:
                 "cache_size": len(self._cache),
                 "cache_hit_rate": "N/A"  # Would need tracking
             }
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, RuntimeError, AttributeError) as e:
             self.logger.logger.error(f"Failed to get knowledge base stats: {e}")
             return {"error": str(e)}
     
@@ -423,7 +423,7 @@ class ProductionKnowledgeBase:
             if hasattr(self.client, 'close'):
                 self.client.close()
             self.logger.logger.info("Knowledge base closed")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, RuntimeError, OSError) as e:
             self.logger.logger.error(f"Error closing knowledge base: {e}")
 
 # ============================================================================
@@ -514,7 +514,7 @@ class ProductionTripartiteSystem:
                         )
                         result["knowledge_used"] = True
                         result["knowledge_results"] = knowledge_results
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                except (TimeoutError, ConnectionError, RuntimeError) as e:
                     self.logger.logger.warning(f"Knowledge retrieval timed out or failed: {e}")
             
             # Step 2: Prepare prompt with ACE
@@ -524,7 +524,7 @@ class ProductionTripartiteSystem:
                     context=knowledge_context
                 )
                 result["prompt"] = enhanced_prompt
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ConnectionError, RuntimeError, ValueError) as e:
                 raise RuntimeError(f"Prompt preparation failed: {e}")
             
             # Step 3: Execute task (simulated for now)
@@ -587,7 +587,7 @@ class ProductionTripartiteSystem:
             
             return result
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError, TimeoutError) as e:
             duration = time.time() - start_time
             result["execution_time"] = duration
             result["error"] = str(e)
@@ -642,7 +642,7 @@ DETAILS:
             else:
                 self.logger.logger.warning("Failed to store learning experience")
                 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError, ValueError) as e:
             self.logger.logger.error(f"Failed to store learning experience: {e}")
     
     def add_knowledge(self, 
@@ -737,7 +737,7 @@ DETAILS:
         try:
             self.knowledge_base.close()
             self.logger.logger.info("Knowledge base closed")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, RuntimeError, OSError) as e:
             self.logger.logger.error(f"Error closing knowledge base: {e}")
         
         # Save final metrics

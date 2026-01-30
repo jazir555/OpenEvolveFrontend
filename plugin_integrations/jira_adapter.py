@@ -279,7 +279,7 @@ class JiraAdapter(PluginBase):
             for field in fields:
                 if field['name'].lower() == 'epic name' or 'epic' in field['name'].lower():
                     return field['id']
-        except Exception:
+        except (requests.RequestException, KeyError):
             pass
         return None
 

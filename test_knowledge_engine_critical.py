@@ -18,7 +18,7 @@ print("=" * 80)
 try:
     from knowledge_engine import KnowledgeEngine, create_knowledge_engine
     print("✅ PASS: KnowledgeEngine imported successfully")
-except Exception as e:  # TODO: Catch specific exception instead of Exception
+except ImportError as e:
     print(f"❌ FAIL: Cannot import KnowledgeEngine: {e}")
     sys.exit(1)
 
@@ -45,7 +45,7 @@ except RuntimeError as e:
     else:
         print(f"❌ FAIL: Unexpected RuntimeError: {e}")
         sys.exit(1)
-except Exception as e:  # TODO: Catch specific exception instead of Exception
+except (RuntimeError, ValueError, TypeError) as e:
     print(f"❌ FAIL: Cannot instantiate KnowledgeEngine: {e}")
     import traceback
     traceback.print_exc()
@@ -226,7 +226,7 @@ async def test_initialize():
         else:
             print("❌ FAIL: Missing _indexer component")
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ConnectionError, ImportError) as e:
         print(f"⚠️  WARNING: initialize() raised exception (expected if deps missing): {e}")
 
 asyncio.run(test_initialize())
@@ -265,7 +265,7 @@ async def test_close():
     try:
         await engine.close()
         print("✅ PASS: close() executed successfully")
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ConnectionError) as e:
         print(f"⚠️  WARNING: close() raised exception: {e}")
 
 asyncio.run(test_close())

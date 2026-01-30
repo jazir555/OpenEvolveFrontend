@@ -328,7 +328,7 @@ class LeanRedFlagger(RedFlagger):
                     config=verification_config
                 )
                 logger.info("Lean 4 verification engine initialized")
-            except Exception as e:
+            except (IOError, ConnectionError, TimeoutError, ValueError) as e:
                 logger.warning(f"Failed to initialize Lean 4 verification engine: {e}")
 
     def is_flagged(self, proof: LeanProof) -> Tuple[bool, List[str]]:
@@ -630,7 +630,7 @@ class LeanRedFlagger(RedFlagger):
                 if "sorry" in proof.code and result.success:
                     errors.append("verification_passed_with_sorry")
 
-        except Exception as e:
+        except (IOError, ConnectionError, TimeoutError) as e:
             # Verification failed - add as warning
             logger.warning(f"Verification check failed: {e}")
             errors.append(f"verification_error:{str(e)[:50]}")
@@ -940,7 +940,7 @@ class LeanProofValidator:
             else:
                 return False, result.errors
 
-        except Exception as e:
+        except (IOError, ConnectionError, TimeoutError) as e:
             return False, [f"verification_exception:{str(e)}"]
 
     def full_validation(self, proof: LeanProof) -> ValidationResult:
@@ -1085,7 +1085,7 @@ class LeanProofValidator:
                 server_config=server_config,
                 config=verification_config
             )
-        except Exception as e:
+        except (IOError, ConnectionError, ValueError) as e:
             logger.warning(f"Failed to create verification engine: {e}")
             return None
 

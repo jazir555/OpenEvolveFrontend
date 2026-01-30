@@ -295,7 +295,7 @@ class StateManager:
             try:
                 with open(self._versions_file, 'r') as f:
                     self._versions = json.load(f)
-            except Exception as e:
+            except (json.JSONDecodeError, OSError, IOError) as e:
                 logger.warning(f"Failed to load version registry: {e}, starting fresh")
                 self._versions = {}
         else:
@@ -306,7 +306,7 @@ class StateManager:
         try:
             with open(self._versions_file, 'w') as f:
                 json.dump(self._versions, f, indent=2)
-        except Exception as e:
+        except (OSError, IOError) as e:
             logger.error(f"Failed to save version registry: {e}")
 
     def _get_state_file(self, workflow_id: str) -> Path:
@@ -345,7 +345,7 @@ class StateManager:
 
             logger.debug(f"Saved state for workflow {workflow_id} to {state_file}")
 
-        except Exception as e:
+        except (OSError, IOError, ValueError) as e:
             logger.error(f"Failed to save state for workflow {workflow_id}: {e}")
             raise
 
@@ -383,7 +383,7 @@ class StateManager:
             logger.debug(f"Loaded state for workflow {workflow_id} from {state_file}")
             return state
 
-        except Exception as e:
+        except (json.JSONDecodeError, OSError, IOError, ValueError) as e:
             logger.error(f"Failed to load state for workflow {workflow_id}: {e}")
             return None
 
@@ -408,7 +408,7 @@ class StateManager:
             logger.info(f"Deleted state for workflow {workflow_id}")
             return True
 
-        except Exception as e:
+        except (OSError, IOError) as e:
             logger.error(f"Failed to delete state for workflow {workflow_id}: {e}")
             return False
 
@@ -442,7 +442,7 @@ class StateManager:
                 # Return all workflow IDs
                 return [f.stem.replace('.json', '') for f in workflow_files]
 
-        except Exception as e:
+        except (OSError, IOError) as e:
             logger.error(f"Failed to list workflows: {e}")
             return []
 
@@ -477,7 +477,7 @@ class StateManager:
             logger.info(f"Cleaned up {cleaned_count} old workflow states (older than {max_age_days} days)")
             return cleaned_count
 
-        except Exception as e:
+        except (OSError, IOError) as e:
             logger.error(f"Failed to cleanup old states: {e}")
             return 0
 
@@ -542,7 +542,7 @@ class StateManager:
             logger.debug(f"Saved state with versioning for workflow {workflow_id}, version_id={version_id}")
             return version_id
 
-        except Exception as e:
+        except (OSError, IOError, ValueError) as e:
             logger.error(f"Failed to save state with versioning for workflow {workflow_id}: {e}")
             raise
 
@@ -594,7 +594,7 @@ class StateManager:
             logger.debug(f"Loaded state version {version_id} for workflow {workflow_id}")
             return state
 
-        except Exception as e:
+        except (json.JSONDecodeError, OSError, IOError, ValueError) as e:
             logger.error(f"Failed to load state version {version_id} for workflow {workflow_id}: {e}")
             return None
 
@@ -626,7 +626,7 @@ class StateManager:
             logger.info(f"Rolled back workflow {workflow_id} to version {version_id}")
             return True
 
-        except Exception as e:
+        except (OSError, IOError, ValueError) as e:
             logger.error(f"Failed to rollback workflow {workflow_id} to version {version_id}: {e}")
             return False
 
@@ -674,7 +674,7 @@ class StateManager:
             logger.info(f"Created snapshot {snapshot_id} for workflow {workflow_id}")
             return snapshot_id
 
-        except Exception as e:
+        except (OSError, IOError, ValueError) as e:
             logger.error(f"Failed to create snapshot for workflow {workflow_id}: {e}")
             raise
 
@@ -701,7 +701,7 @@ class StateManager:
 
             return snapshots
 
-        except Exception as e:
+        except (OSError, IOError) as e:
             logger.error(f"Failed to list snapshots for workflow {workflow_id}: {e}")
             return []
 
@@ -742,7 +742,7 @@ class StateManager:
             logger.info(f"Restored workflow {workflow_id} from snapshot {snapshot_id}")
             return True
 
-        except Exception as e:
+        except (json.JSONDecodeError, OSError, IOError, ValueError) as e:
             logger.error(f"Failed to restore snapshot {snapshot_id} for workflow {workflow_id}: {e}")
             return False
 
@@ -777,7 +777,7 @@ class StateManager:
             logger.info(f"Exported workflow {workflow_id} to {export_path}")
             return True
 
-        except Exception as e:
+        except (OSError, IOError, ValueError) as e:
             logger.error(f"Failed to export workflow {workflow_id}: {e}")
             return False
 
@@ -817,7 +817,7 @@ class StateManager:
             logger.info(f"Imported workflow {state.workflow_id} from {import_path}")
             return state
 
-        except Exception as e:
+        except (json.JSONDecodeError, OSError, IOError, ValueError) as e:
             logger.error(f"Failed to import workflow from {import_path}: {e}")
             return None
 
@@ -852,7 +852,7 @@ class StateManager:
                 'has_final_validation': state.final_validation is not None,
             }
 
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             logger.error(f"Failed to get state summary for workflow {workflow_id}: {e}")
             return None
 

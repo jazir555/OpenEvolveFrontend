@@ -93,7 +93,7 @@ class EnhancedKnowledgeGraphManager:
                     database=self._neo4j_config.get('database', 'neo4j')
                 )
                 self._kg_gen_available = True
-            except Exception:
+            except (ImportError, ConnectionError, RuntimeError):
                 self._kg_gen_available = False
                 self.kg_generator = None
                 self.neo4j_uploader = None
@@ -106,7 +106,7 @@ class EnhancedKnowledgeGraphManager:
                     'sanitize_string': sanitize_string
                 }
                 self._oneke_available = True
-            except Exception:
+            except ImportError:
                 self._oneke_available = False
                 self.converter = None
     

@@ -902,7 +902,7 @@ class ROMAMDAPMakerEngine:
                 "error_free": voting_result.get("error_rate", 1.0) == 0.0
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Error in ROMA-MDAP-MAKER execution: {e}", exc_info=True)
             return {
                 "error": str(e),
@@ -947,7 +947,7 @@ class ROMAMDAPMakerEngine:
                 "max_depth": analysis.get("max_depth", 0)
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, ImportError) as e:
             logger.error(f"ROMA decomposition failed: {e}")
             return {
                 "error": str(e),

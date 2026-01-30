@@ -199,7 +199,7 @@ def solve_with_roma_mdap_maker(
 
         return result
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"[CrewAI] Error in solve_with_roma_mdap_maker: {e}", exc_info=True)
         return {
             "error": str(e),
@@ -354,7 +354,7 @@ def analyze_problem_with_roma_mdap(
             "execution_engine": "crewai",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"[CrewAI] Error analyzing problem: {e}", exc_info=True)
         return {
             "error": str(e),
@@ -440,7 +440,7 @@ def verify_solution_with_roma_mdap(
             "execution_engine": "crewai",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"[CrewAI] Error verifying solution: {e}", exc_info=True)
         return {
             "error": str(e),

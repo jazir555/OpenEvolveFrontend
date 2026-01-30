@@ -3,7 +3,12 @@ Test utility functions by executing the file directly
 """
 
 # Execute the problem_decomposition.py file
-exec(open('problem_decomposition.py').read())
+# SECURITY FIX: Replace exec() with import for better security
+# Instead of executing arbitrary code, import the module properly
+import importlib.util
+spec = importlib.util.spec_from_file_location("problem_decomposition", "problem_decomposition.py")
+module = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(module)
 
 # Now test the functions
 def test_utility_functions():

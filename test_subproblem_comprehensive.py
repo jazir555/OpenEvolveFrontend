@@ -740,7 +740,7 @@ class TestSubProblemEdgeCases(unittest.TestCase):
             # If this doesn't raise, it's due to Python's dynamic typing
             # We'll check validation instead
             pass
-        except Exception:  # TODO: Catch specific exception instead of Exception
+        except (TypeError, ValueError, AttributeError):
             pass  # Expected in some cases
 
 

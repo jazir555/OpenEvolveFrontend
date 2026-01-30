@@ -323,7 +323,7 @@ class TestSecurityValidation(unittest.TestCase):
                     # Should not contain dangerous tags
                     self.assertNotIn('<script', cleaned.lower())
                     self.assertNotIn('javascript:', cleaned.lower())
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 # If sanitization throws an exception, that's also acceptable
                 pass
     
@@ -372,7 +372,7 @@ class TestSecurityValidation(unittest.TestCase):
                     # Verify critical tables still exist
                     self.assertIn('problems', table_names, "Critical table 'problems' should still exist")
                     
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 # If creation threw an exception due to validation, that's also valid protection
                 pass
     

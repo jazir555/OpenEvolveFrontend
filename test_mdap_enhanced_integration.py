@@ -79,7 +79,7 @@ def test_adapter_creation():
         print(f"  - Enhanced red flagger: {adapter.enhanced_redflagger is not None}")
 
         return adapter
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, AttributeError, TypeError) as e:
         print(f"✗ Adapter creation failed: {e}")
         return None
 
@@ -111,7 +111,7 @@ def test_adapter_status(adapter):
                 print(f"  - {key}: {value}")
 
         return True
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (AttributeError, KeyError, TypeError) as e:
         print(f"✗ Status retrieval failed: {e}")
         return False
 
@@ -140,7 +140,7 @@ def test_statistics(adapter):
             print("✓ Red flag detection statistics tracked")
 
         return True
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (AttributeError, KeyError, TypeError) as e:
         print(f"✗ Statistics retrieval failed: {e}")
         return False
 
@@ -172,7 +172,7 @@ def test_method_signatures():
                 all_exist = False
 
         return all_exist
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, AttributeError) as e:
         print(f"✗ Method signature check failed: {e}")
         return False
 

@@ -81,7 +81,7 @@ def integrate_with_decomposition(
                 problem.metadata = {}
             problem.metadata['track_performance'] = True
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ValueError, TypeError, AttributeError, OSError, IOError) as e:
         logger.error(f"Error during integration setup: {e}", exc_info=True)
 
     return result
@@ -111,7 +111,7 @@ def record_decomposition_completion(
             )
             logger.info(f"Recorded decomposition metrics for problem {problem.id}")
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ValueError, TypeError, AttributeError) as e:
         logger.error(f"Failed to record decomposition metrics: {e}", exc_info=True)
 
 
@@ -142,7 +142,7 @@ def record_solution_completion(
             )
             logger.debug(f"Recorded solution metrics for {sub_problem_id}")
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ValueError, TypeError, AttributeError) as e:
         logger.error(f"Failed to record solution metrics: {e}", exc_info=True)
 
 
@@ -176,7 +176,7 @@ def extract_and_store_knowledge(
 
         return []
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ValueError, TypeError, AttributeError) as e:
         logger.error(f"Failed to extract knowledge artifacts: {e}", exc_info=True)
         return []
 
@@ -210,7 +210,7 @@ def generate_performance_summary(
             'trend_analyses': {k: v.to_dict() for k, v in report.trend_analyses.items()}
         }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ValueError, TypeError, AttributeError) as e:
         logger.error(f"Failed to generate performance summary: {e}", exc_info=True)
         return {}
 
@@ -248,7 +248,7 @@ def get_knowledge_statistics(
             'high_confidence_artifacts': stats['high_confidence_count']
         }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ValueError, TypeError, AttributeError) as e:
         logger.error(f"Failed to get knowledge statistics: {e}", exc_info=True)
         return {}
 

@@ -535,7 +535,7 @@ class GauntletSystem:
                 self.openevolve_client = OpenEvolveClient()
             except ImportError as e:
                 self.logger.warning(f"OpenEvolve client not available: {e}")
-            except Exception as e:
+            except (RuntimeError, ValueError, IOError) as e:
                 self.logger.warning(f"Failed to initialize OpenEvolve client: {e}")
 
         # Initialize ROMA-MDAP-MAKER Engine for robust validation
@@ -546,7 +546,7 @@ class GauntletSystem:
                 config = get_validation_config()
                 self.roma_engine = ROMAMDAPMakerAssociativeEngine(config)
                 self.logger.info("ROMAMDAPMakerAssociativeEngine initialized for GauntletSystem")
-            except Exception as e:
+            except (RuntimeError, ValueError, ImportError) as e:
                 self.logger.warning(f"Failed to initialize ROMA engine: {e}")
 
     def cleanup(self) -> None:
@@ -567,7 +567,7 @@ class GauntletSystem:
                     self.logger.info("ROMAMDAPMakerAssociativeEngine disposed successfully")
                 # Clear reference to allow garbage collection
                 self.roma_engine = None
-            except Exception as e:
+            except (RuntimeError, IOError, AttributeError) as e:
                 self.logger.warning(f"Error during ROMA engine cleanup: {e}")
         
         # Clean up OpenEvolve client if it has a close method
@@ -576,14 +576,14 @@ class GauntletSystem:
                 if hasattr(self.openevolve_client, 'close') and callable(getattr(self.openevolve_client, 'close')):
                     self.openevolve_client.close()
                     self.logger.info("OpenEvolveClient closed successfully")
-            except Exception as e:
+            except (RuntimeError, IOError, AttributeError) as e:
                 self.logger.warning(f"Error during OpenEvolve client cleanup: {e}")
         
         # Clear review queue
         if hasattr(self, 'review_queue') and self.review_queue is not None:
             try:
                 self.review_queue.clear()
-            except Exception as e:
+            except (RuntimeError, IOError, AttributeError) as e:
                 self.logger.warning(f"Error during review queue cleanup: {e}")
 
     def __enter__(self) -> "GauntletSystem":
@@ -599,7 +599,7 @@ class GauntletSystem:
         """Destructor - ensures cleanup is called even if not using context manager."""
         try:
             self.cleanup()
-        except Exception:
+        except (RuntimeError, AttributeError):
             # Suppress errors during garbage collection
             pass
 

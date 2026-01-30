@@ -89,7 +89,10 @@ class TestProblemAnalyzerComprehensive(unittest.TestCase):
                 print("✅ Handled empty problem text gracefully")
             else:
                 print("✅ Correctly returned None for empty problem text")
-        except:
+        except Exception as e:
+            # Log the specific error for debugging
+            import logging
+            logging.exception(f"Error in advanced_system_unit_tests: {e}")
             print("✅ Handled empty problem text with exception (acceptable)")
     
     def test_analyze_problem_multilingual(self):
@@ -432,7 +435,10 @@ class TestTeamCoordinationAdvanced(unittest.TestCase):
         try:
             conflict_resolution = self.coordinator.coordinator._perform_red_team_analysis(plan)
             print("✅ Conflict detection implemented")
-        except:
+        except Exception as e:
+            # Log the specific error for debugging
+            import logging
+            logging.exception(f"Error in conflict detection test: {e}")
             print("⚠️  Conflict detection may not be implemented in current coordinator")
         
         # Mock the overall workflow to simulate conflict resolution
@@ -1025,7 +1031,7 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
                     strength_ok = auth_system.validate_password_strength(weak_password)
                     if not strength_ok:
                         print(f"  ✅ Weak password correctly rejected: {weak_password[:10]}...")
-                except Exception:
+                except (ValueError, TypeError):
                     # Exception for weak password is also acceptable
                     print(f"  ✅ Weak password correctly rejected: {weak_password[:10]}...")
         

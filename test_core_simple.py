@@ -273,7 +273,7 @@ if __name__ == "__main__":
         print("SUCCESS: ALL TESTS PASSED!")
         print("="*60 + "\n")
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, ImportError, AttributeError) as e:
         print("\n" + "="*60)
         print(f"FAILURE: {e}")
         print("="*60 + "\n")

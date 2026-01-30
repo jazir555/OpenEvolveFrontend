@@ -262,7 +262,7 @@ def continue_crewai_workflow(workflow_id: str) -> Optional[OpenEvolveWorkflowSta
 
             return workflow_state
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, ConnectionError) as e:
             logger.error(f"Failed to get workflow status: {e}")
             return None
 

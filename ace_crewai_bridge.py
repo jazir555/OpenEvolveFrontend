@@ -289,7 +289,7 @@ class ACECrewAIWorkflowBridge:
 
             logger.info("ACE components initialized successfully")
 
-        except Exception as e:
+        except (ImportError, RuntimeError, ValueError) as e:
             logger.error(f"Failed to initialize ACE components: {e}")
             self.enable_learning = False
 
@@ -421,7 +421,7 @@ class ACECrewAIWorkflowBridge:
                 "skills_saved": len(skillbook_copy.skills()),
             }
 
-        except Exception as e:
+        except (OSError, IOError, ValueError) as e:
             logger.error(f"Failed to save skillbook: {e}")
             return {
                 "success": False,
@@ -527,7 +527,7 @@ class ACECrewAIWorkflowBridge:
                 "skillbook_size": len(self.skillbook.skills()) if self.skillbook else 0,
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Phase 1 execution failed: {e}")
             return {
                 "phase": "Phase 1: Setup",
@@ -734,7 +734,7 @@ class ACECrewAIWorkflowBridge:
                 "skillbook_size": len(self.skillbook.skills()) if self.skillbook else 0,
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Phase 3 execution failed: {e}")
             return {
                 "phase": "Phase 3: Critique",
@@ -839,7 +839,7 @@ class ACECrewAIWorkflowBridge:
                 "skillbook_size": len(self.skillbook.skills()) if self.skillbook else 0,
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Phase 4 execution failed: {e}")
             return {
                 "phase": "Phase 4: Verify",
@@ -926,7 +926,7 @@ class ACECrewAIWorkflowBridge:
                 "skillbook_size": len(self.skillbook.skills()) if self.skillbook else 0,
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Phase 5 execution failed: {e}")
             return {
                 "phase": "Phase 5: Reassemble",
@@ -1024,7 +1024,7 @@ class ACECrewAIWorkflowBridge:
                 "skillbook_size": len(self.skillbook.skills()) if self.skillbook else 0,
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Phase 6 execution failed: {e}")
             return {
                 "phase": "Phase 6: Final",
@@ -1258,7 +1258,7 @@ class ACECrewAIWorkflowBridge:
                     "reflection_summary": reflection.summary if reflection else "",
                 }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Learning failed for {phase}: {e}")
             return {
                 "phase": phase,
@@ -1287,7 +1287,7 @@ class ACECrewAIWorkflowBridge:
                         try:
                             llm_client.close()
                             logger.info("Closed agent LLM client")
-                        except Exception as e:
+                        except (OSError, IOError) as e:
                             logger.warning(f"Failed to close agent LLM client: {e}")
                     # Clear reference
                     self.agent.llm = None
@@ -1300,7 +1300,7 @@ class ACECrewAIWorkflowBridge:
                         try:
                             llm_client.close()
                             logger.info("Closed reflector LLM client")
-                        except Exception as e:
+                        except (OSError, IOError) as e:
                             logger.warning(f"Failed to close reflector LLM client: {e}")
                     self.reflector.llm = None
                 self.reflector = None
@@ -1312,7 +1312,7 @@ class ACECrewAIWorkflowBridge:
                         try:
                             llm_client.close()
                             logger.info("Closed skill manager LLM client")
-                        except Exception as e:
+                        except (OSError, IOError) as e:
                             logger.warning(f"Failed to close skill manager LLM client: {e}")
                     self.skill_manager.llm = None
                 self.skill_manager = None

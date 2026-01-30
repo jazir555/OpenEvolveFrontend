@@ -144,7 +144,7 @@ def execute_phase_1_setup(
             "message": "Phase 1 complete: Multi-agent analysis finished",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Phase 1 failed: {e}")
         if state_manager and workflow_id:
             workflow_state.status = "failed"
@@ -252,7 +252,7 @@ def execute_phase_2_solve(
                         "tools_used": result.get("tools_used", []),
                     })
 
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 failed_sub_problems.append(sp["id"])
                 logger.error(f"Error solving {sp['id']}: {e}")
 
@@ -273,7 +273,7 @@ def execute_phase_2_solve(
             "message": f"Phase 2 complete: {len(solutions)} sub-problems solved with DataPizza, {len(failed_sub_problems)} failed",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Phase 2 failed: {e}")
         if state_manager and workflow_id:
             workflow_state.status = "failed"
@@ -365,7 +365,7 @@ def execute_phase_3_critique(
                         "steps_taken": result.get("steps_taken", 0),
                     })
 
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 failed_critiques.append(solution["sub_problem_id"])
                 logger.error(f"Error critiquing {solution['sub_problem_id']}: {e}")
 
@@ -386,7 +386,7 @@ def execute_phase_3_critique(
             "message": f"Phase 3 complete: {len(critiques)} solutions critiqued with DataPizza, {len(failed_critiques)} failed",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Phase 3 failed: {e}")
         if state_manager and workflow_id:
             workflow_state.status = "failed"
@@ -489,7 +489,7 @@ def execute_phase_4_verify(
                         "steps_taken": result.get("steps_taken", 0),
                     })
 
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 failed_verifications.append(solution["sub_problem_id"])
                 logger.error(f"Error verifying {solution['sub_problem_id']}: {e}")
 
@@ -510,7 +510,7 @@ def execute_phase_4_verify(
             "message": f"Phase 4 complete: {len(verifications)} solutions verified with DataPizza, {len(failed_verifications)} failed",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Phase 4 failed: {e}")
         if state_manager and workflow_id:
             workflow_state.status = "failed"
@@ -635,7 +635,7 @@ def execute_full_workflow(
             "message": "Full DataPizza workflow completed successfully",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Full workflow failed: {e}")
         return {
             "workflow": "datapizza_full",

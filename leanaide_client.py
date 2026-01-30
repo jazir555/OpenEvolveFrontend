@@ -190,7 +190,7 @@ class LeanAideClient:
             url = f"{self.config.base_url}/"
             async with self.session.get(url) as response:
                 return response.status == 200
-        except Exception as e:
+        except (aiohttp.ClientError, asyncio.TimeoutError, OSError) as e:
             logger.warning(f"Health check failed: {e}")
             return False
 
@@ -305,7 +305,7 @@ class LeanAideClient:
                 )
                 await asyncio.sleep(delay)
 
-            except Exception as e:
+            except (ValueError, TypeError, KeyError, AttributeError) as e:
                 logger.error(f"Unexpected error for task {task_name}: {e}")
                 return LeanAideResult(
                     success=False,

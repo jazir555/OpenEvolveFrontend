@@ -56,7 +56,7 @@ async def test_comprehensive_integration():
         pygraphistry_valid = validation.get('pygraphistry', {}).get('valid', False)
         print(f"   ✓ PyGraphistry validation: {pygraphistry_valid}")
         
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, ValueError, AttributeError) as e:
         print(f"   ✗ Integration Factory test failed: {e}")
     
     # Test 3: Test KnowledgeGraphVisualizer with PyGraphistry
@@ -78,7 +78,7 @@ async def test_comprehensive_integration():
         stats = visualizer.build_graph(max_nodes=10)  # Small test
         print(f"   ✓ Graph built successfully: {stats}")
         
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, ValueError, AttributeError) as e:
         print(f"   ✗ KnowledgeGraphVisualizer test failed: {e}")
     
     # Test 4: Test API endpoint function directly
@@ -99,7 +99,7 @@ async def test_comprehensive_integration():
         result = await get_pygraphistry_viz(test_nodes, test_edges)
         print(f"   ✓ API function callable, result: {result is not None}")
         
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, ValueError, AttributeError) as e:
         print(f"   ✗ API endpoint function test failed: {e}")
     
     # Test 5: Test the enhanced visualizer methods
@@ -118,7 +118,7 @@ async def test_comprehensive_integration():
         else:
             print("   ✗ Enhanced visualizer methods missing")
             
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, ValueError, AttributeError) as e:
         print(f"   ✗ Enhanced visualizer test failed: {e}")
     
     # Test 6: Test convenience functions
@@ -141,7 +141,7 @@ async def test_comprehensive_integration():
         analyze_sig = inspect.signature(analyze_knowledge_patterns)
         print("   ✓ analyze_knowledge_patterns function exists")
         
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, ValueError, AttributeError) as e:
         print(f"   ✗ Convenience functions test failed: {e}")
     
     # Test 7: Check TypeScript plugin structure
@@ -165,7 +165,7 @@ async def test_comprehensive_integration():
         else:
             print("   ✗ TypeScript plugin main file missing")
             
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, json.JSONDecodeError, KeyError) as e:
         print(f"   ✗ TypeScript plugin check failed: {e}")
     
     # Test 8: Check for API endpoint registration
@@ -182,7 +182,7 @@ async def test_comprehensive_integration():
         else:
             print(f"   ✗ API endpoint missing (endpoint: {has_pygraphistry_endpoint}, import: {has_pygraphistry_import})")
             
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError) as e:
         print(f"   ✗ API endpoint check failed: {e}")
     
     print("\n" + "="*70)

@@ -267,7 +267,7 @@ class ODEPDETranslator:
             else:
                 return self._unsupported_math_type(detection_result)
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, RuntimeError, SyntaxError) as e:
             logger.error(f"Translation error: {e}", exc_info=True)
             return Lean4TranslationResult(
                 success=False,
@@ -453,7 +453,7 @@ class ODEPDETranslator:
                 initial_conditions=[]
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, SyntaxError, AttributeError) as e:
             logger.warning(f"Failed to parse equation with SymPy: {e}, using defaults")
             return EquationStructure(
                 equation=equation,
@@ -811,7 +811,7 @@ Tactics to use:
                 initial_conditions=[]
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, SyntaxError, AttributeError) as e:
             logger.warning(f"Failed to parse PDE with SymPy: {e}, using defaults")
             return EquationStructure(
                 equation=equation,
@@ -1158,7 +1158,7 @@ theorem sde_solution_exists
 
             return False
 
-        except Exception:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, AttributeError):
             return False
 
     def _check_homogeneity(self, expr, dependent_var: str) -> bool:
@@ -1177,7 +1177,7 @@ theorem sde_solution_exists
 
             return False
 
-        except Exception:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, AttributeError):
             return False
 
     def _unsupported_math_type(

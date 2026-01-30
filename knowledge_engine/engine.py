@@ -517,7 +517,7 @@ class KnowledgeEngine:
             # For now, let's keep the engine's logger and pass the callback.
             try:
                 progress_callback({"stage": "start", "message": "Research pipeline starting"})
-            except Exception:
+            except (TypeError, ValueError, RuntimeError):
                 self.logger.debug("Progress callback failed during research pipeline start.")
 
         try:
@@ -559,7 +559,7 @@ class KnowledgeEngine:
             # Similar to research pipeline, keep engine's logger and pass callback.
             try:
                 progress_callback({"stage": "start", "message": "Chat-based planning pipeline starting"})
-            except Exception:
+            except (TypeError, ValueError, RuntimeError):
                 self.logger.debug("Progress callback failed during chat pipeline start.")
 
         try:

@@ -595,7 +595,7 @@ class MDAPMCTSExpansion(MCTSExpansion if MCTS_AVAILABLE else object):
                 vote = await self._get_agent_vote(agent, node)
                 if vote:
                     votes.append(vote)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, KeyError, RuntimeError) as e:
                 logger.warning(f"Agent {getattr(agent, 'agent_id', 'unknown')} failed: {e}")
 
         return votes
@@ -955,7 +955,7 @@ class MDAPMCTSSimulation(MCTSSimulation if MCTS_AVAILABLE else object):
                             proof_state_hash=state.hash
                         )
                     votes.append(vote)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, KeyError) as e:
                 logger.warning(f"Voter {getattr(voter, 'voter_id', 'unknown')} failed: {e}")
 
         return votes
@@ -1183,7 +1183,7 @@ class MDAPMCTS(MCTS if MCTS_AVAILABLE else object):
             # Compile result
             return self._compile_result()
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"MDAP-MCTS search failed: {e}", exc_info=True)
             return MDAPMCTSResult(
                 success=False,

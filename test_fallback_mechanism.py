@@ -55,7 +55,7 @@ async def test_fallback_integration():
             def_result = await plugin.get_workflow_definition("test")
             print(f"✓ get_workflow_definition worked with fallback: {def_result}")
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, AttributeError, TypeError) as e:
             print(f"✗ Error during fallback operations: {e}")
             raise
     
@@ -100,7 +100,7 @@ async def test_normal_integration():
             result = await plugin.control_workflow("test", "start")
             print(f"✓ control_workflow worked: {result}")
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, AttributeError, TypeError) as e:
             print(f"✗ Error during normal operations: {e}")
             raise
     

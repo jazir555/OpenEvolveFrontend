@@ -208,7 +208,10 @@ class DependencyGraphVisualizer:
             # Find longest path using topological sort
             longest_path = nx.dag_longest_path(G)
             return longest_path
-        except:
+        except Exception as e:
+            # Log the specific error for debugging
+            import logging
+            logging.exception(f"Error in advanced_visualization longest path calculation: {e}")
             # If graph has cycles or other issues, return empty list
             return []
 

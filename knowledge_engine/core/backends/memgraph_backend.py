@@ -102,7 +102,7 @@ class MemgraphBackend(KnowledgeGraphBackend):
                         FOR (k:KnowledgeEntry) 
                         REQUIRE k.id IS UNIQUE
                     """)
-                except Exception:
+                except (neo4j.exceptions.DatabaseError, neo4j.exceptions.ClientError):
                     # Constraint may already exist
                     pass
                 
@@ -113,7 +113,7 @@ class MemgraphBackend(KnowledgeGraphBackend):
                         FOR (k:KnowledgeEntry) 
                         ON (k.source)
                     """)
-                except Exception:
+                except (neo4j.exceptions.DatabaseError, neo4j.exceptions.ClientError):
                     pass
                     
                 try:
@@ -122,11 +122,11 @@ class MemgraphBackend(KnowledgeGraphBackend):
                         FOR (k:KnowledgeEntry) 
                         ON (k.timestamp)
                     """)
-                except Exception:
+                except (neo4j.exceptions.DatabaseError, neo4j.exceptions.ClientError):
                     pass
 
                 logger.info("Memgraph schema initialized")
-        except Exception as e:
+        except (neo4j.exceptions.DatabaseError, neo4j.exceptions.ClientError, ConnectionError) as e:
             logger.warning(f"Schema initialization warning: {e}")
 
     async def disconnect(self) -> None:

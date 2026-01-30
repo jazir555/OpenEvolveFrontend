@@ -295,7 +295,7 @@ class VerificationEngine:
                     else:
                         self.logger.warning(f"Criterion {criterion.id} FAILED")
 
-                except Exception as e:
+                except (ValueError, TypeError, RuntimeError, AttributeError) as e:
                     self.logger.error(f"Error checking criterion {criterion.id}: {e}")
                     criteria_results[criterion.id] = False
 
@@ -346,7 +346,7 @@ class VerificationEngine:
 
             return report
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError, AttributeError) as e:
             self.logger.error(f"Verification failed with error: {e}")
             # Create failure report
             solution_id = getattr(solution, 'id', getattr(solution, 'sub_problem_id', 'unknown'))
@@ -401,7 +401,7 @@ class VerificationEngine:
 
                 self.logger.debug(f"Created criterion: {criterion.id} - {metric} >= {threshold}")
 
-            except Exception as e:
+            except (ValueError, TypeError, RuntimeError) as e:
                 self.logger.warning(f"Failed to parse requirement '{requirement}': {e}")
                 # Create a default criterion
                 criteria.append(SuccessCriterion(
@@ -447,7 +447,7 @@ class VerificationEngine:
 
             return passed
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError, AttributeError) as e:
             self.logger.error(f"Error checking criterion {criterion.id}: {e}")
             return False
 
@@ -489,7 +489,7 @@ class VerificationEngine:
 
             return metrics
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError, AttributeError) as e:
             self.logger.error(f"Error calculating quality scores: {e}")
             return SolutionQualityMetrics()
 
@@ -555,7 +555,7 @@ class VerificationEngine:
 
             return report
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError, AttributeError) as e:
             self.logger.error(f"Error generating verification report: {e}")
             # Return minimal report
             return VerificationReport(
@@ -600,7 +600,7 @@ class VerificationEngine:
                 if test_result.get('passed', False):
                     passed_tests += 1
 
-            except Exception as e:
+            except (ValueError, TypeError, RuntimeError, AttributeError) as e:
                 self.logger.error(f"Test {i} failed with error: {e}")
                 results.append({
                     'test_index': i,
@@ -1018,7 +1018,7 @@ class VerificationEngine:
                 result['passed'] = self.check_criterion(solution, criterion)
                 result['score'] = self._calculate_metric(solution, criterion.metric)
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError, AttributeError) as e:
             result['error'] = str(e)
             result['feedback'] = f"Test execution failed: {e}"
 
@@ -1254,7 +1254,7 @@ async def process_items(items: List[str]) -> List[str]:
             # Simulate async processing
             result = await asyncio.to_thread(str.upper, item)
             results.append(result)
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             print(f"Error processing {item}: {e}")
 
     return results

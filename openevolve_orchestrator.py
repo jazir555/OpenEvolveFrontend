@@ -41,7 +41,7 @@ def get_project_root():
         current_dir = os.path.dirname(os.path.abspath(__file__))
         # Go up one level to get the project root
         return os.path.abspath(os.path.join(current_dir, os.pardir))
-    except Exception as e:
+    except (OSError, ValueError) as e:
         logging.error(f"Error getting project root: {e}")
         # Fallback to current working directory
         return os.getcwd()
@@ -571,7 +571,7 @@ class OpenEvolveOrchestrator:
                         metrics=result.get("metrics", {})
                     )
                     workflow.results["report"] = report
-                except Exception as e:
+                except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                     print(f"Warning: Could not generate report: {e}")
             
             workflow.current_stage = WorkflowStage.COMPLETION
@@ -586,7 +586,7 @@ class OpenEvolveOrchestrator:
             if workflow_id in self.active_workflows:
                 self.active_workflows.remove(workflow_id)
                 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, KeyError) as e:
             workflow = self.workflows[workflow_id]
             workflow.status = "failed"
             workflow.end_time = time.time()
@@ -659,7 +659,7 @@ class OpenEvolveOrchestrator:
             for callback in self.workflow_callbacks[workflow_id]:
                 try:
                     callback(event, data)
-                except Exception as e:
+                except (ValueError, TypeError, RuntimeError, AttributeError) as e:
                     print(f"Error in workflow callback: {e}")
 
 
@@ -2053,7 +2053,7 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
                     max_refinement_loops=workflow_state.max_refinement_loops,
                     solver_generation_gauntlet=getattr(workflow_state, 'solver_generation_gauntlet', None)
                 ))
-            except Exception as e:
+            except (RuntimeError, ValueError, TypeError, KeyError) as e:
                 st.error(f"An error occurred while running the sovereign workflow: {e}")
                 workflow_state.status = "failed"
 
@@ -2156,7 +2156,7 @@ def render_monitoring_tab(orchestrator: OpenEvolveOrchestrator):
                     st.info("Waiting for CREWAI to initialize workflow tickets...")
                     st.rerun()
                     
-            except Exception as e:
+            except (requests.RequestException, ConnectionError, TimeoutError) as e:
                 st.warning(f"Could not connect to CREWAI: {e}")
                 if st.button("🔄 Retry Connection"):
                     st.rerun()
@@ -2724,7 +2724,7 @@ def render_configuration_tab(orchestrator: OpenEvolveOrchestrator):
                         
                         st.success("Configuration imported successfully!")
                         
-                except Exception as e:
+                except (json.JSONDecodeError, ValueError, KeyError, IOError) as e:
                     st.error(f"Error importing configuration: {e}")
 
 
@@ -2762,7 +2762,7 @@ def start_openevolve_services():
         logging.info("Please start your LLM server on port 8000 or configure a different endpoint.")
     except requests.exceptions.Timeout:
         logging.warning("LLM backend health check timed out.")
-    except Exception as e:
+    except (requests.RequestException, ValueError) as e:
         logging.error(f"Error during LLM backend health check: {e}")
     
     try:
@@ -2821,7 +2821,7 @@ def start_openevolve_services():
             logging.warning("OpenEvolve backend may not have started properly. Please check backend logs.")
             logging.info("Backend logs are available at backend_stdout.log and backend_stderr.log")
             
-    except Exception as e:
+    except (subprocess.SubprocessError, OSError, ValueError) as e:
         logging.error(f"Failed to start OpenEvolve backend: {e}")
         import traceback
         logging.error(f"Full traceback: {traceback.format_exc()}")

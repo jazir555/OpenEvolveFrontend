@@ -243,7 +243,7 @@ class ValidationTestSuite(ABC):
                 try:
                     result = test_method()
                     report.add_result(result)
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                except (ValidationError, TypeError, ValueError, AttributeError, RuntimeError) as e:
                     logger.error(f"Test method {test_method.__name__} crashed: {e}")
                     report.add_result(ValidationResult(
                         test_name=test_method.__name__,
@@ -601,7 +601,7 @@ def validate_config(config: Dict[str, Any]) -> ValidationResult:
             metadata={'parameter_count': len(config)}
         )
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (TypeError, ValueError, KeyError, AttributeError) as e:
         duration = time.time() - start_time
         logger.error(f"Configuration validation failed: {e}")
         return ValidationResult(

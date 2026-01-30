@@ -134,7 +134,7 @@ class SGDMonitor:
             try:
                 self.event_queue.get_nowait()
                 self.event_queue.put_nowait(event)
-            except Exception:
+            except queue.Empty:
                 logger.warning("SGD monitoring event queue full and could not enqueue new event.", exc_info=True)
     
     def _update_session_state(self, event: SGDMonitoringEvent):

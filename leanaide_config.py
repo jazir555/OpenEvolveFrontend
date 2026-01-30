@@ -879,7 +879,7 @@ class LeanAideConfigLoader:
                         else:
                             self._raw_config.update(data)
                 logger.info(f"Loaded configuration from {self.config_file}")
-            except Exception as e:
+            except (IOError, yaml.YAMLError, TypeError) as e:
                 logger.warning(f"Failed to load {self.config_file}: {e}")
 
         # Try config.yaml as fallback
@@ -890,7 +890,7 @@ class LeanAideConfigLoader:
                     if data and "leanaide" in data:
                         self._raw_config.update(data["leanaide"])
                 logger.info(f"Loaded LeanAide configuration from {self.fallback_config_file}")
-            except Exception as e:
+            except (IOError, yaml.YAMLError, TypeError) as e:
                 logger.warning(f"Failed to load {self.fallback_config_file}: {e}")
         else:
             logger.info(f"No LeanAide configuration file found, using defaults")

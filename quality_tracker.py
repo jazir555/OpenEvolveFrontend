@@ -199,7 +199,7 @@ class QualityTracker:
         # Save to storage
         try:
             self._save_to_storage()
-        except Exception as e:
+        except (OSError, IOError, TypeError, ValueError) as e:
             logger.error(f"Failed to persist assessment to storage: {e}")
             # Don't raise - assessment is still recorded in memory
 

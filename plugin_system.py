@@ -151,7 +151,7 @@ class PluginBase:
             self.state = PluginState.ACTIVE
             logger.info(f"Plugin {self.metadata.name} activated")
             return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, TypeError) as e:
             logger.error(f"Failed to activate plugin {self.metadata.name}: {e}")
             self.state = PluginState.ERROR
             return False
@@ -170,7 +170,7 @@ class PluginBase:
             self.state = PluginState.LOADED
             logger.info(f"Plugin {self.metadata.name} deactivated")
             return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, TypeError) as e:
             logger.error(f"Failed to deactivate plugin {self.metadata.name}: {e}")
             self.state = PluginState.ERROR
             return False
@@ -319,7 +319,7 @@ class PluginManager:
             try:
                 with open(config_file, 'r') as f:
                     self._plugin_configs = json.load(f)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, json.JSONDecodeError) as e:
                 logger.warning(f"Failed to load plugin config: {e}")
 
     def discover_plugins(self) -> List[str]:
@@ -426,7 +426,7 @@ class PluginManager:
                 logger.info(f"Successfully loaded plugin: {plugin_name}")
                 return plugin
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ImportError, PluginValidationError, PluginDependencyError) as e:
                 self._plugin_states[plugin_name] = PluginState.ERROR
                 logger.error(f"Failed to load plugin {plugin_name}: {e}", exc_info=True)
                 raise PluginLoadError(f"Failed to load plugin {plugin_name}: {e}") from e
@@ -507,7 +507,7 @@ class PluginManager:
                 logger.info(f"Successfully unloaded plugin: {plugin_name}")
                 return True
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, OSError, TypeError) as e:
                 logger.error(f"Failed to unload plugin {plugin_name}: {e}")
                 self._plugin_states[plugin_name] = PluginState.ERROR
                 return False
@@ -567,7 +567,7 @@ class PluginManager:
                     if hasattr(emitter, 'remove_all_listeners'):
                         emitter.remove_all_listeners()
                         logger.debug(f"Cleared event emitter: {emitter_name}")
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                except (RuntimeError, TypeError, AttributeError) as e:
                     logger.warning(f"Failed to clear event emitter {emitter_name}: {e}")
 
         logger.debug(f"Completed event unregistration for plugin {plugin_name}")
@@ -658,7 +658,7 @@ class PluginManager:
             self.load_plugin(plugin_name)
             self.activate_plugin(plugin_name)
             return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (PluginLoadError, RuntimeError, ImportError) as e:
             logger.error(f"Failed to reload plugin {plugin_name}: {e}")
             return False
 
@@ -684,7 +684,7 @@ class PluginManager:
 
             try:
                 result = hook.callback(result)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, TypeError, ValueError) as e:
                 logger.error(f"Hook {hook_name} callback failed: {e}", exc_info=True)
 
         return result
@@ -707,7 +707,7 @@ class PluginManager:
             for handler in self._event_listeners[event_type]:
                 try:
                     handler(event)
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                except (RuntimeError, TypeError, ValueError) as e:
                     logger.error(f"Event handler failed for {event_type}: {e}")
 
     def get_plugin(self, plugin_name: str) -> Optional[PluginBase]:
@@ -790,7 +790,7 @@ class PluginManager:
             try:
                 plugin = self.load_plugin(plugin_name)
                 self.activate_plugin(plugin_name)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (PluginLoadError, ImportError, RuntimeError) as e:
                 logger.error(f"Failed to load plugin {plugin_name}: {e}")
 
     def shutdown(self) -> None:

@@ -38,7 +38,7 @@ class TestDecompositionEngineFixes(unittest.TestCase):
             self.assertIsNotNone(engine, "DecompositionEngine should initialize successfully")
             self.assertIsNotNone(engine.strategies, "Engine should have strategies")
             self.assertGreater(len(engine.strategies), 0, "Engine should have at least one strategy")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, ImportError) as e:
             self.fail(f"DecompositionEngine initialization failed: {e}")
 
     def test_team_assignment_without_engine(self):
@@ -56,7 +56,7 @@ class TestDecompositionEngineFixes(unittest.TestCase):
             plan = engine.decompose(problem, assign_teams=False)
             self.assertIsNotNone(plan, "Decomposition should work without team assignment")
             self.assertIsInstance(plan, DecompositionPlan, "Result should be a DecompositionPlan")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError) as e:
             self.fail(f"Decomposition without team assignment failed: {e}")
 
     def test_team_assignment_without_teams(self):
@@ -74,7 +74,7 @@ class TestDecompositionEngineFixes(unittest.TestCase):
             plan = engine.decompose(problem, assign_teams=True, teams=None)
             self.assertIsNotNone(plan, "Decomposition should work even when teams are None")
             self.assertIsInstance(plan, DecompositionPlan, "Result should be a DecompositionPlan")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError) as e:
             self.fail(f"Decomposition with team assignment but no teams failed: {e}")
 
     def test_custom_strategy_error_handling(self):
@@ -92,7 +92,7 @@ class TestDecompositionEngineFixes(unittest.TestCase):
         
         with patch('decomposition_engine.CustomStrategyBuilder') as mock_builder:
             mock_instance = mock_builder.return_value
-            mock_instance.create_strategy.side_effect = Exception("Invalid config")
+            mock_instance.create_strategy.side_effect = ValueError("Invalid config")
             
             with self.assertRaises(RuntimeError):
                 engine.use_custom_strategy(problem, invalid_config)
@@ -112,7 +112,7 @@ class TestDecompositionEngineFixes(unittest.TestCase):
             strategy = engine.select_strategy(problem)
             self.assertIsNotNone(strategy, "Strategy selection should return a strategy")
             self.assertIn(strategy, engine.strategies, "Selected strategy should be in available strategies")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError) as e:
             self.fail(f"Strategy selection failed: {e}")
 
     def test_error_handling_decorators(self):
@@ -137,7 +137,7 @@ class TestDecompositionEngineFixes(unittest.TestCase):
         try:
             plan = engine.decompose(problem)
             self.assertIsNotNone(plan, "Decomposition should work even without resource estimation")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError) as e:
             self.fail(f"Decomposition with resource estimation fallback failed: {e}")
 
     def test_dependency_analysis_fallback(self):
@@ -155,7 +155,7 @@ class TestDecompositionEngineFixes(unittest.TestCase):
             plan = engine.decompose(problem)
             self.assertIsNotNone(plan, "Decomposition should work even without dependency analysis")
             self.assertIsNotNone(plan.dependency_graph, "Plan should have a dependency graph")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError) as e:
             self.fail(f"Decomposition with dependency analysis fallback failed: {e}")
 
     def test_comprehensive_integration(self):
@@ -190,7 +190,7 @@ class TestDecompositionEngineFixes(unittest.TestCase):
             with self.assertRaises((ImportError, RuntimeError, ValueError)):
                 engine.use_custom_strategy(problem, {"test": "config"})
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError) as e:
             self.fail(f"Comprehensive integration test failed: {e}")
 
 

@@ -121,13 +121,13 @@ class Constraint:
                 try:
                     result = self.custom_validator(value)
                     return result, None if result else self.error_message or "Custom validation failed"
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                except (ValueError, TypeError, RuntimeError) as e:
                     return False, f"Custom validator error: {e}"
 
             else:
                 return False, f"Unknown constraint type: {self.type}"
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, RuntimeError) as e:
             logger.error(f"Constraint validation error: {e}")
             return False, f"Validation error: {e}"
 
@@ -348,7 +348,7 @@ class LMQLAdapter:
                 self._metrics["total_time"] += result.generation_time
                 return result
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TimeoutError) as e:
             logger.error(f"Constrained generation failed: {e}")
             self._metrics["failed_generations"] += 1
 
@@ -364,7 +364,7 @@ class LMQLAdapter:
                     result.fallback_used = True
                     result.generation_time = time.time() - start_time
                     return result
-                except Exception as fallback_error:  # TODO: Catch specific exception instead of Exception
+                except (RuntimeError, ValueError, TimeoutError) as fallback_error:
                     logger.error(f"Fallback generation also failed: {fallback_error}")
                     return ConstraintResult(
                         success=False,
@@ -418,7 +418,7 @@ class LMQLAdapter:
                 }
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TimeoutError) as e:
             logger.error(f"LMQL generation error: {e}")
             raise
 
@@ -480,7 +480,7 @@ class LMQLAdapter:
                         text = response[0].get("output", str(response[0])) if isinstance(response, list) else str(response)
                     else:
                         text = self._simple_fallback_generation(enhanced_prompt, constraints, max_tokens)
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                except (RuntimeError, ValueError, TimeoutError) as e:
                     text = self._simple_fallback_generation(enhanced_prompt, constraints, max_tokens)
                     import logging
                     logger = logging.getLogger(__name__)
@@ -504,7 +504,7 @@ class LMQLAdapter:
                 validation_errors=errors if not valid else []
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TimeoutError) as e:
             logger.error(f"Fallback generation error: {e}")
             raise
 

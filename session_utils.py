@@ -1689,11 +1689,11 @@ def get_project_root() -> str:
     """
     try:
         return os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
-    except Exception:
+    except (OSError, IOError):
         # Fallback implementation - os is already imported at the module level
         try:
             current_dir = os.path.dirname(os.path.abspath(__file__))
             return os.path.abspath(os.path.join(current_dir, os.pardir))
-        except Exception:
+        except (OSError, IOError):
             # Last resort fallback to current working directory
             return os.getcwd()

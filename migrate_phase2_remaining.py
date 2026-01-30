@@ -81,7 +81,7 @@ def check_file_needs_migration(filepath: str) -> bool:
             if re.search(pattern, content):
                 return True
         return False
-    except Exception:  # TODO: Catch specific exception instead of Exception
+    except (re.error, OSError, IOError):
         return False
 
 

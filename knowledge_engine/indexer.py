@@ -1156,7 +1156,7 @@ class CodeIndexer:
                 # Wait for cancelled tasks to complete
                 try:
                     await asyncio.sleep(0.1)  # Brief wait for cancellation
-                except Exception:
+                except asyncio.CancelledError:
                     self.logger.debug("Cancellation sleep interrupted during concurrent processing cleanup.")
 
                 # Fallback to sequential processing
@@ -1180,7 +1180,7 @@ class CodeIndexer:
             # Wait briefly for cancellation to complete
             try:
                 await asyncio.sleep(0.1)
-            except Exception:
+            except asyncio.CancelledError:
                 self.logger.debug("Cancellation sleep interrupted during error handling cleanup.")
 
             self.logger.error(f"Critical error in concurrent processing: {e}")

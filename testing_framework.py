@@ -141,7 +141,7 @@ class UnitTests(unittest.TestCase):
             # The actual validation would need the full implementation
             result = self.validator.validate_schema(test_data, {})
             self.assertIsInstance(result, dict)
-        except Exception:
+        except (AttributeError, TypeError):
             # If validation is not fully implemented, that's okay for core functionality
             pass
     
@@ -430,7 +430,7 @@ class EndToEndTests(unittest.TestCase):
         try:
             integrated_solution = self.orchestrator.integrate_solutions(decomposition_plan)
             self.assertIsNotNone(integrated_solution)
-        except Exception:
+        except (AttributeError, TypeError, RuntimeError):
             # Some dependencies might not be fully mocked
             # This is okay for the test as we're checking the flow
             pass

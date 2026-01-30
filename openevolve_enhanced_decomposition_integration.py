@@ -173,7 +173,7 @@ class OpenEvolveSolutionSolver(SolutionSolver):
             try:
                 self.openevolve_client = OpenEvolveClient()
                 logger.info("OpenEvolve client initialized")
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, ImportError) as e:
                 logger.warning(f"Failed to initialize OpenEvolve client: {e}")
                 self.openevolve_client = None
         
@@ -269,7 +269,7 @@ class OpenEvolveSolutionSolver(SolutionSolver):
             
             return solution
             
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, ConnectionError, TimeoutError) as e:
             logger.error(f"Evolution failed for {sub_problem.id}: {e}", exc_info=True)
             return self._fallback_solution(sub_problem)
     
@@ -385,7 +385,7 @@ Structure your solution with:
                 # Fallback to simple generation
                 return self._simulate_evolution(prompt, evaluator, sub_problem)
                 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, ConnectionError) as e:
             logger.error(f"Evolution error: {e}")
             return self._simulate_evolution(prompt, evaluator, sub_problem)
     
@@ -543,7 +543,7 @@ class ParallelEvolutionManager:
                         solution = future.result()
                         solutions[sub_problem.id] = solution
                         self.logger.info(f"Evolved {sub_problem.id}: quality={solution.quality_score:.2f}")
-                    except Exception as e:
+                    except (RuntimeError, ValueError, TypeError, ConnectionError) as e:
                         self.logger.error(f"Failed to evolve {sub_problem.id}: {e}")
                         solutions[sub_problem.id] = self.solver._fallback_solution(sub_problem)
         

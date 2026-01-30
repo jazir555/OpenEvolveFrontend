@@ -139,7 +139,7 @@ def select_decomposition_strategy_v3(
             for strategy, weight in sorted(adaptive_weights.items(), key=lambda x: x[1], reverse=True):
                 logger.info(f"  {strategy}: {weight:.3f}")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError, KeyError) as e:
             logger.warning(f"Adaptive weight calculation failed: {e}. Using base weights.", exc_info=True)
             adaptive_weights = base_weights
             performance_adjustment = None
@@ -283,7 +283,7 @@ def record_decomposition_outcome(
         logger.info(f"Recorded decomposition outcome: strategy={strategy}, "
                    f"quality={quality_score:.2f}, type={problem_type_str}, domain={domain_str}")
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (AttributeError, TypeError, ValueError) as e:
         logger.error(f"Failed to record decomposition outcome: {e}", exc_info=True)
 
 

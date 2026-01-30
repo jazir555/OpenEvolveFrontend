@@ -72,7 +72,7 @@ class QualityAssuranceSuite:
                     self.results["import_tests"]["passed"] += 1
                 else:
                     raise ImportError(f"Could not create spec for {module_name}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ImportError, SyntaxError, OSError) as e:
                 print(f"❌ {module_name}: Import failed - {e}")
                 self.results["import_tests"]["failed"] += 1
                 self.results["import_tests"]["errors"].append({
@@ -108,7 +108,7 @@ class QualityAssuranceSuite:
                     "error": str(e),
                     "line": e.lineno
                 })
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, UnicodeDecodeError) as e:
                 print(f"⚠️  {filepath.name}: Read error - {e}")
                 self.results["syntax_tests"]["failed"] += 1
 
@@ -135,7 +135,7 @@ class QualityAssuranceSuite:
                 value = config.get("evolution.population_size")
                 print(f"✅ Parameter access: evolution.population_size = {value}")
                 self.results["compatibility_tests"]["passed"] += 1
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (AttributeError, KeyError, TypeError) as e:
                 print(f"❌ Parameter access failed: {e}")
                 self.results["compatibility_tests"]["failed"] += 1
 
@@ -144,7 +144,7 @@ class QualityAssuranceSuite:
                 value = config.get("nonexistent.parameter", default=42)
                 print(f"✅ Fallback value: nonexistent.parameter = {value}")
                 self.results["compatibility_tests"]["passed"] += 1
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (AttributeError, KeyError, TypeError) as e:
                 print(f"❌ Fallback failed: {e}")
                 self.results["compatibility_tests"]["failed"] += 1
 
@@ -154,7 +154,7 @@ class QualityAssuranceSuite:
                 evo_config = EvolutionConfig()
                 print("✅ EvolutionConfig: Works")
                 self.results["compatibility_tests"]["passed"] += 1
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (AttributeError, ImportError, TypeError) as e:
                 print(f"❌ EvolutionConfig failed: {e}")
                 self.results["compatibility_tests"]["failed"] += 1
 
@@ -164,7 +164,7 @@ class QualityAssuranceSuite:
                 adv_config = AdversarialConfig()
                 print("✅ AdversarialConfig: Works")
                 self.results["compatibility_tests"]["passed"] += 1
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (AttributeError, ImportError, TypeError) as e:
                 print(f"❌ AdversarialConfig failed: {e}")
                 self.results["compatibility_tests"]["failed"] += 1
 
@@ -242,7 +242,7 @@ class QualityAssuranceSuite:
             else:
                 print(f"⚠️  Access time: ACCEPTABLE ({avg_access_time:.2f}μs)")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, ValueError) as e:
             print(f"❌ Performance testing failed: {e}")
             self.results["performance_tests"]["errors"] = str(e)
 
@@ -264,7 +264,7 @@ class QualityAssuranceSuite:
                 )
                 print("✅ Unified imports: Working")
                 self.results["integration_tests"]["passed"] += 1
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ImportError, AttributeError, TypeError) as e:
                 print(f"❌ Unified imports failed: {e}")
                 self.results["integration_tests"]["failed"] += 1
 
@@ -277,7 +277,7 @@ class QualityAssuranceSuite:
                 # All should share the same underlying data
                 print("✅ Cross-adapter compatibility: Working")
                 self.results["integration_tests"]["passed"] += 1
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (AttributeError, TypeError, RuntimeError) as e:
                 print(f"❌ Cross-adapter compatibility failed: {e}")
                 self.results["integration_tests"]["failed"] += 1
 
@@ -295,11 +295,11 @@ class QualityAssuranceSuite:
                 print(f"✅ Adversarial schema validation: {'VALID' if adversarial_valid else 'INVALID'}")
                 self.results["integration_tests"]["passed"] += 1
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ValueError, TypeError, AttributeError) as e:
                 print(f"❌ Validation failed: {e}")
                 self.results["integration_tests"]["failed"] += 1
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ImportError, AttributeError) as e:
             print(f"❌ Integration testing failed: {e}")
             self.results["integration_tests"]["errors"].append({
                 "test": "integration",

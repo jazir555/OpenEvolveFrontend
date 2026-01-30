@@ -128,7 +128,7 @@ def create_team(request: TeamCreateRequest):
         return {"message": "Team created", "team_name": team.name}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
+    except (TypeError, KeyError, RuntimeError) as e:
         logger.error(f"Error creating team: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -201,7 +201,7 @@ def update_team(team_name: str, request: TeamUpdateRequest):
         logger.info(f"Team '{team_name}' updated successfully")
         
         return {"message": "Team updated", "team_name": team_name}
-    except Exception as e:
+    except (TypeError, KeyError, RuntimeError) as e:
         logger.error(f"Error updating team '{team_name}': {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -239,7 +239,7 @@ def create_gauntlet(request: GauntletCreateRequest):
         logger.info(f"Gauntlet '{gauntlet.name}' created successfully")
         
         return {"message": "Gauntlet created", "gauntlet_name": gauntlet.name}
-    except Exception as e:
+    except (TypeError, KeyError, RuntimeError) as e:
         logger.error(f"Error creating gauntlet: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -304,7 +304,7 @@ def update_gauntlet(gauntlet_name: str, request: GauntletUpdateRequest):
         logger.info(f"Gauntlet '{gauntlet_name}' updated successfully")
         
         return {"message": "Gauntlet updated", "gauntlet_name": gauntlet_name}
-    except Exception as e:
+    except (TypeError, KeyError, RuntimeError) as e:
         logger.error(f"Error updating gauntlet '{gauntlet_name}': {e}")
         raise HTTPException(status_code=500, detail=str(e))
 

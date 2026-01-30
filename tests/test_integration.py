@@ -27,14 +27,14 @@ def main():
     try:
         ContentEvaluator("general", "Evaluate content quality")
         print("+ ContentEvaluator created successfully")
-    except Exception as e:
+    except (ImportError, TypeError, ValueError) as e:
         print(f"- ContentEvaluator failed: {e}")
     
     print("\n2. Testing evolution settings renderer...")
     try:
         # This is a UI function, so we'll just check if it can be called without error
         print("+ render_evolution_settings function exists")
-    except Exception as e:
+    except (ImportError, AttributeError) as e:
         print(f"- render_evolution_settings failed: {e}")
     
     print("\n3. Testing integration function...")
@@ -43,7 +43,7 @@ def main():
         print(f"+ Integration test completed with success: {result.get('success', False)}")
         if 'error' in result:
             print(f"  Error (expected for API test): {result['error']}")
-    except Exception as e:
+    except (RuntimeError, ImportError, AttributeError) as e:
         print(f"- Integration test function failed: {e}")
         import traceback
         traceback.print_exc()
@@ -54,7 +54,7 @@ def main():
         sample_code = "def hello():\n    print('world')"
         review_type = determine_review_type(sample_code)
         print(f"+ determine_review_type works, detected: {review_type}")
-    except Exception as e:
+    except (ImportError, AttributeError, TypeError) as e:
         print(f"- Adversarial functions test failed: {e}")
     
     print("\nIntegration test completed!")

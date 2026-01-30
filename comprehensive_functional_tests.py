@@ -157,7 +157,7 @@ class TestErrorHandling:
                     # Verify warning was called
                     mock_logger_instance.warning.assert_called()
 
-            except Exception:
+            except (ImportError, AttributeError, TypeError):
                 # If mocking doesn't work, at least verify the behavior
                 client = OpenEvolveClient()
                 if not client.available:

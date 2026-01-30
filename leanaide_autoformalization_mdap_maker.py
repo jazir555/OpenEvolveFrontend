@@ -235,7 +235,7 @@ class LeanAideAutoformalizationEngine:
 
             return result
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError, ImportError) as e:
             logger.error(f"Autoformalization failed: {e}", exc_info=True)
             return AutoformalizationResult(
                 success=False,
@@ -292,7 +292,7 @@ class LeanAideAutoformalizationEngine:
                 warnings=result.warnings,
                 verification_status="not_verified" if result.success else "failed"
             )
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError, ImportError) as e:
             logger.error(f"Direct autoformalization failed: {e}")
             return AutoformalizationResult(
                 success=False,
@@ -353,7 +353,7 @@ class LeanAideAutoformalizationEngine:
                 }
             )
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError, ImportError) as e:
             logger.error(f"MDAP autoformalization failed: {e}")
             return AutoformalizationResult(
                 success=False,
@@ -398,7 +398,7 @@ class LeanAideAutoformalizationEngine:
                 }
             )
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError, ImportError) as e:
             logger.error(f"MAKER autoformalization failed: {e}")
             return AutoformalizationResult(
                 success=False,
@@ -446,7 +446,7 @@ class LeanAideAutoformalizationEngine:
                 }
             )
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError, ImportError) as e:
             logger.error(f"Hybrid autoformalization failed: {e}")
             return AutoformalizationResult(
                 success=False,
@@ -509,7 +509,7 @@ class LeanAideAutoformalizationEngine:
                         strategy=f"approach_{i}",
                         execution_time=result.execution_time
                     ))
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, TypeError, ImportError) as e:
                 logger.debug(f"Candidate generation failed for approach {i}: {e}")
         
         return candidates

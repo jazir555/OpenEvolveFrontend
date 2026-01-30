@@ -209,7 +209,7 @@ def demo_basic_reports():
             )
             generated.append(output_path)
             print(f"  [OK] {fmt.upper()}: {output_path}")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (IOError, ValueError, TypeError) as e:
             print(f"  [FAIL] {fmt.upper()}: Failed - {e}")
 
     print(f"\nSuccessfully generated {len(generated)} reports")
@@ -240,7 +240,7 @@ def demo_executive_summary():
         print("  - 2 of 6 sub-problems completed")
         print("  - Critical path has 4 dependent tasks")
         print("  - Overall quality score: 76.3/100")
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, ValueError, TypeError) as e:
         print(f"Failed to generate executive summary: {e}")
 
 
@@ -342,7 +342,7 @@ def demo_custom_template():
         print("  - Dynamic data insertion")
         print("  - Conditional loops")
         print("  - Visual progress indicators")
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, ValueError, TypeError) as e:
         print(f"Failed to create custom template: {e}")
 
 
@@ -450,7 +450,7 @@ def demo_aggregated_reports():
         print(f"  • Total plans: {len(plans)}")
         print(f"  • Grouped by: date")
         print(f"  • Average quality: {sum(p['quality_scores']['overall_score'] for p in plans) / len(plans):.1f}")
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, ValueError, TypeError) as e:
         print(f"Failed to generate aggregated report: {e}")
 
 
@@ -474,7 +474,7 @@ def demo_quick_functions():
             output_dir='./demo_reports'
         )
         print(f"Quick report generated: {output_path}")
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, ValueError, TypeError) as e:
         print(f"Failed to generate quick report: {e}")
 
 
@@ -518,7 +518,7 @@ def main():
         print("  4. Integrate with your decomposition pipeline")
         print("\nFor more information, see REPORTING_SYSTEM_COMPLETE.md")
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, ValueError, TypeError, RuntimeError) as e:
         logger.error(f"Demo failed: {e}", exc_info=True)
         print(f"\n❌ Error: {e}")
 

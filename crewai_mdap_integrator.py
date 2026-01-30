@@ -539,7 +539,7 @@ class CrewAIMDAPIntegrator:
                     retries += 1
                     logger.warning(f"MDAP step {step.step_id} failed, retry {retries}/{max_retries}")
 
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 retries += 1
                 logger.error(f"Error executing MDAP step {step.step_id}: {e}")
                 if retries > max_retries:
@@ -650,7 +650,7 @@ class CrewAIMDAPIntegrator:
                         errors=errors,
                     )
 
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError) as e:
                 logger.warning(f"Voting attempt {attempt + 1} failed: {e}")
                 errors.append(str(e))
                 continue

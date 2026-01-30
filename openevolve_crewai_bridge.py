@@ -96,7 +96,7 @@ def execute_phase_1_setup(
         logger.info(f"Phase 1 complete: Initial algorithm generated")
         return result
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, ConnectionError) as e:
         logger.error(f"Phase 1 failed: {e}")
         return {
             "phase": 1,
@@ -197,7 +197,7 @@ def execute_phase_2_optimize(
             "message": f"Phase 2 complete: Code optimized for {optimization_goal}",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, ConnectionError) as e:
         logger.error(f"Phase 2 failed: {e}")
         return {
             "phase": 2,
@@ -240,7 +240,7 @@ def _evolve_code(
             )
             if result.success and result.best_code:
                 return result.best_code
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, ConnectionError, TimeoutError) as e:
             logger.warning(f"OpenEvolve evolution failed, using fallback: {e}")
 
     return f"""# Evolved Algorithm ({iterations} iterations for {goal})

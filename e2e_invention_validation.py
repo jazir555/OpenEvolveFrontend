@@ -186,7 +186,7 @@ def validate_stage1_output(output: Dict) -> tuple[bool, str]:
             checks.append("[WARN] No bias report (optional)")
 
         return True, " | ".join(checks)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (KeyError, TypeError, ValueError, AttributeError) as e:
         return False, f"[ERROR] Validation error: {e}"
 
 
@@ -223,7 +223,7 @@ def validate_stage2_output(output: Dict) -> tuple[bool, str]:
             return False, "[FAIL] No isomorphism score"
 
         return True, " | ".join(checks)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (KeyError, TypeError, ValueError, AttributeError) as e:
         return False, f"[ERROR] Validation error: {e}"
 
 
@@ -262,7 +262,7 @@ def validate_stage3_output(output: Dict) -> tuple[bool, str]:
             checks.append("[WARN] No convergence status")
 
         return True, " | ".join(checks)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (KeyError, TypeError, ValueError, AttributeError) as e:
         return False, f"[ERROR] Validation error: {e}"
 
 
@@ -303,7 +303,7 @@ def validate_stage4_output(output: Dict) -> tuple[bool, str]:
             return False, "[FAIL] No validation results"
 
         return True, " | ".join(checks)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (KeyError, TypeError, ValueError, AttributeError) as e:
         return False, f"[ERROR] Validation error: {e}"
 
 
@@ -559,7 +559,7 @@ def run_complete_e2e_validation() -> ValidationResult:
             logger.info('[FAILED] COMPLETE E2E VALIDATION: FAILED')
         logger.info("=" * 80)
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError, KeyError) as e:
         logger.error(f"CRITICAL ERROR: {e}")
         logger.error(traceback.format_exc())
         validation_result.add_error(f"Critical error: {e}")

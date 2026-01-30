@@ -119,7 +119,7 @@ class KnowledgeBaseManager:
                 embedding_function=self.embedding_function
             )
             logger.info(f"Loaded existing knowledge base with {self.collection.count()} documents")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (IOError, ValueError, RuntimeError) as e:
             logger.warning(f"Could not load existing knowledge base: {e}")
             # Create new collection
             self.collection = self.client.create_collection(
@@ -212,7 +212,7 @@ class KnowledgeBaseManager:
                 
             logger.info(f"Retrieved {len(documents)} knowledge documents for query: '{query[:50]}...'")
             return documents
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (IOError, ValueError, RuntimeError) as e:
             logger.error(f"Failed to retrieve knowledge: {e}")
             return []
     
@@ -249,7 +249,7 @@ class KnowledgeBaseManager:
                 documents_with_scores.append((doc, similarity))
                 
             return documents_with_scores
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (IOError, ValueError, RuntimeError) as e:
             logger.error(f"Failed to search with scores: {e}")
             return []
     
@@ -262,7 +262,7 @@ class KnowledgeBaseManager:
                 "persist_directory": self.config.persist_directory,
                 "embedding_model": self.config.embedding_model
             }
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (IOError, ValueError, RuntimeError) as e:
             logger.error(f"Failed to get knowledge stats: {e}")
             return {
                 "error": str(e),
@@ -275,7 +275,7 @@ class KnowledgeBaseManager:
             self.collection.delete()
             logger.info("Cleared all knowledge from database")
             return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (IOError, ValueError, RuntimeError) as e:
             logger.error(f"Failed to clear knowledge: {e}")
             return False
     

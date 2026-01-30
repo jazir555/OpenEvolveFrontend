@@ -260,7 +260,7 @@ class ROMAOpenEvolveAdapter:
                 result["roma_type"] = "roma"
                 return result
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"ROMA Phase 1 failed: {e}")
             if self.config.fallback_to_standard:
                 return self._fallback_decompose(problem_statement, error=str(e))
@@ -333,7 +333,7 @@ class ROMAOpenEvolveAdapter:
                 result["roma_type"] = "roma"
                 return result
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"ROMA Phase 2 failed: {e}")
             if self.config.fallback_to_standard:
                 return self._fallback_solve(sub_problems, error=str(e))
@@ -405,7 +405,7 @@ class ROMAOpenEvolveAdapter:
                 result["roma_type"] = "roma"
                 return result
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"ROMA Phase 3 failed: {e}")
             if self.config.fallback_to_standard:
                 return self._fallback_critique(solutions, error=str(e))
@@ -483,7 +483,7 @@ class ROMAOpenEvolveAdapter:
                 result["roma_type"] = "roma"
                 return result
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"ROMA Phase 4 failed: {e}")
             if self.config.fallback_to_standard:
                 return self._fallback_verification(solutions, error=str(e))
@@ -552,7 +552,7 @@ class ROMAOpenEvolveAdapter:
                 result["roma_type"] = "roma"
                 return result
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"ROMA Phase 5 failed: {e}")
             if self.config.fallback_to_standard:
                 return self._fallback_reassemble(solutions, problem_statement, error=str(e))
@@ -617,7 +617,7 @@ class ROMAOpenEvolveAdapter:
                 result["roma_type"] = "roma"
                 return result
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"ROMA Phase 6 failed: {e}")
             if self.config.fallback_to_standard:
                 return self._fallback_final_validation(final_solution, problem_statement, error=str(e))

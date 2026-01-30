@@ -1925,7 +1925,7 @@ class MDAPMCTSStrategy(LeanProofStrategy):
             # Run async proof generation
             proof = asyncio.run(self._generate_proof_async(context))
             return proof
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"MDAP-MCTS proof generation failed: {e}")
             return self._fallback_proof(context)
 

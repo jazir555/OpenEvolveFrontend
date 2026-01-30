@@ -263,7 +263,7 @@ def test_function():
     try:
         result = complex_calculation()
         return result
-    except Exception:
+    except (RuntimeError, ValueError, NameError):
         pass
 
 class TestClass:

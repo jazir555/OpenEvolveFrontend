@@ -157,7 +157,13 @@ async def execute_workflow(
             "data": result.to_dict()
         }
         
-    except Exception as e:
+    except ValueError as e:
+        logger.error(f"Workflow validation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except RuntimeError as e:
         logger.error(f"Workflow execution failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -239,7 +245,13 @@ async def execute_phase(
             "phase": phase_number,
             "data": result
         }
-    except Exception as e:
+    except ValueError as e:
+        logger.error(f"Phase validation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except RuntimeError as e:
         logger.error(f"Phase execution failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -297,7 +309,13 @@ async def delegate_task(
                 "data": result.to_dict()
             }
             
-    except Exception as e:
+    except ValueError as e:
+        logger.error(f"Task validation failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e)
+        )
+    except RuntimeError as e:
         logger.error(f"Task delegation failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

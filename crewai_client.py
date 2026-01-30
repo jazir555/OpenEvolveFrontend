@@ -348,7 +348,14 @@ class CrewAIClient:
                     **phase_input.get("kwargs", {})
                 )
             else:
-                raise NotImplementedError(f"Phase {phase_number} not yet implemented")
+                # Phase number not in valid range 1-6
+                error_msg = f"Invalid phase number: {phase_number}. Valid phases are 1-6."
+                logger.error(error_msg)
+                return {
+                    "phase": phase_number,
+                    "status": "failed",
+                    "error": error_msg,
+                }
 
             # Update state if persistence enabled
             if self.state_manager and workflow_id:
@@ -359,7 +366,7 @@ class CrewAIClient:
 
             return result
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, KeyError) as e:
             logger.error(f"Phase {phase_number} execution failed: {e}")
             return {
                 "phase": phase_number,

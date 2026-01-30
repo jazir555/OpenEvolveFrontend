@@ -653,7 +653,7 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
                     # Other fields might be limited to 50000 chars
                     self.assertLessEqual(len(validated), 50000, f"Field {field_name} should be limited to 50000 chars")
                 
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 # Exception for inputs exceeding limits is acceptable
                 print(f"  ✅ {field_name}: Input properly rejected for exceeding limits")
         
@@ -769,7 +769,7 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
                     # If sanitized out completely, that's also acceptable
                     pass
                     
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 # Exception for malicious input is acceptable (input rejected)
                 pass
         

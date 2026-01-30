@@ -302,7 +302,7 @@ class LeanAideSOPIntegration:
                     strategy_used=strategy.value
                 )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (IOError, ValueError, TypeError, AttributeError) as e:
             execution_time = time.time() - start_time
             return FormalVerificationResult(
                 success=False,

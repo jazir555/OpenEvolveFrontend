@@ -858,7 +858,7 @@ class TestBubbleLabsMCPToolsEdgeCases(unittest.TestCase):
             try:
                 result = self.validate_not_empty(special_str, "test_param")
                 print(f"✓ Accepted: {repr(special_str[:20])}...")
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 print(f"⚠ Rejected: {repr(special_str[:20])}...")
 
         print("✓ Special character tests completed")

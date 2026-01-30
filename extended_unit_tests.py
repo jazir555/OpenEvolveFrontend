@@ -641,7 +641,7 @@ class TestSecurityScenarios(unittest.TestCase):
                 )
                 # If creation succeeds, the system should have strong validation
                 self.assertIsNotNone(user, f"Weak password '{weak_pass}' should be rejected by strong validation")
-            except Exception:
+            except (ValueError, TypeError, RuntimeError):
                 # Expected if validation is strict
                 pass
         

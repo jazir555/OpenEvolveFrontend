@@ -202,7 +202,7 @@ class OpenEvolveClient:
                 if os.path.exists(temp_path):
                     os.unlink(temp_path)
                     
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, IOError, ConnectionError) as e:
             # Use comprehensive error handling
             from error_handler import handle_error, ErrorSeverity, ErrorCategory
             
@@ -473,7 +473,7 @@ class OpenEvolveClient:
                 "timestamp": time.time(),
                 "length": len(content)
             }
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError, KeyError) as e:
             return {
                 "score": 0.0,
                 "error": str(e),

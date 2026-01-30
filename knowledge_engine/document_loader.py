@@ -356,7 +356,7 @@ class PDFConverter:
                             normal_style.fontName = font_name
                             heading_style.fontName = font_name
                             break
-                        except Exception:
+                        except (ImportError, RuntimeError, KeyError):
                             continue
                 elif system == "Darwin":
                     for font_name in ["STSong-Light", "STHeiti"]:
@@ -365,9 +365,9 @@ class PDFConverter:
                             normal_style.fontName = font_name
                             heading_style.fontName = font_name
                             break
-                        except Exception:
+                        except (ImportError, RuntimeError, KeyError):
                             continue
-            except Exception:
+            except (ImportError, RuntimeError, KeyError):
                 self.logger.debug("Font registration failed; using default fonts.")
 
             story = []
@@ -627,7 +627,7 @@ class DoclingConverter:
                     )
                 }
             )
-        except Exception:
+        except (ImportError, RuntimeError):
             self.converter = DocumentConverter()
 
     def convert_to_markdown(

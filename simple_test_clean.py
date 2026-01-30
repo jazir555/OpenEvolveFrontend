@@ -14,21 +14,21 @@ print("Testing imports...")
 try:
     import chromadb
     print("ChromaDB imported successfully")
-except Exception as e:  # TODO: Catch specific exception instead of Exception
+except ImportError as e:
     print(f"ChromaDB import failed: {e}")
     exit(1)
 
 try:
     from sentence_transformers import SentenceTransformer
     print("SentenceTransformers imported successfully")
-except Exception as e:  # TODO: Catch specific exception instead of Exception
+except ImportError as e:
     print(f"SentenceTransformers import failed: {e}")
     exit(1)
 
 try:
     from ace_steer_integration import AceSteerBridge
     print("ACE+Steer integration imported successfully")
-except Exception as e:  # TODO: Catch specific exception instead of Exception
+except ImportError as e:
     print(f"ACE+Steer import failed: {e}")
     exit(1)
 
@@ -61,7 +61,7 @@ with tempfile.TemporaryDirectory() as temp_dir:
         # Clean up
         client.delete_collection("test_collection")
         
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, ValueError, RuntimeError) as e:
         print(f"ChromaDB test failed: {e}")
         exit(1)
 
@@ -85,7 +85,7 @@ try:
     assert "all_passed" in verification
     print("ACE+Steer bridge works - verification successful")
     
-except Exception as e:  # TODO: Catch specific exception instead of Exception
+except (IOError, ValueError, RuntimeError, AttributeError) as e:
     print(f"ACE+Steer test failed: {e}")
     exit(1)
 
@@ -136,7 +136,7 @@ try:
         
         kb.close()
         
-except Exception as e:  # TODO: Catch specific exception instead of Exception
+except (IOError, ValueError, RuntimeError, AttributeError) as e:
     print(f"Custom components test failed: {e}")
     import traceback
     traceback.print_exc()

@@ -257,7 +257,7 @@ class ProblemClassifier:
             try:
                 self.llm_client = OpenEvolveClient()
                 self.logger.info("Initialized OpenEvolve client for problem classification")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 self.logger.warning(f"Failed to initialize LLM client: {e}")
                 self.enable_llm = False
 
@@ -310,7 +310,7 @@ class ProblemClassifier:
                 classification = self._classify_with_llm(problem, domain_context)
                 self.classification_stats['llm_success'] += 1
                 return classification
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 self.classification_stats['llm_failure'] += 1
                 self.logger.warning(f"LLM classification failed: {e}")
 
@@ -370,7 +370,7 @@ class ProblemClassifier:
             # Convert to ProblemClassification
             return self._create_classification_from_llm(classification_data)
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError, json.JSONDecodeError) as e:
             self.logger.error(f"LLM classification error: {e}", exc_info=True)
             raise RuntimeError(f"LLM classification failed: {e}")
 
@@ -416,7 +416,7 @@ class ProblemClassifier:
                 )
 
                 return result.best_code
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 self.logger.warning(f"Direct OpenEvolve API call failed: {e}")
 
         raise RuntimeError("No LLM query method available")

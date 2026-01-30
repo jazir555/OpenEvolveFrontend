@@ -486,7 +486,7 @@ class OneKESchemaManager:
                     "new_version": schema.version,
                     "correlation_id": correlation_id
                 })
-            except Exception:
+            except (TypeError, ValueError, AttributeError):
                 pass
 
         # Save schema
@@ -679,7 +679,7 @@ class OneKESchemaManager:
                     "source": "file",
                     "path": str(schema_file)
                 })
-            except Exception:
+            except (TypeError, ValueError, AttributeError):
                 pass
 
         return schemas

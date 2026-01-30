@@ -190,7 +190,7 @@ class TeamCapabilityAssessor:
 
             return capability
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             self.logger.error(f"Error assessing team capability: {e}", exc_info=True)
             # Return low-capability default
             return TeamCapability(
@@ -223,7 +223,7 @@ class TeamCapabilityAssessor:
             try:
                 capability = self.assess_team_capability(team, sub_problem)
                 capabilities[team.name] = capability
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (AttributeError, TypeError, ValueError) as e:
                 self.logger.error(
                     f"Error assessing team {team.name}: {e}",
                     exc_info=True
@@ -317,7 +317,7 @@ class TeamCapabilityAssessor:
             if metrics and 'avg_fitness' in metrics:
                 # Normalize fitness to 0-1 range
                 return min(1.0, max(0.0, metrics['avg_fitness']))
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (KeyError, AttributeError, TypeError) as e:
             self.logger.debug(f"Could not get historical success rate: {e}")
 
         # Default to neutral if no data
@@ -338,7 +338,7 @@ class TeamCapabilityAssessor:
                 # Could be enhanced with actual active task count
                 workload = min(1.0, total_ops / 100.0)
                 return workload
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (KeyError, AttributeError, TypeError) as e:
             self.logger.debug(f"Could not assess workload: {e}")
 
         return 0.0  # No data = assume available
@@ -393,7 +393,7 @@ class TeamCapabilityAssessor:
                 performances.append(min(1.0, max(0.0, fitness)))
 
             return performances
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (KeyError, AttributeError, TypeError) as e:
             self.logger.debug(f"Could not get recent performance: {e}")
 
         return []
@@ -403,7 +403,7 @@ class TeamCapabilityAssessor:
         try:
             metrics = self.team_manager.aggregate_team_metrics(team_name)
             return metrics.get('total_operations', 0)
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (KeyError, AttributeError, TypeError) as e:
             self.logger.debug(f"Could not get total assignments: {e}")
             return 0
 
@@ -522,7 +522,7 @@ class TeamAssignmentEngine:
 
             return assignment
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             self.logger.error(
                 f"Error assigning teams to sub-problem {sub_problem.id}: {e}",
                 exc_info=True
@@ -582,7 +582,7 @@ class TeamAssignmentEngine:
 
             return decomposition_plan
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             self.logger.error(
                 f"Error assigning teams to plan: {e}",
                 exc_info=True
@@ -617,7 +617,7 @@ class TeamAssignmentEngine:
 
             return capability.calculate_overall_capability()
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             self.logger.error(f"Error calculating assignment confidence: {e}")
             return 0.0
 
@@ -820,7 +820,7 @@ class TeamPerformanceTracker:
                     data = json.load(f)
                     self.logger.info(f"Loaded performance data from {self.storage_path}")
                     return data
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, json.JSONDecodeError) as e:
             self.logger.error(f"Error loading performance data: {e}", exc_info=True)
 
         return {
@@ -839,7 +839,7 @@ class TeamPerformanceTracker:
             with open(self.storage_path, 'w') as f:
                 json.dump(self.performance_data, f, indent=2)
                 self.logger.debug(f"Saved performance data to {self.storage_path}")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError) as e:
             self.logger.error(f"Error saving performance data: {e}", exc_info=True)
 
     def record_assignment(
@@ -893,7 +893,7 @@ class TeamPerformanceTracker:
                 f"sub_problem={sub_problem_id}"
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (KeyError, TypeError, AttributeError) as e:
             self.logger.error(f"Error recording assignment: {e}", exc_info=True)
 
     def record_outcome(
@@ -955,7 +955,7 @@ class TeamPerformanceTracker:
                 f"quality={quality_score:.2f}"
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (KeyError, TypeError, AttributeError) as e:
             self.logger.error(f"Error recording outcome: {e}", exc_info=True)
 
     def get_team_performance_stats(self, team_id: str) -> Dict[str, Any]:
@@ -1021,7 +1021,7 @@ class TeamPerformanceTracker:
                 'last_assigned': team_data.get('last_assigned')
             }
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (KeyError, TypeError, AttributeError) as e:
             self.logger.error(f"Error getting team performance stats: {e}", exc_info=True)
             return {'error': str(e)}
 
@@ -1070,7 +1070,7 @@ class TeamPerformanceTracker:
 
             return rankings
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (KeyError, TypeError, AttributeError) as e:
             self.logger.error(f"Error getting team ranking: {e}", exc_info=True)
             return []
 
@@ -1108,6 +1108,6 @@ class TeamPerformanceTracker:
                 'metadata': self.performance_data.get('metadata', {})
             }
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (KeyError, TypeError, AttributeError) as e:
             self.logger.error(f"Error getting performance summary: {e}", exc_info=True)
             return {}

@@ -237,7 +237,7 @@ class OpenEvolveBubbleLabsIntegration:
             for callback in self.event_callbacks[event_type]:
                 try:
                     callback(data)
-                except Exception as e:
+                except (ValueError, TypeError, RuntimeError, AttributeError) as e:
                     print(f"Error in event callback: {e}")
 
     def create_workflow_definition(self,
@@ -763,7 +763,7 @@ class OpenEvolveBubbleLabsIntegration:
                 "execution_time": workflow_state.execution_time
             })
             
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, KeyError) as e:
             workflow_state.status = WorkflowStatus.FAILED.value
             workflow_state.error_message = str(e)
             

@@ -142,7 +142,7 @@ class ConfigUtilVerifier:
 
             return 'MIGRATION NOTICE' in content_sample and 'CrewAI (AGPL) → CrewAI (MIT)' in content_sample
 
-        except Exception:
+        except (OSError, IOError, UnicodeDecodeError):
             return False
 
     def verify_file(self, file_path: str) -> FileVerificationResult:

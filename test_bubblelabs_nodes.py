@@ -42,7 +42,7 @@ async def main():
                         logger.warning(f"  - Internal component missing for {node_type}")
                 else:
                     logger.error(f"Failed to instantiate node: {node_type}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, TypeError, AttributeError, ImportError) as e:
                 logger.error(f"Error instantiating {node_type}: {e}")
     else:
         logger.error("Plugin does not have list_supported_nodes method")

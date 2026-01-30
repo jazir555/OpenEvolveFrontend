@@ -84,7 +84,7 @@ class SemanticDecomposition(DecompositionStrategyBase):
             try:
                 self.openevolve_client = OpenEvolveClient()
                 logger.info("OpenEvolve client initialized for semantic decomposition")
-            except Exception as e:
+            except (RuntimeError, ConnectionError, OSError) as e:
                 logger.warning(f"Failed to instantiate OpenEvolve client: {e}", exc_info=True)
                 self.openevolve_client = None
         elif not OPENEVOLVE_AVAILABLE:
@@ -337,7 +337,7 @@ Begin decomposition:"""
                 
                 logger.debug(f"Parsed sub-problem {sp_number}: {title} (Type: {sp_type.value}, Priority: {priority}, Effort: {effort}h)")
                 
-            except Exception as e:
+            except (ValueError, IndexError, AttributeError) as e:
                 logger.warning(f"Failed to parse sub-problem section {section_idx}: {e}")
                 continue
         
@@ -352,7 +352,7 @@ Begin decomposition:"""
                     sub_problem.dependencies = [id_map[n] for n in dep_numbers if n in id_map]
                     if sub_problem.dependencies:
                         logger.debug(f"Sub-problem '{sub_problem.title}' depends on {len(sub_problem.dependencies)} other(s)")
-                except Exception as e:
+                except (ValueError, IndexError, KeyError) as e:
                     logger.debug(f"Failed to parse dependencies '{dep_str}': {e}")
             final_sub_problems.append(sub_problem)
         
@@ -571,7 +571,7 @@ Provide dependencies for all {len(sub_problems)} sub-problems:"""
             except (ValueError, IndexError) as e:
                 logger.warning(f"Failed to parse dependency line '{line}'. Skipping this dependency. Error: {e}", exc_info=True)
                 continue
-            except Exception as e:
+            except (TypeError, AttributeError) as e:
                 logger.error(f"An unexpected error occurred while parsing dependency line '{line}'. Skipping this dependency. Error: {e}", exc_info=True)
                 continue
         
@@ -805,7 +805,7 @@ Provide 2-3 splits:"""
                 id_map[split_num] = sp_id
                 split_sps.append((split_sp, deps_str))
 
-            except Exception as e:
+            except (ValueError, IndexError, AttributeError) as e:
                 logger.debug(f"Failed to parse split section: {e}")
                 continue
 
@@ -984,7 +984,7 @@ class HybridDecomposition(DecompositionStrategyBase):
                     if not split_sps or len(split_sps) < 2:
                         raise ValueError("LLM splitting returned insufficient sub-problems in hybrid mode.")
                     balanced.extend(split_sps)
-                except Exception as e:
+                except (RuntimeError, ValueError, AttributeError) as e:
                     logger.error(f"LLM-based splitting failed in hybrid mode: {e}")
                     # In hybrid mode, we might choose to keep the complex sub-problem instead of failing
                     logger.warning(f"Could not split complex sub-problem {sp.title}, retaining original.")
@@ -1030,7 +1030,7 @@ class HybridDecomposition(DecompositionStrategyBase):
                 optimized.append(optimized_sp)
             
             return optimized
-        except Exception as e:
+        except (RuntimeError, ValueError, AttributeError) as e:
             logger.error(f"An error occurred during dependency optimization: {e}", exc_info=True)
             # Fallback: return original sub-problems if optimization fails
             return sub_problems
@@ -1249,7 +1249,7 @@ class DecompositionEngine:
                 )
                 granular_complexity = self.complexity_classifier.compute_complexity(adaptive_sp)
                 self.logger.info(f"Granular complexity analysis: score={granular_complexity.overall_score:.3f}")
-            except Exception as e:
+            except (RuntimeError, ValueError, AttributeError) as e:
                 self.logger.error(f"Granular complexity calculation failed: {e}")
 
         # Step 2: Fallback to LLM or Heuristics
@@ -1263,7 +1263,7 @@ class DecompositionEngine:
                     return strategy
                 else:
                     self.logger.warning(f"LLM returned an unknown strategy: {strategy}. Falling back to heuristic.")
-            except Exception as e:
+            except (RuntimeError, ConnectionError, TimeoutError) as e:
                 self.logger.error(f"Failed to call LLM for strategy selection: {e}")
         
         # Step 3: Heuristic selection based on complexity

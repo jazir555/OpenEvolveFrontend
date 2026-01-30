@@ -116,7 +116,7 @@ def execute_phase_1_setup(
             "message": f"Phase 1 complete: ROMA analysis finished ({len(decomposition_plan.sub_problems)} sub-problems)",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Phase 1 failed: {e}")
         return {
             "phase": 1,
@@ -368,7 +368,7 @@ def execute_phase_2_solve(
             "message": f"Phase 2 complete: {len(solutions)} solutions generated",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Phase 2 failed: {e}")
         return {
             "phase": 2,
@@ -461,7 +461,7 @@ def execute_phase_3_critique(
             "message": f"Phase 3 complete (fallback mode)",
             "fallback_used": True,
         }
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"Phase 3 critique error: {e}")
         return {
             "phase": 3,
@@ -566,7 +566,7 @@ def execute_phase_4_verify(
             "message": f"Phase 4 complete (fallback mode)",
             "fallback_used": True,
         }
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"Phase 4 verification error: {e}")
         return {
             "phase": 4,
@@ -723,7 +723,7 @@ def execute_phase_5_reassemble(
             "message": f"Phase 5 complete (fallback mode - {e})",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, ImportError) as e:
         logger.error(f"Phase 5 reassembly error: {e}")
         # Emergency fallback
         aggregated = "\n\n".join([
@@ -902,7 +902,7 @@ Format your response as JSON:
             "message": f"Phase 6 complete (fallback mode - {e})",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, ImportError) as e:
         logger.error(f"Phase 6 validation error: {e}")
         # Emergency fallback
         return {

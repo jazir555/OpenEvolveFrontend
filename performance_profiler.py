@@ -165,7 +165,7 @@ class PerformanceProfiler:
             try:
                 source_file = inspect.getsourcefile(f) or ""
                 line_number = inspect.getsourcelines(f)[1]
-            except Exception:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, TypeError):
                 source_file = ""
                 line_number = 0
 

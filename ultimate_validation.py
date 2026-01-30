@@ -188,7 +188,7 @@ class UltimateValidator:
                     self.results['files_failed'] += 1
                     continue
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, PermissionError) as e:
                 issue = {
                     'file': str(file.relative_to(self.root_dir)),
                     'issue': f'Cannot read file: {e}',
@@ -245,7 +245,7 @@ class UltimateValidator:
                 syntax_errors.append(error)
                 self.results['issues_found'].append(error)
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, UnicodeDecodeError) as e:
                 error = {
                     'file': str(file.relative_to(self.root_dir)),
                     'error': str(e),
@@ -327,10 +327,10 @@ class UltimateValidator:
                                     'severity': 'MEDIUM'
                                 })
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, SyntaxError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
-                logger.warning(f"Continuing after error", exc_info=True)
+                logger.warning(f"Continuing after error: {e}", exc_info=True)
                 continue
 
         # Check for evolution imports without guards
@@ -387,10 +387,10 @@ class UltimateValidator:
                         'severity': 'MEDIUM'
                     })
 
-            except Exception:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, SyntaxError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
-                logger.warning(f"Continuing after error", exc_info=True)
+                logger.warning(f"Continuing after error: {e}", exc_info=True)
                 continue
 
         return issues
@@ -463,7 +463,7 @@ class UltimateValidator:
                                 'content': line.strip(),
                                 'pattern': pattern_spec['name']
                             })
-                except Exception:  # TODO: Catch specific exception instead of Exception
+                except (re.error, ValueError):
                     import logging
                     logger = logging.getLogger(__name__)
                     logger.warning(f"Continuing after error", exc_info=True)
@@ -552,10 +552,10 @@ class UltimateValidator:
                         if node.module:
                             graph[module_name].add(node.module)
 
-            except Exception:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, SyntaxError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
-                logger.warning(f"Continuing after error", exc_info=True)
+                logger.warning(f"Continuing after error: {e}", exc_info=True)
                 continue
 
         # Check for cycles (simplified check)
@@ -667,10 +667,10 @@ class UltimateValidator:
                                     'severity': 'LOW'
                                 })
 
-            except Exception:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, SyntaxError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
-                logger.warning(f"Continuing after error", exc_info=True)
+                logger.warning(f"Continuing after error: {e}", exc_info=True)
                 continue
 
         check_results['issues'] = issues
@@ -756,7 +756,7 @@ class UltimateValidator:
                 'severity': 'MEDIUM'
             })
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, subprocess.SubprocessError) as e:
             print(f" [WARN] Could not run tests: {e}")
             check_results['passed'] = True  # Don't fail if tests can't run
             check_results['details']['error'] = str(e)
@@ -817,7 +817,7 @@ class UltimateValidator:
                             })
                             break  # Only report once per file per pattern
 
-                except Exception:  # TODO: Catch specific exception instead of Exception
+                except (re.error, ValueError):
                     import logging
                     logger = logging.getLogger(__name__)
                     logger.warning(f"Continuing after error", exc_info=True)
@@ -909,7 +909,7 @@ class UltimateValidator:
                                 'content': line.strip()[:100]
                             })
 
-                except Exception:  # TODO: Catch specific exception instead of Exception
+                except (re.error, ValueError):
                     import logging
                     logger = logging.getLogger(__name__)
                     logger.warning(f"Continuing after error", exc_info=True)
@@ -978,10 +978,10 @@ class UltimateValidator:
                         if ast.get_docstring(node):
                             classes_with_docstrings += 1
 
-            except Exception:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, SyntaxError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
-                logger.warning(f"Continuing after error", exc_info=True)
+                logger.warning(f"Continuing after error: {e}", exc_info=True)
                 continue
 
         check_results['issues'] = doc_issues

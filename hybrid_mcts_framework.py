@@ -877,7 +877,7 @@ class HybridMCTSWithLeanAide:
             try:
                 proof = extract_proof_func(individual)
                 proofs.append(proof)
-            except Exception:
+            except (ValueError, TypeError, AttributeError):
                 proofs.append(None)
 
         # Verify in batch

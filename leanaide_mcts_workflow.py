@@ -677,7 +677,7 @@ class MCTSWorkflowIntegrator:
 
             return solution
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"MCTS solution failed for {sub_problem_id}: {e}")
             progress.errors.append(str(e))
             progress.status = "failed"
@@ -1024,7 +1024,7 @@ class MCTSWorkflowIntegrator:
 
             self.ace_manager.store_artifact(artifact)
             logger.info(f"Stored MCTS pattern for {sub_problem.id} in knowledge base")
-        except Exception as e:
+        except (IOError, AttributeError, KeyError, ValueError) as e:
             logger.error(f"Failed to store MCTS pattern: {e}")
 
     def configure_mcts_from_workflow(self, state: WorkflowState) -> MCTSWorkflowConfig:

@@ -262,7 +262,7 @@ def commit_to_github(
 
             if file_response.status_code == 200:
                 file_sha = file_response.json()["sha"]
-        except Exception:
+        except (requests.RequestException, KeyError):
             # File doesn\'t exist, which is fine
             logger.debug("GitHub file lookup failed; assuming new file.")
 
@@ -513,7 +513,7 @@ def save_protocol_generation_to_github(
                     create_github_branch(
                         token, repo_name, branch_name, repo_info["default_branch"]
                     )
-            except Exception:
+            except (requests.RequestException, KeyError):
                 # Create the branch if it doesn't exist
                 create_github_branch(
                     token, repo_name, branch_name, repo_info["default_branch"]

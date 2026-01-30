@@ -232,7 +232,7 @@ class ContinuousMathBridge:
                 computation_time=computation_time
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, RuntimeError) as e:
             logger.error(f"Integration failed: {e}")
             raise
 
@@ -333,7 +333,7 @@ class ContinuousMathBridge:
                 computation_time=computation_time
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, RuntimeError) as e:
             logger.error(f"ODE solving failed: {e}")
             raise
 
@@ -398,7 +398,7 @@ class ContinuousMathBridge:
                 verification_status="computed"
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, RuntimeError) as e:
             logger.error(f"Limit computation failed: {e}")
             raise
 
@@ -433,7 +433,7 @@ class ContinuousMathBridge:
 
             return min(error_bound, abs(computed_value) * epsilon + epsilon)
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, RuntimeError) as e:
             logger.warning(f"Error bound computation failed: {e}")
             return abs(computed_value) * epsilon + epsilon
 
@@ -487,7 +487,7 @@ class ContinuousMathBridge:
                             # δ too large, reduce it
                             delta = delta / 2
                             break
-                    except Exception as e:  # TODO: Catch specific exception instead of Exception
+                    except (ValueError, TypeError, RuntimeError) as e:
                         delta = delta / 2
                         import logging
                         logger = logging.getLogger(__name__)
@@ -496,7 +496,7 @@ class ContinuousMathBridge:
 
             return delta
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, RuntimeError) as e:
             logger.warning(f"δ computation failed: {e}, using epsilon")
             return epsilon
 
@@ -533,7 +533,7 @@ theorem {theorem_name} : ∫ (x : ℝ) in set.Icc {a} {b}, ({integrand}) = {valu
                 logger.warning(f"Lean proof elaboration failed: {result.error}")
                 return None
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"Lean proof generation failed: {e}")
             return None
 
@@ -571,7 +571,7 @@ theorem {theorem_name} :
             else:
                 return None
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"ODE proof generation failed: {e}")
             return None
 
@@ -606,7 +606,7 @@ theorem {theorem_name} :
             else:
                 return None
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"Convergence proof generation failed: {e}")
             return None
 
@@ -650,7 +650,7 @@ theorem {theorem_name} :
             else:
                 return None
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"Limit proof generation failed: {e}")
             return None
 
@@ -664,7 +664,7 @@ theorem {theorem_name} :
             else:
                 return f"failed: {result.error}"
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             return f"error: {e}"
 
 

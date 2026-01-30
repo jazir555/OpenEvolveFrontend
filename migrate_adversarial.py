@@ -163,7 +163,7 @@ def create_new_config_from_old(old_config_path: str) -> Optional[Dict[str, Any]]
     except json.JSONDecodeError as e:
         logger.error(f"Invalid JSON in configuration file: {e}")
         return None
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, ValueError, TypeError) as e:
         logger.error(f"Error migrating configuration: {e}")
         return None
 
@@ -271,7 +271,7 @@ async def validate_migration(
 
         logger.info("✓ Old system executed successfully")
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ImportError, ValueError) as e:
         validation["old_system"]["error"] = str(e)
         logger.warning(f"Old system failed: {e}")
 
@@ -302,7 +302,7 @@ async def validate_migration(
 
         logger.info("✓ New system executed successfully")
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ImportError, ValueError) as e:
         validation["new_system"]["error"] = str(e)
         logger.warning(f"New system failed: {e}")
 
@@ -353,7 +353,7 @@ def step_1_backup_old_code() -> bool:
         print(f"\n✓ Backup completed: {backup_dir}")
         return True
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, OSError, PermissionError) as e:
         print(f"  ✗ Backup failed: {e}")
         return False
 
@@ -534,7 +534,7 @@ For questions or issues, refer to:
         print(f"  ✓ Migration guide generated: {output_path}")
         return True
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, OSError, PermissionError) as e:
         print(f"  ✗ Failed to generate guide: {e}")
         return False
 

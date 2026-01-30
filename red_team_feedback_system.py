@@ -38,7 +38,7 @@ if ROMA_MDAP_MAKER_AVAILABLE:
         # Use SSOT validation preset for standardized high-reliability config
         _config = get_validation_config()
         robust_engine = ROMAMDAPMakerAssociativeEngine(_config)
-    except Exception:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, RuntimeError, ValueError):
         import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Error in {__name__}", exc_info=True)
@@ -304,7 +304,7 @@ Be thorough and critical. Your goal is to find problems that could cause this so
                         elif "```" in response:
                             response = response.split("```")[1].split("```")[0].strip()
                         json.loads(response)
-                except Exception:  # TODO: Catch specific exception instead of Exception
+                except (json.JSONDecodeError, TypeError, ValueError):
                     response = None
 
             # Fallback to direct call

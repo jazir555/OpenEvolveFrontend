@@ -171,7 +171,7 @@ class Constraint:
                 self.is_satisfied = is_valid
                 self.satisfaction_score = 1.0 if is_valid else 0.0
                 return is_valid, self.satisfaction_score
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError) as e:
                 logger.warning(f"Constraint validation failed: {e}")
                 return False, 0.0
         return True, 1.0
@@ -1262,7 +1262,7 @@ class ComprehensiveDecompositionEngine:
                 try:
                     plan = future.result()
                     plans.append(plan)
-                except Exception as e:
+                except (RuntimeError, ValueError, TypeError) as e:
                     logger.error(f"Failed to decompose problem {problem.id}: {e}")
         
         return plans

@@ -433,7 +433,7 @@ class LeanAideCrewAIBridge:
                 execution_time=time.time() - start_time
             )
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"Phase 1 failed: {e}")
             self._update_workflow(workflow_id, "failed", {"error": str(e)})
 
@@ -559,7 +559,7 @@ theorem {hash(mathematical_statement) % 1000000}:=
                     execution_time=time.time() - start_time
                 )
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"Phase 2 failed: {e}")
             self._update_workflow(workflow_id, "failed", {"error": str(e)})
 
@@ -634,7 +634,7 @@ theorem {hash(mathematical_statement) % 1000000}:=
                 execution_time=time.time() - start_time
             )
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"Phase 3 failed: {e}")
             self._update_workflow(workflow_id, "failed", {"error": str(e)})
 
@@ -734,7 +734,7 @@ theorem {hash(mathematical_statement) % 1000000}:=
                 execution_time=time.time() - start_time
             )
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"Phase 4 failed: {e}")
             self._update_workflow(workflow_id, "failed", {"error": str(e)})
 
@@ -846,7 +846,7 @@ Check if the code is syntactically correct and would pass Lean 4 elaboration.
                     execution_time=time.time() - start_time
                 )
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"Phase 5 failed: {e}")
             self._update_workflow(workflow_id, "failed", {"error": str(e)})
 
@@ -972,7 +972,7 @@ Check if the code is syntactically correct and would pass Lean 4 elaboration.
                 execution_time=time.time() - start_time
             )
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"Phase 6 failed: {e}")
             self._update_workflow(workflow_id, "failed", {"error": str(e)})
 
@@ -1077,7 +1077,7 @@ Check if the code is syntactically correct and would pass Lean 4 elaboration.
 
             return results
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"Full workflow failed: {e}")
             results["workflow_success"] = False
             results["error"] = str(e)

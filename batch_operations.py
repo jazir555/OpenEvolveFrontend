@@ -505,5 +505,5 @@ def batch_evolve_solutions(problems: List[str], api_key: str) -> List[Dict[str, 
             results.append(result)
         
         return results
-    except Exception as e:
+    except (ImportError, ConnectionError, TimeoutError, ValueError) as e:
         return [{'error': str(e)} for _ in problems]

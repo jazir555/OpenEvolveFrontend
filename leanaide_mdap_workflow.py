@@ -554,7 +554,7 @@ class LeanMDAPWorkflowIntegrator:
 
             return result
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"Task {task.task_id} failed: {e}")
 
             # Update agent status
@@ -972,7 +972,7 @@ class LeanMakerWorkflowIntegrator:
                 # Fallback: direct MAKER-style voting
                 return await self._direct_maker_solve(sub_problem)
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"MAKER failed for {sub_problem.id}: {e}", exc_info=True)
 
             # Fallback
@@ -1257,7 +1257,7 @@ class LeanHybridIntegrator:
             # Medium complexity: start with MAKER, fall back to MDAP if needed
             try:
                 return await self.solve_with_maker_and_mdap(sub_problem)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 logger.warning(f"MAKER approach failed: {e}, falling back to MDAP")
                 return await self.solve_with_mdap_then_maker(sub_problem)
 
@@ -1607,7 +1607,7 @@ if __name__ == "__main__":
             print("  Configuration added to workflow state")
             print()
 
-        except Exception as e:
+        except (ImportError, AttributeError, ValueError) as e:
             print(f"  Convenience test skipped: {e}")
             print()
 

@@ -990,7 +990,7 @@ class DirectVoter(LeanTacticVoter):
                     voter_type=self.voter_type,
                     proof_state_hash=state.hash
                 )
-        except Exception as e:
+        except (IOError, ConnectionError, TimeoutError, ValueError) as e:
             logger.warning(f"LeanAide vote failed: {e}")
 
         # Fallback
@@ -1543,7 +1543,7 @@ class LeanMakerEngine:
                     terminated_reason = TerminationReason.TIME_LIMIT
                     break
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"MAKER error: {e}", exc_info=True)
             self.metrics["errors"] += 1
             terminated_reason = TerminationReason.ERROR
@@ -1607,7 +1607,7 @@ class LeanMakerEngine:
             try:
                 vote = voter.vote(state)
                 votes.append(vote)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError) as e:
                 logger.error(f"Voter {voter.voter_id} failed: {e}")
 
         return votes
@@ -1693,7 +1693,7 @@ class LeanMakerEngine:
                 json.dump(checkpoint_data, f, indent=2)
 
             logger.debug(f"Checkpoint saved to {path}")
-        except Exception as e:
+        except (IOError, OSError, TypeError) as e:
             logger.error(f"Failed to save checkpoint: {e}")
 
     def load_checkpoint(self, path: str) -> Optional[Dict[str, Any]]:
@@ -1704,7 +1704,7 @@ class LeanMakerEngine:
 
             logger.info(f"Checkpoint loaded from {path}")
             return data
-        except Exception as e:
+        except (IOError, OSError, json.JSONDecodeError) as e:
             logger.error(f"Failed to load checkpoint: {e}")
             return None
 
@@ -1756,7 +1756,7 @@ def solve_lean_proof_with_maker(
         try:
             leanaide_client = LeanAideClient()
             leanaide_client.config.base_url = config.leanaide_url
-        except Exception as e:
+        except (IOError, ConnectionError, ValueError) as e:
             logger.warning(f"Failed to initialize LeanAide: {e}")
 
     # Create engine

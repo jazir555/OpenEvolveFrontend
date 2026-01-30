@@ -277,7 +277,7 @@ class WorkflowHistoryManager:
                     wf_date = datetime.fromisoformat(workflow.created_at)
                     if wf_date >= cutoff_date:
                         recent_workflows.append(workflow)
-                except:
+                except (ValueError, TypeError, AttributeError):
                     # If date parsing fails, include the workflow
                     recent_workflows.append(workflow)
             else:

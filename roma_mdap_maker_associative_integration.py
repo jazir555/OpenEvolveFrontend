@@ -532,10 +532,17 @@ class ROMAMDAPMakerAssociativeEngine:
 
             return result
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError, KeyError) as e:
             logger.error(f"Error in solve_problem: {e}", exc_info=True)
             return {
                 "error": str(e),
+                "problem": problem,
+                "phase": "unknown"
+            }
+        except Exception as e:
+            logger.critical(f"Unexpected error in solve_problem: {e}", exc_info=True)
+            return {
+                "error": f"Unexpected error: {str(e)}",
                 "problem": problem,
                 "phase": "unknown"
             }
@@ -732,7 +739,7 @@ class ROMAMDAPMakerAssociativeEngine:
                 }
                 logger.info(f"Evaluator Verdict: {evaluation.final_verdict} (Score: {evaluation.consensus_score:.1f})")
                 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, AttributeError) as e:
                 logger.error(f"Evaluator Team assessment failed: {e}", exc_info=True)
                 evaluator_result = {"error": str(e)}
 
@@ -773,7 +780,7 @@ class ROMAMDAPMakerAssociativeEngine:
                     
                     logger.info(f"Gauntlet Result: {'PASSED' if gauntlet_result.get('passed') else 'FAILED'} (Score: {gauntlet_result.get('final_score', 0.0):.2f})")
                 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, KeyError) as e:
                 logger.error(f"Gauntlet System run failed: {e}", exc_info=True)
                 gauntlet_result = {"error": str(e)}
 
@@ -946,7 +953,7 @@ class ROMAMDAPMakerAssociativeEngine:
             )
 
             return response or ""
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"LLM call failed: {e}")
             return json.dumps({
                 "error": str(e),

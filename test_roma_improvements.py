@@ -143,7 +143,7 @@ def main():
         
         logger.info("All tests passed! ROMA MDAP MAKER improvements are working correctly.")
         
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError, AttributeError, ImportError) as e:
         logger.error(f"Test failed with error: {e}")
         import traceback
         traceback.print_exc()

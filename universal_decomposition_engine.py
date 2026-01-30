@@ -540,7 +540,7 @@ Dependencies:"""
             # In real implementation, would call llm_client.generate(prompt)
             return self._apply_heuristic_dependencies(sub_problems, problem)
             
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError) as e:
             self.logger.warning(f"LLM dependency analysis failed: {e}")
             return None
     

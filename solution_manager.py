@@ -561,7 +561,7 @@ class SolutionManager:
                 warnings.extend(
                     [f"[{validator_name}] {warning}" for warning in custom_result.warnings]
                 )
-            except Exception as e:
+            except (ValueError, TypeError, RuntimeError, AttributeError) as e:
                 logger.error(f"Custom validator {validator_name} failed: {e}")
                 warnings.append(f"Custom validator {validator_name} failed to execute")
 

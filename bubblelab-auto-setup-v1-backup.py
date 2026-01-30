@@ -131,7 +131,7 @@ class EnvironmentValidator:
             )
             Logger.success("pip is available")
             return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (subprocess.SubprocessError, FileNotFoundError, OSError) as e:
             Logger.error(f"pip not available: {e}")
             self.errors.append("pip not available")
             return False
@@ -143,7 +143,7 @@ class EnvironmentValidator:
             test_file.touch()
             test_file.unlink()
             return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, PermissionError) as e:
             Logger.error(f"Directory not writable: {directory}")
             self.errors.append(f"Cannot write to {directory}")
             return False
@@ -197,7 +197,7 @@ class DependencyInstaller:
             Logger.error(f"✗ {package} (timeout)")
             self.failed.append(package)
             return False
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (subprocess.SubprocessError, OSError) as e:
             Logger.error(f"✗ {package} ({e})")
             self.failed.append(package)
             return False
@@ -253,7 +253,7 @@ class DirectoryCreator:
                 Logger.success(f"✓ {directory} (created)")
                 self.created.append(directory)
                 return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, PermissionError) as e:
             Logger.error(f"✗ {directory} ({e})")
             return False
 
@@ -311,14 +311,14 @@ class BubbleLabClient:
             # Try to list flows (lightweight endpoint)
             self._request('GET', '/bubble-flow?limit=1')
             return True, "Connection successful"
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError) as e:
             return False, str(e)
 
     def get_system_status(self) -> Dict:
         """Get BubbleLab system status"""
         try:
             return self._request('GET', '/')
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, ValueError) as e:
             return {}
             import logging
             logger = logging.getLogger(__name__)
@@ -329,7 +329,7 @@ class BubbleLabClient:
         try:
             result = self._request('GET', '/credentials')
             return result.get('credentials', [])
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, ValueError) as e:
             return []
             import logging
             logger = logging.getLogger(__name__)
@@ -512,7 +512,7 @@ export class HealthCheckWorkflow extends BubbleFlow<'schedule/cron'> {
             Logger.success("✓ bubblelab-workflows/health-check.ts (example)")
 
             return True
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, PermissionError) as e:
             Logger.error(f"Failed to generate configurations: {e}")
             return False
 
@@ -596,7 +596,7 @@ class SetupOrchestrator:
                 else:
                     Logger.error(f"✗ API connection failed: {message}")
                     Logger.warning("Setup will continue but API features won't work until fixed")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ConnectionError, TimeoutError, RuntimeError) as e:
                 Logger.warning(f"⚠️  Could not validate API: {e}")
                 Logger.info("This is OK if BubbleLab is not running yet")
         else:
@@ -649,7 +649,7 @@ class SetupOrchestrator:
             else:
                 Logger.error("✗ Configuration file not found")
                 tests_passed = False
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, yaml.YAMLError) as e:
             Logger.error(f"✗ Configuration test failed: {e}")
             tests_passed = False
 
@@ -787,7 +787,7 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         Logger.warning("\n\n⚠️  Setup interrupted by user")
         sys.exit(130)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, OSError) as e:
         Logger.error(f"\n\n💥 Fatal error: {e}")
         import traceback
         Logger.detail(traceback.format_exc())

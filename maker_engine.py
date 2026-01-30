@@ -255,13 +255,13 @@ class MakerEngine:
         if schema is not None and schema.get("type") in ("object", "array"):
             try:
                 return json.loads(stripped)
-            except Exception as exc:
+            except (json.JSONDecodeError, TypeError) as exc:
                 logger.warning("Failed to parse JSON candidate: %s", exc)
                 return {"raw": raw_text, "parse_error": str(exc)}
         if stripped.startswith("{") or stripped.startswith("["):
             try:
                 return json.loads(stripped)
-            except Exception:
+            except (json.JSONDecodeError, TypeError):
                 return stripped
         return stripped
 
@@ -292,7 +292,7 @@ class MakerEngine:
     def _decode_vote(self, vote_key: str) -> Any:
         try:
             return json.loads(vote_key)
-        except Exception:
+        except (json.JSONDecodeError, TypeError):
             return vote_key
 
     def _best_effort_action(self, votes: Dict[str, int]) -> Optional[Any]:

@@ -423,7 +423,7 @@ class TestJWTAuthentication(unittest.TestCase):
                 jwt_secret='test_secret_key_12345'
             )
             self.jwt_available = True
-        except Exception:
+        except (ImportError, ValueError, RuntimeError):
             self.jwt_available = False
 
     def tearDown(self):

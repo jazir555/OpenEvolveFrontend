@@ -185,7 +185,7 @@ def solve_with_roma(
             "token_usage": token_usage,
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Failed to solve with ROMA: {e}")
         return {
             "error": str(e),
@@ -345,7 +345,7 @@ def analyze_with_roma(
             },
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"Failed to analyze with ROMA: {e}")
         return {
             "error": str(e),
@@ -418,7 +418,7 @@ Solution:
             },
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"Failed to verify with ROMA: {e}")
         return {
             "error": str(e),
@@ -493,7 +493,7 @@ Identify:
             },
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"Failed to critique with ROMA: {e}")
         return {
             "error": str(e),
@@ -634,7 +634,7 @@ def _create_roma_config(
 
         return config
 
-    except Exception as e:
+    except (RuntimeError, ValueError, ImportError) as e:
         logger.error(f"Failed to create ROMA config: {e}")
         return None
 

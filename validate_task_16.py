@@ -10,7 +10,14 @@ from typing import Dict, List, Tuple
 
 # Fix Windows console encoding
 if sys.platform == 'win32':
-    os.system('chcp 65001 > nul')
+    # SECURITY FIX: Use subprocess with shell=False to prevent command injection
+    import subprocess
+    try:
+        subprocess.run(['chcp', '65001'], shell=False, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    except Exception as e:
+        # Log the specific error for debugging
+        import logging
+        logging.exception(f"Error setting console encoding: {e}")
     sys.stdout.reconfigure(encoding='utf-8')
     sys.stderr.reconfigure(encoding='utf-8')
 

@@ -1012,7 +1012,7 @@ class LeanProofEvaluator:
                 )
                 strategy.proof.verification_result = result
                 strategy.verified = result.success
-            except Exception as e:
+            except (IOError, ConnectionError, TimeoutError, ValueError) as e:
                 logger.error(f"Verification failed: {e}")
                 strategy.verified = False
                 result = None
@@ -1327,7 +1327,7 @@ class LeanProofEvolutionEngine:
 
             return result
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"Evolution failed: {e}", exc_info=True)
             return EvolutionResult(
                 success=False,
@@ -1362,7 +1362,7 @@ class LeanProofEvolutionEngine:
             try:
                 search_strategies = await self._create_search_based_strategies()
                 strategies.extend(search_strategies)
-            except Exception as e:
+            except (IOError, ConnectionError, TimeoutError, ValueError) as e:
                 logger.warning(f"Proof search failed: {e}")
 
         # Fill rest with random strategies
@@ -1849,7 +1849,7 @@ class LeanProofEvolutionEngineMCTS(LeanProofEvolutionEngine):
 
             return result
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"MCTS-enhanced evolution failed: {e}", exc_info=True)
             return EvolutionResult(
                 success=False,
@@ -2150,7 +2150,7 @@ async def seed_population_with_mdap_mcts(
                 population.append(strategy)
                 logger.info(f"Generated seed {i+1}/{size}: fitness={strategy.fitness:.4f}")
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.warning(f"Failed to generate seed {i}: {e}")
             continue
 
@@ -2302,7 +2302,7 @@ class LeanProofEvolutionEngineMDAP(LeanProofEvolutionEngineMCTS):
 
             return result
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"MDAP+MCTS evolution failed: {e}", exc_info=True)
             return EvolutionResult(
                 success=False,
@@ -2821,7 +2821,7 @@ class LeanProofEvolutionEngineMDAPFull(LeanProofEvolutionEngineMDAP):
 
             return result
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"MDAP-mode evolution failed: {e}", exc_info=True)
             return EvolutionResult(
                 success=False,

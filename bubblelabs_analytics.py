@@ -211,11 +211,11 @@ class BubbleLabsAnalytics:
                     # Test connection health with simple query
                     try:
                         conn.execute("SELECT 1")
-                    except Exception as e:
+                    except (sqlite3.Error, IOError, OSError) as e:
                         logger.warning(f"Pooled connection is invalid, creating new one: {e}")
                         try:
                             conn.close()
-                        except Exception:
+                        except (sqlite3.Error, IOError, OSError):
                             pass
                         conn = None
                 # CRITICAL FIX: Don't release lock yet - we're still in atomic section
@@ -1257,7 +1257,7 @@ class BubbleLabsAnalytics:
         """
         try:
             self.stop_cleanup_thread()
-        except Exception:
+        except (RuntimeError, AttributeError):
             pass  # Ignore errors during destruction
 
 

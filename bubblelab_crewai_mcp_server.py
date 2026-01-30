@@ -99,7 +99,7 @@ class MCPServer:
             try:
                 result = await self.execute_tool(tool_name, params)
                 return {"result": result, "success": True}
-            except Exception as e:
+            except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Error executing tool {tool_name}: {e}")
                 return {"error": str(e), "success": False}
         
@@ -113,7 +113,7 @@ class MCPServer:
                 crew = await self.create_crew_from_spec(body)
                 self.crews[crew_id] = crew
                 return {"crew_id": crew_id, "status": "created"}
-            except Exception as e:
+            except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Error creating crew: {e}")
                 return {"error": str(e), "success": False}
         
@@ -129,7 +129,7 @@ class MCPServer:
             try:
                 result = await self.execute_crew_by_id(crew_id, inputs)
                 return {"result": result, "success": True}
-            except Exception as e:
+            except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Error executing crew {crew_id}: {e}")
                 return {"error": str(e), "success": False}
     
@@ -222,8 +222,8 @@ class MCPServer:
                 custom_config=params
             )
             return result
-        except Exception as e:
-            raise Exception(f"Failed to create agent: {str(e)}")
+        except (ValueError, TypeError, KeyError) as e:
+            raise RuntimeError(f"Failed to create agent: {str(e)}") from e
     
     async def _create_crewai_task(self, params: Dict[str, Any]):
         """Create a CrewAI task."""
@@ -235,8 +235,8 @@ class MCPServer:
                 task_params=params
             )
             return result
-        except Exception as e:
-            raise Exception(f"Failed to create task: {str(e)}")
+        except (ValueError, TypeError, KeyError) as e:
+            raise RuntimeError(f"Failed to create task: {str(e)}") from e
 
     async def _execute_crewai_crew(self, params: Dict[str, Any]):
         """Execute a CrewAI crew."""
@@ -259,8 +259,8 @@ class MCPServer:
                 "crew_id": crew_id,
                 "message": "Crew executed successfully"
             }
-        except Exception as e:
-            raise Exception(f"Failed to execute crew: {str(e)}")
+        except (RuntimeError, ConnectionError, TimeoutError) as e:
+            raise RuntimeError(f"Failed to execute crew: {str(e)}") from e
 
     async def _delegate_to_crewai(self, params: Dict[str, Any]):
         """Delegate a complex task to CrewAI for orchestration."""
@@ -290,8 +290,8 @@ class MCPServer:
                 "crew_id": result["crew_id"],
                 "message": "Task delegated to CrewAI and executed successfully"
             }
-        except Exception as e:
-            raise Exception(f"Failed to delegate task: {str(e)}")
+        except (RuntimeError, ConnectionError, TimeoutError) as e:
+            raise RuntimeError(f"Failed to delegate task: {str(e)}") from e
     
     async def create_crew_from_spec(self, spec: Dict[str, Any]):
         """Create a crew from specification."""
@@ -303,8 +303,8 @@ class MCPServer:
 
             result = await self.crewai_service.create_crew(agents, tasks, config)
             return result
-        except Exception as e:
-            raise Exception(f"Failed to create crew from spec: {str(e)}")
+        except (ValueError, TypeError, KeyError) as e:
+            raise RuntimeError(f"Failed to create crew from spec: {str(e)}") from e
 
     async def execute_crew_by_id(self, crew_id: str, inputs: Dict[str, Any]):
         """Execute a crew by its ID."""
@@ -312,8 +312,8 @@ class MCPServer:
             # Use the integration layer to execute the crew
             result = await self.crewai_service.execute_crew(crew_id, inputs)
             return result
-        except Exception as e:
-            raise Exception(f"Failed to execute crew {crew_id}: {str(e)}")
+        except (RuntimeError, ConnectionError, TimeoutError) as e:
+            raise RuntimeError(f"Failed to execute crew {crew_id}: {str(e)}") from e
     
     def run(self, host: str = "0.0.0.0", port: int = 8003):
         """Run the MCP server."""

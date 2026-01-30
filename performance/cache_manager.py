@@ -211,7 +211,7 @@ class CacheManager:
                 value = self.redis_client.get(full_key)
                 if value is not None:
                     return json.loads(value)
-            except Exception:
+            except (redis.RedisError, json.JSONDecodeError, TypeError):
                 pass
 
         # Fall back to memory cache
@@ -239,7 +239,7 @@ class CacheManager:
             try:
                 serialized = json.dumps(value)
                 self.redis_client.setex(full_key, int(ttl), serialized)
-            except Exception:
+            except (redis.RedisError, json.JSONDecodeError, TypeError):
                 pass
 
     def delete(self, key: str, component: str = "default") -> None:
@@ -251,7 +251,7 @@ class CacheManager:
         if self.use_redis and self.redis_client:
             try:
                 self.redis_client.delete(full_key)
-            except Exception:
+            except (redis.RedisError, TypeError):
                 pass
 
     def invalidate_constraint(self, constraint_id: str) -> None:
@@ -277,7 +277,7 @@ class CacheManager:
                     self.redis_client.delete(key)
                 for key in self.redis_client.scan_iter(f"{constraint_id}:*"):
                     self.redis_client.delete(key)
-            except Exception:
+            except (redis.RedisError, TypeError):
                 pass
 
     def invalidate_batch(self, keys: List[str], component: str = "default") -> None:
@@ -292,7 +292,7 @@ class CacheManager:
         if self.use_redis and self.redis_client:
             try:
                 self.redis_client.flushdb()
-            except Exception:
+            except (redis.RedisError, TypeError):
                 pass
 
     def get_stats(self) -> Dict:
@@ -310,7 +310,7 @@ class CacheManager:
                     "hits": info.get("keyspace_hits", 0),
                     "misses": info.get("keyspace_misses", 0),
                 }
-            except Exception:
+            except (redis.RedisError, TypeError):
                 pass
 
         return stats

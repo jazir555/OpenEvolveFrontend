@@ -71,7 +71,7 @@ def test_adapter_creation():
             "status": "success",
             "statistics": stats
         }
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ValueError, TypeError, ImportError) as e:
         logger.error(f"❌ Adapter creation failed: {e}")
         return False, {
             "test": "adapter_creation",
@@ -124,7 +124,7 @@ def test_output_validation():
             "pii_filter": result3.is_valid,
             "pii_remediation": result3.remediation_applied
         }
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ValueError, TypeError, ImportError) as e:
         logger.error(f"❌ Output validation failed: {e}")
         return False, {
             "test": "output_validation",
@@ -177,7 +177,7 @@ def test_mdap_engine_integration():
             "reasons": reasons,
             "statistics": stats
         }
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ValueError, TypeError, ImportError, AttributeError) as e:
         logger.error(f"❌ MDAP engine integration failed: {e}")
         import traceback
         traceback.print_exc()
@@ -217,7 +217,7 @@ def test_remediation_strategies():
                     "remediation_applied": result.remediation_applied
                 }
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ValueError, TypeError, AttributeError) as e:
                 results[strategy] = {
                     "error": str(e)
                 }
@@ -231,7 +231,7 @@ def test_remediation_strategies():
             "status": "success",
             "strategies": results
         }
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ValueError, TypeError, ImportError) as e:
         logger.error(f"❌ Remediation strategies test failed: {e}")
         return False, {
             "test": "remediation_strategies",
@@ -301,7 +301,7 @@ def test_custom_validators():
             "malicious_output_valid": result2.is_valid,
             "malicious_failures": result2.failures
         }
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ValueError, TypeError, ImportError) as e:
         logger.error(f"❌ Custom validators test failed: {e}")
         return False, {
             "test": "custom_validators",
@@ -340,7 +340,7 @@ def test_graceful_degradation():
             "guardrails_validations": stats['guardrails_validations'],
             "degraded_mode_working": True
         }
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ValueError, TypeError, ImportError, AttributeError) as e:
         logger.error(f"❌ Graceful degradation test failed: {e}")
         return False, {
             "test": "graceful_degradation",
@@ -371,7 +371,7 @@ def main():
         try:
             success, result = test()
             results.append(result)
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, ImportError, RuntimeError) as e:
             logger.error(f"Test crashed: {e}")
             import traceback
             traceback.print_exc()

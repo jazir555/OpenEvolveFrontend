@@ -155,7 +155,7 @@ class PayloadTransformer:
             for key, value in payload.items():
                 result = result.replace(f"{{{key}}}", str(value))
             return json.loads(result)
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, json.JSONDecodeError) as e:
             logger.error(f"Template transformation failed: {e}")
             return payload
 
@@ -168,7 +168,7 @@ class PayloadTransformer:
             for key in keys:
                 result = result.get(key, {})
             return result if isinstance(result, dict) else {"value": result}
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, AttributeError) as e:
             logger.error(f"Path transformation failed: {e}")
             return payload
 
@@ -312,7 +312,7 @@ class WebhookManager:
                         self._rate_limiters[webhook.id] = RateLimiter(webhook.rate_limit)
 
                 logger.info(f"Loaded {len(self._webhooks)} webhooks from storage")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, json.JSONDecodeError, TypeError) as e:
                 logger.error(f"Failed to load webhooks: {e}")
 
     def _save_webhooks(self) -> None:
@@ -334,7 +334,7 @@ class WebhookManager:
             with open(storage_file, 'w') as f:
                 json.dump(data, f, indent=2, default=str)
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError) as e:
             logger.error(f"Failed to save webhooks: {e}")
 
     def register_webhook(self, webhook: WebhookConfig) -> bool:
@@ -477,7 +477,7 @@ class WebhookManager:
         for future in as_completed(futures):
             try:
                 future.result()
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, requests.RequestException) as e:
                 logger.error(f"Webhook delivery failed: {e}")
 
     def _deliver_webhook(
@@ -632,7 +632,7 @@ class WebhookManager:
             with open(delivery_file, 'w') as f:
                 json.dump(data, f, indent=2, default=str)
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError) as e:
             logger.error(f"Failed to save deliveries: {e}")
 
     def get_webhook(self, webhook_id: str) -> Optional[WebhookConfig]:

@@ -1526,7 +1526,7 @@ class DecompositionStrategyExecutor:
                 f"Invalid strategy name: {strategy}. "
                 f"Must be one of: {[s.value for s in SovereignDecompositionStrategy]}"
             )
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             self.logger.error(f"Strategy execution failed: {e}")
             raise RuntimeError(f"Decomposition failed: {str(e)}")
 
@@ -1758,7 +1758,7 @@ if __name__ == "__main__":
         print("\nSub-problems:")
         for i, sp in enumerate(hybrid_plan.sub_problems, 1):
             print(f"  {i}. {sp.title} (confidence: {sp.confidence:.2f})")
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         print(f"HYBRID decomposition failed: {e}")
 
     # Test 3: ROMA Decomposition
@@ -1775,7 +1775,7 @@ if __name__ == "__main__":
             print(f"  {i}. {sp.title} (confidence: {sp.confidence:.2f})")
         if len(roma_plan.sub_problems) > 5:
             print(f"  ... and {len(roma_plan.sub_problems) - 5} more")
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         print(f"ROMA decomposition failed: {e}")
 
     # Test 4: SEMANTIC Decomposition
@@ -1790,7 +1790,7 @@ if __name__ == "__main__":
         print("\nSub-problems:")
         for i, sp in enumerate(semantic_plan.sub_problems, 1):
             print(f"  {i}. {sp.title} (confidence: {sp.confidence:.2f})")
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         print(f"SEMANTIC decomposition failed: {e}")
 
     # Test 5: Auto-Selection
@@ -1803,7 +1803,7 @@ if __name__ == "__main__":
         print(f"Auto-selected Plan ID: {auto_plan.plan_id}")
         print(f"Sub-problems: {len(auto_plan.sub_problems)}")
         print(f"Execution Order: {len(auto_plan.execution_order)} steps")
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         print(f"Auto-selection execution failed: {e}")
 
     print("\n" + "=" * 80)

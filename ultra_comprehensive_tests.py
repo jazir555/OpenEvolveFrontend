@@ -1046,7 +1046,7 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
                     # Either it should fail safely or succeed but with sanitized title
                     # The important thing is that no SQL was executed
                     self.assertTrue(result is not False)  # Should not return False for injection issues
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     # If it throws an exception during validation, that's also acceptable
                     pass
                 
@@ -1137,7 +1137,7 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
                     self.assertNotIn("../", safe_name)
                     self.assertNotIn("..\\", safe_name)
                     self.assertNotIn("etc/passwd", safe_name)
-                except Exception:
+                except (ValueError, TypeError, RuntimeError, OSError):
                     # Exception during path handling is also acceptable for malicious input
                     pass
     
@@ -1179,7 +1179,7 @@ class TestAdvancedSecurityScenarios(unittest.TestCase):
                     )
                     # Result should be safe to use (either sanitized or rejected)
                     self.assertIsNotNone(validated)
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     # Exception is acceptable for malicious input
                     pass
 

@@ -1069,7 +1069,7 @@ Provide a resolution strategy and explain your reasoning."""
             # response = self.llm_client.generate(prompt)
             conflict.resolution_strategy = ResolutionStrategy.LLM_MEDIATED
             return True, "LLM-mediated resolution applied"
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError) as e:
             return False, f"LLM mediation failed: {e}"
 
 
@@ -1293,7 +1293,7 @@ class SemanticCoherenceValidator:
                         similarities.append(sim)
                 
                 return sum(similarities) / len(similarities) if similarities else 0.5
-            except Exception as e:
+            except (RuntimeError, ValueError, ImportError) as e:
                 logger.warning(f"Embedding calculation failed: {e}")
         
         # Fallback to keyword-based

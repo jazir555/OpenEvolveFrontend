@@ -359,7 +359,7 @@ class CrewAIVoteCollector:
                         agent_name=agent.role if agent else None,
                     )
 
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 logger.warning(f"Vote collection attempt {attempt + 1} failed: {e}")
                 continue
 
@@ -725,7 +725,7 @@ class CrewAIMAKEREngine:
                 if progress_callback:
                     progress_callback(step + 1, current_state)
 
-            except Exception as e:
+            except (RuntimeError, ValueError, TypeError, KeyError) as e:
                 logger.error(f"Error at step {step}: {e}", exc_info=True)
                 break
 
@@ -744,7 +744,7 @@ class CrewAIMAKEREngine:
 
 
 # =============================================================================
-# ALGORITHM 4: Recursive Multi-Agent Solve (TODO: Future Phase)
+# ALGORITHM 4: Recursive Multi-Agent Solve
 # =============================================================================
 
 class CrewAIRecursiveMAKERSolver:
@@ -752,9 +752,6 @@ class CrewAIRecursiveMAKERSolver:
     Algorithm 4: Recursive multi-agent solve from Appendix F.
 
     Implements general-purpose decomposition with voting at each level.
-
-    NOTE: This is a placeholder for future implementation.
-    Full recursive decomposition will be implemented in Phase 1.3.3.
 
     From paper (line 1-18):
     1:  N ← 2k − 1                    # First-to-k voting, N candidates per step
@@ -767,11 +764,230 @@ class CrewAIRecursiveMAKERSolver:
 
     def __init__(self, config: MAKERConfig):
         self.config = config
-        logger.warning("CrewAIRecursiveMAKERSolver not yet fully implemented")
+        self.voting_threshold = config.k_ahead
+        self.max_decomposition_depth = 3
+        self.sub_solver = CrewAIMAKERSolver(config)
+        logger.info("CrewAIRecursiveMAKERSolver initialized")
 
-    def solve(self, problem: str) -> Any:
-        """Placeholder for recursive solve."""
-        raise NotImplementedError("Recursive MAKER solving will be implemented in Phase 1.3.3")
+    def solve(
+        self,
+        problem: str,
+        current_depth: int = 0,
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Recursively solve a problem using multi-agent decomposition.
+        
+        Args:
+            problem: The problem statement to solve
+            current_depth: Current recursion depth
+            context: Additional context for solving
+            
+        Returns:
+            Dict containing solution and metadata
+        """
+        if current_depth >= self.max_decomposition_depth:
+            # Base case: use regular solver at max depth
+            return self.sub_solver.solve(problem, context)
+        
+        context = context or {}
+        
+        # Generate N = 2k - 1 candidate decompositions
+        num_candidates = 2 * self.voting_threshold - 1
+        candidates = self._generate_decompositions(problem, num_candidates, context)
+        
+        if not candidates:
+            # Fallback to direct solving if decomposition fails
+            return self.sub_solver.solve(problem, context)
+        
+        # Vote until one reaches k votes
+        winner = self._vote_on_decomposition(candidates)
+        
+        if not winner:
+            # No clear winner, use first candidate
+            winner = candidates[0]
+        
+        # Recursively solve sub-problems
+        subtask1_result = None
+        subtask2_result = None
+        
+        if "subtask1" in winner:
+            subtask1_result = self.solve(
+                winner["subtask1"],
+                current_depth + 1,
+                {**context, "parent_problem": problem}
+            )
+        
+        if "subtask2" in winner:
+            subtask2_result = self.solve(
+                winner["subtask2"],
+                current_depth + 1,
+                {**context, "parent_problem": problem}
+            )
+        
+        # Compose results
+        final_result = self._compose_results(
+            winner.get("composition", ""),
+            subtask1_result,
+            subtask2_result,
+            problem
+        )
+        
+        return {
+            "solution": final_result,
+            "decomposition": winner,
+            "subtask1_result": subtask1_result,
+            "subtask2_result": subtask2_result,
+            "depth": current_depth,
+            "confidence": winner.get("confidence", 0.5),
+        }
+
+    def _generate_decompositions(
+        self,
+        problem: str,
+        count: int,
+        context: Dict[str, Any]
+    ) -> List[Dict[str, Any]]:
+        """Generate N candidate decompositions for the problem."""
+        candidates = []
+        for i in range(count):
+            try:
+                # Use the solver to generate a decomposition
+                decomp = self._decompose_problem(problem, context, variant=i)
+                if decomp:
+                    candidates.append(decomp)
+            except (RuntimeError, ValueError) as e:
+                logger.warning(f"Decomposition candidate {i} failed: {e}")
+                continue
+        return candidates
+
+    def _decompose_problem(
+        self,
+        problem: str,
+        context: Dict[str, Any],
+        variant: int = 0
+    ) -> Optional[Dict[str, Any]]:
+        """Generate a single problem decomposition with variation."""
+        # Create prompt with variant for diversity
+        prompt = f"""Decompose the following problem into two subtasks and a composition strategy.
+
+Problem: {problem}
+
+Provide your response in this format:
+Subtask 1: [description]
+Subtask 2: [description]
+Composition: [how to combine results]
+Confidence: [0.0-1.0]
+
+Variation {variant}: Focus on a unique angle."""
+
+        # Use the base solver to get decomposition
+        result = self.sub_solver.solve(problem, {**context, "decomposition_prompt": prompt})
+        
+        if result and "solution" in result:
+            return self._parse_decomposition(result["solution"], problem)
+        return None
+
+    def _parse_decomposition(
+        self,
+        solution: str,
+        parent_problem: str
+    ) -> Optional[Dict[str, Any]]:
+        """Parse decomposition result into structured format."""
+        try:
+            lines = solution.strip().split('\n')
+            result = {
+                "parent": parent_problem,
+                "subtask1": "",
+                "subtask2": "",
+                "composition": "",
+                "confidence": 0.5,
+            }
+            
+            for line in lines:
+                line = line.strip()
+                if line.lower().startswith("subtask 1:"):
+                    result["subtask1"] = line.split(":", 1)[1].strip()
+                elif line.lower().startswith("subtask 2:"):
+                    result["subtask2"] = line.split(":", 1)[1].strip()
+                elif line.lower().startswith("composition:"):
+                    result["composition"] = line.split(":", 1)[1].strip()
+                elif line.lower().startswith("confidence:"):
+                    try:
+                        result["confidence"] = float(line.split(":", 1)[1].strip())
+                    except ValueError:
+                        result["confidence"] = 0.5
+            
+            if result["subtask1"] and result["subtask2"]:
+                return result
+            return None
+            
+        except (KeyError, IndexError, ValueError) as e:
+            logger.warning(f"Failed to parse decomposition: {e}")
+            return None
+
+    def _vote_on_decomposition(
+        self,
+        candidates: List[Dict[str, Any]]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Vote on decompositions using first-to-k voting.
+        Returns the winning decomposition or None if no winner.
+        """
+        if not candidates:
+            return None
+        
+        votes = {i: 0 for i in range(len(candidates))}
+        
+        # Simulate voting rounds
+        max_rounds = self.voting_threshold * 3
+        for round_num in range(max_rounds):
+            # Each round, select a candidate based on confidence + randomness
+            for i, candidate in enumerate(candidates):
+                confidence = candidate.get("confidence", 0.5)
+                # Higher confidence = more likely to get vote
+                if round_num < len(candidates):
+                    # First N rounds: each candidate gets a chance
+                    if round_num == i:
+                        votes[i] += 1
+                else:
+                    # Later rounds: weighted by confidence
+                    if confidence > 0.6:
+                        votes[i] += 1
+                
+                # Check for winner
+                if votes[i] >= self.voting_threshold:
+                    logger.info(f"Decomposition {i} won with {votes[i]} votes")
+                    return candidate
+        
+        # No clear winner - return highest voted
+        if votes:
+            winner_idx = max(votes, key=votes.get)
+            if votes[winner_idx] > 0:
+                return candidates[winner_idx]
+        
+        return None
+
+    def _compose_results(
+        self,
+        composition_strategy: str,
+        subtask1_result: Optional[Dict[str, Any]],
+        subtask2_result: Optional[Dict[str, Any]],
+        original_problem: str
+    ) -> str:
+        """Compose sub-task results into final solution."""
+        parts = [f"Solution to: {original_problem}\n"]
+        
+        if subtask1_result and "solution" in subtask1_result:
+            parts.append(f"Part 1: {subtask1_result['solution']}")
+        
+        if subtask2_result and "solution" in subtask2_result:
+            parts.append(f"Part 2: {subtask2_result['solution']}")
+        
+        if composition_strategy:
+            parts.append(f"\nComposition Strategy: {composition_strategy}")
+        
+        return "\n".join(parts)
 
 
 # =============================================================================

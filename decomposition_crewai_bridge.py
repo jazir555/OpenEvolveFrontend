@@ -135,7 +135,7 @@ def execute_phase_1_setup(
             "message": f"Phase 1 complete: {len(decomposition_plan.sub_problems)} sub-problems created",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Phase 1 failed: {e}")
         return {
             "phase": 1,
@@ -259,7 +259,7 @@ def execute_phase_2_solve(
             "message": f"Phase 2 complete: {len(solutions)} solutions by {team_name}",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Phase 2 failed: {e}")
         return {
             "phase": 2,

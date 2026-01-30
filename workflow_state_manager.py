@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import logging
 import json
+import sqlite3
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 from pathlib import Path
@@ -124,7 +125,7 @@ class WorkflowStateManager:
             logger.info(f"Saved checkpoint {checkpoint_id} for workflow {workflow_id}")
             return checkpoint_id
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError, AttributeError) as e:
             logger.error(f"Failed to save state: {e}", exc_info=True)
             raise
 
@@ -188,7 +189,7 @@ class WorkflowStateManager:
             logger.info(f"Loaded state {state.state_id} for workflow {workflow_id}")
             return state
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, json.JSONDecodeError, TypeError, AttributeError) as e:
             logger.error(f"Failed to load state: {e}", exc_info=True)
             return None
 
@@ -218,7 +219,7 @@ class WorkflowStateManager:
             checkpoints = self.persistence.list_checkpoints(workflow_id)
             logger.info(f"Found {len(checkpoints)} checkpoints for workflow {workflow_id}")
             return checkpoints
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError) as e:
             logger.error(f"Failed to list checkpoints: {e}", exc_info=True)
             return []
 
@@ -285,7 +286,7 @@ class WorkflowStateManager:
             logger.info(f"Rolled back workflow {workflow_id} to checkpoint {checkpoint_id}")
             return state
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError, AttributeError) as e:
             logger.error(f"Failed to rollback: {e}", exc_info=True)
             return None
 
@@ -360,7 +361,7 @@ class WorkflowStateManager:
             logger.info(f"Created branch '{branch_name}' (workflow: {branch_workflow_id}) from checkpoint {checkpoint_id}")
             return branch_workflow_id
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError, AttributeError) as e:
             logger.error(f"Failed to create branch: {e}", exc_info=True)
             return None
 
@@ -456,7 +457,7 @@ class WorkflowStateManager:
             logger.info(f"Merged branch '{branch_name}' into workflow {workflow_id} using strategy '{strategy}'")
             return merged_state
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError, AttributeError) as e:
             logger.error(f"Failed to merge branch: {e}", exc_info=True)
             return None
 
@@ -480,7 +481,7 @@ class WorkflowStateManager:
             else:
                 logger.info(f"No audit trail found for workflow {workflow_id}")
             return audit_trail
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError, AttributeError) as e:
             logger.error(f"Failed to get audit trail: {e}", exc_info=True)
             return None
 
@@ -523,7 +524,7 @@ class WorkflowStateManager:
 
             return progress
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, TypeError, AttributeError) as e:
             logger.error(f"Failed to get workflow progress: {e}", exc_info=True)
             return None
 
@@ -552,7 +553,7 @@ class WorkflowStateManager:
                     conn.close()
             else:
                 return []
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, sqlite3.Error) as e:
             logger.error(f"Failed to list workflows: {e}", exc_info=True)
             return []
 
@@ -586,6 +587,6 @@ class WorkflowStateManager:
 
             logger.info(f"Deleted workflow {workflow_id}")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError) as e:
             logger.error(f"Failed to delete workflow: {e}", exc_info=True)
             raise

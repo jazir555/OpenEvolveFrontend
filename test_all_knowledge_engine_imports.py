@@ -85,7 +85,7 @@ class ImportTestSuite:
         except ImportError as e:
             result.error = e
             result.success = False
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ImportError, AttributeError, RuntimeError) as e:
             result.error = e
             result.success = False
 

@@ -147,7 +147,7 @@ class PersistentDecompositionEngine(DecompositionEngine):
             self.logger.info(f"Decomposition complete for workflow {workflow_id}")
             return plan, workflow_id
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError) as e:
             self.logger.error(f"Decomposition failed for workflow {workflow_id}: {e}", exc_info=True)
 
             # Update state with error

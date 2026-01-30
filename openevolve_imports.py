@@ -414,7 +414,7 @@ def _initialize_imports() -> None:
     for import_func in import_functions:
         try:
             import_func()
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ImportError, ModuleNotFoundError, AttributeError, RuntimeError) as e:
             logger.warning(
                 "Unexpected error during import initialization (%s): %s",
                 import_func.__name__,

@@ -347,7 +347,7 @@ class TestSecurityEdgeCases(unittest.TestCase):
                         [self.validator.VALIDATION_RULES.MAX_LENGTH(50000)]  # Reasonable max length
                     )
                     # Should either sanitize or reject properly
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     # Exception during validation of malicious input is acceptable
                     pass
     
@@ -377,7 +377,7 @@ class TestSecurityEdgeCases(unittest.TestCase):
                 except UnicodeEncodeError:
                     # This might be expected for certain invalid encodings
                     pass
-                except Exception:
+                except (ValueError, TypeError, RuntimeError):
                     # Other exceptions for malicious encoding are acceptable
                     pass
     

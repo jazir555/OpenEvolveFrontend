@@ -231,7 +231,7 @@ def main():
                 print(f"❌ {test_name} Test FAILED")
                 failed += 1
                 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError, AttributeError) as e:
             print(f"❌ {test_name} Test FAILED with exception: {e}")
             import traceback
             traceback.print_exc()

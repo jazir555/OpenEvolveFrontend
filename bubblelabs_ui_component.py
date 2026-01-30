@@ -220,7 +220,10 @@ class BubbleLabsWorkflowUI:
                     st.session_state[session_key] = parsed
                 else:
                     st.session_state[session_key] = []
-            except:
+            except Exception as e:
+                # Log the specific error for debugging
+                import logging
+                logging.exception(f"Error in bubblelabs_ui_component parameter handling: {e}")
                 st.session_state[session_key] = default_value if default_value else []
 
         elif param_type == "dict":
@@ -241,7 +244,10 @@ class BubbleLabsWorkflowUI:
                     st.session_state[session_key] = parsed
                 else:
                     st.session_state[session_key] = {}
-            except:
+            except Exception as e:
+                # Log the specific error for debugging
+                import logging
+                logging.exception(f"Error in bubblelabs_ui_component dict parameter handling: {e}")
                 st.session_state[session_key] = default_value if default_value else {}
 
         else:  # string or unknown type

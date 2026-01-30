@@ -455,7 +455,7 @@ def guardrails_validate_output(
             "validation_time_ms": validation_time_ms,
         }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         validation_time_ms = (time.time() - start_time) * 1000
         logger.error(f"[{correlation_id}] Guardrails output validation failed: {e}", extra={
             "correlation_id": correlation_id,
@@ -563,7 +563,7 @@ def guardrails_validate_input(
             "safe_to_proceed": result.is_valid,
         }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"[{correlation_id}] Guardrails input validation failed: {e}", extra={
             "correlation_id": correlation_id,
             "error": str(e),
@@ -718,7 +718,7 @@ def guardrails_batch_validate(
             },
         }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"[{correlation_id}] Guardrails batch validation failed: {e}", extra={
             "correlation_id": correlation_id,
             "error": str(e),
@@ -836,7 +836,7 @@ def guardrails_register_validator(
                 "error": "Validator registration failed (adapter returned False)",
             }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"[{correlation_id}] Validator registration failed: {e}", extra={
             "correlation_id": correlation_id,
             "error": str(e),
@@ -993,7 +993,7 @@ def guardrails_apply_remediation(
             "error": result.error if not result.success else None,
         }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"[{correlation_id}] Remediation failed: {e}", extra={
             "correlation_id": correlation_id,
             "error": str(e),
@@ -1086,7 +1086,7 @@ def guardrails_status() -> Dict[str, Any]:
             },
         }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Failed to get Guardrails status: {e}")
         return {
             "available": True,
@@ -1179,7 +1179,7 @@ def guardrails_get_statistics() -> Dict[str, Any]:
             "total": dict(stats['total']),
         }
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Failed to get Guardrails statistics: {e}")
         return {
             "by_validator": {},

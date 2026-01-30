@@ -516,7 +516,7 @@ class MDAPMCTSExpansion(MCTSExpansion if MCTS_AVAILABLE else object):
                     config=mdap_config
                 )
                 self.agents.append(agent)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ValueError, TypeError, RuntimeError, AttributeError) as e:
                 logger.warning(f"Failed to create agent {strategy_name}: {e}")
 
     def _select_agents(self, node: MDAPMCTSNode) -> List[LeanProofAgent]:
@@ -604,7 +604,7 @@ class MDAPMCTSExpansion(MCTSExpansion if MCTS_AVAILABLE else object):
                 vote = await self._get_agent_vote(agent, node)
                 if vote:
                     votes.append(vote)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, AttributeError) as e:
                 logger.warning(f"Agent {getattr(agent, 'agent_id', 'unknown')} failed: {e}")
 
         return votes
@@ -687,7 +687,7 @@ class MDAPMCTSExpansion(MCTSExpansion if MCTS_AVAILABLE else object):
                     estimated_success=proof.confidence,
                     proof_state_hash=node.hash
                 )
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, AttributeError) as e:
             logger.warning(f"Agent {agent.agent_id} vote failed: {e}")
 
         return None
@@ -963,7 +963,7 @@ class MDAPMCTSSimulation(MCTSSimulation if MCTS_AVAILABLE else object):
                             proof_state_hash=state.hash
                         )
                     votes.append(vote)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, AttributeError) as e:
                 logger.warning(f"Voter {getattr(voter, 'voter_id', 'unknown')} failed: {e}")
 
         return votes

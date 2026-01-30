@@ -52,7 +52,7 @@ class TestDecompositionEngineFixesSimple(unittest.TestCase):
                 self.assertIsNotNone(engine.strategies, "Engine should have strategies")
                 self.assertGreater(len(engine.strategies), 0, "Engine should have strategies")
                 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ImportError, AttributeError) as e:
             self.fail(f"DecompositionEngine initialization should handle errors: {e}")
 
     def test_custom_strategy_error_handling(self):
@@ -72,7 +72,7 @@ class TestDecompositionEngineFixesSimple(unittest.TestCase):
                 with self.assertRaises((RuntimeError, ImportError)):
                     engine.use_custom_strategy(problem, {"invalid": "config"})
                     
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ImportError, AttributeError) as e:
             self.fail(f"Custom strategy error handling should work: {e}")
 
     def test_team_assignment_fallback_logic(self):
@@ -99,7 +99,7 @@ class TestDecompositionEngineFixesSimple(unittest.TestCase):
                     plan = engine.decompose(problem, assign_teams=False)
                     self.assertIsNotNone(plan, "Should work without team assignment")
                     
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ImportError, AttributeError) as e:
             self.fail(f"Team assignment fallback should work: {e}")
 
     def test_error_handling_decorators_present(self):
@@ -122,7 +122,7 @@ class TestDecompositionEngineFixesSimple(unittest.TestCase):
                           hasattr(custom_strategy_method, '__func__'),
                           "use_custom_strategy method should have error handling")
                           
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ImportError, AttributeError) as e:
             self.fail(f"Error handling decorators should be present: {e}")
 
     def test_strategy_selection_methods_exist(self):
@@ -144,7 +144,7 @@ class TestDecompositionEngineFixesSimple(unittest.TestCase):
             self.assertTrue(callable(engine.select_strategy_intelligent), 
                           "select_strategy_intelligent should be callable")
                           
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ImportError, AttributeError) as e:
             self.fail(f"Strategy selection methods should exist: {e}")
 
     def test_documentation_improvements(self):
@@ -164,7 +164,7 @@ class TestDecompositionEngineFixesSimple(unittest.TestCase):
             self.assertIn("Example", doc, "Should include example")
             self.assertIn("Raises", doc, "Should document exceptions")
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ImportError, AttributeError) as e:
             self.fail(f"Documentation improvements should be present: {e}")
 
 

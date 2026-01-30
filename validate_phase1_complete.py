@@ -47,7 +47,7 @@ def test_section(section_name: str):
             try:
                 result = func(*args, **kwargs)
                 return result
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, OSError, ValueError) as e:
                 print(f"[FAIL] CRITICAL ERROR: {e}")
                 import traceback
                 traceback.print_exc()
@@ -137,7 +137,7 @@ def validate_knowledge_artifact_schema():
 
         print("   [OK] JSON serialization works")
         passed += 1
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (TypeError, ValueError, AttributeError) as e:
         print(f"   [FAIL] JSON serialization failed: {e}")
         failed += 1
 
@@ -160,7 +160,7 @@ def validate_knowledge_artifact_schema():
 
         print("   [OK] Pickle serialization works")
         passed += 1
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (TypeError, ValueError, AttributeError) as e:
         print(f"   [FAIL] Pickle serialization failed: {e}")
         failed += 1
 
@@ -206,7 +206,7 @@ def validate_knowledge_artifact_schema():
         # Cleanup
         os.unlink(db_path)
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, PermissionError, sqlite3.Error) as e:
         print(f"   [FAIL] CRUD operations failed: {e}")
         import traceback
         traceback.print_exc()
@@ -271,7 +271,7 @@ def validate_workflow_knowledge_extractor():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] Initialization failed: {e}")
         failed += 1
 
@@ -366,7 +366,7 @@ def validate_solution_pattern_miner():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] Initialization failed: {e}")
         failed += 1
 
@@ -384,7 +384,7 @@ def validate_solution_pattern_miner():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] Feature extraction check failed: {e}")
         failed += 1
 
@@ -402,7 +402,7 @@ def validate_solution_pattern_miner():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] Dimensionality reduction check failed: {e}")
         failed += 1
 
@@ -420,7 +420,7 @@ def validate_solution_pattern_miner():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] Clustering methods check failed: {e}")
         failed += 1
 
@@ -438,7 +438,7 @@ def validate_solution_pattern_miner():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] Pattern summarization check failed: {e}")
         failed += 1
 
@@ -456,7 +456,7 @@ def validate_solution_pattern_miner():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] Similarity search check failed: {e}")
         failed += 1
 
@@ -473,7 +473,7 @@ def validate_solution_pattern_miner():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] Visualization check failed: {e}")
         failed += 1
 
@@ -508,7 +508,7 @@ def validate_team_performance_tracker():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] Initialization failed: {e}")
         failed += 1
 
@@ -525,7 +525,7 @@ def validate_team_performance_tracker():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] {e}")
         failed += 1
 
@@ -544,7 +544,7 @@ def validate_team_performance_tracker():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] {e}")
         failed += 1
 
@@ -578,7 +578,7 @@ def validate_gauntlet_effectiveness_analyzer():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] Initialization failed: {e}")
         failed += 1
 
@@ -598,7 +598,7 @@ def validate_gauntlet_effectiveness_analyzer():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] {e}")
         failed += 1
 
@@ -633,7 +633,7 @@ def validate_knowledge_graph_visualizer():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] Initialization failed: {e}")
         failed += 1
 
@@ -652,7 +652,7 @@ def validate_knowledge_graph_visualizer():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] {e}")
         failed += 1
 
@@ -670,7 +670,7 @@ def validate_knowledge_graph_visualizer():
         passed += 1
 
         os.unlink(db_path)
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, sqlite3.Error) as e:
         print(f"   [FAIL] {e}")
         failed += 1
 
@@ -709,7 +709,7 @@ def validate_integration_and_testing():
 
         print("   [OK] Test suite exists and is collectable")
         passed += 1
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, subprocess.SubprocessError) as e:
         print(f"   [FAIL] Test suite check failed: {e}")
         failed += 1
 
@@ -757,7 +757,7 @@ def main():
             passed, failed = validate_func()
             total_passed += passed
             total_failed += failed
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, ValueError) as e:
             print(f"\n[FAIL] CRITICAL ERROR in {validate_func.__name__}: {e}")
             import traceback
             traceback.print_exc()

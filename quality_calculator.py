@@ -193,7 +193,7 @@ class QualityCalculator:
 
             return metrics
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             logger.error(f"Error calculating quality: {e}", exc_info=True)
             raise
 
@@ -267,7 +267,7 @@ class QualityCalculator:
             else:
                 completeness_factors.append(0.0)
 
-        except Exception:
+        except (SyntaxError, ValueError):
             # If AST parsing fails, check for any structured content
             completeness_factors.append(0.5)
 
@@ -335,7 +335,7 @@ class QualityCalculator:
 
             return min(1.0, max(0.0, efficiency))
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError, AttributeError) as e:
             logger.error(f"Error calculating efficiency: {e}")
             return 0.5  # Return neutral score on error
 
@@ -373,7 +373,7 @@ class QualityCalculator:
 
             return min(1.0, max(0.0, maintainability))
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError, AttributeError) as e:
             logger.error(f"Error calculating maintainability: {e}")
             return 0.5  # Return neutral score on error
 
@@ -421,7 +421,7 @@ class QualityCalculator:
         """
         try:
             tree = self._parse_ast(content)
-        except Exception as e:
+        except (SyntaxError, ValueError, TypeError) as e:
             logger.warning(f"AST parsing failed, falling back to pattern analysis: {e}")
             return self._fallback_code_analysis(content)
 
@@ -475,7 +475,7 @@ class QualityCalculator:
             tree = self._parse_ast(content)
             ast_smells = self._detect_ast_code_smells(tree, content)
             smells.extend(ast_smells)
-        except Exception as e:
+        except (SyntaxError, ValueError, TypeError, AttributeError) as e:
             logger.debug(f"AST code smell detection failed: {e}")
 
         return list(set(smells))  # Remove duplicates
@@ -653,7 +653,7 @@ class QualityCalculator:
 
             return coverage
 
-        except Exception:
+        except (SyntaxError, ValueError):
             # Fallback: check for docstring patterns
             docstring_pattern = r'""".*?"""'
             matches = re.findall(docstring_pattern, content, re.DOTALL)
@@ -688,7 +688,7 @@ class QualityCalculator:
 
             return min(1.0, score)
 
-        except Exception:
+        except (SyntaxError, ValueError):
             return 0.5
 
     def _analyze_complexity(self, content: str, tree: ast.AST) -> CodeQualityAnalysis:

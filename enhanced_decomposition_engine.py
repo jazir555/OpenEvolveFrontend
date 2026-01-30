@@ -243,7 +243,7 @@ class Constraint:
                 self.is_satisfied = is_valid
                 self.satisfaction_score = score
                 return is_valid, score
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError) as e:
                 logger.warning(f"Constraint validation failed: {e}")
                 return False, 0.0
         return True, 1.0
@@ -690,7 +690,7 @@ class EnhancedDecompositionEngine:
         # Perform decomposition
         try:
             sub_problems = strategy_impl.decompose(problem)
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             self.logger.error(f"Decomposition failed: {e}")
             # Fallback to hybrid strategy
             strategy = DecompositionStrategy.HYBRID

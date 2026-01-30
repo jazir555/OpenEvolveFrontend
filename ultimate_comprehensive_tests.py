@@ -924,7 +924,7 @@ class TestSecurityHardening(unittest.TestCase):
                         # Should either sanitize, reject, or handle gracefully
                         sanitized = validator.sanitize_input(attack)
                         # If it doesn't throw an exception, the system handled it safely
-                    except Exception:
+                    except (ValueError, TypeError, RuntimeError):
                         # Throwing an exception is also acceptable as long as it doesn't crash the system
                         pass
     

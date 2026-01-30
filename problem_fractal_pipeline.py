@@ -726,7 +726,7 @@ class FractalPipelineCoordinator:
             response.raise_for_status()
             data = response.json()
             return data.get("task_id") or data.get("id")
-        except Exception as exc:  # TODO: Catch specific exception instead of Exception
+        except (requests.RequestException, IOError, ValueError) as exc:
             logger.warning("CrewAI task creation failed: %s", exc)
             return None
 
@@ -760,7 +760,7 @@ class FractalPipelineCoordinator:
                 headers={"X-API-Key": api_key, "X-Agent-ID": agent_id},
                 timeout=10,
             )
-        except Exception as exc:  # TODO: Catch specific exception instead of Exception
+        except (requests.RequestException, IOError, ValueError) as exc:
             logger.warning("CrewAI task completion failed: %s", exc)
 
         if solution_payload:
@@ -785,7 +785,7 @@ class FractalPipelineCoordinator:
                 headers={"X-API-Key": api_key, "X-Agent-ID": agent_id},
                 timeout=10,
             )
-        except Exception as exc:  # TODO: Catch specific exception instead of Exception
+        except (requests.RequestException, IOError, ValueError) as exc:
             logger.warning("CrewAI submit_result failed: %s", exc)
 
     def _fetch_CrewAI_results(self) -> List[Dict[str, Any]]:
@@ -806,7 +806,7 @@ class FractalPipelineCoordinator:
             if isinstance(data, list):
                 return data
             return []
-        except Exception as exc:  # TODO: Catch specific exception instead of Exception
+        except (requests.RequestException, IOError, ValueError) as exc:
             logger.warning("CrewAI results fetch failed: %s", exc)
             return []
 
@@ -833,7 +833,7 @@ class FractalPipelineCoordinator:
                         if agent_id:
                             return agent_id
                 time.sleep(1)
-            except Exception:  # TODO: Catch specific exception instead of Exception
+            except (requests.RequestException, IOError, ValueError):
                 time.sleep(1)
         return None
 

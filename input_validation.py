@@ -385,7 +385,7 @@ class Sanitizer:
             if parsed.scheme not in ['http', 'https']:
                 raise ValidationError('url', 'Invalid URL scheme. Only http and https are allowed.')
             return url
-        except Exception:
+        except ValueError:
             raise ValidationError('url', 'Invalid URL format.')
     
     def sanitize_dataclass(self, obj: Any) -> Any:

@@ -226,12 +226,12 @@ def evolve_content(initial_content: str,
     
     try:
         evaluator_team = EvaluatorTeam()
-    except Exception:
+    except (ImportError, RuntimeError, ConnectionError):
         print("Could not initialize EvaluatorTeam, using default evaluation")
     
     try:
         quality_assessment = QualityAssessmentEngine()
-    except Exception:
+    except (ImportError, RuntimeError, ConnectionError):
         print("Could not initialize QualityAssessmentEngine, using default evaluation")
     
     # Run evolution

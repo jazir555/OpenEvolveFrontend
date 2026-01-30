@@ -272,7 +272,7 @@ class InputValidationMechanism(QualityAssuranceMechanism):
             try:
                 rule_issues = self._apply_rule(rule, content, context)
                 issues.extend(rule_issues)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 issues.append({
                     "rule_id": rule.rule_id,
                     "severity": QualityIssueSeverity.ERROR.value,
@@ -518,7 +518,7 @@ class OutputValidationMechanism(QualityAssuranceMechanism):
                 elif rule.rule_id == "output_consistency_check":
                     metrics["consistency_score"] = self._calculate_consistency_score(content)
                     
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 issues.append({
                     "rule_id": rule.rule_id,
                     "severity": QualityIssueSeverity.ERROR.value,
@@ -895,7 +895,7 @@ class SecurityValidationMechanism(QualityAssuranceMechanism):
                 elif rule.rule_id == "security_pii_detection":
                     metrics["pii_patterns_found"] += len(rule_issues)
                     
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 issues.append({
                     "rule_id": rule.rule_id,
                     "severity": QualityIssueSeverity.ERROR.value,
@@ -1194,7 +1194,7 @@ class QualityGate:
                     if severity in self.blocking_severities:
                         blocking_issues.append(issue)
                         
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 # Create error result
                 error_result = QualityAssuranceResult(
                     rule_id=f"{mechanism.name}_error",

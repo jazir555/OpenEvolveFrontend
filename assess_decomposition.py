@@ -100,7 +100,7 @@ def test_function():
                 min_component_size=10
             )
             print(f'✅ {strategy.value}: {len(result.components)} components, quality {result.quality_score:.2f}')
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             print(f'❌ {strategy.value}: FAILED - {str(e)[:50]}')
     
     # Test reassembly
@@ -111,10 +111,10 @@ def test_function():
             result.reassembly_instructions
         )
         print(f'✅ Reassembly: quality {reassembly.quality_score:.2f}')
-    except Exception as e:
+    except (ValueError, TypeError, RuntimeError) as e:
         print(f'❌ Reassembly: FAILED - {str(e)[:50]}')
     
-except Exception as e:
+except (ImportError, RuntimeError) as e:
     print(f'❌ CRITICAL ERROR: {e}')
     import traceback
     traceback.print_exc()

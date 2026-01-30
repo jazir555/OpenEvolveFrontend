@@ -146,7 +146,7 @@ def analyze_problem_for_decomposition(
             "execution_engine": "crewai",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"[CrewAI] Problem analysis failed: {e}", exc_info=True)
         return {
             "error": str(e),
@@ -227,7 +227,7 @@ def decompose_problem_into_sub_problems(
             "execution_engine": "crewai",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"[CrewAI] Decomposition failed: {e}", exc_info=True)
         return {
             "error": str(e),
@@ -332,7 +332,7 @@ def solve_sub_problem_with_team(
                     requirements=requirements,
                     constraints=constraints,
                 )
-            except Exception as e:
+            except (RuntimeError, ValueError, TypeError) as e:
                 logger.error(f"[CrewAI] ROMA-MDAP-MAKER solve failed: {e}", exc_info=True)
                 return {
                     "error": str(e),
@@ -385,7 +385,7 @@ def solve_sub_problem_with_team(
             "execution_engine": "crewai",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"[CrewAI] Sub-problem solving failed: {e}", exc_info=True)
         return {
             "error": str(e),
@@ -466,7 +466,7 @@ def critique_solution_with_gauntlet(
             "execution_engine": "crewai",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"[CrewAI] Gauntlet critique failed: {e}", exc_info=True)
         return {
             "error": str(e),
@@ -574,7 +574,7 @@ def verify_solution_with_gauntlet(
             "execution_engine": "crewai",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"[CrewAI] Gauntlet verification failed: {e}", exc_info=True)
         return {
             "error": str(e),

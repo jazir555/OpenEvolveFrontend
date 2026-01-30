@@ -873,7 +873,7 @@ class WorkflowExtractionResult:
                 self.team_performances.clear()
             if hasattr(self, 'gauntlet_effectiveness'):
                 self.gauntlet_effectiveness.clear()
-        except Exception:
+        except (AttributeError, TypeError, RuntimeError):
             # Silently ignore errors during cleanup
             pass
 

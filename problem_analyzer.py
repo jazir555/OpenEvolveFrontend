@@ -123,7 +123,7 @@ class ProblemAnalyzer:
         
         try:
             return self._extract_domain_context_llm(problem_text)
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             self.logger.error(f"LLM-based domain context extraction failed: {e}")
             # Fall back to basic implementation
             return self._extract_domain_context_fallback(problem_text)
@@ -285,7 +285,7 @@ Be specific and precise. Use underscores for multi-word domains (e.g., machine_l
             
         try:
             return self._classify_problem_type_llm(problem_text)
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             self.logger.error(f"LLM-based problem classification failed: {e}")
             # Fall back to basic implementation
             return self._classify_problem_type_fallback(problem_text)
@@ -364,7 +364,7 @@ Provide only the classification word (e.g., RESEARCH, IMPLEMENTATION, ANALYSIS, 
             
         try:
             return self._assess_complexity_llm(problem)
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             self.logger.error(f"LLM-based complexity assessment failed: {e}")
             # Fall back to basic implementation
             return self._assess_complexity_fallback(problem)
@@ -487,22 +487,22 @@ Be precise and justify your scores based on the problem characteristics."""
             if line.startswith("Cognitive:"):
                 try:
                     cognitive = float(line.split(":", 1)[1].strip())
-                except Exception as exc:
+                except (ValueError, TypeError) as exc:
                     self.logger.debug(f"Failed to parse Cognitive score: {exc}")
             elif line.startswith("Computational:"):
                 try:
                     computational = float(line.split(":", 1)[1].strip())
-                except Exception as exc:
+                except (ValueError, TypeError) as exc:
                     self.logger.debug(f"Failed to parse Computational score: {exc}")
             elif line.startswith("Domain:"):
                 try:
                     domain = float(line.split(":", 1)[1].strip())
-                except Exception as exc:
+                except (ValueError, TypeError) as exc:
                     self.logger.debug(f"Failed to parse Domain score: {exc}")
             elif line.startswith("Integration:"):
                 try:
                     integration = float(line.split(":", 1)[1].strip())
-                except Exception as exc:
+                except (ValueError, TypeError) as exc:
                     self.logger.debug(f"Failed to parse Integration score: {exc}")
             elif line.startswith("Explanation:"):
                 explanation = line.split(":", 1)[1].strip()
@@ -537,7 +537,7 @@ Be precise and justify your scores based on the problem characteristics."""
             
         try:
             return self._identify_constraints_llm(problem_text)
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             self.logger.error(f"LLM-based constraint identification failed: {e}")
             # Fall back to basic implementation
             return self._identify_constraints_fallback(problem_text)
@@ -677,7 +677,7 @@ List ALL constraints you identify, including implicit ones:"""
                     type=type_part,
                     severity=severity
                 ))
-            except Exception as e:
+            except (ValueError, TypeError, IndexError) as e:
                 self.logger.debug(f"Failed to parse constraint line: {line} - {e}")
                 continue
         
@@ -707,7 +707,7 @@ List ALL constraints you identify, including implicit ones:"""
             
             self.logger.info(f"LLM generated {len(llm_criteria)} success criteria")
             return llm_criteria
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             self.logger.error(f"LLM-based success criteria generation failed: {e}")
             # Fall back to basic implementation
             return self._generate_criteria_fallback(problem)
@@ -840,7 +840,7 @@ Provide 3-5 criteria. Be specific and measurable."""
                 )
                 criteria.append(criterion)
                 
-            except Exception as e:
+            except (ValueError, TypeError, IndexError) as e:
                 self.logger.debug(f"Failed to parse criterion section: {e}")
                 continue
         

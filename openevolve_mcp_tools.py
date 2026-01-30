@@ -143,7 +143,7 @@ def evolve_code_with_openevolve(
             "output_dir": result.output_dir,
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, TimeoutError) as e:
         logger.error(f"Code evolution failed: {e}")
         return {
             "error": str(e),
@@ -219,7 +219,7 @@ def evolve_function_with_openevolve(
             "total_test_cases": result.metrics.get("total_tests", 0),
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, TimeoutError) as e:
         logger.error(f"Function evolution failed: {e}")
         return {
             "error": str(e),
@@ -304,6 +304,16 @@ def optimize_algorithm_with_openevolve(
             "classmethod": classmethod,
             "property": property,
         }
+        # Additional AST validation to prevent dangerous operations
+        for node in ast.walk(parsed):
+            if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                if node.func.id in ['eval', 'exec', 'compile', 'open', 'input', '__import__']:
+                    return {
+                        "error": f"Dangerous function call detected: {node.func.id}",
+                        "evolved_code": algorithm_code,
+                        "best_score": 0.0,
+                    }
+        
         code_obj = compile(parsed, "<string>", "exec")
         namespace = {"__builtins__": safe_builtins}
         exec(code_obj, namespace)
@@ -332,7 +342,7 @@ def optimize_algorithm_with_openevolve(
             "performance_improvement": result.metrics.get("performance", 0.0),
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, TimeoutError) as e:
         logger.error(f"Algorithm optimization failed: {e}")
         return {
             "error": str(e),
@@ -406,7 +416,7 @@ def discover_algorithm_with_openevolve(
             "iterations": iterations,
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, TimeoutError) as e:
         logger.error(f"Algorithm discovery failed: {e}")
         return {
             "error": str(e),
@@ -481,7 +491,7 @@ def optimize_prompt_with_openevolve(
             "improvement": result.best_score,
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, TimeoutError, IOError) as e:
         logger.error(f"Prompt optimization failed: {e}")
         return {
             "error": str(e),
@@ -546,7 +556,7 @@ def get_openevolve_status() -> Dict[str, Any]:
                 "config": True,
             },
         }
-    except Exception as e:
+    except (ImportError, ModuleNotFoundError, AttributeError) as e:
         return {
             "available": False,
             "installed": True,
@@ -578,7 +588,7 @@ def create_default_evaluator(goal: str) -> Callable:
                 timeout=10,
             )
             syntax_valid = result.returncode == 0
-        except Exception as e:
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, OSError) as e:
             return {
                 "score": 0.0,
                 "error": f"Syntax check failed: {e}",
@@ -655,7 +665,7 @@ def create_benchmark_from_description(description: str, metric: str) -> Callable
                     "runtime": duration,
                 }
 
-        except Exception as e:
+        except (AttributeError, TypeError, ValueError) as e:
             return {
                 "score": 0.0,
                 "error": str(e),
@@ -723,7 +733,7 @@ def create_problem_evaluator(description: str, constraints: List[str]) -> Callab
                 timeout=10,
                 check=True,
             )
-        except Exception:
+        except (subprocess.TimeoutExpired, subprocess.CalledProcessError, OSError):
             return {
                 "score": 0.0,
                 "syntax_error": True,
@@ -751,7 +761,7 @@ def create_problem_evaluator(description: str, constraints: List[str]) -> Callab
                 "syntax_valid": True,
             }
 
-        except Exception as e:
+        except (ImportError, ModuleNotFoundError, AttributeError, TypeError) as e:
             return {
                 "score": 0.0,
                 "error": str(e),

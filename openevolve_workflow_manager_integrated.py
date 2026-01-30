@@ -306,7 +306,7 @@ class OpenEvolveWorkflowManager:
                     workflow_definition_id=workflow_id,
                     workflow_name=workflow_state.workflow_type
                 )
-            except Exception as e:
+            except (ConnectionError, TimeoutError, ValueError, RuntimeError) as e:
                 logger.error(f"Failed to create CREWAI ticket: {e}")
 
         # Execute workflow stages
@@ -408,7 +408,7 @@ class OpenEvolveWorkflowManager:
                 }
             )
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, ConnectionError) as e:
             logger.error(f"Workflow execution failed: {e}", exc_info=True)
             execution_time = time.time() - start_time
 
@@ -492,7 +492,7 @@ class OpenEvolveWorkflowManager:
                     execution_time=1.0,
                     provider="openai"
                 )
-            except Exception as e:
+            except (ValueError, TypeError, RuntimeError, ConnectionError) as e:
                 logger.error(f"Failed to track node execution: {e}")
 
     # =========================================================================
@@ -660,7 +660,7 @@ class OpenEvolveWorkflowManager:
             for callback in self.event_callbacks[event_type]:
                 try:
                     callback(data)
-                except Exception as e:
+                except (ValueError, TypeError, RuntimeError, AttributeError) as e:
                     logger.error(f"Error in event callback: {e}")
 
     # =========================================================================

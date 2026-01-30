@@ -246,7 +246,7 @@ class ErrorCorrectionStrategy:
                 if attempt > 0:
                     logger.info(f"Retry succeeded on attempt {attempt + 1}")
                 return True, result, errors
-            except Exception as e:
+            except (RuntimeError, ValueError, TypeError, ConnectionError, TimeoutError) as e:
                 error_record = ErrorRecord(
                     error_id=str(uuid.uuid4()),
                     timestamp=datetime.utcnow(),
@@ -628,7 +628,7 @@ class ZeroErrorWorkflow:
             logger.info(f"Workflow completed successfully: {self.definition.name}")
             return result
 
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.error(f"Workflow execution failed: {e}")
 
             # Perform rollback if critical and enabled
@@ -678,7 +678,7 @@ class ZeroErrorWorkflow:
         try:
             result = await phase_func(*args, **kwargs)
             return result
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, ConnectionError, TimeoutError) as e:
             error_record = ErrorRecord(
                 error_id=str(uuid.uuid4()),
                 timestamp=datetime.utcnow(),
@@ -731,7 +731,7 @@ class ZeroErrorWorkflow:
         if self.crewai_state_manager:
             try:
                 await self.crewai_state_manager.initialize_state(self.context)
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError) as e:
                 logger.warning(f"State manager initialization failed: {e}")
 
         logger.info("Initialization complete")
@@ -779,7 +779,7 @@ class ZeroErrorWorkflow:
         if self._crewai_available and self.crewai_state_manager:
             try:
                 await self.crewai_state_manager.prepare_workflow(self.context)
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError) as e:
                 logger.warning(f"CrewAI preparation failed: {e}")
 
         logger.info("Preparation complete")
@@ -839,7 +839,7 @@ class ZeroErrorWorkflow:
                     logger.info(f"Step {step_name} completed in {duration:.2f}ms")
                     break
 
-                except Exception as e:
+                except (RuntimeError, ValueError, TypeError, ConnectionError, TimeoutError) as e:
                     step_end = datetime.utcnow()
                     duration = (step_end - step_start).total_seconds() * 1000
 

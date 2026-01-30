@@ -263,7 +263,7 @@ class ConflictDetector:
             try:
                 self.openevolve_client = OpenEvolveClient()
                 logger.info("OpenEvolve client initialized for conflict detection")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ConnectionError, TimeoutError, RuntimeError) as e:
                 logger.warning(f"Failed to instantiate OpenEvolve client: {e}")
                 self.openevolve_client = None
 
@@ -277,7 +277,7 @@ class ConflictDetector:
             try:
                 self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
                 logger.info("Sentence transformer model loaded successfully")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, RuntimeError) as e:
                 logger.warning(f"Failed to load sentence transformer model: {e}. "
                              "Falling back to Jaccard similarity.")
                 self.use_embeddings = False
@@ -314,7 +314,7 @@ class ConflictDetector:
                 self._embedding_cache[text_hash] = embedding
 
             return embedding
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError) as e:
             logger.warning(f"Failed to generate embedding: {e}")
             return None
 
@@ -335,7 +335,7 @@ class ConflictDetector:
             norm1 = np.linalg.norm(emb1)
             norm2 = np.linalg.norm(emb2)
             return dot_product / (norm1 * norm2) if norm1 > 0 and norm2 > 0 else 0.0
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError) as e:
             logger.warning(f"Failed to calculate cosine similarity: {e}")
             return 0.0
 
@@ -429,7 +429,7 @@ class ConflictDetector:
                     detected = future.result()
                     conflicts.extend(detected)
                     logger.debug(f"Parallel detection completed for {conflict_type}: {len(detected)} conflicts")
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                except (RuntimeError, ValueError) as e:
                     logger.error(f"Error in parallel {conflict_type} detection: {e}")
 
         return conflicts
@@ -733,7 +733,7 @@ class ConflictResolver:
             try:
                 self.openevolve_client = OpenEvolveClient()
                 logger.info("OpenEvolve client initialized for conflict resolution")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ConnectionError, TimeoutError, RuntimeError) as e:
                 logger.warning(f"Failed to instantiate OpenEvolve client: {e}")
                 self.openevolve_client = None
 
@@ -910,7 +910,7 @@ RATIONALE: [Why this resolution works]
             logger.info(f"LLM-mediated resolution for conflict {conflict.conflict_id}")
             return conflict
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"LLM resolution failed: {e}, falling back to priority")
             return self._resolve_by_priority(conflict, sub_solutions)
 
@@ -1027,7 +1027,7 @@ class SolutionAssembler:
                 )
                 self.roma_engine = ROMAMDAPMakerAssociativeEngine(config_roma)
                 logger.info("ROMAMDAPMakerAssociativeEngine initialized for SolutionAssembler")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ImportError, RuntimeError, ValueError) as e:
                 logger.error(f"Failed to initialize ROMA engine: {e}")
 
         logger.info("SolutionAssembler initialized")
@@ -1357,7 +1357,7 @@ class SolutionAssembler:
             logger.info(f"ROMA recomposition complete: {len(assembled_content)} chars assembled")
             return assembled_content, integration_order
 
-        except Exception as exc:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, ConnectionError) as exc:
             logger.error(f"ROMA recomposition exception: {exc}; falling back to hierarchical assembly")
             return self._assemble_hierarchical(plan, sub_solutions)
 
@@ -1440,7 +1440,7 @@ class SolutionAssembler:
 
             structure_plan = self._parse_structure_plan(structure_result.get("result", ""))
 
-        except Exception as exc:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, ConnectionError) as exc:
             logger.error(f"ROMA structure planning exception: {exc}; falling back to hierarchical assembly")
             return self._assemble_hierarchical(plan, sub_solutions)
 
@@ -2033,7 +2033,7 @@ Begin recomposition now:"""
                 )
             else:
                 logger.info("CREWAI recomposition task created")
-        except Exception as exc:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as exc:
             logger.warning("CREWAI recomposition task creation error: %s", exc)
 
     def _build_dependency_graph(self, sub_problems: List[SubProblem]) -> Dict[str, List[str]]:

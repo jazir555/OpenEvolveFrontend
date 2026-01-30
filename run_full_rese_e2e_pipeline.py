@@ -164,7 +164,7 @@ def run_stage1_concept_generation(tracker: PipelineExecutionTracker) -> Dict[str
         tracker.record_stage("stage1_concept_generation", result)
         return result
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         error_msg = f"Stage 1 failed: {str(e)}"
         tracker.add_error("stage1", error_msg)
         return {"stage_status": "failed", "error": error_msg}
@@ -238,7 +238,7 @@ def run_stage2_knowledge_retrieval(tracker: PipelineExecutionTracker, stage1_res
         tracker.record_stage("stage2_knowledge_retrieval", result)
         return result
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         error_msg = f"Stage 2 failed: {str(e)}"
         tracker.add_error("stage2", error_msg)
         return {"stage_status": "failed", "error": error_msg}
@@ -340,7 +340,7 @@ def run_stage3_knowledge_integration(tracker: PipelineExecutionTracker,
         tracker.record_stage("stage3_knowledge_integration", result)
         return result
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         error_msg = f"Stage 3 failed: {str(e)}"
         tracker.add_error("stage3", error_msg)
         return {"stage_status": "failed", "error": error_msg}
@@ -409,7 +409,7 @@ def run_stage4_solution_design(tracker: PipelineExecutionTracker,
         tracker.record_stage("stage4_solution_design", result)
         return result
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         error_msg = f"Stage 4 failed: {str(e)}"
         tracker.add_error("stage4", error_msg)
         return {"stage_status": "failed", "error": error_msg}
@@ -480,7 +480,7 @@ def run_stage5_solution_generation(tracker: PipelineExecutionTracker,
             cost_str = str(v).strip('$').split(' ')[0]
             try:
                 bom_cost += float(cost_str)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ValueError, TypeError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.error(f"Error in run_full_rese_e2e_pipeline.py: {e}", exc_info=True)
@@ -491,7 +491,7 @@ def run_stage5_solution_generation(tracker: PipelineExecutionTracker,
         tracker.record_stage("stage5_solution_generation", result)
         return result
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         error_msg = f"Stage 5 failed: {str(e)}"
         tracker.add_error("stage5", error_msg)
         return {"stage_status": "failed", "error": error_msg}
@@ -573,7 +573,7 @@ def run_stage6_preliminary_validation(tracker: PipelineExecutionTracker,
         tracker.record_stage("stage6_preliminary_validation", result)
         return result
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         error_msg = f"Stage 6 failed: {str(e)}"
         tracker.add_error("stage6", error_msg)
         return {"stage_status": "failed", "error": error_msg}
@@ -670,7 +670,7 @@ def run_stage7_refinement(tracker: PipelineExecutionTracker,
         tracker.record_stage("stage7_refinement", result)
         return result
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         error_msg = f"Stage 7 failed: {str(e)}"
         tracker.add_error("stage7", error_msg)
         return {"stage_status": "failed", "error": error_msg}
@@ -750,7 +750,7 @@ def run_stage8_final_validation(tracker: PipelineExecutionTracker,
         tracker.record_stage("stage8_final_validation", result)
         return result
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         error_msg = f"Stage 8 failed: {str(e)}"
         tracker.add_error("stage8", error_msg)
         return {"stage_status": "failed", "error": error_msg}
@@ -888,7 +888,7 @@ def run_stage9_output_generation(tracker: PipelineExecutionTracker,
         tracker.record_stage("stage9_output_generation", result)
         return result
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError) as e:
         error_msg = f"Stage 9 failed: {str(e)}"
         tracker.add_error("stage9", error_msg)
         return {"stage_status": "failed", "error": error_msg}
@@ -978,7 +978,7 @@ def run_full_pipeline():
 
         pipeline_status = "SUCCESS"
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError) as e:
         print(f"\n[ERROR] Pipeline execution failed: {e}")
         pipeline_status = "FAILED"
 

@@ -35,7 +35,7 @@ except ImportError:
             def wrapper(*args, **kwargs):
                 try:
                     return func(*args, **kwargs)
-                except Exception as e:
+                except (ValueError, TypeError, RuntimeError, AttributeError) as e:
                     print(f"Error in {func.__name__}: {e}")
                     return fallback_value
             return wrapper

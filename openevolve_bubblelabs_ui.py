@@ -276,7 +276,7 @@ class OpenEvolveBubbleLabsUI:
 
         except ValueError as e:
             st.error(f"❌ Error creating workflow: {e}")
-        except Exception as e:
+        except (TypeError, RuntimeError) as e:
             st.error(f"❌ Unexpected error: {e}")
 
     # =========================================================================
@@ -415,7 +415,7 @@ class OpenEvolveBubbleLabsUI:
                         with st.expander("Error Details"):
                             st.code(result.error)
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             st.error(f"❌ Error executing workflow: {e}")
             st.exception(e)
 

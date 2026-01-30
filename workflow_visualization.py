@@ -32,7 +32,7 @@ class OpenEvolveVisualizer:
         """
         Render a visual representation of the workflow graph.
         """
-        st.subheader("_workflow_state.workflow_type.capitalize()} Workflow Graph")
+        st.subheader(f"{workflow_state.workflow_type.capitalize()} Workflow Graph")
         
         # Define the workflow stages based on the workflow type
         if workflow_state.workflow_type == "evolution":

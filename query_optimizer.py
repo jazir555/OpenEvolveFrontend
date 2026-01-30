@@ -177,12 +177,12 @@ class ConnectionPool:
                     self._closed += 1
                 except sqlite3.Error as close_err:
                     logger.error(f"Error closing unhealthy connection {conn_id}: {close_err}")
-            except Exception as e:
+            except (sqlite3.Error, IOError, OSError) as e:
                 logger.error(f"Unexpected error checking connection {conn_id} health: {type(e).__name__}: {e}")
                 try:
                     conn.close()
                     self._closed += 1
-                except Exception:
+                except (sqlite3.Error, IOError, OSError):
                     pass
 
     def _create_connection(self) -> sqlite3.Connection:
@@ -710,7 +710,7 @@ class QueryOptimizer:
             # Estimate size
             try:
                 result_bytes = len(str(result).encode())
-            except Exception:
+            except (TypeError, UnicodeEncodeError):
                 result_bytes = 1024  # Default estimate
 
             # Check if we need to evict entries

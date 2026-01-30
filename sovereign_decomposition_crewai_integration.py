@@ -182,7 +182,7 @@ class SovereignDecompositionCrewAIIntegration:
             logger.info(f"Initialized Sovereign-Grade workflow {workflow_state.workflow_id} in CrewAI")
             return True
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Error initializing sovereign workflow: {e}")
             return False
 
@@ -272,7 +272,7 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
 
             return task_id
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to create task for sub-problem {sub_problem.id}: {e}")
             return None
 
@@ -303,7 +303,7 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
 
             return True  # Return True if no dependencies to set
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to create task dependencies: {e}")
             return False
 
@@ -364,7 +364,7 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
 
             return success
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to sync solution to CrewAI task: {e}")
             return False
 
@@ -408,7 +408,7 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
 
             return success
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to sync critique to CrewAI task: {e}")
             return False
 
@@ -452,7 +452,7 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
 
             return success
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to sync verification to CrewAI task: {e}")
             return False
 
@@ -507,7 +507,7 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
 
             return success
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to sync solution status to CrewAI task: {e}")
             return False
 
@@ -536,7 +536,7 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
             logger.info(f"Closed workflow in CrewAI for {workflow_state.workflow_id}")
             return True
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to close workflow in CrewAI: {e}")
             return False
 
@@ -618,7 +618,7 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
             logger.info(f"Extracted metrics from CrewAI for workflow {workflow_id}")
             return metrics
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to extract metrics from CrewAI: {e}")
             return {}
 
@@ -649,7 +649,7 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
 
             logger.info(f"Updated OpenEvolve workflow with CrewAI feedback for {workflow_state.workflow_id}")
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to update OpenEvolve with CrewAI feedback: {e}")
 
     # ========================================================================
@@ -694,7 +694,7 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
 
             return False
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to trigger self-healing from agent discoveries: {e}")
             return False
 
@@ -782,7 +782,7 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
 
             return None
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to initialize MDAP for sub-problem {sub_problem.id}: {e}")
             return None
 
@@ -857,7 +857,7 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
 
             return None
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Failed to initialize MAKER for sub-problem {sub_problem.id}: {e}")
             return None
 

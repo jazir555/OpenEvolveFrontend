@@ -182,7 +182,7 @@ class OpenEvolveLeanAideBridge:
             
             logger.info("LeanAIDE autoformalization engine initialized successfully")
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ImportError, ConnectionError, TimeoutError, ValueError) as e:
             logger.error(f"Failed to initialize LeanAIDE engine: {e}")
             self.autoformalization_engine = None
 
@@ -335,7 +335,7 @@ class OpenEvolveLeanAideBridge:
                 
             return result
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, ValueError, RuntimeError) as e:
             result.errors.append(f"Autoformalization failed: {str(e)}")
             logger.error(f"Autoformalization error: {e}")
             return result

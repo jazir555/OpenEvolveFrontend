@@ -393,7 +393,7 @@ class EvaluatorTeamCoordinator:
                 }
                 logger.info(f"Initialized ensemble with {len(ensemble_config)} models")
                 logger.info(f"Ensemble weights: {self.ensemble_weights}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, ImportError) as e:
                 logger.error(f"Failed to initialize ensemble: {e}")
                 self.use_ensemble = False
                 self.ensemble = None
@@ -488,7 +488,7 @@ class EvaluatorTeamCoordinator:
         try:
             self._execute_evaluation_tasks_parallel(session)
             session.status = EvaluationTaskStatus.COMPLETED
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError, KeyError) as e:
             logger.error(f"Error during evaluation execution: {e}")
             session.status = EvaluationTaskStatus.FAILED
         finally:
@@ -598,7 +598,7 @@ class EvaluatorTeamCoordinator:
             # Run async execution
             try:
                 completed_tasks = loop.run_until_complete(execute_batch())
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, asyncio.TimeoutError, ValueError) as e:
                 logger.error(f"Ensemble execution error: {e}")
                 # Fallback to sequential execution
                 completed_tasks = [
@@ -721,7 +721,7 @@ class EvaluatorTeamCoordinator:
                                   f"consensus={task.consensus_reached}, quality_gate={task.quality_gate_passed}")
                         self._notify_progress("task_completed", task)
 
-                    except Exception as e:  # TODO: Catch specific exception instead of Exception
+                    except (RuntimeError, TimeoutError, ValueError) as e:
                         logger.error(f"Task {task.task_id} failed: {e}")
                         task.status = EvaluationTaskStatus.FAILED
                         task.error = str(e)
@@ -774,7 +774,7 @@ class EvaluatorTeamCoordinator:
                         # Update evaluator metrics
                         self._update_evaluator_metrics(evaluator, assessment, True)
 
-                    except Exception as e:  # TODO: Catch specific exception instead of Exception
+                    except (RuntimeError, TimeoutError, ValueError) as e:
                         logger.error(f"Evaluator {evaluator.evaluator_id} failed: {e}")
                         self._update_evaluator_metrics(evaluator, None, False)
 
@@ -809,7 +809,7 @@ class EvaluatorTeamCoordinator:
             if self.bias_detection_enabled and len(assessments) > 1:
                 self._detect_and_mitigate_bias(task)
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, TimeoutError, ValueError) as e:
             logger.error(f"Error executing evaluation task {task.task_id}: {e}")
             task.status = EvaluationTaskStatus.FAILED
             task.error = str(e)
@@ -1608,7 +1608,7 @@ class EvaluatorTeamCoordinator:
         for callback in self.progress_callbacks:
             try:
                 callback(event_type, data)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (TypeError, ValueError) as e:
                 logger.error(f"Progress callback error: {e}")
 
     def _generate_weighted_recommendations(
@@ -1662,7 +1662,7 @@ class EvaluatorTeamCoordinator:
                 json.dump(state, f)
 
             logger.debug(f"Saved coordinator state to {self.persistence_path}")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError) as e:
             logger.error(f"Failed to save state: {e}")
 
     def _load_state(self):
@@ -1678,7 +1678,7 @@ class EvaluatorTeamCoordinator:
                 self.session_history = state.get('session_history', [])
 
                 logger.debug(f"Loaded coordinator state from {self.persistence_path}")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, json.JSONDecodeError, TypeError) as e:
             logger.error(f"Failed to load state: {e}")
 
     # =========================================================================

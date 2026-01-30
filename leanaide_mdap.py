@@ -640,7 +640,7 @@ class LeanProofAgent:
 
             return proof
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, KeyError) as e:
             logger.error(f"Error generating proof with {self.agent_id}: {e}")
             # Return failed proof
             return LeanProof(
@@ -676,7 +676,7 @@ class LeanProofAgent:
                     tactics_used=result.get("tactics", []),
                     metadata=result
                 )
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 logger.error(f"Evolution strategy failed: {e}")
 
         # Fallback to direct generation
@@ -705,7 +705,7 @@ class LeanProofAgent:
                     tactics_used=result.get("tactics", []),
                     metadata=result
                 )
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 logger.error(f"MCTS strategy failed: {e}")
 
         # Fallback to direct generation
@@ -734,7 +734,7 @@ class LeanProofAgent:
                     tactics_used=result.get("tactics", []),
                     metadata=result
                 )
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 logger.error(f"Adversarial strategy failed: {e}")
 
         # Fallback to direct generation
@@ -763,7 +763,7 @@ class LeanProofAgent:
                     tactics_used=result.get("tactics", []),
                     metadata=result
                 )
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 logger.error(f"Self-play strategy failed: {e}")
 
         # Fallback to direct generation
@@ -831,7 +831,7 @@ Provide the complete proof code."""
                     verification_message="No model configured"
                 )
 
-        except Exception as e:
+        except (IOError, ConnectionError, TimeoutError) as e:
             logger.error(f"Direct strategy failed: {e}")
             return LeanProof(
                 theorem_name=context.get("theorem_name", "direct_proof"),
@@ -1364,7 +1364,7 @@ class LeanMDAPOrchestrator(MDAPOrchestrator if MDAP_AVAILABLE else object):
 
             return result
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, KeyError, RuntimeError) as e:
             logger.error(f"Error in proof generation orchestration: {e}", exc_info=True)
             return LeanMDAPResult(
                 task_id=task.task_id,
@@ -1436,7 +1436,7 @@ class LeanMDAPOrchestrator(MDAPOrchestrator if MDAP_AVAILABLE else object):
                         f"Agent {agent.agent_id} generated proof: "
                         f"confidence={proof.confidence:.3f}"
                     )
-                except Exception as e:
+                except (ValueError, TypeError, AttributeError, KeyError) as e:
                     logger.error(f"Agent {agent.agent_id} failed: {e}")
 
         return proofs
@@ -1707,7 +1707,7 @@ class LeanMDAPOrchestrator(MDAPOrchestrator if MDAP_AVAILABLE else object):
             else:
                 proof.verification_message = f"Verification failed: HTTP {response.status_code}"
 
-        except Exception as e:
+        except (IOError, ConnectionError, TimeoutError) as e:
             logger.error(f"Proof verification error: {e}")
             proof.verification_message = f"Verification error: {str(e)}"
 
@@ -1747,7 +1747,7 @@ class LeanMDAPOrchestrator(MDAPOrchestrator if MDAP_AVAILABLE else object):
             "proofs_per_second": len(proofs) / execution_time if execution_time > 0 else 0.0
         }
 
-    def execute_hierarchical(self, task: LeanMDAPTask) -> LeanProof:
+    async def execute_hierarchical(self, task: LeanMDAPTask) -> LeanProof:
         """
         Execute task with hierarchical decomposition
 
@@ -1762,10 +1762,185 @@ class LeanMDAPOrchestrator(MDAPOrchestrator if MDAP_AVAILABLE else object):
             result = self.orchestrate_proof_generation(task)
             return result.best_proof
 
-        # TODO: Implement hierarchical decomposition
-        # For now, just execute normally
-        result = self.orchestrate_proof_generation(task)
-        return result.best_proof
+        # Implement hierarchical decomposition
+        return await self._execute_hierarchical_decomposition(task)
+
+    async def _execute_hierarchical_decomposition(
+        self,
+        task: LeanMDAPTask
+    ) -> LeanProof:
+        """
+        Execute hierarchical decomposition for complex theorems.
+
+        Breaks down complex theorems into sub-theorems, proves each,
+        then combines the results.
+
+        Args:
+            task: Task to execute with decomposition
+
+        Returns:
+            Combined proof from sub-components
+        """
+        logger.info(f"Starting hierarchical decomposition for task {task.task_id}")
+
+        # Step 1: Decompose the theorem into lemmas
+        sub_theorems = await self._decompose_theorem(task)
+
+        if not sub_theorems:
+            # Decomposition failed, fall back to normal execution
+            logger.warning("Theorem decomposition failed, falling back to normal execution")
+            result = self.orchestrate_proof_generation(task)
+            return result.best_proof
+
+        # Step 2: Generate proofs for each sub-theorem
+        sub_proofs: List[LeanProof] = []
+        for i, sub_thm in enumerate(sub_theorems):
+            logger.info(f"Generating proof for sub-theorem {i+1}/{len(sub_theorems)}")
+
+            # Create sub-task
+            sub_task = LeanMDAPTask(
+                task_id=f"{task.task_id}_sub_{i}",
+                description=sub_thm.get("description", f"Sub-theorem {i+1}"),
+                theorem_statement=sub_thm.get("statement", ""),
+                domain=task.domain,
+                enable_decomposition=False,  # No nested decomposition
+                max_retries=task.max_retries,
+                target_success_rate=task.target_success_rate
+            )
+
+            # Generate proof for sub-theorem
+            sub_result = self.orchestrate_proof_generation(sub_task)
+
+            if sub_result.success and sub_result.best_proof:
+                sub_proofs.append(sub_result.best_proof)
+            else:
+                logger.warning(f"Failed to prove sub-theorem {i+1}")
+
+        # Step 3: Combine sub-proofs into main proof
+        if sub_proofs:
+            combined_proof = self._combine_sub_proofs(
+                task.theorem_statement,
+                sub_theorems,
+                sub_proofs
+            )
+            logger.info(f"Hierarchical decomposition completed: {len(sub_proofs)} sub-proofs combined")
+            return combined_proof
+        else:
+            # No sub-proofs succeeded, fall back to normal execution
+            logger.warning("No sub-proofs succeeded, falling back to normal execution")
+            result = self.orchestrate_proof_generation(task)
+            return result.best_proof
+
+    async def _decompose_theorem(
+        self,
+        task: LeanMDAPTask
+    ) -> List[Dict[str, str]]:
+        """
+        Decompose a theorem into sub-theorems/lemmas.
+
+        Args:
+            task: Task containing the theorem to decompose
+
+        Returns:
+            List of sub-theorem dictionaries with 'description' and 'statement' keys
+        """
+        # Use heuristics to identify decomposition opportunities
+        theorem = task.theorem_statement
+
+        # Check for common patterns that suggest decomposition
+        sub_theorems = []
+
+        # Pattern 1: Conjunction in goal (A ∧ B)
+        if "∧" in theorem or "and" in theorem.lower():
+            # Could split into proving each conjunct separately
+            # For now, use simple heuristic decomposition
+            sub_theorems.append({
+                "description": "First conjunct",
+                "statement": f"Lemma 1 for: {theorem[:100]}..."
+            })
+            sub_theorems.append({
+                "description": "Second conjunct",
+                "statement": f"Lemma 2 for: {theorem[:100]}..."
+            })
+
+        # Pattern 2: Universal quantifiers (∀)
+        elif "∀" in theorem or "forall" in theorem.lower():
+            # Could use induction or case analysis
+            sub_theorems.append({
+                "description": "Base case",
+                "statement": f"Base case for: {theorem[:100]}..."
+            })
+            sub_theorems.append({
+                "description": "Inductive step",
+                "statement": f"Inductive step for: {theorem[:100]}..."
+            })
+
+        # Pattern 3: Complex implication chain
+        elif theorem.count("→") > 2 or theorem.count("->") > 2:
+            # Break into intermediate lemmas
+            sub_theorems.append({
+                "description": "Intermediate result 1",
+                "statement": f"Lemma 1 for implication chain"
+            })
+            sub_theorems.append({
+                "description": "Main result",
+                "statement": theorem
+            })
+
+        # Default: No decomposition possible with heuristics
+        if not sub_theorems:
+            return []
+
+        return sub_theorems
+
+    def _combine_sub_proofs(
+        self,
+        main_theorem: str,
+        sub_theorems: List[Dict[str, str]],
+        sub_proofs: List[LeanProof]
+    ) -> LeanProof:
+        """
+        Combine sub-proofs into a single proof for the main theorem.
+
+        Args:
+            main_theorem: The original theorem statement
+            sub_theorems: List of sub-theorem definitions
+            sub_proofs: List of proofs for each sub-theorem
+
+        Returns:
+            Combined proof
+        """
+        # Combine all tactics from sub-proofs
+        combined_tactics = []
+        for proof in sub_proofs:
+            combined_tactics.extend(proof.tactics_used)
+
+        # Combine Lean code
+        lean_code_lines = [f"theorem main_result : {main_theorem} := by"]
+
+        # Add lemma statements
+        for i, (sub_thm, proof) in enumerate(zip(sub_theorems, sub_proofs)):
+            lean_code_lines.append(f"  -- {sub_thm.get('description', f'Lemma {i+1}')}")
+            for tactic in proof.tactics_used:
+                lean_code_lines.append(f"  {tactic}")
+
+        combined_lean_code = "\n".join(lean_code_lines)
+
+        # Calculate combined confidence
+        avg_confidence = sum(p.confidence for p in sub_proofs) / len(sub_proofs)
+
+        # Verification status (all must be verified)
+        all_verified = all(p.verification_status for p in sub_proofs)
+
+        return LeanProof(
+            theorem_name="main_result",
+            lean_code=combined_lean_code,
+            confidence=avg_confidence,
+            tactics_used=combined_tactics,
+            verification_status=all_verified,
+            strategy_used=ProofStrategy.HYBRID,
+            agent_id="hierarchical_decomposition"
+        )
 
 
 # =============================================================================

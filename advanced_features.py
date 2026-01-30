@@ -486,7 +486,7 @@ class MultiModalAnalyzer:
             else:
                 try:
                     raw_bytes = base64.b64decode(audio_data, validate=True)
-                except Exception:
+                except (ValueError, TypeError):
                     raw_bytes = None
         else:
             return {"analysis_type": "audio", "error": "Unsupported audio input type"}
@@ -516,7 +516,7 @@ class MultiModalAnalyzer:
                     "channels": channels,
                     "bitrate_kbps": (rate * channels * 16) / 1000 if rate and channels else None
                 })
-            except Exception as e:
+            except (wave.Error, IOError, OSError) as e:
                 analysis["error"] = f"Failed to parse WAV audio: {e}"
         else:
             if source_path:
@@ -531,7 +531,7 @@ class MultiModalAnalyzer:
                     analysis["bitrate_kbps"] = getattr(media.info, "bitrate", 0) / 1000 if hasattr(media.info, "bitrate") else None
                     analysis["sample_rate_hz"] = getattr(media.info, "sample_rate", None)
                     analysis["channels"] = getattr(media.info, "channels", None)
-            except Exception:
+            except (ImportError, AttributeError):
                 analysis["analysis_notes"] = "Basic metadata only; install mutagen for richer analysis"
 
         return analysis
@@ -595,7 +595,7 @@ class MultiModalAnalyzer:
                     "duration_seconds": duration
                 })
             capture.release()
-        except Exception:
+        except (ImportError, RuntimeError, OSError):
             try:
                 from moviepy.editor import VideoFileClip  # type: ignore
                 with VideoFileClip(source_path) as clip:
@@ -605,13 +605,13 @@ class MultiModalAnalyzer:
                         "resolution": f"{int(clip.w)}x{int(clip.h)}",
                         "frame_count": int(clip.duration * clip.fps) if clip.duration and clip.fps else None
                     })
-            except Exception:
+            except (ImportError, RuntimeError, OSError):
                 analysis["analysis_notes"] = "Basic metadata only; install opencv-python or moviepy for richer analysis"
         finally:
             if temp_path and os.path.exists(temp_path):
                 try:
                     os.unlink(temp_path)
-                except Exception as exc:
+                except (OSError, IOError) as exc:
                     logger.debug(f"Unable to clean up temporary video file {temp_path}: {exc}")
 
         return analysis

@@ -266,7 +266,7 @@ class RedTeamCoordinator:
                 config_roma = get_validation_config()
                 self.roma_engine = ROMAMDAPMakerAssociativeEngine(config_roma)
                 logger.info("ROMAMDAPMakerAssociativeEngine initialized for RedTeamCoordinator")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ImportError, ValueError) as e:
                 logger.warning(f"Failed to initialize ROMA engine: {e}")
 
         # Thread pool for parallel execution (legacy mode)
@@ -426,7 +426,7 @@ class RedTeamCoordinator:
 
             logger.info(f"Session {session_id} completed: {len(session.aggregated_findings)} vulnerabilities found")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Error in adversarial testing session {session_id}: {e}", exc_info=True)
             session.status = AttackTaskStatus.FAILED
             session.error = str(e)
@@ -550,7 +550,7 @@ class RedTeamCoordinator:
                 # Distribute same findings across all tasks
                 return [findings.copy() for _ in tasks]
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, asyncio.TimeoutError) as e:
             logger.error(f"Error executing ensemble attacks for {category.value}: {e}", exc_info=True)
             # Return empty findings for all tasks
             return [[] for _ in tasks]
@@ -739,7 +739,7 @@ Provide your analysis as a JSON object with:
 
                 self._notify_progress(f"Completed {task.attack_category.value} attack by {task.assigned_attacker}")
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, TimeoutError, ValueError) as e:
                 logger.error(f"Legacy attack failed for task {task.task_id}: {e}")
                 task.status = AttackTaskStatus.FAILED
                 task.error = str(e)
@@ -762,7 +762,7 @@ Provide your analysis as a JSON object with:
 
             return assessment
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, TimeoutError, ValueError) as e:
             logger.error(f"Error executing legacy attack: {e}", exc_info=True)
             return None
 
@@ -860,7 +860,7 @@ Provide your analysis as a JSON object with:
         for callback in self.progress_callbacks:
             try:
                 callback(message)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (TypeError, ValueError) as e:
                 logger.warning(f"Progress callback failed: {e}")
 
     # =========================================================================
@@ -885,7 +885,7 @@ Provide your analysis as a JSON object with:
 
             logger.debug(f"Saved coordinator state to {self.persistence_path}")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError) as e:
             logger.error(f"Failed to save state: {e}")
 
     def _load_state(self):
@@ -906,7 +906,7 @@ Provide your analysis as a JSON object with:
 
             logger.info(f"Loaded coordinator state from {self.persistence_path}")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, json.JSONDecodeError, TypeError) as e:
             logger.warning(f"Failed to load state: {e}, starting with fresh state")
 
     # =========================================================================

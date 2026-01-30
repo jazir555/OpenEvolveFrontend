@@ -186,7 +186,7 @@ class TestRetryLogic:
                     if attempt < max_retries - 1:
                         raise Exception("Simulated failure")
                     return "Success"
-                except Exception:
+                except (RuntimeError, ConnectionError):
                     if attempt < max_retries - 1:
                         delay = 0.1 * (2 ** attempt)  # 0.1, 0.2, 0.4, 0.8
                         retry_delays.append(delay)
@@ -537,7 +537,7 @@ class TestDatabaseFailures:
                 if entity == "Txn2":
                     raise Exception("Simulated transaction failure")
 
-        except Exception:
+        except (RuntimeError, ConnectionError):
             # Rollback: remove entities added in this transaction
             for entity in added_entities:
                 if entity in graph.entities:

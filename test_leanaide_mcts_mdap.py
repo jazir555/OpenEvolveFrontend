@@ -696,7 +696,7 @@ class TestMDAPMCTSWorkflow(unittest.TestCase):
                 result = self.mcts.search(state)
                 # If search completes despite failure, fallback worked
                 self.assertIsNotNone(result)
-            except Exception:
+            except (RuntimeError, ValueError, AttributeError):
                 # Expected if no fallback implemented
                 pass
 

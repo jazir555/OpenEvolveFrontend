@@ -212,7 +212,7 @@ class PerformanceMetrics:
 
             logger.info(f"Loaded {len(self.metrics)} metrics and {len(self.task_records)} task records")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (IOError, json.JSONDecodeError, KeyError, TypeError) as e:
             logger.error(f"Error loading metrics: {e}")
 
     def record_metric(
@@ -257,7 +257,7 @@ class PerformanceMetrics:
             metrics_file = os.path.join(self.storage_path, 'metrics.jsonl')
             with open(metrics_file, 'a') as f:
                 f.write(json.dumps(metric.to_dict()) + '\n')
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (IOError, TypeError) as e:
             logger.error(f"Error persisting metric: {e}")
 
     def start_task_tracking(
@@ -366,7 +366,7 @@ class PerformanceMetrics:
                 # For completed records, we need to update the file
                 # In production, this would use a proper database
                 pass
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (IOError, TypeError) as e:
             logger.error(f"Error persisting task record: {e}")
 
     def get_success_rate(
@@ -1422,7 +1422,7 @@ class PerformanceAlertManager:
             for handler in self.alert_handlers:
                 try:
                     handler(alert)
-                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                except (RuntimeError, TypeError, ValueError) as e:
                     logger.error(f"Error in alert handler: {e}")
 
         return new_alerts
@@ -1554,7 +1554,7 @@ def track_blue_team_performance(
             quality_score=quality_score
         )
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         # Task failed
         tracker.complete_task(task_id=task_id, success=False, quality_score=0.0)
         raise

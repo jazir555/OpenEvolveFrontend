@@ -81,7 +81,7 @@ class StrategyPerformanceTracker:
                     data = json.load(f)
                 logger.info(f"Loaded performance data from {self.storage_path}")
                 return data
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (json.JSONDecodeError, IOError, OSError) as e:
                 logger.warning(f"Failed to load performance data: {e}. Starting fresh.")
                 return self._create_empty_data()
         else:
@@ -107,7 +107,7 @@ class StrategyPerformanceTracker:
             with open(storage_path, 'w') as f:
                 json.dump(self.data, f, indent=2)
             logger.debug(f"Saved performance data to {storage_path}")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (IOError, OSError, TypeError) as e:
             logger.error(f"Failed to save performance data: {e}")
 
     def record_strategy_outcome(self,

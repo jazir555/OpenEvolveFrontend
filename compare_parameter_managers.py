@@ -71,7 +71,7 @@ class ParameterManagerComparator:
         for _ in range(self.warmup_iterations):
             try:
                 func(*args, **kwargs)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, OSError, ValueError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.error(f"Error in compare_parameter_managers.py: {e}", exc_info=True)
@@ -85,7 +85,7 @@ class ParameterManagerComparator:
                 func(*args, **kwargs)
                 end_time = time.perf_counter()
                 times.append(end_time - start_time)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, OSError, ValueError) as e:
                 times.append(float('inf'))  # Mark failed runs
 
         return times
@@ -124,7 +124,7 @@ class ParameterManagerComparator:
                 }
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, ValueError) as e:
             return BenchmarkResult(
                 name="ParameterManager Creation",
                 avg_time=float('inf'),
@@ -169,7 +169,7 @@ class ParameterManagerComparator:
                 }
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, ValueError) as e:
             return BenchmarkResult(
                 name="UnifiedConfiguration Creation",
                 avg_time=float('inf'),
@@ -214,7 +214,7 @@ class ParameterManagerComparator:
                 }
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, ValueError) as e:
             return BenchmarkResult(
                 name="ParameterManager get_defaults",
                 avg_time=float('inf'),
@@ -264,7 +264,7 @@ class ParameterManagerComparator:
                 }
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, ValueError) as e:
             return BenchmarkResult(
                 name="UnifiedConfiguration Property Access",
                 avg_time=float('inf'),
@@ -310,7 +310,7 @@ class ParameterManagerComparator:
                 }
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, ValueError) as e:
             return BenchmarkResult(
                 name="ParameterManager Validation",
                 avg_time=float('inf'),
@@ -355,7 +355,7 @@ class ParameterManagerComparator:
                 }
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, ValueError) as e:
             return BenchmarkResult(
                 name="UnifiedConfiguration Validation",
                 avg_time=float('inf'),
@@ -416,7 +416,7 @@ class ParameterManagerComparator:
                 }
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, ValueError) as e:
             return BenchmarkResult(
                 name="Complex Parameter Access",
                 avg_time=float('inf'),
@@ -598,7 +598,7 @@ def main():
             print(f"\n⚠ {len([r for r in results if not r.success])} benchmark(s) failed")
             return 1
 
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (RuntimeError, OSError, ValueError) as e:
         print(f"\n❌ Benchmarking failed: {str(e)}")
         return 1
 

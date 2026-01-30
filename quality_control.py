@@ -79,7 +79,7 @@ class CodeQualityChecker:
                 with open(config_path, 'r') as f:
                     user_settings = json.load(f)
                     settings.update(user_settings)
-            except Exception as e:
+            except (json.JSONDecodeError, OSError, IOError) as e:
                 self.logger.warning(f"Could not load quality config: {e}")
         
         return settings
@@ -126,7 +126,7 @@ class CodeQualityChecker:
                 severity="error",
                 rule="syntax"
             ))
-        except Exception as e:
+        except (OSError, IOError, UnicodeDecodeError) as e:
             self.logger.error(f"Error checking quality of {path}: {e}")
         
         return issues
@@ -463,7 +463,7 @@ class CodeFormatter:
             
             return True
             
-        except Exception as e:
+        except (OSError, IOError, UnicodeDecodeError) as e:
             self.logger.error(f"Error formatting file {file_path}: {e}")
             return False
     
@@ -570,7 +570,7 @@ class CodeAnalyzer:
             
             return analysis
             
-        except Exception as e:
+        except (SyntaxError, OSError, IOError, UnicodeDecodeError) as e:
             self.logger.error(f"Error analyzing file {file_path}: {e}")
             return {"file_path": file_path, "error": str(e)}
     

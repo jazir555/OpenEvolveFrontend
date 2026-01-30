@@ -31,21 +31,21 @@ def test_basic_integration():
         else:
             print("✗ connect_pygraphistry method missing")
             
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, ValueError, AttributeError, TypeError) as e:
         print(f"✗ KnowledgeGraphVisualizer test failed: {e}")
     
     # Test 2: Check if visualization function exists
     try:
         from openevolve_visualization import get_pygraphistry_viz
         print("✓ get_pygraphistry_viz function import successful")
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, AttributeError) as e:
         print(f"✗ get_pygraphistry_viz import failed: {e}")
     
     # Test 3: Check if integration factory works
     try:
         from integrations import IntegrationFactory
         print("✓ IntegrationFactory import successful")
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (ImportError, AttributeError) as e:
         print(f"✗ IntegrationFactory import failed: {e}")
     
     # Test 4: Check if API endpoint exists
@@ -56,7 +56,7 @@ def test_basic_integration():
                 print("✓ PyGraphistry API endpoint exists")
             else:
                 print("✗ PyGraphistry API endpoint missing")
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError) as e:
         print(f"✗ API endpoint check failed: {e}")
     
     # Test 5: Check if pygraphistry files exist

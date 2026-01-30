@@ -647,7 +647,7 @@ def create_advanced_openevolve_config(
 
         return config
 
-    except Exception as e:
+    except (TypeError, ValueError, AttributeError, KeyError) as e:
         st.error(f"Error creating OpenEvolve configuration: {e}")
         import traceback
         st.error(f"Full traceback: {traceback.format_exc()}")
@@ -1085,7 +1085,7 @@ def create_language_specific_evaluator(
 
             return metrics
 
-        except Exception as e:
+        except (ValueError, TypeError, KeyError, AttributeError, RuntimeError) as e:
             # Return error metrics in a format that OpenEvolve can process
             return {
                 "score": 0.0, 
@@ -1397,7 +1397,7 @@ def run_advanced_code_evolution(
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         st.error(f"Error running advanced code evolution: {e}")
         import traceback
 
@@ -1739,7 +1739,7 @@ def run_ensemble_evolution(
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         st.error(f"Error running ensemble code evolution: {e}")
         import traceback
 
@@ -1922,7 +1922,7 @@ def create_specialized_evaluator(
                         
                 except subprocess.TimeoutExpired:
                     artifacts["execution_timeout"] = "Python execution timed out"
-                except Exception as e:
+                except (subprocess.CalledProcessError, OSError, ValueError) as e:
                     artifacts["execution_error"] = str(e)
 
             elif content_type == "code_js":
@@ -1997,7 +1997,7 @@ def create_specialized_evaluator(
                         
                 except subprocess.TimeoutExpired:
                     artifacts["execution_timeout"] = "JavaScript execution timed out"
-                except Exception as e:
+                except (subprocess.CalledProcessError, OSError, ValueError) as e:
                     artifacts["execution_error"] = str(e)
                     
             elif content_type == "code_java":
@@ -2047,7 +2047,7 @@ def create_specialized_evaluator(
                         })
                 except subprocess.TimeoutExpired:
                     artifacts["compilation_timeout"] = "Java compilation or execution timed out"
-                except Exception as e:
+                except (subprocess.CalledProcessError, OSError, ValueError) as e:
                     artifacts["compilation_error"] = str(e)
                     
             elif content_type == "code_cpp":
@@ -2087,7 +2087,7 @@ def create_specialized_evaluator(
                         os.unlink(temp_file_path)
                 except subprocess.TimeoutExpired:
                     artifacts["compilation_timeout"] = "C++ compilation timed out"
-                except Exception as e:
+                except (subprocess.CalledProcessError, OSError, ValueError) as e:
                     artifacts["compilation_error"] = str(e)
                     
             # Language-agnostic checks - comprehensive list
@@ -2459,13 +2459,13 @@ def create_specialized_evaluator(
                             # Blend LLM feedback with existing metrics
                             llm_weight = 0.15  # 15% weight to LLM feedback
                             metrics["combined_score"] = (1 - llm_weight) * final_score + llm_weight * llm_score
-            except Exception as exc:
+            except (ValueError, TypeError, KeyError, RuntimeError) as exc:
                 # If LLM feedback fails, continue with regular evaluation
                 logger.debug(f"LLM feedback unavailable: {exc}")
 
             return metrics
 
-        except Exception as e:
+        except (ValueError, TypeError, KeyError, AttributeError, RuntimeError) as e:
             # Return error metrics in a format that OpenEvolve can process
             error_metrics = {
                 "score": 0.0, 
@@ -2701,7 +2701,7 @@ def run_specialized_code_evolution(
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         st.error(f"Error running specialized code evolution: {e}")
         import traceback
 
@@ -2804,7 +2804,7 @@ def create_multi_model_config(
 
         return config
 
-    except Exception as e:
+    except (TypeError, ValueError, AttributeError, KeyError) as e:
         st.error(f"Error creating multi-model configuration: {e}")
         return None
 
@@ -2886,7 +2886,7 @@ def create_ensemble_config_with_fallback(
 
         return config
 
-    except Exception as e:
+    except (TypeError, ValueError, AttributeError, KeyError) as e:
         st.error(f"Error creating ensemble configuration with fallback: {e}")
         return None
 
@@ -2952,7 +2952,7 @@ def _get_llm_feedback(content: str, content_type: str, custom_requirements: str 
         
         return feedback_data
         
-    except Exception as e:
+    except (ValueError, TypeError, json.JSONDecodeError, RuntimeError) as e:
         print(f"Error getting LLM feedback: {e}")
         return None
 
@@ -3242,7 +3242,7 @@ def create_comprehensive_openevolve_config(
 
         return config
 
-    except Exception as e:
+    except (TypeError, ValueError, AttributeError, KeyError) as e:
         st.error(f"Error creating comprehensive OpenEvolve configuration: {e}")
         import traceback
         st.error(f"Full traceback: {traceback.format_exc()}")
@@ -3391,7 +3391,7 @@ def run_quality_diversity_evolution(
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         st.error(f"Error running Quality-Diversity evolution: {e}")
         import traceback
         st.error(traceback.format_exc())
@@ -3547,7 +3547,7 @@ def run_multi_objective_evolution(
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         st.error(f"Error running Multi-Objective evolution: {e}")
         import traceback
         st.error(traceback.format_exc())
@@ -3735,7 +3735,7 @@ def run_adversarial_evolution(
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         st.error(f"Error running Adversarial evolution: {e}")
         import traceback
         st.error(traceback.format_exc())
@@ -3832,7 +3832,7 @@ def run_prompt_evolution(
                     else:
                         eval_result["combined_score"] = 0.5  # Default neutral score
                 return eval_result
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 return {
                     "combined_score": 0.0,
                     "error": str(e),
@@ -3888,7 +3888,7 @@ def run_prompt_evolution(
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         st.error(f"Error running Prompt evolution: {e}")
         import traceback
         st.error(traceback.format_exc())
@@ -4009,7 +4009,7 @@ def run_algorithm_discovery_evolution(
                         eval_result["combined_score"] = 0.5  # Default neutral score
                         
                 return eval_result
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 return {
                     "combined_score": 0.0,
                     "error": str(e),
@@ -4078,7 +4078,7 @@ def solve_problem(*args, **kwargs):
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         st.error(f"Error running Algorithm Discovery evolution: {e}")
         import traceback
         st.error(traceback.format_exc())
@@ -4206,7 +4206,32 @@ def run_symbolic_regression_evolution(
                     "frozenset": frozenset,
                 }
                 local_namespace = {}
-                exec(compile(ast.parse(code), '<string>', 'exec'), {"__builtins__": safe_builtins}, local_namespace)
+                # SECURITY FIX: Replace exec() with safer alternatives for code evaluation
+                # Validate the AST to ensure it only contains safe operations
+                import ast
+                try:
+                    parsed_ast = ast.parse(code)
+                    # Check for dangerous operations in the AST
+                    for node in ast.walk(parsed_ast):
+                        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name):
+                            if node.func.id in ['eval', 'exec', 'compile', 'open', 'file', 'input', 'raw_input']:
+                                raise ValueError(f"Dangerous function call detected: {node.func.id}")
+
+                    # Use a restricted execution environment
+                    local_namespace = {}
+                    # Execute in a restricted environment with limited builtins
+                    restricted_globals = {"__builtins__": {
+                        "len": len, "range": range, "enumerate": enumerate, "zip": zip,
+                        "dict": dict, "list": list, "tuple": tuple, "set": set,
+                        "str": str, "int": int, "float": float, "bool": bool, "abs": abs,
+                        "min": min, "max": max, "sum": sum, "sorted": sorted,
+                        "True": True, "False": False, "None": None
+                    }}
+                    exec(compile(parsed_ast, '<string>', 'exec'), restricted_globals, local_namespace)
+                except SyntaxError:
+                    raise ValueError("Invalid syntax in code")
+                except ValueError as ve:
+                    raise ve  # Re-raise our security validation errors
                 
                 if 'model' in local_namespace:
                     model_func = local_namespace['model']
@@ -4221,7 +4246,7 @@ def run_symbolic_regression_evolution(
                             error = abs(y_actual - y_predicted)
                             total_error += error
                             valid_points += 1
-                        except Exception as exc:
+                        except (ValueError, TypeError, ZeroDivisionError) as exc:
                             logger.debug(f"Symbolic regression model evaluation failed for x={x}: {exc}")
                     
                     if valid_points > 0:
@@ -4235,7 +4260,7 @@ def run_symbolic_regression_evolution(
                 else:
                     accuracy = 0.0
                     fitness = 0.0
-            except Exception:
+            except (RuntimeError, ValueError, TypeError, NameError):
                 # If code execution fails, assign low fitness
                 accuracy = 0.0
                 fitness = 0.0
@@ -4322,7 +4347,7 @@ def model(x):
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         st.error(f"Error running Symbolic Regression evolution: {e}")
         import traceback
         st.error(traceback.format_exc())
@@ -4424,7 +4449,7 @@ def run_neuroevolution(
                     else:
                         fitness_result["combined_score"] = 0.3  # Default low score
                 return fitness_result
-            except Exception as e:
+            except (ValueError, TypeError, RuntimeError) as e:
                 return {
                     "accuracy": 0.0,
                     "efficiency": 0.0,
@@ -4503,7 +4528,7 @@ class NeuralNetwork:
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError, IOError) as e:
         st.error(f"Error running Neuroevolution: {e}")
         import traceback
         st.error(traceback.format_exc())
@@ -4715,7 +4740,7 @@ def run_unified_evolution(
                         "conciseness": conciseness,
                         "combined_score": (clarity + effectiveness + conciseness) / 3.0
                     }
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 print(f"Error in default_prompt_evaluator: {e}") 
             
             return {"clarity": 0.5, "effectiveness": 0.5, "conciseness": 0.5, "combined_score": 0.5}

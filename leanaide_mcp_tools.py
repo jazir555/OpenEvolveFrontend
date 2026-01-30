@@ -189,9 +189,9 @@ class LeanAideClient:
             raise LeanAideClientError(
                 f"Invalid JSON response from server: {e}"
             ) from e
-        except Exception as e:
+        except (IOError, ConnectionError, TimeoutError) as e:
             raise LeanAideClientError(
-                f"Unexpected error: {e}"
+                f"Connection error: {e}"
             ) from e
 
     def translate_theorem(
@@ -517,9 +517,9 @@ def leanaide_translate_theorem(
     except LeanAideClientError as e:
         logger.error(f"LeanAide client error: {sanitize_for_logging(e)}")
         return create_safe_error("LeanAide request failed", e)
-    except Exception as e:
-        logger.error(f"Unexpected error: {sanitize_for_logging(e)}")
-        return create_safe_error("Unexpected error translating theorem", e)
+    except (ValueError, TypeError, AttributeError) as e:
+        logger.error(f"Validation error: {sanitize_for_logging(e)}")
+        return create_safe_error("Validation error translating theorem", e)
 
 
 @mcp_tool("leanaide_translate_definition")
@@ -613,9 +613,9 @@ def leanaide_translate_definition(
     except LeanAideClientError as e:
         logger.error(f"LeanAide client error: {sanitize_for_logging(e)}")
         return create_safe_error("LeanAide request failed", e)
-    except Exception as e:
-        logger.error(f"Unexpected error: {sanitize_for_logging(e)}")
-        return create_safe_error("Unexpected error translating definition", e)
+    except (ValueError, TypeError, AttributeError) as e:
+        logger.error(f"Validation error: {sanitize_for_logging(e)}")
+        return create_safe_error("Validation error translating definition", e)
 
 
 @mcp_tool("leanaide_generate_proof")
@@ -718,9 +718,9 @@ def leanaide_generate_proof(
     except LeanAideClientError as e:
         logger.error(f"LeanAide client error: {sanitize_for_logging(e)}")
         return create_safe_error("LeanAide request failed", e)
-    except Exception as e:
-        logger.error(f"Unexpected error: {sanitize_for_logging(e)}")
-        return create_safe_error("Unexpected error generating proof", e)
+    except (ValueError, TypeError, AttributeError) as e:
+        logger.error(f"Validation error: {sanitize_for_logging(e)}")
+        return create_safe_error("Validation error generating proof", e)
 
 
 @mcp_tool("leanaide_verify_solution")
@@ -837,9 +837,9 @@ def leanaide_verify_solution(
     except LeanAideClientError as e:
         logger.error(f"LeanAide client error: {sanitize_for_logging(e)}")
         return create_safe_error("LeanAide request failed", e)
-    except Exception as e:
-        logger.error(f"Unexpected error: {sanitize_for_logging(e)}")
-        return create_safe_error("Unexpected error verifying solution", e)
+    except (ValueError, TypeError, AttributeError) as e:
+        logger.error(f"Validation error: {sanitize_for_logging(e)}")
+        return create_safe_error("Validation error verifying solution", e)
 
 
 @mcp_tool("leanaide_math_query")
@@ -947,9 +947,9 @@ def leanaide_math_query(
     except LeanAideClientError as e:
         logger.error(f"LeanAide client error: {sanitize_for_logging(e)}")
         return create_safe_error("LeanAide request failed", e)
-    except Exception as e:
-        logger.error(f"Unexpected error: {sanitize_for_logging(e)}")
-        return create_safe_error("Unexpected error processing math query", e)
+    except (ValueError, TypeError, AttributeError) as e:
+        logger.error(f"Validation error: {sanitize_for_logging(e)}")
+        return create_safe_error("Validation error processing math query", e)
 
 
 @mcp_tool("leanaide_generate_documentation")
@@ -1065,9 +1065,9 @@ def leanaide_generate_documentation(
     except LeanAideClientError as e:
         logger.error(f"LeanAide client error: {sanitize_for_logging(e)}")
         return create_safe_error("LeanAide request failed", e)
-    except Exception as e:
-        logger.error(f"Unexpected error: {sanitize_for_logging(e)}")
-        return create_safe_error("Unexpected error generating documentation", e)
+    except (ValueError, TypeError, AttributeError) as e:
+        logger.error(f"Validation error: {sanitize_for_logging(e)}")
+        return create_safe_error("Validation error generating documentation", e)
 
 
 @mcp_tool("leanaide_elaborate_code")
@@ -1181,9 +1181,9 @@ def leanaide_elaborate_code(
     except LeanAideClientError as e:
         logger.error(f"LeanAide client error: {sanitize_for_logging(e)}")
         return create_safe_error("LeanAide request failed", e)
-    except Exception as e:
-        logger.error(f"Unexpected error: {sanitize_for_logging(e)}")
-        return create_safe_error("Unexpected error elaborating code", e)
+    except (ValueError, TypeError, AttributeError) as e:
+        logger.error(f"Validation error: {sanitize_for_logging(e)}")
+        return create_safe_error("Validation error elaborating code", e)
 
 
 @mcp_tool("get_leanaide_status")
@@ -1232,8 +1232,8 @@ def get_leanaide_status() -> Dict[str, Any]:
                 "message": f"LeanAide server is not responding at {host}:{port}",
             }
 
-    except Exception as e:
-        logger.error(f"Error checking LeanAide status: {sanitize_for_logging(e)}")
+    except (IOError, ConnectionError, TimeoutError) as e:
+        logger.error(f"Connection error checking LeanAide status: {sanitize_for_logging(e)}")
         return {
             "available": False,
             "host": host,

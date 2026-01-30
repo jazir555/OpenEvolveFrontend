@@ -825,7 +825,7 @@ class MCTSExpansion:
                 actions = await self._get_applicable_tactics_from_leanaide(node.state)
                 node.untried_actions = actions[:self.max_actions]
                 return
-            except Exception as e:
+            except (IOError, ConnectionError, TimeoutError, ValueError) as e:
                 logger.warning(f"LeanAide tactic generation failed: {e}")
 
         # Fallback: use basic tactics with parameterization
@@ -856,7 +856,7 @@ class MCTSExpansion:
                 # Extract suggested tactics from result
                 tactics = self._extract_tactics_from_result(result.data)
                 return tactics
-        except Exception as e:
+        except (IOError, ConnectionError, TimeoutError, ValueError) as e:
             logger.warning(f"LeanAide elaborate failed: {e}")
 
         return []
@@ -991,7 +991,7 @@ class MCTSExpansion:
             try:
                 result_state = await self._apply_tactic_with_leanaide(state, tactic)
                 return result_state
-            except Exception as e:
+            except (IOError, ConnectionError, TimeoutError, ValueError) as e:
                 logger.warning(f"LeanAide tactic application failed: {e}")
 
         # Heuristic simulation
@@ -1030,7 +1030,7 @@ class MCTSExpansion:
 
                 return new_state
 
-        except Exception as e:
+        except (IOError, ConnectionError, TimeoutError, ValueError) as e:
             logger.warning(f"Tactic application error: {e}")
 
         # Fallback to simulation
@@ -1444,7 +1444,7 @@ class MCTS:
             try:
                 self.leanaide_client = AsyncLeanAideClient()
                 self.leanaide_client.config.base_url = config.server_url
-            except Exception as e:
+            except (IOError, ConnectionError, ValueError) as e:
                 logger.warning(f"Failed to initialize LeanAide client: {e}")
 
         # Initialize components
@@ -1536,7 +1536,7 @@ class MCTS:
             # Compile result
             return self._compile_result()
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"MCTS search failed: {e}", exc_info=True)
             return MCTSResult(
                 success=False,
@@ -1746,7 +1746,7 @@ class MCTSMDAPIntegration:
             # Note: We'd need a Team object here in a full implementation
             # self.mdap_orchestrator = LeanMDAPOrchestrator(team, mdap_config)
             logger.info("MDAP orchestrator initialized")
-        except Exception as e:
+        except (ImportError, ValueError, TypeError) as e:
             logger.warning(f"Failed to initialize MDAP: {e}")
 
     def calculate_uct_with_agent_bonus(

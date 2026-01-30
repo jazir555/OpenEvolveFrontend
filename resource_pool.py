@@ -425,7 +425,7 @@ class ConnectionPool:
         # Check health
         try:
             return self.validator(conn)
-        except Exception:  # TODO: Catch specific exception instead of Exception
+        except (TypeError, ValueError, RuntimeError):
             return False
 
     def _ensure_min_connections(self):

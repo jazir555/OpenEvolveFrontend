@@ -220,7 +220,7 @@ def commit_to_github(
             )
             if response.status_code == 200:
                 file_sha = response.json().get("sha")
-        except Exception:
+        except (requests.RequestException, KeyError):
             # File doesn't exist, which is fine
             logger.debug("GitHub file lookup failed; assuming new file.")
         

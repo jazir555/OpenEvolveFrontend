@@ -206,7 +206,7 @@ class APIKeyDatabase:
         try:
             yield conn
             conn.commit()
-        except Exception:
+        except (sqlite3.Error, IOError, OSError):
             conn.rollback()
             raise
         finally:

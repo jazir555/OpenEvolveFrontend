@@ -310,7 +310,7 @@ class OpenEvolveDecompositionAPI:
             
             return None
             
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError, ConnectionError) as e:
             self.logger.error(f"Failed to start decomposed evolution: {e}")
             return None
     

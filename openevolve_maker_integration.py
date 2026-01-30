@@ -198,7 +198,7 @@ class OpenEvolveVoteCollector(VoteCollector):
                 return self._call_via_openevolve_client(
                     prompt, system_prompt, agent, temperature
                 )
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 logger.warning(f"OpenEvolveClient call failed: {e}, trying fallback")
 
         # Try OpenEvolveAPI (HTTP)
@@ -207,7 +207,7 @@ class OpenEvolveVoteCollector(VoteCollector):
                 return self._call_via_openevolve_api(
                     prompt, system_prompt, agent, temperature
                 )
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 logger.warning(f"OpenEvolveAPI call failed: {e}, trying fallback")
 
         # Fall back to direct LLM call
@@ -484,7 +484,7 @@ class MAKERWorkflowIntegrator:
             logger.info(f"Successfully solved sub-problem {sub_problem.id} with MAKER")
             return solution_attempt
 
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.error(f"MAKER failed for sub-problem {sub_problem.id}: {e}", exc_info=True)
 
             # Return failed solution attempt
@@ -760,7 +760,7 @@ def create_maker_integrator(
     if OPENEVOLVE_AVAILABLE:
         try:
             openevolve_client = OpenEvolveClient()
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, ImportError) as e:
             logger.warning(f"Failed to create OpenEvolveClient: {e}")
 
     # Create config

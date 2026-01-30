@@ -166,7 +166,7 @@ class KnowledgeArtifactExtractor:
                         artifact = KnowledgeArtifact.from_dict(artifact_data)
                         self.artifacts[artifact.artifact_id] = artifact
                 logger.info(f"Loaded {len(self.artifacts)} artifacts from {self.artifact_store_path}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, json.JSONDecodeError) as e:
                 logger.error(f"Failed to load artifacts: {e}", exc_info=True)
                 self.artifacts = {}
 
@@ -181,7 +181,7 @@ class KnowledgeArtifactExtractor:
             with open(self.artifact_store_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
             logger.debug(f"Saved {len(self.artifacts)} artifacts to {self.artifact_store_path}")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError) as e:
             logger.error(f"Failed to save artifacts: {e}", exc_info=True)
 
     def extract_artifacts(
@@ -237,7 +237,7 @@ class KnowledgeArtifactExtractor:
             logger.info(f"Extracted {len(artifacts)} knowledge artifacts from problem {decomposition_plan.problem_id}")
             return artifacts
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, AttributeError, KeyError, TypeError) as e:
             logger.error(f"Failed to extract artifacts: {e}", exc_info=True)
             return []
 
@@ -325,7 +325,7 @@ class KnowledgeArtifactExtractor:
                     )
                     artifacts.append(artifact)
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, AttributeError, KeyError, TypeError) as e:
             logger.error(f"Failed to extract strategy patterns: {e}", exc_info=True)
 
         return artifacts
@@ -412,7 +412,7 @@ class KnowledgeArtifactExtractor:
                 )
                 artifacts.append(artifact)
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, AttributeError, KeyError, TypeError) as e:
             logger.error(f"Failed to extract domain insights: {e}", exc_info=True)
 
         return artifacts
@@ -486,7 +486,7 @@ class KnowledgeArtifactExtractor:
                             )
                             artifacts.append(artifact)
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, AttributeError, KeyError, TypeError) as e:
             logger.error(f"Failed to extract team patterns: {e}", exc_info=True)
 
         return artifacts
@@ -566,7 +566,7 @@ class KnowledgeArtifactExtractor:
                     )
                     artifacts.append(artifact)
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, AttributeError, KeyError, TypeError) as e:
             logger.error(f"Failed to extract solution patterns: {e}", exc_info=True)
 
         return artifacts
@@ -620,7 +620,7 @@ class KnowledgeArtifactExtractor:
                     )
                     artifacts.append(artifact)
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, AttributeError, KeyError, TypeError) as e:
             logger.error(f"Failed to extract complexity patterns: {e}", exc_info=True)
 
         return artifacts
@@ -665,7 +665,7 @@ class KnowledgeArtifactExtractor:
             self._save_artifacts()
             logger.debug(f"Stored new artifact {artifact.artifact_id}")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError) as e:
             logger.error(f"Failed to store artifact: {e}", exc_info=True)
 
     def retrieve_relevant_artifacts(
@@ -724,7 +724,7 @@ class KnowledgeArtifactExtractor:
             logger.info(f"Retrieved {len(relevant_artifacts)} relevant artifacts for {domain}/{problem_type}")
             return relevant_artifacts[:10]  # Return top 10
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, AttributeError, KeyError, TypeError) as e:
             logger.error(f"Failed to retrieve artifacts: {e}", exc_info=True)
             return []
 

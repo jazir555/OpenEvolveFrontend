@@ -29,6 +29,13 @@ from problem_analyzer import ProblemAnalyzer
 from sovereign_knowledge_manager import KnowledgeManager
 from sovereign_reliability import with_error_handling, ErrorSeverity
 
+# Import DependencyDecomposition if available
+try:
+    from dependency_decomposition import DependencyDecompositionStrategy as DependencyDecomposition
+    DEPENDENCY_DECOMPOSITION_AVAILABLE = True
+except ImportError:
+    DEPENDENCY_DECOMPOSITION_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 # Import OpenEvolveClient and OPENEVOLVE_AVAILABLE at the top for global access and error handling
@@ -862,16 +869,25 @@ class HybridDecomposition(DecompositionStrategyBase):
 
         # Step 1: Get results from multiple strategies
         semantic_strategy = SemanticDecomposition()
-        # dependency_strategy = DependencyDecomposition()  # TODO: Class not implemented yet
         complexity_strategy = ComplexityDecomposition()
 
         semantic_results = semantic_strategy.decompose(problem)
-        # dependency_results = dependency_strategy.decompose(problem)  # TODO: Class not implemented yet
 
-        # Step 2: Merge strategies intelligently
-        # For now, just use semantic results since dependency is not available
-        # TODO: Implement proper merging when DependencyDecomposition is available
-        merged_sub_problems = semantic_results
+        # Step 2: Use semantic results as base and enhance with complexity analysis
+        # Dependency decomposition can be added when DEPENDENCY_DECOMPOSITION_AVAILABLE
+        if DEPENDENCY_DECOMPOSITION_AVAILABLE:
+            try:
+                dependency_strategy = DependencyDecomposition()
+                dependency_results = dependency_strategy.decompose(problem)
+                # Merge semantic and dependency results
+                merged_sub_problems = self._merge_semantic_and_dependency(
+                    semantic_results, dependency_results
+                )
+            except (RuntimeError, ValueError, TypeError) as e:
+                logger.warning(f"Dependency decomposition failed: {e}, using semantic only")
+                merged_sub_problems = semantic_results
+        else:
+            merged_sub_problems = semantic_results
 
         # Step 3: Apply complexity balancing
         balanced_sub_problems = self._apply_complexity_balancing(
@@ -1133,11 +1149,16 @@ class DecompositionEngine:
         """
         self.strategies: Dict[str, DecompositionStrategyBase] = {
             'semantic': SemanticDecomposition(),
-            # 'dependency': DependencyDecomposition(),  # TODO: Class not implemented yet
             'complexity': ComplexityDecomposition(),
             'hybrid': HybridDecomposition(),
             'research': ResearchDecomposition()
         }
+        # Add dependency decomposition if available
+        if DEPENDENCY_DECOMPOSITION_AVAILABLE:
+            try:
+                self.strategies['dependency'] = DependencyDecomposition()
+            except (RuntimeError, ValueError, TypeError) as e:
+                logger.warning(f"Could not initialize DependencyDecomposition: {e}")
         self.problem_analyzer = problem_analyzer or ProblemAnalyzer()
         self.knowledge_manager = knowledge_manager or KnowledgeManager()
         self.logger = logging.getLogger(__name__)
@@ -2324,16 +2345,24 @@ class HybridDecomposition(DecompositionStrategyBase):
 
         # Step 1: Get results from multiple strategies
         semantic_strategy = SemanticDecomposition()
-        # dependency_strategy = DependencyDecomposition()  # TODO: Class not implemented yet
         complexity_strategy = ComplexityDecomposition()
 
         semantic_results = semantic_strategy.decompose(problem)
-        # dependency_results = dependency_strategy.decompose(problem)  # TODO: Class not implemented yet
 
         # Step 2: Merge strategies intelligently
-        # For now, just use semantic results since dependency is not available
-        # TODO: Implement proper merging when DependencyDecomposition is available
-        merged_sub_problems = semantic_results
+        # Try to use dependency decomposition if available, otherwise use semantic only
+        if DEPENDENCY_DECOMPOSITION_AVAILABLE:
+            try:
+                dependency_strategy = DependencyDecomposition()
+                dependency_results = dependency_strategy.decompose(problem)
+                merged_sub_problems = self._merge_semantic_and_dependency(
+                    semantic_results, dependency_results
+                )
+            except (RuntimeError, ValueError, TypeError) as e:
+                logger.warning(f"Dependency decomposition failed: {e}, using semantic only")
+                merged_sub_problems = semantic_results
+        else:
+            merged_sub_problems = semantic_results
 
         # Step 3: Apply complexity balancing
         balanced_sub_problems = self._apply_complexity_balancing(
@@ -2595,11 +2624,16 @@ class DecompositionEngine:
         """
         self.strategies: Dict[str, DecompositionStrategyBase] = {
             'semantic': SemanticDecomposition(),
-            # 'dependency': DependencyDecomposition(),  # TODO: Class not implemented yet
             'complexity': ComplexityDecomposition(),
             'hybrid': HybridDecomposition(),
             'research': ResearchDecomposition()
         }
+        # Add dependency decomposition if available
+        if DEPENDENCY_DECOMPOSITION_AVAILABLE:
+            try:
+                self.strategies['dependency'] = DependencyDecomposition()
+            except (RuntimeError, ValueError, TypeError) as e:
+                logger.warning(f"Could not initialize DependencyDecomposition: {e}")
         self.problem_analyzer = problem_analyzer or ProblemAnalyzer()
         self.knowledge_manager = knowledge_manager or KnowledgeManager()
         self.logger = logging.getLogger(__name__)

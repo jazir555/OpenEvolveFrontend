@@ -74,7 +74,7 @@ class OpenEvolveBubbleLabsLauncher:
                 else:
                     logger.info("Main UI exited normally")
 
-            except Exception as e:
+            except (subprocess.SubprocessError, OSError, ValueError) as e:
                 logger.error(f"Error starting main UI: {e}")
 
         # Start the UI in a background thread
@@ -97,7 +97,7 @@ class OpenEvolveBubbleLabsLauncher:
                 while self.services_running:
                     time.sleep(1)
                     
-            except Exception as e:
+            except (RuntimeError, ValueError, OSError) as e:
                 logger.error(f"Error in analytics server: {e}")
 
         # Start analytics server in background thread
@@ -172,7 +172,7 @@ class OpenEvolveBubbleLabsLauncher:
                     
             except ProcessLookupError:
                 logger.info(f"Process {process.pid} already terminated")
-            except Exception as e:
+            except (ProcessLookupError, PermissionError, OSError) as e:
                 logger.error(f"Error stopping process {process.pid}: {e}")
 
         # Wait a moment for threads to finish
@@ -210,7 +210,7 @@ def main():
     except KeyboardInterrupt:
         print("\nReceived keyboard interrupt, shutting down...")
         cleanup()
-    except Exception as e:
+    except (RuntimeError, ValueError, OSError) as e:
         logger.error(f"Unexpected error in launcher: {e}")
         cleanup()
         raise

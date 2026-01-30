@@ -212,7 +212,7 @@ class ScheduledReportManager:
                 self.schedules[schedule_id] = ScheduleConfig.from_dict(schedule_data)
 
             logger.info(f"Loaded {len(self.schedules)} schedules")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, json.JSONDecodeError, TypeError) as e:
             logger.error(f"Failed to load schedules: {e}")
 
     def _save_schedules(self):
@@ -227,7 +227,7 @@ class ScheduledReportManager:
                 json.dump(data, f, indent=2, default=str)
 
             logger.debug("Schedules saved")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError) as e:
             logger.error(f"Failed to save schedules: {e}")
 
     def add_schedule(self, schedule_config: ScheduleConfig) -> None:
@@ -372,7 +372,7 @@ class ScheduledReportManager:
             logger.warning(f"Cannot parse schedule expression: {schedule.schedule_expression}")
             return None
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ValueError, AttributeError, TypeError) as e:
             logger.error(f"Error calculating next run: {e}")
             return None
 
@@ -450,7 +450,7 @@ class ScheduledReportManager:
             logger.info(f"Successfully ran schedule: {schedule_id}")
             return report_path
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError, ValueError) as e:
             logger.error(f"Error running schedule {schedule_id}: {e}", exc_info=True)
             return None
 
@@ -510,7 +510,7 @@ Please find the report attached.
 
             logger.info(f"Email sent for schedule: {schedule.schedule_id}")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, smtplib.SMTPException, ValueError) as e:
             logger.error(f"Failed to send email: {e}")
 
     def start(self, data_source: Callable, check_interval: int = 60) -> None:
@@ -569,7 +569,7 @@ Please find the report attached.
                 # Sleep until next check
                 time.sleep(self.check_interval)
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, TypeError, ValueError) as e:
                 logger.error(f"Error in scheduler loop: {e}", exc_info=True)
                 time.sleep(self.check_interval)
 
@@ -595,7 +595,7 @@ Please find the report attached.
 
             logger.info(f"Cleaned up {removed_count} old reports")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, ValueError) as e:
             logger.error(f"Error cleaning up old reports: {e}")
 
     def get_schedule_status(self, schedule_id: str) -> Optional[Dict[str, Any]]:

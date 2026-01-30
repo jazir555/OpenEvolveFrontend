@@ -281,7 +281,7 @@ class Lean4Verifier:
 
         except httpx.TimeoutException:
             return ProofStatus.TIMEOUT, "", "Verification timeout"
-        except Exception as e:
+        except (IOError, ConnectionError, ValueError) as e:
             logger.error(f"Verification error: {e}")
             return ProofStatus.FAILED, "", str(e)
 
@@ -596,7 +596,7 @@ class LeanProofAgent:
 
             return proof
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             logger.error(f"Proof generation error: {e}")
             return LeanProof(
                 theorem_id=theorem.id,
@@ -640,7 +640,7 @@ Tactics:
 
             return tactics
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             logger.error(f"LLM tactic generation error: {e}")
             # Fallback to strategy default sequence
             return [

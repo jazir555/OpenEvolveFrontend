@@ -224,7 +224,7 @@ def solve_with_roma_mdap_maker(
 
         return result
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Error in solve_with_roma_mdap_maker: {e}", exc_info=True)
         return {
             "error": str(e),
@@ -443,7 +443,7 @@ def analyze_problem_with_roma_mdap(
             "use_roma_mdap_maker": estimated_complexity > 7.0
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"Error analyzing problem: {e}", exc_info=True)
         return {
             "error": str(e),
@@ -571,7 +571,7 @@ def verify_solution_with_roma_mdap(
             "verification_method": "roma_mdap_maker"
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"Error verifying solution: {e}", exc_info=True)
         return {
             "error": str(e),

@@ -131,7 +131,7 @@ class AdaptiveDecompositionIntegration:
             
             self.status = IntegrationStatus.READY
             
-        except Exception as e:
+        except (ImportError, AttributeError, TypeError) as e:
             logger.error(f"Failed to initialize components: {e}")
             self.status = IntegrationStatus.ERROR
     
@@ -180,7 +180,7 @@ class AdaptiveDecompositionIntegration:
             self.status = IntegrationStatus.READY
             return result
             
-        except Exception as e:
+        except (RuntimeError, ValueError, KeyError) as e:
             logger.error(f"Decomposition failed: {e}")
             self.status = IntegrationStatus.ERROR
             return {

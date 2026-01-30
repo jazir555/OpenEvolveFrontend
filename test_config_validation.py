@@ -130,7 +130,7 @@ async def test_config_validation_edge_cases():
             try:
                 plugin = OpenEvolveBubbleLabsPlugin(config)
                 print(f"✓ Config {i+1} handled gracefully: {config}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, ValueError, TypeError) as e:
                 print(f"✗ Config {i+1} caused error: {e}")
                 raise
     

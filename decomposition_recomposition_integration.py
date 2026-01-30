@@ -433,7 +433,7 @@ class DecompositionRecompositionPipeline:
                 result.solution_quality * 0.7
             )
             
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             self.logger.error(f"Pipeline execution failed: {e}", exc_info=True)
             # Mark current stage as failed
             if result.stages and result.stages[-1].status == "running":

@@ -421,7 +421,7 @@ class LeanDecomposer:
                 self.logger.warning(f"LeanAide json_structured failed: {result.error}")
                 return self._extract_components_heuristic(problem)
 
-        except Exception as e:
+        except (IOError, ConnectionError, TimeoutError, ValueError) as e:
             self.logger.error(f"LLM component extraction failed: {e}")
             return self._extract_components_heuristic(problem)
 
@@ -685,7 +685,7 @@ Provide dependencies for all {len(components)} components:"""
             else:
                 return self._identify_dependencies_heuristic(components)
 
-        except Exception as e:
+        except (IOError, ConnectionError, TimeoutError, ValueError) as e:
             self.logger.error(f"LLM dependency analysis failed: {e}")
             return self._identify_dependencies_heuristic(components)
 
@@ -1041,7 +1041,7 @@ class LeanComponentExtractor:
             else:
                 return self._extract_heuristic(problem)
 
-        except Exception as e:
+        except (IOError, ConnectionError, TimeoutError, ValueError) as e:
             self.logger.error(f"LLM extraction failed: {e}")
             return self._extract_heuristic(problem)
 
@@ -1176,7 +1176,7 @@ class LeanSubProblemGenerator:
                 self.logger.warning(f"Lean code generation failed for {component.name}: {result.error}")
                 return ""
 
-        except Exception as e:
+        except (IOError, ConnectionError, TimeoutError, ValueError) as e:
             self.logger.error(f"Lean code generation error for {component.name}: {e}")
             return ""
 

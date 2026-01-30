@@ -170,7 +170,7 @@ class EvolutionConfigurationWrapper:
             try:
                 config = self.get_config()
                 return asdict(config)
-            except Exception:
+            except (AttributeError, TypeError, ValueError):
                 pass
 
         return self._config_dict.copy()

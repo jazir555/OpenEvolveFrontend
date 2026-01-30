@@ -150,7 +150,7 @@ def execute_phase_1_setup(
             "message": f"Phase 1 complete: Complexity {complexity_score}/10",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Phase 1 failed: {e}")
         return {
             "phase": 1,
@@ -440,7 +440,7 @@ def execute_phase_2_solve(
                 "message": f"Phase 2 failed for {sub_problem_id}",
             }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Phase 2 failed for {sub_problem_id}: {e}")
         return {
             "phase": 2,
@@ -535,7 +535,7 @@ def execute_phase_3_critique(
             "message": "Phase 3 complete (fallback mode)",
             "fallback_used": True,
         }
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"Phase 3 critique error: {e}")
         return {
             "phase": 3,
@@ -637,7 +637,7 @@ def execute_phase_4_verify(
             "message": "Phase 4 complete (fallback mode)",
             "fallback_used": True,
         }
-    except Exception as e:
+    except (RuntimeError, ValueError) as e:
         logger.error(f"Phase 4 verification error: {e}")
         return {
             "phase": 4,
@@ -794,7 +794,7 @@ def execute_phase_5_reassemble(
             "message": f"Phase 5 complete (fallback mode - {e})",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, ImportError) as e:
         logger.error(f"Phase 5 reassembly error: {e}")
         # Emergency fallback
         aggregated = "\n\n".join([
@@ -1006,7 +1006,7 @@ Format your response as JSON:
             "message": f"Phase 6 complete (fallback mode - {e})",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, ImportError) as e:
         logger.error(f"Phase 6 validation error: {e}")
         # Emergency fallback
         return {
@@ -1112,7 +1112,7 @@ def execute_full_workflow(
             "message": f"Full workflow {result.status}",
         }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Full workflow failed: {e}")
         return {
             "workflow": "roma_mdap_maker",

@@ -221,7 +221,7 @@ class WorkflowPersistence:
             logger.info(f"PostgreSQL backend initialized successfully at {db_host}:{db_port}/{db_name}")
             self.storage_backend = "postgres"
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"Failed to initialize PostgreSQL backend: {e}. Falling back to file-based.")
             self.storage_backend = "file"
             self._init_file_backend()
@@ -246,7 +246,7 @@ class WorkflowPersistence:
                     return self._persist_state_sqlite(state)
                 else:
                     raise ValueError(f"Unknown storage backend: {self.storage_backend}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, PermissionError, sqlite3.Error) as e:
                 logger.error(f"Failed to persist state: {e}", exc_info=True)
                 raise
 
@@ -358,7 +358,7 @@ class WorkflowPersistence:
                     return self._retrieve_state_sqlite(workflow_id, state_id)
                 else:
                     raise ValueError(f"Unknown storage backend: {self.storage_backend}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, json.JSONDecodeError, sqlite3.Error) as e:
                 logger.error(f"Failed to retrieve state: {e}", exc_info=True)
                 return None
 
@@ -464,7 +464,7 @@ class WorkflowPersistence:
                     return self._list_states_sqlite(workflow_id)
                 else:
                     raise ValueError(f"Unknown storage backend: {self.storage_backend}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, sqlite3.Error) as e:
                 logger.error(f"Failed to list states: {e}", exc_info=True)
                 return []
 
@@ -525,7 +525,7 @@ class WorkflowPersistence:
                     raise ValueError(f"Unknown storage backend: {self.storage_backend}")
 
                 logger.info(f"Deleted state {state_id} for workflow {workflow_id}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, PermissionError, sqlite3.Error) as e:
                 logger.error(f"Failed to delete state: {e}", exc_info=True)
                 raise
 
@@ -574,7 +574,7 @@ class WorkflowPersistence:
                     self.delete_state(workflow_id, state.state_id)
 
                 logger.info(f"Cleaned up {len(states_to_delete)} old states for workflow {workflow_id}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, sqlite3.Error) as e:
                 logger.error(f"Failed to cleanup old states: {e}", exc_info=True)
                 raise
 
@@ -621,7 +621,7 @@ class WorkflowPersistence:
                 shutil.rmtree(export_dir)
 
                 logger.info(f"Exported workflow {workflow_id} to {archive_path}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, shutil.Error) as e:
                 logger.error(f"Failed to export workflow: {e}", exc_info=True)
                 raise
 
@@ -685,7 +685,7 @@ class WorkflowPersistence:
 
                 logger.info(f"Imported workflow {workflow_id} from {archive_path}")
                 return workflow_id
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, shutil.Error, ValueError) as e:
                 logger.error(f"Failed to import workflow: {e}", exc_info=True)
                 raise
 
@@ -699,7 +699,7 @@ class WorkflowPersistence:
                     self._save_checkpoint_sqlite(checkpoint)
 
                 logger.debug(f"Saved checkpoint {checkpoint.checkpoint_id}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, sqlite3.Error) as e:
                 logger.error(f"Failed to save checkpoint: {e}", exc_info=True)
                 raise
 
@@ -745,7 +745,7 @@ class WorkflowPersistence:
                     return self._list_checkpoints_sqlite(workflow_id)
                 else:
                     return []
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, sqlite3.Error, json.JSONDecodeError) as e:
                 logger.error(f"Failed to list checkpoints: {e}", exc_info=True)
                 return []
 
@@ -805,7 +805,7 @@ class WorkflowPersistence:
                     json.dump(audit_trail.to_dict(), f, indent=2, default=str)
 
                 logger.debug(f"Saved audit trail for workflow {audit_trail.workflow_id}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, PermissionError) as e:
                 logger.error(f"Failed to save audit trail: {e}", exc_info=True)
                 raise
 
@@ -822,6 +822,6 @@ class WorkflowPersistence:
                     audit_dict = json.load(f)
 
                 return AuditTrail.from_dict(audit_dict)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, json.JSONDecodeError) as e:
                 logger.error(f"Failed to load audit trail: {e}", exc_info=True)
                 return None

@@ -43,7 +43,7 @@ async def test_pygraphistry_integration():
         else:
             print("   ⚠ PyGraphistry visualization failed, using fallback")
             
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, ValueError, RuntimeError, ImportError) as e:
         print(f"   ✗ Error in KnowledgeGraphVisualizer with PyGraphistry: {e}")
     
     # Test 2: Pattern analysis with PyGraphistry
@@ -65,7 +65,7 @@ async def test_pygraphistry_integration():
         else:
             print("   ⚠ Pattern analysis returned no results")
             
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, ValueError, RuntimeError, ImportError) as e:
         print(f"   ✗ Error in pattern analysis: {e}")
     
     # Test 3: Test the convenience function
@@ -86,7 +86,7 @@ async def test_pygraphistry_integration():
         else:
             print("   ⚠ Convenience function failed, using fallback")
             
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, ValueError, RuntimeError, ImportError) as e:
         print(f"   ✗ Error in convenience function: {e}")
     
     # Test 4: Test pattern analysis convenience function
@@ -104,7 +104,7 @@ async def test_pygraphistry_integration():
         else:
             print("   ⚠ Pattern analysis convenience function returned no results")
             
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, ValueError, RuntimeError, ImportError) as e:
         print(f"   ✗ Error in pattern analysis convenience function: {e}")
     
     # Test 5: Verify API endpoint connection (simulated)
@@ -134,7 +134,7 @@ async def test_pygraphistry_integration():
         else:
             print("   ⚠ API endpoint simulation returned no URL (expected if PyGraphistry not configured)")
             
-    except Exception as e:  # TODO: Catch specific exception instead of Exception
+    except (IOError, ValueError, RuntimeError, ImportError) as e:
         print(f"   ✗ Error in API endpoint simulation: {e}")
     
     print("\n" + "="*60)

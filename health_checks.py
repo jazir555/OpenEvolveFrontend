@@ -15,7 +15,7 @@ def is_llm_service_available():
     try:
         client = get_client()
         return client is not None and OPENEVOLVE_AVAILABLE
-    except Exception:
+    except (ImportError, ConnectionError, RuntimeError):
         return False
 
 def get_db_connection():
@@ -23,7 +23,7 @@ def get_db_connection():
     try:
         db = SovereignDatabase()
         return db.conn
-    except Exception:
+    except (ImportError, ConnectionError, RuntimeError):
         # Fallback to in-memory database
         return sqlite3.connect(":memory:")
 
@@ -34,7 +34,7 @@ def check_database_connectivity() -> bool:
         conn.execute("SELECT 1")
         logger.info("Database connectivity check successful.")
         return True
-    except Exception as e:
+    except (sqlite3.Error, IOError, OSError) as e:
         logger.error(f"Database connectivity check failed: {e}")
         return False
 

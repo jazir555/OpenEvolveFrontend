@@ -310,7 +310,7 @@ class BlueTeamMember:
                         new_lines.append(line)
             
             return f"No automated diff generated for: {issue.description}. Manual fix required."
-        except Exception:
+        except (IOError, OSError, ValueError):
             return None
 
     def _generate_implementation_notes(self, issue: IssueFinding, fix_type: FixType) -> Optional[str]:
@@ -550,7 +550,7 @@ class BlueTeam:
                                         "timestamp": datetime.now().timestamp(),
                                         "error": str(e)
                                     }
-                            except Exception as e:
+                            except (IOError, OSError) as e:
                                 logger.error(f"Error reading file in blue team evaluator: {e}", exc_info=True)
                                 return {
                                     "score": 0.0,
@@ -632,7 +632,7 @@ class BlueTeam:
                 if os.path.exists(temp_file_path):
                     os.unlink(temp_file_path)
         
-        except Exception as e:
+        except (ImportError, ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"Error using OpenEvolve backend for blue team fixing: {e}", exc_info=True)
             # Fallback to custom implementation
             return self._apply_fixes_with_custom_implementation(content, issues, content_type)
@@ -1041,7 +1041,7 @@ class BlueTeam:
 
                 fixed_content = "".join(new_lines)
                 fix_status = "applied"
-            except Exception as e:
+            except (ValueError, IndexError, KeyError) as e:
                 logger.error(f"Error applying diff for fix '{suggestion.fix_description}': {e}", exc_info=True)
                 fixed_content = content # Fallback to original content on error
                 fix_status = "failed_to_apply_diff"
@@ -1115,7 +1115,7 @@ class BlueTeam:
                     if any(call in line for call in ['open(', 'requests.get(', 'api.call(']):
                         modified_lines.append('    try:')
                         modified_lines.append(f"        {line.strip()}")
-                        modified_lines.append('    except Exception as e:')
+                        modified_lines.append('    except (ValueError, TypeError) as e:')
                         modified_lines.append('        print(f"Error: {e}")')
                         modified_lines.append('        return None')
                     else:
@@ -1344,7 +1344,7 @@ class BlueTeam:
             self.fix_history.append(assessment)
             return assessment
             
-        except Exception as e:
+        except (ImportError, ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"Error using OpenEvolve for solution generation: {e}", exc_info=True)
             return self._apply_fixes_with_custom_implementation(
                 content, [], content_type
@@ -1422,7 +1422,7 @@ Evaluate if the issues have been resolved."""
                     
                     return {"score": 0.5, "timestamp": datetime.now().timestamp()}
                     
-                except Exception as e:
+                except (ValueError, TypeError, KeyError) as e:
                     logger.error(f"Error in fix evaluator: {e}", exc_info=True)
                     return {"score": 0.0, "error": str(e)}
             
@@ -1471,7 +1471,7 @@ Evaluate if the issues have been resolved."""
             self.fix_history.append(assessment)
             return assessment
             
-        except Exception as e:
+        except (ImportError, ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"Error using OpenEvolve for fixing: {e}", exc_info=True)
             return self.apply_fixes(content, issues, content_type)
     
@@ -1531,7 +1531,7 @@ Provide your evaluation."""
                 
                 return {"score": 0.5, "timestamp": datetime.now().timestamp()}
                 
-            except Exception as e:
+            except (ValueError, TypeError, KeyError) as e:
                 logger.error(f"Error in custom evaluator: {e}", exc_info=True)
                 return {"score": 0.0, "error": str(e)}
         
@@ -1686,7 +1686,7 @@ Provide your evaluation."""
             # Return internal assessment if orchestration fails
             return self.generate_fix_report(internal_assessment)
             
-        except Exception as e:
+        except (ImportError, ConnectionError, TimeoutError, RuntimeError) as e:
             # Fallback to internal fixing if orchestration integration fails
             self.logger.error(f"Orchestration integration failed: {e}", exc_info=True)
             assessment = self.apply_fixes(content, issues, content_type)

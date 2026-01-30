@@ -181,7 +181,7 @@ class Lean4Verifier:
                 else:
                     self.leanaide_client = LeanAideClient()
                 logger.info("LeanAide client initialized for verification")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (LeanAideClientError, ConnectionError, TimeoutError) as e:
                 logger.warning(f"Failed to initialize LeanAide client: {e}")
                 self.enable_leanaide = False
 
@@ -318,7 +318,7 @@ class Lean4Verifier:
                 if not check_issues:
                     passed += 1
 
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 logger.error(f"Error performing {check_type.value} check: {e}")
                 issues.append(VerificationIssue(
                     check_type=check_type,
@@ -767,7 +767,7 @@ class Lean4Verifier:
                     suggestion="Review code or check LeanAide server status"
                 ))
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (LeanAideClientError, ConnectionError, TimeoutError) as e:
             issues.append(VerificationIssue(
                 check_type=CheckType.PROOF,
                 severity="warning",

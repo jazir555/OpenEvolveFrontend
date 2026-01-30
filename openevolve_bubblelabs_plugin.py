@@ -99,7 +99,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
         # Initialize the legacy integration with error handling
         try:
             self._integration = BubbleLabsIntegration()
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, OSError, ConnectionError) as e:
             self._logger.error(f"Failed to initialize BubbleLabsIntegration: {e}\n{traceback.format_exc()}")
             # Create a mock integration that handles errors gracefully
             self._integration = self._create_fallback_integration()
@@ -190,7 +190,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
                     validated_config[key] = value
 
             return validated_config
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (TypeError, ValueError, AttributeError) as e:
             self._logger.error(f"Error validating config: {e}\n{traceback.format_exc()}")
             # Return safe defaults
             return {
@@ -277,7 +277,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
             self._status.health = "healthy"
             self._status.message = "Plugin initialized successfully"
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError, OSError) as e:
             self._logger.error(f"Failed to initialize OpenEvolve plugin: {e}\n{traceback.format_exc()}")
             self._status.state = PluginState.ERROR
             self._status.health = "unhealthy"
@@ -304,7 +304,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
             self._status.health = "healthy"
             self._status.message = "Plugin started successfully"
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError, OSError) as e:
             self._logger.error(f"Failed to start OpenEvolve plugin: {e}\n{traceback.format_exc()}")
             self._status.state = PluginState.ERROR
             self._status.health = "unhealthy"
@@ -342,7 +342,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
             self._status.health = "healthy"
             self._status.message = "Plugin stopped successfully"
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError, OSError) as e:
             self._logger.error(f"Failed to stop OpenEvolve plugin: {e}\n{traceback.format_exc()}")
             self._status.state = PluginState.ERROR
             self._status.health = "unhealthy"
@@ -367,7 +367,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
             self._status.state = PluginState.UNLOADED
             self._status.message = "Plugin cleaned up successfully"
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError, OSError) as e:
             self._logger.error(f"Failed to cleanup OpenEvolve plugin: {e}\n{traceback.format_exc()}")
             self._status.state = PluginState.ERROR
             self._status.health = "unhealthy"
@@ -411,7 +411,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
 
             return True
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             self._logger.error(f"Health check failed: {e}\n{traceback.format_exc()}")
             self._status.health = "unhealthy"
             self._status.error = e
@@ -441,7 +441,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
         except ValueError:
             self._logger.warning(f"Invalid node type requested: {node_type}")
             return None
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, TypeError, AttributeError) as e:
             self._logger.error(f"Error getting node {node_type}: {e}\n{traceback.format_exc()}")
             return None
 
@@ -495,7 +495,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
 
             return definition
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError, ValueError) as e:
             self._logger.error(f"Failed to create workflow definition: {e}\n{traceback.format_exc()}")
             self._metrics["errors"] += 1
             self._status.health = "degraded"
@@ -515,7 +515,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
         """
         try:
             return await self._run_sync(self._integration.get_workflow_definition, definition_id)
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             self._logger.error(f"Error getting workflow definition {definition_id}: {e}\n{traceback.format_exc()}")
             return None
 
@@ -528,7 +528,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
         """
         try:
             return await self._run_sync(self._integration.list_workflow_definitions)
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             self._logger.error(f"Error listing workflow definitions: {e}\n{traceback.format_exc()}")
             return []
 
@@ -541,7 +541,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
         """
         try:
             return await self._run_sync(self._integration.list_workflow_instances)
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             self._logger.error(f"Error listing workflow instances: {e}\n{traceback.format_exc()}")
             return []
 
@@ -592,7 +592,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
 
             return result
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             self._logger.error(f"Failed to control workflow {instance_id}: {e}\n{traceback.format_exc()}")
             self._metrics["errors"] += 1
             self._status.health = "degraded"
@@ -620,7 +620,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
             metrics["status"] = self._status.__dict__
 
             return metrics
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             self._logger.error(f"Error getting metrics: {e}\n{traceback.format_exc()}")
             # Return basic metrics even if there's an error
             return {
@@ -641,7 +641,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
                 "control_actions": 0,
                 "errors": 0,
             }
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, TypeError, AttributeError) as e:
             self._logger.error(f"Error resetting metrics: {e}\n{traceback.format_exc()}")
 
     # ============================================================================
@@ -661,7 +661,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
             except asyncio.CancelledError:
                 self._logger.info("Auto-cleanup loop was cancelled")
                 break
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (RuntimeError, OSError) as e:
                 self._logger.error(f"Error in auto-cleanup loop: {e}\n{traceback.format_exc()}")
                 # Continue the loop despite errors to ensure cleanup keeps running
                 continue
@@ -676,10 +676,10 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
                     self._logger.info(f"Cancelling workflow {instance.id}")
                     try:
                         await self.control_workflow(instance.id, "cancel")
-                    except Exception as e:  # TODO: Catch specific exception instead of Exception
+                    except (ConnectionError, TimeoutError, RuntimeError) as e:
                         self._logger.error(f"Error cancelling workflow {instance.id}: {e}\n{traceback.format_exc()}")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError) as e:
             self._logger.error(f"Error in _cancel_all_workflows: {e}\n{traceback.format_exc()}")
 
     async def _run_sync(self, func, *args, **kwargs) -> Any:
@@ -697,7 +697,7 @@ class OpenEvolveBubbleLabsPlugin(BubbleLabsPlugin):
         try:
             loop = asyncio.get_event_loop()
             return await loop.run_in_executor(None, func, *args, kwargs)
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ConnectionError, TimeoutError) as e:
             self._logger.error(f"Error running sync function {func.__name__}: {e}\n{traceback.format_exc()}")
             raise
 
@@ -775,7 +775,7 @@ class BubbleLabsIntegrationWrapper:
             return asyncio.run(
                 self._create_definition_async(problem_statement, team_config, gauntlet_config)
             )
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"Error in create_workflow_definition_from_openevolve: {e}\n{traceback.format_exc()}")
             # Return a default error response or handle gracefully
             # For now, we'll re-raise to maintain original behavior but with better logging
@@ -810,7 +810,7 @@ class BubbleLabsIntegrationWrapper:
                 return loop.run_until_complete(self._control_async(instance_id, action))
         except RuntimeError:
             return asyncio.run(self._control_async(instance_id, action))
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, RuntimeError) as e:
             logger.error(f"Error in control_workflow_local: {e}\n{traceback.format_exc()}")
             return {"error": f"Failed to control workflow: {str(e)}", "status": "error"}
 

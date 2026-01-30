@@ -541,7 +541,7 @@ class LeanAideContinuousMCP:
                 data=data
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             logger.error(f"Error in detect_math: {e}")
             return MCPToolResult(
                 tool_name="detect_math",
@@ -561,7 +561,7 @@ class LeanAideContinuousMCP:
                 data={"is_ode": result.math_type == MathType.ODE}
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             logger.error(f"Error in is_ode: {e}")
             return MCPToolResult(
                 tool_name="is_ode",
@@ -581,7 +581,7 @@ class LeanAideContinuousMCP:
                 data={"is_pde": result.math_type == MathType.PDE}
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             logger.error(f"Error in is_pde: {e}")
             return MCPToolResult(
                 tool_name="is_pde",
@@ -632,7 +632,7 @@ class LeanAideContinuousMCP:
                 data=data
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             logger.error(f"Error in translate_to_lean4: {e}")
             return MCPToolResult(
                 tool_name="translate_to_lean4",
@@ -657,7 +657,7 @@ class LeanAideContinuousMCP:
                 }
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             logger.error(f"Error in translate_ode: {e}")
             return MCPToolResult(
                 tool_name="translate_ode",
@@ -682,7 +682,7 @@ class LeanAideContinuousMCP:
                 }
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             logger.error(f"Error in translate_pde: {e}")
             return MCPToolResult(
                 tool_name="translate_pde",
@@ -726,7 +726,7 @@ class LeanAideContinuousMCP:
                 data={"templates": data, "count": len(data)}
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             logger.error(f"Error in get_equation_templates: {e}")
             return MCPToolResult(
                 tool_name="get_equation_templates",
@@ -756,7 +756,7 @@ class LeanAideContinuousMCP:
                 data={"solution_methods": methods, "count": len(methods)}
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             logger.error(f"Error in get_solution_methods: {e}")
             return MCPToolResult(
                 tool_name="get_solution_methods",
@@ -805,7 +805,7 @@ class LeanAideContinuousMCP:
                 data={"recommended_methods": methods}
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             logger.error(f"Error in recommend_solution_method: {e}")
             return MCPToolResult(
                 tool_name="recommend_solution_method",
@@ -851,7 +851,7 @@ class LeanAideContinuousMCP:
                 data=data
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError) as e:
             logger.error(f"Error in verify_lean4_code: {e}")
             return MCPToolResult(
                 tool_name="verify_lean4_code",
@@ -922,7 +922,7 @@ class LeanAideContinuousMCP:
                 execution_time=time.time() - start_time
             )
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (AttributeError, TypeError, ValueError, RuntimeError) as e:
             logger.error(f"Error in complete_pipeline: {e}")
             return MCPToolResult(
                 tool_name="complete_pipeline",

@@ -510,7 +510,7 @@ class TestErrorHandling(unittest.TestCase):
             db.create_problem(invalid_problem)
             # If it doesn't raise an error, check if it returns False
             # (depends on implementation)
-        except Exception:
+        except (ValueError, TypeError, RuntimeError):
             # If it raises an exception, that's also acceptable error handling
             pass
         

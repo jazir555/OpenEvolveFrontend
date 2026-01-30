@@ -472,7 +472,7 @@ class BubbleLabsCrewAIBridge:
         try:
             self.state_manager = StateManager(self._state_storage_dir)
             logger.info(f"CrewAI StateManager initialized: {self._state_storage_dir}")
-        except Exception as e:
+        except (OSError, IOError, ValueError) as e:
             logger.error(f"Error initializing StateManager: {e}")
             # Continue without state manager
 
@@ -517,7 +517,7 @@ class BubbleLabsCrewAIBridge:
 
             logger.info(f"Initialized CrewAI workflow mappings database: {self._mappings_db_path}")
 
-        except Exception as e:
+        except (sqlite3.Error, OSError, IOError) as e:
             logger.error(f"Error initializing mappings database: {e}")
             raise
 
@@ -553,7 +553,7 @@ class BubbleLabsCrewAIBridge:
 
             logger.info(f"Loaded {mappings_loaded} workflow-to-CrewAI mappings from database")
 
-        except Exception as e:
+        except (sqlite3.Error, OSError, IOError) as e:
             logger.error(f"Error loading mappings from database: {e}")
 
     def _save_mapping_to_db(self, mapping: WorkflowCrewAIMapping) -> None:
@@ -592,7 +592,7 @@ class BubbleLabsCrewAIBridge:
 
             logger.debug(f"Saved mapping to database: {mapping.workflow_id} -> {mapping.crewai_workflow_id}")
 
-        except Exception as e:
+        except (sqlite3.Error, OSError, IOError) as e:
             logger.error(f"Error saving mapping to database: {e}")
 
     def _add_mapping(self, workflow_id: str, mapping: WorkflowCrewAIMapping) -> None:
@@ -678,7 +678,7 @@ class BubbleLabsCrewAIBridge:
             logger.info(f"Created CrewAI workflow {crewai_workflow_id} for BubbleLabs workflow {workflow_definition.id}")
             return crewai_workflow_id
 
-        except Exception as e:
+        except (ValueError, TypeError, OSError) as e:
             logger.error(f"Error creating CrewAI workflow from BubbleLabs: {e}")
             return None
 
@@ -746,7 +746,7 @@ class BubbleLabsCrewAIBridge:
             logger.debug(f"Updated CrewAI workflow {mapping.crewai_workflow_id} to status {new_crewai_status.value}")
             return True
 
-        except Exception as e:
+        except (ValueError, TypeError, OSError, sqlite3.Error) as e:
             logger.error(f"Error updating CrewAI workflow progress: {e}")
             return False
 
@@ -797,7 +797,7 @@ class BubbleLabsCrewAIBridge:
             logger.info(f"Closed CrewAI workflow {mapping.crewai_workflow_id} for BubbleLabs instance {workflow_instance_id}")
             return True
 
-        except Exception as e:
+        except (ValueError, TypeError, OSError, sqlite3.Error) as e:
             logger.error(f"Error closing CrewAI workflow: {e}")
             return False
 
@@ -837,7 +837,7 @@ class BubbleLabsCrewAIBridge:
 
             return True
 
-        except Exception as e:
+        except (ValueError, TypeError, OSError, sqlite3.Error) as e:
             logger.error(f"Error syncing BubbleLabs workflow to CrewAI: {e}")
             return False
 
@@ -885,7 +885,7 @@ class BubbleLabsCrewAIBridge:
 
             return mappings
 
-        except Exception as e:
+        except (sqlite3.Error, OSError, IOError) as e:
             logger.error(f"Error getting all mappings: {e}")
             return {}
 
@@ -911,7 +911,7 @@ class BubbleLabsCrewAIBridge:
             logger.info(f"Started background sync thread (interval: {self.sync_interval}s)")
             return True
 
-        except Exception as e:
+        except (RuntimeError, OSError) as e:
             logger.error(f"Failed to start background sync thread: {e}")
             with self.lock:
                 self.running = False
@@ -956,7 +956,7 @@ class BubbleLabsCrewAIBridge:
                 if self.shutdown_event.wait(timeout=self.sync_interval):
                     break
 
-            except Exception as e:
+            except (RuntimeError, OSError, ValueError) as e:
                 logger.error(f"Error in sync loop: {e}")
                 if self.shutdown_event.wait(timeout=5.0):
                     break
@@ -996,7 +996,7 @@ class BubbleLabsCrewAIBridge:
                         mapping.updated_at = time.time()
                         self._save_mapping_to_db(mapping)
 
-        except Exception as e:
+        except (OSError, ValueError, sqlite3.Error) as e:
             logger.error(f"Error syncing active workflows: {e}")
 
     def _update_instance_cache(self) -> None:
@@ -1017,7 +1017,7 @@ class BubbleLabsCrewAIBridge:
 
                 logger.debug(f"Updated instance cache with {len(new_cache)} entries")
 
-        except Exception as e:
+        except (OSError, ValueError) as e:
             logger.warning(f"Error updating instance cache: {e}")
 
     def _map_workflow_status_to_crewai_status(
@@ -1087,7 +1087,7 @@ class BubbleLabsCrewAIBridge:
                         if mapping:
                             self._mappings.move_to_end(instance.definition_id)
                         return mapping
-        except Exception as e:
+        except (OSError, ValueError) as e:
             logger.debug(f"Error finding mapping for instance {instance_id}: {e}")
 
         return None

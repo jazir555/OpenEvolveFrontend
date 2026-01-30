@@ -355,7 +355,7 @@ class OpenEvolveLeanAideIntegrationSystem:
                 'verification_reports': [vr.__dict__ if hasattr(vr, '__dict__') else vr for vr in workflow_state.verification_reports]
             }
             
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (ConnectionError, TimeoutError, ValueError, RuntimeError, AttributeError) as e:
             logger.error(f"Enhanced workflow failed: {e}")
             return {
                 'status': 'error',

@@ -601,7 +601,8 @@ def list_demos():
     print("\nAvailable demos:")
     print("-" * 40)
     for name, func in DEMOS.items():
-        print(f"  {name:<15} {func.__doc__.split('\n')[0].strip()}")
+        doc_line = func.__doc__.split('\n')[0].strip()
+        print(f"  {name:<15} {doc_line}")
     print("-" * 40)
     print("\nUsage: python demo_mcts_mdap.py --demo <name>")
     print()

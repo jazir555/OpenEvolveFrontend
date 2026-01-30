@@ -353,7 +353,7 @@ class MDAPLeanPopulation(LeanProofPopulation if EVOLUTION_AVAILABLE else object)
                     # Get agent's evaluation
                     vote = await self._get_agent_vote(agent, individual)
                     votes.append(vote)
-                except Exception as e:
+                except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                     logger.error(f"Agent {agent.agent_id} failed: {e}")
                     continue
 
@@ -995,7 +995,7 @@ class MDAPLeanSelector:
             try:
                 score = agent.estimate_quality(individual.proof)
                 scores.append(score)
-            except Exception:
+            except (ValueError, TypeError, AttributeError):
                 continue
 
         if not scores:
@@ -1105,7 +1105,7 @@ class MDAPLeanCrossover(LeanProofCrossover if EVOLUTION_AVAILABLE else object):
                     agent, parent1, parent2
                 )
                 votes.append(vote)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 logger.error(f"Agent {agent.agent_id} failed to vote: {e}")
 
         if not votes:
@@ -1189,7 +1189,7 @@ class MDAPLeanCrossover(LeanProofCrossover if EVOLUTION_AVAILABLE else object):
                 )
                 for point in points:
                     point_votes[point] += 1
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 logger.error(f"Agent {agent.agent_id} failed to vote on points: {e}")
 
         if not point_votes:
@@ -1400,7 +1400,7 @@ class MDAPLeanMutator(LeanProofMutator if EVOLUTION_AVAILABLE else object):
             try:
                 agent_suggestions = await self._get_agent_mutations(agent, individual)
                 suggestions.extend(agent_suggestions)
-            except Exception as e:
+            except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                 logger.error(f"Agent {agent.agent_id} failed to suggest mutations: {e}")
 
         return suggestions
@@ -1682,7 +1682,7 @@ class MDAPEvolutionEngine(LeanProofEvolutionEngine if EVOLUTION_AVAILABLE else o
                         config=None  # Use default config
                     )
                     agents.append(agent)
-                except Exception as e:
+                except (ValueError, TypeError, AttributeError) as e:
                     logger.warning(f"Failed to create agent {strategy}: {e}")
 
         return agents
@@ -1798,7 +1798,7 @@ class MDAPEvolutionEngine(LeanProofEvolutionEngine if EVOLUTION_AVAILABLE else o
 
             return result
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError, RuntimeError) as e:
             logger.error(f"MDAP evolution failed: {e}", exc_info=True)
             return MDAPResult(
                 success=False,

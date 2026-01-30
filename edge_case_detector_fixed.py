@@ -387,7 +387,7 @@ def analyze_encoding_issues(file_path: Path, root_dir: Path) -> List[Dict]:
                 'recommendation': 'Add: # -*- coding: utf-8 -*-',
                 'priority': 'LOW'
             })
-    except Exception:  # TODO: Catch specific exception instead of Exception
+    except (OSError, IOError, UnicodeDecodeError):
         import logging
         logger = logging.getLogger(__name__)
         logger.error(f"Error in {__name__}", exc_info=True)
@@ -492,7 +492,7 @@ class ComprehensiveAnalyzer:
                 elif isinstance(node, ast.ImportFrom) and node.module:
                     self.graph[module_name].add(node.module)
 
-        except Exception:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, SyntaxError):
             import logging
             logger = logging.getLogger(__name__)
             logger.error(f"Error in {__name__}", exc_info=True)

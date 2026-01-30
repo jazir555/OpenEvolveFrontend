@@ -386,7 +386,7 @@ class SolutionAssembler:
             logger.info(f"Successfully assembled solution {solution_id}")
             return integrated_solution
 
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError, AttributeError) as e:
             logger.error(f"Failed to assemble solution: {e}")
             if self.strict_mode:
                 raise AssemblyStrategyError(f"Solution assembly failed: {e}") from e
@@ -437,7 +437,7 @@ class SolutionAssembler:
             try:
                 resolution = self._resolve_single_conflict(conflict, strategy_enum)
                 resolved.append(resolution)
-            except Exception as e:
+            except (ValueError, TypeError, RuntimeError, AttributeError) as e:
                 logger.error(f"Failed to resolve conflict {conflict}: {e}")
                 if self.strict_mode:
                     raise ConflictResolutionError(f"Conflict resolution failed: {e}") from e
@@ -1196,7 +1196,7 @@ class SolutionAssembler:
                                 issues.append(
                                     f"Deep import detected: {node.module}"
                                 )
-        except Exception:
+        except (SyntaxError, ValueError):
             # If we can't parse, syntax validator will catch it
             pass
 
@@ -1301,7 +1301,7 @@ class SolutionAssembler:
                 logger.info(f"Detected {len(conflicts)} conflicts using ConflictDetector")
                 return conflicts
 
-            except Exception as e:
+            except (ValueError, TypeError, RuntimeError, AttributeError) as e:
                 logger.warning(f"ConflictDetector failed: {e}, using fallback detection")
 
         # Fallback: simple conflict detection

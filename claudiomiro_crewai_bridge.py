@@ -282,7 +282,7 @@ class ClaudiomiroCrewAIWorkflowBridge:
                     "message": "Task decomposition failed",
                 }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Phase 1 execution failed: {e}")
             self._update_workflow(workflow_id, "failed", {"error": str(e)})
             return {
@@ -376,7 +376,7 @@ class ClaudiomiroCrewAIWorkflowBridge:
                 "message": "Solutions implemented" if result.get("success") else "Implementation failed",
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Phase 2 execution failed: {e}")
             self._update_workflow(workflow_id, "failed", {"error": str(e)})
             return {
@@ -459,7 +459,7 @@ class ClaudiomiroCrewAIWorkflowBridge:
                 "message": "Code review completed" if result.get("success") else "Review failed",
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Phase 3 execution failed: {e}")
             self._update_workflow(workflow_id, "failed", {"error": str(e)})
             return {
@@ -545,7 +545,7 @@ class ClaudiomiroCrewAIWorkflowBridge:
                 "message": "Tests verified and fixed" if result.get("success") else "Test verification failed",
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Phase 4 execution failed: {e}")
             self._update_workflow(workflow_id, "failed", {"error": str(e)})
             return {
@@ -642,7 +642,7 @@ Sub-solutions to integrate:
                 "message": "Integration completed" if result.get("success") else "Integration failed",
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Phase 5 execution failed: {e}")
             self._update_workflow(workflow_id, "failed", {"error": str(e)})
             return {
@@ -729,7 +729,7 @@ Sub-solutions to integrate:
                 "message": "Final validation and commit completed" if result.get("success") else "Final phase failed",
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Phase 6 execution failed: {e}")
             self._update_workflow(workflow_id, "failed", {"error": str(e)})
             return {
@@ -876,7 +876,7 @@ Sub-solutions to integrate:
                 "message": "Multi-repo workflow completed" if result.get("success") else "Multi-repo workflow failed",
             }
 
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Multi-repo workflow failed: {e}")
             return {
                 "success": False,
@@ -947,7 +947,7 @@ def claudiomiro_capture(
                 # Execute original function
                 result = func(*args, **kwargs)
                 return result
-            except Exception as e:
+            except (RuntimeError, ValueError, TypeError) as e:
                 # If it fails, use Claudiomiro to fix
                 if CLAUDIOMIRO_AVAILABLE and bridge:
                     logger.info(f"Function {func.__name__} failed, using Claudiomiro to fix")

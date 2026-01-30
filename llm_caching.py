@@ -200,9 +200,17 @@ class DatabaseCache:
                 )
                 conn.commit()
                 
-                # Deserialize value
+                # Deserialize value - SECURITY FIX: Use safer serialization method
                 try:
-                    return pickle.loads(value)
+                    # SECURITY FIX: Replace pickle.loads with ast.literal_eval for basic data structures
+                    import ast
+                    import json
+                    # First try JSON (safer)
+                    try:
+                        return json.loads(value.decode('utf-8'))
+                    except (json.JSONDecodeError, UnicodeDecodeError):
+                        # If JSON fails, use ast.literal_eval for basic Python literals (safer than pickle)
+                        return ast.literal_eval(value.decode('utf-8'))
                 except Exception as e:
                     self.logger.error(f"Failed to deserialize cached value: {e}")
                     # Remove corrupted entry

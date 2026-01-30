@@ -834,7 +834,7 @@ def run_enhanced_evolution_loop(
     population_size: int,
     system_prompt: str,
     evaluator: ContentEvaluator,
-    extra_headers: Dict,
+    extra_headers: Dict[str, Any],
     temperature: float,
     top_p: float,
     frequency_penalty: float,
@@ -849,7 +849,7 @@ def run_enhanced_evolution_loop(
     exploitation_ratio: float = 0.7,
     archive_size: int = 100,
     checkpoint_interval: int = 10
-):
+) -> Dict[str, Any]:
     """
     Enhanced evolution loop that can use adversarial testing results for better optimization.
     This function now prefers OpenEvolve when available for more sophisticated evolution.
@@ -1210,7 +1210,7 @@ def capture_integrated_human_feedback(
     content_example: Dict[str, Any], 
     human_score: float, 
     human_comments: str
-):
+) -> None:
     """
     Captures human feedback on integrated content improvement.
     """
