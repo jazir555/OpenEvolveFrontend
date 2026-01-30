@@ -15,6 +15,54 @@ karateclub_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(o
 if karateclub_path not in sys.path:
     sys.path.insert(0, karateclub_path)
 
+
+class KarateClubIntegration:
+    """
+    Main Karate Club Integration class for the Knowledge Engine.
+    
+    Provides graph analysis, community detection, and node embedding capabilities.
+    """
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize Karate Club Integration.
+        
+        Args:
+            config: Configuration dictionary
+        """
+        self.config = config or {}
+        self._analyzer = KarateClubGraphAnalyzer()
+    
+    def is_available(self) -> bool:
+        """Check if Karate Club is available."""
+        return self._analyzer.is_available()
+    
+    def analyze_graph(self, graph_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Analyze a knowledge graph.
+        
+        Args:
+            graph_data: Graph data with nodes and edges
+            
+        Returns:
+            Dictionary with analysis results
+        """
+        return self._analyzer.analyze_graph(graph_data)
+    
+    def detect_communities(self, graph_data: Dict[str, Any], algorithm: str = 'louvain') -> Dict[str, Any]:
+        """
+        Detect communities in a graph.
+        
+        Args:
+            graph_data: Graph data
+            algorithm: Algorithm to use
+            
+        Returns:
+            Dictionary with communities
+        """
+        return self._analyzer.detect_communities(graph_data, algorithm)
+
+
 class KarateClubGraphAnalyzer:
     """
     Advanced graph analyzer that leverages Karate Club's algorithms.
@@ -31,31 +79,40 @@ class KarateClubGraphAnalyzer:
         """Initialize all Karate Club modules with proper error handling."""
         try:
             # Import Karate Club modules
-            from karateclub.community_detection import Louvain, Leiden, LabelPropagation
-            from karateclub.community_detection.overlapping import BigClam, CFinder
-            from karateclub.node_embedding import Node2Vec, DeepWalk, GraphSAGE
-            from karateclub.graph_embedding import Graph2Vec, SF
+            # Note: Louvain and Leiden are in separate packages (python-louvain, leidenalg), not karateclub
+            # LabelPropagation is in non_overlapping submodule
+            from karateclub.community_detection.non_overlapping import LabelPropagation, EdMot, SCD, GEMSEC
+            from karateclub.community_detection.overlapping import BigClam, DANMF, EgoNetSplitter, NNSED, SymmNMF
+            from karateclub.node_embedding.neighbourhood import Node2Vec, DeepWalk
+            from karateclub.graph_embedding import Graph2Vec, SF, FeatherGraph, FGSD, GL2Vec, IGE
             
-            # Initialize community detectors
+            # Initialize community detectors (only those that actually exist in karateclub)
             self.community_detectors = {
-                'louvain': Louvain(),
-                'leiden': Leiden(),
                 'label_propagation': LabelPropagation(),
                 'bigclam': BigClam(),
-                'cfinder': CFinder()
+                'danmf': DANMF(),
+                'ego_splitter': EgoNetSplitter(),
+                'nnsed': NNSED(),
+                'symmnmf': SymmNMF(),
+                'edmot': EdMot(),
+                'scd': SCD(),
+                'gemsec': GEMSEC()
             }
             
-            # Initialize node embedders
+            # Initialize node embedders (only those that exist in karateclub)
             self.node_embedders = {
                 'node2vec': Node2Vec(),
-                'deepwalk': DeepWalk(),
-                'graphsage': GraphSAGE()
+                'deepwalk': DeepWalk()
             }
             
             # Initialize graph embedders
             self.graph_embedders = {
                 'graph2vec': Graph2Vec(),
-                'sf': SF()
+                'sf': SF(),
+                'feathergraph': FeatherGraph(),
+                'fgsd': FGSD(),
+                'gl2vec': GL2Vec(),
+                'ige': IGE()
             }
             
             self._karateclub_available = True

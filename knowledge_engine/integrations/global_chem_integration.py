@@ -22,6 +22,52 @@ if global_chem_path not in sys.path:
     sys.path.insert(0, global_chem_path)
 
 
+class GlobalChemIntegration:
+    """
+    Main GlobalChem Integration class for the Knowledge Engine.
+    
+    Provides chemical knowledge graph capabilities.
+    """
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize GlobalChem Integration.
+        
+        Args:
+            config: Configuration dictionary
+        """
+        self.config = config or {}
+        self._adapter = GlobalChemKnowledgeAdapter()
+    
+    def is_available(self) -> bool:
+        """Check if GlobalChem is available."""
+        return self._adapter.is_available()
+    
+    def get_chemical(self, name: str) -> Optional[Dict[str, Any]]:
+        """
+        Get chemical information by name.
+        
+        Args:
+            name: Chemical name
+            
+        Returns:
+            Chemical information dictionary or None
+        """
+        return self._adapter.get_chemical_by_name(name)
+    
+    def get_category(self, category: str) -> Dict[str, Any]:
+        """
+        Get chemicals in a category.
+        
+        Args:
+            category: Category name
+            
+        Returns:
+            Dictionary with chemical list
+        """
+        return self._adapter.get_chemical_list(category)
+
+
 class GlobalChemKnowledgeAdapter:
     """
     Adapter for GlobalChem chemical knowledge graph.
@@ -43,7 +89,13 @@ class GlobalChemKnowledgeAdapter:
     def _initialize_global_chem(self):
         """Initialize GlobalChem with error handling."""
         try:
-            from global_chem import GlobalChem
+            # GlobalChem structure: global_chem.global_chem.global_chem.GlobalChem
+            # The path is set to global-chem/global_chem, so we need to go one level deeper
+            try:
+                from global_chem.global_chem import GlobalChem
+            except ImportError:
+                # Fallback: try direct import if path is set differently
+                from global_chem import GlobalChem
             self._gc = GlobalChem()
             self._gc.build_global_chem_network()
             self._global_chem_available = True

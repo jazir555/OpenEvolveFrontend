@@ -46,8 +46,28 @@ export interface SovereignParameters {
 // ==================== Workflow Types ====================
 
 export type WorkflowType = 'evolution' | 'adversarial' | 'sovereign';
-export type WorkflowStatus = 'draft' | 'ready' | 'archived';
+export type WorkflowStatus =
+  | 'created'
+  | 'running'
+  | 'paused'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'draft'
+  | 'ready'
+  | 'archived';
 export type ExecutionStatus = 'queued' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled';
+
+// ==================== Workflow Metadata ====================
+
+export interface WorkflowMetadata {
+  mdap_enabled?: boolean;
+  maker_enabled?: boolean;
+  maker_config?: Record<string, unknown>;
+  adaptive_config?: Record<string, unknown>;
+  evolution_params?: Record<string, unknown>;
+  performance_params?: Record<string, unknown>;
+}
 
 // ==================== Common Interfaces ====================
 
@@ -58,6 +78,12 @@ export interface WorkflowBase {
   name: string;
   description: string;
   workflow_type: WorkflowType;
+  problem_statement?: string;
+  content_type?: string;
+  teams?: string[];
+  gauntlets?: string[];
+  metadata?: WorkflowMetadata | null;
+  parameters?: Record<string, unknown>;
 }
 
 /**
@@ -73,6 +99,11 @@ export interface WorkflowCreate extends WorkflowBase {
 export interface WorkflowUpdate {
   name?: string;
   description?: string;
+  problem_statement?: string;
+  content_type?: string;
+  teams?: string[];
+  gauntlets?: string[];
+  metadata?: WorkflowMetadata | null;
   parameters?: Record<string, unknown>;
 }
 
@@ -85,6 +116,10 @@ export interface WorkflowResponse extends WorkflowBase {
   status: WorkflowStatus;
   created_at: string;             // ISO 8601 datetime
   updated_at: string;             // ISO 8601 datetime
+  started_at?: string | null;
+  completed_at?: string | null;
+  user_id?: string;
+  tenant_id?: string;
 }
 
 /**
@@ -136,11 +171,16 @@ export interface ExecutionLogsResponse {
  * Team member definition
  */
 export interface TeamMember {
+  id?: string;
   name: string;
   role: string;
   model: string;
   temperature: number;
   max_tokens: number;
+  top_p?: number;
+  frequency_penalty?: number;
+  presence_penalty?: number;
+  max_iterations?: number;
 }
 
 /**

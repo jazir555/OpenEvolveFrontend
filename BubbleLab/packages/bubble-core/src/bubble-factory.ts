@@ -186,6 +186,18 @@ export class BubbleFactory {
       'openevolve-airtable',
       'openevolve-notion',
       'openevolve-postgresql',
+      'openevolve-workflow',
+      'openevolve-execution',
+      'openevolve-team',
+      'openevolve-gauntlet',
+      'openevolve-settings',
+      'openevolve-knowledge-engine',
+      'openevolve-workflow-orchestrator',
+      'openevolve-ace-tools',
+      'openevolve-crewai',
+      'openevolve-leanaide',
+      'openevolve-z3prover',
+      'openevolve-gauntlet-testing',
       'log-parser-tool',
       'metrics-collector-tool',
       'vector-search-tool',
@@ -443,6 +455,42 @@ export class BubbleFactory {
     );
     const { AirtableWrapperBubble } = await import(
       './bubbles/service-bubble/airtable-wrapper.js'
+    );
+    const { OpenEvolveWorkflowBubble } = await import(
+      './bubbles/service-bubble/openevolve-workflow-bubble.js'
+    );
+    const { OpenEvolveExecutionBubble } = await import(
+      './bubbles/service-bubble/openevolve-execution-bubble.js'
+    );
+    const { OpenEvolveTeamBubble } = await import(
+      './bubbles/service-bubble/openevolve-team-bubble.js'
+    );
+    const { OpenEvolveGauntletBubble } = await import(
+      './bubbles/service-bubble/openevolve-gauntlet-bubble.js'
+    );
+    const { OpenEvolveSettingsBubble } = await import(
+      './bubbles/service-bubble/openevolve-settings-bubble.js'
+    );
+    const { OpenEvolveKnowledgeEngineBubble } = await import(
+      './bubbles/service-bubble/openevolve-knowledge-engine-bubble.js'
+    );
+    const { OpenEvolveWorkflowOrchestratorBubble } = await import(
+      './bubbles/service-bubble/openevolve-workflow-orchestrator-bubble.js'
+    );
+    const { OpenEvolveAceToolsBubble } = await import(
+      './bubbles/service-bubble/openevolve-ace-tools-bubble.js'
+    );
+    const { OpenEvolveCrewAIBubble } = await import(
+      './bubbles/service-bubble/openevolve-crewai-bubble.js'
+    );
+    const { OpenEvolveLeanAideBubble } = await import(
+      './bubbles/service-bubble/openevolve-leanaide-bubble.js'
+    );
+    const { OpenEvolveZ3ProverBubble } = await import(
+      './bubbles/service-bubble/openevolve-z3prover-bubble.js'
+    );
+    const { OpenEvolveGauntletTestingBubble } = await import(
+      './bubbles/service-bubble/openevolve-gauntlet-testing-bubble.js'
     );
     const { SlackBubble: OpenEvolveSlackBubbleBase } = await import(
       './bubbles/service-bubble/slack-bubble.js'
@@ -726,6 +774,56 @@ export class BubbleFactory {
     this.register(
       'openevolve-postgresql' as BubbleName,
       OpenEvolvePostgreSQLBubble as BubbleClassWithMetadata
+    );
+
+    // Register OpenEvolve workflow system bubbles
+    this.register(
+      'openevolve-workflow' as BubbleName,
+      OpenEvolveWorkflowBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-execution' as BubbleName,
+      OpenEvolveExecutionBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-team' as BubbleName,
+      OpenEvolveTeamBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-gauntlet' as BubbleName,
+      OpenEvolveGauntletBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-settings' as BubbleName,
+      OpenEvolveSettingsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-knowledge-engine' as BubbleName,
+      OpenEvolveKnowledgeEngineBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-workflow-orchestrator' as BubbleName,
+      OpenEvolveWorkflowOrchestratorBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-ace-tools' as BubbleName,
+      OpenEvolveAceToolsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-crewai' as BubbleName,
+      OpenEvolveCrewAIBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-leanaide' as BubbleName,
+      OpenEvolveLeanAideBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-z3prover' as BubbleName,
+      OpenEvolveZ3ProverBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-gauntlet-testing' as BubbleName,
+      OpenEvolveGauntletTestingBubble as BubbleClassWithMetadata
     );
 
     // Register OpenEvolve tool bubbles

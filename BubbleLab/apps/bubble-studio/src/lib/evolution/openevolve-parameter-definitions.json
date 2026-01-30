@@ -1,0 +1,1748 @@
+{
+  "advanced_research": {
+    "automated_ml": {
+      "default": false,
+      "description": "AutoML features",
+      "type": "boolean"
+    },
+    "continual_learning": {
+      "default": false,
+      "description": "Continual learning mode",
+      "type": "boolean"
+    },
+    "curiosity_driven": {
+      "default": false,
+      "description": "Curiosity-driven exploration",
+      "type": "boolean"
+    },
+    "differential_privacy": {
+      "default": false,
+      "description": "Privacy preservation",
+      "type": "boolean"
+    },
+    "domain_adaptation": {
+      "default": false,
+      "description": "Domain adaptation",
+      "type": "boolean"
+    },
+    "edge_computing": {
+      "default": false,
+      "description": "Edge deployment",
+      "type": "boolean"
+    },
+    "explainable_ai": {
+      "default": false,
+      "description": "XAI integration",
+      "type": "boolean"
+    },
+    "federated_learning": {
+      "default": false,
+      "description": "Federated learning",
+      "type": "boolean"
+    },
+    "few_shot_adaptation": {
+      "default": false,
+      "description": "Few-shot adaptation",
+      "type": "boolean"
+    },
+    "green_ai": {
+      "default": false,
+      "description": "Energy-efficient AI",
+      "type": "boolean"
+    },
+    "hyperparameter_optimization": {
+      "default": false,
+      "description": "HPO integration",
+      "type": "boolean"
+    },
+    "lifelong_learning": {
+      "default": false,
+      "description": "Lifelong learning",
+      "type": "boolean"
+    },
+    "meta_learning": {
+      "default": false,
+      "description": "Enable meta-learning",
+      "type": "boolean"
+    },
+    "multi_task_learning": {
+      "default": false,
+      "description": "Multi-task learning",
+      "type": "boolean"
+    },
+    "neural_architecture_search": {
+      "default": false,
+      "description": "NAS integration",
+      "type": "boolean"
+    },
+    "neuromorphic_computing": {
+      "default": false,
+      "description": "Neuromorphic support",
+      "type": "boolean"
+    },
+    "novelty_search": {
+      "default": false,
+      "description": "Enable novelty search",
+      "type": "boolean"
+    },
+    "quantum_computing": {
+      "default": false,
+      "description": "Quantum computing support",
+      "type": "boolean"
+    },
+    "transfer_learning": {
+      "default": false,
+      "description": "Transfer from previous runs",
+      "type": "boolean"
+    },
+    "zero_shot_transfer": {
+      "default": false,
+      "description": "Zero-shot transfer",
+      "type": "boolean"
+    }
+  },
+  "adversarial": {
+    "adversarial_budget": {
+      "default": 100,
+      "description": "Budget for adversarial operations",
+      "max_value": 1000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "adversarial_rounds": {
+      "default": 5,
+      "description": "Number of adversarial rounds",
+      "max_value": 100,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "adversarial_temperature": {
+      "default": 0.8,
+      "description": "Temperature for adversarial generation",
+      "max_value": 2.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "attack_diversity": {
+      "default": true,
+      "description": "Encourage diverse attacks",
+      "type": "boolean"
+    },
+    "attack_model_config": {
+      "default": null,
+      "description": "Attack model configuration",
+      "type": "dict"
+    },
+    "attack_strength": {
+      "default": 0.5,
+      "description": "Strength of attacks",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "attack_types": {
+      "default": [],
+      "description": "Types of attacks to use",
+      "type": "list"
+    },
+    "blue_team_models": {
+      "default": [],
+      "description": "Blue team model IDs",
+      "type": "list"
+    },
+    "blue_team_sample_size": {
+      "default": 3,
+      "description": "Blue team models to sample",
+      "max_value": 20,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "coevolutionary_approach": {
+      "default": false,
+      "description": "Use co-evolution",
+      "type": "boolean"
+    },
+    "defense_model_config": {
+      "default": null,
+      "description": "Defense model configuration",
+      "type": "dict"
+    },
+    "defense_strategies": {
+      "default": [],
+      "description": "Defense strategies to employ",
+      "type": "list"
+    },
+    "defense_strategy": {
+      "default": "reactive",
+      "description": "Defense strategy",
+      "options": [
+        "reactive",
+        "proactive",
+        "adaptive"
+      ],
+      "type": "select"
+    },
+    "defense_strength": {
+      "default": 1.0,
+      "description": "Strength of defense mechanisms",
+      "max_value": 2.0,
+      "min_value": 0.1,
+      "type": "float"
+    },
+    "ensemble_defense": {
+      "default": true,
+      "description": "Use ensemble for defense",
+      "type": "boolean"
+    },
+    "gradient_masking": {
+      "default": false,
+      "description": "Use gradient masking",
+      "type": "boolean"
+    },
+    "perturbation_bound": {
+      "default": 0.1,
+      "description": "Maximum perturbation allowed",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "red_team_models": {
+      "default": [],
+      "description": "Red team model IDs",
+      "type": "list"
+    },
+    "red_team_sample_size": {
+      "default": 3,
+      "description": "Red team models to sample",
+      "max_value": 20,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "robustness_metric": {
+      "default": "accuracy",
+      "description": "Metric for robustness evaluation",
+      "type": "string"
+    }
+  },
+  "artifact_management": {
+    "artifact_cleanup": {
+      "default": true,
+      "description": "Clean up old artifacts",
+      "type": "boolean"
+    },
+    "artifact_compression": {
+      "default": false,
+      "description": "Compress artifacts",
+      "type": "boolean"
+    },
+    "artifact_encryption": {
+      "default": false,
+      "description": "Encrypt sensitive artifacts",
+      "type": "boolean"
+    },
+    "artifact_metadata": {
+      "default": true,
+      "description": "Include metadata with artifacts",
+      "type": "boolean"
+    },
+    "artifact_storage": {
+      "default": "memory",
+      "description": "Artifact storage location",
+      "options": [
+        "memory",
+        "disk",
+        "cloud"
+      ],
+      "type": "select"
+    },
+    "artifact_types": {
+      "default": [
+        "code",
+        "text"
+      ],
+      "description": "Types of artifacts to generate",
+      "type": "list"
+    },
+    "artifact_validation": {
+      "default": true,
+      "description": "Validate generated artifacts",
+      "type": "boolean"
+    },
+    "artifact_versioning": {
+      "default": true,
+      "description": "Version control for artifacts",
+      "type": "boolean"
+    },
+    "enable_artifacts": {
+      "default": true,
+      "description": "Enable artifact generation",
+      "type": "boolean"
+    },
+    "max_artifact_size": {
+      "default": 20480,
+      "description": "Maximum artifact size in bytes",
+      "max_value": 1048576,
+      "min_value": 1024,
+      "type": "integer"
+    }
+  },
+  "core_evolution": {
+    "adaptive_parameters": {
+      "default": false,
+      "description": "Adapt parameters during evolution",
+      "type": "boolean"
+    },
+    "api_retries": {
+      "default": 3,
+      "description": "Number of API retry attempts",
+      "max_value": 10,
+      "min_value": 0,
+      "type": "integer"
+    },
+    "api_retry_delay": {
+      "default": 5,
+      "description": "Delay between retries (seconds)",
+      "max_value": 60,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "api_timeout": {
+      "default": 60,
+      "description": "API request timeout (seconds)",
+      "max_value": 600,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "content_type": {
+      "default": "general",
+      "description": "Type of content being evolved",
+      "type": "string"
+    },
+    "convergence_threshold": {
+      "default": 0.001,
+      "description": "Threshold for convergence detection",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "diversity_maintenance": {
+      "default": true,
+      "description": "Maintain population diversity",
+      "type": "boolean"
+    },
+    "elitism": {
+      "default": true,
+      "description": "Preserve best individuals",
+      "type": "boolean"
+    },
+    "evolution_mode": {
+      "default": "standard",
+      "description": "Evolution strategy",
+      "options": [
+        "standard",
+        "quality_diversity",
+        "multi_objective",
+        "adversarial",
+        "problem_decomposition"
+      ],
+      "type": "select"
+    },
+    "file_suffix": {
+      "default": ".py",
+      "description": "File extension",
+      "type": "string"
+    },
+    "fitness_function": {
+      "default": "default",
+      "description": "Fitness evaluation function",
+      "type": "string"
+    },
+    "frequency_penalty": {
+      "default": 0.0,
+      "description": "Frequency penalty",
+      "max_value": 2.0,
+      "min_value": -2.0,
+      "type": "float"
+    },
+    "language": {
+      "default": "python",
+      "description": "Programming language",
+      "type": "string"
+    },
+    "max_iterations": {
+      "default": 10,
+      "description": "Maximum evolution iterations",
+      "max_value": 1000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "max_tokens": {
+      "default": 2048,
+      "description": "Maximum tokens per LLM call",
+      "max_value": 32000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "population_size": {
+      "default": 20,
+      "description": "Population size per generation",
+      "max_value": 1000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "presence_penalty": {
+      "default": 0.0,
+      "description": "Presence penalty",
+      "max_value": 2.0,
+      "min_value": -2.0,
+      "type": "float"
+    },
+    "random_seed": {
+      "default": 42,
+      "description": "Alternative random seed",
+      "type": "integer"
+    },
+    "reasoning_effort": {
+      "default": "medium",
+      "description": "Reasoning effort level",
+      "options": [
+        "low",
+        "medium",
+        "high"
+      ],
+      "type": "select"
+    },
+    "seed": {
+      "default": null,
+      "description": "Random seed for reproducibility",
+      "type": "integer"
+    },
+    "system_message": {
+      "default": "",
+      "description": "System prompt for LLM",
+      "type": "string"
+    },
+    "temperature": {
+      "default": 0.7,
+      "description": "LLM sampling temperature",
+      "max_value": 2.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "top_p": {
+      "default": 1.0,
+      "description": "Nucleus sampling parameter",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    }
+  },
+  "custom_requirements": {
+    "business_logic": {
+      "default": "",
+      "description": "Business logic constraints",
+      "type": "string"
+    },
+    "custom_constraints": {
+      "default": [],
+      "description": "Custom constraint functions",
+      "type": "list"
+    },
+    "custom_fitness": {
+      "default": "",
+      "description": "Custom fitness function code",
+      "type": "string"
+    },
+    "custom_operators": {
+      "default": [],
+      "description": "Custom genetic operators",
+      "type": "list"
+    },
+    "domain_knowledge": {
+      "default": "",
+      "description": "Domain-specific knowledge",
+      "type": "string"
+    },
+    "ethical_guidelines": {
+      "default": [],
+      "description": "Ethical AI guidelines",
+      "type": "list"
+    },
+    "expert_rules": {
+      "default": [],
+      "description": "Expert-defined rules",
+      "type": "list"
+    },
+    "regulatory_compliance": {
+      "default": [],
+      "description": "Compliance requirements",
+      "type": "list"
+    }
+  },
+  "database_storage": {
+    "backup_enabled": {
+      "default": true,
+      "description": "Enable automatic backups",
+      "type": "boolean"
+    },
+    "batch_size": {
+      "default": 1000,
+      "description": "Batch size for operations",
+      "max_value": 10000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "compression": {
+      "default": true,
+      "description": "Compress stored data",
+      "type": "boolean"
+    },
+    "connection_string": {
+      "default": "",
+      "description": "Database connection string",
+      "type": "string"
+    },
+    "connection_timeout": {
+      "default": 30,
+      "description": "Connection timeout in seconds",
+      "max_value": 60,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "db_path": {
+      "default": "./openevolve.db",
+      "description": "Database file path",
+      "type": "string"
+    },
+    "db_type": {
+      "default": "sqlite",
+      "description": "Database type",
+      "options": [
+        "sqlite",
+        "postgresql",
+        "mongodb"
+      ],
+      "type": "select"
+    },
+    "encryption": {
+      "default": false,
+      "description": "Encrypt stored data",
+      "type": "boolean"
+    },
+    "max_connections": {
+      "default": 10,
+      "description": "Maximum database connections",
+      "max_value": 100,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "query_timeout": {
+      "default": 60,
+      "description": "Query timeout in seconds",
+      "max_value": 300,
+      "min_value": 1,
+      "type": "integer"
+    }
+  },
+  "distributed_processing": {
+    "cluster_scaling": {
+      "default": false,
+      "description": "Auto-scale cluster",
+      "type": "boolean"
+    },
+    "communication_backend": {
+      "default": "local",
+      "description": "Communication backend",
+      "options": [
+        "local",
+        "redis",
+        "rabbitmq"
+      ],
+      "type": "select"
+    },
+    "distributed": {
+      "default": false,
+      "description": "Enable distributed processing",
+      "type": "boolean"
+    },
+    "fault_tolerance": {
+      "default": true,
+      "description": "Enable fault tolerance",
+      "type": "boolean"
+    },
+    "heartbeat_interval": {
+      "default": 10,
+      "description": "Heartbeat interval in seconds",
+      "max_value": 60,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "load_balancing": {
+      "default": "round_robin",
+      "description": "Load balancing strategy",
+      "options": [
+        "round_robin",
+        "least_loaded",
+        "random"
+      ],
+      "type": "select"
+    },
+    "message_compression": {
+      "default": true,
+      "description": "Compress messages",
+      "type": "boolean"
+    },
+    "num_workers": {
+      "default": 4,
+      "description": "Number of worker processes",
+      "max_value": 100,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "worker_restart": {
+      "default": true,
+      "description": "Auto-restart failed workers",
+      "type": "boolean"
+    },
+    "worker_timeout": {
+      "default": 120,
+      "description": "Worker timeout in seconds",
+      "max_value": 600,
+      "min_value": 10,
+      "type": "integer"
+    }
+  },
+  "early_stopping": {
+    "adaptive_stopping": {
+      "default": false,
+      "description": "Adaptive stopping criteria",
+      "type": "boolean"
+    },
+    "convergence_check": {
+      "default": true,
+      "description": "Check for convergence",
+      "type": "boolean"
+    },
+    "diversity_threshold": {
+      "default": 0.01,
+      "description": "Minimum diversity threshold",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "early_stopping": {
+      "default": false,
+      "description": "Enable early stopping",
+      "type": "boolean"
+    },
+    "early_stopping_patience": {
+      "default": 10,
+      "description": "Patience for early stopping",
+      "max_value": 100,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "improvement_window": {
+      "default": 5,
+      "description": "Window for improvement calculation",
+      "max_value": 50,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "min_improvement": {
+      "default": 0.001,
+      "description": "Minimum improvement threshold",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "plateau_threshold": {
+      "default": 20,
+      "description": "Generations to consider plateau",
+      "max_value": 100,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "stagnation_limit": {
+      "default": 50,
+      "description": "Maximum stagnation generations",
+      "max_value": 100,
+      "min_value": 1,
+      "type": "integer"
+    }
+  },
+  "evaluation": {
+    "active_learning": {
+      "default": false,
+      "description": "Active learning for evaluation",
+      "type": "boolean"
+    },
+    "cache_evaluations": {
+      "default": true,
+      "description": "Cache evaluation results",
+      "type": "boolean"
+    },
+    "cache_size": {
+      "default": 1000,
+      "description": "Maximum cache size",
+      "max_value": 10000,
+      "min_value": 100,
+      "type": "integer"
+    },
+    "cascade_evaluation": {
+      "default": true,
+      "description": "Use cascade evaluation",
+      "type": "boolean"
+    },
+    "cascade_thresholds": {
+      "default": [
+        0.5,
+        0.75,
+        0.9
+      ],
+      "description": "Thresholds for cascade levels",
+      "type": "list"
+    },
+    "consensus_threshold": {
+      "default": 0.7,
+      "description": "Threshold for consensus",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "custom_evaluator": {
+      "default": null,
+      "description": "Custom evaluation function",
+      "type": "string"
+    },
+    "ensemble_size": {
+      "default": 3,
+      "description": "Number of evaluators in ensemble",
+      "max_value": 20,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "evaluation_batch_size": {
+      "default": 10,
+      "description": "Batch size for evaluations",
+      "max_value": 1000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "evaluation_budget": {
+      "default": 10000,
+      "description": "Total evaluation budget",
+      "max_value": 100000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "evaluation_criteria": {
+      "default": [],
+      "description": "List of evaluation criteria",
+      "type": "list"
+    },
+    "evaluation_noise": {
+      "default": 0.0,
+      "description": "Noise level in evaluations",
+      "max_value": 0.5,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "evaluator_models": {
+      "default": null,
+      "description": "Evaluator model configurations",
+      "type": "list"
+    },
+    "evaluator_system_message": {
+      "default": "",
+      "description": "System prompt for evaluator",
+      "type": "string"
+    },
+    "evaluator_timeout": {
+      "default": 300,
+      "description": "Evaluation timeout (seconds)",
+      "max_value": 3600,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "fitness_scaling": {
+      "default": "linear",
+      "description": "Fitness scaling method",
+      "options": [
+        "linear",
+        "exponential",
+        "logarithmic"
+      ],
+      "type": "select"
+    },
+    "incremental_eval": {
+      "default": false,
+      "description": "Incremental evaluation",
+      "type": "boolean"
+    },
+    "llm_feedback_weight": {
+      "default": 0.1,
+      "description": "Weight for LLM feedback",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "max_retries_eval": {
+      "default": 3,
+      "description": "Max evaluation retries",
+      "max_value": 10,
+      "min_value": 0,
+      "type": "integer"
+    },
+    "multi_criteria_eval": {
+      "default": false,
+      "description": "Multi-criteria evaluation",
+      "type": "boolean"
+    },
+    "normalization": {
+      "default": true,
+      "description": "Normalize fitness values",
+      "type": "boolean"
+    },
+    "parallel_evaluations": {
+      "default": 4,
+      "description": "Number of parallel workers",
+      "max_value": 100,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "surrogate_model": {
+      "default": false,
+      "description": "Use surrogate model",
+      "type": "boolean"
+    },
+    "uncertainty_sampling": {
+      "default": false,
+      "description": "Sample uncertain regions",
+      "type": "boolean"
+    },
+    "use_llm_feedback": {
+      "default": false,
+      "description": "Use LLM-based feedback",
+      "type": "boolean"
+    }
+  },
+  "evolution_tracing": {
+    "include_fitness": {
+      "default": true,
+      "description": "Include fitness in trace",
+      "type": "boolean"
+    },
+    "include_population": {
+      "default": false,
+      "description": "Include population in trace",
+      "type": "boolean"
+    },
+    "max_trace_size_mb": {
+      "default": 100,
+      "description": "Maximum trace file size",
+      "max_value": 1024,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "real_time_tracing": {
+      "default": false,
+      "description": "Real-time trace streaming",
+      "type": "boolean"
+    },
+    "trace_buffer_size": {
+      "default": 1000,
+      "description": "Trace buffer size",
+      "max_value": 10000,
+      "min_value": 100,
+      "type": "integer"
+    },
+    "trace_compression": {
+      "default": true,
+      "description": "Compress trace files",
+      "type": "boolean"
+    },
+    "trace_enabled": {
+      "default": false,
+      "description": "Enable evolution tracing",
+      "type": "boolean"
+    },
+    "trace_file": {
+      "default": "./trace.log",
+      "description": "Trace output file",
+      "type": "string"
+    },
+    "trace_format": {
+      "default": "json",
+      "description": "Trace output format",
+      "options": [
+        "json",
+        "csv",
+        "binary"
+      ],
+      "type": "select"
+    },
+    "trace_level": {
+      "default": "basic",
+      "description": "Level of tracing detail",
+      "options": [
+        "basic",
+        "detailed",
+        "full"
+      ],
+      "type": "select"
+    },
+    "trace_rotation": {
+      "default": true,
+      "description": "Rotate trace files",
+      "type": "boolean"
+    },
+    "trace_sampling": {
+      "default": 1.0,
+      "description": "Sampling rate for tracing",
+      "max_value": 1.0,
+      "min_value": 0.01,
+      "type": "float"
+    }
+  },
+  "experimental": {
+    "beta_algorithms": {
+      "default": false,
+      "description": "Use beta algorithms",
+      "type": "boolean"
+    },
+    "debug_mode": {
+      "default": false,
+      "description": "Debug mode",
+      "type": "boolean"
+    },
+    "experimental_features": {
+      "default": false,
+      "description": "Enable experimental features",
+      "type": "boolean"
+    },
+    "experimental_logging": {
+      "default": false,
+      "description": "Experimental logging",
+      "type": "boolean"
+    },
+    "memory_profiling": {
+      "default": false,
+      "description": "Memory usage profiling",
+      "type": "boolean"
+    },
+    "profiling_enabled": {
+      "default": false,
+      "description": "Performance profiling",
+      "type": "boolean"
+    },
+    "research_mode": {
+      "default": false,
+      "description": "Research mode settings",
+      "type": "boolean"
+    }
+  },
+  "island_model": {
+    "adaptive_migration": {
+      "default": false,
+      "description": "Adapt migration parameters",
+      "type": "boolean"
+    },
+    "controlled_gene_flow": {
+      "default": true,
+      "description": "Control gene flow",
+      "type": "boolean"
+    },
+    "heterogeneous_islands": {
+      "default": false,
+      "description": "Use different algorithms per island",
+      "type": "boolean"
+    },
+    "island_diversity_metric": {
+      "default": "edit_distance",
+      "description": "Island diversity metric",
+      "type": "string"
+    },
+    "island_initialization": {
+      "default": "random",
+      "description": "Island initialization method",
+      "options": [
+        "random",
+        "clustered",
+        "diverse"
+      ],
+      "type": "select"
+    },
+    "island_sizes": {
+      "default": [],
+      "description": "Custom sizes for each island",
+      "type": "list"
+    },
+    "island_specialization": {
+      "default": false,
+      "description": "Allow island specialization",
+      "type": "boolean"
+    },
+    "migration_interval": {
+      "default": 10,
+      "description": "Generations between migrations",
+      "max_value": 1000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "migration_policy": {
+      "default": "best",
+      "description": "Migration selection policy",
+      "options": [
+        "best",
+        "random",
+        "diverse"
+      ],
+      "type": "select"
+    },
+    "migration_rate": {
+      "default": 0.1,
+      "description": "Proportion to migrate",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "migration_selection": {
+      "default": "best",
+      "description": "Migrant selection method",
+      "options": [
+        "best",
+        "random",
+        "diverse",
+        "tournament"
+      ],
+      "type": "select"
+    },
+    "migration_size": {
+      "default": 5,
+      "description": "Number of individuals to migrate",
+      "max_value": 50,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "migration_topology": {
+      "default": "ring",
+      "description": "Migration topology",
+      "options": [
+        "ring",
+        "fully_connected",
+        "random",
+        "star"
+      ],
+      "type": "select"
+    },
+    "num_islands": {
+      "default": 5,
+      "description": "Number of islands",
+      "max_value": 100,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "replacement_policy": {
+      "default": "worst",
+      "description": "Replacement policy",
+      "options": [
+        "worst",
+        "random",
+        "similar"
+      ],
+      "type": "select"
+    },
+    "ring_topology": {
+      "default": true,
+      "description": "Use ring topology",
+      "type": "boolean"
+    },
+    "synchronous_migration": {
+      "default": true,
+      "description": "Synchronize migration timing",
+      "type": "boolean"
+    }
+  },
+  "model_config": {
+    "api_base": {
+      "default": "https://api.openai.com/v1",
+      "description": "Base URL for API",
+      "type": "string"
+    },
+    "api_key": {
+      "default": "",
+      "description": "API key for LLM provider",
+      "required": true,
+      "type": "string"
+    },
+    "backup_models": {
+      "default": [],
+      "description": "Fallback model list",
+      "type": "list"
+    },
+    "concurrent_requests": {
+      "default": 5,
+      "description": "Concurrent API requests",
+      "max_value": 50,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "extra_headers": {
+      "default": {},
+      "description": "Additional HTTP headers",
+      "type": "dict"
+    },
+    "logit_bias": {
+      "default": {},
+      "description": "Token likelihood modifications",
+      "type": "dict"
+    },
+    "logprobs": {
+      "default": false,
+      "description": "Include log probabilities",
+      "type": "boolean"
+    },
+    "max_retries": {
+      "default": 3,
+      "description": "Maximum retry attempts",
+      "max_value": 10,
+      "min_value": 0,
+      "type": "integer"
+    },
+    "model_configs": {
+      "default": [],
+      "description": "List of model configurations",
+      "type": "list"
+    },
+    "model_id": {
+      "default": "gpt-4",
+      "description": "Primary model identifier",
+      "type": "string"
+    },
+    "model_rotation": {
+      "default": false,
+      "description": "Rotate between models",
+      "type": "boolean"
+    },
+    "n": {
+      "default": 1,
+      "description": "Number of completions per request",
+      "max_value": 10,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "rate_limit": {
+      "default": 60,
+      "description": "Requests per minute",
+      "max_value": 1000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "response_format": {
+      "default": "text",
+      "description": "Response format",
+      "options": [
+        "text",
+        "json"
+      ],
+      "type": "select"
+    },
+    "retry_delay": {
+      "default": 1.0,
+      "description": "Delay between retries",
+      "max_value": 10.0,
+      "min_value": 0.1,
+      "type": "float"
+    },
+    "stop_sequences": {
+      "default": [],
+      "description": "Sequences that stop generation",
+      "type": "list"
+    },
+    "timeout": {
+      "default": 30,
+      "description": "Request timeout in seconds",
+      "max_value": 300,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "top_logprobs": {
+      "default": 0,
+      "description": "Number of top log probs",
+      "max_value": 20,
+      "min_value": 0,
+      "type": "integer"
+    }
+  },
+  "multi_objective": {
+    "constraint_handling": {
+      "default": "penalty",
+      "description": "Constraint handling method",
+      "options": [
+        "penalty",
+        "repair",
+        "death_penalty"
+      ],
+      "type": "select"
+    },
+    "constraint_tolerance": {
+      "default": 0.01,
+      "description": "Tolerance for constraints",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "crowding_distance": {
+      "default": true,
+      "description": "Use crowding distance",
+      "type": "boolean"
+    },
+    "decomposition_method": {
+      "default": "weighted_sum",
+      "description": "Objective decomposition method",
+      "options": [
+        "weighted_sum",
+        "tchebycheff",
+        "boundary_intersection"
+      ],
+      "type": "select"
+    },
+    "dominance_metric": {
+      "default": "pareto",
+      "description": "Dominance metric",
+      "options": [
+        "pareto",
+        "epsilon"
+      ],
+      "type": "select"
+    },
+    "dominance_type": {
+      "default": "standard",
+      "description": "Dominance relation type",
+      "options": [
+        "standard",
+        "epsilon",
+        "fuzzy"
+      ],
+      "type": "select"
+    },
+    "epsilon_dominance": {
+      "default": 0.01,
+      "description": "Epsilon for epsilon-dominance",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "epsilon_values": {
+      "default": [],
+      "description": "Epsilon values for epsilon-dominance",
+      "type": "list"
+    },
+    "hypervolume_ref": {
+      "default": [],
+      "description": "Hypervolume reference point",
+      "type": "list"
+    },
+    "objective_weights": {
+      "default": [],
+      "description": "Weights for each objective",
+      "type": "list"
+    },
+    "objectives": {
+      "default": null,
+      "description": "List of objectives to optimize",
+      "type": "list"
+    },
+    "pareto_front_size": {
+      "default": 50,
+      "description": "Maximum Pareto front size",
+      "max_value": 1000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "reference_point": {
+      "default": [],
+      "description": "Reference point for hypervolume",
+      "type": "list"
+    },
+    "scalarization": {
+      "default": "weighted_sum",
+      "description": "Scalarization method",
+      "options": [
+        "weighted_sum",
+        "tchebycheff",
+        "pbi"
+      ],
+      "type": "select"
+    },
+    "scalarization_function": {
+      "default": "weighted_sum",
+      "description": "Scalarization function",
+      "type": "string"
+    }
+  },
+  "prompt_engineering": {
+    "chain_of_thought": {
+      "default": true,
+      "description": "Use chain-of-thought prompting",
+      "type": "boolean"
+    },
+    "context_length": {
+      "default": 2000,
+      "description": "Maximum context length",
+      "max_value": 8000,
+      "min_value": 100,
+      "type": "integer"
+    },
+    "dynamic_prompting": {
+      "default": false,
+      "description": "Dynamically adjust prompts",
+      "type": "boolean"
+    },
+    "few_shot_examples": {
+      "default": 3,
+      "description": "Number of few-shot examples",
+      "max_value": 20,
+      "min_value": 0,
+      "type": "integer"
+    },
+    "meta_prompting": {
+      "default": false,
+      "description": "Use meta-prompting techniques",
+      "type": "boolean"
+    },
+    "prompt_compression": {
+      "default": false,
+      "description": "Compress long prompts",
+      "type": "boolean"
+    },
+    "prompt_ensembling": {
+      "default": false,
+      "description": "Ensemble multiple prompts",
+      "type": "boolean"
+    },
+    "prompt_optimization": {
+      "default": true,
+      "description": "Optimize prompts during evolution",
+      "type": "boolean"
+    },
+    "prompt_template": {
+      "default": "default",
+      "description": "Base prompt template",
+      "type": "string"
+    },
+    "self_consistency": {
+      "default": false,
+      "description": "Use self-consistency decoding",
+      "type": "boolean"
+    },
+    "system_prompt": {
+      "default": "",
+      "description": "System-level prompt",
+      "type": "string"
+    },
+    "template_stochasticity": {
+      "default": true,
+      "description": "Use stochastic templates",
+      "type": "boolean"
+    }
+  },
+  "quality_diversity": {
+    "adaptive_feature_dimensions": {
+      "default": true,
+      "description": "Dynamically adjust features",
+      "type": "boolean"
+    },
+    "archive_learning_rate": {
+      "default": 0.1,
+      "description": "Archive adaptation rate",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "archive_size": {
+      "default": 100,
+      "description": "Maximum archive size",
+      "max_value": 10000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "archive_update_freq": {
+      "default": 1,
+      "description": "Archive update frequency",
+      "max_value": 100,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "behavior_descriptor_type": {
+      "default": "hand_crafted",
+      "description": "Type of behavior descriptor",
+      "options": [
+        "hand_crafted",
+        "learned"
+      ],
+      "type": "select"
+    },
+    "behavior_dimensions": {
+      "default": [],
+      "description": "Specific behavior dimensions",
+      "type": "list"
+    },
+    "behavior_space": {
+      "default": "auto",
+      "description": "Behavior space definition",
+      "type": "string"
+    },
+    "distance_metric": {
+      "default": "euclidean",
+      "description": "Distance calculation method",
+      "options": [
+        "euclidean",
+        "manhattan",
+        "cosine"
+      ],
+      "type": "select"
+    },
+    "diversity_metric": {
+      "default": "edit_distance",
+      "description": "Diversity measurement metric",
+      "options": [
+        "edit_distance",
+        "semantic",
+        "behavioral"
+      ],
+      "type": "select"
+    },
+    "diversity_reference_size": {
+      "default": 20,
+      "description": "Reference set size for diversity",
+      "max_value": 1000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "diversity_weight": {
+      "default": 0.5,
+      "description": "Weight of diversity vs quality",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "double_selection": {
+      "default": true,
+      "description": "Different programs for performance vs inspiration",
+      "type": "boolean"
+    },
+    "exploration_bonus": {
+      "default": 0.1,
+      "description": "Bonus for exploration",
+      "max_value": 2.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "feature_bins": {
+      "default": 10,
+      "description": "Bins per feature dimension",
+      "max_value": 100,
+      "min_value": 2,
+      "type": "integer"
+    },
+    "feature_dimensions": {
+      "default": null,
+      "description": "Feature dimensions for behavior",
+      "type": "list"
+    },
+    "novelty_threshold": {
+      "default": 0.1,
+      "description": "Minimum novelty for archive",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "pareto_layers": {
+      "default": 3,
+      "description": "Number of Pareto layers",
+      "max_value": 10,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "qd_algorithm": {
+      "default": "MAP-Elites",
+      "description": "QD algorithm to use",
+      "options": [
+        "MAP-Elites",
+        "CVT-MAP-Elites",
+        "CMA-ME"
+      ],
+      "type": "select"
+    },
+    "quality_threshold": {
+      "default": 0.0,
+      "description": "Minimum quality for archive",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    }
+  },
+  "resource_management": {
+    "api_call_limit": {
+      "default": 1000,
+      "description": "Maximum API calls",
+      "max_value": 10000,
+      "min_value": 10,
+      "type": "integer"
+    },
+    "auto_scaling": {
+      "default": false,
+      "description": "Auto-scale resources",
+      "type": "boolean"
+    },
+    "checkpoint_interval": {
+      "default": 10,
+      "description": "Generations between checkpoints",
+      "max_value": 1000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "cost_limit_usd": {
+      "default": 10.0,
+      "description": "Maximum cost in USD",
+      "max_value": 1000.0,
+      "min_value": 0.01,
+      "type": "float"
+    },
+    "cpu_limit": {
+      "default": 0.8,
+      "description": "CPU usage limit (fraction)",
+      "max_value": 1.0,
+      "min_value": 0.1,
+      "type": "float"
+    },
+    "disk_limit_mb": {
+      "default": 1024,
+      "description": "Disk usage limit in MB",
+      "max_value": 10240,
+      "min_value": 100,
+      "type": "integer"
+    },
+    "max_time": {
+      "default": 1800,
+      "description": "Maximum execution time in seconds",
+      "max_value": 7200,
+      "min_value": 60,
+      "type": "integer"
+    },
+    "memory_limit_mb": {
+      "default": 4096,
+      "description": "Memory limit in MB",
+      "max_value": 32768,
+      "min_value": 512,
+      "type": "integer"
+    },
+    "network_limit_mbps": {
+      "default": 100,
+      "description": "Network bandwidth limit",
+      "max_value": 1000,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "resource_monitoring": {
+      "default": true,
+      "description": "Monitor resource usage",
+      "type": "boolean"
+    },
+    "token_limit": {
+      "default": 100000,
+      "description": "Maximum tokens",
+      "max_value": 1000000,
+      "min_value": 1000,
+      "type": "integer"
+    }
+  },
+  "selection": {
+    "age_based_selection": {
+      "default": false,
+      "description": "Consider individual age",
+      "type": "boolean"
+    },
+    "crossover_rate": {
+      "default": 0.8,
+      "description": "Crossover rate",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "diversity_selection": {
+      "default": false,
+      "description": "Include diversity in selection",
+      "type": "boolean"
+    },
+    "elite_ratio": {
+      "default": 0.1,
+      "description": "Proportion of elites",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "elitism_count": {
+      "default": 2,
+      "description": "Number of elites to preserve",
+      "max_value": 100,
+      "min_value": 0,
+      "type": "integer"
+    },
+    "exploitation_ratio": {
+      "default": 0.7,
+      "description": "Proportion for exploitation",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "exploration_ratio": {
+      "default": 0.2,
+      "description": "Proportion for exploration",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "multi_strategy_sampling": {
+      "default": true,
+      "description": "Use multiple sampling strategies",
+      "type": "boolean"
+    },
+    "mutation_rate": {
+      "default": 0.1,
+      "description": "Mutation rate",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "parent_selection": {
+      "default": "fitness",
+      "description": "Parent selection method",
+      "options": [
+        "fitness",
+        "random",
+        "diverse"
+      ],
+      "type": "select"
+    },
+    "random_ratio": {
+      "default": 0.2,
+      "description": "Ratio for random selection",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "replacement_rate": {
+      "default": 1.0,
+      "description": "Population replacement rate",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "reproduction_method": {
+      "default": "both",
+      "description": "Reproduction method",
+      "options": [
+        "crossover",
+        "mutation",
+        "both"
+      ],
+      "type": "select"
+    },
+    "selection_method": {
+      "default": "tournament",
+      "description": "Selection method",
+      "options": [
+        "tournament",
+        "roulette",
+        "rank",
+        "stochastic"
+      ],
+      "type": "select"
+    },
+    "selection_pressure": {
+      "default": 2.0,
+      "description": "Selection pressure",
+      "max_value": 10.0,
+      "min_value": 1.0,
+      "type": "float"
+    },
+    "selection_pressure_decay": {
+      "default": 0.0,
+      "description": "Selection pressure decay rate",
+      "max_value": 1.0,
+      "min_value": 0.0,
+      "type": "float"
+    },
+    "survivor_selection": {
+      "default": "generational",
+      "description": "Survivor selection method",
+      "options": [
+        "generational",
+        "steady_state"
+      ],
+      "type": "select"
+    },
+    "tournament_size": {
+      "default": 3,
+      "description": "Tournament size",
+      "max_value": 20,
+      "min_value": 2,
+      "type": "integer"
+    }
+  },
+  "ui_visualization": {
+    "dashboard_enabled": {
+      "default": true,
+      "description": "Enable monitoring dashboard",
+      "type": "boolean"
+    },
+    "enable_visualization": {
+      "default": true,
+      "description": "Enable visualizations",
+      "type": "boolean"
+    },
+    "export_plots": {
+      "default": true,
+      "description": "Export plots to files",
+      "type": "boolean"
+    },
+    "interactive_plots": {
+      "default": true,
+      "description": "Interactive visualizations",
+      "type": "boolean"
+    },
+    "plot_format": {
+      "default": "png",
+      "description": "Plot export format",
+      "options": [
+        "png",
+        "svg",
+        "pdf"
+      ],
+      "type": "select"
+    },
+    "plot_frequency": {
+      "default": 10,
+      "description": "Plotting frequency",
+      "max_value": 100,
+      "min_value": 1,
+      "type": "integer"
+    },
+    "plot_types": {
+      "default": [
+        "fitness",
+        "diversity"
+      ],
+      "description": "Types of plots to generate",
+      "type": "list"
+    },
+    "real_time_updates": {
+      "default": false,
+      "description": "Real-time plot updates",
+      "type": "boolean"
+    }
+  }
+}

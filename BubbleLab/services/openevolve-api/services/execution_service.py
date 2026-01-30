@@ -6,6 +6,7 @@ Follows CLAUDE.md principles: structured logging, UTC timestamps, thread safety.
 """
 
 import structlog
+import asyncio
 import threading
 import time
 import uuid
@@ -524,6 +525,8 @@ class ExecutionManager:
 
             # Execute workflow
             result = engine.execute(problem_statement, parameters, context)
+            if asyncio.iscoroutine(result):
+                result = asyncio.run(result)
 
             # Check if cancelled
             if cancel_event.is_set():

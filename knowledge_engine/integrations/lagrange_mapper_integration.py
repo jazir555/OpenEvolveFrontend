@@ -19,6 +19,41 @@ if lagrange_path not in sys.path:
     sys.path.insert(0, lagrange_path)
 
 
+class LagrangeMapperIntegration:
+    """
+    Main Lagrange Mapper Integration class for the Knowledge Engine.
+    
+    Provides topological data analysis and attractor landscape mapping.
+    """
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize Lagrange Mapper Integration.
+        
+        Args:
+            config: Configuration dictionary
+        """
+        self.config = config or {}
+        self._analyzer = LagrangeAttractorAnalyzer()
+    
+    def is_available(self) -> bool:
+        """Check if Lagrange Mapper is available."""
+        return self._analyzer.is_available()
+    
+    def analyze_landscape(self, embeddings: np.ndarray, n_clusters: int = 8) -> Dict[str, Any]:
+        """
+        Analyze embedding landscape.
+        
+        Args:
+            embeddings: Embedding matrix
+            n_clusters: Number of clusters
+            
+        Returns:
+            Dictionary with landscape analysis
+        """
+        return self._analyzer.analyze_embedding_landscape(embeddings, n_clusters=n_clusters)
+
+
 class LagrangeAttractorAnalyzer:
     """
     Attractor landscape analyzer using topological data analysis.

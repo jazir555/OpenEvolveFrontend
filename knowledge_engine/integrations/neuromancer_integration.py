@@ -26,6 +26,44 @@ if neuromancer_path not in sys.path:
     sys.path.insert(0, neuromancer_path)
 
 
+class NeuromancerIntegration:
+    """
+    Main Neuromancer Integration class for the Knowledge Engine.
+    
+    Provides neural ODE modeling and physics-informed neural networks.
+    """
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize Neuromancer Integration.
+        
+        Args:
+            config: Configuration dictionary
+        """
+        self.config = config or {}
+        self._modeler = NeuromancerDynamicsModeler()
+    
+    def is_available(self) -> bool:
+        """Check if Neuromancer is available."""
+        return self._modeler.is_available()
+    
+    def train_neural_ode(self, time_series_data: np.ndarray, 
+                        time_points: np.ndarray,
+                        config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """
+        Train a Neural ODE model.
+        
+        Args:
+            time_series_data: Time series data
+            time_points: Time points
+            config: Training configuration
+            
+        Returns:
+            Training results
+        """
+        return self._modeler.train_neural_ode(time_series_data, time_points, config)
+
+
 class NeuromancerDynamicsModeler:
     """
     Neural dynamics modeler using Neuromancer.

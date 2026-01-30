@@ -17,6 +17,57 @@ if neuralkg_path not in sys.path:
     sys.path.insert(0, neuralkg_path)
 
 
+class NeuralKGIntegration:
+    """
+    Main NeuralKG Integration class for the Knowledge Engine.
+    
+    Provides knowledge graph embedding and link prediction capabilities.
+    """
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize NeuralKG Integration.
+        
+        Args:
+            config: Configuration dictionary for NeuralKG
+        """
+        self.config = config or {}
+        self._embedder = NeuralKGEmbedder()
+    
+    def is_available(self) -> bool:
+        """Check if NeuralKG is available."""
+        return self._embedder.is_available()
+    
+    def generate_embeddings(self, triples: List[Tuple[str, str, str]], 
+                          model: str = 'transe') -> Dict[str, Any]:
+        """
+        Generate embeddings for knowledge graph triples.
+        
+        Args:
+            triples: List of (head, relation, tail) triples
+            model: Model name to use
+            
+        Returns:
+            Dictionary with embeddings and metadata
+        """
+        return self._embedder.generate_embeddings(triples, model)
+    
+    def predict_links(self, head: str, relation: str, 
+                     candidates: List[str]) -> Dict[str, Any]:
+        """
+        Predict likely tail entities for a given head and relation.
+        
+        Args:
+            head: Head entity
+            relation: Relation
+            candidates: List of candidate tail entities
+            
+        Returns:
+            Dictionary with predictions and scores
+        """
+        return self._embedder.predict_links(head, relation, candidates)
+
+
 class NeuralKGEmbedder:
     """
     Knowledge graph embedding generator using NeuralKG models.
@@ -77,33 +128,42 @@ class NeuralKGEmbedder:
         """Initialize NeuralKG with proper error handling."""
         try:
             # Try to import NeuralKG modules
-            try:
-                from neuralkg.model.KGEModel import TransE, RotatE, ComplEx, DistMult
-                self._models_available = {
-                    'transe': True,
-                    'rotate': True,
-                    'complex': True,
-                    'distmult': True
-                }
-            except ImportError as e:
-                print(f"Note: NeuralKG KGEModels not available: {e}")
-                self._models_available = {}
+            # Note: NeuralKG's model directory is currently empty (just __init__.py)
+            # The models may need to be downloaded or built separately
+            self._models_available = {}
             
+            # Check if neuralkg package exists at all
             try:
-                from neuralkg.model.GNNModel import RGCN, CompGCN
-                self._models_available.update({
-                    'rgcn': True,
-                    'compgcn': True
-                })
-            except ImportError as e:
-                print(f"Note: NeuralKG GNNModels not available: {e}")
+                import neuralkg
+                # If we can import it, check what's available
+                if hasattr(neuralkg, 'model'):
+                    model_module = neuralkg.model
+                    # Try to find model classes
+                    if hasattr(model_module, 'KGEModel'):
+                        from neuralkg.model.KGEModel import TransE, RotatE, ComplEx, DistMult
+                        self._models_available.update({
+                            'transe': True,
+                            'rotate': True,
+                            'complex': True,
+                            'distmult': True
+                        })
+                    if hasattr(model_module, 'GNNModel'):
+                        from neuralkg.model.GNNModel import RGCN, CompGCN
+                        self._models_available.update({
+                            'rgcn': True,
+                            'compgcn': True
+                        })
+            except ImportError:
+                pass
             
             # Check if any models are available
             if self._models_available:
                 self._neuralkg_available = True
                 print(f"NeuralKG initialized with models: {list(self._models_available.keys())}")
             else:
-                print("Warning: No NeuralKG models could be loaded")
+                # NeuralKG structure exists but models are not available
+                print("Note: NeuralKG package found but no models available (model directory may be empty)")
+                self._neuralkg_available = False
                 
         except ImportError as e:
             print(f"Warning: Could not import NeuralKG modules: {e}")

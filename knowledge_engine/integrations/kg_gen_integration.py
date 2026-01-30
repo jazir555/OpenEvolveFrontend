@@ -38,15 +38,20 @@ class EnhancedKnowledgeGraphManager:
             from kg_gen import KGGen
             from kg_gen.utils.neo4j_integration import Neo4jUploader
             
-            # Import OneKE modules
-            from construct.convert import KnowledgeGraphConverter
+            # Import OneKE modules (functions, not classes)
+            # OneKE provides: sanitize_string, generate_cypher_statements, execute_cypher_statements
+            from construct.convert import generate_cypher_statements, execute_cypher_statements, sanitize_string
             
             # Initialize kg-gen components
             self.kg_generator = KGGen()
             self.neo4j_uploader = Neo4jUploader()
             
-            # Initialize OneKE components
-            self.converter = KnowledgeGraphConverter()
+            # Initialize OneKE components (store functions)
+            self.converter = {
+                'generate_cypher_statements': generate_cypher_statements,
+                'execute_cypher_statements': execute_cypher_statements,
+                'sanitize_string': sanitize_string
+            }
             
             self._kg_gen_available = True
             self._oneke_available = True
@@ -68,8 +73,12 @@ class EnhancedKnowledgeGraphManager:
                 self.neo4j_uploader = None
             
             try:
-                from construct.convert import KnowledgeGraphConverter
-                self.converter = KnowledgeGraphConverter()
+                from construct.convert import generate_cypher_statements, execute_cypher_statements, sanitize_string
+                self.converter = {
+                    'generate_cypher_statements': generate_cypher_statements,
+                    'execute_cypher_statements': execute_cypher_statements,
+                    'sanitize_string': sanitize_string
+                }
                 self._oneke_available = True
             except ImportError:
                 self._oneke_available = False
@@ -417,25 +426,47 @@ class EnhancedKnowledgeGraphManager:
             return f'upload_error: {str(e)}'
     
     def _convert_knowledge_graph(self, knowledge_graph: Dict[str, Any], config: Dict[str, Any]) -> Dict[str, Any]:
-        """Convert knowledge graph to multiple formats using OneKE."""
+        """Convert knowledge graph using OneKE functions.
+        
+        OneKE provides Cypher statement generation for Neo4j, not general format conversion.
+        """
         converted_graphs = {}
         
         try:
-            for format_name in config['convert_formats']:
+            # OneKE's main capability is generating Cypher statements for Neo4j
+            # This is available via generate_cypher_statements function
+            if 'cypher' in config['convert_formats'] or 'neo4j' in config['convert_formats']:
                 try:
-                    # Convert to the target format
-                    converted_data = self.converter.convert(knowledge_graph, format_name)
+                    import json
+                    # Convert knowledge graph to OneKE format (JSON with triples)
+                    oneke_format = self._convert_to_oneke_format(knowledge_graph)
                     
-                    # Add metadata if requested
+                    # Generate Cypher statements
+                    cypher_statements = self.converter['generate_cypher_statements'](json.dumps(oneke_format))
+                    
+                    converted_graphs['cypher'] = {
+                        'statements': cypher_statements,
+                        'statement_count': len(cypher_statements)
+                    }
+                    
                     if config['include_metadata']:
-                        converted_data = self._add_conversion_metadata(converted_data, format_name)
-                    
-                    converted_graphs[format_name] = converted_data
-                    
+                        converted_graphs['cypher'] = self._add_conversion_metadata(
+                            converted_graphs['cypher'], 'cypher'
+                        )
+                        
                 except Exception as e:
-                    print(f"Warning: Conversion to {format_name} failed: {e}")
-                    converted_graphs[format_name] = {
+                    print(f"Warning: Cypher conversion failed: {e}")
+                    converted_graphs['cypher'] = {
                         'error': str(e),
+                        'format': 'cypher'
+                    }
+            
+            # For other formats, we would need additional converters
+            # Mark unsupported formats
+            for format_name in config['convert_formats']:
+                if format_name not in ['cypher', 'neo4j'] and format_name not in converted_graphs:
+                    converted_graphs[format_name] = {
+                        'error': f'Format {format_name} not supported by OneKE. OneKE only provides Cypher generation.',
                         'format': format_name
                     }
             
@@ -447,6 +478,24 @@ class EnhancedKnowledgeGraphManager:
                 'error': str(e),
                 'timestamp': self._get_current_timestamp()
             }
+    
+    def _convert_to_oneke_format(self, knowledge_graph: Dict[str, Any]) -> Dict[str, Any]:
+        """Convert knowledge graph to OneKE format (JSON with triple_list)."""
+        triple_list = []
+        
+        # Extract triples from edges
+        for edge in knowledge_graph.get('edges', []):
+            triple = {
+                'head': edge.get('source', ''),
+                'relation': edge.get('type', ''),
+                'tail': edge.get('target', ''),
+                'head_type': edge.get('source_type', 'Entity'),
+                'tail_type': edge.get('target_type', 'Entity'),
+                'relation_type': edge.get('relation_type', 'RELATED_TO')
+            }
+            triple_list.append(triple)
+        
+        return {'triple_list': triple_list}
     
     def _add_conversion_metadata(self, converted_data: Any, format_name: str) -> Dict[str, Any]:
         """Add metadata to converted knowledge graph."""

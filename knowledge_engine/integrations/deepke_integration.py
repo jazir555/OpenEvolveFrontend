@@ -77,10 +77,17 @@ class DeepKEIntegration:
     
     def _get_default_config(self) -> Dict[str, Any]:
         """Get default configuration for DeepKE integration."""
+        # Determine device
+        try:
+            import torch
+            device = "cuda" if torch.cuda.is_available() else "cpu"
+        except ImportError:
+            device = "cpu"
+        
         return {
             "model_type": "standard",  # standard, document, few_shot, multimodal
             "model_name": "deepke/relation-extraction",  # Pre-trained model name
-            "device": "cuda" if torch.cuda.is_available() else "cpu",
+            "device": device,
             "max_length": 512,
             "batch_size": 16,
             "num_epochs": 3,
@@ -109,50 +116,75 @@ class DeepKEIntegration:
         }
     
     def _initialize_components(self):
-        """Initialize DeepKE components based on configuration."""
+        """Initialize DeepKE components based on configuration.
+        
+        Note: DeepKE doesn't have high-level wrapper classes like StandardRE.
+        Instead, it provides model classes (LM, PCNN, etc.) and tools that
+        need to be orchestrated with proper configuration management.
+        """
         try:
             # Try to import DeepKE components
-            import deepke
+            # DeepKE structure: deepke.relation_extraction.standard.models has LM, PCNN, etc.
+            # DeepKE structure: deepke.name_entity_re.standard.models has InferNer
             
-            # Initialize based on model type
             model_type = self.config.get("model_type", "standard")
             
-            if model_type == "standard":
-                from deepke.relation_extraction.standard import StandardRE
-                self.relation_extractor = StandardRE(**self.config)
-            elif model_type == "document":
-                from deepke.relation_extraction.document import DocumentRE
-                self.relation_extractor = DocumentRE(**self.config)
-            elif model_type == "few_shot":
-                from deepke.relation_extraction.few_shot import FewShotRE
-                self.relation_extractor = FewShotRE(**self.config)
-            elif model_type == "multimodal":
-                from deepke.relation_extraction.multimodal import MultimodalRE
-                self.relation_extractor = MultimodalRE(**self.config)
+            # Initialize based on task type
+            task = self.config.get("task", "relation_extraction")
+            
+            if task == "relation_extraction":
+                if model_type == "standard":
+                    from deepke.relation_extraction.standard import models as re_models
+                    # LM is the BERT-based model for relation extraction
+                    self.relation_extractor = re_models
+                elif model_type == "document":
+                    from deepke.relation_extraction.document import model as doc_model
+                    self.relation_extractor = doc_model
+                elif model_type == "few_shot":
+                    from deepke.relation_extraction.few_shot import models as fs_models
+                    self.relation_extractor = fs_models
+                elif model_type == "multimodal":
+                    from deepke.relation_extraction.multimodal import models as mm_models
+                    self.relation_extractor = mm_models
+                else:
+                    from deepke.relation_extraction.standard import models as re_models
+                    self.relation_extractor = re_models
+                    
+            elif task == "named_entity_recognition":
+                # For NER, DeepKE uses InferNer from the models module
+                from deepke.name_entity_re.standard.models import InferNer
+                self.entity_extractor = InferNer
             else:
-                # Default to standard
-                from deepke.relation_extraction.standard import StandardRE
-                self.relation_extractor = StandardRE(**self.config)
+                # Default to relation extraction models
+                from deepke.relation_extraction.standard import models as re_models
+                self.relation_extractor = re_models
+            
+            self._deepke_available = True
             
             logger.info({
                 "msg": "DeepKE components initialized successfully",
+                "task": task,
                 "model_type": model_type,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
             
-        except ImportError:
+        except ImportError as e:
             logger.warning({
-                "msg": "DeepKE not available, using mock implementation",
+                "msg": f"DeepKE not available ({e}), using mock implementation",
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
             # Initialize with mock components
+            self._deepke_available = False
             self.relation_extractor = MockDeepKEExtractor()
+            self.entity_extractor = MockDeepKEExtractor()
         except Exception as e:
             logger.error({
                 "msg": f"Failed to initialize DeepKE components: {e}",
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
-            raise
+            self._deepke_available = False
+            self.relation_extractor = MockDeepKEExtractor()
+            self.entity_extractor = MockDeepKEExtractor()
     
     async def extract_relations(
         self,

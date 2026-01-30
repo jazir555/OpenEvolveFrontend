@@ -32,11 +32,12 @@ class WorkflowCreate(BaseModel):
     """Workflow creation request (OpenEvolve UI)"""
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = Field(None, max_length=500)
-    problem_statement: str = Field(..., min_length=10, max_length=10000)
+    problem_statement: Optional[str] = Field(None, min_length=10, max_length=10000)
     content_type: str = Field(default="text", max_length=50)
     teams: List[str] = Field(default_factory=list)
     gauntlets: List[str] = Field(default_factory=list)
     metadata: Optional[WorkflowMetadata] = None
+    parameters: Optional[Dict[str, Any]] = None
     workflow_type: Literal["evolution", "adversarial", "sovereign"] = "sovereign"
 
 
@@ -49,6 +50,7 @@ class WorkflowUpdate(BaseModel):
     teams: Optional[List[str]] = None
     gauntlets: Optional[List[str]] = None
     metadata: Optional[WorkflowMetadata] = None
+    parameters: Optional[Dict[str, Any]] = None
 
 
 class WorkflowResponse(BaseModel):
@@ -68,7 +70,15 @@ class WorkflowResponse(BaseModel):
     user_id: str
     tenant_id: str
     metadata: Optional[WorkflowMetadata] = None
+    parameters: Dict[str, Any] = Field(default_factory=dict)
     workflow_type: Literal["evolution", "adversarial", "sovereign"] = "sovereign"
+
+
+class ExecutionStartRequest(BaseModel):
+    """Direct execution start request"""
+    workflow_id: str = Field(..., min_length=1)
+    problem_statement: Optional[str] = None
+    context: Optional[str] = None
 
 
 class WorkflowListResponse(BaseModel):

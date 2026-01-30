@@ -35,13 +35,27 @@ const openevolveApiClient = new ApiClient(openevolveClientConfig);
 // ==================== Types ====================
 
 export type WorkflowType = 'evolution' | 'adversarial' | 'sovereign';
-export type WorkflowStatus = 'draft' | 'ready' | 'archived';
+export type WorkflowStatus =
+  | 'created'
+  | 'running'
+  | 'paused'
+  | 'completed'
+  | 'failed'
+  | 'cancelled'
+  | 'draft'
+  | 'ready'
+  | 'archived';
 export type ExecutionStatus = 'queued' | 'running' | 'paused' | 'completed' | 'failed' | 'cancelled';
 
 export interface WorkflowCreate {
   name: string;
   description: string;
   workflow_type: WorkflowType;
+  problem_statement?: string;
+  content_type?: string;
+  teams?: string[];
+  gauntlets?: string[];
+  metadata?: Record<string, unknown>;
   parameters?: Record<string, unknown>;
 }
 
@@ -50,10 +64,19 @@ export interface WorkflowResponse {
   name: string;
   description: string;
   workflow_type: WorkflowType;
+  problem_statement?: string;
+  content_type?: string;
+  teams?: string[];
+  gauntlets?: string[];
+  metadata?: Record<string, unknown>;
   parameters: Record<string, unknown>;
   status: WorkflowStatus;
   created_at: string;
   updated_at: string;
+  started_at?: string;
+  completed_at?: string;
+  user_id?: string;
+  tenant_id?: string;
 }
 
 export interface WorkflowListResponse {
@@ -86,11 +109,16 @@ export interface ExecutionLogsResponse {
 }
 
 export interface TeamMember {
+  id?: string;
   name: string;
   role: string;
   model: string;
   temperature: number;
   max_tokens: number;
+  top_p?: number;
+  frequency_penalty?: number;
+  presence_penalty?: number;
+  max_iterations?: number;
 }
 
 export interface TeamCreate {

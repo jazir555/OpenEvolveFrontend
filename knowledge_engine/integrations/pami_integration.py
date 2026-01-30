@@ -17,6 +17,45 @@ if pami_path not in sys.path:
     sys.path.insert(0, pami_path)
 
 
+class PAMIIntegration:
+    """
+    Main PAMI Integration class for the Knowledge Engine.
+    
+    Provides a unified interface for pattern mining capabilities.
+    """
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize PAMI Integration.
+        
+        Args:
+            config: Configuration dictionary for PAMI
+        """
+        self.config = config or {}
+        self._miner = PAMIPatternMiner()
+    
+    def is_available(self) -> bool:
+        """Check if PAMI is available."""
+        return self._miner.is_available()
+    
+    def mine_patterns(self, data: List[List[str]], min_support: float = 0.1) -> Dict[str, Any]:
+        """
+        Mine frequent patterns from transaction data.
+        
+        Args:
+            data: List of transactions (each transaction is a list of items)
+            min_support: Minimum support threshold
+            
+        Returns:
+            Dictionary with patterns and metadata
+        """
+        return self._miner.mine_frequent_patterns(data, min_support)
+    
+    def get_available_algorithms(self) -> Dict[str, List[str]]:
+        """Get list of available algorithms."""
+        return self._miner.get_available_algorithms()
+
+
 class PAMIPatternMiner:
     """
     Advanced pattern miner that leverages PAMI's algorithms.
@@ -37,40 +76,37 @@ class PAMIPatternMiner:
         """Initialize all PAMI modules with proper error handling."""
         try:
             # Import PAMI modules dynamically
-            # Note: PAMI structure may vary, we'll try common patterns
+            # Actual PAMI structure has 'subgraphMining' not 'frequentPattern'/'graphPattern'
             
-            # Try to import frequent pattern mining modules
+            # Try to import subgraph mining modules (the actual structure)
             try:
-                from PAMI.frequentPattern.basic import FPGrowth, Apriori, ECLAT
-                self.frequent_pattern_algorithms.update({
-                    'fpgrowth': FPGrowth,
-                    'apriori': Apriori,
-                    'eclat': ECLAT
+                from PAMI.subgraphMining.basic import GSpan, FSG, TKG
+                self.graph_pattern_algorithms.update({
+                    'gspan': GSpan,
+                    'fsg': FSG,
+                    'tkg': TKG
                 })
             except ImportError:
                 pass
             
-            # Try alternative imports
+            # Try alternative import paths
             try:
-                from PAMI.frequentPattern import FPGrowth
+                from PAMI import subgraphMining
+                self.graph_pattern_algorithms['subgraph_mining_available'] = True
+            except ImportError:
+                pass
+            
+            # Note: PAMI may not have the traditional frequent/sequential pattern modules
+            # These are placeholders for if they exist in the future
+            try:
+                from PAMI.frequentPattern.basic import FPGrowth
                 self.frequent_pattern_algorithms['fpgrowth'] = FPGrowth
             except ImportError:
                 pass
             
-            # Try sequence pattern mining
             try:
-                from PAMI.sequentialPattern.basic import PrefixSpan, SPADE
-                self.sequence_pattern_algorithms.update({
-                    'prefixspan': PrefixSpan,
-                    'spade': SPADE
-                })
-            except ImportError:
-                pass
-            
-            # Try graph pattern mining
-            try:
-                from PAMI.graphPattern.basic import GSpan
-                self.graph_pattern_algorithms['gspan'] = GSpan
+                from PAMI.sequentialPattern.basic import PrefixSpan
+                self.sequence_pattern_algorithms['prefixspan'] = PrefixSpan
             except ImportError:
                 pass
             

@@ -56,11 +56,16 @@ async def create_workflow(workflow_data: WorkflowCreate) -> WorkflowResponse:
             id=workflow_id,
             name=workflow_data.name,
             description=workflow_data.description,
-            problem_statement=workflow_data.problem_statement,
+            problem_statement=workflow_data.problem_statement or "",
             content_type=workflow_data.content_type,
             teams=workflow_data.teams,
             gauntlets=workflow_data.gauntlets,
             metadata=workflow_data.metadata,
+            parameters=(
+                workflow_data.parameters
+                or (workflow_data.metadata.evolution_params if workflow_data.metadata else None)
+                or {}
+            ),
             status=WorkflowStatus.CREATED,
             created_at=now,
             updated_at=now,
@@ -249,6 +254,8 @@ async def update_workflow(
         # Update fields
         update_data = workflow_data.dict(exclude_unset=True)
         for field, value in update_data.items():
+            if field == "parameters" and value is None:
+                value = {}
             setattr(existing_workflow, field, value)
 
         existing_workflow.updated_at = datetime.now(timezone.utc)
@@ -295,6 +302,11 @@ async def start_workflow(
         workflow = _workflows[workflow_id]
         problem_statement = inputs.problem_statement if inputs and inputs.problem_statement else workflow.problem_statement
         context = inputs.context if inputs else None
+        if not problem_statement or not problem_statement.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Problem statement is required to start workflow execution"
+            )
 
         execution = await execution_manager.start_execution(
             workflow_id=workflow_id,

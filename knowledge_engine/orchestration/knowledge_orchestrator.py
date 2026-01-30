@@ -117,7 +117,9 @@ class PipelineStage:
             try:
                 # Use safe expression evaluator
                 from .safe_eval import safe_eval
-                return bool(safe_eval(self.condition, context))
+                # Wrap context so expressions can use 'context.get(...)' syntax
+                eval_namespace = {'context': context}
+                return bool(safe_eval(self.condition, eval_namespace))
             except Exception as e:
                 logger.warning(f"Condition evaluation failed for {self.name}: {e}")
                 return True  # Execute if condition can't be evaluated
@@ -209,7 +211,7 @@ class OrchestratorConfig:
                 component=ComponentType.LAGRANGE_MAPPER,
                 enabled=True,
                 depends_on=["generate_embeddings"],
-                condition="len(context.get('embeddings', [])) > 10"
+                condition="len(get(context, 'embeddings', [])) > 10"
             ),
         ]
     
@@ -323,7 +325,7 @@ class DomainPresets:
                 component=ComponentType.CAUSAL_LEARN,
                 enabled=True,
                 depends_on=["build_knowledge_graph"],
-                condition="context.get('data_type') == 'time_series'"
+                condition="get(context, 'data_type') == 'time_series'"
             ),
             PipelineStage(
                 name="generate_embeddings",
@@ -377,7 +379,7 @@ class DomainPresets:
                 component=ComponentType.NEUROMANCER,
                 enabled=True,
                 depends_on=["build_knowledge_graph"],
-                condition="context.get('has_molecular_dynamics_data', False)"
+                condition="get(context, 'has_molecular_dynamics_data', False)"
             ),
             PipelineStage(
                 name="generate_embeddings",
@@ -467,14 +469,21 @@ class KnowledgeOrchestrator:
     - Error handling and fallbacks
     """
     
-    def __init__(self, config: Optional[OrchestratorConfig] = None):
+    def __init__(self, config: Optional[Union[OrchestratorConfig, Dict[str, Any]]] = None):
         """
         Initialize the orchestrator.
         
         Args:
-            config: Orchestrator configuration
+            config: Orchestrator configuration (OrchestratorConfig object or dict)
         """
-        self.config = config or OrchestratorConfig()
+        if config is None:
+            self.config = OrchestratorConfig()
+        elif isinstance(config, dict):
+            # Convert dict to OrchestratorConfig
+            self.config = OrchestratorConfig(**config)
+        else:
+            self.config = config
+            
         self.components = {}
         self.cache = {}
         self.execution_history = []
@@ -527,7 +536,7 @@ class KnowledgeOrchestrator:
                         self.components[comp_type] = instance
                         logger.debug(f"Initialized component: {comp_type.value}")
             
-        except ImportError as e:
+        except Exception as e:
             logger.error(f"Failed to import integrations: {e}")
             self.integrator = None
     
@@ -907,6 +916,37 @@ class KnowledgeOrchestrator:
             'execution_history_count': len(self.execution_history),
             'timestamp': datetime.now(timezone.utc).isoformat()
         }
+    
+    async def get_system_status(self) -> Dict[str, Any]:
+        """Get system status including all components.
+        
+        This is an async version of get_status for compatibility with
+        the OpenEvolveKnowledgeEngine interface.
+        """
+        return self.get_status()
+    
+    async def close(self):
+        """Close all resources and connections."""
+        logger.info({
+            "msg": "Closing KnowledgeOrchestrator resources",
+            "name": self.config.name,
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        
+        # Close any components that have close methods
+        for comp_type, component in self.components.items():
+            if component and hasattr(component, 'close'):
+                try:
+                    if asyncio.iscoroutinefunction(component.close):
+                        await component.close()
+                    else:
+                        component.close()
+                except Exception as e:
+                    logger.warning(f"Error closing component {comp_type.value}: {e}")
+        
+        # Clear components
+        self.components.clear()
+        self.cache.clear()
     
     def save_config(self, path: str):
         """Save configuration to file"""

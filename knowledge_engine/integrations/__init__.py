@@ -59,20 +59,65 @@ class AIKnowledgeGraphIntegrator:
     """
     
     def __init__(self):
-        """Initialize all integration modules."""
-        self.deepke_extractor = DeepKEEnhancedExtractor()
-        self.karateclub_analyzer = KarateClubGraphAnalyzer()
-        self.kg_gen_manager = EnhancedKnowledgeGraphManager()
+        """Initialize all integration modules with error handling."""
+        # Required integrations (with internal error handling)
+        try:
+            self.deepke_extractor = DeepKEEnhancedExtractor()
+        except Exception as e:
+            print(f"Warning: DeepKE integration failed: {e}")
+            self.deepke_extractor = None
+        
+        try:
+            self.karateclub_analyzer = KarateClubGraphAnalyzer()
+        except Exception as e:
+            print(f"Warning: Karate Club integration failed: {e}")
+            self.karateclub_analyzer = None
+        
+        # kg-gen may fail due to external dependencies (dspy, etc.)
+        try:
+            self.kg_gen_manager = EnhancedKnowledgeGraphManager()
+        except Exception as e:
+            print(f"Warning: KG-Gen integration failed (may be due to missing dependencies): {e}")
+            self.kg_gen_manager = None
         
         # Optional integrations
-        self.pami_miner = PAMIPatternMiner() if PAMIPatternMiner else None
-        self.neuralkg_embedder = NeuralKGEmbedder() if NeuralKGEmbedder else None
-        self.causal_engine = CausalDiscoveryEngine() if CausalDiscoveryEngine else None
-        self.lagrange_analyzer = LagrangeAttractorAnalyzer() if LagrangeAttractorAnalyzer else None
-        self.global_chem_adapter = GlobalChemKnowledgeAdapter() if GlobalChemKnowledgeAdapter else None
-        self.neuromancer_modeler = NeuromancerDynamicsModeler() if NeuromancerDynamicsModeler else None
+        try:
+            self.pami_miner = PAMIPatternMiner() if PAMIPatternMiner else None
+        except Exception as e:
+            print(f"Warning: PAMI integration failed: {e}")
+            self.pami_miner = None
+        
+        try:
+            self.neuralkg_embedder = NeuralKGEmbedder() if NeuralKGEmbedder else None
+        except Exception as e:
+            print(f"Warning: NeuralKG integration failed: {e}")
+            self.neuralkg_embedder = None
+        
+        try:
+            self.causal_engine = CausalDiscoveryEngine() if CausalDiscoveryEngine else None
+        except Exception as e:
+            print(f"Warning: Causal-learn integration failed: {e}")
+            self.causal_engine = None
+        
+        try:
+            self.lagrange_analyzer = LagrangeAttractorAnalyzer() if LagrangeAttractorAnalyzer else None
+        except Exception as e:
+            print(f"Warning: Lagrange-mapper integration failed: {e}")
+            self.lagrange_analyzer = None
+        
+        try:
+            self.global_chem_adapter = GlobalChemKnowledgeAdapter() if GlobalChemKnowledgeAdapter else None
+        except Exception as e:
+            print(f"Warning: GlobalChem integration failed: {e}")
+            self.global_chem_adapter = None
+        
+        try:
+            self.neuromancer_modeler = NeuromancerDynamicsModeler() if NeuromancerDynamicsModeler else None
+        except Exception as e:
+            print(f"Warning: Neuromancer integration failed: {e}")
+            self.neuromancer_modeler = None
     
-    def extract_knowledge_with_deepke(self, text: str, config: dict = None) -> dict:
+    async def extract_knowledge_with_deepke(self, text: str, config: dict = None) -> dict:
         """
         Extract knowledge using DeepKE integration.
         
@@ -83,7 +128,12 @@ class AIKnowledgeGraphIntegrator:
         Returns:
             Knowledge extraction results
         """
-        return self.deepke_extractor.extract_with_deepke(text, config)
+        if self.deepke_extractor is None:
+            return {
+                'status': 'error',
+                'message': 'DeepKE integration not available'
+            }
+        return await self.deepke_extractor.extract_with_deepke(text, config)
     
     def analyze_graph_with_karateclub(self, graph_data: dict, config: dict = None) -> dict:
         """
@@ -96,6 +146,11 @@ class AIKnowledgeGraphIntegrator:
         Returns:
             Graph analysis results
         """
+        if self.karateclub_analyzer is None:
+            return {
+                'status': 'error',
+                'message': 'Karate Club integration not available'
+            }
         return self.karateclub_analyzer.analyze_graph(graph_data, config)
     
     def manage_knowledge_graph(self, knowledge_artifacts: list, config: dict = None) -> dict:
@@ -109,6 +164,11 @@ class AIKnowledgeGraphIntegrator:
         Returns:
             Knowledge graph management results
         """
+        if self.kg_gen_manager is None:
+            return {
+                'status': 'error',
+                'message': 'KG-Gen integration not available'
+            }
         return self.kg_gen_manager.generate_and_store_knowledge_graph(knowledge_artifacts, config)
     
     def mine_patterns_with_pami(self, data: dict, config: dict = None) -> dict:
@@ -612,10 +672,10 @@ class AIKnowledgeGraphIntegrator:
     def get_integration_status(self) -> dict:
         """Get the availability status of all integrations."""
         return {
-            'deepke': self.deepke_extractor.is_available(),
-            'karateclub': self.karateclub_analyzer.is_available(),
-            'kg_gen': self.kg_gen_manager.is_kg_gen_available(),
-            'oneke': self.kg_gen_manager.is_oneke_available(),
+            'deepke': self.deepke_extractor.is_available() if self.deepke_extractor else False,
+            'karateclub': self.karateclub_analyzer.is_available() if self.karateclub_analyzer else False,
+            'kg_gen': self.kg_gen_manager.is_kg_gen_available() if self.kg_gen_manager else False,
+            'oneke': self.kg_gen_manager.is_oneke_available() if self.kg_gen_manager else False,
             'pami': self.pami_miner.is_available() if self.pami_miner else False,
             'neuralkg': self.neuralkg_embedder.is_available() if self.neuralkg_embedder else False,
             'causal_learn': self.causal_engine.is_available() if self.causal_engine else False,

@@ -17,6 +17,45 @@ if causal_learn_path not in sys.path:
     sys.path.insert(0, causal_learn_path)
 
 
+class CausalLearnIntegration:
+    """
+    Main Causal-Learn Integration class for the Knowledge Engine.
+    
+    Provides causal discovery and structure learning capabilities.
+    """
+    
+    def __init__(self, config: Optional[Dict[str, Any]] = None):
+        """
+        Initialize Causal-Learn Integration.
+        
+        Args:
+            config: Configuration dictionary
+        """
+        self.config = config or {}
+        self._engine = CausalDiscoveryEngine()
+    
+    def is_available(self) -> bool:
+        """Check if Causal-Learn is available."""
+        return self._engine.is_available()
+    
+    def discover_structure(self, data: np.ndarray, algorithm: str = 'pc') -> Dict[str, Any]:
+        """
+        Discover causal structure from data.
+        
+        Args:
+            data: Data matrix (n_samples x n_features)
+            algorithm: Algorithm to use ('pc', 'fci', 'ges', 'lingam')
+            
+        Returns:
+            Dictionary with discovered structure
+        """
+        return self._engine.discover_causal_structure(data, algorithm)
+    
+    def get_available_algorithms(self) -> List[str]:
+        """Get list of available algorithms."""
+        return self._engine.get_available_algorithms()
+
+
 class CausalDiscoveryEngine:
     """
     Causal discovery engine using causal-learn algorithms.

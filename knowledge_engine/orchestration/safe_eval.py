@@ -63,6 +63,7 @@ class SafeExpressionEvaluator:
         'sum': sum,
         'any': any,
         'all': all,
+        'get': lambda d, k, default=None: d.get(k, default) if isinstance(d, dict) else default,
     }
     
     def __init__(self, context: Optional[Dict[str, Any]] = None):

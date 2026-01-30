@@ -28,7 +28,7 @@ async def verify_imports():
 
     # Test orchestrator
     try:
-        from knowledge_engine_orchestrator import KnowledgeEngineOrchestrator
+        from knowledge_engine.knowledge_engine_orchestrator import KnowledgeEngineOrchestrator
         print_status("Knowledge Engine Orchestrator import", True)
     except Exception as e:
         print_status("Knowledge Engine Orchestrator import", False, str(e))
@@ -36,7 +36,7 @@ async def verify_imports():
 
     # Test integrated engine
     try:
-        from integrated_engine import IntegratedKnowledgeEngine
+        from knowledge_engine.integrated_engine import IntegratedKnowledgeEngine
         print_status("Integrated Knowledge Engine import", True)
     except Exception as e:
         print_status("Integrated Knowledge Engine import", False, str(e))
@@ -44,7 +44,7 @@ async def verify_imports():
 
     # Test production engine
     try:
-        from production_engine import ProductionKnowledgeEngine
+        from knowledge_engine.production_engine import ProductionKnowledgeEngine
         print_status("Production Knowledge Engine import", True)
     except Exception as e:
         print_status("Production Knowledge Engine import", False, str(e))
@@ -60,7 +60,7 @@ async def verify_core_components():
     
     # Test core module
     try:
-        from core import KnowledgeState, EntityKnowledgeGraph
+        from knowledge_engine.core import KnowledgeState, EntityKnowledgeGraph
         print_status("Core components import", True)
     except Exception as e:
         print_status("Core components import", False, str(e))
@@ -68,7 +68,7 @@ async def verify_core_components():
 
     # Test knowledge extractor
     try:
-        from knowledge_extractor import KnowledgeExtractor
+        from knowledge_engine.knowledge_extractor import KnowledgeExtractor
         print_status("Knowledge Extractor import", True)
     except Exception as e:
         print_status("Knowledge Extractor import", False, str(e))
@@ -76,7 +76,7 @@ async def verify_core_components():
 
     # Test knowledge storage
     try:
-        from knowledge_storage import KnowledgeStorage
+        from knowledge_engine.knowledge_storage import KnowledgeStorage
         print_status("Knowledge Storage import", True)
     except Exception as e:
         print_status("Knowledge Storage import", False, str(e))
@@ -84,7 +84,7 @@ async def verify_core_components():
 
     # Test knowledge retriever
     try:
-        from knowledge_retriever import KnowledgeRetriever
+        from knowledge_engine.knowledge_retriever import KnowledgeRetriever
         print_status("Knowledge Retriever import", True)
     except Exception as e:
         print_status("Knowledge Retriever import", False, str(e))
@@ -151,6 +151,9 @@ async def verify_functionality():
         except Exception as e:
             print_status("System status retrieval", False, str(e))
             return False
+        finally:
+            # Cleanup
+            await engine.close()
             
         return True
     except Exception as e:
