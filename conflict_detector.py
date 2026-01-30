@@ -352,7 +352,7 @@ class ConflictDetector:
                 analysis = self._analyze_solution(solution, solution_id)
                 self.analyses[solution_id] = analysis
                 logger.debug(f"Analyzed solution {solution_id}: {len(analysis.names_defined)} names defined")
-            except Exception as e:
+            except (SyntaxError, ValueError, TypeError) as e:
                 logger.error(f"Failed to analyze solution {solution_id}: {e}")
                 # Create minimal analysis for failed solutions
                 self.analyses[solution_id] = SolutionAnalysis(

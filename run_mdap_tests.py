@@ -71,7 +71,7 @@ class MDAPTestRunner:
 
         # Import test module
         try:
-            from test_leanaide_mdap import *
+            import test_leanaide_mdap
         except ImportError as e:
             logger.error(f"Failed to import test module: {e}")
             return None
@@ -157,12 +157,14 @@ class MDAPTestRunner:
             return suite
 
         # Add tests
-        from test_leanaide_mdap import *
+        import test_leanaide_mdap
         for test_class_name in test_classes:
-            if test_class_name in globals():
-                test_class = globals()[test_class_name]
+            test_class = getattr(test_leanaide_mdap, test_class_name, None)
+            if test_class is not None:
                 tests = loader.loadTestsFromTestCase(test_class)
                 suite.addTests(tests)
+            else:
+                logger.warning(f"Test class not found: {test_class_name}")
 
         return suite
 
@@ -176,8 +178,8 @@ class MDAPTestRunner:
         suite = unittest.TestSuite()
 
         # Load all tests
-        from test_leanaide_mdap import *
-        all_tests = loader.loadTestsFromModule(sys.modules['test_leanaide_mdap'])
+        import test_leanaide_mdap
+        all_tests = loader.loadTestsFromModule(test_leanaide_mdap)
 
         # Filter by pattern
         for test_group in all_tests:

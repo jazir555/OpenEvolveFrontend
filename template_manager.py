@@ -40,7 +40,7 @@ class TemplateManager:
                     with open(filepath, 'r') as f:
                         template = json.load(f)
                         templates[template["id"]] = template
-                except Exception as e:
+                except (OSError, IOError, json.JSONDecodeError, KeyError) as e:
                     print(f"Error loading template {filename}: {e}")
         
         return templates
@@ -51,7 +51,7 @@ class TemplateManager:
         try:
             with open(filepath, 'w') as f:
                 json.dump(template, f, indent=2)
-        except Exception as e:
+        except (OSError, IOError, TypeError) as e:
             print(f"Error saving template: {e}")
             raise
     
@@ -177,7 +177,7 @@ class TemplateManager:
             if os.path.exists(filepath):
                 os.remove(filepath)
             return True
-        except Exception as e:
+        except (OSError, IOError) as e:
             print(f"Error deleting template: {e}")
             return False
     
@@ -240,7 +240,7 @@ class TemplateManager:
             
             return template_id
         
-        except Exception as e:
+        except (OSError, IOError, json.JSONDecodeError, KeyError, ValueError) as e:
             print(f"Error importing template: {e}")
             return None
     

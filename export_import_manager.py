@@ -104,7 +104,7 @@ class ExportImportManager:
                     st.session_state.protocol_text = latest_version["protocol_text"]
                     st.session_state.current_version_id = latest_version["id"]
             return True
-        except Exception as e:
+        except (KeyError, TypeError, AttributeError) as e:
             st.error(f"Error importing project: {e}")
             return False
 
@@ -134,7 +134,7 @@ class ExportImportManager:
         except json.JSONDecodeError as e:
             st.error(f"Invalid JSON format: {e}")
             return False
-        except Exception as e:
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
             st.error(f"Error importing JSON: {e}")
             return False
 
@@ -151,7 +151,7 @@ class ExportImportManager:
         # Generate shareable link with hash
         import hashlib
 
-        project_id = hashlib.md5(
+        project_id = hashlib.sha256(
             json.dumps(project_data, sort_keys=True).encode()
         ).hexdigest()[:16]
         return f"https://open-evolve.app/shared/{project_id}"

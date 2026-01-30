@@ -192,7 +192,7 @@ class SecureAPIClient:
         except requests.exceptions.RequestException as e:
             logger.error(f"API request failed: {e}")
             raise
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             logger.error(f"Secure API communication error: {e}")
             raise
 
@@ -213,7 +213,7 @@ class SecureStorage:
             try:
                 decrypted_data = self.encryption.decrypt_data(encrypted_data)
                 return json.loads(decrypted_data)
-            except Exception as e:
+            except (OSError, IOError, ValueError, TypeError) as e:
                 logger.error(f"Failed to decrypt storage: {e}")
                 return {}
         return {}
@@ -224,7 +224,7 @@ class SecureStorage:
             encrypted_data = self.encryption.encrypt_data(self.data)
             with open(self.storage_path, 'w') as f:
                 f.write(encrypted_data)
-        except Exception as e:
+        except (OSError, IOError, TypeError, ValueError) as e:
             logger.error(f"Failed to encrypt and save storage: {e}")
             raise
     
@@ -258,7 +258,7 @@ class SecureStorage:
                 return json.loads(decrypted_value)
             except json.JSONDecodeError:
                 return decrypted_value
-        except Exception as e:
+        except (ValueError, TypeError) as e:
             logger.error(f"Failed to decrypt data for key {key}: {e}")
             return None
     
@@ -385,7 +385,7 @@ class CertificateManager:
                 logger.debug("Certificate has no subject alternative names extension")
             
             return False
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             logger.error(f"Certificate verification failed: {e}")
             return False
 

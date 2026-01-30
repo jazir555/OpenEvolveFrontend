@@ -220,6 +220,6 @@ def start_collaboration_server():
             st.session_state.collaboration_server_instance.start()
             st.session_state.collaboration_server_started = True
             print(f"Collaboration server started successfully on ws://localhost:{selected_port}")
-        except Exception as e:
+        except (OSError, IOError, RuntimeError) as e:
             st.error(f"Failed to start collaboration server: {e}")
             st.session_state.collaboration_server_error = True

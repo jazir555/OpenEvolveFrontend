@@ -406,7 +406,7 @@ def main():
         for name, func in DEMO_FUNCTIONS.items():
             try:
                 func()
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 logger.error(f"Demo '{name}' failed: {e}")
                 import traceback
                 traceback.print_exc()
@@ -416,7 +416,7 @@ def main():
         if demo_func:
             try:
                 demo_func()
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 logger.error(f"Demo failed: {e}")
                 import traceback
                 traceback.print_exc()

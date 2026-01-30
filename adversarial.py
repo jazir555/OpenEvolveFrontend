@@ -595,7 +595,7 @@ def run_comprehensive_adversarial_testing(
         
         return adversarial_result
         
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         adversarial_result["error"] = str(e)
         adversarial_result["end_time"] = time.time()
         adversarial_result["total_duration"] = adversarial_result["end_time"] - start_time
@@ -743,7 +743,7 @@ def _run_adversarial_testing_with_openevolve_backend_enhanced(
                                 os.unlink(temp_path)
                     
                     round_score = evaluation.get("robustness_score", evaluation.get("score", 0.0))
-                except Exception as e:
+                except (RuntimeError, ValueError, TypeError) as e:
                     print(f"Error evaluating round result: {e}")
                     evaluation = {"score": 0.0}
                     round_score = 0.0
@@ -799,7 +799,7 @@ def _run_adversarial_testing_with_openevolve_backend_enhanced(
                 "configuration": asdict(config)
             }
             
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         _update_adv_log_and_status(f"💥 Adversarial testing failed: {e}")
         logger.error(f"Adversarial testing error: {e}", exc_info=True)
         return {
@@ -1360,7 +1360,7 @@ def get_adversarial_capabilities_summary() -> Dict[str, Any]:
                 "message": result.get("message", "Adversarial testing completed with no improvement."),
             }
 
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         st.error(f"Error running adversarial testing with OpenEvolve backend: {e}")
         print(f"Adversarial testing error: {e}")
         import traceback
@@ -1486,7 +1486,7 @@ def run_adversarial_testing():
                     
             except requests.exceptions.ConnectionError:
                 st.error("Cannot connect to OpenEvolve backend. Please ensure it is running.")
-            except Exception as e:
+            except (RuntimeError, ValueError) as e:
                 st.error(f"Error checking OpenEvolve backend: {e}")
         else:
             st.error("OpenEvolve backend is not available. Please install and run the backend.")
@@ -1722,12 +1722,12 @@ def run_adversarial_testing():
                 st.error(
                     "Cannot connect to OpenEvolve backend. Please ensure it is running."
                 )
-            except Exception as e:
+            except (RuntimeError, ValueError) as e:
                 st.error(f"Error checking OpenEvolve backend: {e}.")
         else:
             st.error("OpenEvolve backend is not available. Please install and run the backend.")
 
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         tb_str = traceback.format_exc()
         error_message = f"A critical error occurred: {e}\n{tb_str}"
         st.error(error_message)
@@ -1786,7 +1786,7 @@ def capture_human_feedback(
         _update_adv_log_and_status(
             f"📝 Captured human feedback for adversarial example {adversarial_example.get('id')} and saved to {feedback_file}"
         )
-    except Exception as e:
+    except (IOError, OSError, PermissionError) as e:
         _update_adv_log_and_status(f"❌ Failed to save human feedback to {feedback_file}: {e}")
 
 
@@ -1981,7 +1981,7 @@ def run_ultimate_adversarial_testing(
                 if adversarial_config is None:
                     try:
                         adversarial_config = create_adversarial_configuration_from_session()
-                    except Exception as e:
+                    except (AttributeError, KeyError, ValueError) as e:
                         # Log the specific error for debugging
                         import logging
                         logging.exception(f"Error creating adversarial configuration from session: {e}")
@@ -2016,7 +2016,7 @@ def run_ultimate_adversarial_testing(
                 else:
                     _update_adv_log_and_status("⚠️ Workflow adversarial testing failed")
                 
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError) as e:
                 _update_adv_log_and_status(f"⚠️ Workflow adversarial testing error: {e}")
             
             ultimate_result["testing_phases"]["phase_2_workflow_testing"]["status"] = "completed"
@@ -2122,7 +2122,7 @@ def run_ultimate_adversarial_testing(
         
         return ultimate_result
         
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         ultimate_result["error"] = str(e)
         ultimate_result["end_time"] = time.time()
         ultimate_result["total_duration"] = ultimate_result["end_time"] - start_time
@@ -2223,7 +2223,7 @@ def run_native_openevolve_adversarial_only(
         
         return result
         
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         result["error"] = str(e)
         _update_adv_log_and_status(f"💥 Native OpenEvolve adversarial error: {e}")
         logger.error(f"Native OpenEvolve adversarial error: {e}", exc_info=True)
@@ -2457,7 +2457,7 @@ def run_maker_enhanced_adversarial_testing(
             config=config
         )
     
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         logger.error(f"[ERROR] MAKER-enhanced testing failed: {e}")
         logger.error(f"[ERROR] Falling back to standard adversarial testing")
         

@@ -51,7 +51,7 @@ class ReportGenerator:
             try:
                 with open(scores_file, 'r') as f:
                     return json.load(f)
-            except Exception as exc:
+            except (OSError, IOError, json.JSONDecodeError) as exc:
                 logger.debug(f"Failed to load historical scores: {exc}")
         
         # Initialize with seed data if no historical data exists
@@ -66,7 +66,7 @@ class ReportGenerator:
         try:
             with open("historical_scores.json", 'w') as f:
                 json.dump(self.historical_scores, f)
-        except Exception as e:
+        except (OSError, IOError, TypeError) as e:
             print(f"Failed to save historical scores: {e}")
     
     def generate_evolution_report(
@@ -320,7 +320,7 @@ class ReportGenerator:
                 )
                 img_bytes = fig.to_image(format="png")
                 visualizations["score_progression"] = base64.b64encode(img_bytes).decode()
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             st.warning(f"Could not generate score progression chart: {e}")
         
         # Feature space visualization (if available)
@@ -337,7 +337,7 @@ class ReportGenerator:
                     )
                     img_bytes = fig.to_image(format="png")
                     visualizations["feature_space"] = base64.b64encode(img_bytes).decode()
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             st.warning(f"Could not generate feature space chart: {e}")
         
         # Diversity over time
@@ -351,7 +351,7 @@ class ReportGenerator:
                 )
                 img_bytes = fig.to_image(format="png")
                 visualizations["diversity_timeline"] = base64.b64encode(img_bytes).decode()
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             st.warning(f"Could not generate diversity timeline: {e}")
         
         return visualizations
@@ -626,7 +626,7 @@ def render_detailed_report(report: EvolutionReport):
                         # Decode base64 image data
                         image_bytes = base64.b64decode(viz_data)
                         st.image(image_bytes, caption=viz_name.replace("_", " ").title(), use_column_width=True)
-                    except Exception as e:
+                    except (ValueError, TypeError, RuntimeError) as e:
                         st.error(f"Could not display visualization: {e}")
         else:
             st.info("No visualizations available for this report.")

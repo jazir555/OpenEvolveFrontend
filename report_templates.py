@@ -399,7 +399,7 @@ Comparing {{ plans|length }} decomposition plans
             self._register_globals()
 
             logger.info(f"TemplateManager initialized with template dir: {self.template_dir}")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, ImportError, ValueError) as e:
             logger.error(f"Failed to initialize Jinja2 environment: {e}")
             self.env = None
 
@@ -420,11 +420,11 @@ Comparing {{ plans|length }} decomposition plans
             try:
                 dt = datetime.fromisoformat(value) if isinstance(value, str) else value
                 return dt.strftime(format_str)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
-                return str(value)
+            except (ValueError, TypeError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
-                logger.error(f"Error: {e}", exc_info=True)
+                logger.error(f"Error formatting date: {e}", exc_info=True)
+                return str(value)
 
         # Format number
         def format_number(value: float, decimals: int = 2) -> str:
@@ -568,7 +568,7 @@ Comparing {{ plans|length }} decomposition plans
                 template = self.env.from_string(self.BUILTIN_TEMPLATES[template_name])
                 return template.render(**context)
             raise
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Error rendering template {template_name}: {e}")
             raise
 
@@ -636,7 +636,7 @@ Comparing {{ plans|length }} decomposition plans
             return True, []
         except TemplateSyntaxError as e:
             errors.append(f"Syntax error at line {e.lineno}: {e.message}")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, TypeError, ValueError) as e:
             errors.append(str(e))
 
         return False, errors

@@ -191,7 +191,7 @@ async def sse_event_generator(
                 yield ": keep-alive\n\n"
                 retry_count = 0
 
-            except Exception as e:
+            except (ValueError, TypeError, RuntimeError) as e:
                 logger.error(f"Error generating SSE event: {e}")
                 retry_count += 1
 
@@ -344,7 +344,7 @@ def validate_jwt_token(token: str) -> Dict[str, Any]:
         raise ValueError("Invalid token signature")
     except InvalidTokenError as e:
         raise ValueError(f"Invalid token: {str(e)}")
-    except Exception as e:
+    except (ValueError, TypeError, jwt.InvalidTokenError) as e:
         raise ValueError(f"Token validation failed: {str(e)}")
 
 
@@ -406,7 +406,7 @@ async def auth_middleware(request: Request, call_next):
         else:
             logger.debug("Clerk not configured, skipping auth validation")
 
-    except Exception as e:
+    except (ValueError, TypeError, jwt.InvalidTokenError) as e:
         logger.error(f"Auth validation error: {e}")
         return JSONResponse(
             status_code=401,

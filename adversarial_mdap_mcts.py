@@ -712,7 +712,7 @@ class BlueTeamAgent:
                 self.engine = MDAPMAKERMCTSEngine(
                     config=self._create_unified_config()
                 )
-            except Exception as e:
+            except (ImportError, RuntimeError, ValueError) as e:
                 logger.warning(f"Could not initialize MDAP+MCTS engine: {e}")
 
         # Defense history
@@ -857,7 +857,7 @@ class BlueTeamAgent:
                         proof_state=result.best_proof.get('state', ''),
                         is_valid=True
                     )
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.warning(f"MDAP+MCTS search failed: {e}")
 
         # Fallback
@@ -930,7 +930,7 @@ class BlueTeamAgent:
                 "errors": errors,
                 "verification_time": 0.1
             }
-        except Exception as e:
+        except (ConnectionError, TimeoutError, ValueError, RuntimeError) as e:
             logger.warning(f"LeanAide verification failed: {e}")
             return {"is_valid": True, "errors": []}
 
@@ -1378,7 +1378,7 @@ class AdversarialTraining:
                 self.engine = MDAPMAKERMCTSEngine(
                     config=self._create_config()
                 )
-            except Exception as e:
+            except (ImportError, RuntimeError, ValueError) as e:
                 logger.warning(f"Could not initialize engine: {e}")
 
     def _create_config(self) -> 'MDAPMAKERConfig':
@@ -1460,7 +1460,7 @@ class AdversarialTraining:
                         UnifiedMCTSApproach(self.mcts_approach.value)
                     )
                     proofs.append(result)
-                except Exception as e:
+                except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                     logger.warning(f"Proof generation failed: {e}")
                     # Create mock result
                     proofs.append(self._mock_result())
@@ -1636,7 +1636,7 @@ class AdversarialEnsemble:
                     self.engines[approach] = MDAPMAKERMCTSEngine(
                         config=MDAPMAKERConfig()
                     )
-                except Exception as e:
+                except (ImportError, RuntimeError, ValueError) as e:
                     logger.warning(f"Could not initialize {approach}: {e}")
 
     async def generate_robust_proof(
@@ -1655,7 +1655,7 @@ class AdversarialEnsemble:
                         UnifiedMCTSApproach(approach.value)
                     )
                     proofs[approach] = result
-                except Exception as e:
+                except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                     logger.warning(f"{approach} failed: {e}")
                     proofs[approach] = self._mock_result()
 
@@ -1748,7 +1748,7 @@ class MDAPAdversarial:
         if MAKER_COMPLETE_AVAILABLE:
             try:
                 self.voting_engine = VotingEngine(k_ahead=k_ahead)
-            except Exception as e:
+            except (ImportError, RuntimeError, ValueError) as e:
                 logger.warning(f"Could not initialize voting engine: {e}")
 
     async def adversarial_test_mdap(
@@ -1845,7 +1845,7 @@ class MDAPAdversarial:
                 candidates = [(a.severity, a) for a in attacks]
                 winner = max(candidates, key=lambda x: x[0])[1]
                 return winner
-            except Exception as e:
+            except (ValueError, TypeError, RuntimeError) as e:
                 logger.warning(f"Voting failed: {e}")
 
         # Fallback: return most severe
@@ -1869,7 +1869,7 @@ class MDAPAdversarial:
                 candidates = [(d.defense_strength, d) for d in defenses]
                 winner = max(candidates, key=lambda x: x[0])[1]
                 return winner
-            except Exception as e:
+            except (ValueError, TypeError, RuntimeError) as e:
                 logger.warning(f"Voting failed: {e}")
 
         # Fallback: return strongest defense
@@ -1894,7 +1894,7 @@ class AdversarialEvolvedPolicies:
                 self.mdap_evolver = MDAPPolicyEvolutionEngine(
                     mdap_config=self.mdap_config
                 )
-            except Exception as e:
+            except (ImportError, RuntimeError, ValueError) as e:
                 logger.warning(f"Could not initialize MDAP evolver: {e}")
 
     async def train_with_adversarial(
@@ -1926,7 +1926,7 @@ class AdversarialEvolvedPolicies:
 
             return best_policy
 
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.warning(f"Adversarial training failed: {e}")
             return None
 
@@ -1955,7 +1955,7 @@ class AdversarialEvolutionaryNodes:
                     num_agents=5,
                     voting_strategy="first_k_ahead"
                 )
-            except Exception as e:
+            except (ImportError, RuntimeError, ValueError) as e:
                 logger.warning(f"Could not initialize evolutionary MCTS: {e}")
 
     async def train_nodes_with_adversarial(
@@ -1974,7 +1974,7 @@ class AdversarialEvolutionaryNodes:
                 context = self._create_context(theorem)
                 try:
                     await self.evolve_mcts.search(context)
-                except Exception as e:
+                except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                     logger.warning(f"Search failed: {e}")
 
             # Adversarial pressure
@@ -1982,7 +1982,7 @@ class AdversarialEvolutionaryNodes:
             context = self._create_context(adv_theorem)
             try:
                 await self.evolve_mcts.search(context)
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 logger.warning(f"Adversarial search failed: {e}")
 
         return self.evolve_mcts
@@ -2018,7 +2018,7 @@ class AdversarialCoevolutionMCTS:
                     num_agents=5,
                     voting_strategy="first_k_ahead"
                 )
-            except Exception as e:
+            except (ImportError, RuntimeError, ValueError) as e:
                 logger.warning(f"Could not initialize coevolution: {e}")
 
     async def coevolve_with_adversarial(
@@ -2043,7 +2043,7 @@ class AdversarialCoevolutionMCTS:
 
             return best_tree
 
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.warning(f"Coevolution failed: {e}")
             return None
 

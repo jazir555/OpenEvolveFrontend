@@ -171,7 +171,7 @@ class MetricsStore:
         try:
             with open(self.persist_path, 'a') as f:
                 f.write(json.dumps(asdict(metrics)) + '\n')
-        except Exception as e:
+        except (OSError, IOError, TypeError) as e:
             print(f"Failed to persist metrics: {e}")
 
 

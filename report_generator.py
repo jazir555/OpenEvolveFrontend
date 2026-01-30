@@ -160,7 +160,7 @@ class ReportGenerator:
                     autoescape=True
                 )
                 logger.info(f"Jinja2 environment initialized with template dir: {self.template_dir}")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (OSError, IOError, ImportError, ValueError) as e:
                 logger.warning(f"Failed to initialize Jinja2 environment: {e}")
 
         # Track available formats

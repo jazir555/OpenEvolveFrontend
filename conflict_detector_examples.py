@@ -656,7 +656,7 @@ import collections
         try:
             conflicts = detector.detect_conflicts([code], [{'id': name}])
             print(f"  ✓ Handled successfully, found {len(conflicts)} conflicts")
-        except Exception as e:
+        except (ValueError, TypeError, RuntimeError) as e:
             print(f"  ✗ Error: {type(e).__name__}: {e}")
 
 

@@ -982,7 +982,7 @@ def export_critique_report(
             raise ValueError(f"Unsupported format: {format}")
 
         logger.info(f"Exported critique report to {filepath}")
-    except Exception as e:
+    except (OSError, IOError, TypeError, ValueError) as e:
         logger.error(f"Failed to export critique report: {e}")
         raise
 
@@ -1010,7 +1010,7 @@ def import_critique_report(
         report = CritiqueReport.from_dict(data)
         logger.info(f"Imported critique report from {filepath}")
         return report
-    except Exception as e:
+    except (OSError, IOError, TypeError, ValueError) as e:
         logger.error(f"Failed to import critique report: {e}")
         raise
 

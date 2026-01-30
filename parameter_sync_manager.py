@@ -469,7 +469,7 @@ class ParameterSyncManager:
             for callback in self.sync_callbacks:
                 try:
                     callback(changes_made, "streamlit_to_bubblelabs")
-                except Exception as e:
+                except (TypeError, ValueError, RuntimeError) as e:
                     errors.append(f"Error in sync callback: {str(e)}")
             
             return {
@@ -524,7 +524,7 @@ class ParameterSyncManager:
             for callback in self.sync_callbacks:
                 try:
                     callback(changes_made, "bubblelabs_to_streamlit")
-                except Exception as e:
+                except (TypeError, ValueError, RuntimeError) as e:
                     errors.append(f"Error in sync callback: {str(e)}")
             
             return {

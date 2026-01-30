@@ -1144,7 +1144,7 @@ class KnowledgeBase:
 
         except FileNotFoundError:
             logger.info("No existing knowledge base found, starting fresh")
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, json.JSONDecodeError, TypeError, ValueError) as e:
             logger.error(f"Error loading knowledge base: {e}")
 
     def _save_to_storage(self):
@@ -1168,5 +1168,5 @@ class KnowledgeBase:
 
             logger.debug("Knowledge base saved to storage")
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (OSError, IOError, TypeError) as e:
             logger.error(f"Error saving knowledge base: {e}")

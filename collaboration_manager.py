@@ -669,7 +669,7 @@ class CollaborationManager:
                 f"New collaborator added: {user_email}", "System", "info"
             )
             return True
-        except Exception as e:
+        except (KeyError, TypeError, AttributeError) as e:
             st.error(f"Error adding collaborator: {e}")
             return False
 
@@ -699,7 +699,7 @@ class CollaborationManager:
                 f"Collaborator removed: {user_email}", "System", "info"
             )
             return True
-        except Exception as e:
+        except (KeyError, TypeError, AttributeError) as e:
             st.error(f"Error removing collaborator: {e}")
             return False
 
@@ -748,7 +748,7 @@ class CollaborationManager:
                     )
 
             return updated
-        except Exception as e:
+        except (KeyError, TypeError, AttributeError) as e:
             st.error(f"Error updating collaborator role: {e}")
             return False
 

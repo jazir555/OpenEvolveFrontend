@@ -477,7 +477,7 @@ def _request_openai_compatible_chat(api_key, base_url, model, messages, extra_he
         result = response.json()
         return result["choices"][0]["message"]["content"]
         
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         st.error(f"Error making API request: {e}")
         return None
 
@@ -533,7 +533,7 @@ class ContentEvaluator:
                 return self._evaluate_technical_content(content)
             else:
                 return self._evaluate_general_content(content)
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             return {"score": 0.0, "error": str(e), "timestamp": time.time()}
 
     def _evaluate_code(self, content: str) -> Dict[str, Any]:
@@ -1304,7 +1304,7 @@ def run_evolution_loop(
         else:
             st.error("OpenEvolve not available. Please install and run the backend.")
             return current_content
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         _update_evolution_log_and_status(f"💥 Evolution loop failed: {e}")
         import traceback
         st.error(f"Full traceback: {traceback.format_exc()}")
@@ -1357,7 +1357,7 @@ def _evaluate_candidate_with_diagnostics(
             os.unlink(temp_file_path)
         
         return score
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         print(f"Error evaluating candidate: {e}")
         return 0.0  # Return zero score if evaluation fails
 
@@ -1432,7 +1432,7 @@ def _evaluate_candidate(
         except (ValueError, TypeError, AttributeError):
             score = 0.0
         return score
-    except Exception as e:
+    except (RuntimeError, ValueError, TypeError) as e:
         print(f"Error evaluating candidate: {e}")
         return 0.0  # Return zero score if evaluation fails
 
@@ -1554,7 +1554,7 @@ def _run_evolution_with_api_backend_refactored(
             if os.path.exists(temp_file_path):
                 os.unlink(temp_file_path)
                 
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         _update_evolution_log_and_status(f"💥 Evolution loop failed: {e}")
         import traceback
         traceback.print_exc()
@@ -1684,7 +1684,7 @@ def run_comprehensive_evolution(
         try:
             # Try session-based configuration first (for Streamlit compatibility)
             config = create_evolution_configuration_from_session()
-        except:
+        except (AttributeError, KeyError, RuntimeError):
             # Fall back to standalone configuration
             config = create_evolution_configuration(**kwargs)
     
@@ -1871,7 +1871,7 @@ def run_comprehensive_evolution(
         
         return evolution_result
         
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         # Use comprehensive error handling
         error_info = error_handler.handle_error(
             error=e,
@@ -1994,7 +1994,7 @@ def run_ultimate_adversarial_evolution(
         # Create comprehensive configuration
         try:
             config = create_evolution_configuration_from_session()
-        except:
+        except (AttributeError, KeyError, RuntimeError):
             config = create_evolution_configuration(evolution_mode=evolution_mode)
         config.evolution_mode = evolution_mode
         
@@ -2035,7 +2035,7 @@ def run_ultimate_adversarial_evolution(
         # Create adversarial configuration
         try:
             adversarial_config = create_adversarial_configuration_from_session()
-        except:
+        except (AttributeError, KeyError, RuntimeError):
             adversarial_config = create_adversarial_configuration()
         
         # Run comprehensive adversarial testing
@@ -2153,7 +2153,7 @@ def run_ultimate_adversarial_evolution(
         
         return ultimate_result
         
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         ultimate_result["error"] = str(e)
         ultimate_result["end_time"] = time.time()
         ultimate_result["total_duration"] = ultimate_result["end_time"] - start_time
@@ -2248,7 +2248,7 @@ def run_quality_diversity_evolution(
                 "error": None
             }
             
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         _update_evolution_log_and_status(f"💥 QD evolution failed: {e}")
         return {
             "success": False,
@@ -2342,7 +2342,7 @@ def run_multi_objective_evolution(
                 "error": None
             }
             
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         _update_evolution_log_and_status(f"💥 MO evolution failed: {e}")
         return {
             "success": False,
@@ -2417,7 +2417,7 @@ def run_decomposition_evolution(
                 "error": None
             }
             
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         _update_evolution_log_and_status(f"💥 Decomposition evolution failed: {e}")
         return {
             "success": False,
@@ -3188,7 +3188,7 @@ def run_ultimate_comprehensive_evolution(
                     ultimate_result["openevolve_metrics"]["performance_score"] = openevolve_result.best_score
                     _update_evolution_log_and_status(f"✅ Native OpenEvolve adversarial: Score {openevolve_result.best_score:.4f}")
                 
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 _update_evolution_log_and_status(f"⚠️ Native OpenEvolve adversarial failed: {e}")
         
         # Run workflow-based adversarial testing with team system
@@ -3201,7 +3201,7 @@ def run_ultimate_comprehensive_evolution(
             # Create adversarial configuration
             try:
                 adversarial_config = create_adversarial_configuration_from_session()
-            except:
+            except (AttributeError, KeyError, RuntimeError):
                 adversarial_config = create_adversarial_configuration()
             
             # Run comprehensive adversarial testing
@@ -3262,7 +3262,7 @@ def run_ultimate_comprehensive_evolution(
                 
                 ultimate_result["workflow_phases"]["phase_3_evolutionary_optimization"]["native_evolution"] = True
                 
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 _update_evolution_log_and_status(f"⚠️ Native OpenEvolve {evolution_mode} failed: {e}")
         
         # Run workflow-based evolution as enhancement
@@ -3394,7 +3394,7 @@ def run_ultimate_comprehensive_evolution(
                 ultimate_result["model_portfolio"] = model_performance
                 ultimate_result["workflow_phases"]["phase_5_model_management"]["portfolio_optimization"] = True
                 
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                 _update_evolution_log_and_status(f"⚠️ Model portfolio optimization failed: {e}")
         
         ultimate_result["workflow_phases"]["phase_5_model_management"]["status"] = "completed"
@@ -3454,7 +3454,7 @@ def run_ultimate_comprehensive_evolution(
         
         return ultimate_result
         
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         ultimate_result["error"] = str(e)
         ultimate_result["end_time"] = time.time()
         ultimate_result["total_duration"] = ultimate_result["end_time"] - start_time
@@ -3626,7 +3626,7 @@ def run_native_openevolve_with_workflow_enhancement(
         
         return result
         
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         result["error"] = str(e)
         _update_evolution_log_and_status(f"💥 Native OpenEvolve + Workflow Enhancement failed: {e}")
         logger.error(f"Native OpenEvolve with workflow enhancement error: {e}", exc_info=True)
@@ -3684,7 +3684,7 @@ def get_comprehensive_evolution_capabilities() -> Dict[str, Any]:
         param_manager = ParameterManager()
         all_params = param_manager.schema.parameters if hasattr(param_manager, 'schema') else {}
         capabilities["native_openevolve"]["parameters_supported"] = len(all_params)
-    except Exception as exc:
+    except (ImportError, RuntimeError, AttributeError) as exc:
         logger.debug(f"Parameter manager unavailable while checking capabilities: {exc}")
     
     # Check workflow system
@@ -3845,7 +3845,7 @@ def run_maker_enhanced_evolution(
             **kwargs
         )
     
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         logger.error(f"[ERROR] MAKER-enhanced evolution failed: {e}")
         logger.error(f"[ERROR] Falling back to standard evolution")
         

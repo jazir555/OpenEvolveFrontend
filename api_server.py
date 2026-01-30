@@ -517,7 +517,7 @@ def create_workflow(
             created_at=datetime.now().isoformat()
         )
     
-    except Exception as e:
+    except (ValueError, TypeError, KeyError, AttributeError) as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -852,7 +852,7 @@ def create_team(
         
         return {"message": "Team created", "team_name": team.name}
     
-    except Exception as e:
+    except (ValueError, TypeError, RuntimeError) as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -895,7 +895,7 @@ def update_team(
         
         return {"message": "Team updated", "team_name": team_name}
     
-    except Exception as e:
+    except (ValueError, TypeError, KeyError, AttributeError) as e:
         logger.error(f"Error updating team '{team_name}': {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1027,7 +1027,7 @@ def create_gauntlet(
         
         return {"message": "Gauntlet created", "gauntlet_name": gauntlet.name}
     
-    except Exception as e:
+    except (ValueError, TypeError, KeyError, AttributeError) as e:
         logger.error(f"Error creating gauntlet: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1071,7 +1071,7 @@ def update_gauntlet(
         
         return {"message": "Gauntlet updated", "gauntlet_name": gauntlet_name}
     
-    except Exception as e:
+    except (ValueError, TypeError, KeyError, AttributeError) as e:
         logger.error(f"Error updating gauntlet '{gauntlet_name}': {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -1199,7 +1199,7 @@ class WebhookManager:
                             logger.warning(
                                 f"Webhook {webhook_id} returned status {response.status}"
                             )
-            except Exception as e:
+            except (OSError, IOError, RuntimeError) as e:
                 logger.error(f"Webhook {webhook_id} delivery failed (attempt {attempt + 1}): {e}")
             
             if attempt < self.max_retries - 1:

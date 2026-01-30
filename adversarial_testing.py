@@ -182,7 +182,7 @@ def run_comprehensive_adversarial_testing(
                 "blue_team_fixes": applied_fixes
             }
     
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         st.error(f"Error in comprehensive adversarial testing: {e}")
         import traceback
         st.error(f"Full traceback: {traceback.format_exc()}")
@@ -292,7 +292,7 @@ def run_red_team_analysis(
                     if result:
                         # Parse the result to extract findings
                         findings.extend(_parse_red_team_findings(result))
-                except Exception as e:
+                except (RuntimeError, ValueError, ConnectionError) as e:
                     st.warning(f"Error in red team analysis thread: {e}")
         
         return {
@@ -302,7 +302,7 @@ def run_red_team_analysis(
             "findings_by_severity": _categorize_findings_by_severity(findings)
         }
     
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         st.error(f"Error in red team analysis: {e}")
         return {"success": False, "error": str(e), "findings": []}
 
@@ -394,7 +394,7 @@ def run_blue_team_resolution(
                     improved_content = parsed_result.get("fixed_content", improved_content)
                     applied_fixes.extend(parsed_result.get("applied_fixes", []))
                     
-            except Exception as e:
+            except (RuntimeError, ValueError, ConnectionError) as e:
                 st.warning(f"Error in blue team fix attempt {i+1}: {e}")
         
         return {
@@ -404,7 +404,7 @@ def run_blue_team_resolution(
             "total_fixes": len(applied_fixes)
         }
     
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         st.error(f"Error in blue team resolution: {e}")
         return {"success": False, "error": str(e), "improved_content": original_content, "applied_fixes": []}
 
@@ -460,7 +460,7 @@ def _parse_red_team_findings(red_team_output: str) -> List[Dict[str, Any]]:
         
         return findings
         
-    except Exception as e:
+    except (ValueError, TypeError, json.JSONDecodeError) as e:
         st.warning(f"Error parsing red team findings: {e}")
         # Return a basic finding if parsing fails
         return [{
@@ -515,7 +515,7 @@ def _parse_blue_team_result(blue_team_output: str, original_content: str) -> Dic
             "changes_summary": f"Applied {len(applied_fixes)} fixes to original content"
         }
     
-    except Exception as e:
+    except (ValueError, TypeError, AttributeError) as e:
         st.warning(f"Error parsing blue team result: {e}")
         return {
             "fixed_content": blue_team_output,
@@ -600,7 +600,7 @@ def _request_openai_compatible_chat(
         result = response.json()
         return result["choices"][0]["message"]["content"]
         
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         st.error(f"Error making API request: {e}")
         return None
 

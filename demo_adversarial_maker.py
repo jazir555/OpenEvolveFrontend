@@ -319,7 +319,7 @@ def main():
             for name, demo_func in demos:
                 try:
                     demo_func()
-                except Exception as e:
+                except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
                     logger.error(f"Demo {name} failed: {e}", exc_info=True)
         elif 1 <= choice_num <= len(demos):
             # Run selected demo
@@ -332,7 +332,7 @@ def main():
         print("Invalid input")
     except KeyboardInterrupt:
         print("\n\nDemo interrupted by user")
-    except Exception as e:
+    except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         logger.error(f"Unexpected error: {e}", exc_info=True)
 
     print("\n" + "=" * 80)

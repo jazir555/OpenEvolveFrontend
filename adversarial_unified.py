@@ -1080,7 +1080,7 @@ class RobustnessEvaluator:
                 f"LeanAide client initialized: "
                 f"{self.config.leanaide_host}:{self.config.leanaide_port}"
             )
-        except Exception as e:
+        except (ConnectionError, TimeoutError, ValueError, RuntimeError) as e:
             logger.error(f"Failed to initialize LeanAide client: {e}")
             self.leanaide_client = None
 
@@ -1217,7 +1217,7 @@ class RobustnessEvaluator:
                 "error": result.error if not result.success else None
             }
 
-        except Exception as e:
+        except (ConnectionError, TimeoutError, ValueError, RuntimeError) as e:
             logger.error(f"LeanAide verification failed: {e}")
             return {
                 "available": True,
@@ -1392,7 +1392,7 @@ class AdversarialEngine:
             try:
                 from mdap_maker_mcts_unified import MDAPMAKERMCTSEngine
                 self.mcts_engine = MDAPMAKERMCTSEngine(config.mcts_config, leanaide_client)
-            except Exception as e:
+            except (ImportError, RuntimeError, ValueError) as e:
                 logger.warning(f"Failed to initialize MCTS engine: {e}")
 
         logger.info(f"AdversarialEngine initialized with config: {config.to_dict()}")
@@ -1510,7 +1510,7 @@ class AdversarialEngine:
 
             return result
 
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.error(f"Adversarial test failed: {e}", exc_info=True)
             if self.monitor:
                 self.monitor.stop()

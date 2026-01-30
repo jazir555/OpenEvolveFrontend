@@ -140,7 +140,7 @@ class VersionControl:
                     st.session_state.protocol_text = latest_version["protocol_text"]
                     st.session_state.current_version_id = latest_version["id"]
             return True
-        except Exception as e:
+        except (KeyError, AttributeError, RuntimeError) as e:
             st.error(f"Error deleting version: {e}")
             return False
 

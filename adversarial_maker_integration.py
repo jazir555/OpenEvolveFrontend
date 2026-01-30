@@ -219,7 +219,7 @@ class MAKERRedTeamAgent(RedTeamMember):
 
             return attacks_data
 
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.error(f"MAKER attack generation failed: {e}")
             # Fallback to simple generation
             return self._generate_attacks_simple(target_content, content_type, num_attacks)
@@ -241,7 +241,7 @@ class MAKERRedTeamAgent(RedTeamMember):
                     k_ahead=self.maker_config.red_team_consensus_threshold
                 )
                 logger.info(f"Initialized MAKER engine for {self.name}")
-            except Exception as e:
+            except (ImportError, RuntimeError, ConnectionError) as e:
                 logger.warning(f"Failed to initialize MAKER engine: {e}")
                 self.maker_engine = None
         else:
@@ -274,7 +274,7 @@ class MAKERRedTeamAgent(RedTeamMember):
                 action, state, raw_text = result[0]
                 return raw_text
 
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.error(f"MAKER single attack generation failed: {e}")
 
         return None
@@ -359,7 +359,7 @@ Generate findings that are:
                 exploit_example=None
             )
 
-        except Exception as e:
+        except (ValueError, TypeError, AttributeError) as e:
             logger.warning(f"Failed to parse attack: {e}")
             return None
 
@@ -433,7 +433,7 @@ class MDAPBlueTeamAgent(BlueTeamMember):
 
             return defense_strategies
 
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.error(f"MDAP defense generation failed: {e}")
             return self._generate_defenses_simple(attack_findings, target_content)
 
@@ -535,7 +535,7 @@ Provide:
                     resource_cost=0.5
                 )
 
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.error(f"Failed to execute defense microtask: {e}")
 
         return None

@@ -190,7 +190,7 @@ class EvolutionAdapter:
 
             return result
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             duration = time.time() - start_time
             error_msg = f"Evolution failed: {str(e)}"
 

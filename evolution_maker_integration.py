@@ -258,7 +258,7 @@ class AdaptiveMAKERSelection:
 
         try:
             return self._voting_selection(population, num_parents, evaluator)
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.error(f"Adaptive MAKER voting selection failed: {e}")
             return self._standard_selection(population, num_parents)
 
@@ -318,7 +318,7 @@ class AdaptiveMAKERSelection:
             logger.debug(f"Adaptive threshold selection: complexity={complexity.overall_score:.3f} -> k={k}")
             return k
             
-        except Exception as e:
+        except (RuntimeError, ValueError, TypeError) as e:
             logger.warning(f"Failed to compute adaptive threshold: {e}")
             return self.config.voting_threshold
 
@@ -427,7 +427,7 @@ class MDAPEvolutionDecomposer:
 
             return subtasks
 
-        except Exception as e:
+        except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
             logger.error(f"MDAP decomposition failed: {e}")
             return []
 
