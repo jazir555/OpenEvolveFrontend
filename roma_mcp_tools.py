@@ -331,10 +331,16 @@ def analyze_with_roma(
         # Extract results
         result = result_task_node.result if hasattr(result_task_node, 'result') else str(result_task_node)
 
+        # Build decomposition structure from DAG if available
+        decomposition = None
+        if solver.last_dag:
+            decomposition = _build_decomposition_from_dag(solver.last_dag, result_task_node)
+
         return {
             "problem": problem,
             "analysis_type": analysis_type,
             "analysis": result,
+            "decomposition": decomposition,
             "dag_info": {
                 "total_tasks": len(solver.last_dag.get_all_tasks()) if solver.last_dag else 1,
                 "execution_id": solver.last_dag.execution_id if solver.last_dag else None,
@@ -591,6 +597,69 @@ def create_roma_config(
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
+
+def _build_decomposition_from_dag(dag, root_node) -> Dict[str, Any]:
+    """
+    Build a hierarchical decomposition structure from ROMA DAG.
+    
+    Args:
+        dag: ROMA DAG with tasks
+        root_node: Root task node
+        
+    Returns:
+        Hierarchical decomposition dictionary
+    """
+    def build_node_tree(node, visited=None):
+        if visited is None:
+            visited = set()
+            
+        node_id = getattr(node, 'task_id', str(id(node)))
+        if node_id in visited:
+            return None
+        visited.add(node_id)
+        
+        # Get node properties
+        result = getattr(node, 'result', '')
+        if isinstance(result, str):
+            description = result[:200]  # Truncate long results
+        else:
+            description = str(result)[:200]
+            
+        tree_node = {
+            "id": node_id,
+            "name": getattr(node, 'task_name', 'Unknown'),
+            "description": description,
+            "complexity": getattr(node, 'complexity_score', 0.5),
+            "priority": getattr(node, 'priority', 5),
+            "children": []
+        }
+        
+        # Find child nodes from DAG
+        if dag and hasattr(dag, 'get_children'):
+            children = dag.get_children(node)
+            for child in children:
+                child_tree = build_node_tree(child, visited)
+                if child_tree:
+                    tree_node["children"].append(child_tree)
+        elif hasattr(node, 'subtasks') and node.subtasks:
+            for child in node.subtasks:
+                child_tree = build_node_tree(child, visited)
+                if child_tree:
+                    tree_node["children"].append(child_tree)
+                    
+        return tree_node
+    
+    root_tree = build_node_tree(root_node)
+    
+    return {
+        "root": root_tree,
+        "total_nodes": len(dag.get_all_tasks()) if dag and hasattr(dag, 'get_all_tasks') else 1,
+        "execution_order": [
+            getattr(t, 'task_id', str(id(t))) 
+            for t in (dag.get_execution_order() if dag and hasattr(dag, 'get_execution_order') else [])
+        ]
+    }
+
 
 def _create_roma_config(
     provider: Optional[str] = None,

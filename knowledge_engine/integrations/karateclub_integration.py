@@ -364,13 +364,21 @@ class KarateClubGraphAnalyzer:
             # Convert back to NetworkX for metric calculation
             G = convert_graph(graph, to_networkx=True)
             
+            # Check if graph has weighted edges
+            is_weighted = False
+            if G.number_of_edges() > 0:
+                # Check first edge for weight attribute
+                first_edge = next(iter(G.edges(data=True)), None)
+                if first_edge and len(first_edge) > 2 and 'weight' in first_edge[2]:
+                    is_weighted = True
+            
             metrics = {
                 'basic_metrics': {
                     'num_nodes': G.number_of_nodes(),
                     'num_edges': G.number_of_edges(),
                     'density': nx.density(G),
                     'is_directed': nx.is_directed(G),
-                    'is_weighted': False  # TODO: Check for weighted edges
+                    'is_weighted': is_weighted
                 },
                 'degree_metrics': {
                     'average_degree': sum(dict(G.degree()).values()) / G.number_of_nodes(),

@@ -827,124 +827,234 @@ export function mergeCredentialsIntoBubbleParameters(
   return updatedParameters;
 }
 
-// TODO: Replace with actual flow decomposition logic
+/**
+ * Decomposes bubble parameters into a workflow of interconnected service bubbles.
+ * 
+ * This function analyzes the bubble parameters and creates a decomposition based on:
+ * 1. Bubble types and their natural execution order
+ * 2. Data dependencies between bubbles
+ * 3. Service categories (input, processing, output)
+ * 
+ * @param bubbleParameters - Record of parsed bubble parameters
+ * @returns Record of decomposed service bubbles in execution order
+ */
 export function generateDisplayedBubbleParameters(
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _bubbleParameters: Record<string, ParsedBubble>
+  bubbleParameters: Record<string, ParsedBubble>
 ): Record<string, ParsedBubble> {
-  // For now, return a hardcoded example that demonstrates sub-service bubble decomposition
-  // This shows how a SlackDataAssistantWorkflow would be broken down into its constituent service bubbles
+  // If no parameters provided, return empty decomposition
+  if (!bubbleParameters || Object.keys(bubbleParameters).length === 0) {
+    return {};
+  }
 
-  return {
-    'slack-listener': {
-      variableName: 'Listen for Slack mentions',
-      bubbleName: 'slack',
-      className: 'Slack Event Listener',
-      parameters: [
-        {
-          name: 'channel',
-          value: 'payload.channel',
-          type: BubbleParameterType.STRING,
-        },
-        {
-          name: 'user',
-          value: 'payload.user',
-          type: BubbleParameterType.STRING,
-        },
-      ],
+  // Categorize bubbles by their service type
+  const categorizedBubbles = categorizeBubbles(bubbleParameters);
+  
+  // Generate decomposition based on categorization
+  const decomposition: Record<string, ParsedBubble> = {};
+  let stepIndex = 0;
+
+  // Step 1: Input/Listener bubbles (event sources)
+  for (const [key, bubble] of categorizedBubbles.input) {
+    const stepKey = `step-${String(stepIndex++).padStart(2, '0')}-${bubble.bubbleName}-listener`;
+    decomposition[stepKey] = {
+      ...bubble,
+      parameters: bubble.parameters.map(p => ({
+        ...p,
+        value: p.value.startsWith('payload') ? p.value : `payload.${p.name}`,
+      })),
       hasAwait: false,
       hasActionCall: false,
-    },
-    'message-parser': {
-      variableName: 'Extract question from message',
-      bubbleName: 'slack-formatter-agent',
-      className: 'Message Parser',
-      parameters: [
-        {
-          name: 'text',
-          value: 'payload.text',
-          type: BubbleParameterType.STRING,
-        },
-        {
-          name: 'removeUserMentions',
-          value: true,
-          type: BubbleParameterType.BOOLEAN,
-        },
-      ],
+    };
+  }
+
+  // Step 2: Formatter/Parser bubbles (data transformation)
+  for (const [key, bubble] of categorizedBubbles.formatter) {
+    const stepKey = `step-${String(stepIndex++).padStart(2, '0')}-${bubble.bubbleName}-parser`;
+    decomposition[stepKey] = {
+      ...bubble,
+      parameters: generateDataFlowParameters(bubble, decomposition),
       hasAwait: true,
       hasActionCall: true,
-    },
-    'database-query': {
-      variableName: 'Query database for data',
-      bubbleName: 'database-analyzer',
-      className: 'Database Schema Analysis',
+    };
+  }
+
+  // Step 3: Database/Storage bubbles
+  for (const [key, bubble] of categorizedBubbles.database) {
+    const stepKey = `step-${String(stepIndex++).padStart(2, '0')}-${bubble.bubbleName}-query`;
+    decomposition[stepKey] = {
+      ...bubble,
       parameters: [
-        {
-          name: 'query',
-          value: 'messageParser.parsedQuery',
-          type: BubbleParameterType.STRING,
-        },
+        ...bubble.parameters,
         {
           name: 'connectionString',
           value: 'process.env.DATABASE_URL',
           type: BubbleParameterType.STRING,
         },
-        {
-          name: 'ignoreSSLErrors',
-          value: true,
-          type: BubbleParameterType.BOOLEAN,
-        },
       ],
       hasAwait: true,
       hasActionCall: true,
-    },
-    'ai-analyzer': {
-      variableName: 'Analyze data with AI agent',
-      bubbleName: 'ai-agent',
-      className: 'AI Agent',
-      parameters: [
-        {
-          name: 'prompt',
-          value: 'Analyze the following data and provide insights',
-          type: BubbleParameterType.STRING,
-        },
-        {
-          name: 'data',
-          value: 'databaseQuery.results',
-          type: BubbleParameterType.OBJECT,
-        },
-        {
-          name: 'model',
-          value: 'gemini-2.0-flash-exp',
-          type: BubbleParameterType.STRING,
-        },
-      ],
+    };
+  }
+
+  // Step 4: AI/Analysis bubbles
+  for (const [key, bubble] of categorizedBubbles.ai) {
+    const stepKey = `step-${String(stepIndex++).padStart(2, '0')}-${bubble.bubbleName}-analysis`;
+    decomposition[stepKey] = {
+      ...bubble,
+      parameters: generateDataFlowParameters(bubble, decomposition, {
+        model: 'gemini-2.0-flash-exp',
+      }),
       hasAwait: true,
       hasActionCall: true,
-    },
-    'slack-responder': {
-      variableName: 'Send insights back to Slack',
-      bubbleName: 'slack',
-      className: 'Slack Message Sender',
-      parameters: [
-        {
-          name: 'channel',
-          value: 'slackListener.channel',
-          type: BubbleParameterType.STRING,
-        },
-        {
-          name: 'message',
-          value: 'aiAnalyzer.insights',
-          type: BubbleParameterType.STRING,
-        },
-        {
-          name: 'threadTs',
-          value: 'payload.ts',
-          type: BubbleParameterType.STRING,
-        },
-      ],
+    };
+  }
+
+  // Step 5: Output/Responder bubbles
+  for (const [key, bubble] of categorizedBubbles.output) {
+    const stepKey = `step-${String(stepIndex++).padStart(2, '0')}-${bubble.bubbleName}-responder`;
+    decomposition[stepKey] = {
+      ...bubble,
+      parameters: generateDataFlowParameters(bubble, decomposition),
       hasAwait: true,
       hasActionCall: true,
-    },
+    };
+  }
+
+  // Step 6: Any uncategorized bubbles
+  for (const [key, bubble] of categorizedBubbles.other) {
+    const stepKey = `step-${String(stepIndex++).padStart(2, '0')}-${bubble.bubbleName}`;
+    decomposition[stepKey] = {
+      ...bubble,
+      parameters: generateDataFlowParameters(bubble, decomposition),
+      hasAwait: bubble.hasAwait ?? true,
+      hasActionCall: bubble.hasActionCall ?? true,
+    };
+  }
+
+  return decomposition;
+}
+
+/**
+ * Categorizes bubbles by their service type for proper workflow ordering.
+ */
+function categorizeBubbles(
+  bubbleParameters: Record<string, ParsedBubble>
+): {
+  input: Map<string, ParsedBubble>;
+  formatter: Map<string, ParsedBubble>;
+  database: Map<string, ParsedBubble>;
+  ai: Map<string, ParsedBubble>;
+  output: Map<string, ParsedBubble>;
+  other: Map<string, ParsedBubble>;
+} {
+  const categories = {
+    input: new Map<string, ParsedBubble>(),
+    formatter: new Map<string, ParsedBubble>(),
+    database: new Map<string, ParsedBubble>(),
+    ai: new Map<string, ParsedBubble>(),
+    output: new Map<string, ParsedBubble>(),
+    other: new Map<string, ParsedBubble>(),
   };
+
+  for (const [key, bubble] of Object.entries(bubbleParameters)) {
+    const bubbleName = bubble.bubbleName.toLowerCase();
+    const className = bubble.className.toLowerCase();
+
+    // Input/Listener category
+    if (
+      bubbleName.includes('slack') && 
+      (className.includes('listener') || className.includes('event') || key.includes('listener'))
+    ) {
+      categories.input.set(key, bubble);
+    }
+    // Formatter/Parser category
+    else if (
+      bubbleName.includes('formatter') ||
+      bubbleName.includes('parser') ||
+      className.includes('parser') ||
+      className.includes('formatter')
+    ) {
+      categories.formatter.set(key, bubble);
+    }
+    // Database category
+    else if (
+      bubbleName.includes('database') ||
+      bubbleName.includes('db') ||
+      bubbleName.includes('storage') ||
+      className.includes('database') ||
+      className.includes('query')
+    ) {
+      categories.database.set(key, bubble);
+    }
+    // AI category
+    else if (
+      bubbleName.includes('ai') ||
+      bubbleName.includes('agent') ||
+      bubbleName.includes('llm') ||
+      className.includes('ai') ||
+      className.includes('agent')
+    ) {
+      categories.ai.set(key, bubble);
+    }
+    // Output category
+    else if (
+      (bubbleName.includes('slack') && (className.includes('sender') || className.includes('responder'))) ||
+      bubbleName.includes('sender') ||
+      bubbleName.includes('responder') ||
+      bubbleName.includes('output') ||
+      className.includes('sender')
+    ) {
+      categories.output.set(key, bubble);
+    }
+    // Uncategorized
+    else {
+      categories.other.set(key, bubble);
+    }
+  }
+
+  return categories;
+}
+
+/**
+ * Generates parameters with proper data flow references to previous steps.
+ */
+function generateDataFlowParameters(
+  bubble: ParsedBubble,
+  previousDecomposition: Record<string, ParsedBubble>,
+  defaults: Record<string, unknown> = {}
+): BubbleParameter[] {
+  const params = [...bubble.parameters];
+  const previousSteps = Object.keys(previousDecomposition);
+  const lastStepKey = previousSteps[previousSteps.length - 1];
+
+  // Add default parameters if not already present
+  for (const [key, value] of Object.entries(defaults)) {
+    const exists = params.some(p => p.name === key);
+    if (!exists) {
+      params.push({
+        name: key,
+        value: typeof value === 'string' ? value : JSON.stringify(value),
+        type: typeof value === 'string' ? BubbleParameterType.STRING : BubbleParameterType.OBJECT,
+      });
+    }
+  }
+
+  // Update parameter values to reference previous steps if appropriate
+  return params.map(param => {
+    // If parameter value already references a step, keep it
+    if (param.value.includes('.') || param.value.startsWith('process.env')) {
+      return param;
+    }
+
+    // If there's a previous step, try to reference its output
+    if (lastStepKey) {
+      const stepName = lastStepKey.replace(/^step-\d+-/, '').replace(/-(listener|parser|query|analysis|responder)$/, '');
+      return {
+        ...param,
+        value: `${stepName}.${param.name}`,
+      };
+    }
+
+    return param;
+  });
 }

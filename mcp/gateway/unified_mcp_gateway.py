@@ -9,6 +9,7 @@ import logging
 import asyncio
 import yaml
 import os
+import time
 from typing import Dict, List, Optional, Any
 from pathlib import Path
 
@@ -70,6 +71,7 @@ class UnifiedMCPGateway:
         # Gateway status
         self.is_initialized = False
         self.is_running = False
+        self._start_time: Optional[float] = None
 
         logger.info("UnifiedMCPGateway initialized")
 
@@ -120,7 +122,6 @@ class UnifiedMCPGateway:
                     # Cache
                     cache_enabled=cache_cfg.get("enabled", True),
                     cache_backend=cache_cfg.get("backend", "memory"),
-                    cache_ttl=cache_cfg.get("ttl", 300),
                     cache_max_size=cache_cfg.get("max_size", 1000),
                 )
 
@@ -138,7 +139,6 @@ class UnifiedMCPGateway:
             categorization_enabled=True,
             versioning_enabled=True,
             deprecation_grace_period=30,
-            cache_ttl=300,
             load_balancing="round_robin",
             circuit_breaker_threshold=5,
             circuit_breaker_timeout=60,
@@ -180,6 +180,7 @@ class UnifiedMCPGateway:
         await self._register_all_tools()
 
         self.is_initialized = True
+        self._start_time = time.time()
         logger.info("Unified MCP Gateway initialized successfully")
 
     async def _load_servers(self):
@@ -421,11 +422,16 @@ class UnifiedMCPGateway:
         Returns:
             Health status information
         """
+        # Calculate actual uptime
+        uptime_seconds = 0
+        if self._start_time is not None:
+            uptime_seconds = int(time.time() - self._start_time)
+        
         return {
             "gateway": {
                 "status": "running" if self.is_running else "initialized",
                 "initialized": self.is_initialized,
-                "uptime_seconds": 0,  # TODO: Track actual uptime
+                "uptime_seconds": uptime_seconds,
             },
             "servers": {
                 name: {

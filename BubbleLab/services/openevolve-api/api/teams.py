@@ -11,13 +11,14 @@ from datetime import datetime, timezone
 from fastapi import APIRouter, HTTPException, status
 
 from ..models import TeamCreate, TeamUpdate, TeamResponse, TeamListResponse, TeamMember
+from ..database import save_team, get_team, get_all_teams, delete_team as db_delete_team
 
 
 logger = structlog.get_logger()
 router = APIRouter()
 
-# In-memory storage (TODO: Replace with persistent storage)
-_teams: dict[str, TeamResponse] = {}
+# Cache for in-memory access (backed by persistent storage)
+_teams_cache: dict[str, TeamResponse] = {}
 
 
 def _ensure_member_ids(members: list[TeamMember]) -> list[TeamMember]:
@@ -27,6 +28,37 @@ def _ensure_member_ids(members: list[TeamMember]) -> list[TeamMember]:
         member_id = member.id or f"member_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')}"
         hydrated.append(member.model_copy(update={"id": member_id}))
     return hydrated
+
+
+def _team_from_db(team_data: dict) -> TeamResponse:
+    """Convert database dict to TeamResponse model."""
+    # Convert member dicts to TeamMember objects
+    members = [TeamMember(**m) for m in team_data.get("members", [])]
+    
+    return TeamResponse(
+        id=team_data["id"],
+        name=team_data["name"],
+        description=team_data.get("description"),
+        members=members,
+        created_at=datetime.fromisoformat(team_data["created_at"]),
+        updated_at=datetime.fromisoformat(team_data["updated_at"]),
+        user_id=team_data.get("user_id", "anonymous"),
+        tenant_id=team_data.get("tenant_id", "default"),
+    )
+
+
+def _team_to_db(team: TeamResponse) -> dict:
+    """Convert TeamResponse model to database dict."""
+    return {
+        "id": team.id,
+        "name": team.name,
+        "description": team.description,
+        "members": [m.model_dump() for m in team.members],
+        "created_at": team.created_at.isoformat(),
+        "updated_at": team.updated_at.isoformat(),
+        "user_id": team.user_id,
+        "tenant_id": team.tenant_id,
+    }
 
 
 @router.post("", response_model=TeamResponse, status_code=status.HTTP_201_CREATED)
@@ -47,7 +79,11 @@ async def create_team(team_data: TeamCreate) -> TeamResponse:
             tenant_id="default",
         )
 
-        _teams[team_id] = team
+        # Save to persistent storage
+        save_team(team_id, _team_to_db(team))
+        
+        # Update cache
+        _teams_cache[team_id] = team
 
         logger.info(
             "team_created",
@@ -74,7 +110,14 @@ async def create_team(team_data: TeamCreate) -> TeamResponse:
 async def list_teams() -> TeamListResponse:
     """List all teams."""
     try:
-        teams = list(_teams.values())
+        # Load from database
+        teams_data = get_all_teams()
+        teams = [_team_from_db(t) for t in teams_data]
+        
+        # Update cache
+        _teams_cache.clear()
+        for team in teams:
+            _teams_cache[team.id] = team
 
         logger.debug(
             "teams_listed",
@@ -98,16 +141,24 @@ async def list_teams() -> TeamListResponse:
 
 
 @router.get("/{team_id}", response_model=TeamResponse)
-async def get_team(team_id: str) -> TeamResponse:
+async def get_team_by_id(team_id: str) -> TeamResponse:
     """Get a specific team by ID."""
     try:
-        if team_id not in _teams:
+        # Check cache first
+        if team_id in _teams_cache:
+            return _teams_cache[team_id]
+        
+        # Load from database
+        team_data = get_team(team_id)
+        if not team_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Team '{team_id}' not found"
             )
 
-        return _teams[team_id]
+        team = _team_from_db(team_data)
+        _teams_cache[team_id] = team
+        return team
 
     except HTTPException:
         raise
@@ -127,22 +178,38 @@ async def get_team(team_id: str) -> TeamResponse:
 async def update_team(team_id: str, team_data: TeamUpdate) -> TeamResponse:
     """Update a team."""
     try:
-        if team_id not in _teams:
+        # Load from database
+        team_data_db = get_team(team_id)
+        if not team_data_db:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Team '{team_id}' not found"
             )
 
-        existing = _teams[team_id]
-        update_data = team_data.dict(exclude_unset=True)
+        existing = _team_from_db(team_data_db)
+        update_data = team_data.model_dump(exclude_unset=True)
 
         if "members" in update_data and update_data["members"] is not None:
-            update_data["members"] = _ensure_member_ids(update_data["members"])
-
+            update_data["members"] = _ensure_member_ids(
+                [TeamMember(**m) for m in update_data["members"]]
+            )
+            update_data["members"] = [m.model_dump() for m in update_data["members"]]
+        
+        # Update fields
         for field, value in update_data.items():
-            setattr(existing, field, value)
+            if field != "members":  # Handle members separately
+                setattr(existing, field, value)
+        
+        if "members" in update_data:
+            existing.members = [TeamMember(**m) for m in update_data["members"]]
 
         existing.updated_at = datetime.now(timezone.utc)
+
+        # Save to persistent storage
+        save_team(team_id, _team_to_db(existing))
+        
+        # Update cache
+        _teams_cache[team_id] = existing
 
         logger.info(
             "team_updated",
@@ -170,14 +237,22 @@ async def update_team(team_id: str, team_data: TeamUpdate) -> TeamResponse:
 async def delete_team(team_id: str) -> dict:
     """Delete a team."""
     try:
-        if team_id not in _teams:
+        # Check if exists
+        team_data = get_team(team_id)
+        if not team_data:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=f"Team '{team_id}' not found"
             )
 
-        team_name = _teams[team_id].name
-        del _teams[team_id]
+        team_name = team_data.get("name", "Unknown")
+        
+        # Delete from database
+        db_delete_team(team_id)
+        
+        # Remove from cache
+        if team_id in _teams_cache:
+            del _teams_cache[team_id]
 
         logger.info(
             "team_deleted",

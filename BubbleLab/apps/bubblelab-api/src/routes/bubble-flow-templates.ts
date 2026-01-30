@@ -126,7 +126,7 @@ app.openapi(
       ? extractRequiredCredentials(validationResult.bubbleParameters)
       : {};
 
-    // TODO: Replace with actual flow decomposition logic
+    // Generate displayed bubble parameters using flow decomposition logic
     const displayedBubbleParameters = generateDisplayedBubbleParameters(
       validationResult.bubbleParameters || {}
     );

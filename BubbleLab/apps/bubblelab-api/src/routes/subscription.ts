@@ -238,6 +238,7 @@ app.openapi(getSubscriptionStatusRoute, async (c) => {
   // Fetch offer status from Clerk (hackathon + special offer)
   let hackathonOffer: HackathonOffer | undefined;
   let specialOffer: SpecialOffer | undefined;
+  let isActive = true; // Default to active
   const clerkClient = getClerkClient(appType);
   if (clerkClient) {
     try {
@@ -255,8 +256,26 @@ app.openapi(getSubscriptionStatusRoute, async (c) => {
       if (special) {
         specialOffer = special;
       }
+
+      // Determine if subscription is active based on plan and usage
+      // A subscription is active if:
+      // 1. User has a valid plan (not 'free' with exceeded limits)
+      // 2. User hasn't exceeded execution limits (unless they have special offers)
+      // 3. User's plan hasn't expired (checked via private metadata if present)
+      const plan = subscriptionInfo.plan;
+      const executionLimit = APP_PLAN_TO_MONTHLY_LIMITS[plan]?.executionLimit ?? 0;
+      const hasValidPlan = plan !== 'free' || currentUsage < executionLimit;
+      const hasActiveOffer = !!hackathonOffer?.isActive || !!specialOffer?.isActive;
+      
+      // Check if there's an expiration date in private metadata
+      const planExpiresAt = privateMetadata?.subscription?.expiresAt;
+      const isExpired = planExpiresAt ? new Date(planExpiresAt) < new Date() : false;
+      
+      isActive = (hasValidPlan || hasActiveOffer) && !isExpired;
     } catch (err) {
       console.error('[subscription/status] Error fetching offers:', err);
+      // Default to active on error to avoid blocking users
+      isActive = true;
     }
   }
 
@@ -285,7 +304,7 @@ app.openapi(getSubscriptionStatusRoute, async (c) => {
       serviceUsage: actualServiceUsage,
       estimatedMonthlyCost,
     },
-    isActive: true, // TODO: Check actual subscription status from Clerk
+    isActive,
     hackathonOffer,
     specialOffer,
   });

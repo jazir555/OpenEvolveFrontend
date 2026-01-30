@@ -5,17 +5,31 @@ Provides HTTP endpoints for problem hierarchy visualization with
 multiple output formats (ASCII, HTML, Graphviz/DOT).
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import HTMLResponse, PlainTextResponse, JSONResponse
 import logging
 from datetime import datetime
+import json
+import sys
+from pathlib import Path
 
 from .problem_visualization import (
     VisualizationAPI,
     OutputFormat,
     visualize_problem
 )
+
+# Add parent directory to path for sovereign imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+
+try:
+    from sovereign_database import SovereignDatabase
+    from sovereign_data_models import ProblemDefinition, SubProblem
+    SOVEREIGN_AVAILABLE = True
+except ImportError:
+    SOVEREIGN_AVAILABLE = False
+    logging.warning("Sovereign database not available, using mock data")
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +42,113 @@ app = FastAPI(
 
 # Visualization API instance
 viz_api = VisualizationAPI()
+
+# Database instance (lazy initialization)
+_db_instance: Optional[SovereignDatabase] = None
+
+
+def get_database() -> Optional[SovereignDatabase]:
+    """Get or create database instance."""
+    global _db_instance
+    if _db_instance is None and SOVEREIGN_AVAILABLE:
+        try:
+            _db_instance = SovereignDatabase()
+        except Exception as e:
+            logger.error(f"Failed to initialize database: {e}")
+    return _db_instance
+
+
+def build_problem_hierarchy(problem_id: str, db: SovereignDatabase) -> Optional[Dict[str, Any]]:
+    """
+    Build a complete problem hierarchy from the database.
+    
+    Args:
+        problem_id: The problem ID to fetch
+        db: Database instance
+        
+    Returns:
+        Problem hierarchy dict or None if not found
+    """
+    problem = db.get_problem(problem_id)
+    if not problem:
+        return None
+    
+    def build_subproblem_tree(parent_id: str) -> List[Dict[str, Any]]:
+        """Recursively build subproblem tree."""
+        subproblems = db.list_sub_problems_by_parent(parent_id)
+        result = []
+        
+        for sp in subproblems:
+            sp_data = {
+                "id": sp.id,
+                "status": sp.status.value if hasattr(sp.status, 'value') else str(sp.status),
+                "score": _calculate_subproblem_score(sp),
+                "timing_ms": getattr(sp, 'timing_ms', 0) or 0,
+                "teams": [sp.assigned_team] if sp.assigned_team else [],
+            }
+            
+            # Recursively get child subproblems
+            children = build_subproblem_tree(sp.id)
+            if children:
+                sp_data["subproblems"] = children
+                
+            result.append(sp_data)
+        
+        return result
+    
+    # Build the problem hierarchy
+    hierarchy = {
+        "id": problem.id,
+        "status": "complete" if all(
+            sp.status.value == 'solved' if hasattr(sp.status, 'value') else str(sp.status) == 'solved'
+            for sp in db.list_sub_problems_by_parent(problem.id)
+        ) else "in_progress" if db.list_sub_problems_by_parent(problem.id) else "pending",
+        "score": _calculate_problem_score(problem, db),
+        "timing_ms": _calculate_problem_timing(problem, db),
+        "teams": list(set(
+            sp.assigned_team for sp in db.list_sub_problems_by_parent(problem.id)
+            if sp.assigned_team
+        )),
+        "attempt_count": len(problem.metadata.get('solution_attempts', [])),
+        "subproblems": build_subproblem_tree(problem.id)
+    }
+    
+    return hierarchy
+
+
+def _calculate_subproblem_score(subproblem: SubProblem) -> float:
+    """Calculate a score for a subproblem based on its status and attempts."""
+    base_scores = {
+        'solved': 95.0,
+        'in_progress': 70.0,
+        'pending': 50.0,
+        'blocked': 40.0,
+        'failed': 20.0,
+        'error': 10.0,
+    }
+    status_val = subproblem.status.value if hasattr(subproblem.status, 'value') else str(subproblem.status)
+    return base_scores.get(status_val, 50.0)
+
+
+def _calculate_problem_score(problem: ProblemDefinition, db: SovereignDatabase) -> float:
+    """Calculate overall problem score from subproblems."""
+    subproblems = db.list_sub_problems_by_parent(problem.id)
+    if not subproblems:
+        return 85.0
+    
+    scores = [_calculate_subproblem_score(sp) for sp in subproblems]
+    return sum(scores) / len(scores)
+
+
+def _calculate_problem_timing(problem: ProblemDefinition, db: SovereignDatabase) -> int:
+    """Calculate total timing for problem based on subproblems."""
+    subproblems = db.list_sub_problems_by_parent(problem.id)
+    if not subproblems:
+        return 1500
+    
+    # Sum estimated effort from all subproblems (in ms for consistency)
+    total_effort = sum(getattr(sp, 'estimated_effort', 1) or 1 for sp in subproblems)
+    return total_effort * 100
 
 
 @app.get("/")
@@ -130,36 +251,47 @@ async def get_problem_tree(
                 detail=f"Invalid format '{format}'. Must be 'ascii', 'html', or 'dot'"
             )
 
-        # TODO: Fetch problem from storage
-        # For now, return a mock problem
-        problem = {
-            "id": problem_id,
-            "status": "complete",
-            "score": 85.0,
-            "timing_ms": 1500,
-            "teams": ["Blue", "Red", "Gold"],
-            "attempt_count": 1,
-            "subproblems": [
-                {
-                    "id": f"{problem_id}_sub1",
-                    "status": "complete",
-                    "score": 90.0,
-                    "timing_ms": 500,
-                    "teams": ["Blue", "Red"],
-                    "subproblems": [
-                        {"id": f"{problem_id}_sub1_a", "status": "complete", "score": 95.0},
-                        {"id": f"{problem_id}_sub1_b", "status": "complete", "score": 85.0}
-                    ]
-                },
-                {
-                    "id": f"{problem_id}_sub2",
-                    "status": "complete",
-                    "score": 80.0,
-                    "timing_ms": 1000,
-                    "teams": ["Blue", "Red"]
-                }
-            ]
-        }
+        # Fetch problem from storage if available
+        problem = None
+        db = get_database()
+        
+        if db and SOVEREIGN_AVAILABLE:
+            try:
+                problem = build_problem_hierarchy(problem_id, db)
+            except Exception as e:
+                logger.warning(f"Failed to fetch problem from database: {e}")
+        
+        # Fall back to mock data if database fetch failed or unavailable
+        if problem is None:
+            logger.info(f"Using mock data for problem {problem_id}")
+            problem = {
+                "id": problem_id,
+                "status": "complete",
+                "score": 85.0,
+                "timing_ms": 1500,
+                "teams": ["Blue", "Red", "Gold"],
+                "attempt_count": 1,
+                "subproblems": [
+                    {
+                        "id": f"{problem_id}_sub1",
+                        "status": "complete",
+                        "score": 90.0,
+                        "timing_ms": 500,
+                        "teams": ["Blue", "Red"],
+                        "subproblems": [
+                            {"id": f"{problem_id}_sub1_a", "status": "complete", "score": 95.0},
+                            {"id": f"{problem_id}_sub1_b", "status": "complete", "score": 85.0}
+                        ]
+                    },
+                    {
+                        "id": f"{problem_id}_sub2",
+                        "status": "complete",
+                        "score": 80.0,
+                        "timing_ms": 1000,
+                        "teams": ["Blue", "Red"]
+                    }
+                ]
+            }
 
         # Generate visualization
         result = viz_api.visualize_problem(

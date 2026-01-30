@@ -17,10 +17,15 @@ export function generateWebhookPath(): string {
 
 /**
  * Constructs the full webhook URL for a given path with user ID
- * @param path The webhook path
+ * @param userId The authenticated user ID
+ * @param path The webhook path (optional)
  * @returns The full webhook URL with pattern /webhook/user_id/path
  */
 export function getWebhookUrl(userId: string, path?: string): string {
-  // TODO: Replace hard-coded user ID "1" with actual user authentication
-  return `${process.env.NODEX_API_URL}/webhook/${userId}/${path}`;
+  // Construct webhook URL using the provided authenticated user ID
+  const baseUrl = process.env.NODEX_API_URL || '';
+  if (path) {
+    return `${baseUrl}/webhook/${userId}/${path}`;
+  }
+  return `${baseUrl}/webhook/${userId}`;
 }

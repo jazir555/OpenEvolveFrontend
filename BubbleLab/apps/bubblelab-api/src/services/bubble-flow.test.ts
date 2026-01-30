@@ -36,10 +36,11 @@ describe('POST /bubble-flow', () => {
     });
 
     it('should reject request with invalid field types', async () => {
+      // Intentionally passing wrong types to test validation error handling
       const response = await createBubbleFlow({
-        name: 123 as unknown as string, // TODO: clarify type
-        code: true as unknown as string, // TODO: clarify type
-        eventType: [] as unknown as string, // TODO: clarify type
+        name: 123 as unknown as string, // Testing: number instead of string
+        code: true as unknown as string, // Testing: boolean instead of string
+        eventType: [] as unknown as string, // Testing: array instead of string
       });
 
       expect(response.status).toBe(400);

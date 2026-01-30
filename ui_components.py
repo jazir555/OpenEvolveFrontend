@@ -1,6 +1,6 @@
 import streamlit as st
 from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime
+from datetime import datetime, timedelta
 from workflow_structures import Team, ModelConfig, GauntletDefinition, GauntletRoundRule, DecompositionPlan, SubProblem
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
@@ -1452,6 +1452,76 @@ def render_dependency_graph_controls() -> Tuple[bool, bool]:
 # Analytics Dashboard Components
 # ============================================================================
 
+def _filter_by_time_range(
+    workflow_history: List[Dict], 
+    time_range_code: str
+) -> List[Dict]:
+    """
+    Filter workflow history by time range.
+    
+    Args:
+        workflow_history: List of workflow execution records
+        time_range_code: Time range code (e.g., '1h', '24h', '7d', '30d', '90d', 'all')
+        
+    Returns:
+        Filtered list of workflow records within the time range
+    """
+    if time_range_code == 'all' or not workflow_history:
+        return workflow_history
+    
+    now = datetime.now()
+    
+    # Parse time range code
+    if time_range_code.endswith('h'):
+        hours = int(time_range_code[:-1])
+        cutoff = now - timedelta(hours=hours)
+    elif time_range_code.endswith('d'):
+        days = int(time_range_code[:-1])
+        cutoff = now - timedelta(days=days)
+    else:
+        # Unknown format, return all
+        return workflow_history
+    
+    # Filter records by timestamp
+    filtered = []
+    for record in workflow_history:
+        # Try multiple timestamp field names
+        timestamp = None
+        for field in ['timestamp', 'created_at', 'start_time', 'execution_time', 'completed_at']:
+            if field in record and record[field]:
+                timestamp = record[field]
+                break
+        
+        if timestamp is None:
+            # If no timestamp, include the record
+            filtered.append(record)
+            continue
+            
+        # Parse timestamp
+        try:
+            if isinstance(timestamp, str):
+                # Try ISO format
+                ts = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
+            elif isinstance(timestamp, (int, float)):
+                # Unix timestamp
+                ts = datetime.fromtimestamp(timestamp)
+            elif isinstance(timestamp, datetime):
+                ts = timestamp
+            else:
+                # Unknown format, include it
+                filtered.append(record)
+                continue
+                
+            # Include if within time range
+            if ts >= cutoff:
+                filtered.append(record)
+        except (ValueError, TypeError):
+            # If parsing fails, include the record
+            filtered.append(record)
+    
+    return filtered
+
+
 def render_analytics_dashboard(
     workflow_history: List[Dict],
     time_range: Optional[Tuple[datetime, datetime]] = None
@@ -1485,7 +1555,7 @@ def render_analytics_dashboard(
             st.rerun()
     
     # Filter data by time range
-    filtered_history = workflow_history  # TODO: Apply time filter
+    filtered_history = _filter_by_time_range(workflow_history, TIME_RANGE_OPTIONS[time_range_option])
     
     # Create tabs
     tabs = st.tabs([
@@ -4267,7 +4337,8 @@ def render_monitoring_tab(workflow_state=None):
     the monitoring is done in the render_monitoring_tab UI function.
     """
     import time
-    from crewai_client # MIGRATED: was crewai_client import CrewAIClient
+    # MIGRATED: was crewai_client import CrewAIClient
+    from crewai_client import CrewAIClient
     
     st.header("📊 Workflow Monitoring")
     

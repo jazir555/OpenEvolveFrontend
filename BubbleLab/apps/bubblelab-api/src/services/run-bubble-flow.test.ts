@@ -67,8 +67,8 @@ export class HelloWorldFlow extends BubbleFlow<'webhook/http'> {
 
     // This should complete without timing out
     const result = await Promise.race([executionPromise, timeoutPromise]);
-    // TODO: Not done yet
 
+    // Verify execution completed successfully
     console.log(result);
 
     expect(result.success).toBe(true);
