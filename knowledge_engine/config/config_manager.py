@@ -25,9 +25,12 @@ logger = logging.getLogger(__name__)
 @dataclass
 class DatabaseConfig:
     """Database configuration for the knowledge engine."""
-    type: str = "postgresql"  # postgresql, mysql, sqlite, mongodb, neo4j
+    # Recommended: postgresql (PostgreSQL License - permissive)
+    # Recommended: memgraph (Apache 2.0 - permissive, for graph operations)
+    # Legacy (not recommended): mongodb (SSPL - copyleft), neo4j (GPL - copyleft)
+    type: str = "postgresql"
     host: str = "localhost"
-    port: int = 5432
+    port: int = 5432  # 5432 for PostgreSQL, 7687 for Memgraph
     username: str = "openevolve"
     password: str = ""
     database: str = "openevolve_kg"

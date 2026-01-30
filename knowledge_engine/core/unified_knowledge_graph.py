@@ -22,11 +22,15 @@ from .backends.base import (
     AnalysisResult,
     GraphStatistics
 )
-from .backends.neo4j_backend import Neo4jBackend
-from .backends.qdrant_backend import QdrantBackend
-from .backends.mongodb_backend import MongoDBBackend
-from .backends.karateclub_backend import KarateClubBackend
+from .backends.memgraph_backend import MemgraphBackend  # Apache 2.0 (recommended)
+from .backends.qdrant_backend import QdrantBackend  # Apache 2.0
+from .backends.postgresql_backend import PostgreSQLBackend  # PostgreSQL License (recommended)
+from .backends.karateclub_backend import KarateClubBackend  # MIT
 from .backends.memory_backend import MemoryBackend
+
+# Deprecated backends (non-permissive licenses)
+# from .backends.neo4j_backend import Neo4jBackend  # GPL - deprecated
+# from .backends.mongodb_backend import MongoDBBackend  # SSPL - deprecated
 
 # KarateClub Analytics Integration
 from ..integrations.karateclub_analytics import KarateClubAnalytics
@@ -59,33 +63,34 @@ class UnifiedKnowledgeGraph:
 
     Configuration (YAML):
         backends:
-          neo4j:
+          memgraph:  # Apache 2.0 (recommended over Neo4j GPL)
             enabled: true
             uri: bolt://localhost:7687
-            user: neo4j
-            password: password
-          qdrant:
+            user: ""  # Memgraph default: no auth
+            password: ""
+          qdrant:  # Apache 2.0
             enabled: true
             host: localhost
             port: 6333
-          mongodb:
+          postgresql:  # PostgreSQL License (recommended over MongoDB SSPL)
             enabled: true
-            uri: mongodb://localhost:27017
-          karateclub:
+            uri: postgresql://user:pass@localhost:5432/knowledge_graph
+            table: knowledge_entries
+          karateclub:  # MIT
             enabled: true
             embedding_dim: 128
 
         fallback_chain:
-          - neo4j
+          - memgraph
           - qdrant
-          - mongodb
+          - postgresql
           - memory
 
         operations:
-          add_knowledge: [neo4j, mongodb]
-          search: [qdrant, neo4j, mongodb]
-          analyze: [karateclub, neo4j]
-          visualize: [neo4j, karateclub]
+          add_knowledge: [memgraph, postgresql]
+          search: [qdrant, memgraph, postgresql]
+          analyze: [karateclub, memgraph]
+          visualize: [memgraph, karateclub]
     """
 
     def __init__(self, config_path: Optional[str] = None):
@@ -153,11 +158,14 @@ class UnifiedKnowledgeGraph:
     def _initialize_backends(self):
         """Initialize all enabled backends"""
         backend_classes = {
-            "neo4j": Neo4jBackend,
-            "qdrant": QdrantBackend,
-            "mongodb": MongoDBBackend,
-            "karateclub": KarateClubBackend,
-            "memory": MemoryBackend
+            "memgraph": MemgraphBackend,  # Apache 2.0 (recommended)
+            "qdrant": QdrantBackend,  # Apache 2.0
+            "postgresql": PostgreSQLBackend,  # PostgreSQL License (recommended)
+            "karateclub": KarateClubBackend,  # MIT
+            "memory": MemoryBackend,
+            # Deprecated backends (non-permissive licenses):
+            # "neo4j": Neo4jBackend,  # GPL - deprecated
+            # "mongodb": MongoDBBackend,  # SSPL - deprecated
         }
 
         backends_config = self.config.get("backends", {})

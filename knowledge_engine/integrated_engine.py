@@ -293,15 +293,18 @@ class IntegratedKnowledgeEngine:
             "oneke_device": os.getenv("ONEKE_DEVICE", "cuda"),
             "oneke_timeout_ms": int(os.getenv("ONEKE_TIMEOUT_MS", "60000")),
 
-            # Storage
-            "qdrant_host": os.getenv("QDRANT_HOST", "localhost"),
+            # Storage (all permissively licensed)
+            "qdrant_host": os.getenv("QDRANT_HOST", "localhost"),  # Apache 2.0
             "qdrant_port": int(os.getenv("QDRANT_PORT", "6333")),
-            "mongo_uri": os.getenv("MONGO_URI", "mongodb://localhost:27017"),
-            "neo4j_uri": os.getenv("NEO4J_URI", "bolt://localhost:7687"),
-            "neo4j_user": os.getenv("NEO4J_USER", "neo4j"),
-            "neo4j_password": os.getenv("NEO4J_PASSWORD"),
-            "redis_host": os.getenv("REDIS_HOST", "localhost"),
+            "postgresql_uri": os.getenv("POSTGRESQL_URI", "postgresql://user:pass@localhost:5432/openevolve"),  # PostgreSQL License
+            "memgraph_uri": os.getenv("MEMGRAPH_URI", "bolt://localhost:7687"),  # Apache 2.0 (replaces Neo4j GPL)
+            "memgraph_user": os.getenv("MEMGRAPH_USER", ""),  # Memgraph default: no auth
+            "memgraph_password": os.getenv("MEMGRAPH_PASSWORD", ""),
+            "redis_host": os.getenv("REDIS_HOST", "localhost"),  # BSD
             "redis_port": int(os.getenv("REDIS_PORT", "6379")),
+            # Deprecated (non-permissive licenses):
+            # "mongo_uri": os.getenv("MONGO_URI", "mongodb://localhost:27017"),  # SSPL
+            # "neo4j_uri": os.getenv("NEO4J_URI", "bolt://localhost:7687"),  # GPL
 
             # Elasticsearch
             "elasticsearch_hosts": os.getenv("ELASTICSEARCH_HOSTS", "http://localhost:9200").split(","),
@@ -1553,11 +1556,13 @@ async def main():
     """Example usage of IntegratedKnowledgeEngine."""
     print("Integrated Knowledge Engine Example")
 
-    # Create engine
+    # Create engine with permissively licensed backends
     config = {
-        "graphiti_uri": "bolt://localhost:7687",
-        "graphiti_user": "neo4j",
-        "graphiti_password": "password",  # In production, use environment variable
+        "graphiti_uri": "bolt://localhost:7687",  # Memgraph or Graphiti
+        "graphiti_user": "",  # Memgraph default: no auth
+        "graphiti_password": "",  # In production, use environment variable
+        "postgresql_uri": "postgresql://user:pass@localhost:5432/openevolve",
+        "memgraph_uri": "bolt://localhost:7687",
     }
 
     async with await create_integrated_knowledge_engine(config) as engine:

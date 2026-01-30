@@ -1,7 +1,11 @@
 """
-Neo4j Connection Pool with Retry Logic
+Graph Database Connection Pool with Retry Logic
 
+Supports Memgraph (Apache 2.0) and Neo4j (deprecated - GPL).
 Handles connection pooling, retry policies, and fault tolerance.
+
+Memgraph is the recommended backend as it is Apache 2.0 licensed
+and compatible with Neo4j's Bolt protocol and Cypher.
 
 Copyright 2026 OpenEvolve
 
@@ -29,16 +33,16 @@ import threading
 
 logger = logging.getLogger(__name__)
 
-# Try to import Neo4j driver
+# Try to import Neo4j driver (works for both Neo4j and Memgraph)
 try:
     from neo4j import AsyncGraphDatabase, AsyncDriver, AsyncSession
     from neo4j.exceptions import (
         ServiceUnavailable, AuthError, ClientError,
         TransientError, DatabaseError
     )
-    NEO4J_AVAILABLE = True
+    GRAPHDB_AVAILABLE = True
 except ImportError:
-    NEO4J_AVAILABLE = False
+    GRAPHDB_AVAILABLE = False
     AsyncGraphDatabase = None
     AsyncDriver = None
     AsyncSession = None
@@ -76,14 +80,15 @@ class RetryPolicy:
 
 @dataclass
 class ConnectionConfig:
-    """Neo4j connection configuration"""
+    """Graph database connection configuration (Memgraph recommended, Neo4j deprecated)"""
     uri: str = "bolt://localhost:7687"
-    user: str = "neo4j"
-    password: str = "password"
-    database: str = "neo4j"
+    user: str = ""  # Memgraph default: no auth (use "neo4j" for Neo4j - deprecated)
+    password: str = ""  # Memgraph default: no auth
+    database: str = ""  # Memgraph doesn't use database names
     max_connections: int = 10
     connection_timeout: float = 30.0
     retry_policy: RetryPolicy = field(default_factory=RetryPolicy)
+    backend_type: str = "memgraph"  # "memgraph" (Apache 2.0) or "neo4j" (GPL - deprecated)
 
 
 class PooledConnection:
@@ -148,7 +153,7 @@ class PooledConnection:
 
 
 class ConnectionPool:
-    """Neo4j connection pool with retry logic"""
+    """Graph database connection pool with retry logic (Memgraph recommended)"""
     
     def __init__(self, config: Optional[ConnectionConfig] = None):
         self.config = config or ConnectionConfig()
@@ -167,21 +172,27 @@ class ConnectionPool:
     
     async def initialize(self) -> bool:
         """Initialize the connection pool"""
-        if not NEO4J_AVAILABLE:
-            logger.warning("Neo4j driver not available, using mock implementation")
+        if not GRAPHDB_AVAILABLE:
+            logger.warning("Graph database driver not available, using mock implementation")
             return True
         
         try:
+            # Memgraph and Neo4j use the same driver
+            auth = (self.config.user, self.config.password) if self.config.user else None
             self._driver = AsyncGraphDatabase.driver(
                 self.config.uri,
-                auth=(self.config.user, self.config.password),
+                auth=auth,
                 connection_timeout=self.config.connection_timeout,
                 max_connection_pool_size=self.config.max_connections
             )
             
             # Verify connection
             await self._driver.verify_connectivity()
-            logger.info(f"Connected to Neo4j at {self.config.uri}")
+            
+            if self.config.backend_type == "memgraph":
+                logger.info(f"Connected to Memgraph (Apache 2.0) at {self.config.uri}")
+            else:
+                logger.warning(f"Connected to Neo4j (GPL - deprecated) at {self.config.uri}")
             
             # Create initial connections
             for i in range(min(3, self.config.max_connections)):
@@ -190,7 +201,7 @@ class ConnectionPool:
             return True
             
         except Exception as e:
-            logger.error(f"Failed to initialize Neo4j connection: {e}")
+            logger.error(f"Failed to initialize graph database connection: {e}")
             self._metrics["failed_connections"] += 1
             return False
     
@@ -273,8 +284,9 @@ class ConnectionPool:
         for attempt in range(policy.max_retries + 1):
             try:
                 async with self.get_connection() as conn:
-                    if NEO4J_AVAILABLE and conn.driver:
-                        async with conn.driver.session(database=self.config.database) as session:
+                    if GRAPHDB_AVAILABLE and conn.driver:
+                        # Note: Memgraph doesn't support multiple databases, so database parameter is ignored
+                        async with conn.driver.session() as session:
                             result = await query_func(session, *args, **kwargs)
                             self._metrics["queries_executed"] += 1
                             return result
@@ -339,7 +351,7 @@ class ConnectionPool:
     
     async def health_check(self) -> bool:
         """Check if the connection pool is healthy"""
-        if not NEO4J_AVAILABLE:
+        if not GRAPHDB_AVAILABLE:
             return True  # Mock is always healthy
         
         try:
@@ -370,7 +382,7 @@ class ConnectionPool:
             for conn in self._pool:
                 conn.close()
             
-            if self._driver and NEO4J_AVAILABLE:
+            if self._driver and GRAPHDB_AVAILABLE:
                 await self._driver.close()
             
             self._pool.clear()

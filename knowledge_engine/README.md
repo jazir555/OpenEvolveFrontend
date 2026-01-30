@@ -132,6 +132,32 @@ The system tracks:
 - Learning effectiveness
 - Evolution progress
 
+## Storage Backends
+
+The knowledge engine supports only permissively-licensed storage backends:
+
+### Active Backends (Permissive Licenses)
+| Backend | License | Purpose |
+|---------|---------|---------|
+| PostgreSQL | PostgreSQL License | Document storage with JSONB support |
+| Memgraph | Apache 2.0 | Graph database (Cypher-compatible) |
+| Qdrant | Apache 2.0 | Vector search and similarity |
+| Redis | BSD | Caching and session storage |
+| Memory | MIT | In-memory storage |
+| KarateClub | MIT | Graph analysis |
+
+### License Philosophy
+
+**No GPL/SSPL:** The knowledge engine maintains strict license separation:
+- Only permissive licenses (MIT, Apache 2.0, BSD, PostgreSQL License)
+- No GPL/SSPL backends or dependencies
+- External projects are protected from license contamination
+
+### Removed Backends
+The following backends have been removed:
+- MongoDB (SSPL license) - removed
+- Neo4j (GPL license) - removed
+
 ## Extending the System
 
 New components can be integrated by:
@@ -145,3 +171,11 @@ New components can be integrated by:
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+### License Compliance
+
+This codebase maintains strict license compliance:
+- ✓ All active code uses permissive licenses (MIT, Apache 2.0, BSD, PostgreSQL License)
+- ✓ Zero GPL dependencies in active code path
+- ✓ Zero SSPL dependencies in active code path
+- ✓ See `LICENSE_COMPLIANCE_REPORT.md` for details

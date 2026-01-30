@@ -4,7 +4,7 @@ A consistent, unified interface for knowledge graph operations across multiple b
 
 ## Features
 
-- **Multiple Backend Support**: Neo4j, Qdrant, MongoDB, KarateClub, In-Memory
+- **Multiple Backend Support**: PostgreSQL, Memgraph, Qdrant, KarateClub, In-Memory (all permissive licenses)
 - **Automatic Backend Selection**: Choose the best backend for each operation
 - **Intelligent Fallback**: Graceful degradation when backends fail
 - **Health Monitoring**: Circuit breakers and health checks
@@ -13,6 +13,7 @@ A consistent, unified interface for knowledge graph operations across multiple b
 - **Async/Await**: Non-blocking operations throughout
 - **Idempotent Operations**: Safe to retry operations
 - **Comprehensive API**: REST and Python interfaces
+- **License Compliant**: Zero GPL/SSPL dependencies in active code
 
 ## Installation
 
@@ -21,10 +22,13 @@ A consistent, unified interface for knowledge graph operations across multiple b
 pip install pyyaml
 
 # Backend dependencies (install as needed)
-pip install neo4j              # For Neo4j backend
+pip install asyncpg            # For PostgreSQL backend
+pip install neo4j              # For Memgraph backend (uses neo4j driver for Bolt protocol)
 pip install qdrant-client      # For Qdrant backend
-pip install motor              # For MongoDB backend
+pip install redis              # For Redis backend
 pip install networkx karateclub  # For KarateClub backend
+
+# Note: Neo4j and MongoDB backends are orphaned (not used) - see migration guides
 
 # All dependencies
 pip install -e .[all]
@@ -78,12 +82,16 @@ Create a `config.yaml` file:
 
 ```yaml
 backends:
-  neo4j:
+  postgresql:
+    enabled: true
+    uri: postgresql://user:password@localhost:5432/knowledge_graph
+    table: knowledge_entries
+
+  memgraph:
     enabled: true
     uri: bolt://localhost:7687
-    user: neo4j
-    password: ${NEO4J_PASSWORD}  # Use environment variables!
-    database: neo4j
+    user: ""  # Memgraph default: no auth
+    password: ""
 
   qdrant:
     enabled: true
@@ -92,11 +100,11 @@ backends:
     collection: knowledge_graph
     vector_size: 1536
 
-  mongodb:
+  redis:
     enabled: true
-    uri: mongodb://localhost:27017
-    database: knowledge_graph
-    collection: knowledge
+    host: localhost
+    port: 6379
+    ttl: 3600
 
   karateclub:
     enabled: true
@@ -106,25 +114,36 @@ backends:
     enabled: true  # Always available
 
 fallback_chain:
-  - neo4j
+  - postgresql
+  - memgraph
   - qdrant
-  - mongodb
+  - redis
   - memory
 
 operations:
-  add_knowledge: [neo4j, mongodb]
-  search: [qdrant, neo4j, mongodb]
-  analyze: [karateclub, neo4j]
-  visualize: [neo4j, karateclub]
+  add_knowledge: [postgresql, memgraph]
+  search: [qdrant, postgresql, memgraph]
+  analyze: [karateclub, memgraph]
+  visualize: [memgraph, karateclub]
 ```
 
 Use environment variables for sensitive data:
 
 ```bash
-export NEO4J_PASSWORD=your_password
+export POSTGRESQL_URI=postgresql://user:password@localhost:5432/knowledge_graph
+export MEMGRAPH_URI=bolt://localhost:7687
 export QDRANT_API_KEY=your_api_key
-export MONGODB_URI=mongodb://user:pass@localhost:27017
 ```
+
+### Orphaned Backends (Not Used)
+
+The following backends exist as files but are **not imported or used** by any active code:
+- **Neo4j**: GPL license (copyleft) - orphaned, zero references
+- **MongoDB**: SSPL license (copyleft) - orphaned, zero references
+
+See migration guides for details:
+- `MONGODB_TO_POSTGRESQL_MIGRATION.md`
+- `NEO4J_TO_MEMGRAPH_MIGRATION.md`
 
 ## Python API
 

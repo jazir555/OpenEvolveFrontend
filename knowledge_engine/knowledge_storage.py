@@ -2,7 +2,8 @@
 Knowledge Storage for OpenEvolve Knowledge Engine
 
 This module provides storage capabilities for knowledge artifacts with support
-for multiple backend databases (Qdrant, MongoDB, Neo4j, Redis).
+for multiple backend databases (PostgreSQL, Memgraph, Qdrant, Redis).
+All backends use permissive open-source licenses (Apache 2.0, PostgreSQL License).
 """
 
 import asyncio
@@ -48,8 +49,8 @@ class KnowledgeStorage:
         
         # Initialize backend connections
         self.qdrant_client = None
-        self.mongo_client = None
-        self.neo4j_driver = None
+        self.postgresql_pool = None  # PostgreSQL
+        self.memgraph_driver = None  # Memgraph
         self.redis_client = None
         
         # Initialize backends based on config
@@ -60,39 +61,38 @@ class KnowledgeStorage:
             "config": self.config,
             "backends": {
                 "qdrant": self.qdrant_client is not None,
-                "mongo": self.mongo_client is not None,
-                "neo4j": self.neo4j_driver is not None,
+                "postgresql": self.postgresql_pool is not None,
+                "memgraph": self.memgraph_driver is not None,
                 "redis": self.redis_client is not None
             },
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
     
     def _get_default_config(self) -> Dict[str, Any]:
-        """Get default configuration."""
+        """Get default configuration with permissively licensed backends."""
         return {
-            "qdrant": {
+            "qdrant": {  # Apache 2.0
                 "host": "localhost",
                 "port": 6333,
                 "enabled": True
             },
-            "mongo": {
-                "uri": "mongodb://localhost:27017",
-                "database": "openevolve",
-                "collection": "knowledge_artifacts",
+            "postgresql": {  # PostgreSQL License
+                "uri": "postgresql://user:password@localhost:5432/openevolve",
+                "table": "knowledge_artifacts",
                 "enabled": True
             },
-            "neo4j": {
+            "memgraph": {  # Apache 2.0
                 "uri": "bolt://localhost:7687",
-                "user": "neo4j",
-                "password": "password",
+                "user": "",  # Memgraph default: no auth
+                "password": "",
                 "enabled": True
             },
-            "redis": {
+            "redis": {  # BSD
                 "host": "localhost",
                 "port": 6379,
                 "enabled": True
             },
-            "default_backend": "mongo",  # Which backend to use by default
+            "default_backend": "postgresql",  # Which backend to use by default
             "fallback_enabled": True,    # Whether to try other backends on failure
             "cache_ttl": 300,           # Cache TTL in seconds
             "batch_size": 100           # Batch size for bulk operations
@@ -100,7 +100,7 @@ class KnowledgeStorage:
     
     def _initialize_backends(self):
         """Initialize storage backends based on configuration."""
-        # Initialize Qdrant
+        # Initialize Qdrant (Apache 2.0)
         if self.config.get("qdrant", {}).get("enabled", True):
             try:
                 import qdrant_client
@@ -113,33 +113,35 @@ class KnowledgeStorage:
             except Exception as e:
                 logger.error(f"Failed to initialize Qdrant client: {e}")
         
-        # Initialize MongoDB
-        if self.config.get("mongo", {}).get("enabled", True):
+        # Initialize PostgreSQL (PostgreSQL License)
+        if self.config.get("postgresql", {}).get("enabled", True):
             try:
-                from pymongo import MongoClient
-                uri = self.config["mongo"].get("uri", "mongodb://localhost:27017")
-                self.mongo_client = MongoClient(uri)
-                logger.info("MongoDB client initialized")
+                import asyncpg
+                uri = self.config["postgresql"].get("uri", "postgresql://user:pass@localhost:5432/openevolve")
+                # Note: asyncpg requires asyncio, connection happens in async context
+                self.postgresql_pool = None  # Will be initialized in async methods
+                logger.info("PostgreSQL configuration loaded (async initialization required)")
             except ImportError:
-                logger.warning("PyMongo not available, skipping MongoDB initialization")
+                logger.warning("asyncpg not available, skipping PostgreSQL initialization")
             except Exception as e:
-                logger.error(f"Failed to initialize MongoDB client: {e}")
+                logger.error(f"Failed to initialize PostgreSQL: {e}")
         
-        # Initialize Neo4j
-        if self.config.get("neo4j", {}).get("enabled", True):
+        # Initialize Memgraph (Apache 2.0)
+        if self.config.get("memgraph", {}).get("enabled", True):
             try:
                 from neo4j import GraphDatabase
-                uri = self.config["neo4j"].get("uri", "bolt://localhost:7687")
-                user = self.config["neo4j"].get("user", "neo4j")
-                password = self.config["neo4j"].get("password", "password")
-                self.neo4j_driver = GraphDatabase.driver(uri, auth=(user, password))
-                logger.info("Neo4j driver initialized")
+                uri = self.config["memgraph"].get("uri", "bolt://localhost:7687")
+                user = self.config["memgraph"].get("user", "")
+                password = self.config["memgraph"].get("password", "")
+                auth = (user, password) if user else None
+                self.memgraph_driver = GraphDatabase.driver(uri, auth=auth)
+                logger.info("Memgraph driver initialized (Apache 2.0 licensed)")
             except ImportError:
-                logger.warning("Neo4j driver not available, skipping Neo4j initialization")
+                logger.warning("neo4j driver not available, skipping Memgraph initialization")
             except Exception as e:
-                logger.error(f"Failed to initialize Neo4j driver: {e}")
+                logger.error(f"Failed to initialize Memgraph driver: {e}")
         
-        # Initialize Redis
+        # Initialize Redis (BSD)
         if self.config.get("redis", {}).get("enabled", True):
             try:
                 import redis
@@ -152,7 +154,7 @@ class KnowledgeStorage:
             except Exception as e:
                 logger.error(f"Failed to initialize Redis client: {e}")
     
-    def store_knowledge_artifact(
+    async def store_knowledge_artifact(
         self,
         artifact: Dict[str, Any],
         generate_embedding: bool = True,
@@ -164,7 +166,7 @@ class KnowledgeStorage:
         Args:
             artifact: Knowledge artifact to store
             generate_embedding: Whether to generate embeddings for the artifact
-            backend: Backend to use ('qdrant', 'mongo', 'neo4j', 'redis', or None for default)
+            backend: Backend to use ('qdrant', 'postgresql', 'memgraph', 'redis', or None for default)
             
         Returns:
             Artifact ID if successful, None otherwise
@@ -173,7 +175,7 @@ class KnowledgeStorage:
         
         # Use default backend if none specified
         if not backend:
-            backend = self.config.get("default_backend", "mongo")
+            backend = self.config.get("default_backend", "postgresql")
         
         logger.info({
             "msg": "Storing knowledge artifact",
@@ -198,18 +200,18 @@ class KnowledgeStorage:
             success = False
             if backend == "qdrant" and self.qdrant_client:
                 success = self._store_in_qdrant(artifact_with_meta, generate_embedding)
-            elif backend == "mongo" and self.mongo_client:
-                success = self._store_in_mongo(artifact_with_meta)
-            elif backend == "neo4j" and self.neo4j_driver:
-                success = self._store_in_neo4j(artifact_with_meta)
+            elif backend == "postgresql" and self.postgresql_pool:
+                success = await self._store_in_postgresql(artifact_with_meta)
+            elif backend == "memgraph" and self.memgraph_driver:
+                success = self._store_in_memgraph(artifact_with_meta)
             elif backend == "redis" and self.redis_client:
                 success = self._store_in_redis(artifact_with_meta)
             else:
                 # Try default backend if specified backend is not available
-                default_backend = self.config.get("default_backend", "mongo")
+                default_backend = self.config.get("default_backend", "postgresql")
                 if self.config.get("fallback_enabled", True):
                     logger.warning(f"Backend {backend} not available, trying default: {default_backend}")
-                    return self.store_knowledge_artifact(artifact, generate_embedding, default_backend)
+                    return await self.store_knowledge_artifact(artifact, generate_embedding, default_backend)
                 else:
                     logger.error(f"No available backend for storing artifact")
                     return None
@@ -292,27 +294,72 @@ class KnowledgeStorage:
             logger.error(f"Failed to store in Qdrant: {e}")
             return False
     
-    def _store_in_mongo(self, artifact: Dict[str, Any]) -> bool:
-        """Store artifact in MongoDB."""
+    def _store_in_redis(self, artifact: Dict[str, Any]) -> bool:
+        """Store artifact in Redis."""
         try:
-            db_name = self.config["mongo"].get("database", "openevolve")
-            collection_name = self.config["mongo"].get("collection", "knowledge_artifacts")
+            key = f"knowledge_artifact:{artifact.get('artifact_id')}"
+            value = json.dumps(artifact)
             
-            db = self.mongo_client[db_name]
-            collection = db[collection_name]
+            ttl = self.config.get("cache_ttl", 300)  # Default 5 minutes
             
-            # Insert the artifact
-            result = collection.insert_one(artifact)
+            # Store with TTL
+            result = self.redis_client.setex(key, ttl, value)
             
-            return result.acknowledged
+            return result == "OK"
         except Exception as e:
-            logger.error(f"Failed to store in MongoDB: {e}")
+            logger.error(f"Failed to store in Redis: {e}")
             return False
     
-    def _store_in_neo4j(self, artifact: Dict[str, Any]) -> bool:
-        """Store artifact in Neo4j."""
+    async def _store_in_postgresql(self, artifact: Dict[str, Any]) -> bool:
+        """Store artifact in PostgreSQL with JSONB."""
         try:
-            with self.neo4j_driver.session() as session:
+            import asyncpg
+            
+            # Connect if not already connected
+            if not self.postgresql_pool:
+                self.postgresql_pool = await asyncpg.create_pool(
+                    self.config["postgresql"].get("uri", "postgresql://user:pass@localhost:5432/openevolve")
+                )
+            
+            async with self.postgresql_pool.acquire() as conn:
+                await conn.execute("""
+                    CREATE TABLE IF NOT EXISTS knowledge_artifacts (
+                        id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                        artifact_id VARCHAR(255) UNIQUE NOT NULL,
+                        content TEXT NOT NULL,
+                        type VARCHAR(100),
+                        source VARCHAR(255),
+                        context TEXT,
+                        metadata JSONB DEFAULT '{}',
+                        stored_at TIMESTAMPTZ NOT NULL
+                    )
+                """)
+                
+                await conn.execute("""
+                    INSERT INTO knowledge_artifacts 
+                    (artifact_id, content, type, source, context, metadata, stored_at)
+                    VALUES ($1, $2, $3, $4, $5, $6, $7)
+                    ON CONFLICT (artifact_id) DO NOTHING
+                """,
+                    artifact.get("artifact_id"),
+                    artifact.get("content", ""),
+                    artifact.get("type", "unknown"),
+                    artifact.get("source", "unknown"),
+                    artifact.get("context", ""),
+                    json.dumps(artifact.get("metadata", {})),
+                    artifact.get("stored_at", datetime.now(timezone.utc).isoformat())
+                )
+                return True
+        except Exception as e:
+            logger.error(f"Failed to store in PostgreSQL: {e}")
+            return False
+    
+    def _store_in_memgraph(self, artifact: Dict[str, Any]) -> bool:
+        """Store artifact in Memgraph (Apache 2.0 licensed)."""
+        try:
+            from neo4j import GraphDatabase
+            
+            with self.memgraph_driver.session() as session:
                 # Create a knowledge artifact node
                 query = """
                 CREATE (ka:KnowledgeArtifact {
@@ -339,23 +386,7 @@ class KnowledgeStorage:
                 record = result.single()
                 return record is not None
         except Exception as e:
-            logger.error(f"Failed to store in Neo4j: {e}")
-            return False
-    
-    def _store_in_redis(self, artifact: Dict[str, Any]) -> bool:
-        """Store artifact in Redis."""
-        try:
-            key = f"knowledge_artifact:{artifact.get('artifact_id')}"
-            value = json.dumps(artifact)
-            
-            ttl = self.config.get("cache_ttl", 300)  # Default 5 minutes
-            
-            # Store with TTL
-            result = self.redis_client.setex(key, ttl, value)
-            
-            return result == "OK"
-        except Exception as e:
-            logger.error(f"Failed to store in Redis: {e}")
+            logger.error(f"Failed to store in Memgraph: {e}")
             return False
     
     def retrieve_knowledge_artifact(
@@ -387,15 +418,20 @@ class KnowledgeStorage:
                 backends_to_try = []
                 
                 # Add backends in priority order based on config
-                default_backend = self.config.get("default_backend", "mongo")
+                default_backend = self.config.get("default_backend", "postgresql")
                 backends_to_try.append(default_backend)
                 
                 # Add other backends if fallback is enabled
                 if self.config.get("fallback_enabled", True):
-                    other_backends = ["mongo", "qdrant", "neo4j", "redis"]
+                    other_backends = ["qdrant", "redis", "memgraph"]
                     for bk in other_backends:
-                        if bk != default_backend and getattr(self, f"{bk}_client" if bk != "neo4j" else f"{bk}_driver"):
-                            backends_to_try.append(bk)
+                        if bk != default_backend:
+                            if bk == "qdrant" and self.qdrant_client:
+                                backends_to_try.append(bk)
+                            elif bk == "redis" and self.redis_client:
+                                backends_to_try.append(bk)
+                            elif bk == "memgraph" and self.memgraph_driver:
+                                backends_to_try.append(bk)
                 
                 # Try each backend
                 for bk in backends_to_try:
@@ -452,14 +488,12 @@ class KnowledgeStorage:
     def _retrieve_from_backend(self, artifact_id: str, backend: str) -> Optional[Dict[str, Any]]:
         """Retrieve artifact from a specific backend."""
         try:
-            if backend == "mongo" and self.mongo_client:
-                return self._retrieve_from_mongo(artifact_id)
-            elif backend == "qdrant" and self.qdrant_client:
+            if backend == "qdrant" and self.qdrant_client:
                 return self._retrieve_from_qdrant(artifact_id)
-            elif backend == "neo4j" and self.neo4j_driver:
-                return self._retrieve_from_neo4j(artifact_id)
             elif backend == "redis" and self.redis_client:
                 return self._retrieve_from_redis(artifact_id)
+            elif backend == "memgraph" and self.memgraph_driver:
+                return self._retrieve_from_memgraph(artifact_id)
             else:
                 logger.warning(f"Backend {backend} not available for retrieval")
                 return None
@@ -467,25 +501,11 @@ class KnowledgeStorage:
             logger.error(f"Error retrieving from {backend}: {e}")
             return None
     
-    def _retrieve_from_mongo(self, artifact_id: str) -> Optional[Dict[str, Any]]:
-        """Retrieve artifact from MongoDB."""
-        try:
-            db_name = self.config["mongo"].get("database", "openevolve")
-            collection_name = self.config["mongo"].get("collection", "knowledge_artifacts")
-            
-            db = self.mongo_client[db_name]
-            collection = db[collection_name]
-            
-            artifact = collection.find_one({"artifact_id": artifact_id})
-            
-            return artifact
-        except Exception as e:
-            logger.error(f"Failed to retrieve from MongoDB: {e}")
-            return None
-    
     def _retrieve_from_qdrant(self, artifact_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve artifact from Qdrant."""
         try:
+            from qdrant_client.http import models
+            
             # Find the point with the given artifact_id in payload
             result = self.qdrant_client.scroll(
                 collection_name="knowledge_artifacts",
@@ -509,28 +529,6 @@ class KnowledgeStorage:
             logger.error(f"Failed to retrieve from Qdrant: {e}")
             return None
     
-    def _retrieve_from_neo4j(self, artifact_id: str) -> Optional[Dict[str, Any]]:
-        """Retrieve artifact from Neo4j."""
-        try:
-            with self.neo4j_driver.session() as session:
-                query = """
-                MATCH (ka:KnowledgeArtifact {artifact_id: $artifact_id})
-                RETURN ka
-                """
-                
-                result = session.run(query, artifact_id=artifact_id)
-                record = result.single()
-                
-                if record:
-                    node = record["ka"]
-                    # Convert Neo4j node to dictionary
-                    return dict(node)
-                
-            return None
-        except Exception as e:
-            logger.error(f"Failed to retrieve from Neo4j: {e}")
-            return None
-    
     def _retrieve_from_redis(self, artifact_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve artifact from Redis."""
         try:
@@ -543,6 +541,28 @@ class KnowledgeStorage:
             return None
         except Exception as e:
             logger.error(f"Failed to retrieve from Redis: {e}")
+            return None
+    
+    def _retrieve_from_memgraph(self, artifact_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve artifact from Memgraph."""
+        try:
+            with self.memgraph_driver.session() as session:
+                query = """
+                MATCH (ka:KnowledgeArtifact {artifact_id: $artifact_id})
+                RETURN ka
+                """
+                
+                result = session.run(query, artifact_id=artifact_id)
+                record = result.single()
+                
+                if record:
+                    node = record["ka"]
+                    # Convert node to dictionary
+                    return dict(node)
+                
+            return None
+        except Exception as e:
+            logger.error(f"Failed to retrieve from Memgraph: {e}")
             return None
     
     def get_statistics(self) -> Dict[str, Any]:
@@ -558,30 +578,7 @@ class KnowledgeStorage:
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
-        # Get stats from MongoDB if available
-        if self.mongo_client:
-            try:
-                db_name = self.config["mongo"].get("database", "openevolve")
-                collection_name = self.config["mongo"].get("collection", "knowledge_artifacts")
-                
-                db = self.mongo_client[db_name]
-                collection = db[collection_name]
-                
-                count = collection.count_documents({})
-                stats["total_artifacts"] = count
-                stats["backend_status"]["mongo"] = {
-                    "status": "connected",
-                    "artifact_count": count
-                }
-            except Exception as e:
-                stats["backend_status"]["mongo"] = {
-                    "status": "error",
-                    "error": str(e)
-                }
-        else:
-            stats["backend_status"]["mongo"] = {"status": "disconnected"}
-        
-        # Add stats for other backends similarly
+        # Qdrant stats
         if self.qdrant_client:
             try:
                 collections = self.qdrant_client.get_collections()
@@ -597,25 +594,27 @@ class KnowledgeStorage:
         else:
             stats["backend_status"]["qdrant"] = {"status": "disconnected"}
         
-        if self.neo4j_driver:
+        # Memgraph stats
+        if self.memgraph_driver:
             try:
-                with self.neo4j_driver.session() as session:
+                with self.memgraph_driver.session() as session:
                     result = session.run("MATCH (n) RETURN count(n) AS count")
                     record = result.single()
                     node_count = record["count"] if record else 0
                     
-                    stats["backend_status"]["neo4j"] = {
+                    stats["backend_status"]["memgraph"] = {
                         "status": "connected",
                         "node_count": node_count
                     }
             except Exception as e:
-                stats["backend_status"]["neo4j"] = {
+                stats["backend_status"]["memgraph"] = {
                     "status": "error",
                     "error": str(e)
                 }
         else:
-            stats["backend_status"]["neo4j"] = {"status": "disconnected"}
+            stats["backend_status"]["memgraph"] = {"status": "disconnected"}
         
+        # Redis stats
         if self.redis_client:
             try:
                 info = self.redis_client.info()
@@ -632,6 +631,11 @@ class KnowledgeStorage:
         else:
             stats["backend_status"]["redis"] = {"status": "disconnected"}
         
+        # PostgreSQL stats (async - would need async call in practice)
+        stats["backend_status"]["postgresql"] = {
+            "status": "configured" if self.postgresql_pool else "disconnected"
+        }
+        
         return stats
     
     def optimize_storage(self) -> Dict[str, Any]:
@@ -646,25 +650,7 @@ class KnowledgeStorage:
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
         
-        # Optimize MongoDB if available
-        if self.mongo_client:
-            try:
-                db_name = self.config["mongo"].get("database", "openevolve")
-                collection_name = self.config["mongo"].get("collection", "knowledge_artifacts")
-                
-                db = self.mongo_client[db_name]
-                collection = db[collection_name]
-                
-                # Create indexes for better performance
-                collection.create_index("artifact_id", unique=True)
-                collection.create_index("type")
-                collection.create_index("stored_at")
-                
-                results["operations_performed"].append(f"MongoDB indexes created for {collection_name}")
-            except Exception as e:
-                results["operations_performed"].append(f"MongoDB optimization error: {e}")
-        
-        # Add optimizations for other backends
+        # Qdrant optimization
         if self.qdrant_client:
             try:
                 # Qdrant optimization would go here
@@ -672,16 +658,26 @@ class KnowledgeStorage:
             except Exception as e:
                 results["operations_performed"].append(f"Qdrant optimization error: {e}")
         
-        if self.neo4j_driver:
+        # Memgraph optimization
+        if self.memgraph_driver:
             try:
-                with self.neo4j_driver.session() as session:
-                    # Create indexes in Neo4j
+                with self.memgraph_driver.session() as session:
+                    # Create indexes in Memgraph
                     session.run("CREATE INDEX IF NOT EXISTS FOR (ka:KnowledgeArtifact) ON (ka.artifact_id)")
                     session.run("CREATE INDEX IF NOT EXISTS FOR (ka:KnowledgeArtifact) ON (ka.type)")
                     
-                    results["operations_performed"].append("Neo4j indexes created")
+                    results["operations_performed"].append("Memgraph indexes created")
             except Exception as e:
-                results["operations_performed"].append(f"Neo4j optimization error: {e}")
+                results["operations_performed"].append(f"Memgraph optimization error: {e}")
+        
+        # Redis optimization
+        if self.redis_client:
+            try:
+                # Memory optimization
+                self.redis_client.config_set("activedefrag", "yes")
+                results["operations_performed"].append("Redis memory defragmentation enabled")
+            except Exception as e:
+                results["operations_performed"].append(f"Redis optimization error: {e}")
         
         logger.info({
             "msg": "Storage optimization completed",
@@ -698,13 +694,12 @@ class KnowledgeStorage:
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
-        if self.mongo_client:
-            self.mongo_client.close()
-            logger.info("MongoDB connection closed")
+        if self.memgraph_driver:
+            self.memgraph_driver.close()
+            logger.info("Memgraph driver closed")
         
-        if self.neo4j_driver:
-            self.neo4j_driver.close()
-            logger.info("Neo4j driver closed")
+        # Note: PostgreSQL pool should be closed in async context
+        # Note: Redis and Qdrant connections are stateless
         
         logger.info({
             "msg": "Storage connections closed",

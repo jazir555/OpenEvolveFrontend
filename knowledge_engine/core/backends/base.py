@@ -17,12 +17,13 @@ logger = logging.getLogger(__name__)
 
 
 class BackendType(Enum):
-    """Supported backend types"""
-    NEO4J = "neo4j"
-    QDRANT = "qdrant"
-    MONGODB = "mongodb"
-    KARATECLUB = "karateclub"
-    MEMORY = "memory"
+    """Supported backend types (all permissive licenses)"""
+    POSTGRESQL = "postgresql"  # PostgreSQL License
+    MEMGRAPH = "memgraph"      # Apache 2.0
+    QDRANT = "qdrant"          # Apache 2.0
+    REDIS = "redis"            # BSD
+    KARATECLUB = "karateclub"  # MIT
+    MEMORY = "memory"          # MIT
 
 
 class OperationType(Enum):

@@ -30,3 +30,13 @@ Data: Using stylesheets: index-CqP4kAre.css
 [2026-01-30T04:55:06.245Z] [CANVAS] [FitView] isLoading=true, nodes.length=0, folderId=null
 [2026-01-30T04:55:06.366Z] [CANVAS] [FitView] isLoading=false, nodes.length=0, folderId=null
 [2026-01-30T04:55:07.764Z] [EXTENSION] Blueprint workflow changed (suppressed - internal save): c:\Users\mmeadow\Documents\OpenEvolve\Frontend\.tdad\workflows\root.workflow.json
+[2026-01-30T06:13:35.495Z] [EXTENSION] openCanvas command executed
+[2026-01-30T06:13:35.495Z] [EXTENSION] Log file location: c:\Users\mmeadow\Documents\OpenEvolve\Frontend\.tdad\logs\tdad-2026-01-30.log
+[2026-01-30T06:13:35.497Z] [CANVAS] Sprint 13: Agent Orchestrator initialized
+[2026-01-30T06:13:35.499Z] [CANVAS] [AUTOPILOT DEBUG] Loading beta code from config: none
+[2026-01-30T06:13:35.499Z] [CANVAS] [AUTOPILOT DEBUG] Sending autopilot settings with loadNodes: no
+[2026-01-30T06:13:35.527Z] [CANVAS] WEBVIEW
+Data: Using stylesheets: index-CqP4kAre.css
+[2026-01-30T06:13:35.527Z] [CANVAS] MVP: Canvas initialized with simple JSON storage
+[2026-01-30T06:13:35.568Z] [CANVAS] [FitView] isLoading=true, nodes.length=0, folderId=null
+[2026-01-30T06:13:35.679Z] [CANVAS] [FitView] isLoading=false, nodes.length=0, folderId=null
