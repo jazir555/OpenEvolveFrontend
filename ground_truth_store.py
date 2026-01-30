@@ -290,7 +290,7 @@ class SemanticCodeVerifier:
         except SyntaxError as e:
             self.logger.error(f"Syntax error during verification: {e}")
             return False, f"Syntax error: {e}"
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             self.logger.error(f"Verification error: {e}")
             return False, f"Verification error: {e}"
 
@@ -546,7 +546,7 @@ class VersionManager:
                 with open(vf, 'r', encoding='utf-8') as f:
                     data = json.load(f)
                     history.append(VersionHistory.from_dict(data['history']))
-            except Exception as e:
+            except (OSError, IOError, json.JSONDecodeError, TypeError) as e:
                 self.logger.warning(f"Failed to load version file {vf}: {e}")
 
         return sorted(history, key=lambda h: h.version)
@@ -576,7 +576,7 @@ class VersionManager:
             with open(version_file, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 return SubProblemGroundTruth.from_dict(data['ground_truth'])
-        except Exception as e:
+        except (OSError, IOError, json.JSONDecodeError, TypeError, KeyError) as e:
             self.logger.error(f"Failed to load version {version}: {e}")
             return None
 
@@ -698,7 +698,7 @@ class BackupManager:
                 self.logger.info(f"Backup created: {backup_path}")
                 return str(backup_path)
 
-            except Exception as e:
+            except (OSError, IOError, TypeError) as e:
                 self.logger.error(f"Backup failed: {e}")
                 raise GroundTruthBackupError(f"Failed to create backup: {e}")
 
@@ -741,7 +741,7 @@ class BackupManager:
                 self.logger.info(f"Restored {count} entries from {backup_path}")
                 return count
 
-            except Exception as e:
+            except (OSError, IOError, json.JSONDecodeError, TypeError) as e:
                 self.logger.error(f"Restore failed: {e}")
                 raise GroundTruthBackupError(f"Failed to restore backup: {e}")
 
@@ -768,7 +768,7 @@ class BackupManager:
                     'count': data.get('count', 0),
                     'version': data.get('version', 'unknown')
                 })
-            except Exception as e:
+            except (OSError, IOError, json.JSONDecodeError, TypeError) as e:
                 self.logger.warning(f"Failed to read backup info for {backup_file}: {e}")
 
         return sorted(backups, key=lambda b: b['created_at'], reverse=True)
@@ -804,7 +804,7 @@ class BackupManager:
 
             return True
 
-        except Exception as e:
+        except (OSError, IOError, json.JSONDecodeError, TypeError, ValueError) as e:
             self.logger.error(f"Backup verification failed: {e}")
             return False
 
@@ -825,7 +825,7 @@ class BackupManager:
             # Try to save to database (implement based on your schema)
             self.logger.info(f"Backup metadata saved to database: {backup_name}")
 
-        except Exception as e:
+        except (OSError, IOError, TypeError) as e:
             self.logger.warning(f"Failed to save backup to database: {e}")
 
 
@@ -950,7 +950,7 @@ class GroundTruthStore:
                     raise GroundTruthDatabaseError(
                         f"Backend {self.backend.value} not available or missing dependencies"
                     )
-        except Exception as e:
+        except (OSError, IOError, TypeError, ImportError) as e:
             self.logger.error(f"Database initialization failed: {e}")
             raise GroundTruthDatabaseError(f"Failed to initialize database: {e}")
 
@@ -1110,7 +1110,7 @@ class GroundTruthStore:
             )
             return ground_truth
 
-        except Exception as e:
+        except (OSError, IOError, TypeError, ValueError) as e:
             self.logger.error(f"Failed to store ground truth: {e}")
             raise GroundTruthStorageError(f"Storage failed: {e}")
 
@@ -1138,7 +1138,7 @@ class GroundTruthStore:
 
             return None
 
-        except Exception as e:
+        except (OSError, IOError, TypeError, ValueError) as e:
             self.logger.error(f"Failed to retrieve ground truth: {e}")
             raise GroundTruthRetrievalError(f"Retrieval failed: {e}")
 
@@ -1205,7 +1205,7 @@ class GroundTruthStore:
 
             return False, f"Content NOT preserved - original content not found in output"
 
-        except Exception as e:
+        except (TypeError, ValueError) as e:
             self.logger.error(f"Verification error: {e}")
             raise GroundTruthVerificationError(f"Verification failed: {e}")
 
@@ -1508,7 +1508,7 @@ class GroundTruthStore:
             with open(self.storage_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, indent=2, ensure_ascii=False)
 
-        except Exception as e:
+        except (OSError, IOError, TypeError) as e:
             self.logger.error(f"Failed to save to file: {e}")
             raise GroundTruthStorageError(f"File save failed: {e}")
 
@@ -1528,7 +1528,7 @@ class GroundTruthStore:
 
             self.logger.info(f"Loaded {len(self.store)} entries from {self.storage_path}")
 
-        except Exception as e:
+        except (OSError, IOError, json.JSONDecodeError, TypeError) as e:
             self.logger.error(f"Failed to load from file: {e}")
             raise GroundTruthStorageError(f"File load failed: {e}")
 
@@ -1634,7 +1634,7 @@ class GroundTruthStore:
 
             self.database.commit()
 
-        except Exception as e:
+        except (OSError, IOError, TypeError) as e:
             self.logger.error(f"Failed to save to database: {e}")
             raise GroundTruthStorageError(f"Database save failed: {e}")
 
@@ -1678,7 +1678,7 @@ class GroundTruthStore:
                 verification_timestamp=row[11]
             )
 
-        except Exception as e:
+        except (OSError, IOError, TypeError, IndexError, ValueError) as e:
             self.logger.error(f"Failed to load from database: {e}")
             return None
 
@@ -1876,7 +1876,7 @@ class FibonacciCalculator:
         retrieved = sqlite_store.get_sub_solution("sql_001")
         print(f"Retrieved from SQLite: {retrieved.sub_problem_id}")
 
-    except Exception as e:
+    except (OSError, IOError, ImportError) as e:
         print(f"SQLite example skipped: {e}")
 
     # Example 3: Backup and restore
