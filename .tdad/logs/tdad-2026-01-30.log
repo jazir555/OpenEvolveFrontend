@@ -20,3 +20,13 @@ Data: Using stylesheets: index-CqP4kAre.css
 [2026-01-30T00:52:06.576Z] [CANVAS] MVP: Canvas initialized with simple JSON storage
 [2026-01-30T00:52:06.710Z] [CANVAS] [FitView] isLoading=true, nodes.length=0, folderId=null
 [2026-01-30T00:52:06.874Z] [CANVAS] [FitView] isLoading=false, nodes.length=0, folderId=null
+[2026-01-30T04:55:06.160Z] [EXTENSION] Deserializing webview panel state
+[2026-01-30T04:55:06.163Z] [CANVAS] Sprint 13: Agent Orchestrator initialized
+[2026-01-30T04:55:06.165Z] [CANVAS] [AUTOPILOT DEBUG] Loading beta code from config: none
+[2026-01-30T04:55:06.166Z] [CANVAS] [AUTOPILOT DEBUG] Sending autopilot settings with loadNodes: no
+[2026-01-30T04:55:06.194Z] [CANVAS] WEBVIEW
+Data: Using stylesheets: index-CqP4kAre.css
+[2026-01-30T04:55:06.194Z] [CANVAS] MVP: Canvas initialized with simple JSON storage
+[2026-01-30T04:55:06.245Z] [CANVAS] [FitView] isLoading=true, nodes.length=0, folderId=null
+[2026-01-30T04:55:06.366Z] [CANVAS] [FitView] isLoading=false, nodes.length=0, folderId=null
+[2026-01-30T04:55:07.764Z] [EXTENSION] Blueprint workflow changed (suppressed - internal save): c:\Users\mmeadow\Documents\OpenEvolve\Frontend\.tdad\workflows\root.workflow.json

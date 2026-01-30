@@ -5,6 +5,10 @@ This module provides integration with the DSPy program-of-thought prompting syst
 enabling advanced reasoning and problem-solving capabilities.
 """
 
+# Import aiohttp compatibility shim BEFORE any dspy imports
+# This patches aiohttp to be compatible with litellm (used by dspy)
+from knowledge_engine.aiohttp_compat import *
+
 import asyncio
 import logging
 from datetime import datetime, timezone
@@ -112,6 +116,15 @@ class DSPyIntegration:
             api_key = self.config.get("api_key")
             api_base = self.config.get("api_base")
             
+            # Check if we have API credentials - if not, use mock
+            if not api_key:
+                logger.warning({
+                    "msg": "No API key provided for DSPy, using mock implementation",
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+                self._initialize_mock_components()
+                return
+            
             # Initialize the language model
             if "openai" in model_name.lower() or "gpt" in model_name.lower():
                 from dspy.clients.lm import OpenAILM
@@ -181,11 +194,12 @@ class DSPyIntegration:
             # Initialize with mock components
             self._initialize_mock_components()
         except Exception as e:
-            logger.error({
-                "msg": f"Failed to initialize DSPy components: {e}",
+            logger.warning({
+                "msg": f"Failed to initialize DSPy components: {e}, using mock implementation",
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
-            raise
+            # Initialize with mock components instead of raising
+            self._initialize_mock_components()
     
     def _initialize_mock_components(self):
         """Initialize mock components when DSPy is not available."""

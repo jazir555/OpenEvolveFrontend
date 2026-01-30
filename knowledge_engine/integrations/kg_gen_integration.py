@@ -9,6 +9,9 @@ import sys
 import os
 from typing import List, Dict, Any, Optional, Tuple
 
+# Import aiohttp compatibility shim BEFORE any imports that might use dspy/litellm
+from knowledge_engine.aiohttp_compat import *
+
 # Add kg-gen to Python path for import
 kg_gen_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), 'kg-gen', 'src')
 if kg_gen_path not in sys.path:
@@ -27,8 +30,20 @@ class EnhancedKnowledgeGraphManager:
     and format conversion capabilities.
     """
     
-    def __init__(self):
-        """Initialize kg-gen and OneKE modules."""
+    def __init__(self, neo4j_config: Optional[Dict[str, str]] = None):
+        """
+        Initialize kg-gen and OneKE modules.
+        
+        Args:
+            neo4j_config: Optional Neo4j connection config with keys:
+                         uri, username, password, database (optional)
+        """
+        self._neo4j_config = neo4j_config or {
+            'uri': 'bolt://localhost:7687',
+            'username': 'neo4j',
+            'password': 'password',
+            'database': 'neo4j'
+        }
         self._initialize_modules()
     
     def _initialize_modules(self):
@@ -44,7 +59,13 @@ class EnhancedKnowledgeGraphManager:
             
             # Initialize kg-gen components
             self.kg_generator = KGGen()
-            self.neo4j_uploader = Neo4jUploader()
+            # Neo4jUploader now requires connection params in constructor
+            self.neo4j_uploader = Neo4jUploader(
+                uri=self._neo4j_config.get('uri', 'bolt://localhost:7687'),
+                username=self._neo4j_config.get('username', 'neo4j'),
+                password=self._neo4j_config.get('password', 'password'),
+                database=self._neo4j_config.get('database', 'neo4j')
+            )
             
             # Initialize OneKE components (store functions)
             self.converter = {
@@ -56,7 +77,7 @@ class EnhancedKnowledgeGraphManager:
             self._kg_gen_available = True
             self._oneke_available = True
             
-        except ImportError as e:
+        except Exception as e:
             print(f"Warning: Could not import kg-gen or OneKE modules: {e}")
             print("kg-gen/OneKE integration will be partially or fully disabled.")
             
@@ -65,9 +86,14 @@ class EnhancedKnowledgeGraphManager:
                 from kg_gen import KGGen
                 from kg_gen.utils.neo4j_integration import Neo4jUploader
                 self.kg_generator = KGGen()
-                self.neo4j_uploader = Neo4jUploader()
+                self.neo4j_uploader = Neo4jUploader(
+                    uri=self._neo4j_config.get('uri', 'bolt://localhost:7687'),
+                    username=self._neo4j_config.get('username', 'neo4j'),
+                    password=self._neo4j_config.get('password', 'password'),
+                    database=self._neo4j_config.get('database', 'neo4j')
+                )
                 self._kg_gen_available = True
-            except ImportError:
+            except Exception:
                 self._kg_gen_available = False
                 self.kg_generator = None
                 self.neo4j_uploader = None
@@ -80,7 +106,7 @@ class EnhancedKnowledgeGraphManager:
                     'sanitize_string': sanitize_string
                 }
                 self._oneke_available = True
-            except ImportError:
+            except Exception:
                 self._oneke_available = False
                 self.converter = None
     
@@ -396,25 +422,17 @@ class EnhancedKnowledgeGraphManager:
     def _upload_to_neo4j(self, knowledge_graph: Dict[str, Any], config: Dict[str, Any]) -> str:
         """Upload knowledge graph to Neo4j using kg-gen's Neo4j integration."""
         try:
-            # Set up Neo4j connection configuration
-            connection_config = config.get('connection_config', {})
+            # Note: Connection is now established in constructor
+            # Just need to connect and upload
             
-            # Default configuration (should be overridden in production)
-            default_config = {
-                'uri': 'bolt://localhost:7687',
-                'user': 'neo4j',
-                'password': 'password',
-                'database': 'neo4j'
-            }
+            # Connect to Neo4j
+            self.neo4j_uploader.connect()
             
-            # Merge configurations
-            connection_config = {**default_config, **connection_config}
+            # Upload the knowledge graph (API changed from upload to upload_graph)
+            upload_result = self.neo4j_uploader.upload_graph(knowledge_graph)
             
-            # Set up the uploader
-            self.neo4j_uploader.setup_connection(connection_config)
-            
-            # Upload the knowledge graph
-            upload_result = self.neo4j_uploader.upload(knowledge_graph)
+            # Close connection
+            self.neo4j_uploader.close()
             
             if upload_result:
                 return 'uploaded'
