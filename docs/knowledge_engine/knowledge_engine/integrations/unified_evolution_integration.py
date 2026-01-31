@@ -2,6 +2,7 @@
 Unified Evolution Knowledge Integration System
 
 Extracts, compares, and fuses knowledge from both OpenEvolve and LoongFlow evolutionary runs.
+Extended with long-horizon learning capabilities for continuous improvement.
 
 Key Capabilities:
 - Parallel knowledge extraction from both systems
@@ -9,6 +10,10 @@ Key Capabilities:
 - Knowledge fusion algorithms
 - Synergy opportunity detection
 - Hybrid strategy recommendations
+- Online learning from streaming outcomes
+- A/B testing for strategies
+- Causal modeling
+- Meta-learning across workflows
 
 Author: Claude (Sonnet 4.5)
 Date: January 30, 2026
@@ -16,7 +21,7 @@ Date: January 30, 2026
 
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass, field
-from datetime import datetime, UTC
+from datetime import datetime, UTC, timedelta
 from enum import Enum
 import json
 import asyncio
@@ -1269,3 +1274,361 @@ class UnifiedEvolutionKnowledgeExtractor:
         """Store temporal episode in Graphiti"""
         # Implementation depends on Graphiti client
         pass
+
+    # ========================================================================
+    # LONG-HORIZON LEARNING METHODS
+    # ========================================================================
+
+    async def record_workflow_outcome(
+        self,
+        workflow_id: str,
+        strategy: str,
+        outcome: Dict[str, Any],
+        timestamp: datetime
+    ) -> None:
+        """
+        Record workflow outcome for online learning (idempotent)
+
+        Args:
+            workflow_id: Workflow identifier
+            strategy: Strategy used
+            outcome: Outcome data (metrics, success, etc.)
+            timestamp: When outcome occurred (UTC)
+
+        Law of Idempotency: Safe to call multiple times with same outcome
+        """
+        # Lazy import to avoid circular dependencies
+        from ..schemas.long_horizon import LearningOutcome, OutcomeType
+        from ..online_learning import OnlineLearner
+
+        # Initialize online learner if needed
+        if not hasattr(self, '_online_learner'):
+            self._online_learner = OnlineLearner()
+
+        # Determine outcome type
+        if outcome.get("success", False):
+            outcome_type = OutcomeType.SUCCESS
+        elif outcome.get("error"):
+            outcome_type = OutcomeType.ERROR
+        elif outcome.get("fitness", 0) < 0.5:
+            outcome_type = OutcomeType.FAILURE
+        else:
+            outcome_type = OutcomeType.PARTIAL
+
+        # Create learning outcome
+        learning_outcome = LearningOutcome(
+            workflow_id=workflow_id,
+            strategy_used=strategy,
+            outcome_type=outcome_type,
+            metrics=outcome.get("metrics", outcome),
+            context=outcome.get("context", {}),
+            timestamp=timestamp
+        )
+
+        # Record in online learner
+        await self._online_learner.record_outcome(learning_outcome)
+
+        # Store in knowledge engine if available
+        if self.knowledge_engine:
+            await self._store_learning_outcome(learning_outcome)
+
+    async def get_strategy_performance(
+        self,
+        workflow_id: str,
+        time_window: Optional[timedelta] = None
+    ) -> Dict[str, Any]:
+        """
+        Get performance metrics for strategies
+
+        Args:
+            workflow_id: Workflow identifier
+            time_window: Optional time window for recent performance
+
+        Returns:
+            Dict mapping strategy_id to performance metrics
+        """
+        if not hasattr(self, '_online_learner'):
+            return {}
+
+        strategies = await self._online_learner.get_all_strategies(workflow_id)
+
+        return {
+            strat_id: perf.to_dict()
+            for strat_id, perf in strategies.items()
+        }
+
+    async def recommend_adaptation(
+        self,
+        workflow_id: str,
+        current_performance: float
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Recommend if/how to adapt strategy
+
+        Args:
+            workflow_id: Workflow identifier
+            current_performance: Current performance score
+
+        Returns:
+            Adaptation action or None
+        """
+        if not hasattr(self, '_online_learner'):
+            return None
+
+        action = await self._online_learner.adapt_strategy(
+            workflow_id, current_performance
+        )
+
+        return action.to_dict() if action else None
+
+    async def build_causal_model(
+        self,
+        domain: str,
+        outcomes: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Build causal model from outcomes
+
+        Args:
+            domain: Problem domain
+            outcomes: List of outcome dictionaries
+
+        Returns:
+            Causal model
+        """
+        # Lazy import
+        from ..causal_modeling import CausalModelBuilder
+
+        # Initialize builder if needed
+        if not hasattr(self, '_causal_builder'):
+            self._causal_builder = CausalModelBuilder()
+
+        # Build model
+        model = await self._causal_builder.build_model(domain, outcomes)
+
+        # Store in knowledge engine if available
+        if self.knowledge_engine:
+            await self._store_causal_model(model)
+
+        return model.to_dict()
+
+    async def predict_intervention_effect(
+        self,
+        domain: str,
+        cause: str,
+        value: float
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Predict effect of intervention using causal model
+
+        Args:
+            domain: Problem domain
+            cause: Factor to intervene on
+            value: Value to set it to
+
+        Returns:
+            Effect prediction or None
+        """
+        if not hasattr(self, '_causal_builder'):
+            return None
+
+        model = self._causal_builder.get_model(domain)
+        if not model:
+            return None
+
+        prediction = await self._causal_builder.predict_intervention(
+            model, cause, value
+        )
+
+        return prediction.to_dict()
+
+    async def explain_outcome(
+        self,
+        domain: str,
+        outcome: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Explain an outcome using causal model
+
+        Args:
+            domain: Problem domain
+            outcome: Outcome to explain
+
+        Returns:
+            Explanation or None
+        """
+        if not hasattr(self, '_causal_builder'):
+            return None
+
+        model = self._causal_builder.get_model(domain)
+        if not model:
+            return None
+
+        explanation = await self._causal_builder.explain_outcome(model, outcome)
+
+        return explanation.to_dict()
+
+    async def extract_meta_patterns(
+        self,
+        workflows: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
+        """
+        Extract meta-learning patterns across workflows
+
+        Args:
+            workflows: List of workflow records
+
+        Returns:
+            Extracted patterns
+        """
+        # Lazy import
+        from ..meta_learning import MetaLearner
+
+        # Initialize meta-learner if needed
+        if not hasattr(self, '_meta_learner'):
+            self._meta_learner = MetaLearner()
+
+        # Extract patterns
+        patterns = await self._meta_learner.extract_patterns(workflows)
+
+        # Store in knowledge engine if available
+        if self.knowledge_engine:
+            await self._store_meta_patterns(patterns)
+
+        return [p.to_dict() for p in patterns]
+
+    async def recommend_strategy_for_problem(
+        self,
+        problem: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Recommend strategy for a new problem using meta-learning
+
+        Args:
+            problem: Problem description
+
+        Returns:
+            Strategy recommendation or None
+        """
+        if not hasattr(self, '_meta_learner'):
+            return None
+
+        recommendation = await self._meta_learner.recommend_strategy(problem)
+
+        return recommendation.to_dict()
+
+    async def create_ab_experiment(
+        self,
+        name: str,
+        description: str,
+        variants: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Create A/B experiment for testing strategies
+
+        Args:
+            name: Experiment name
+            description: What is being tested
+            variants: List of variant identifiers
+
+        Returns:
+            Created experiment
+        """
+        # Lazy import
+        from ..ab_testing import ABTestFramework
+
+        # Initialize framework if needed
+        if not hasattr(self, '_ab_framework'):
+            self._ab_framework = ABTestFramework()
+
+        # Create experiment
+        experiment = await self._ab_framework.create_experiment(
+            name=name,
+            description=description,
+            variants=variants
+        )
+
+        return experiment.to_dict()
+
+    async def record_ab_observation(
+        self,
+        experiment_id: str,
+        variant: str,
+        outcome: float,
+        is_success: Optional[bool] = None
+    ) -> None:
+        """
+        Record observation in A/B experiment (idempotent)
+
+        Args:
+            experiment_id: Experiment identifier
+            variant: Variant identifier
+            outcome: Outcome score (0-1)
+            is_success: Binary success indicator
+        """
+        if not hasattr(self, '_ab_framework'):
+            raise ValueError("No A/B framework initialized")
+
+        await self._ab_framework.record_observation(
+            experiment_id, variant, outcome, is_success
+        )
+
+    async def get_ab_results(
+        self,
+        experiment_id: str
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Get A/B test results
+
+        Args:
+            experiment_id: Experiment identifier
+
+        Returns:
+            Test results or None
+        """
+        if not hasattr(self, '_ab_framework'):
+            return None
+
+        results = await self._ab_framework.get_results(experiment_id)
+
+        return results.to_dict()
+
+    # ========================================================================
+    # PRIVATE STORAGE HELPERS
+    # ========================================================================
+
+    async def _store_learning_outcome(self, outcome) -> None:
+        """Store learning outcome in knowledge engine"""
+        # Store in Neo4j if available
+        if self.neo4j:
+            await self._store_outcome_in_neo4j(outcome)
+
+        # Store in Qdrant if available
+        if self.qdrant:
+            await self._store_outcome_in_qdrant(outcome)
+
+    async def _store_outcome_in_neo4j(self, outcome) -> None:
+        """Store outcome in Neo4j"""
+        pass  # Implementation depends on Neo4j driver
+
+    async def _store_outcome_in_qdrant(self, outcome) -> None:
+        """Store outcome in Qdrant"""
+        pass  # Implementation depends on Qdrant client
+
+    async def _store_causal_model(self, model) -> None:
+        """Store causal model in knowledge engine"""
+        if self.neo4j:
+            await self._store_causal_in_neo4j(model)
+
+    async def _store_causal_in_neo4j(self, model) -> None:
+        """Store causal model in Neo4j"""
+        pass  # Implementation depends on Neo4j driver
+
+    async def _store_meta_patterns(self, patterns: List) -> None:
+        """Store meta-patterns in knowledge engine"""
+        if self.qdrant:
+            await self._store_patterns_in_qdrant(patterns)
+
+    async def _store_patterns_in_qdrant(self, patterns: List) -> None:
+        """Store patterns in Qdrant"""
+        pass  # Implementation depends on Qdrant client

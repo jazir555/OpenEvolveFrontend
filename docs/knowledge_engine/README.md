@@ -141,6 +141,45 @@ docs/knowledge_engine/
 
 ---
 
-**Last Updated**: 2026-01-08
+## 🚀 NEW: Long-Horizon Learning (January 30, 2026)
+
+The Knowledge Engine has been enhanced with comprehensive long-horizon learning capabilities:
+
+### New Modules
+- **Online Learning** (`knowledge_engine/online_learning.py`): Continuous learning from streaming outcomes
+- **A/B Testing** (`knowledge_engine/ab_testing.py`): Statistical strategy validation
+- **Causal Modeling** (`knowledge_engine/causal_modeling.py`): Understand what affects what
+- **Meta-Learning** (`knowledge_engine/meta_learning.py`): Learn across workflows
+
+### Documentation
+- **[Long-Horizon Learning Guide](docs/LONG_HORIZON_LEARNING.md)**: Comprehensive guide
+- **[Quickstart Example](examples/long_horizon_quickstart.py)**: Complete working example
+- **[Tests](tests/test_long_horizon_learning.py)**: Comprehensive test suite
+
+### Quick Example
+```python
+from knowledge_engine import OnlineLearner
+from knowledge_engine.schemas.long_horizon import LearningOutcome, OutcomeType
+
+# Initialize learner
+learner = OnlineLearner()
+
+# Record outcome
+outcome = LearningOutcome(
+    workflow_id="portfolio_opt_001",
+    strategy_used="pes",
+    outcome_type=OutcomeType.SUCCESS,
+    metrics={"fitness": 0.87},
+    context={"domain": "finance"}
+)
+await learner.record_outcome(outcome)
+
+# Get best strategy
+best = await learner.get_best_strategy("portfolio_opt_001")
+```
+
+---
+
+**Last Updated**: 2026-01-30
 **Status**: Production Ready ✅
-**Version**: 1.0.0
+**Version**: 1.1.0 (Long-Horizon Learning)
