@@ -1,0 +1,168 @@
+"""
+Docker Compose for Mathematical Knowledge Integration
+
+Services:
+- math-knowledge-api: Main API server
+- leanaide-server: LeanAIDE formal verification server
+- postgres: Database (optional)
+- redis: Caching layer (optional)
+- prometheus: Metrics collection
+- grafana: Monitoring dashboard
+
+Usage:
+  docker-compose -f docker-compose.math-knowledge.yml up -d
+"""
+
+version: '3.8'
+
+services:
+  # Main mathematical knowledge API
+  math-knowledge-api:
+    build:
+      context: ../..
+      dockerfile: knowledge_engine/integrations/Dockerfile.math-knowledge
+    container_name: math-knowledge-api
+    ports:
+      - "8765:8765"
+      - "9090:9090"
+    environment:
+      - MATH_KNOWLEDGE_DB_URL=${MATH_KNOWLEDGE_DB_URL:-sqlite:///data/math_knowledge.db}
+      - MATH_KNOWLEDGE_REDIS_ENABLED=${MATH_KNOWLEDGE_REDIS_ENABLED:-false}
+      - MATH_KNOWLEDGE_REDIS_HOST=redis
+      - MATH_KNOWLEDGE_LEANAIDE_HOST=leanaide-server
+      - MATH_KNOWLEDGE_LEANAIDE_PORT=7654
+      - MATH_KNOWLEDGE_LOG_LEVEL=${MATH_KNOWLEDGE_LOG_LEVEL:-INFO}
+      - MATH_KNOWLEDGE_API_WORKERS=${MATH_KNOWLEDGE_API_WORKERS:-2}
+      - MATH_KNOWLEDGE_Z3_TIMEOUT_MS=${MATH_KNOWLEDGE_Z3_TIMEOUT_MS:-30000}
+      - MATH_KNOWLEDGE_MONITORING_ENABLED=true
+      - MATH_KNOWLEDGE_METRICS_PORT=9090
+    volumes:
+      - math-knowledge-data:/app/data
+      - math-knowledge-logs:/app/logs
+    depends_on:
+      - leanaide-server
+      - postgres
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8765/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - math-knowledge-network
+
+  # LeanAIDE formal verification server
+  leanaide-server:
+    build:
+      context: ../..
+      dockerfile: knowledge_engine/integrations/Dockerfile.leanaide
+    container_name: leanaide-server
+    ports:
+      - "7654:7654"
+    environment:
+      - LEANAIDE_PORT=7654
+      - LEANAIDE_LOG_LEVEL=INFO
+      - LEANAIDE_MAX_MEMORY_MB=4096
+    volumes:
+      - leanaide-data:/app/data
+      - leanaide-cache:/app/cache
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7654/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - math-knowledge-network
+
+  # PostgreSQL database (optional, can use SQLite)
+  postgres:
+    image: postgres:15-alpine
+    container_name: math-knowledge-postgres
+    environment:
+      - POSTGRES_DB=mathknowledge
+      - POSTGRES_USER=mathuser
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-mathpass}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mathuser -d mathknowledge"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - math-knowledge-network
+
+  # Redis cache (optional)
+  redis:
+    image: redis:7-alpine
+    container_name: math-knowledge-redis
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - math-knowledge-network
+
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: math-knowledge-prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    restart: unless-stopped
+    networks:
+      - math-knowledge-network
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: math-knowledge-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER:-admin}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    restart: unless-stopped
+    networks:
+      - math-knowledge-network
+
+volumes:
+  math-knowledge-data:
+  math-knowledge-logs:
+  leanaide-data:
+  leanaide-cache:
+  postgres-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+
+networks:
+  math-knowledge-network:
+    driver: bridge

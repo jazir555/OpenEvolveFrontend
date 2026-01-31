@@ -47,6 +47,7 @@ try:
     DateTime = sa.DateTime
     Text = sa.Text
     JSON = sa.JSON
+    Boolean = sa.Boolean
     
 except ImportError:
     SQLALCHEMY_AVAILABLE = False
@@ -58,6 +59,7 @@ except ImportError:
     DateTime = lambda: None
     Text = lambda: None
     JSON = lambda: None
+    Boolean = lambda: None
 
 # Redis imports
 try:
@@ -73,13 +75,6 @@ try:
 except ImportError:
     NUMPY_AVAILABLE = False
 
-# Z3 imports
-try:
-    from z3 import *
-    Z3_LIB_AVAILABLE = True
-except ImportError:
-    Z3_LIB_AVAILABLE = False
-
 from z3_knowledge_extraction import (
     Z3KnowledgeExtractor,
     ProofPattern,
@@ -87,6 +82,32 @@ from z3_knowledge_extraction import (
     SolutionStrategy,
     MathematicalInsight
 )
+
+# Z3 imports - import specific items to avoid overwriting SQLAlchemy types
+Z3_LIB_AVAILABLE = False
+z3 = None
+
+if SQLALCHEMY_AVAILABLE:
+    # Save SQLAlchemy types before importing Z3
+    _sa_String = String
+    _sa_Integer = Integer
+    _sa_Float = Float
+    _sa_Bool = Boolean
+    
+    try:
+        import z3 as _z3_module
+        z3 = _z3_module
+        Z3_LIB_AVAILABLE = True
+        
+        # Restore SQLAlchemy types
+        String = _sa_String
+        Integer = _sa_Integer
+        Float = _sa_Float
+        Boolean = _sa_Bool
+        
+    except ImportError:
+        Z3_LIB_AVAILABLE = False
+        # Types already set above
 
 # Database Models
 if SQLALCHEMY_AVAILABLE:
@@ -96,21 +117,21 @@ if SQLALCHEMY_AVAILABLE:
         """Base record for all Z3 knowledge."""
         __tablename__ = 'z3_knowledge_records'
         
-        id = Column('id', Integer, primary_key=True)
-        record_type = Column('record_type', String(50), nullable=False, index=True)
-        record_hash = Column('record_hash', String(64), unique=True, index=True)
-        content = Column('content', Text)
-        features = Column('features', JSON)
-        metadata = Column('metadata', JSON)
-        source_problem = Column('source_problem', String(500), index=True)
-        problem_domain = Column('problem_domain', String(100), index=True)
-        confidence = Column('confidence', Float, default=1.0)
-        success_count = Column('success_count', Integer, default=0)
-        failure_count = Column('failure_count', Integer, default=0)
-        created_at = Column('created_at', DateTime, default=datetime.utcnow)
-        updated_at = Column('updated_at', DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
-        last_accessed = Column('last_accessed', DateTime)
-        access_count = Column('access_count', Integer, default=0)
+        id = Column(Integer, primary_key=True)
+        record_type = Column(String(50), nullable=False, index=True)
+        record_hash = Column(String(64), unique=True, index=True)
+        content = Column(Text)
+        features = Column(JSON)
+        metadata_ = Column('metadata', JSON)  # Use metadata_ to avoid conflict
+        source_problem = Column(String(500), index=True)
+        problem_domain = Column(String(100), index=True)
+        confidence = Column(Float, default=1.0)
+        success_count = Column(Integer, default=0)
+        failure_count = Column(Integer, default=0)
+        created_at = Column(DateTime, default=datetime.utcnow)
+        updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+        last_accessed = Column(DateTime)
+        access_count = Column(Integer, default=0)
         
         # Relationships
         proof_pattern = relationship("Z3ProofPatternRecord", back_populates="knowledge_record", uselist=False)

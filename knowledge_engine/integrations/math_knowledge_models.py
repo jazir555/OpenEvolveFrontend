@@ -61,6 +61,20 @@ try:
     
     MODELS_AVAILABLE = True
     
+    # Export main classes
+    __all__ = [
+        'Base',
+        'Z3KnowledgeBase',
+        'Z3SolverRun',
+        'LeanProofRecord',
+        'MODELS_AVAILABLE'
+    ]
+    
 except ImportError:
     MODELS_AVAILABLE = False
     Base = None
+    Z3KnowledgeBase = None
+    Z3SolverRun = None
+    LeanProofRecord = None
+    
+    __all__ = ['MODELS_AVAILABLE', 'Base', 'Z3KnowledgeBase', 'Z3SolverRun', 'LeanProofRecord']

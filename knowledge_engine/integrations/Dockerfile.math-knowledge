@@ -1,0 +1,81 @@
+"""
+Dockerfile for Mathematical Knowledge Integration API
+
+Multi-stage build for production-ready deployment.
+
+Build:
+  docker build -f knowledge_engine/integrations/Dockerfile.math-knowledge -t math-knowledge-api:latest .
+
+Run:
+  docker run -p 8765:8765 -p 9090:9090 math-knowledge-api:latest
+"""
+
+# Stage 1: Builder
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    libgmp-dev \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+# Install Z3 solver
+RUN pip install --no-cache-dir z3-solver
+
+# Stage 2: Production
+FROM python:3.11-slim as production
+
+WORKDIR /app
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgmp10 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy application code
+COPY knowledge_engine/ /app/knowledge_engine/
+COPY z3_server_complete.py /app/
+COPY z3_knowledge_api.py /app/
+COPY z3_api.py /app/
+
+# Create directories
+RUN mkdir -p /app/data /app/logs /app/cache
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV MATH_KNOWLEDGE_DB_URL=sqlite:///data/math_knowledge.db
+ENV MATH_KNOWLEDGE_LOG_LEVEL=INFO
+ENV MATH_KNOWLEDGE_API_HOST=0.0.0.0
+ENV MATH_KNOWLEDGE_API_PORT=8765
+ENV MATH_KNOWLEDGE_METRICS_PORT=9090
+
+# Expose ports
+EXPOSE 8765 9090
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8765/health || exit 1
+
+# Run the API server
+CMD ["python", "-c", "
+import asyncio
+from z3_api import run_complete_server
+asyncio.run(run_complete_server())
+"]

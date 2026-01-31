@@ -403,6 +403,13 @@ def create_z3_knowledge_app() -> Optional[FastAPI]:
 
 
 # =============================================================================
+# Global App Instance
+# =============================================================================
+
+# Create app instance for import (when FastAPI is available)
+app = create_z3_knowledge_app() if FASTAPI_AVAILABLE else None
+
+# =============================================================================
 # Example Usage
 # =============================================================================
 
