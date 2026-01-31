@@ -24,6 +24,9 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from dataclasses import dataclass
 from enum import Enum
 
+# Configure logging
+logger = logging.getLogger(__name__)
+
 # Z3 Python bindings
 try:
     import z3

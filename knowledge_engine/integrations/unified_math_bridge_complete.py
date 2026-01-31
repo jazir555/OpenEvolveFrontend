@@ -17,6 +17,7 @@ import asyncio
 import json
 import logging
 import hashlib
+import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple, Union, Set
 from dataclasses import dataclass, field
@@ -28,27 +29,33 @@ logger = logging.getLogger(__name__)
 
 # Import Z3 components
 try:
-    from knowledge_engine.integrations.z3_knowledge_complete import (
+    from z3_knowledge_complete import (
         Z3KnowledgeManager,
         ExtractedFeatures,
         get_z3_knowledge_manager
     )
     Z3_COMPLETE_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     Z3_COMPLETE_AVAILABLE = False
-    logger.warning("Complete Z3 knowledge not available")
+    Z3KnowledgeManager = None
+    ExtractedFeatures = None
+    get_z3_knowledge_manager = None
+    logger.warning(f"Complete Z3 knowledge not available: {e}")
 
 # Import LeanAIDE components
 try:
-    from knowledge_engine.integrations.leanaide_integration_complete import (
+    from leanaide_integration_complete import (
         LeanAideIntegrationComplete,
         get_leanaide_complete,
         ProofGoal
     )
     LEANAIDE_COMPLETE_AVAILABLE = True
-except ImportError:
+except ImportError as e:
     LEANAIDE_COMPLETE_AVAILABLE = False
-    logger.warning("Complete LeanAIDE integration not available")
+    LeanAideIntegrationComplete = None
+    get_leanaide_complete = None
+    ProofGoal = None
+    logger.warning(f"Complete LeanAIDE integration not available: {e}")
 
 
 class SolverSystem(Enum):
@@ -606,6 +613,21 @@ class UnifiedMathBridgeComplete:
 # Global instance
 _unified_bridge_complete: Optional[UnifiedMathBridgeComplete] = None
 
+# Alias for backward compatibility
+UnifiedMathKnowledgeBridge = UnifiedMathBridgeComplete
+
+# Export list
+__all__ = [
+    'SolverSystem',
+    'ConsensusLevel', 
+    'SolverResult',
+    'UnifiedProblem',
+    'SemanticTranslator',
+    'ConsensusEngine',
+    'UnifiedMathBridgeComplete',
+    'UnifiedMathKnowledgeBridge',
+    'get_unified_bridge_complete'
+]
 
 async def get_unified_bridge_complete() -> UnifiedMathBridgeComplete:
     """Get global complete bridge instance."""

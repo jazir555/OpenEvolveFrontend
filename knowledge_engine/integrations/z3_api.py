@@ -34,13 +34,15 @@ except ImportError:
 
 # Z3 integration imports
 try:
-    from knowledge_engine.integrations.z3_knowledge_integration import (
+    from z3_knowledge_integration import (
         Z3KnowledgeIntegration,
         get_z3_knowledge_integration
     )
     Z3_INTEGRATION_AVAILABLE = True
 except ImportError:
     Z3_INTEGRATION_AVAILABLE = False
+    Z3KnowledgeIntegration = None
+    get_z3_knowledge_integration = None
 
 
 logger = logging.getLogger(__name__)

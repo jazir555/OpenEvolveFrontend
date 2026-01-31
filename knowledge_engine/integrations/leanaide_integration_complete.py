@@ -34,6 +34,10 @@ try:
     LEANAIDE_CLIENT_AVAILABLE = True
 except ImportError:
     LEANAIDE_CLIENT_AVAILABLE = False
+    LeanAideClient = None
+    LeanAideConfig = None
+    TaskType = None
+    LeanAideResult = None
     logger.warning("LeanAideClient not available")
 
 # Import knowledge extraction
@@ -370,7 +374,7 @@ class LeanAideTacticExecutor:
         config: Optional[LeanAideConfig] = None
     ):
         self.client = client
-        self.config = config or LeanAideConfig()
+        self.config = config or (LeanAideConfig() if LeanAideConfig else None)
         self.state_manager = ProofStateManager()
         self.error_recovery = ErrorRecoveryStrategy()
         
@@ -581,11 +585,11 @@ class LeanAideIntegrationComplete:
         client: Optional[LeanAideClient] = None,
         config: Optional[LeanAideConfig] = None
     ):
-        self.config = config or LeanAideConfig()
+        self.config = config or (LeanAideConfig() if LeanAideConfig else None)
         self.client = client
         
         # Components
-        self.tactic_executor = LeanAideTacticExecutor(client, config)
+        self.tactic_executor = LeanAideTacticExecutor(client, self.config)
         self.knowledge_extractor = get_leanaide_knowledge_extractor() if LEANAIDE_KE_AVAILABLE else None
         self.state_manager = self.tactic_executor.state_manager
         
