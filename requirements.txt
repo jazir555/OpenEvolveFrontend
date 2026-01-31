@@ -1,5 +1,8 @@
 # OpenEvolve Requirements
 
+# LoongFlow PES system for Plan-Execute-Summarize evolution
+-e ./LoongFlow
+
 # Core dependencies
 nltk==3.9.2
 textstat==0.7.10

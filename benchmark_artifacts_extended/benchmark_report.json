@@ -1,0 +1,43 @@
+{
+  "benchmark_id": "ext-20260131-054732",
+  "timestamp": "2026-01-31T05:47:32.146109",
+  "statistics": {
+    "total_scenarios": 59,
+    "artifacts_generated": 70,
+    "by_type": {
+      "domain_knowledge": 59,
+      "creative_pattern": 7,
+      "anti_pattern": 4
+    },
+    "by_domain": {
+      "technical": 17,
+      "creative": 21,
+      "unknown": 6,
+      "analytical": 8,
+      "educational": 7,
+      "creative_writing": 7,
+      "validation": 4
+    }
+  },
+  "artifact_breakdown": {
+    "by_type": {
+      "domain_knowledge": 59,
+      "creative_pattern": 7,
+      "anti_pattern": 4
+    },
+    "by_domain": {
+      "technical": 17,
+      "creative": 21,
+      "unknown": 6,
+      "analytical": 8,
+      "educational": 7,
+      "creative_writing": 7,
+      "validation": 4
+    }
+  },
+  "summary": {
+    "total_scenarios": 59,
+    "total_artifacts": 70,
+    "artifacts_per_scenario": 1.1864406779661016
+  }
+}

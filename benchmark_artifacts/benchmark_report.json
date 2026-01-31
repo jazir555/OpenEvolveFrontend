@@ -1,0 +1,41 @@
+{
+  "benchmark_id": "bench-20260131-053904",
+  "timestamp": "2026-01-31T05:39:04.414036",
+  "statistics": {
+    "total_scenarios": 5,
+    "successful": 0,
+    "blocked": 5,
+    "artifacts_generated": 0,
+    "by_type": {},
+    "by_domain": {
+      "analytical": 3,
+      "creative": 7,
+      "technical": 5,
+      "educational": 4
+    }
+  },
+  "artifacts_generated": 31,
+  "artifact_breakdown": {
+    "by_type": {
+      "domain_knowledge": 19,
+      "quality_criteria": 3,
+      "creative_pattern": 5,
+      "decomposition_strategy": 4
+    },
+    "by_domain": {
+      "analytical": 3,
+      "creative": 7,
+      "technical": 5,
+      "educational": 4,
+      "quality_assurance": 3,
+      "creative_writing": 5,
+      "problem_solving": 4
+    }
+  },
+  "summary": {
+    "total_scenarios_tested": 5,
+    "success_rate": 0.0,
+    "block_rate": 1.0,
+    "artifacts_per_scenario": 6.2
+  }
+}

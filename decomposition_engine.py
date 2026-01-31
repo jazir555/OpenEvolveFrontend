@@ -1161,18 +1161,7 @@ class DecompositionEngine:
         except ImportError:
             self.logger.warning("TaskComplexityClassifier not available, using standard complexity metrics.")
             self.complexity_classifier = None
-            @with_error_handling(severity=ErrorSeverity.CRITICAL, fallback=lambda problem, strategy: DecompositionPlan(
-        id=generate_id("plan"),
-        problem_id=problem.id,
-        strategy=DecompositionStrategy.HYBRID,
-        sub_problems=[],
-        dependency_graph=DependencyGraph(nodes={}, edges={}),
-        validation_checkpoints=[],
-        quality_scores=QualityScores(overall_score=0.0, meets_thresholds=False),
-        confidence_level=0.0,
-        created_by="decomposition_engine_error",
-        error_message="Decomposition failed"
-    ))
+    
     def decompose(self, problem: ProblemDefinition, strategy: Optional[str] = None) -> DecompositionPlan:
         """
         Decomposes problem using optimal strategy.

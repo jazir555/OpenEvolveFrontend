@@ -1,0 +1,802 @@
+{
+  "metadata": {
+    "generated_at": "2026-01-31T05:39:04.414036",
+    "total_artifacts": 31,
+    "benchmark_version": "1.0"
+  },
+  "artifacts": [
+    {
+      "artifact_id": "dom-risk_assessment_fintech",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: analytical",
+      "description": "Domain 'analytical' detected with 1.00 confidence",
+      "domain": "analytical",
+      "problem_type": "analytical",
+      "source_scenario": "risk_assessment_fintech",
+      "confidence": 1.0,
+      "tags": [
+        "domain_adaptation",
+        "analytical",
+        "analytical"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "analytical",
+        "optimal_temperature": 0.3,
+        "target_audience": "intermediate",
+        "keywords": [
+          "analytical"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-data_pipeline_design",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: creative",
+      "description": "Domain 'creative' detected with 1.00 confidence",
+      "domain": "creative",
+      "problem_type": "analytical",
+      "source_scenario": "data_pipeline_design",
+      "confidence": 1.0,
+      "tags": [
+        "domain_adaptation",
+        "creative",
+        "analytical"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "creative",
+        "optimal_temperature": 0.8,
+        "target_audience": "intermediate",
+        "keywords": []
+      }
+    },
+    {
+      "artifact_id": "dom-security_audit_webapp",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: technical",
+      "description": "Domain 'technical' detected with 1.00 confidence",
+      "domain": "technical",
+      "problem_type": "analytical",
+      "source_scenario": "security_audit_webapp",
+      "confidence": 1.0,
+      "tags": [
+        "domain_adaptation",
+        "technical",
+        "analytical"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "technical",
+        "optimal_temperature": 0.2,
+        "target_audience": "intermediate",
+        "keywords": []
+      }
+    },
+    {
+      "artifact_id": "dom-cost_optimization_cloud",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: analytical",
+      "description": "Domain 'analytical' detected with 1.00 confidence",
+      "domain": "analytical",
+      "problem_type": "analytical",
+      "source_scenario": "cost_optimization_cloud",
+      "confidence": 1.0,
+      "tags": [
+        "domain_adaptation",
+        "analytical",
+        "analytical"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "analytical",
+        "optimal_temperature": 0.3,
+        "target_audience": "intermediate",
+        "keywords": [
+          "analytical"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-ml_model_selection",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: technical",
+      "description": "Domain 'technical' detected with 1.00 confidence",
+      "domain": "technical",
+      "problem_type": "analytical",
+      "source_scenario": "ml_model_selection",
+      "confidence": 1.0,
+      "tags": [
+        "domain_adaptation",
+        "technical",
+        "analytical"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "technical",
+        "optimal_temperature": 0.2,
+        "target_audience": "intermediate",
+        "keywords": [
+          "technical"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-scifi_awakening",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: creative",
+      "description": "Domain 'creative' detected with 0.90 confidence",
+      "domain": "creative",
+      "problem_type": "creative",
+      "source_scenario": "scifi_awakening",
+      "confidence": 0.8999999999999999,
+      "tags": [
+        "domain_adaptation",
+        "creative",
+        "creative"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "creative",
+        "optimal_temperature": 0.8,
+        "target_audience": "intermediate",
+        "keywords": [
+          "technical",
+          "creative"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-poem_autumn",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: creative",
+      "description": "Domain 'creative' detected with 1.00 confidence",
+      "domain": "creative",
+      "problem_type": "creative",
+      "source_scenario": "poem_autumn",
+      "confidence": 1.0,
+      "tags": [
+        "domain_adaptation",
+        "creative",
+        "creative"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "creative",
+        "optimal_temperature": 0.8,
+        "target_audience": "intermediate",
+        "keywords": [
+          "creative"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-character_detective",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: creative",
+      "description": "Domain 'creative' detected with 0.95 confidence",
+      "domain": "creative",
+      "problem_type": "creative",
+      "source_scenario": "character_detective",
+      "confidence": 0.95,
+      "tags": [
+        "domain_adaptation",
+        "creative",
+        "creative"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "creative",
+        "optimal_temperature": 0.8,
+        "target_audience": "intermediate",
+        "keywords": [
+          "creative"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-dialogue_conflict",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: creative",
+      "description": "Domain 'creative' detected with 1.00 confidence",
+      "domain": "creative",
+      "problem_type": "creative",
+      "source_scenario": "dialogue_conflict",
+      "confidence": 1.0,
+      "tags": [
+        "domain_adaptation",
+        "creative",
+        "creative"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "creative",
+        "optimal_temperature": 0.8,
+        "target_audience": "intermediate",
+        "keywords": [
+          "creative"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-worldbuilding_dystopia",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: creative",
+      "description": "Domain 'creative' detected with 1.00 confidence",
+      "domain": "creative",
+      "problem_type": "creative",
+      "source_scenario": "worldbuilding_dystopia",
+      "confidence": 1.0,
+      "tags": [
+        "domain_adaptation",
+        "creative",
+        "creative"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "creative",
+        "optimal_temperature": 0.8,
+        "target_audience": "intermediate",
+        "keywords": []
+      }
+    },
+    {
+      "artifact_id": "dom-api_rate_limiting",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: technical",
+      "description": "Domain 'technical' detected with 0.95 confidence",
+      "domain": "technical",
+      "problem_type": "technical",
+      "source_scenario": "api_rate_limiting",
+      "confidence": 0.95,
+      "tags": [
+        "domain_adaptation",
+        "technical",
+        "technical"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "technical",
+        "optimal_temperature": 0.2,
+        "target_audience": "intermediate",
+        "keywords": [
+          "technical"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-database_sharding",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: technical",
+      "description": "Domain 'technical' detected with 0.50 confidence",
+      "domain": "technical",
+      "problem_type": "technical",
+      "source_scenario": "database_sharding",
+      "confidence": 0.5,
+      "tags": [
+        "domain_adaptation",
+        "technical",
+        "technical"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "technical",
+        "optimal_temperature": 0.2,
+        "target_audience": "intermediate",
+        "keywords": [
+          "technical"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-caching_strategy",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: analytical",
+      "description": "Domain 'analytical' detected with 0.50 confidence",
+      "domain": "analytical",
+      "problem_type": "technical",
+      "source_scenario": "caching_strategy",
+      "confidence": 0.5,
+      "tags": [
+        "domain_adaptation",
+        "analytical",
+        "technical"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "analytical",
+        "optimal_temperature": 0.3,
+        "target_audience": "intermediate",
+        "keywords": []
+      }
+    },
+    {
+      "artifact_id": "dom-microservices_communication",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: creative",
+      "description": "Domain 'creative' detected with 1.00 confidence",
+      "domain": "creative",
+      "problem_type": "technical",
+      "source_scenario": "microservices_communication",
+      "confidence": 1.0,
+      "tags": [
+        "domain_adaptation",
+        "creative",
+        "technical"
+      ],
+      "created_at": "2026-01-31T05:39:04.413037",
+      "insight": {
+        "domain": "creative",
+        "optimal_temperature": 0.8,
+        "target_audience": "intermediate",
+        "keywords": []
+      }
+    },
+    {
+      "artifact_id": "dom-ci_cd_pipeline",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: technical",
+      "description": "Domain 'technical' detected with 0.67 confidence",
+      "domain": "technical",
+      "problem_type": "technical",
+      "source_scenario": "ci_cd_pipeline",
+      "confidence": 0.6666666666666666,
+      "tags": [
+        "domain_adaptation",
+        "technical",
+        "technical"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "insight": {
+        "domain": "technical",
+        "optimal_temperature": 0.2,
+        "target_audience": "intermediate",
+        "keywords": [
+          "technical"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-explain_blockchain",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: educational",
+      "description": "Domain 'educational' detected with 1.00 confidence",
+      "domain": "educational",
+      "problem_type": "educational",
+      "source_scenario": "explain_blockchain",
+      "confidence": 1.0,
+      "tags": [
+        "domain_adaptation",
+        "educational",
+        "educational"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "insight": {
+        "domain": "educational",
+        "optimal_temperature": 0.5,
+        "target_audience": "intermediate",
+        "keywords": [
+          "educational"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-teach_recursion",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: educational",
+      "description": "Domain 'educational' detected with 0.67 confidence",
+      "domain": "educational",
+      "problem_type": "educational",
+      "source_scenario": "teach_recursion",
+      "confidence": 0.6666666666666666,
+      "tags": [
+        "domain_adaptation",
+        "educational",
+        "educational"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "insight": {
+        "domain": "educational",
+        "optimal_temperature": 0.5,
+        "target_audience": "intermediate",
+        "keywords": [
+          "educational"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-explain_neural_networks",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: educational",
+      "description": "Domain 'educational' detected with 1.00 confidence",
+      "domain": "educational",
+      "problem_type": "educational",
+      "source_scenario": "explain_neural_networks",
+      "confidence": 1.0,
+      "tags": [
+        "domain_adaptation",
+        "educational",
+        "educational"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "insight": {
+        "domain": "educational",
+        "optimal_temperature": 0.5,
+        "target_audience": "intermediate",
+        "keywords": [
+          "educational"
+        ]
+      }
+    },
+    {
+      "artifact_id": "dom-system_design_basics",
+      "artifact_type": "domain_knowledge",
+      "title": "Domain Classification: educational",
+      "description": "Domain 'educational' detected with 0.50 confidence",
+      "domain": "educational",
+      "problem_type": "educational",
+      "source_scenario": "system_design_basics",
+      "confidence": 0.5,
+      "tags": [
+        "domain_adaptation",
+        "educational",
+        "educational"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "insight": {
+        "domain": "educational",
+        "optimal_temperature": 0.5,
+        "target_audience": "beginner",
+        "keywords": [
+          "technical",
+          "educational"
+        ]
+      }
+    },
+    {
+      "artifact_id": "qual-good_output",
+      "artifact_type": "quality_criteria",
+      "title": "Quality Validation: good_output",
+      "description": "Output validation with score 11.80",
+      "domain": "quality_assurance",
+      "problem_type": "output_validation",
+      "source_test": "good_output",
+      "confidence": 11.8,
+      "tags": [
+        "quality",
+        "validation",
+        "output_checking"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "criteria": {
+        "required_facts": [
+          "market",
+          "regulatory"
+        ],
+        "required_sections": [
+          "summary",
+          "risks",
+          "mitigation"
+        ],
+        "min_length": 100,
+        "common_failures": [
+          "too_short"
+        ]
+      }
+    },
+    {
+      "artifact_id": "qual-incomplete_output",
+      "artifact_type": "quality_criteria",
+      "title": "Quality Validation: incomplete_output",
+      "description": "Output validation with score 10.25",
+      "domain": "quality_assurance",
+      "problem_type": "output_validation",
+      "source_test": "incomplete_output",
+      "confidence": 10.25,
+      "tags": [
+        "quality",
+        "validation",
+        "output_checking"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "criteria": {
+        "required_facts": [
+          "scalability",
+          "performance"
+        ],
+        "required_sections": [
+          "architecture",
+          "bottlenecks"
+        ],
+        "min_length": 300,
+        "common_failures": [
+          "too_short"
+        ]
+      }
+    },
+    {
+      "artifact_id": "qual-missing_facts_output",
+      "artifact_type": "quality_criteria",
+      "title": "Quality Validation: missing_facts_output",
+      "description": "Output validation with score 12.10",
+      "domain": "quality_assurance",
+      "problem_type": "output_validation",
+      "source_test": "missing_facts_output",
+      "confidence": 12.1,
+      "tags": [
+        "quality",
+        "validation",
+        "output_checking"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "criteria": {
+        "required_facts": [
+          "kafka",
+          "streaming",
+          "latency"
+        ],
+        "required_sections": [
+          "architecture",
+          "components",
+          "bottlenecks"
+        ],
+        "min_length": 100,
+        "common_failures": [
+          "too_short"
+        ]
+      }
+    },
+    {
+      "artifact_id": "cre-scifi_awakening",
+      "artifact_type": "creative_pattern",
+      "title": "Creative Enhancement: short_story",
+      "description": "Creative writing enhancement for short_story genre using Three-Act Structure structure",
+      "domain": "creative_writing",
+      "problem_type": "creative",
+      "source_scenario": "scifi_awakening",
+      "confidence": 0.9,
+      "tags": [
+        "creative",
+        "short_story",
+        "Three-Act Structure",
+        "storytelling"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "pattern": {
+        "genre": "short_story",
+        "structure": "Three-Act Structure",
+        "enhancements": [
+          "Show, don't tell - use sensory details",
+          "Include specific, concrete details",
+          "Use vivid, specific imagery"
+        ],
+        "optimal_temperature": 0.8,
+        "target_length": "medium"
+      }
+    },
+    {
+      "artifact_id": "cre-poem_autumn",
+      "artifact_type": "creative_pattern",
+      "title": "Creative Enhancement: poem",
+      "description": "Creative writing enhancement for poem genre using Three-Act Structure structure",
+      "domain": "creative_writing",
+      "problem_type": "creative",
+      "source_scenario": "poem_autumn",
+      "confidence": 0.9,
+      "tags": [
+        "creative",
+        "poem",
+        "Three-Act Structure",
+        "storytelling"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "pattern": {
+        "genre": "poem",
+        "structure": "Three-Act Structure",
+        "enhancements": [
+          "Show, don't tell - use sensory details",
+          "Include specific, concrete details",
+          "Use vivid, specific imagery"
+        ],
+        "optimal_temperature": 0.8,
+        "target_length": "medium"
+      }
+    },
+    {
+      "artifact_id": "cre-character_detective",
+      "artifact_type": "creative_pattern",
+      "title": "Creative Enhancement: character_sketch",
+      "description": "Creative writing enhancement for character_sketch genre using Three-Act Structure structure",
+      "domain": "creative_writing",
+      "problem_type": "creative",
+      "source_scenario": "character_detective",
+      "confidence": 0.9,
+      "tags": [
+        "creative",
+        "character_sketch",
+        "Three-Act Structure",
+        "storytelling"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "pattern": {
+        "genre": "character_sketch",
+        "structure": "Three-Act Structure",
+        "enhancements": [
+          "Show, don't tell - use sensory details",
+          "Include specific, concrete details",
+          "Use vivid, specific imagery"
+        ],
+        "optimal_temperature": 0.8,
+        "target_length": "medium"
+      }
+    },
+    {
+      "artifact_id": "cre-dialogue_conflict",
+      "artifact_type": "creative_pattern",
+      "title": "Creative Enhancement: dialogue",
+      "description": "Creative writing enhancement for dialogue genre using Three-Act Structure structure",
+      "domain": "creative_writing",
+      "problem_type": "creative",
+      "source_scenario": "dialogue_conflict",
+      "confidence": 0.9,
+      "tags": [
+        "creative",
+        "dialogue",
+        "Three-Act Structure",
+        "storytelling"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "pattern": {
+        "genre": "dialogue",
+        "structure": "Three-Act Structure",
+        "enhancements": [
+          "Show, don't tell - use sensory details",
+          "Include specific, concrete details",
+          "Use vivid, specific imagery"
+        ],
+        "optimal_temperature": 0.8,
+        "target_length": "medium"
+      }
+    },
+    {
+      "artifact_id": "cre-worldbuilding_dystopia",
+      "artifact_type": "creative_pattern",
+      "title": "Creative Enhancement: short_story",
+      "description": "Creative writing enhancement for short_story genre using Three-Act Structure structure",
+      "domain": "creative_writing",
+      "problem_type": "creative",
+      "source_scenario": "worldbuilding_dystopia",
+      "confidence": 0.9,
+      "tags": [
+        "creative",
+        "short_story",
+        "Three-Act Structure",
+        "storytelling"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "pattern": {
+        "genre": "short_story",
+        "structure": "Three-Act Structure",
+        "enhancements": [
+          "Show, don't tell - use sensory details",
+          "Include specific, concrete details",
+          "Use vivid, specific imagery"
+        ],
+        "optimal_temperature": 0.8,
+        "target_length": "medium"
+      }
+    },
+    {
+      "artifact_id": "decomp-decomp_microservices",
+      "artifact_type": "decomposition_strategy",
+      "title": "Decomposition Strategy: high complexity",
+      "description": "Strategy for breaking down high complexity problems",
+      "domain": "problem_solving",
+      "problem_type": "high",
+      "source_scenario": "decomp_microservices",
+      "confidence": 0.88,
+      "tags": [
+        "decomposition",
+        "high",
+        "strategy"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "strategy": {
+        "type": "hierarchical",
+        "subproblems": [
+          "service_identification",
+          "data_migration",
+          "api_gateway",
+          "testing"
+        ],
+        "effort_estimate": "2-4 weeks",
+        "approach": "hierarchical"
+      },
+      "success_rate": 0.85
+    },
+    {
+      "artifact_id": "decomp-decomp_ml_pipeline",
+      "artifact_type": "decomposition_strategy",
+      "title": "Decomposition Strategy: medium complexity",
+      "description": "Strategy for breaking down medium complexity problems",
+      "domain": "problem_solving",
+      "problem_type": "medium",
+      "source_scenario": "decomp_ml_pipeline",
+      "confidence": 0.88,
+      "tags": [
+        "decomposition",
+        "medium",
+        "strategy"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "strategy": {
+        "type": "temporal",
+        "subproblems": [
+          "data_collection",
+          "feature_engineering",
+          "model_training",
+          "deployment"
+        ],
+        "effort_estimate": "1-2 weeks",
+        "approach": "temporal"
+      },
+      "success_rate": 0.85
+    },
+    {
+      "artifact_id": "decomp-decomp_security_audit",
+      "artifact_type": "decomposition_strategy",
+      "title": "Decomposition Strategy: high complexity",
+      "description": "Strategy for breaking down high complexity problems",
+      "domain": "problem_solving",
+      "problem_type": "high",
+      "source_scenario": "decomp_security_audit",
+      "confidence": 0.88,
+      "tags": [
+        "decomposition",
+        "high",
+        "strategy"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "strategy": {
+        "type": "hierarchical",
+        "subproblems": [
+          "network_scan",
+          "code_review",
+          "config_audit",
+          "pentest"
+        ],
+        "effort_estimate": "2-4 weeks",
+        "approach": "hierarchical"
+      },
+      "success_rate": 0.85
+    },
+    {
+      "artifact_id": "decomp-decomp_product_launch",
+      "artifact_type": "decomposition_strategy",
+      "title": "Decomposition Strategy: high complexity",
+      "description": "Strategy for breaking down high complexity problems",
+      "domain": "problem_solving",
+      "problem_type": "high",
+      "source_scenario": "decomp_product_launch",
+      "confidence": 0.88,
+      "tags": [
+        "decomposition",
+        "high",
+        "strategy"
+      ],
+      "created_at": "2026-01-31T05:39:04.414036",
+      "strategy": {
+        "type": "hierarchical",
+        "subproblems": [
+          "backend_api",
+          "web_app",
+          "mobile_app",
+          "marketing_site"
+        ],
+        "effort_estimate": "2-4 weeks",
+        "approach": "hierarchical"
+      },
+      "success_rate": 0.85
+    }
+  ]
+}

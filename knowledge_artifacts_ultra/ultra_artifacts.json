@@ -1,0 +1,2043 @@
+{
+  "metadata": {
+    "generated_at": "2026-01-31T06:08:25.127953",
+    "total_artifacts": 44,
+    "taxonomy_version": "1.0",
+    "artifact_types": 60
+  },
+  "artifacts": [
+    {
+      "artifact_id": "dbe924da-be7e-42d8-805b-98f69add99a8",
+      "artifact_type": "solution_pattern",
+      "category": "solution",
+      "title": "Circuit Breaker Pattern for Microservices",
+      "description": "Prevent cascade failures by failing fast when service is unhealthy",
+      "summary": "",
+      "domain": "microservices",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "microservices",
+        "resilience",
+        "circuit_breaker"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.95,
+      "quality_score": 0.0,
+      "success_rate": 0.92,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "problem": "Service failures cascading to dependent services",
+        "solution": "Circuit breaker that opens after threshold failures",
+        "implementation": "Monitor error rate, open circuit at 50% errors, half-open after 30s",
+        "benefits": [
+          "Prevents cascade failures",
+          "Enables graceful degradation"
+        ],
+        "tradeoffs": [
+          "Adds complexity",
+          "Requires tuning"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "0758647f-b95e-42de-afbe-84a849493cef",
+      "artifact_type": "solution_pattern",
+      "category": "solution",
+      "title": "CQRS for High-Read Systems",
+      "description": "Separate read and write models for optimized query performance",
+      "summary": "",
+      "domain": "backend",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "cqrs",
+        "architecture",
+        "performance"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.88,
+      "quality_score": 0.0,
+      "success_rate": 0.85,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "problem": "Complex queries slowing down write operations",
+        "solution": "Separate command and query responsibilities",
+        "implementation": "Event sourcing for writes, materialized views for reads",
+        "when_to_use": [
+          "High read/write ratio",
+          "Complex domain models"
+        ],
+        "when_not_to_use": [
+          "Simple CRUD",
+          "Low traffic systems"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "c1ed6bf6-fc0e-4cc5-ad5b-19eb9004cb92",
+      "artifact_type": "solution_pattern",
+      "category": "solution",
+      "title": "Strangler Fig Pattern for Migration",
+      "description": "Gradually replace legacy system by intercepting and routing traffic",
+      "summary": "",
+      "domain": "migration",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "migration",
+        "legacy",
+        "refactoring"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.9,
+      "quality_score": 0.0,
+      "success_rate": 0.88,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "problem": "Need to migrate legacy system without downtime",
+        "solution": "Incrementally replace functionality behind a facade",
+        "phases": [
+          "Intercept",
+          "Route",
+          "Migrate",
+          "Decommission"
+        ],
+        "duration": "6-12 months typical"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "88d0491f-0d94-4cc0-8ede-5d7275278108",
+      "artifact_type": "code_pattern",
+      "category": "solution",
+      "title": "Repository Pattern with Unit of Work",
+      "description": "Abstract data access and manage transactions consistently",
+      "summary": "",
+      "domain": "backend",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "repository",
+        "patterns",
+        "data_access"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.92,
+      "quality_score": 0.0,
+      "success_rate": 0.9,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "pattern": "Abstract data layer between domain and persistence",
+        "benefits": [
+          "Testability",
+          "Swap implementations",
+          "Centralized query logic"
+        ],
+        "example_languages": [
+          "Python",
+          "Java",
+          "C#"
+        ],
+        "code_structure": {
+          "repository": "Interface for entity operations",
+          "unit_of_work": "Transaction boundary management",
+          "specification": "Query criteria encapsulation"
+        }
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "ac95b79e-57a8-40cf-9a9f-1f6ddf8f2a4d",
+      "artifact_type": "code_pattern",
+      "category": "solution",
+      "title": "Async/Await with Proper Error Handling",
+      "description": "Robust asynchronous programming patterns",
+      "summary": "",
+      "domain": "backend",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "async",
+        "concurrency",
+        "error_handling"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.94,
+      "quality_score": 0.0,
+      "success_rate": 0.91,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "pattern": "Structured async execution with error boundaries",
+        "key_principles": [
+          "Always await tasks",
+          "Use try/catch/finally",
+          "Implement cancellation tokens",
+          "Handle timeouts explicitly"
+        ],
+        "anti_patterns_to_avoid": [
+          "async void",
+          "Fire and forget without tracking",
+          "Mixing sync and async code"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "8d5164a7-8c2a-4352-9004-f7e18b734a8b",
+      "artifact_type": "architecture_pattern",
+      "category": "solution",
+      "title": "Event-Driven Architecture with Saga Pattern",
+      "description": "Distributed transactions across microservices",
+      "summary": "",
+      "domain": "distributed_systems",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "saga",
+        "event_driven",
+        "distributed_transactions"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.87,
+      "quality_score": 0.0,
+      "success_rate": 0.84,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "pattern": "Sequence of local transactions coordinated by events",
+        "saga_types": {
+          "choreography": "Services react to each other's events",
+          "orchestration": "Central coordinator manages flow"
+        },
+        "compensation": "Rollback operations for each step",
+        "use_cases": [
+          "Order processing",
+          "Payment workflows",
+          "Booking systems"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "02026b45-1194-4721-a4dc-f554dc0404c1",
+      "artifact_type": "architecture_pattern",
+      "category": "solution",
+      "title": "Hexagonal Architecture (Ports & Adapters)",
+      "description": "Isolate domain logic from external concerns",
+      "summary": "",
+      "domain": "architecture",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "hexagonal",
+        "architecture",
+        "clean_code"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.89,
+      "quality_score": 0.0,
+      "success_rate": 0.86,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "structure": {
+          "domain": "Core business logic",
+          "ports": "Interfaces for external interaction",
+          "adapters": "Implementations of external interfaces"
+        },
+        "benefits": [
+          "Testability without external dependencies",
+          "Swap infrastructure easily",
+          "Clear separation of concerns"
+        ],
+        "folder_structure": [
+          "domain/",
+          "application/ports/",
+          "infrastructure/adapters/"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "95e6922c-3d90-4b7d-afa8-12927db52202",
+      "artifact_type": "integration_pattern",
+      "category": "solution",
+      "title": "API Gateway with BFF Pattern",
+      "description": "Backend-for-Frontend pattern with unified API gateway",
+      "summary": "",
+      "domain": "api_design",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "api_gateway",
+        "bff",
+        "integration"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.91,
+      "quality_score": 0.0,
+      "success_rate": 0.89,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "pattern": "Separate API layer optimized per client type",
+        "client_types": [
+          "web",
+          "mobile",
+          "desktop",
+          "third_party"
+        ],
+        "gateway_responsibilities": [
+          "Authentication",
+          "Rate limiting",
+          "Request routing",
+          "Protocol translation"
+        ],
+        "benefits": [
+          "Optimized payloads",
+          "Single entry point",
+          "Cross-cutting concerns"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "edfbdfc4-106e-4710-8bd8-d166fe76dc24",
+      "artifact_type": "deployment_pattern",
+      "category": "solution",
+      "title": "Blue-Green Deployment with Automated Rollback",
+      "description": "Zero-downtime deployment with instant rollback capability",
+      "summary": "",
+      "domain": "devops",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "deployment",
+        "blue_green",
+        "zero_downtime"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.93,
+      "quality_score": 0.0,
+      "success_rate": 0.91,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "setup": "Two identical production environments (blue, green)",
+        "deployment_flow": [
+          "Deploy to inactive environment",
+          "Run smoke tests",
+          "Switch traffic router",
+          "Monitor for errors",
+          "Keep old version warm for 1 hour"
+        ],
+        "rollback_trigger": "Error rate > 1% or latency > 200% baseline"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "538e0dbb-ce49-46db-b17e-387872199736",
+      "artifact_type": "scaling_pattern",
+      "category": "solution",
+      "title": "Auto-scaling with Predictive Scaling",
+      "description": "Combine reactive and predictive scaling for optimal cost/performance",
+      "summary": "",
+      "domain": "infrastructure",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "scaling",
+        "auto_scaling",
+        "infrastructure"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.88,
+      "quality_score": 0.0,
+      "success_rate": 0.85,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "reactive_scaling": "Scale based on current metrics (CPU, memory, requests)",
+        "predictive_scaling": "ML-based prediction of load patterns",
+        "metrics": [
+          "CPU utilization",
+          "Request queue depth",
+          "Response latency"
+        ],
+        "cooldown_periods": {
+          "scale_up": "60 seconds",
+          "scale_down": "300 seconds"
+        }
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "15ba0740-2339-4ac1-8424-f38444ee7a96",
+      "artifact_type": "migration_pattern",
+      "category": "solution",
+      "title": "Database Migration with Dual-Write Strategy",
+      "description": "Migrate data while maintaining consistency across old and new systems",
+      "summary": "",
+      "domain": "database",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "migration",
+        "database",
+        "dual_write"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.9,
+      "quality_score": 0.0,
+      "success_rate": 0.87,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "phases": [
+          "Phase 1: Write to old, read from old",
+          "Phase 2: Write to both, read from old",
+          "Phase 3: Write to both, read from new",
+          "Phase 4: Write to new, read from new"
+        ],
+        "validation": "Compare reads from both systems",
+        "duration_per_phase": "1-2 weeks minimum"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "0d6a9df5-db5a-4f22-b38c-233093fa1879",
+      "artifact_type": "recovery_pattern",
+      "category": "solution",
+      "title": "Multi-Region Disaster Recovery with RPO < 1min",
+      "description": "Active-passive DR with near-real-time data replication",
+      "summary": "",
+      "domain": "disaster_recovery",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "disaster_recovery",
+        "multi_region",
+        "high_availability"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.86,
+      "quality_score": 0.0,
+      "success_rate": 0.83,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "rpo": "< 1 minute (data loss tolerance)",
+        "rto": "< 15 minutes (recovery time)",
+        "replication": "Synchronous within region, async cross-region",
+        "failover_trigger": "Automated based on health checks",
+        "testing": "Chaos engineering monthly"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "e200cc31-1091-4d29-96ae-71209ec2f788",
+      "artifact_type": "anti_pattern",
+      "category": "anti_pattern",
+      "title": "God Object / God Class",
+      "description": "Single class knows too much and does too much",
+      "summary": "",
+      "domain": "software_design",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "anti_pattern",
+        "god_object",
+        "design"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.96,
+      "quality_score": 0.0,
+      "success_rate": 1.0,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "symptoms": [
+          "Class > 1000 lines",
+          "Dozens of methods",
+          "Accesses multiple database tables",
+          "Hard to unit test"
+        ],
+        "consequences": [
+          "Tight coupling",
+          "Low cohesion",
+          "Difficult to modify",
+          "Merge conflicts"
+        ],
+        "refactoring": [
+          "Extract classes by responsibility",
+          "Apply Single Responsibility Principle",
+          "Introduce facades for coordination"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "2fe94043-9ab6-4998-9a0f-d42878bb2c6a",
+      "artifact_type": "security_anti_pattern",
+      "category": "anti_pattern",
+      "title": "Storing Passwords in Plain Text",
+      "description": "Never store passwords in recoverable format",
+      "summary": "",
+      "domain": "security",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "security",
+        "passwords",
+        "critical"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 1.0,
+      "quality_score": 0.0,
+      "success_rate": 1.0,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "severity": "CRITICAL",
+        "violation": "OWASP Top 10 - A07:2021",
+        "consequences": [
+          "Complete account compromise on breach",
+          "Regulatory violations (GDPR, SOC2)",
+          "Reputational damage"
+        ],
+        "correct_approach": "Hash with bcrypt/Argon2 + salt, never store plaintext",
+        "detection": "Code review for password fields, database scanning"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "c490c0d3-903a-4d8b-828a-8a00d369488f",
+      "artifact_type": "security_anti_pattern",
+      "category": "anti_pattern",
+      "title": "SQL Injection Vulnerabilities",
+      "description": "Concatenating user input into SQL queries",
+      "summary": "",
+      "domain": "security",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "security",
+        "sql_injection",
+        "owasp"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 1.0,
+      "quality_score": 0.0,
+      "success_rate": 1.0,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "severity": "CRITICAL",
+        "example_bad": "query = 'SELECT * FROM users WHERE id = ' + user_input",
+        "example_good": "query = 'SELECT * FROM users WHERE id = ?' with parameterized query",
+        "exploitation": "Data exfiltration, data destruction, authentication bypass",
+        "prevention": [
+          "Use parameterized queries",
+          "ORM with proper escaping",
+          "Input validation",
+          "WAF rules"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "f4be21ee-8bbc-4752-83a3-04ab8b6ed1b7",
+      "artifact_type": "performance_anti_pattern",
+      "category": "anti_pattern",
+      "title": "N+1 Query Problem in ORMs",
+      "description": "Loading related data with individual queries instead of joins",
+      "summary": "",
+      "domain": "performance",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "performance",
+        "n_plus_1",
+        "databases"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.95,
+      "quality_score": 0.0,
+      "success_rate": 0.98,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "symptoms": [
+          "100+ queries for single page load",
+          "Query time increases with data size",
+          "ORM lazy loading in loops"
+        ],
+        "impact": "10-100x slower than necessary",
+        "solutions": [
+          "Eager loading (select_related, prefetch_related)",
+          "DataLoader pattern for GraphQL",
+          "Denormalization for read-heavy data"
+        ],
+        "detection": "Query logging, performance profiling"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "7811cdf4-2a3b-43db-bb1b-638ac897cde6",
+      "artifact_type": "design_anti_pattern",
+      "category": "anti_pattern",
+      "title": "Premature Abstraction",
+      "description": "Creating abstractions before understanding the problem",
+      "summary": "",
+      "domain": "software_design",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "design",
+        "abstraction",
+        "yagni"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.9,
+      "quality_score": 0.0,
+      "success_rate": 0.85,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "symptoms": [
+          "Abstract base classes with single implementation",
+          "Complex inheritance hierarchies",
+          "Generic interfaces that only fit one use case"
+        ],
+        "consequences": [
+          "Harder to understand",
+          "More code to maintain",
+          "Wrong abstractions hard to change"
+        ],
+        "guideline": "Rule of Three - abstract only on third similar case",
+        "better_approach": "Start concrete, refactor to abstraction when pattern emerges"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "c9f8e71b-f68a-49cd-9794-ba6b72f80c89",
+      "artifact_type": "operational_anti_pattern",
+      "category": "anti_pattern",
+      "title": "Manual Deployment Procedures",
+      "description": "Relying on manual steps for production deployments",
+      "summary": "",
+      "domain": "devops",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "devops",
+        "deployment",
+        "automation"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.92,
+      "quality_score": 0.0,
+      "success_rate": 0.9,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "risks": [
+          "Human error",
+          "Inconsistent environments",
+          "No audit trail",
+          "Cannot rollback quickly"
+        ],
+        "incidents": "70% of outages caused by deployment changes",
+        "solution": "Fully automated CI/CD with automated tests",
+        "metrics": [
+          "Deployment frequency",
+          "Lead time for changes",
+          "Change failure rate",
+          "Mean time to recovery"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.125951",
+      "updated_at": "2026-01-31T06:08:25.125951"
+    },
+    {
+      "artifact_id": "7bc3a02a-0a41-437e-bed8-eff5c6c79af6",
+      "artifact_type": "decomposition_strategy",
+      "category": "process",
+      "title": "Domain-Driven Decomposition by Bounded Context",
+      "description": "Decompose monoliths using DDD bounded contexts",
+      "summary": "",
+      "domain": "microservices",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "decomposition",
+        "ddd",
+        "microservices"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.91,
+      "quality_score": 0.0,
+      "success_rate": 0.88,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "approach": "Identify bounded contexts, extract one at a time",
+        "steps": [
+          "1. Domain analysis with domain experts",
+          "2. Identify bounded contexts and aggregates",
+          "3. Map context relationships",
+          "4. Extract lowest-coupling context first",
+          "5. Implement anti-corruption layer",
+          "6. Gradually migrate data and traffic"
+        ],
+        "complexity": "High",
+        "timeline": "6-18 months for full migration"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "141826ad-e284-4f55-aac9-6a90931774b3",
+      "artifact_type": "decision_framework",
+      "category": "process",
+      "title": "Technology Selection Decision Matrix",
+      "description": "Structured approach to choosing technologies",
+      "summary": "",
+      "domain": "architecture",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "decision",
+        "technology",
+        "selection"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.88,
+      "quality_score": 0.0,
+      "success_rate": 0.85,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "criteria": {
+          "technical": [
+            "Performance",
+            "Scalability",
+            "Security",
+            "Maintainability"
+          ],
+          "business": [
+            "Cost",
+            "Time to market",
+            "Vendor lock-in",
+            "Talent availability"
+          ],
+          "operational": [
+            "Monitoring",
+            "Debugging",
+            "Deployment complexity"
+          ]
+        },
+        "process": [
+          "1. Define must-have vs nice-to-have",
+          "2. Weight criteria by importance",
+          "3. Score each option (1-5)",
+          "4. Calculate weighted scores",
+          "5. Sensitivity analysis",
+          "6. Document rationale"
+        ],
+        "stakeholders": [
+          "Engineering",
+          "Product",
+          "Security",
+          "Operations"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "fa9b8137-84c3-4d09-81ef-d721a50f10e8",
+      "artifact_type": "workflow_template",
+      "category": "process",
+      "title": "Incident Response Workflow (SEV 1)",
+      "description": "Critical incident response procedure",
+      "summary": "",
+      "domain": "operations",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "incident",
+        "workflow",
+        "operations"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.93,
+      "quality_score": 0.0,
+      "success_rate": 0.91,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "severity_levels": {
+          "SEV1": "Complete outage, revenue impact",
+          "SEV2": "Major functionality degraded",
+          "SEV3": "Minor issue, workaround exists"
+        },
+        "steps": [
+          {
+            "time": "0 min",
+            "action": "Alert on-call engineer"
+          },
+          {
+            "time": "5 min",
+            "action": "Acknowledge and assess severity"
+          },
+          {
+            "time": "10 min",
+            "action": "Create war room (Zoom/Slack)"
+          },
+          {
+            "time": "15 min",
+            "action": "Initial communication to stakeholders"
+          },
+          {
+            "time": "30 min",
+            "action": "Status update every 30 min"
+          },
+          {
+            "time": "Resolution",
+            "action": "Post-mortem within 24 hours"
+          }
+        ],
+        "roles": [
+          "Incident Commander",
+          "Communications Lead",
+          "Technical Lead"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "d5c40f68-5817-491e-9221-236e6c648519",
+      "artifact_type": "communication_template",
+      "category": "process",
+      "title": "Architecture Decision Record (ADR) Template",
+      "description": "Document significant architectural decisions",
+      "summary": "",
+      "domain": "documentation",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "documentation",
+        "adr",
+        "architecture"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.9,
+      "quality_score": 0.0,
+      "success_rate": 0.88,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "template": {
+          "title": "[YYYY-MM-DD] Decision Title",
+          "status": "Proposed | Accepted | Deprecated | Superseded",
+          "context": "What is the issue that we're seeing?",
+          "decision": "What is the decision that was made?",
+          "consequences": {
+            "positive": "What becomes easier?",
+            "negative": "What becomes more difficult?",
+            "neutral": "What remains the same?"
+          },
+          "alternatives": "What other options were considered?",
+          "references": "Related documents"
+        },
+        "when_to_use": "Any decision with significant tradeoffs"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "958ada28-2eca-41f2-a733-1c100af12c9e",
+      "artifact_type": "collaboration_pattern",
+      "category": "process",
+      "title": "Pair Programming with Driver-Navigator Rotation",
+      "description": "Effective pair programming practices",
+      "summary": "",
+      "domain": "engineering_practices",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "collaboration",
+        "pair_programming",
+        "agile"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.87,
+      "quality_score": 0.0,
+      "success_rate": 0.84,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "roles": {
+          "driver": "Writes code, thinks tactically",
+          "navigator": "Reviews code, thinks strategically"
+        },
+        "rotation": "Switch every 25 minutes (Pomodoro)",
+        "best_practices": [
+          "Explain out loud what you're doing",
+          "Ask questions rather than dictate",
+          "Take breaks together",
+          "Share keyboard frequently"
+        ],
+        "when_effective": [
+          "Complex problem solving",
+          "Knowledge transfer",
+          "Code review alternative",
+          "Onboarding"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "421e17e6-5a17-4204-a427-229802c626d6",
+      "artifact_type": "facilitation_guide",
+      "category": "process",
+      "title": "Sprint Retrospective Facilitation",
+      "description": "Run effective retrospective meetings",
+      "summary": "",
+      "domain": "agile",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "facilitation",
+        "retrospective",
+        "agile"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.89,
+      "quality_score": 0.0,
+      "success_rate": 0.86,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "format": "Start-Stop-Continue or 4Ls (Liked, Learned, Lacked, Longed for)",
+        "timebox": "60 minutes for 2-week sprint",
+        "phases": [
+          {
+            "phase": "Set the stage",
+            "duration": "5 min",
+            "activity": "Ice breaker"
+          },
+          {
+            "phase": "Gather data",
+            "duration": "15 min",
+            "activity": "Collect feedback on stickies"
+          },
+          {
+            "phase": "Generate insights",
+            "duration": "15 min",
+            "activity": "Group and dot vote"
+          },
+          {
+            "phase": "Decide actions",
+            "duration": "20 min",
+            "activity": "Pick top 3, assign owners"
+          },
+          {
+            "phase": "Close",
+            "duration": "5 min",
+            "activity": "Feedback on retro itself"
+          }
+        ],
+        "principles": [
+          "Safe environment",
+          "Focus on system not individuals",
+          "Actionable outcomes"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "3a040f9c-1830-4bdd-a113-f1b93061bcbc",
+      "artifact_type": "domain_knowledge",
+      "category": "domain",
+      "title": "PCI DSS Compliance Requirements for Payment Processing",
+      "description": "Key requirements for handling cardholder data",
+      "summary": "",
+      "domain": "fintech",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "pci_dss",
+        "compliance",
+        "payments"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.94,
+      "quality_score": 0.0,
+      "success_rate": 0.92,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "requirements": [
+          "Encrypt transmission of cardholder data",
+          "Maintain secure systems and applications",
+          "Restrict access to cardholder data",
+          "Regularly monitor and test networks"
+        ],
+        "scope": "Any system that stores, processes, or transmits cardholder data",
+        "levels": [
+          "Level 1: >6M transactions/year",
+          "Level 2: 1-6M",
+          "Level 3: 20K-1M",
+          "Level 4: <20K"
+        ],
+        "validation": [
+          "SAQ (Self Assessment)",
+          "QSA (Qualified Security Assessor)"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "18679b22-fa25-45b6-bfdb-b1f98b00a039",
+      "artifact_type": "regulatory_guidance",
+      "category": "domain",
+      "title": "GDPR Data Subject Rights Implementation",
+      "description": "Technical implementation of GDPR rights",
+      "summary": "",
+      "domain": "compliance",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "gdpr",
+        "privacy",
+        "compliance"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.91,
+      "quality_score": 0.0,
+      "success_rate": 0.89,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "rights": {
+          "access": "Provide copy of all personal data within 30 days",
+          "rectification": "Allow users to correct inaccurate data",
+          "erasure": "Right to be forgotten - delete all user data",
+          "portability": "Export data in machine-readable format",
+          "objection": "Stop processing for marketing purposes"
+        },
+        "technical_measures": [
+          "Data inventory and mapping",
+          "Automated data export",
+          "Cascading delete functionality",
+          "Audit logging for all access"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "0b2f9f19-0153-4237-b974-13b79478deeb",
+      "artifact_type": "technology_guide",
+      "category": "domain",
+      "title": "GraphQL vs REST API Design Tradeoffs",
+      "description": "When to use GraphQL vs REST for API design",
+      "summary": "",
+      "domain": "api_design",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "graphql",
+        "rest",
+        "api"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.89,
+      "quality_score": 0.0,
+      "success_rate": 0.87,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "graphql_best_for": [
+          "Mobile apps with varying data needs",
+          "Complex data relationships",
+          "Rapidly evolving frontends",
+          "Aggregate multiple data sources"
+        ],
+        "rest_best_for": [
+          "Simple CRUD operations",
+          "File uploads/downloads",
+          "Caching at CDN level",
+          "Public APIs with wide adoption"
+        ],
+        "hybrid_approach": "REST for simple resources, GraphQL for complex queries"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "6c2226ef-a0b4-4045-b69e-193b52b0357b",
+      "artifact_type": "performance_benchmark",
+      "category": "performance",
+      "title": "API Latency Benchmarks by Endpoint Type",
+      "description": "Expected latency ranges for different API patterns",
+      "summary": "",
+      "domain": "performance",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "performance",
+        "latency",
+        "benchmarks"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.88,
+      "quality_score": 0.0,
+      "success_rate": 0.85,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "p50_targets": {
+          "simple_read": "< 50ms",
+          "complex_query": "< 200ms",
+          "write_operation": "< 100ms",
+          "batch_operation": "< 500ms",
+          "aggregation": "< 1000ms"
+        },
+        "p99_targets": {
+          "simple_read": "< 200ms",
+          "complex_query": "< 1000ms",
+          "write_operation": "< 500ms"
+        },
+        "measurement": "From edge to origin, including TLS handshake"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "4b41e7e1-7457-4476-8885-2b41085ac613",
+      "artifact_type": "optimization_record",
+      "category": "performance",
+      "title": "Database Query Optimization Case Study",
+      "description": "Reducing query time from 2s to 50ms",
+      "summary": "",
+      "domain": "database",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "optimization",
+        "database",
+        "case_study"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.95,
+      "quality_score": 0.0,
+      "success_rate": 0.93,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "before": {
+          "query_time": "2000ms",
+          "issues": [
+            "Missing index",
+            "N+1 queries",
+            "Selecting too many columns"
+          ]
+        },
+        "after": {
+          "query_time": "50ms",
+          "improvements": [
+            "Added composite index",
+            "Eager loading",
+            "SELECT specific columns"
+          ]
+        },
+        "impact": "40x improvement, reduced database CPU by 70%"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "8cf427de-e492-4acc-8c24-a2797c48b74c",
+      "artifact_type": "cost_optimization",
+      "category": "performance",
+      "title": "Cloud Cost Reduction Strategies",
+      "description": "Systematic approaches to reduce cloud spend",
+      "summary": "",
+      "domain": "cloud",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "cost",
+        "optimization",
+        "cloud"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.9,
+      "quality_score": 0.0,
+      "success_rate": 0.88,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "quick_wins": [
+          "Right-size overprovisioned instances",
+          "Use Reserved Instances for steady-state",
+          "Enable Spot instances for batch jobs",
+          "Delete unused resources"
+        ],
+        "architectural": [
+          "Serverless for variable workloads",
+          "CDN for static assets",
+          "Data lifecycle policies",
+          "Multi-cloud for price arbitrage"
+        ],
+        "typical_savings": "30-40% of cloud bill"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "5bf701d4-ee3c-4ef1-97c4-f466d7028c8c",
+      "artifact_type": "team_performance_data",
+      "category": "team",
+      "title": "High-Performing Team Characteristics",
+      "description": "Traits of effective engineering teams",
+      "summary": "",
+      "domain": "team_dynamics",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "team",
+        "performance",
+        "culture"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.92,
+      "quality_score": 0.0,
+      "success_rate": 0.9,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "key_traits": [
+          "Psychological safety - members take risks without fear",
+          "Dependability - members complete quality work on time",
+          "Structure and clarity - clear goals and roles",
+          "Meaning - work is personally important",
+          "Impact - work matters and creates change"
+        ],
+        "metrics": {
+          "deployment_frequency": "Multiple times per day",
+          "lead_time": "Less than 1 hour",
+          "change_failure_rate": "Less than 5%",
+          "mttr": "Less than 1 hour"
+        }
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "2fce3ad2-e0de-41be-96f3-fc0d424f72b7",
+      "artifact_type": "skill_matrix",
+      "category": "team",
+      "title": "Backend Engineer Skill Progression",
+      "description": "Skills expected at each level",
+      "summary": "",
+      "domain": "career_development",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "skills",
+        "career",
+        "engineering"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.87,
+      "quality_score": 0.0,
+      "success_rate": 0.85,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "junior": [
+          "Language basics",
+          "Git workflow",
+          "Testing fundamentals",
+          "Code reviews"
+        ],
+        "mid": [
+          "System design",
+          "Database optimization",
+          "Mentoring juniors",
+          "Cross-team collaboration"
+        ],
+        "senior": [
+          "Architecture decisions",
+          "Technical strategy",
+          "Org-wide impact",
+          "Complex debugging"
+        ],
+        "staff": [
+          "Multi-system architecture",
+          "Industry expertise",
+          "Technical leadership",
+          "Innovation"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "9797b701-3533-4cd1-b606-4c3d4bd1510d",
+      "artifact_type": "api_design_pattern",
+      "category": "system",
+      "title": "REST API Design Best Practices",
+      "description": "Guidelines for designing intuitive REST APIs",
+      "summary": "",
+      "domain": "api_design",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "api",
+        "rest",
+        "design"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.93,
+      "quality_score": 0.0,
+      "success_rate": 0.91,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "naming": "Use nouns for resources, plural form (e.g., /users not /user)",
+        "http_methods": {
+          "GET": "Read, idempotent, cacheable",
+          "POST": "Create new resource",
+          "PUT": "Full update, idempotent",
+          "PATCH": "Partial update",
+          "DELETE": "Remove resource"
+        },
+        "status_codes": "Use appropriate HTTP status codes",
+        "versioning": "Include version in URL (/v1/users) or header"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "99a086ba-d150-4493-a8ae-3324bae6681e",
+      "artifact_type": "data_model",
+      "category": "system",
+      "title": "Event Sourcing Data Model",
+      "description": "Store state as sequence of events",
+      "summary": "",
+      "domain": "data_modeling",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "event_sourcing",
+        "data_model",
+        "architecture"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.88,
+      "quality_score": 0.0,
+      "success_rate": 0.85,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "structure": {
+          "event_id": "UUID",
+          "aggregate_id": "Entity identifier",
+          "event_type": "Type of change",
+          "payload": "Event data",
+          "timestamp": "When event occurred",
+          "version": "Event sequence number"
+        },
+        "benefits": [
+          "Complete audit trail",
+          "Temporal queries",
+          "Easy to add read models"
+        ],
+        "challenges": [
+          "Event schema evolution",
+          "Snapshot management",
+          "Storage growth"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "bebf16ef-db74-4ec2-8ee7-91c46067e6f5",
+      "artifact_type": "testing_strategy",
+      "category": "quality",
+      "title": "Testing Pyramid Implementation",
+      "description": "Balanced test coverage across levels",
+      "summary": "",
+      "domain": "testing",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "testing",
+        "pyramid",
+        "quality"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.91,
+      "quality_score": 0.0,
+      "success_rate": 0.89,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "distribution": {
+          "unit_tests": "70% - Fast, isolated, cheap",
+          "integration_tests": "20% - Component interactions",
+          "e2e_tests": "10% - Critical user journeys"
+        },
+        "guidelines": [
+          "Unit tests: < 10ms each, run on every commit",
+          "Integration: < 1s each, run in CI",
+          "E2E: < 1min each, run before deploy"
+        ],
+        "coverage_target": "80% line coverage minimum"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "2c7c5b2c-6ca8-4623-9f1f-1872e159af7c",
+      "artifact_type": "review_checklist",
+      "category": "quality",
+      "title": "Code Review Checklist",
+      "description": "Standard items to check in code reviews",
+      "summary": "",
+      "domain": "code_review",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "code_review",
+        "checklist",
+        "quality"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.9,
+      "quality_score": 0.0,
+      "success_rate": 0.88,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "functionality": [
+          "Works as intended",
+          "Handles edge cases",
+          "Error handling"
+        ],
+        "readability": [
+          "Clear naming",
+          "Appropriate comments",
+          "Consistent style"
+        ],
+        "testing": [
+          "Unit tests included",
+          "Edge cases covered",
+          "Integration tests if needed"
+        ],
+        "security": [
+          "No injection vulnerabilities",
+          "Proper auth checks",
+          "Sensitive data handling"
+        ],
+        "performance": [
+          "No N+1 queries",
+          "Efficient algorithms",
+          "Resource cleanup"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "2112c89c-a9da-49af-9c24-4326d873797f",
+      "artifact_type": "learning_path",
+      "category": "learning",
+      "title": "Backend Engineer to System Architect",
+      "description": "Progression path from coding to architecture",
+      "summary": "",
+      "domain": "career_development",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "learning",
+        "career",
+        "architecture"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.86,
+      "quality_score": 0.0,
+      "success_rate": 0.84,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "phases": [
+          {
+            "level": "Coder",
+            "focus": "Write clean, working code",
+            "duration": "0-2 years"
+          },
+          {
+            "level": "Module Owner",
+            "focus": "Own service/component",
+            "duration": "2-4 years"
+          },
+          {
+            "level": "System Designer",
+            "focus": "Design multi-service systems",
+            "duration": "4-6 years"
+          },
+          {
+            "level": "Architect",
+            "focus": "Org-wide technical strategy",
+            "duration": "6+ years"
+          }
+        ],
+        "key_skills": [
+          "Distributed systems",
+          "Tradeoff analysis",
+          "Communication",
+          "Mentoring"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "ad13e1b3-140f-470f-835e-663b7d234650",
+      "artifact_type": "explanation_pattern",
+      "category": "learning",
+      "title": "Feynman Technique for Technical Concepts",
+      "description": "Explain complex topics simply",
+      "summary": "",
+      "domain": "education",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "learning",
+        "explanation",
+        "teaching"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.89,
+      "quality_score": 0.0,
+      "success_rate": 0.87,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "steps": [
+          "1. Choose concept to explain",
+          "2. Teach it to a child (simple language)",
+          "3. Identify gaps in understanding",
+          "4. Review and simplify",
+          "5. Use analogies and diagrams"
+        ],
+        "indicators_of_understanding": [
+          "Can explain without jargon",
+          "Can use analogies",
+          "Can answer 'why' questions",
+          "Can teach others"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "b98f12b8-bd3e-459f-b347-ff628e01a2b3",
+      "artifact_type": "incident_response_playbook",
+      "category": "operational",
+      "title": "Database Outage Response Playbook",
+      "description": "Steps for handling database failures",
+      "summary": "",
+      "domain": "operations",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "incident",
+        "database",
+        "operations"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.92,
+      "quality_score": 0.0,
+      "success_rate": 0.9,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "detection": [
+          "Monitoring alerts",
+          "Error rate spike",
+          "Latency increase"
+        ],
+        "immediate_actions": [
+          "1. Page on-call DBA",
+          "2. Check replica lag",
+          "3. Assess if failover needed",
+          "4. Notify stakeholders"
+        ],
+        "mitigation": [
+          "Failover to replica",
+          "Enable read-only mode",
+          "Enable caching"
+        ],
+        "communication": "Status page update every 15 minutes"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "a06f3246-e629-4efb-807b-3f048d48f01d",
+      "artifact_type": "troubleshooting_guide",
+      "category": "operational",
+      "title": "High Memory Usage Diagnosis",
+      "description": "Systematic approach to memory issues",
+      "summary": "",
+      "domain": "troubleshooting",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "troubleshooting",
+        "memory",
+        "debugging"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.9,
+      "quality_score": 0.0,
+      "success_rate": 0.88,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "diagnosis_steps": [
+          "1. Identify process with high memory",
+          "2. Check for memory leaks (growing over time)",
+          "3. Analyze heap dumps",
+          "4. Review recent code changes",
+          "5. Check for large object allocations"
+        ],
+        "common_causes": [
+          "Memory leaks (unclosed connections)",
+          "Large data structures in memory",
+          "Caching without eviction",
+          "Session state accumulation"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "5b0f298d-da58-45e2-a554-174c60addb08",
+      "artifact_type": "rollback_procedure",
+      "category": "operational",
+      "title": "Database Migration Rollback",
+      "description": "Safe rollback of failed migrations",
+      "summary": "",
+      "domain": "database",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "rollback",
+        "database",
+        "migration"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.91,
+      "quality_score": 0.0,
+      "success_rate": 0.89,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "when_to_rollback": [
+          "Migration fails mid-way",
+          "Application errors after migration",
+          "Performance degradation"
+        ],
+        "steps": [
+          "1. Stop application writes",
+          "2. Restore from pre-migration backup",
+          "3. Verify data consistency",
+          "4. Restart application",
+          "5. Verify functionality"
+        ],
+        "prevention": "Always test migrations on copy of production data"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "4a23deb3-0baf-4aba-94b0-67d5ba976b46",
+      "artifact_type": "creative_pattern",
+      "category": "solution",
+      "title": "Technical Storytelling Framework",
+      "description": "Make technical content engaging",
+      "summary": "",
+      "domain": "communication",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "creative",
+        "storytelling",
+        "communication"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.85,
+      "quality_score": 0.0,
+      "success_rate": 0.82,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "structure": [
+          "Hook: Start with problem or surprising fact",
+          "Context: Why does this matter?",
+          "Journey: The exploration process",
+          "Climax: Key insight or breakthrough",
+          "Resolution: Outcome and lessons"
+        ],
+        "techniques": [
+          "Use analogies",
+          "Show don't tell",
+          "Include human elements",
+          "Use visuals"
+        ]
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "756e1429-e6bf-41f1-99ae-c12b68c94ce5",
+      "artifact_type": "prompt_pattern",
+      "category": "solution",
+      "title": "Chain-of-Thought Prompting",
+      "description": "Guide LLMs through step-by-step reasoning",
+      "summary": "",
+      "domain": "llm",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "llm",
+        "prompting",
+        "ai"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.88,
+      "quality_score": 0.0,
+      "success_rate": 0.86,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "pattern": "Ask model to show its reasoning before giving answer",
+        "template": "Solve this step by step:\n1. First, identify...\n2. Then, calculate...\n3. Finally, conclude...",
+        "use_cases": [
+          "Complex math problems",
+          "Multi-step logic",
+          "Debugging code",
+          "Decision analysis"
+        ],
+        "effectiveness": "30-50% improvement on reasoning tasks"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    },
+    {
+      "artifact_id": "d9f7eed8-7462-46af-bc13-8e38c8f9f780",
+      "artifact_type": "risk_pattern",
+      "category": "solution",
+      "title": "Technical Risk Assessment Matrix",
+      "description": "Evaluate and prioritize technical risks",
+      "summary": "",
+      "domain": "risk_management",
+      "subdomain": "",
+      "problem_types": [],
+      "tags": [
+        "risk",
+        "assessment",
+        "management"
+      ],
+      "keywords": [],
+      "source_type": "extraction",
+      "source_id": "",
+      "author": "system",
+      "confidence": 0.87,
+      "quality_score": 0.0,
+      "success_rate": 0.85,
+      "usage_count": 0,
+      "version": 1,
+      "status": "approved",
+      "content": {
+        "dimensions": {
+          "impact": [
+            "Low",
+            "Medium",
+            "High",
+            "Critical"
+          ],
+          "probability": [
+            "Unlikely",
+            "Possible",
+            "Likely",
+            "Almost certain"
+          ]
+        },
+        "mitigation_strategies": {
+          "avoid": "Eliminate the risk source",
+          "transfer": "Insurance or third-party assumption",
+          "mitigate": "Reduce probability or impact",
+          "accept": "Acknowledge and monitor"
+        },
+        "review_frequency": "Monthly for active projects"
+      },
+      "related_artifacts": [],
+      "created_at": "2026-01-31T06:08:25.126943",
+      "updated_at": "2026-01-31T06:08:25.126943"
+    }
+  ]
+}

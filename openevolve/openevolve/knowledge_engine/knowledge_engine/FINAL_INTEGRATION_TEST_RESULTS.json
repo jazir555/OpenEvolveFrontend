@@ -1,0 +1,98 @@
+{
+  "timestamp": "2026-01-09T07:05:11.092075+00:00",
+  "scenarios": {
+    "basic_workflow": {
+      "status": "passed",
+      "steps": [
+        "Import successful",
+        "Engine creation successful",
+        "Extraction: 9 entities, 8 relationships",
+        "Entities added to KG",
+        "Query returned 1 results",
+        "Persistence successful"
+      ],
+      "errors": [],
+      "performance": {
+        "import_time": 9.623965,
+        "engine_init_time": 0.0,
+        "extraction_time": 0.0,
+        "kg_add_time": 0.0,
+        "query_time": 0.0,
+        "persistence_time": 0.0
+      },
+      "summary": {
+        "entities_extracted": 9,
+        "relationships_extracted": 8,
+        "entities_stored": 3,
+        "query_results": 1
+      }
+    },
+    "visualization": {
+      "status": "passed",
+      "steps": [
+        "Import successful",
+        "Test data: 5 entities, 5 triples",
+        "Visualizer initialized",
+        "Visualization: 5 nodes, 5 edges",
+        "Output file: 8645 bytes",
+        "Content check: D3.js library OK",
+        "Content check: Graph data OK",
+        "Content check: HTML structure OK",
+        "Content check: Force simulation OK",
+        "Statistics verified"
+      ],
+      "errors": [],
+      "performance": {
+        "import_time": 0.0,
+        "visualizer_init_time": 0.001,
+        "visualization_time": 0.005992
+      },
+      "summary": {
+        "output_path": "knowledge_engine\\test_output\\test_graph.html",
+        "file_size": 8645,
+        "node_count": 5,
+        "edge_count": 5,
+        "community_count": 2,
+        "statistics": {
+          "communities": 2,
+          "avg_community_size": 2.5,
+          "max_centrality": 0.6807346092820312,
+          "graph_density": 0.5,
+          "is_connected": true
+        }
+      }
+    },
+    "cross_sprint": {
+      "status": "passed",
+      "steps": [
+        "KG-Gen pipeline initialized",
+        "KG-Gen: 7 entities, 4 relationships",
+        "AIKG conversion: 5 entities, 4 triples",
+        "Serialization: 638 bytes",
+        "Core graph: 0 query results",
+        "Batch: 3 texts, 11 entities"
+      ],
+      "errors": [],
+      "performance": {
+        "kggen_init_time": 0.019001,
+        "kggen_extraction_time": 0.005999,
+        "aikg_conversion_time": 0.0,
+        "serialization_time": 0.0,
+        "core_graph_time": 0.0,
+        "batch_time": 0.005
+      },
+      "summary": {
+        "kggen_entities": 7,
+        "kggen_relationships": 4,
+        "batch_texts": 3,
+        "batch_entities": 11,
+        "batch_relationships": 0
+      }
+    }
+  },
+  "overall_status": "passed",
+  "environment": {
+    "python_version": "3.11.0 (main, Oct 24 2022, 18:26:48) [MSC v.1933 64 bit (AMD64)]",
+    "platform": "win32"
+  }
+}

@@ -30,6 +30,13 @@ from workflow_structures import (
 from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
 from workflow_engine import run_sovereign_workflow
+from determinism_stack import (
+    DeterministicPipeline,
+    DeterminismConfig,
+    HybridDeterministicSystem,
+    LLMConfig,
+    build_llm,
+)
 
 
 # Initialize FastAPI app
@@ -1290,6 +1297,115 @@ async def trigger_workflow_event(event: str, workflow_id: str, data: Dict[str, A
         **(data or {})
     }
     await webhook_manager.trigger(event, payload)
+
+
+# Deterministic LLM endpoints (Bubblelab UI + CLI control)
+
+class DeterminismGenerateRequest(BaseModel):
+    prompt: str
+    schema: Optional[Dict[str, Any]] = None
+    constraints: Optional[str] = None
+    context_document: Optional[str] = None
+    mode: str = "auto"  # auto | cloud | local | hybrid | consensus
+    cloud_provider: Optional[str] = None
+    cloud_model: Optional[str] = None
+    cloud_api_key: Optional[str] = None
+    cloud_base_url: Optional[str] = None
+    local_provider: Optional[str] = "hf"
+    local_model: Optional[str] = None
+    local_device: Optional[str] = "cpu"
+    local_dtype: Optional[str] = "auto"
+    config: Optional[Dict[str, Any]] = None
+    detllm_backend: Optional[str] = None
+    detllm_model: Optional[str] = None
+
+
+class DeterminismCheckRequest(BaseModel):
+    prompt: str
+    tier: int = 2
+    runs: int = 3
+    provider: Optional[str] = None
+    model: Optional[str] = None
+    api_key: Optional[str] = None
+    base_url: Optional[str] = None
+    detllm_backend: Optional[str] = None
+    detllm_model: Optional[str] = None
+    device: Optional[str] = "cpu"
+    dtype: Optional[str] = "auto"
+
+
+def _build_llm(
+    provider: Optional[str],
+    model: Optional[str],
+    api_key: Optional[str],
+    base_url: Optional[str],
+    device: Optional[str] = None,
+    dtype: Optional[str] = None,
+):
+    if not provider or not model:
+        return None
+    config = LLMConfig(
+        provider=provider,
+        model=model,
+        api_key=api_key,
+        base_url=base_url,
+        device=device or "cpu",
+        dtype=dtype or "auto",
+    )
+    return build_llm(config)
+
+
+def _build_config(overrides: Optional[Dict[str, Any]], detllm_backend: Optional[str], detllm_model: Optional[str]) -> DeterminismConfig:
+    config = DeterminismConfig()
+    if overrides:
+        for key, value in overrides.items():
+            if hasattr(config, key):
+                setattr(config, key, value)
+    if detllm_backend:
+        config.detllm_backend = detllm_backend
+    if detllm_model:
+        config.detllm_model = detllm_model
+    return config
+
+
+@app.post("/determinism/generate", dependencies=[Depends(verify_api_key)])
+def determinism_generate(req: DeterminismGenerateRequest):
+    config = _build_config(req.config, req.detllm_backend, req.detllm_model)
+
+    if req.mode in {"hybrid", "consensus"}:
+        cloud_llm = _build_llm(req.cloud_provider, req.cloud_model, req.cloud_api_key, req.cloud_base_url)
+        local_llm = _build_llm(req.local_provider, req.local_model, None, None, req.local_device, req.local_dtype)
+        if cloud_llm is None or local_llm is None:
+            raise HTTPException(status_code=400, detail="Hybrid mode requires both cloud and local LLM configs")
+        system = HybridDeterministicSystem(cloud_llm=cloud_llm, local_llm=local_llm)
+        result = system.generate(req.prompt, mode=req.mode)
+        return result.__dict__
+
+    if req.mode == "cloud":
+        llm = _build_llm(req.cloud_provider, req.cloud_model, req.cloud_api_key, req.cloud_base_url)
+    elif req.mode == "local":
+        llm = _build_llm(req.local_provider, req.local_model, None, None, req.local_device, req.local_dtype)
+    else:
+        llm = _build_llm(req.cloud_provider, req.cloud_model, req.cloud_api_key, req.cloud_base_url) or _build_llm(req.local_provider, req.local_model, None, None, req.local_device, req.local_dtype)
+
+    pipeline = DeterministicPipeline(llm=llm, config=config)
+    result = pipeline.generate_with_all_layers(req.prompt, schema=req.schema, constraints=req.constraints, context_document=req.context_document)
+    return result.__dict__
+
+
+@app.post("/determinism/check", dependencies=[Depends(verify_api_key)])
+def determinism_check(req: DeterminismCheckRequest):
+    llm = _build_llm(req.provider, req.model, req.api_key, req.base_url, req.device, req.dtype)
+    pipeline = DeterministicPipeline(llm=llm, config=_build_config(None, req.detllm_backend, req.detllm_model))
+    result = pipeline.reproducibility.check(
+        prompt=req.prompt,
+        llm=llm,
+        tier=req.tier,
+        runs=req.runs,
+        backend=req.detllm_backend,
+        model=req.detllm_model,
+    )
+    return result
 
 
 # Statistics endpoints

@@ -1,0 +1,30 @@
+# Finance Domain Configuration
+# Optimized for financial problems with expensive evaluations
+
+evolution_mode: pes  # Expensive evaluations
+max_evaluations: 50
+enable_planning: true
+enable_memory: true
+early_stopping: true
+
+domain: finance
+objectives:
+  - return
+  - risk
+  - sharpe_ratio
+
+constraints:
+  max_position_size: 0.1
+  sector_diversification: true
+  max_drawdown: 0.2
+
+# Gauntlet
+enable_gauntlet: true
+gauntlet_rounds:
+  - loongflow
+  - gold_team
+
+# Knowledge engine
+enable_knowledge_engine: true
+extract_knowledge: true
+use_past_solutions: true

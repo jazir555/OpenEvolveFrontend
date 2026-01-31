@@ -1,0 +1,46 @@
+# Custom Finance Profile
+# Inherits from prod and adds finance-specific settings
+
+name: Custom Finance Profile
+description: Production-optimized finance configuration
+version: 1.0
+
+inherit: prod
+
+overrides:
+  # Domain settings
+  domain: finance
+  evolution_mode: pes
+
+  # Objectives
+  objectives:
+    - return
+    - risk
+    - sharpe_ratio
+    - sortino_ratio
+
+  # Constraints
+  constraints:
+    max_position_size: 0.15
+    sector_limits:
+      technology: 0.30
+      healthcare: 0.25
+      finance: 0.20
+
+  # Budget
+  max_evaluations: 75
+
+  # Knowledge engine
+  enable_knowledge_engine: true
+  extract_knowledge: true
+  knowledge_sources:
+    - past_strategies
+    - market_regimes
+    - risk_models
+
+  # Gauntlet
+  enable_gauntlet: true
+  gauntlet_rounds:
+    - loongflow
+    - red_team
+    - gold_team

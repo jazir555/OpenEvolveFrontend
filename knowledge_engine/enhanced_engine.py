@@ -1,647 +1,433 @@
 """
 Enhanced Knowledge Engine for OpenEvolve
 
-This module provides the complete Phase 2 implementation of the OpenEvolve
-Knowledge Engine with advanced features, performance optimization, and
-machine learning integration as specified in the technical architecture.
+Integrates all improvements:
+- Input validation and sanitization
+- Capability boundary detection
+- Domain-specific mode switching
+- Audience adaptation
+- Self-correction loop
+- Conflict resolution
+- Creative pipeline
 """
 
-import asyncio
-import json
-import logging
+import os
+import sys
 import time
-from datetime import datetime
-from typing import Dict, Any, List, Optional
+import json
+import requests
+from typing import Dict, List, Optional, Any, Tuple
+from dataclasses import dataclass
 
-# Import existing components
-try:
-    from .core import KnowledgeState, EntityKnowledgeGraph
-except ImportError:
-    from core import KnowledgeState, EntityKnowledgeGraph
+# Import our improvement modules
+from .input_processor import EnhancedInputProcessor, CapabilityRegistry
+from .domain_adapter import DomainAdapter, DomainClassifier, ModeSelector
+from .output_validator import OutputValidator, SelfCorrectionLoop, ConflictResolver
+from .creative_pipeline import CreativeEnhancer, CreativeFormat
 
-# Import Phase 1 components
-try:
-    from .knowledge_extractor import KnowledgeExtractor
-except ImportError:
-    from knowledge_extractor import KnowledgeExtractor
 
-# Import Phase 2 components
-try:
-    from .enhanced_storage import EnhancedKnowledgeStorage
-except ImportError:
-    from enhanced_storage import EnhancedKnowledgeStorage
+@dataclass
+class EngineConfig:
+    """Configuration for Enhanced Knowledge Engine"""
+    api_key: str
+    model: str = "deepseek-chat"
+    max_retries: int = 2
+    enable_validation: bool = True
+    enable_domain_adaptation: bool = True
+    enable_self_correction: bool = True
+    enable_conflict_resolution: bool = True
+    default_temperature: float = 0.5
+    default_max_tokens: int = 800
 
-try:
-    from .enhanced_retriever import EnhancedKnowledgeRetriever
-except ImportError:
-    from enhanced_retriever import EnhancedKnowledgeRetriever
-
-try:
-    from .embedding_generator import EmbeddingGenerator
-except ImportError:
-    from embedding_generator import EmbeddingGenerator
 
 class EnhancedKnowledgeEngine:
     """
-    Enhanced Knowledge Engine with Phase 2 capabilities
-    
-    This class provides a comprehensive knowledge management system with:
-    - Advanced knowledge extraction and processing
-    - Enhanced storage with performance optimization
-    - Machine learning-based retrieval
-    - Personalized recommendations
-    - Comprehensive analytics and quality metrics
+    Production-ready Knowledge Engine with all benchmark improvements.
     """
     
-    def __init__(self, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, config: EngineConfig = None):
         """
-        Initialize the Enhanced Knowledge Engine.
+        Initialize the enhanced knowledge engine.
         
         Args:
-            config: Configuration dictionary for all components
+            config: Engine configuration. If None, uses environment variables.
         """
-        self.config = config or {}
-        self.logger = logging.getLogger(__name__)
+        # Setup config
+        if config is None:
+            config = EngineConfig(
+                api_key=os.getenv("DEEPSEEK_API_KEY", ""),
+                model="deepseek-chat",
+                max_retries=2,
+                enable_validation=True,
+                enable_domain_adaptation=True,
+                enable_self_correction=True,
+                enable_conflict_resolution=True,
+                default_temperature=0.5,
+                default_max_tokens=800
+            )
         
-        # Initialize core components
-        self.state = KnowledgeState()
-        self.graph = EntityKnowledgeGraph()
+        self.config = config
         
-        # Initialize Phase 1 components
-        self.extractor = KnowledgeExtractor(self.config)
+        # Initialize components
+        self.input_processor = EnhancedInputProcessor()
+        self.domain_adapter = DomainAdapter()
+        self.output_validator = OutputValidator()
+        self.conflict_resolver = ConflictResolver()
+        self.creative_enhancer = CreativeEnhancer()
         
-        # Initialize Phase 2 components
-        self.storage = EnhancedKnowledgeStorage(self.config)
-        self.retriever = EnhancedKnowledgeRetriever(self.storage, self.config)
-        self.embedding_gen = EmbeddingGenerator(self.config)
-        
-        # Performance tracking
-        self.performance_metrics = {
-            'total_operations': 0,
-            'average_processing_time': 0.0,
-            'last_operation': None
+        # Statistics tracking
+        self.stats = {
+            'total_requests': 0,
+            'successful_requests': 0,
+            'validation_failures': 0,
+            'corrections_applied': 0,
+            'average_quality': 0.0
         }
-        
-        self.logger.info("Enhanced Knowledge Engine initialized")
-        
-    def process_workflow_with_enhanced_features(self, workflow_data: Dict[str, Any],
-                                               generate_embeddings: bool = True) -> Dict[str, Any]:
+    
+    def process(self, prompt: str, requirements: Dict[str, Any] = None,
+               creative_mode: bool = False, **kwargs) -> Dict[str, Any]:
         """
-        Process workflow data with enhanced features including embedding generation.
+        Process a request through the enhanced pipeline.
         
         Args:
-            workflow_data: Workflow execution data
-            generate_embeddings: Whether to generate embeddings for artifacts
+            prompt: User input prompt
+            requirements: Validation requirements (facts, sections, etc.)
+            creative_mode: Whether to use creative pipeline
+            **kwargs: Additional parameters (temperature, max_tokens, etc.)
             
         Returns:
-            Processing results with enhanced features
+            Dict with output and metadata
         """
+        self.stats['total_requests'] += 1
         start_time = time.time()
         
-        try:
-            # Extract knowledge artifacts
-            artifacts = self.extractor.extract_from_workflow(workflow_data)
+        # Step 1: Input Validation (Phase 1 improvement)
+        if self.config.enable_validation:
+            input_result = self.input_processor.process(prompt)
             
-            # Generate embeddings for artifacts
-            if generate_embeddings:
-                for artifact in artifacts:
-                    # Convert KnowledgeArtifact to dict for embedding generation
-                    artifact_dict = {
-                        'type': artifact.artifact_type,
-                        'source': artifact.source,
-                        'content': artifact.content,
-                        'context': artifact.context,
-                        'metadata': artifact.metadata
-                    }
-                    
-                    # Generate embedding
-                    embedding = self.embedding_gen.generate_knowledge_artifact_embedding(artifact_dict)
-                    artifact_dict['embeddings'] = embedding
-                    
-                    # Store enhanced artifact
-                    artifact_id = self.storage.store_knowledge_artifact(artifact_dict)
-                    
-                    # Update artifact with ID
-                    artifact.artifact_id = artifact_id
-            else:
-                # Store without embeddings
-                for artifact in artifacts:
-                    artifact_dict = {
-                        'type': artifact.artifact_type,
-                        'source': artifact.source,
-                        'content': artifact.content,
-                        'context': artifact.context,
-                        'metadata': artifact.metadata
-                    }
-                    
-                    artifact_id = self.storage.store_knowledge_artifact(artifact_dict, generate_embedding=False)
-                    artifact.artifact_id = artifact_id
+            if not input_result['should_proceed']:
+                self.stats['validation_failures'] += 1
+                return {
+                    'success': False,
+                    'error': 'input_validation_failed',
+                    'message': self.input_processor.get_error_message(
+                        input_result['validation'],
+                        input_result['capability_check']
+                    ),
+                    'validation_result': input_result['validation'],
+                    'capability_check': input_result['capability_check']
+                }
             
-            # Update knowledge state
-            self.state.add_workflow_execution(
-                workflow_id=workflow_data.get('workflow_id', 'unknown'),
-                artifacts_extracted=len(artifacts),
-                timestamp=workflow_data.get('timestamp')
-            )
-            
-            # Update performance metrics
-            processing_time = time.time() - start_time
-            self._update_performance_metrics('workflow_processing', processing_time)
-            
-            return {
-                'status': 'processed',
-                'workflow_id': workflow_data.get('workflow_id', 'unknown'),
-                'knowledge_extracted': len(artifacts),
-                'artifacts_with_embeddings': len(artifacts) if generate_embeddings else 0,
-                'processing_time': processing_time,
-                'stored_artifacts': [
-                    {
-                        'artifact_id': artifact.artifact_id,
-                        'type': artifact.artifact_type,
-                        'source': artifact.source
-                    }
-                    for artifact in artifacts
-                ]
-            }
-            
-        except Exception as e:
-            self.logger.error(f"Enhanced workflow processing failed: {str(e)}")
-            return {
-                'status': 'error',
-                'error': str(e),
-                'workflow_id': workflow_data.get('workflow_id', 'unknown')
-            }
-    
-    def _update_performance_metrics(self, operation_type: str, execution_time: float):
-        """Update performance metrics"""
-        self.performance_metrics['total_operations'] += 1
-        self.performance_metrics['last_operation'] = {
-            'type': operation_type,
-            'time': execution_time,
-            'timestamp': datetime.now().isoformat()
-        }
-        
-        # Update average processing time
-        if self.performance_metrics['total_operations'] == 1:
-            self.performance_metrics['average_processing_time'] = execution_time
+            # Use enhanced prompt if validation passed
+            processed_prompt = input_result['processed_input']
+            routing_info = input_result['routing_info']
         else:
-            self.performance_metrics['average_processing_time'] = (
-                self.performance_metrics['average_processing_time'] * 0.9 +
-                execution_time * 0.1
-            )
-    
-    def enhanced_search(self, query: str, query_type: str = 'hybrid',
-                       filters: Optional[Dict[str, Any]] = None,
-                       limit: int = 10, use_cache: bool = True) -> List[Dict[str, Any]]:
-        """
-        Perform enhanced search using the advanced retriever.
+            processed_prompt = prompt
+            routing_info = {'category': 'unknown', 'confidence': 0.5}
         
-        Args:
-            query: Search query string
-            query_type: Type of search (hybrid, vector, keyword, semantic)
-            filters: Additional filters
-            limit: Maximum number of results
-            use_cache: Whether to use caching
-            
-        Returns:
-            List of search results
-        """
-        return self.retriever.search_knowledge(query, query_type, filters, limit, use_cache)
-    
-    def get_personalized_recommendations(self, context: Dict[str, Any],
-                                         user_profile: Optional[Dict[str, Any]] = None,
-                                         limit: int = 5) -> List[Dict[str, Any]]:
-        """
-        Get personalized recommendations using advanced algorithms.
+        # Step 2: Conflict Detection & Resolution (Phase 3 improvement)
+        if self.config.enable_conflict_resolution:
+            conflicts = self.conflict_resolver.detect_conflicts(processed_prompt)
+            if conflicts:
+                processed_prompt, warnings = self.conflict_resolver.resolve(
+                    processed_prompt, conflicts
+                )
         
-        Args:
-            context: Context dictionary
-            user_profile: Optional user profile for personalization
-            limit: Maximum number of recommendations
+        # Step 3: Domain Adaptation (Phase 2 improvement)
+        if self.config.enable_domain_adaptation and not creative_mode:
+            adaptation = self.domain_adapter.adapt(processed_prompt)
             
-        Returns:
-            List of personalized recommendations
-        """
-        return self.retriever.get_personalized_recommendations(context, user_profile, limit)
-    
-    def semantic_search(self, query: str, context: Optional[Dict[str, Any]] = None,
-                       limit: int = 5) -> List[Dict[str, Any]]:
-        """
-        Perform semantic search using advanced embedding techniques.
-        
-        Args:
-            query: Search query
-            context: Optional context for semantic understanding
-            limit: Maximum number of results
-            
-        Returns:
-            List of semantically relevant results
-        """
-        return self.retriever.semantic_search(query, context, limit)
-    
-    def get_knowledge_analytics(self) -> Dict[str, Any]:
-        """
-        Get comprehensive analytics about the knowledge base.
-        
-        Returns:
-            Dictionary containing detailed analytics
-        """
-        start_time = time.time()
-        
-        try:
-            # Get storage statistics
-            storage_stats = self.storage.get_aggregated_statistics()
-            
-            # Get quality metrics
-            quality_metrics = self.retriever.get_knowledge_quality_metrics()
-            
-            # Get performance metrics
-            retriever_performance = self.retriever.get_performance_metrics()
-            
-            # Get trend analysis
-            trends = self.retriever.get_knowledge_trends(time_range='30d', analysis_type='advanced')
-            
-            # Combine all analytics
-            analytics = {
-                'storage_statistics': storage_stats,
-                'quality_metrics': quality_metrics.get('quality_metrics', {}),
-                'overall_quality_score': quality_metrics.get('overall_quality_score', 0),
-                'trend_analysis': trends.get('trend_analysis', {}),
-                'performance_metrics': {
-                    'retriever': retriever_performance,
-                    'engine': self.performance_metrics
-                },
-                'knowledge_graph': self.storage.create_knowledge_graph(),
-                'generated_at': datetime.now().isoformat(),
-                'analysis_time': time.time() - start_time
+            # Use adapted prompt and parameters
+            final_prompt = adaptation.enhanced_prompt
+            api_params = {
+                'temperature': adaptation.config.temperature,
+                'max_tokens': adaptation.config.max_tokens,
+                'system_prompt': adaptation.config.system_prompt
             }
+            domain_info = {
+                'domain': adaptation.domain.value,
+                'audience': adaptation.audience.value,
+                'confidence': adaptation.confidence
+            }
+        elif creative_mode:
+            # Use creative pipeline
+            creative_result = self.creative_enhancer.enhance(processed_prompt)
+            final_prompt = creative_result['enhanced_prompt']
+            api_params = creative_result['parameters']
+            domain_info = {
+                'format': creative_result['format'],
+                'structure': creative_result['structure'],
+                'techniques': creative_result['techniques']
+            }
+        else:
+            # Use default parameters
+            final_prompt = processed_prompt
+            api_params = {
+                'temperature': kwargs.get('temperature', self.config.default_temperature),
+                'max_tokens': kwargs.get('max_tokens', self.config.default_max_tokens),
+                'system_prompt': "You are a helpful assistant."
+            }
+            domain_info = {}
+        
+        # Step 4: Generation with Self-Correction (Phase 3 improvement)
+        if self.config.enable_self_correction and requirements:
+            # Use self-correction loop
+            result = self._generate_with_correction(
+                final_prompt, requirements, api_params
+            )
+        else:
+            # Single generation
+            result = self._call_api(final_prompt, api_params)
             
-            return analytics
+            if result['success'] and requirements:
+                # Validate without correction
+                validation = self.output_validator.validate(
+                    result['content'], requirements
+                )
+                result['quality_score'] = validation.score
+                result['validation_passed'] = validation.passed
+        
+        # Update statistics
+        if result.get('success'):
+            self.stats['successful_requests'] += 1
+            if result.get('corrections_applied'):
+                self.stats['corrections_applied'] += 1
             
-        except Exception as e:
-            self.logger.error(f"Failed to generate knowledge analytics: {str(e)}")
-            return {'error': str(e)}
+            # Update average quality
+            quality = result.get('quality_score', 70)
+            self.stats['average_quality'] = (
+                (self.stats['average_quality'] * (self.stats['successful_requests'] - 1) + quality)
+                / self.stats['successful_requests']
+            )
+        
+        # Build response
+        processing_time = time.time() - start_time
+        
+        response = {
+            'success': result.get('success', False),
+            'output': result.get('output') if result.get('success') else result.get('error'),
+            'processing_time': processing_time,
+            'metadata': {
+                'original_prompt': prompt,
+                'final_prompt': final_prompt,
+                'input_category': routing_info.get('category'),
+                'domain_info': domain_info,
+                'api_params': {k: v for k, v in api_params.items() if k != 'system_prompt'},
+                'quality_score': result.get('quality_score'),
+                'validation_passed': result.get('validation_passed'),
+                'corrections_applied': result.get('corrections_applied', False),
+                'attempts': result.get('attempts', [{}])
+            },
+            'engine_stats': self.get_stats()
+        }
+        
+        return response
     
-    def batch_process_workflows(self, workflows: List[Dict[str, Any]],
-                               batch_size: int = 10) -> Dict[str, Any]:
-        """
-        Batch process multiple workflows with performance optimization.
+    def _call_api(self, prompt: str, params: Dict) -> Dict[str, Any]:
+        """Make API call with given parameters"""
+        headers = {
+            "Authorization": f"Bearer {self.config.api_key}",
+            "Content-Type": "application/json"
+        }
         
-        Args:
-            workflows: List of workflow data
-            batch_size: Batch size for processing
-            
-        Returns:
-            Dictionary with batch processing results
-        """
-        start_time = time.time()
+        messages = []
+        if 'system_prompt' in params:
+            messages.append({"role": "system", "content": params['system_prompt']})
+        messages.append({"role": "user", "content": prompt})
         
-        results = {
-            'total_workflows': len(workflows),
-            'success_count': 0,
-            'failed_count': 0,
-            'artifacts_extracted': 0,
-            'processing_times': [],
-            'start_time': start_time,
-            'end_time': None,
-            'duration': None
+        payload = {
+            "model": self.config.model,
+            "messages": messages,
+            "temperature": params.get('temperature', 0.5),
+            "max_tokens": params.get('max_tokens', 800)
         }
         
         try:
-            # Process workflows in batches
-            for i in range(0, len(workflows), batch_size):
-                batch = workflows[i:i + batch_size]
-                batch_results = []
-                
-                for workflow in batch:
-                    try:
-                        batch_start = time.time()
-                        
-                        # Process individual workflow
-                        workflow_result = self.process_workflow_with_enhanced_features(workflow)
-                        
-                        if workflow_result['status'] == 'processed':
-                            results['success_count'] += 1
-                            results['artifacts_extracted'] += workflow_result['knowledge_extracted']
-                        else:
-                            results['failed_count'] += 1
-                        
-                        batch_results.append({
-                            'workflow_id': workflow.get('workflow_id', f'batch_{i}_{len(batch_results)}'),
-                            'status': workflow_result['status'],
-                            'artifacts': workflow_result['knowledge_extracted']
-                        })
-                        
-                        results['processing_times'].append(time.time() - batch_start)
-                        
-                    except Exception as e:
-                        self.logger.error(f"Failed to process workflow in batch: {str(e)}")
-                        results['failed_count'] += 1
-                        batch_results.append({
-                            'workflow_id': workflow.get('workflow_id', f'batch_{i}_{len(batch_results)}'),
-                            'status': 'error',
-                            'error': str(e)
-                        })
-                
-                self.logger.info(f"Processed batch {i//batch_size + 1}: {len(batch_results)} workflows")
-            
-            results['end_time'] = time.time()
-            results['duration'] = results['end_time'] - start_time
-            results['average_processing_time'] = sum(results['processing_times']) / len(results['processing_times']) if results['processing_times'] else 0
-            
-            self.logger.info(f"Batch processing completed: {results['success_count']}/{results['total_workflows']} workflows")
-            
-            return results
-            
-        except Exception as e:
-            self.logger.error(f"Batch processing failed: {str(e)}")
-            results['error'] = str(e)
-            results['end_time'] = time.time()
-            results['duration'] = results['end_time'] - start_time
-            return results
-    
-    def optimize_knowledge_base(self) -> Dict[str, Any]:
-        """
-        Optimize the knowledge base for better performance.
-        
-        Returns:
-            Dictionary with optimization results
-        """
-        start_time = time.time()
-        
-        results = {
-            'operations_performed': [],
-            'start_time': start_time,
-            'end_time': None,
-            'duration': None
-        }
-        
-        try:
-            # Optimize storage
-            storage_optimization = self.storage.optimize_storage()
-            results['operations_performed'].extend(storage_optimization['operations_performed'])
-            
-            # Clear retriever cache
-            self.retriever.cache.clear()
-            results['operations_performed'].append("Cleared retriever cache")
-            
-            # Rebuild knowledge graph
-            graph_results = self.storage.create_knowledge_graph()
-            results['operations_performed'].append(
-                f"Rebuilt knowledge graph: {graph_results['nodes']} nodes, {graph_results['relationships']} relationships"
+            response = requests.post(
+                "https://api.deepseek.com/chat/completions",
+                headers=headers,
+                json=payload,
+                timeout=60
             )
             
-            results['end_time'] = time.time()
-            results['duration'] = results['end_time'] - start_time
-            
-            self.logger.info(f"Knowledge base optimization completed in {results['duration']:.4f}s")
-            
-            return results
-            
-        except Exception as e:
-            self.logger.error(f"Knowledge base optimization failed: {str(e)}")
-            results['error'] = str(e)
-            results['end_time'] = time.time()
-            results['duration'] = results['end_time'] - start_time
-            return results
-    
-    def generate_embeddings_for_existing_artifacts(self, limit: int = 100) -> Dict[str, Any]:
-        """
-        Generate embeddings for existing artifacts that don't have them.
-        
-        Args:
-            limit: Maximum number of artifacts to process
-            
-        Returns:
-            Dictionary with embedding generation results
-        """
-        start_time = time.time()
-        
-        results = {
-            'total_artifacts_checked': 0,
-            'artifacts_without_embeddings': 0,
-            'embeddings_generated': 0,
-            'start_time': start_time,
-            'end_time': None,
-            'duration': None
-        }
-        
-        try:
-            # Find artifacts without embeddings
-            artifacts = self.storage.retrieve_knowledge_artifacts(
-                query={'embeddings': {'$exists': False}},
-                limit=limit
-            )
-            
-            results['total_artifacts_checked'] = len(artifacts)
-            results['artifacts_without_embeddings'] = len(artifacts)
-            
-            # Generate embeddings
-            for artifact in artifacts:
-                try:
-                    # Generate embedding
-                    embedding = self.embedding_gen.generate_knowledge_artifact_embedding(artifact)
-                    
-                    # Update artifact with embedding
-                    artifact['embeddings'] = embedding
-                    artifact['updated_at'] = datetime.now().isoformat()
-                    
-                    # Store updated artifact
-                    self.storage.store_knowledge_artifact(artifact, generate_embedding=False)
-                    
-                    results['embeddings_generated'] += 1
-                    
-                except Exception as e:
-                    self.logger.warning(f"Failed to generate embedding for artifact {artifact.get('_id')}: {str(e)}")
-            
-            results['end_time'] = time.time()
-            results['duration'] = results['end_time'] - start_time
-            
-            self.logger.info(f"Generated embeddings for {results['embeddings_generated']}/{results['artifacts_without_embeddings']} artifacts")
-            
-            return results
-            
-        except Exception as e:
-            self.logger.error(f"Embedding generation failed: {str(e)}")
-            results['error'] = str(e)
-            results['end_time'] = time.time()
-            results['duration'] = results['end_time'] - start_time
-            return results
-    
-    def get_system_health(self) -> Dict[str, Any]:
-        """
-        Get overall system health and status.
-        
-        Returns:
-            Dictionary containing system health information
-        """
-        try:
-            # Get component statuses
-            storage_stats = self.storage.get_aggregated_statistics()
-            retriever_performance = self.retriever.get_performance_metrics()
-            
-            # Calculate health metrics
-            total_artifacts = storage_stats.get('total_artifacts', 0)
-            quality_score = retriever_performance.get('overall_quality_score', 0)
-            
-            # Determine health status
-            if total_artifacts == 0:
-                health_status = 'initializing'
-                health_score = 0.0
-            elif quality_score >= 0.8:
-                health_status = 'healthy'
-                health_score = 1.0
-            elif quality_score >= 0.6:
-                health_status = 'good'
-                health_score = 0.8
-            elif quality_score >= 0.4:
-                health_status = 'fair'
-                health_score = 0.6
+            if response.status_code == 200:
+                data = response.json()
+                return {
+                    'success': True,
+                    'content': data['choices'][0]['message']['content'],
+                    'tokens': data['usage']['total_tokens']
+                }
             else:
-                health_status = 'needs_attention'
-                health_score = 0.4
-            
-            return {
-                'status': health_status,
-                'health_score': health_score,
-                'components': {
-                    'storage': {
-                        'status': 'operational',
-                        'artifacts': total_artifacts,
-                        'collections': len(storage_stats.get('collection_statistics', {}))
-                    },
-                    'retriever': {
-                        'status': 'operational',
-                        'cache_hit_rate': retriever_performance.get('cache_hit_rate', 0),
-                        'total_queries': retriever_performance.get('total_queries', 0)
-                    },
-                    'extractor': {
-                        'status': 'operational'
-                    },
-                    'embedding_generator': {
-                        'status': 'operational',
-                        'models_available': len(self.embedding_gen.models)
-                    }
-                },
-                'performance': {
-                    'average_processing_time': self.performance_metrics.get('average_processing_time', 0),
-                    'total_operations': self.performance_metrics.get('total_operations', 0)
-                },
-                'timestamp': datetime.now().isoformat()
-            }
-            
+                return {
+                    'success': False,
+                    'error': f"API error: {response.status_code}"
+                }
         except Exception as e:
-            self.logger.error(f"Failed to get system health: {str(e)}")
             return {
-                'status': 'error',
-                'error': str(e),
-                'timestamp': datetime.now().isoformat()
+                'success': False,
+                'error': str(e)
             }
-
-# Example usage and testing
-async def main():
-    """Example usage of the Enhanced Knowledge Engine"""
-    # Configure logging
-    logging.basicConfig(level=logging.INFO)
     
-    # Initialize enhanced engine
-    engine = EnhancedKnowledgeEngine()
-    
-    print("🚀 Enhanced Knowledge Engine Example")
-    print("=" * 50)
-    
-    # Example 1: Process workflow with enhanced features
-    print("\n1. Processing workflow with enhanced features...")
-    
-    workflow_data = {
-        'workflow_id': 'enhanced_test_001',
-        'timestamp': datetime.now().isoformat(),
-        'execution_data': {
-            'problem_type': 'decomposition',
-            'complexity': 'high',
-            'team_size': 5,
+    def _generate_with_correction(self, prompt: str, requirements: Dict,
+                                 api_params: Dict) -> Dict[str, Any]:
+        """Generate with self-correction loop"""
+        attempts = []
+        
+        for attempt in range(self.config.max_retries + 1):
+            # Generate
+            result = self._call_api(prompt, api_params)
+            
+            if not result['success']:
+                return result
+            
+            # Validate
+            validation = self.output_validator.validate(
+                result['content'], requirements
+            )
+            
+            attempts.append({
+                'attempt': attempt + 1,
+                'quality_score': validation.score,
+                'passed': validation.passed
+            })
+            
+            # Check if passed
+            if validation.passed:
+                return {
+                    'success': True,
+                    'output': result['content'],
+                    'quality_score': validation.score,
+                    'validation_passed': True,
+                    'attempts': attempts,
+                    'corrections_applied': attempt > 0
+                }
+            
+            # Generate correction for next attempt
+            if attempt < self.config.max_retries:
+                suggestions = self.output_validator.generate_suggestions(
+                    result['content'], validation, requirements
+                )
+                
+                # Build correction prompt
+                correction_note = "\n\n[Correction needed:\n"
+                for s in suggestions[:2]:
+                    correction_note += f"- {s.issue}\n"
+                correction_note += "Please provide an improved response.]"
+                
+                prompt = prompt + correction_note
+                
+                # Slightly increase temperature
+                api_params = api_params.copy()
+                api_params['temperature'] = min(0.9, api_params['temperature'] + 0.1)
+        
+        # All retries exhausted - return best
+        return {
             'success': True,
-            'execution_time': 3600
-        },
-        'solution_patterns': [
-            {
-                'pattern': 'hierarchical_task_analysis',
-                'effectiveness': 0.95,
-                'context': 'complex_decomposition'
-            }
-        ],
-        'critique_patterns': [
-            {
-                'pattern': 'resource_allocation',
-                'issue': 'suboptimal_distribution',
-                'severity': 'medium'
-            }
-        ],
-        'team_performance': {
-            'efficiency': 0.87,
-            'collaboration': 0.92,
-            'adaptability': 0.85
-        },
-        'gauntlet_effectiveness': {
-            'completion_rate': 0.90,
-            'quality_score': 0.88,
-            'iteration_count': 3
+            'output': result['content'],
+            'quality_score': validation.score,
+            'validation_passed': False,
+            'attempts': attempts,
+            'corrections_applied': True,
+            'warning': 'Max retries reached, returning best attempt'
         }
-    }
     
-    processing_result = engine.process_workflow_with_enhanced_features(workflow_data)
-    print(f"✅ Processed workflow: {processing_result['status']}")
-    print(f"✅ Extracted {processing_result['knowledge_extracted']} knowledge artifacts")
-    print(f"✅ Processing time: {processing_result['processing_time']:.4f}s")
+    def quick_process(self, prompt: str, **kwargs) -> str:
+        """
+        Simplified interface that returns just the output string.
+        
+        Args:
+            prompt: User input
+            **kwargs: Additional parameters
+            
+        Returns:
+            Output string or error message
+        """
+        result = self.process(prompt, **kwargs)
+        
+        if result['success']:
+            return result['output']
+        else:
+            return f"Error: {result.get('message', 'Unknown error')}"
     
-    # Example 2: Enhanced search
-    print("\n2. Performing enhanced search...")
+    def get_stats(self) -> Dict[str, Any]:
+        """Get engine statistics"""
+        total = self.stats['total_requests']
+        successful = self.stats['successful_requests']
+        
+        return {
+            'total_requests': total,
+            'successful_requests': successful,
+            'success_rate': successful / total if total > 0 else 0,
+            'validation_failures': self.stats['validation_failures'],
+            'corrections_applied': self.stats['corrections_applied'],
+            'average_quality': round(self.stats['average_quality'], 1)
+        }
     
-    search_results = engine.enhanced_search(
-        query="complex decomposition strategies",
-        query_type="hybrid",
-        limit=3
-    )
-    print(f"✅ Found {len(search_results)} search results")
-    for i, result in enumerate(search_results, 1):
-        print(f"  {i}. {result.get('content', 'No content')[:60]}...")
+    def reset_stats(self):
+        """Reset statistics"""
+        self.stats = {
+            'total_requests': 0,
+            'successful_requests': 0,
+            'validation_failures': 0,
+            'corrections_applied': 0,
+            'average_quality': 0.0
+        }
+
+
+# Convenience function for quick usage
+def create_engine(api_key: str = None) -> EnhancedKnowledgeEngine:
+    """Create enhanced engine with default config"""
+    if api_key is None:
+        api_key = os.getenv("DEEPSEEK_API_KEY", "")
     
-    # Example 3: Personalized recommendations
-    print("\n3. Getting personalized recommendations...")
-    
-    context = {
-        'problem_type': 'decomposition',
-        'complexity': 'high',
-        'team_size': 5,
-        'recommendation_type': 'solution_pattern'
-    }
-    
-    user_profile = {
-        'preferred_problem_types': ['decomposition', 'optimization'],
-        'expertise_level': 'intermediate',
-        'preferred_sources': ['workflow_execution', 'expert_analysis']
-    }
-    
-    recommendations = engine.get_personalized_recommendations(context, user_profile)
-    print(f"✅ Got {len(recommendations)} personalized recommendations")
-    
-    # Example 4: Knowledge analytics
-    print("\n4. Generating knowledge analytics...")
-    
-    analytics = engine.get_knowledge_analytics()
-    print(f"✅ Knowledge base contains {analytics['storage_statistics']['total_artifacts']} artifacts")
-    print(f"✅ Overall quality score: {analytics['overall_quality_score']:.2f}")
-    print(f"✅ Current trend: {analytics['trend_analysis'].get('trend', 'unknown')}")
-    
-    # Example 5: System health
-    print("\n5. Checking system health...")
-    
-    health = engine.get_system_health()
-    print(f"✅ System status: {health['status']}")
-    print(f"✅ Health score: {health['health_score']:.2f}")
-    
-    print("\n" + "=" * 50)
-    print("🎉 Enhanced Knowledge Engine example completed successfully!")
+    config = EngineConfig(api_key=api_key)
+    return EnhancedKnowledgeEngine(config)
+
+
+# Backward compatibility
+class KnowledgeEngine(EnhancedKnowledgeEngine):
+    """Alias for backward compatibility"""
+    pass
+
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    # Test the enhanced engine
+    print("=" * 70)
+    print("ENHANCED KNOWLEDGE ENGINE TEST")
+    print("=" * 70)
+    
+    # Note: This requires a valid API key to actually run
+    api_key = os.getenv("DEEPSEEK_API_KEY", "test-key")
+    
+    engine = create_engine(api_key)
+    
+    print("\nEngine initialized with improvements:")
+    print(f"  - Input validation: {engine.config.enable_validation}")
+    print(f"  - Domain adaptation: {engine.config.enable_domain_adaptation}")
+    print(f"  - Self-correction: {engine.config.enable_self_correction}")
+    print(f"  - Conflict resolution: {engine.config.enable_conflict_resolution}")
+    
+    # Test with a sample that would have failed before improvements
+    test_prompts = [
+        "Colorless green ideas sleep furiously",  # Nonsensical
+        "Analyze Tesla stock price exactly 5 years from now",  # Impossible
+        "Tell me about it",  # Ambiguous
+        "Write a story about AI discovering emotions",  # Creative
+    ]
+    
+    print("\n" + "=" * 70)
+    print("TEST PROMPTS (would need API key to actually process)")
+    print("=" * 70)
+    
+    for prompt in test_prompts:
+        print(f"\nPrompt: '{prompt}'")
+        
+        # Just show input processing (doesn't need API)
+        input_result = engine.input_processor.process(prompt)
+        print(f"  Valid: {input_result['validation']['is_valid']}")
+        print(f"  Feasible: {input_result['capability_check']['is_feasible']}")
+        print(f"  Category: {input_result['routing_info']['category']}")
+    
+    print("\n" + "=" * 70)
+    print("Tests complete. Set DEEPSEEK_API_KEY to run full processing.")
+    print("=" * 70)

@@ -1,0 +1,214 @@
+# OpenEvolve Configuration Example
+# This file demonstrates all available configuration options
+
+# ============================================================================
+# GENERAL SETTINGS
+# ============================================================================
+
+# Maximum number of evolution iterations
+max_iterations: 100
+
+# Save checkpoint every N iterations
+checkpoint_interval: 20
+
+# Logging level: DEBUG, INFO, WARNING, ERROR, CRITICAL
+log_level: "INFO"
+
+# Random seed for reproducibility (null = random)
+random_seed: 42
+
+# Language of programs (null = auto-detect)
+language: "python"
+
+# ============================================================================
+# LLM CONFIGURATION
+# ============================================================================
+
+llm:
+  # Base URL for API (default: OpenAI)
+  api_base: "https://api.openai.com/v1"
+
+  # Default generation parameters
+  temperature: 0.7
+  top_p: 0.95
+  max_tokens: 4096
+
+  # Request settings
+  timeout: 60
+  retries: 3
+  retry_delay: 5
+
+  # Models for evolution (ensemble)
+  models:
+    - name: "gpt-4"
+      api_key: "${OPENAI_API_KEY}"  # From environment variable
+      weight: 1.0                    # Weight in ensemble
+      temperature: 0.7
+      max_tokens: 4096
+
+    # Optional: Add secondary model
+    # - name: "gpt-3.5-turbo"
+    #   api_key: "${OPENAI_API_KEY}"
+    #   weight: 0.2  # Lower weight = less influence
+
+  # Models for evaluation (optional, defaults to same as evolution)
+  evaluator_models: []
+
+  # Alternative: Use primary_model/secondary_model syntax
+  # primary_model: "gpt-4"
+  # primary_model_weight: 1.0
+  # secondary_model: "gpt-3.5-turbo"
+  # secondary_model_weight: 0.2
+
+# ============================================================================
+# PROMPT CONFIGURATION
+# ============================================================================
+
+prompt:
+  # Template directory (null = use built-in templates)
+  template_dir: null
+
+  # System message templates
+  system_message: "system_message"
+  evaluator_system_message: "evaluator_system_message"
+
+  # Number of examples to include in prompts
+  num_top_programs: 3    # Best performing programs
+  num_diverse_programs: 2  # Diverse programs for exploration
+
+  # Template stochasticity (varied prompts)
+  use_template_stochasticity: true
+  template_variations: {}
+
+  # Meta-prompting (advanced)
+  use_meta_prompting: false
+  meta_prompt_weight: 0.1
+
+  # Artifact handling
+  include_artifacts: true
+  max_artifact_bytes: 20480  # 20KB in prompt
+  artifact_security_filter: true
+
+# ============================================================================
+# DATABASE CONFIGURATION
+# ============================================================================
+
+database:
+  # Storage
+  db_path: null  # null = in-memory
+  in_memory: true
+  log_prompts: true  # Save prompts to programs/<id>.json
+
+  # Population settings
+  population_size: 1000
+  archive_size: 100
+  num_islands: 5  # Island-based evolution
+
+  # Selection ratios (must sum to ~1.0)
+  elite_selection_ratio: 0.1    # Top 10%
+  exploration_ratio: 0.2        # 20% diverse
+  exploitation_ratio: 0.7       # 70% best performers
+
+  # MAP-Elites feature dimensions
+  # Built-in: "complexity", "diversity", "score"
+  # Custom: Any metric from your evaluator
+  feature_dimensions:
+    - "complexity"
+    - "diversity"
+
+  # Number of bins per dimension (int or dict)
+  feature_bins: 10
+  # Or per-dimension:
+  # feature_bins:
+  #   complexity: 10
+  #   diversity: 10
+
+  # Reference set size for diversity calculation
+  diversity_reference_size: 20
+
+  # Migration settings for island-based evolution
+  migration_interval: 50  # Migrate every N generations
+  migration_rate: 0.1     # Fraction of population to migrate
+
+  # Random seed for reproducibility
+  random_seed: 42
+
+  # Artifact storage
+  artifacts_base_path: null  # null = db_path/artifacts
+  artifact_size_threshold: 32768  # 32KB
+  cleanup_old_artifacts: true
+  artifact_retention_days: 30
+
+# ============================================================================
+# EVALUATOR CONFIGURATION
+# ============================================================================
+
+evaluator:
+  # Resource limits
+  timeout: 300  # Max evaluation time in seconds
+  max_retries: 3
+  memory_limit_mb: null
+  cpu_limit: null
+
+  # Cascade evaluation (quick tests first)
+  cascade_evaluation: true
+  cascade_thresholds: [0.5, 0.75, 0.9]
+
+  # Parallel evaluation
+  parallel_evaluations: 1
+  distributed: false
+
+  # LLM-based feedback (advanced)
+  use_llm_feedback: false
+  llm_feedback_weight: 0.1
+
+  # Artifact handling
+  enable_artifacts: true
+  max_artifact_storage: 104857600  # 100MB per program
+
+# ============================================================================
+# EVOLUTION TRACE CONFIGURATION
+# ============================================================================
+
+evolution_trace:
+  enabled: false
+  format: "jsonl"  # Options: "jsonl", "json", "hdf5"
+  include_code: false
+  include_prompts: true
+  output_path: null  # null = output_dir/evolution_trace.jsonl
+  buffer_size: 10
+  compress: false
+
+# ============================================================================
+# EVOLUTION SETTINGS
+# ============================================================================
+
+# Use diff-based evolution (only send changes to LLM)
+diff_based_evolution: true
+
+# Maximum code length (characters)
+max_code_length: 10000
+
+# ============================================================================
+# EARLY STOPPING
+# ============================================================================
+
+# Stop if no improvement for N iterations
+early_stopping_patience: null  # null = disabled
+
+# Minimum improvement to not be "converged"
+convergence_threshold: 0.001
+
+# Metric to monitor for early stopping
+early_stopping_metric: "combined_score"
+
+# ============================================================================
+# USAGE
+# ============================================================================
+
+# Use this config with CLI:
+#   openevolve program.py evaluator.py --config config_example.yaml
+#
+# Or with Python API:
+#   from openevolve import run_evolution
+#   result = run_evolution('program.py', 'evaluator.py', config='config_example.yaml')

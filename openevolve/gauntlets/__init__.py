@@ -1,0 +1,55 @@
+"""
+OpenEvolve Gauntlets Package
+
+Multi-round evaluation systems with sophisticated state management,
+decision logic, and artifact fusion.
+
+This package provides:
+- Multi-round orchestration across different gauntlet types
+- State management and tracking across rounds
+- Decision logic for continue/terminate decisions
+- Score normalization across different scoring scales
+- Artifact fusion with consensus detection
+- Progress reporting and performance metrics
+"""
+
+from .loongflow_gauntlet import (
+    LoongFlowGauntletEvaluator,
+    LoongFlowGauntletConfig,
+    GauntletEvaluationResult,
+)
+
+from .three_round_orchestrator import (
+    ThreeRoundGauntletOrchestrator,
+    ThreeRoundConfig,
+    FullGauntletResult,
+    Round1Result,
+    Round2Result,
+    Round3Result,
+)
+
+from .multi_round_orchestrator import (
+    MultiRoundGauntletOrchestrator,
+    GauntletState,
+    FusedArtifacts,
+)
+
+__all__ = [
+    # LoongFlow Gauntlet
+    'LoongFlowGauntletEvaluator',
+    'LoongFlowGauntletConfig',
+    'GauntletEvaluationResult',
+
+    # Three Round Orchestrator
+    'ThreeRoundGauntletOrchestrator',
+    'ThreeRoundConfig',
+    'FullGauntletResult',
+    'Round1Result',
+    'Round2Result',
+    'Round3Result',
+
+    # Multi Round Orchestrator
+    'MultiRoundGauntletOrchestrator',
+    'GauntletState',
+    'FusedArtifacts',
+]

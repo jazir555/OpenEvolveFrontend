@@ -1,0 +1,37 @@
+# Standard Configuration Example
+# Typical configuration for most use cases
+
+# Evolutionary parameters
+evolution_mode: auto
+max_iterations: 100
+max_evaluations: 100
+population_size: 100
+convergence_threshold: 0.001
+
+# Problem definition
+domain: finance
+objectives:
+  - return
+  - risk
+
+# Knowledge engine
+enable_knowledge_engine: true
+extract_knowledge: true
+use_past_solutions: true
+
+# Gauntlet (3-round evaluation)
+enable_gauntlet: true
+gauntlet_rounds:
+  - loongflow
+  - red_team
+  - gold_team
+
+# Resources
+max_evaluations: 100
+parallel_evaluations: 4
+evaluation_timeout: 300
+
+# Logging
+log_level: INFO
+save_intermediate_results: true
+checkpoint_interval: 20

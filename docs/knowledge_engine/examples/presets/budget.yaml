@@ -1,0 +1,20 @@
+# Budget Preset
+# Minimize API usage
+
+evolution_mode: pes  # 60% fewer evaluations
+max_evaluations: 20
+enable_planning: true
+enable_memory: true
+early_stopping: true
+early_stop_threshold: 0.85
+
+# Sequential to avoid rate limits
+parallel_evaluations: 1
+
+# Minimal validation
+enable_gauntlet: false
+enable_knowledge_engine: false
+
+# Minimal logging
+log_level: WARNING
+save_intermediate_results: false

@@ -1,0 +1,19 @@
+{
+  "output_path": "C:\\Users\\mmeadow\\AppData\\Local\\Temp\\pytest-of-mmeadow\\pytest-13\\test_visualize_graph0\\test_graph.html",
+  "node_count": 4,
+  "edge_count": 5,
+  "community_count": 1,
+  "statistics": {
+    "communities": 1,
+    "avg_community_size": 4.0,
+    "max_centrality": 0.7057345389727743,
+    "avg_centrality": 0.5746253781214012,
+    "graph_density": 0.8333333333333334,
+    "is_connected": true,
+    "avg_clustering": 0.8333333333333333,
+    "diameter": 2
+  },
+  "cache_key": "ef30fbbd7751dfd541bcd60bc8faafc0",
+  "generation_time": 0.003999,
+  "timestamp": "2026-01-09T06:30:20.374925"
+}

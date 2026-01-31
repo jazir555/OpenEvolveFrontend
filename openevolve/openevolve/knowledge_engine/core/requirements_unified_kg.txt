@@ -1,0 +1,42 @@
+# Unified Knowledge Graph Manager Requirements
+# Install with: pip install -r requirements_unified_kg.txt
+
+# Core dependencies
+pyyaml>=6.0
+
+# Optional backend dependencies
+# Install only what you need:
+
+# Memgraph backend (recommended - Apache 2.0, compatible with Neo4j driver)
+# Uses same neo4j driver - no additional dependencies needed
+neo4j>=5.0.0
+
+# Neo4j backend (deprecated - GPL license, not permissive)
+# neo4j>=5.0.0
+
+# Qdrant backend
+qdrant-client>=1.7.0
+
+# PostgreSQL backend (recommended - permissive license)
+asyncpg>=0.29.0
+
+# MongoDB backend (deprecated - SSPL license, not permissive)
+# motor>=3.3.0
+
+# KarateClub backend
+networkx>=3.0
+karateclub>=1.0.0
+
+# Testing dependencies
+pytest>=7.4.0
+pytest-asyncio>=0.21.0
+pytest-cov>=4.1.0
+
+# API server (optional)
+fastapi>=0.104.0
+uvicorn>=0.24.0
+
+# Development dependencies
+black>=23.0.0
+mypy>=1.5.0
+flake8>=6.1.0

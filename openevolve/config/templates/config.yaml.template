@@ -1,0 +1,205 @@
+# OpenEvolve Configuration Template
+# Copy this file to config.yaml and customize for your needs
+
+# =============================================================================
+# CORE EVOLUTION PARAMETERS
+# =============================================================================
+# max_iterations: Maximum number of evolution iterations
+max_iterations: 50
+
+# population_size: Size of population for genetic algorithms
+population_size: 20
+
+# generations: Number of generations to evolve
+generations: 10
+
+# evolution_mode: Mode of evolution ('standard', 'adversarial', 'quality_diversity')
+evolution_mode: standard
+
+# domain: Application domain ('engineering', 'finance', 'pharma', 'science', 'trading', 'web_design')
+domain: general
+
+# seed: Random seed for reproducibility (optional)
+# seed: 42
+
+# =============================================================================
+# LLM PARAMETERS
+# =============================================================================
+# model_id: LLM model to use
+model_id: gpt-4o
+
+# temperature: LLM sampling temperature (0.0 - 2.0)
+temperature: 0.7
+
+# max_tokens: Maximum tokens in LLM responses
+max_tokens: 2048
+
+# top_p: Nucleus sampling parameter (0.0 - 1.0)
+top_p: 0.9
+
+# API Configuration
+# api_key: Your API key (or set EVOLVE_API_KEY environment variable)
+# api_base: API base URL (optional, for Azure/custom endpoints)
+# api_base: https://api.openai.com/v1
+
+# =============================================================================
+# PES (PLANNING, EXECUTION, MEMORY) PARAMETERS
+# =============================================================================
+# enable_planning: Enable planning stage
+enable_planning: true
+
+# enable_memory: Enable memory system
+enable_memory: true
+
+# memory_type: Type of memory ('episodic', 'semantic', 'working')
+memory_type: episodic
+
+# planner_model: Model for planning (optional, defaults to model_id)
+# planner_model: gpt-4o
+
+# =============================================================================
+# QUALITY DIVERSITY PARAMETERS
+# =============================================================================
+# qd_enabled: Enable quality diversity evolution
+qd_enabled: false
+
+# qd_algorithm: QD algorithm ('map_elites', 'cvt_map_elites')
+# qd_algorithm: map_elites
+
+# qd_grid_resolution: Grid resolution for MAP-Elites (2-1000)
+# qd_grid_resolution: 20
+
+# =============================================================================
+# GENETIC ALGORITHM PARAMETERS
+# =============================================================================
+# mutation_rate: Mutation rate (0.0 - 1.0)
+mutation_rate: 0.1
+
+# crossover_rate: Crossover rate (0.0 - 1.0)
+crossover_rate: 0.8
+
+# selection_method: Selection method ('tournament', 'roulette', 'rank')
+selection_method: tournament
+
+# tournament_size: Size of tournament for selection
+tournament_size: 3
+
+# =============================================================================
+# ADVERSARIAL PARAMETERS
+# =============================================================================
+# adversarial_rounds: Number of adversarial rounds (if using adversarial mode)
+# adversarial_rounds: 5
+
+# attack_strength: Strength of attacks (0.0 - 1.0)
+# attack_strength: 0.5
+
+# =============================================================================
+# GAUNTLET PARAMETERS
+# =============================================================================
+# enable_gauntlet: Enable gauntlet validation stage
+enable_gauntlet: true
+
+# gauntlet_rounds: Number of gauntlet rounds
+gauntlet_rounds: 5
+
+# gauntlet_strictness: Gauntlet strictness (0.0 - 1.0)
+gauntlet_strictness: 0.7
+
+# =============================================================================
+# LOGGING PARAMETERS
+# =============================================================================
+# log_level: Logging level ('DEBUG', 'INFO', 'WARNING', 'ERROR')
+log_level: INFO
+
+# log_format: Log format ('json', 'text')
+log_format: text
+
+# verbose: Enable verbose output
+verbose: false
+
+# debug: Enable debug mode
+debug: false
+
+# =============================================================================
+# OUTPUT PARAMETERS
+# =============================================================================
+# output_dir: Directory for output files
+output_dir: ./output
+
+# save_intermediate_results: Save intermediate results
+save_intermediate_results: true
+
+# save_final_results: Save final results
+save_final_results: true
+
+# save_frequency: Save every N iterations
+save_frequency: 10
+
+# result_format: Result format ('json', 'yaml', 'csv')
+result_format: json
+
+# =============================================================================
+# PERFORMANCE PARAMETERS
+# =============================================================================
+# parallel_workers: Number of parallel workers
+parallel_workers: 1
+
+# batch_size: Batch size for processing
+batch_size: 10
+
+# cache_enabled: Enable caching
+cache_enabled: true
+
+# cache_size: Cache size
+cache_size: 1000
+
+# timeout: Request timeout in seconds
+timeout: 120
+
+# max_retries: Maximum number of retries
+max_retries: 3
+
+# retry_delay: Delay between retries (seconds)
+retry_delay: 1.0
+
+# =============================================================================
+# STOPPING CONDITIONS
+# =============================================================================
+# early_stopping: Enable early stopping
+early_stopping: true
+
+# early_stopping_patience: Patience for early stopping
+early_stopping_patience: 5
+
+# early_stopping_threshold: Threshold for early stopping
+early_stopping_threshold: 0.01
+
+# =============================================================================
+# VALIDATION PARAMETERS
+# =============================================================================
+# validate_outputs: Validate outputs
+validate_outputs: true
+
+# validation_frequency: Validate every N iterations
+validation_frequency: 5
+
+# validation_strictness: Validation strictness ('strict', 'moderate', 'lenient')
+validation_strictness: moderate
+
+# =============================================================================
+# INTEGRATIONS
+# =============================================================================
+# enable_mlflow: Enable MLflow tracking
+enable_mlflow: false
+
+# enable_wandb: Enable Weights & Biases tracking
+enable_wandb: false
+
+# =============================================================================
+# ENVIRONMENT VARIABLE OVERRIDE
+# =============================================================================
+# Any parameter can be overridden via environment variables
+# Format: EVOLVE_PARAMETER_NAME=value
+# Example: export EVOLVE_MAX_ITERATIONS=100
+# Example: export EVOLVE_TEMPERATURE=0.8
+# Example: export EVOLVE_ENABLE_PLANNING=true

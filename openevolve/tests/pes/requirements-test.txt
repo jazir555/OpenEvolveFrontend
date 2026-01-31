@@ -1,0 +1,41 @@
+# Testing requirements for PES test suite
+
+# Core testing framework
+pytest>=7.0.0
+pytest-cov>=4.0.0
+pytest-asyncio>=0.21.0
+pytest-timeout>=2.1.0
+pytest-xdist>=3.0.0  # For parallel test execution
+
+# Coverage reporting
+coverage[toml]>=7.0.0
+
+# Mocking and fixtures
+pytest-mock>=3.10.0
+
+# Async testing
+asyncio>=3.4.3
+
+# Type checking (optional, for development)
+mypy>=1.0.0
+types-PyYAML>=6.0.0
+
+# Linting and formatting (optional, for development)
+black>=23.0.0
+flake8>=6.0.0
+pylint>=2.17.0
+
+# Documentation testing (optional)
+pytest-doc>=0.14.0
+
+# Performance profiling (optional)
+pytest-benchmark>=4.0.0
+
+# HTML test reports (optional)
+pytest-html>=3.2.0
+
+# JSON schema validation for testing configs
+jsonschema>=4.17.0
+
+# HTTP mocking (for testing API calls)
+responses>=0.23.0

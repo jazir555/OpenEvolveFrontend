@@ -1,0 +1,740 @@
+"""
+Test fixtures and data for enhanced gauntlet system testing
+
+Provides realistic test solutions, configurations, and scenarios
+for comprehensive validation of the 3-round gauntlet pipeline.
+"""
+
+from typing import Dict, Any, List, Optional
+from dataclasses import dataclass, field
+from datetime import datetime
+import json
+
+
+@dataclass
+class TestSolution:
+    """Test solution with expected outcomes"""
+    solution_id: str
+    code: str
+    problem_type: str
+    domain: str
+    expected_round1_score: float
+    expected_round2_score: Optional[float] = None
+    expected_round3_score: Optional[float] = None
+    expected_final_score: Optional[float] = None
+    should_pass_round1: bool = True
+    should_pass_round2: bool = True
+    should_pass_round3: bool = True
+    expected_termination_round: Optional[int] = None
+    artifacts: List[str] = field(default_factory=list)
+    weaknesses: List[str] = field(default_factory=list)
+    strengths: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        return {
+            'solution_id': self.solution_id,
+            'code': self.code,
+            'problem_type': self.problem_type,
+            'domain': self.domain,
+            'expected_round1_score': self.expected_round1_score,
+            'expected_round2_score': self.expected_round2_score,
+            'expected_round3_score': self.expected_round3_score,
+            'expected_final_score': self.expected_final_score,
+            'should_pass_round1': self.should_pass_round1,
+            'should_pass_round2': self.should_pass_round2,
+            'should_pass_round3': self.should_pass_round3,
+            'expected_termination_round': self.expected_termination_round,
+            'artifacts': self.artifacts,
+            'weaknesses': self.weaknesses,
+            'strengths': self.strengths
+        }
+
+
+@dataclass
+class GauntletTestConfig:
+    """Test configuration for gauntlet runs"""
+    config_id: str
+    round1_threshold: float
+    round2_threshold: float
+    round3_threshold: float
+    round1_weight: float = 0.2
+    round2_weight: float = 0.3
+    round3_weight: float = 0.5
+    enable_early_termination: bool = True
+    max_timeout_seconds: int = 600
+    enable_artifact_fusion: bool = True
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        return {
+            'config_id': self.config_id,
+            'round1_threshold': self.round1_threshold,
+            'round2_threshold': self.round2_threshold,
+            'round3_threshold': self.round3_threshold,
+            'round1_weight': self.round1_weight,
+            'round2_weight': self.round2_weight,
+            'round3_weight': self.round3_weight,
+            'enable_early_termination': self.enable_early_termination,
+            'max_timeout_seconds': self.max_timeout_seconds,
+            'enable_artifact_fusion': self.enable_artifact_fusion
+        }
+
+
+# ============================================================================
+# PERFECT SOLUTIONS (Pass all rounds)
+# ============================================================================
+
+PERFECT_SOLUTIONS = [
+    TestSolution(
+        solution_id="perfect_portfolio_opt_001",
+        code='''\n
+import numpy as np
+from scipy.optimize import minimize
+from typing import Dict, List, Tuple
+
+class PortfolioOptimizer:
+    '''Modern portfolio theory implementation with constraint handling'''
+
+    def __init__(self, returns: np.ndarray, risk_tolerance: float = 0.1):
+        """
+        Initialize portfolio optimizer
+
+        Args:
+            returns: Historical return matrix (assets x time)
+            risk_tolerance: Maximum acceptable portfolio variance
+        """
+        self.returns = returns
+        self.risk_tolerance = risk_tolerance
+        self.n_assets = returns.shape[0]
+        self.mean_returns = np.mean(returns, axis=1)
+        self.cov_matrix = np.cov(returns)
+
+    def optimize(self) -> Dict[str, Any]:
+        '''Optimize portfolio allocation using quadratic programming'''
+        # Objective: minimize negative Sharpe ratio
+        def objective(weights):
+            portfolio_return = np.dot(self.mean_returns, weights)
+            portfolio_variance = np.dot(weights.T, np.dot(self.cov_matrix, weights))
+            return -(portfolio_return / np.sqrt(portfolio_variance))
+
+        # Constraints
+        constraints = [
+            {'type': 'eq', 'fun': lambda w: np.sum(w) - 1.0},  # Fully invested
+            {'type': 'ineq', 'fun': lambda w: self.risk_tolerance - np.dot(w.T, np.dot(self.cov_matrix, w))}
+        ]
+
+        # Bounds: no short selling
+        bounds = tuple((0, 1) for _ in range(self.n_assets))
+
+        # Initial guess: equal weight
+        x0 = np.array([1.0 / self.n_assets] * self.n_assets)
+
+        # Optimize
+        result = minimize(
+            objective,
+            x0,
+            method='SLSQP',
+            bounds=bounds,
+            constraints=constraints,
+            options={'ftol': 1e-9}
+        )
+
+        if not result.success:
+            raise RuntimeError(f"Optimization failed: {result.message}")
+
+        # Extract results
+        optimal_weights = result.x
+        expected_return = np.dot(self.mean_returns, optimal_weights)
+        expected_variance = np.dot(optimal_weights.T, np.dot(self.cov_matrix, optimal_weights))
+        sharpe_ratio = expected_return / np.sqrt(expected_variance)
+
+        return {
+            'weights': optimal_weights.tolist(),
+            'expected_return': float(expected_return),
+            'expected_variance': float(expected_variance),
+            'sharpe_ratio': float(sharpe_ratio),
+            'status': result.success
+        }
+
+    def validate_solution(self, solution: Dict[str, Any]) -> bool:
+        '''Validate solution meets constraints'''
+        weights = np.array(solution['weights'])
+
+        # Check fully invested
+        if not np.isclose(np.sum(weights), 1.0, atol=1e-6):
+            return False
+
+        # Check no short selling
+        if np.any(weights < -1e-10):
+            return False
+
+        # Check risk tolerance
+        variance = np.dot(weights.T, np.dot(self.cov_matrix, weights))
+        if variance > self.risk_tolerance + 1e-6:
+            return False
+
+        return True
+
+
+# Example usage
+if __name__ == '__main__':
+    # Generate sample returns
+    np.random.seed(42)
+    returns = np.random.randn(10, 252) * 0.02  # 10 assets, 1 year of daily returns
+
+    optimizer = PortfolioOptimizer(returns, risk_tolerance=0.01)
+    result = optimizer.optimize()
+
+    print(f"Optimal Weights: {result['weights']}")
+    print(f"Expected Return: {result['expected_return']:.4f}")
+    print(f"Expected Variance: {result['expected_variance']:.6f}")
+    print(f"Sharpe Ratio: {result['sharpe_ratio']:.4f}")
+    print(f"Valid: {optimizer.validate_solution(result)}")
+""",
+        problem_type="portfolio_optimization",
+        domain="finance",
+        expected_round1_score=0.95,
+        expected_round2_score=0.92,
+        expected_round3_score=0.90,
+        expected_final_score=0.917,
+        should_pass_round1=True,
+        should_pass_round2=True,
+        should_pass_round3=True,
+        expected_termination_round=None,
+        artifacts=[
+            "covariance_matrix",
+            "efficient_frontier",
+            "constraint_satisfaction_proof"
+        ],
+        strengths=[
+            "Proper use of scipy.optimize",
+            "Constraint handling",
+            "Well-documented",
+            "Type hints",
+            "Error handling",
+            "Validation method",
+            "Efficient numerical computation"
+        ]
+    ),
+    TestSolution(
+        solution_id="perfect_ml_pipeline_002",
+        code="""
+import pandas as pd
+import numpy as np
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score, StratifiedKFold
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+from typing import Dict, Any, Tuple
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+class MLPipeline:
+    """
+    Production-ready ML pipeline with proper validation and preprocessing
+    """
+
+    def __init__(self, n_estimators: int = 100, random_state: int = 42):
+        self.n_estimators = n_estimators
+        self.random_state = random_state
+        self.pipeline = None
+        self.feature_names = None
+
+    def create_pipeline(self) -> Pipeline:
+        """Create sklearn pipeline with preprocessing and model"""
+        pipeline = Pipeline([
+            ('scaler', StandardScaler()),
+            ('classifier', RandomForestClassifier(
+                n_estimators=self.n_estimators,
+                random_state=self.random_state,
+                n_jobs=-1,
+                class_weight='balanced'
+            ))
+        ])
+        return pipeline
+
+    def train(self, X: pd.DataFrame, y: pd.Series) -> Dict[str, Any]:
+        """
+        Train model with cross-validation
+
+        Args:
+            X: Feature DataFrame
+            y: Target series
+
+        Returns:
+            Training metrics dictionary
+        """
+        self.feature_names = X.columns.tolist()
+
+        # Create pipeline
+        self.pipeline = self.create_pipeline()
+
+        # Cross-validation
+        cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=self.random_state)
+        cv_scores = cross_val_score(
+            self.pipeline, X, y,
+            cv=cv,
+            scoring='f1_weighted',
+            n_jobs=-1
+        )
+
+        # Train on full dataset
+        self.pipeline.fit(X, y)
+
+        # Extract metrics
+        metrics = {
+            'cv_f1_mean': float(cv_scores.mean()),
+            'cv_f1_std': float(cv_scores.std()),
+            'cv_scores': cv_scores.tolist(),
+            'feature_importance': dict(zip(
+                self.feature_names,
+                self.pipeline.named_steps['classifier'].feature_importances_.tolist()
+            ))
+        }
+
+        logger.info(f"Training completed. CV F1: {metrics['cv_f1_mean']:.4f} (+/- {metrics['cv_f1_std']:.4f})")
+
+        return metrics
+
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
+        """Make predictions on new data"""
+        if self.pipeline is None:
+            raise RuntimeError("Model not trained. Call train() first.")
+
+        if not all(col in X.columns for col in self.feature_names):
+            raise ValueError("Missing features in input data")
+
+        return self.pipeline.predict(X)
+
+    def predict_proba(self, X: pd.DataFrame) -> np.ndarray:
+        """Get prediction probabilities"""
+        if self.pipeline is None:
+            raise RuntimeError("Model not trained. Call train() first.")
+
+        return self.pipeline.predict_proba(X)
+
+    def evaluate(self, X: pd.DataFrame, y: pd.Series) -> Dict[str, float]:
+        """Evaluate model on test set"""
+        from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+        y_pred = self.predict(X)
+
+        metrics = {
+            'accuracy': accuracy_score(y, y_pred),
+            'precision': precision_score(y, y_pred, average='weighted'),
+            'recall': recall_score(y, y_pred, average='weighted'),
+            'f1': f1_score(y, y_pred, average='weighted')
+        }
+
+        return metrics
+
+
+# Example usage
+if __name__ == '__main__':
+    from sklearn.datasets import make_classification
+
+    # Generate sample data
+    X, y = make_classification(
+        n_samples=1000,
+        n_features=20,
+        n_informative=15,
+        n_redundant=5,
+        n_classes=3,
+        random_state=42
+    )
+
+    X_df = pd.DataFrame(X, columns=[f'feature_{i}' for i in range(20)])
+    y_series = pd.Series(y)
+
+    # Train pipeline
+    pipeline = MLPipeline(n_estimators=100)
+    metrics = pipeline.train(X_df, y_series)
+
+    print(f"Cross-Validation F1: {metrics['cv_f1_mean']:.4f} (+/- {metrics['cv_f1_std']:.4f})")
+    print(f"Feature Importance: {metrics['feature_importance']}")
+""",
+        problem_type="classification",
+        domain="machine_learning",
+        expected_round1_score=0.93,
+        expected_round2_score=0.90,
+        expected_round3_score=0.91,
+        expected_final_score=0.908,
+        should_pass_round1=True,
+        should_pass_round2=True,
+        should_pass_round3=True,
+        expected_termination_round=None,
+        artifacts=[
+            "cross_validation_results",
+            "feature_importance_analysis",
+            "confusion_matrix"
+        ],
+        strengths=[
+            "Proper sklearn pipeline",
+            "Cross-validation",
+            "Feature preprocessing",
+            "Comprehensive logging",
+            "Type safety",
+            "Error handling",
+            "Multiple evaluation metrics"
+        ]
+    )
+]
+
+
+# ============================================================================
+# POOR SOLUTIONS (Fail Round 1)
+# ============================================================================
+
+POOR_SOLUTIONS = [
+    TestSolution(
+        solution_id="poor_simple_bad_001",
+        code="""
+# Very simple solution that should fail
+
+def bad():
+    return 1
+
+# Not enough complexity
+# No error handling
+# No documentation
+# No type hints
+# Minimal implementation
+""",
+        problem_type="simple",
+        domain="general",
+        expected_round1_score=0.20,
+        expected_round2_score=None,
+        expected_round3_score=None,
+        expected_final_score=0.20,
+        should_pass_round1=False,
+        should_pass_round2=False,
+        should_pass_round3=False,
+        expected_termination_round=1,
+        weaknesses=[
+            "Too simple",
+            "No error handling",
+            "No documentation",
+            "No type hints",
+            "Incomplete implementation"
+        ]
+    ),
+    TestSolution(
+        solution_id="poor_syntax_error_002",
+        code="""
+def broken():
+    # This has syntax errors
+    x = [
+    # Missing closing bracket
+    return x
+""",
+        problem_type="broken",
+        domain="general",
+        expected_round1_score=0.10,
+        expected_round2_score=None,
+        expected_round3_score=None,
+        expected_final_score=0.10,
+        should_pass_round1=False,
+        should_pass_round2=False,
+        should_pass_round3=False,
+        expected_termination_round=1,
+        weaknesses=[
+            "Syntax errors",
+            "Won't execute",
+            "Incomplete"
+        ]
+    )
+]
+
+
+# ============================================================================
+# MODERATE SOLUTIONS (Pass R1, Fail R2)
+# ============================================================================
+
+MODERATE_SOLUTIONS = [
+    TestSolution(
+        solution_id="moderate_portfolio_basic_001",
+        code="""
+import numpy as np
+
+def optimize_portfolio(returns):
+    # Basic portfolio optimization
+    # Simple equal-weight strategy
+    n = len(returns)
+    weights = np.ones(n) / n
+
+    # Calculate metrics
+    mean_return = np.mean(returns, axis=1)
+    portfolio_return = np.dot(mean_return, weights)
+
+    return {
+        'weights': weights.tolist(),
+        'return': float(portfolio_return)
+    }
+""",
+        problem_type="portfolio_optimization",
+        domain="finance",
+        expected_round1_score=0.65,
+        expected_round2_score=0.45,
+        expected_round3_score=None,
+        expected_final_score=0.525,
+        should_pass_round1=True,
+        should_pass_round2=False,
+        should_pass_round3=False,
+        expected_termination_round=2,
+        strengths=[
+            "Working code",
+            "Correct output format"
+        ],
+        weaknesses=[
+            "No optimization",
+            "Simple equal-weight",
+            "No risk consideration",
+            "No constraints",
+            "Minimal documentation"
+        ]
+    )
+]
+
+
+# ============================================================================
+# GOOD SOLUTIONS (Pass R1, R2, Fail R3)
+# ============================================================================
+
+GOOD_SOLUTIONS = [
+    TestSolution(
+        solution_id="good_portfolio_intermediate_001",
+        code="""
+import numpy as np
+from scipy.optimize import minimize
+
+def optimize_portfolio(returns, risk_tolerance=0.1):
+    """
+    Portfolio optimization with constraints
+
+    Args:
+        returns: Return matrix
+        risk_tolerance: Max variance
+
+    Returns:
+        Optimal weights
+    """
+    n_assets = returns.shape[0]
+    mean_returns = np.mean(returns, axis=1)
+    cov_matrix = np.cov(returns)
+
+    # Minimize variance
+    def objective(weights):
+        return np.dot(weights.T, np.dot(cov_matrix, weights))
+
+    # Constraints
+    constraints = [
+        {'type': 'eq', 'fun': lambda w: np.sum(w) - 1.0}
+    ]
+
+    bounds = tuple((0, 1) for _ in range(n_assets))
+    x0 = np.array([1.0 / n_assets] * n_assets)
+
+    result = minimize(objective, x0, method='SLSQP', bounds=bounds, constraints=constraints)
+
+    if result.success:
+        weights = result.x
+        portfolio_return = np.dot(mean_returns, weights)
+        portfolio_variance = np.dot(weights.T, np.dot(cov_matrix, weights))
+
+        return {
+            'weights': weights.tolist(),
+            'expected_return': float(portfolio_return),
+            'expected_variance': float(portfolio_variance)
+        }
+    else:
+        raise RuntimeError("Optimization failed")
+""",
+        problem_type="portfolio_optimization",
+        domain="finance",
+        expected_round1_score=0.82,
+        expected_round2_score=0.78,
+        expected_round3_score=0.65,
+        expected_final_score=0.727,
+        should_pass_round1=True,
+        should_pass_round2=True,
+        should_pass_round3=False,
+        expected_termination_round=3,
+        strengths=[
+            "Working optimization",
+            "Constraint handling",
+            "Good documentation",
+            "Proper error handling"
+        ],
+        weaknesses=[
+            "Missing Sharpe ratio",
+            "No validation method",
+            "Could be more robust"
+        ]
+    )
+]
+
+
+# ============================================================================
+# EDGE CASE SOLUTIONS
+# ============================================================================
+
+EDGE_CASE_SOLUTIONS = [
+    TestSolution(
+        solution_id="edge_timeout_001",
+        code="""
+import time
+
+def slow_solution():
+    # Simulate very slow computation
+    time.sleep(100)
+    return "done"
+""",
+        problem_type="timeout",
+        domain="general",
+        expected_round1_score=0.5,
+        expected_round2_score=None,
+        expected_round3_score=None,
+        expected_final_score=0.5,
+        should_pass_round1=False,
+        should_pass_round2=False,
+        should_pass_round3=False,
+        expected_termination_round=1,
+        weaknesses=[
+            "Timeout",
+            "Too slow",
+            "Inefficient"
+        ]
+    ),
+    TestSolution(
+        solution_id="edge_boundary_score_002",
+        code="""
+def boundary_solution():
+    # Solution exactly on threshold
+    return "acceptable"
+""",
+        problem_type="boundary",
+        domain="general",
+        expected_round1_score=0.50,  # Exactly on threshold
+        expected_round2_score=0.50,
+        expected_round3_score=0.50,
+        expected_final_score=0.50,
+        should_pass_round1=True,  # Boundary case
+        should_pass_round2=True,
+        should_pass_round3=False,
+        expected_termination_round=3,
+        weaknesses=[
+            "Minimal effort",
+            "No optimization"
+        ]
+    )
+]
+
+
+# ============================================================================
+# CONFIGURATIONS
+# ============================================================================
+
+STRICT_CONFIG = GauntletTestConfig(
+    config_id="strict",
+    round1_threshold=0.7,
+    round2_threshold=0.8,
+    round3_threshold=0.9,
+    enable_early_termination=True
+)
+
+LENIENT_CONFIG = GauntletTestConfig(
+    config_id="lenient",
+    round1_threshold=0.3,
+    round2_threshold=0.5,
+    round3_threshold=0.6,
+    enable_early_termination=True
+)
+
+BALANCED_CONFIG = GauntletTestConfig(
+    config_id="balanced",
+    round1_threshold=0.5,
+    round2_threshold=0.7,
+    round3_threshold=0.8,
+    enable_early_termination=True
+)
+
+NO_EARLY_TERMINATION_CONFIG = GauntletTestConfig(
+    config_id="no_early_term",
+    round1_threshold=0.5,
+    round2_threshold=0.7,
+    round3_threshold=0.8,
+    enable_early_termination=False
+)
+
+
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
+
+def get_all_solutions() -> List[TestSolution]:
+    """Get all test solutions"""
+    return (
+        PERFECT_SOLUTIONS +
+        POOR_SOLUTIONS +
+        MODERATE_SOLUTIONS +
+        GOOD_SOLUTIONS +
+        EDGE_CASE_SOLUTIONS
+    )
+
+
+def get_solutions_by_category(category: str) -> List[TestSolution]:
+    """Get solutions by category"""
+    categories = {
+        'perfect': PERFECT_SOLUTIONS,
+        'poor': POOR_SOLUTIONS,
+        'moderate': MODERATE_SOLUTIONS,
+        'good': GOOD_SOLUTIONS,
+        'edge': EDGE_CASE_SOLUTIONS
+    }
+    return categories.get(category, [])
+
+
+def get_solution_by_id(solution_id: str) -> Optional[TestSolution]:
+    """Get specific solution by ID"""
+    for solution in get_all_solutions():
+        if solution.solution_id == solution_id:
+            return solution
+    return None
+
+
+def save_test_data(output_path: str):
+    """Save test data to JSON file"""
+    data = {
+        'solutions': [s.to_dict() for s in get_all_solutions()],
+        'configs': [
+            STRICT_CONFIG.to_dict(),
+            LENIENT_CONFIG.to_dict(),
+            BALANCED_CONFIG.to_dict(),
+            NO_EARLY_TERMINATION_CONFIG.to_dict()
+        ]
+    }
+
+    with open(output_path, 'w') as f:
+        json.dump(data, f, indent=2)
+
+
+if __name__ == '__main__':
+    # Demo: print all solutions
+    print("Test Solutions Available:")
+    print("=" * 60)
+
+    for category in ['perfect', 'poor', 'moderate', 'good', 'edge']:
+        solutions = get_solutions_by_category(category)
+        print(f"\n{category.upper()} ({len(solutions)} solutions):")
+        for sol in solutions:
+            print(f"  - {sol.solution_id}")
+            print(f"    Expected R1: {sol.expected_round1_score}")
+            if sol.expected_termination_round:
+                print(f"    Termination: Round {sol.expected_termination_round}")
+
+    print("\n" + "=" * 60)
+    print(f"Total solutions: {len(get_all_solutions())}")

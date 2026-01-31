@@ -1,0 +1,74 @@
+# Production Profile Configuration
+# Maximum quality for production runs
+
+core:
+  max_iterations: 100
+  population_size: 50
+  generations: 50
+  evolution_mode: standard
+
+llm:
+  model_id: gpt-4o
+  temperature: 0.7
+  max_tokens: 4096
+  top_p: 0.9
+
+pes:
+  enable_planning: true
+  enable_memory: true
+  memory_type: episodic
+  plan_temperature: 0.7
+  memory_capacity: 1000
+  memory_retention: 0.9
+
+qd:
+  qd_enabled: true
+  qd_algorithm: map_elites
+  qd_grid_resolution: 20
+  qd_archive_size: 1000
+
+gauntlet:
+  enable_gauntlet: true
+  gauntlet_rounds: 10
+  gauntlet_strictness: 0.8
+
+logging:
+  log_level: INFO
+  log_format: json
+  verbose: false
+  debug: false
+
+output:
+  save_intermediate_results: true
+  save_final_results: true
+  save_frequency: 10
+  output_dir: ./production_output
+  result_format: json
+
+performance:
+  parallel_workers: 4
+  batch_size: 10
+  cache_enabled: true
+  cache_size: 10000
+  timeout: 300
+  max_retries: 3
+  retry_delay: 1.0
+
+validation:
+  validate_outputs: true
+  validation_frequency: 5
+  validation_strictness: strict
+
+stopping:
+  early_stopping: false
+
+diversity:
+  diversity_weight: 0.5
+  novelty_weight: 0.3
+
+integrations:
+  enable_mlflow: true
+  enable_wandb: false
+
+tags:
+  - production

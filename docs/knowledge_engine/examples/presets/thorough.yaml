@@ -1,0 +1,31 @@
+# Thorough Preset
+# Maximum quality
+
+evolution_mode: auto
+max_iterations: 500
+max_evaluations: 500
+population_size: 200
+
+# Gauntlet (comprehensive)
+enable_gauntlet: true
+gauntlet_rounds:
+  - loongflow
+  - red_team
+  - red_team
+  - gold_team
+  - gold_team
+
+# Knowledge engine
+enable_knowledge_engine: true
+extract_knowledge: true
+use_past_solutions: true
+
+# Resources
+parallel_evaluations: 2
+evaluation_timeout: 600
+memory_limit_mb: 8192
+
+# Extensive logging
+log_level: DEBUG
+save_intermediate_results: true
+checkpoint_interval: 10

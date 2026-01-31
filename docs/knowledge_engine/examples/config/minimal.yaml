@@ -1,0 +1,8 @@
+# Minimal Configuration Example
+# Just the essentials for getting started
+
+evolution_mode: auto
+max_iterations: 100
+domain: finance
+enable_knowledge_engine: true
+log_level: INFO

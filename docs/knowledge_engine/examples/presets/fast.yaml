@@ -1,0 +1,21 @@
+# Fast Preset
+# Minimize execution time
+
+evolution_mode: auto  # Auto-selects fastest mode
+max_iterations: 20
+max_evaluations: 30
+population_size: 50
+
+# Performance
+parallel_evaluations: 8
+enable_gauntlet: false
+enable_knowledge_engine: false
+save_intermediate_results: false
+
+# Early stopping
+early_stopping: true
+early_stopping_patience: 3
+
+# Resources
+evaluation_timeout: 60
+memory_limit_mb: 512

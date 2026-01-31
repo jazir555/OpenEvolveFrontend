@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Community Visualization</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {{
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }}
+
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8f9fa;
+            overflow: hidden;
+        }}
+
+        #container {{
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }}
+
+        #header {{
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }}
+
+        #header h1 {{
+            font-size: 1.5rem;
+            font-weight: 600;
+        }}
+
+        #controls {{
+            display: flex;
+            gap: 1rem;
+        }}
+
+        #controls button {{
+            padding: 0.5rem 1rem;
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 4px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s;
+        }}
+
+        #controls button:hover {{
+            background: rgba(255,255,255,0.3);
+        }}
+
+        #controls button.active {{
+            background: rgba(255,255,255,0.4);
+            font-weight: 600;
+        }}
+
+        #main-content {{
+            flex: 1;
+            display: flex;
+            position: relative;
+        }}
+
+        #graph-container {{
+            flex: 1;
+            position: relative;
+        }}
+
+        #graph {{
+            width: 100%;
+            height: 100%;
+            cursor: grab;
+        }}
+
+        #graph:active {{
+            cursor: grabbing;
+        }}
+
+        #sidebar {{
+            width: 320px;
+            background: white;
+            border-left: 1px solid #ddd;
+            overflow-y: auto;
+            box-shadow: -2px 0 8px rgba(0,0,0,0.1);
+        }}
+
+        #sidebar h2 {{
+            padding: 1rem;
+            font-size: 1.1rem;
+            color: #333;
+            border-bottom: 1px solid #eee;
+        }}
+
+        .community-info {{
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }}
+
+        .community-info h3 {{
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 1rem;
+        }}
+
+        .community-color {{
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+        }}
+
+        .stat-grid {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+            font-size: 0.85rem;
+        }}
+
+        .stat {{
+            background: #f8f9fa;
+            padding: 0.5rem;
+            border-radius: 4px;
+        }}
+
+        .stat-label {{
+            color: #666;
+            margin-bottom: 0.25rem;
+        }}
+
+        .stat-value {{
+            color: #333;
+            font-weight: 600;
+        }}
+
+        .node {{
+            stroke: #fff;
+            stroke-width: 1.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }}
+
+        .node:hover {{
+            stroke: #000;
+            stroke-width: 2.5px;
+            filter: brightness(1.1);
+        }}
+
+        .node.dimmed {{
+            opacity: 0.2;
+        }}
+
+        .link {{
+            stroke-opacity: 0.6;
+        }}
+
+        .link.inter-community {{
+            stroke-dasharray: 5,5;
+            stroke: #999;
+        }}
+
+        .link.dimmed {{
+            opacity: 0.1;
+        }}
+
+        #hierarchy {{
+            padding: 1rem;
+        }}
+
+        .hierarchy-level {{
+            margin-bottom: 1rem;
+        }}
+
+        .hierarchy-level h4 {{
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 0.5rem;
+            text-transform: capitalize;
+        }}
+
+        .hierarchy-communities {{
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }}
+
+        .hierarchy-community {{
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            color: white;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }}
+
+        .hierarchy-community:hover {{
+            transform: scale(1.05);
+        }}
+
+        #tooltip {{
+            position: absolute;
+            padding: 0.75rem;
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            border-radius: 6px;
+            pointer-events: none;
+            font-size: 0.85rem;
+            max-width: 300px;
+            z-index: 1000;
+            display: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }}
+
+        #stats-overlay {{
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            font-size: 0.85rem;
+        }}
+
+        .stat-item {{
+            margin-bottom: 0.5rem;
+            display: flex;
+            justify-content: space-between;
+            gap: 2rem;
+        }}
+
+        .stat-item .stat-label {{
+            font-weight: 600;
+            color: #666;
+        }}
+
+        .stat-item .stat-value {{
+            color: #333;
+        }}
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="header">
+            <h1>Community Visualization</h1>
+            <div id="controls">
+                <button id="show-all" class="active">Show All</button>
+                <button id="show-core">Core</button>
+                <button id="show-intermediate">Intermediate</button>
+                <button id="show-peripheral">Peripheral</button>
+            </div>
+        </div>
+
+        <div id="main-content">
+            <div id="graph-container">
+                <svg id="graph"></svg>
+
+                <div id="stats-overlay">
+                    <div class="stat-item">
+                        <span class="stat-label">Communities:</span>
+                        <span class="stat-value" id="total-communities">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Nodes:</span>
+                        <span class="stat-value" id="total-nodes">0</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Inter-Community Edges:</span>
+                        <span class="stat-value" id="inter-edges">0</span>
+                    </div>
+                </div>
+
+                <div id="tooltip"></div>
+            </div>
+
+            <div id="sidebar">
+                <h2>Communities</h2>
+                <div id="communities-list"></div>
+
+                <h2>Hierarchy</h2>
+                <div id="hierarchy"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const vizData = {viz_data};
+
+        (function() {{
+            const data = vizData;
+            const width = data.options.width || 1200;
+            const height = data.options.height || 800;
+
+            // Create SVG
+            const svg = d3.select('#graph')
+                .attr('width', width)
+                .attr('height', height);
+
+            // Create groups
+            const interLinksGroup = svg.append('g').attr('class', 'inter-links');
+            const linksGroup = svg.append('g').attr('class', 'links');
+            const nodesGroup = svg.append('g').attr('class', 'nodes');
+
+            // Zoom
+            const zoom = d3.zoom()
+                .scaleExtent([0.1, 4])
+                .on('zoom', (event) => {{
+                    interLinksGroup.attr('transform', event.transform);
+                    linksGroup.attr('transform', event.transform);
+                    nodesGroup.attr('transform', event.transform);
+                }});
+
+            svg.call(zoom);
+
+            // Prepare node positions
+            const nodePositions = new Map();
+            data.nodes.forEach(node => {{
+                nodePositions.set(node.id, {{ x: node.x, y: node.y }});
+            }});
+
+            // Create inter-community edges
+            const interLinks = interLinksGroup.selectAll('line')
+                .data(data.inter_community_edges)
+                .enter()
+                .append('line')
+                .attr('class', 'link inter-community')
+                .attr('stroke', '#999')
+                .attr('stroke-width', 1)
+                .attr('stroke-dasharray', '5,5')
+                .attr('x1', d => nodePositions.get(d.source)?.x || 0)
+                .attr('y1', d => nodePositions.get(d.source)?.y || 0)
+                .attr('x2', d => nodePositions.get(d.target)?.x || 0)
+                .attr('y2', d => nodePositions.get(d.target)?.y || 0);
+
+            // Create intra-community edges
+            const intraLinks = data.edges.filter(e => !e.is_inter_community);
+
+            const links = linksGroup.selectAll('line')
+                .data(intraLinks)
+                .enter()
+                .append('line')
+                .attr('class', 'link')
+                .attr('stroke', d => {{
+                    const commId = data.nodes.find(n => n.id === d.source)?.community;
+                    const comm = data.communities.find(c => c.id === commId);
+                    return comm?.color || '#999';
+                }})
+                .attr('stroke-width', d => d.confidence * 2)
+                .attr('x1', d => nodePositions.get(d.source)?.x || 0)
+                .attr('y1', d => nodePositions.get(d.source)?.y || 0)
+                .attr('x2', d => nodePositions.get(d.target)?.x || 0)
+                .attr('y2', d => nodePositions.get(d.target)?.y || 0);
+
+            // Create nodes
+            const node = nodesGroup.selectAll('circle')
+                .data(data.nodes)
+                .enter()
+                .append('circle')
+                .attr('class', 'node')
+                .attr('id', d => `node-${{d.id}}`)
+                .attr('r', d => d.size)
+                .attr('fill', d => {{
+                    const comm = data.communities.find(c => c.id === d.community);
+                    return comm?.color || '#1f77b4';
+                }})
+                .attr('cx', d => d.x)
+                .attr('cy', d => d.y);
+
+            // Update stats
+            document.getElementById('total-communities').textContent = data.communities.length;
+            document.getElementById('total-nodes').textContent = data.nodes.length;
+            document.getElementById('inter-edges').textContent = data.inter_community_edges.length;
+
+            // Create community list in sidebar
+            const communitiesList = d3.select('#communities-list');
+
+            data.communities.forEach(comm => {{
+                const commInfo = communitiesList.append('div')
+                    .attr('class', 'community-info')
+                    .attr('id', `community-info-${{comm.id}}`)
+                    .style('cursor', 'pointer');
+
+                const header = commInfo.append('h3');
+                header.append('div')
+                    .attr('class', 'community-color')
+                    .style('background', comm.color);
+                header.append('span')
+                    .text(`Community ${{comm.id}}`);
+
+                const stats = commInfo.append('div')
+                    .attr('class', 'stat-grid');
+
+                stats.append('div').attr('class', 'stat')
+                    .html(`<div class="stat-label">Nodes</div><div class="stat-value">${{comm.nodes.length}}</div>`);
+
+                stats.append('div').attr('class', 'stat')
+                    .html(`<div class="stat-label">Density</div><div class="stat-value">${{comm.density.toFixed(3)}}</div>`);
+
+                stats.append('div').attr('class', 'stat')
+                    .html(`<div class="stat-label">Internal Edges</div><div class="stat-value">${{comm.internal_edges}}</div>`);
+
+                stats.append('div').attr('class', 'stat')
+                    .html(`<div class="stat-label">External Edges</div><div class="stat-value">${{comm.external_edges}}</div>`);
+
+                // Hover effect
+                commInfo.on('mouseover', () => highlightCommunity(comm.id))
+                        .on('mouseout', () => resetHighlight());
+            }});
+
+            // Create hierarchy view
+            const hierarchy = d3.select('#hierarchy');
+
+            if (data.hierarchy && data.hierarchy.levels) {{
+                Object.entries(data.hierarchy.levels).forEach(([level, commIds]) => {{
+                    const levelDiv = hierarchy.append('div')
+                        .attr('class', 'hierarchy-level');
+
+                    levelDiv.append('h4').text(level);
+
+                    const commsDiv = levelDiv.append('div')
+                        .attr('class', 'hierarchy-communities');
+
+                    commIds.forEach(commId => {{
+                        const comm = data.communities.find(c => c.id === commId);
+                        if (comm) {{
+                            commsDiv.append('div')
+                                .attr('class', 'hierarchy-community')
+                                .style('background', comm.color)
+                                .text(`C${{commId}}`)
+                                .on('click', () => highlightCommunity(commId));
+                        }}
+                    }});
+                }});
+            }}
+
+            // Tooltip
+            const tooltip = d3.select('#tooltip');
+
+            node.on('mouseover', function(event, d) {{
+                const comm = data.communities.find(c => c.id === d.community);
+                const html = `
+                    <strong>${{d.id}}</strong><br/>
+                    Community: ${{d.community}}<br/>
+                    Degree: ${{d.degree}}<br/>
+                    Centrality: ${{d.centrality.toFixed(3)}}
+                `;
+                tooltip
+                    .html(html)
+                    .style('display', 'block')
+                    .style('left', (event.pageX + 10) + 'px')
+                    .style('top', (event.pageY - 10) + 'px');
+            }}).on('mouseout', function() {{
+                tooltip.style('display', 'none');
+            }});
+
+            // Highlight community
+            function highlightCommunity(commId) {{
+                // Dim nodes not in community
+                node.classed('dimmed', d => d.community !== commId);
+
+                // Dim edges not in community
+                links.classed('dimmed', d => {{
+                    const sourceNode = data.nodes.find(n => n.id === d.source);
+                    return sourceNode?.community !== commId;
+                }});
+
+                interLinks.classed('dimmed', true);
+            }}
+
+            function resetHighlight() {{
+                node.classed('dimmed', false);
+                links.classed('dimmed', false);
+                interLinks.classed('dimmed', false);
+            }}
+
+            // Control buttons
+            document.getElementById('show-all').addEventListener('click', function() {{
+                resetHighlight();
+                document.querySelectorAll('#controls button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+            }});
+
+        }})();
+    </script>
+</body>
+</html>

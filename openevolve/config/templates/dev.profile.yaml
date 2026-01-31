@@ -1,0 +1,49 @@
+# Development Profile Configuration
+# Fast iteration during development
+
+core:
+  max_iterations: 20
+  population_size: 10
+  generations: 5
+  evolution_mode: standard
+
+llm:
+  model_id: gpt-4o-mini
+  temperature: 0.7
+  max_tokens: 2048
+
+pes:
+  enable_planning: true
+  enable_memory: false
+  plan_temperature: 0.5
+
+qd:
+  qd_enabled: false
+
+gauntlet:
+  enable_gauntlet: false
+
+logging:
+  log_level: DEBUG
+  verbose: true
+  debug: true
+
+output:
+  save_intermediate_results: true
+  save_final_results: true
+  output_dir: ./dev_output
+
+performance:
+  parallel_workers: 1
+
+validation:
+  validate_outputs: false
+  validation_strictness: lenient
+
+stopping:
+  early_stopping: true
+  early_stopping_patience: 3
+
+tags:
+  - development
+  - testing

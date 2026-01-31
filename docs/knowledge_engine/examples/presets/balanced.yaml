@@ -1,0 +1,28 @@
+# Balanced Preset
+# Default choice for most problems
+
+evolution_mode: auto
+max_iterations: 100
+max_evaluations: 100
+population_size: 100
+
+# Gauntlet
+enable_gauntlet: true
+gauntlet_rounds:
+  - loongflow
+  - red_team
+  - gold_team
+
+# Knowledge engine
+enable_knowledge_engine: true
+extract_knowledge: true
+
+# Resources
+parallel_evaluations: 4
+evaluation_timeout: 300
+memory_limit_mb: 2048
+
+# Logging
+log_level: INFO
+save_intermediate_results: true
+checkpoint_interval: 20

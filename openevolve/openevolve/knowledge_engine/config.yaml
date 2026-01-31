@@ -1,0 +1,102 @@
+name: "OpenEvolve Knowledge Engine"
+version: "1.0.0"
+environment: "production"
+
+database:
+  type: "postgresql"
+  host: ${DB_HOST:-localhost}
+  port: ${DB_PORT:-5432}
+  username: ${DB_USERNAME:-openevolve}
+  password: ${DB_PASSWORD:-""}
+  database: ${DB_NAME:-openevolve_kg}
+  connection_pool_size: 20
+  ssl_enabled: false
+
+vector_store:
+  type: "qdrant"
+  host: ${VECTOR_STORE_HOST:-localhost}
+  port: ${VECTOR_STORE_PORT:-6333}
+  collection_name: "knowledge_artifacts"
+  distance_metric: "cosine"
+  vector_size: 1536
+  recreate_collection: false
+
+cache:
+  type: "redis"
+  host: ${CACHE_HOST:-localhost}
+  port: ${CACHE_PORT:-6379}
+  db: ${CACHE_DB:-0}
+  ttl_seconds: 3600
+  max_items: 10000
+
+server:
+  host: ${SERVER_HOST:-0.0.0.0}
+  port: ${SERVER_PORT:-8000}
+  workers: ${SERVER_WORKERS:-4}
+  timeout: 300
+  max_connections: 1000
+  cors_enabled: true
+  cors_origins:
+    - "*"
+  ssl_enabled: false
+
+llm:
+  provider: ${LLM_PROVIDER:-openai}
+  model: ${LLM_MODEL:-gpt-4o}
+  api_key: ${LLM_API_KEY}
+  base_url: ${LLM_BASE_URL}
+  temperature: 0.7
+  max_tokens: 4096
+  top_p: 1.0
+  frequency_penalty: 0.0
+  presence_penalty: 0.0
+  request_timeout: 120
+  max_retries: 3
+  retry_delay: 1.0
+
+integrations:
+  enable_graphiti: true
+  enable_kggen: true
+  enable_oneke: true
+  enable_aikg: true
+  enable_ragbits: true
+  enable_crewai: true
+  enable_deepke: true
+  enable_researchquest: true
+  enable_agentic_context: true
+  enable_agentjson: true
+  enable_dspy: true
+  enable_leanaide: true
+  enable_openevolve_lib: true
+  enable_mcp_gateway: true
+
+features:
+  enable_temporal_reasoning: true
+  enable_bilingual_extraction: true
+  enable_multi_agent_collaboration: true
+  enable_formal_verification: true
+  enable_retrieval_augmentation: true
+  enable_program_of_thought: true
+  enable_self_evolution: true
+
+performance:
+  max_concurrent_requests: 100
+  request_queue_size: 1000
+  response_cache_ttl: 300
+  enable_request_logging: true
+  enable_response_caching: true
+
+security:
+  enable_authentication: true
+  enable_authorization: true
+  jwt_secret: ${JWT_SECRET:-"default_secret_for_dev_only"}
+  rate_limit_requests: 100
+  rate_limit_window: 60
+
+monitoring:
+  log_level: "INFO"
+  log_format: "json"
+  enable_metrics: true
+  metrics_export_port: 9090
+  enable_tracing: false
+  tracing_endpoint: null
