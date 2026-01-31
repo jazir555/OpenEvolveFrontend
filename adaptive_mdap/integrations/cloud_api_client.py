@@ -261,6 +261,95 @@ class AnthropicClient(BaseAPIClient):
         return input_cost + output_cost
 
 
+class GoogleClient(BaseAPIClient):
+    """Google API client."""
+    
+    PRICING = {
+        "gemini-1.5-flash": {"input": 0.000075, "output": 0.0003},
+        "gemini-1.5-pro": {"input": 0.00125, "output": 0.005},
+        "gemini-1.0-pro": {"input": 0.0005, "output": 0.0015},
+    }
+    
+    def __init__(self, config: APIConfig):
+        super().__init__(config)
+        self.client = None
+        self._init_client()
+    
+    def _init_client(self) -> None:
+        """Initialize Google client."""
+        try:
+            import google.generativeai as genai
+            self.client = genai.Client(api_key=self.config.api_key)
+        except ImportError:
+            logger.warning("google-generativeai package not installed")
+        except Exception as e:
+            logger.error(f"Failed to initialize Google client: {e}")
+    
+    def call(
+        self,
+        prompt: str,
+        model: str = "gemini-1.5-flash",
+        temperature: float = 0.1,
+        max_tokens: int = 1000,
+    ) -> APIResponse:
+        """Make Google API call."""
+        if not self.client:
+            raise RuntimeError("Google client not initialized")
+        
+        start_time = time.time()
+        
+        for attempt in range(self.config.max_retries):
+            try:
+                response = self.client.models.generate_content(
+                    model=model,
+                    contents=[prompt],
+                    config={
+                        "temperature": temperature,
+                        "max_output_tokens": max_tokens,
+                    }
+                )
+                
+                latency_ms = (time.time() - start_time) * 1000
+                
+                # Extract content
+                content = response.text
+                
+                # Estimate token usage (Google doesn't provide exact counts)
+                input_tokens = len(prompt) // 4  # Rough estimate
+                output_tokens = len(content) // 4
+                
+                cost = self.estimate_cost(input_tokens, output_tokens, model)
+                
+                self._call_count += 1
+                self._total_tokens += input_tokens + output_tokens
+                self._total_cost += cost
+                
+                return APIResponse(
+                    content=content,
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    model=model,
+                    latency_ms=latency_ms,
+                    cost=cost,
+                )
+                
+            except Exception as e:
+                logger.warning(f"Google API call failed (attempt {attempt + 1}): {e}")
+                if attempt < self.config.max_retries - 1:
+                    time.sleep(self.config.retry_delay * (2 ** attempt))
+                else:
+                    raise
+        
+        raise RuntimeError("Max retries exceeded")
+    
+    def estimate_cost(self, input_tokens: int, output_tokens: int, model: str) -> float:
+        """Estimate cost for Google models."""
+        pricing = self.PRICING.get(model, self.PRICING["gemini-1.5-flash"])
+        input_cost = (input_tokens / 1000) * pricing["input"]
+        output_cost = (output_tokens / 1000) * pricing["output"]
+        return input_cost + output_cost
+
+
 class CloudAPIClient:
     """
     Unified cloud API client for multiple providers.
@@ -271,12 +360,18 @@ class CloudAPIClient:
     def __init__(self):
         self._clients: Dict[Provider, BaseAPIClient] = {}
         self._model_to_provider = {
+            # OpenAI models
             "gpt-4o-mini": Provider.OPENAI,
             "gpt-4o": Provider.OPENAI,
             "gpt-4": Provider.OPENAI,
+            # Anthropic models
             "claude-3-5-haiku": Provider.ANTHROPIC,
             "claude-3-5-sonnet": Provider.ANTHROPIC,
             "claude-3-opus": Provider.ANTHROPIC,
+            # Google models
+            "gemini-1.5-flash": Provider.GOOGLE,
+            "gemini-1.5-pro": Provider.GOOGLE,
+            "gemini-1.0-pro": Provider.GOOGLE,
         }
     
     def register_client(self, provider: Provider, client: BaseAPIClient) -> None:
@@ -380,5 +475,7 @@ def create_client(
         return OpenAIClient(config)
     elif provider == Provider.ANTHROPIC:
         return AnthropicClient(config)
+    elif provider == Provider.GOOGLE:
+        return GoogleClient(config)
     else:
         raise ValueError(f"Unsupported provider: {provider}")

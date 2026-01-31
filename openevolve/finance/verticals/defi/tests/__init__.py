@@ -1,0 +1,3 @@
+"""
+DeFi Vertical Tests Package
+"""
