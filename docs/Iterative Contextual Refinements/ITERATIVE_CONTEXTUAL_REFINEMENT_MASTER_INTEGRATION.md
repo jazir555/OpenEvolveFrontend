@@ -40,24 +40,17 @@ Iterative contextual refinement is a systematic approach to continuously improvi
 
 ### RefinementCoordinator
 
-The [`RefinementCoordinator`](sovereign_refinement.py:61) class is the central orchestrator for iterative refinement:
+The [`RefinementCoordinator`](sovereign_refinement.py:61) class is the central orchestrator for iterative refinement. It bridges the backend state with the **Iterative Studio** frontend.
 
-```python
-class RefinementCoordinator:
-    """Coordinates iterative refinement of decomposition plans with LLM intelligence."""
-    
-    def __init__(self, config: RefinementConfig):
-        self.config = config
-        self.feedback_history = []
-        self.improvement_patterns = {}
-        
-    async def refine_plan(
-        self,
-        plan: DecompositionPlan,
-        feedback: List[RefinementFeedback]
-    ) -> RefinedPlan:
-        """Refine a decomposition plan based on feedback."""
-```
+### Mapping: Backend to Frontend (Iterative Studio)
+
+| Backend Component | Studio Mode | Integration Implementation |
+| :--- | :--- | :--- |
+| `RefinementCoordinator` | **Refine Mode** | Pipeline-based iterative loops in `WebsiteLogic.ts`. |
+| `ComprehensiveRefinementEngine` | **Deepthink Mode** | The 3-phase correction loop in `DeepthinkCore.ts`. |
+| `GauntletSystem` | **Red Team Filter** | Consolidated adversarial analysis in `runConsolidatedRedTeamAnalysis`. |
+| `MemoryAgentHistoryManager` | **Contextual Mode** | 10-turn condensation logic in `ContextualCore.ts`. |
+| `DeterministicRefinementEngine` | **Agentic Mode** | LangChain structured message history in `AgenticCoreLangchain.ts`. |
 
 ### Refinement Loop Flow
 

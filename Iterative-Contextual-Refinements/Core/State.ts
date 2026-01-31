@@ -6,6 +6,7 @@ import { createDefaultCustomPromptsDeepthink } from '../Deepthink/DeepthinkPromp
 import { createDefaultCustomPromptsAdaptiveDeepthink } from '../AdaptiveDeepthink/AdaptiveDeepthinkPrompt';
 import { createDefaultCustomPromptsContextual } from '../Contextual/ContextualPrompts';
 import { AGENTIC_SYSTEM_PROMPT } from '../Agentic/AgenticModePrompt';
+import { MATH_SOLVER_SYSTEM_PROMPT } from '../MathSolver/MathSolverPrompts';
 
 export const NUM_INITIAL_STRATEGIES_DEEPTHINK = 3;
 export const NUM_SUB_STRATEGIES_PER_MAIN_DEEPTHINK = 3;
@@ -16,6 +17,7 @@ class GlobalStateManager {
     pipelinesState: PipelineState[] = [];
     activeDeepthinkPipeline: DeepthinkPipelineState | null = null;
     activeReactPipeline: ReactPipelineState | null = null;
+    activeMathSolverState: any | null = null;
     activePipelineId: number | null = null;
     isGenerating: boolean = false;
     currentProblemImageBase64: string | null = null;
@@ -28,6 +30,7 @@ class GlobalStateManager {
     isContextualRunning: boolean = false;
     isAdaptiveDeepthinkRunning: boolean = false;
     isReactAgenticRunning: boolean = false;
+    isMathSolverRunning: boolean = false;
 
     customPromptsWebsiteState = defaultCustomPromptsWebsite;
     customPromptsDeepthinkState = createDefaultCustomPromptsDeepthink(NUM_INITIAL_STRATEGIES_DEEPTHINK, NUM_SUB_STRATEGIES_PER_MAIN_DEEPTHINK);
@@ -35,6 +38,7 @@ class GlobalStateManager {
     customPromptsAgenticState = { systemPrompt: AGENTIC_SYSTEM_PROMPT };
     customPromptsAdaptiveDeepthinkState = createDefaultCustomPromptsAdaptiveDeepthink();
     customPromptsContextualState = createDefaultCustomPromptsContextual();
+    customPromptsMathSolverState = { systemPrompt: MATH_SOLVER_SYSTEM_PROMPT };
 }
 
 export const globalState = new GlobalStateManager();

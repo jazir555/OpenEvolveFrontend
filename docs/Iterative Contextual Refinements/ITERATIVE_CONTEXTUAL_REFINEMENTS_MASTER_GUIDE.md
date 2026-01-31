@@ -87,7 +87,16 @@ ICR addresses these limitations by introducing:
 ├─────────────────────────────────────────────────────────────────────────────────┤
 │                                                                                 │
 │  ┌─────────────────────────────────────────────────────────────────────────┐   │
-│  │                    Refinement Coordinator                                │   │
+│  │                    Iterative Studio (Frontend)                           │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │   │
+│  │  │ Deepthink   │  │ Contextual  │  │ Agentic     │  │ Generative  │     │   │
+│  │  │ Mode        │  │ Mode        │  │ Mode        │  │ UI Mode     │     │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └─────────────┘     │   │
+│  └─────────────────────────────────────────────────────────────────────────┘   │
+│                              │                                                  │
+│                              ▼                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────────┐   │
+│  │                    Refinement Coordinator (Backend)                      │   │
 │  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐     │   │
 │  │  │ History     │  │ Pattern     │  │ Suggestion  │  │ Convergence │     │   │
 │  │  │ Manager     │  │ Analyzer    │  │ Generator   │  │ Checker     │     │   │
@@ -108,8 +117,8 @@ ICR addresses these limitations by introducing:
 │  │  ┌────────────────────────────────────────────────────────────────────┐   │   │
 │  │  │              Shared Refinement Context                              │   │   │
 │  │  │  ┌───────────┐  ┌───────────┐  ┌───────────┐  ┌───────────┐       │   │   │
-│  │  │  │ Execution │  │ Quality   │  │ Pattern   │  │ Feedback  │       │   │   │
-│  │  │  │ History   │  │ Metrics   │  │ Library   │  │ Log       │       │   │   │
+│  │  │  │ Chronicle │  │ Skillbook │  │ Pattern   │  │ Feedback  │       │   │   │
+│  │  │  │ Memory    │  │ (ACE)     │  │ Library   │  │ Log       │       │   │   │
 │  │  │  └───────────┘  └───────────┘  └───────────┘  └───────────┘       │   │   │
 │  │  └────────────────────────────────────────────────────────────────────┘   │   │
 │  │                                                                             │   │
@@ -118,7 +127,22 @@ ICR addresses these limitations by introducing:
 └─────────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### 3.2 Component Integration Points
+### 3.2 Iterative Studio: The Seven Pillars
+
+Iterative Studio provides seven specialized operational modes, each employing distinct multi-agent architectures:
+
+1.  **Refine Mode:** Focuses on rapid iteration cycles using parallel temperature sampling. It uses a three-stage refinement: Initial content -> Feature Suggestion -> Bug Fix.
+2.  **Deepthink Mode:** A sophisticated pipeline for complex problem-solving.
+    *   **Architecture:** Strategic Solver -> Sub-Strategy Generator -> Hypothesis Explorer -> Solution Generator -> Critique Agent -> Red Team Filter -> Final Judge.
+    *   **Core Feature:** Includes **Post-Quality Filter (PQF)** which iteratively prunes weak strategies across 3 distinct generations.
+3.  **Adaptive Deepthink:** Provides agents with the ability to invoke the Deepthink toolset autonomously during a conversation.
+4.  **Agentic Mode:** A LangChain-powered conversational interface with a dedicated **Verifier Agent** and tool access (Arxiv API, Diff editing, Filesystem).
+5.  **Contextual Mode:** Designed for long-horizon stability.
+    *   **The 10-Turn Rule:** Uses a **Memory Agent** to automatically condense conversation history every 10 turns, preventing context overflow while maintaining logical consistency.
+6.  **Generative UI Mode:** Integrates interaction capture with refinement loops, allowing the system to learn from user clicks and inputs.
+7.  **React Mode:** An experimental mode using orchestrator-worker patterns for parallelized codebase generation.
+
+### 3.3 Component Integration Points
 
 #### Decomposition Engine Integration
 - **Input**: Initial decomposition plan
@@ -268,7 +292,25 @@ ICR addresses these limitations by introducing:
 
 ### 5.2 Core Algorithms
 
-#### Refinement Pattern Detection
+#### 1. Smart Context Condensation (The 10-Turn Rule)
+Implemented in `ContextualCore.ts`, this algorithm manages conversational state for long-running sessions:
+*   **Trigger:** The `turnsSinceLastCondense` counter reaches 10.
+*   **Process:** 
+    1.  The **Memory Agent** is invoked with the last 10 iterations.
+    2.  It generates a **Memory Snapshot** (Knowledge Packet) summarizing what worked and what didn't.
+    3.  The conversation history is cleared.
+    4.  A new context is injected containing: Initial Request, Initial Generation, the new Memory Snapshot, and the Current Best Generation.
+*   **Result:** Maintains coherence for up to 2+ hours of autonomous refinement.
+
+#### 2. Post-Quality Filter (PQF) Loop
+A meta-refinement algorithm used in **Deepthink Mode** to ensure strategy quality:
+*   **Process:**
+    1.  **Analyze:** All active strategies are sent to the PQF agent along with their current solution attempts and critiques.
+    2.  **Prune/Update:** The agent decides whether to "Keep" or "Update" each strategy.
+    3.  **Regenerate:** Flawed strategies are updated in-place (preserving IDs) and re-executed.
+*   **Iteration Limit:** Max 3 iterations to prevent infinite oscillation.
+
+#### 3. Refinement Pattern Detection
 
 ```python
 def detect_refinement_patterns(

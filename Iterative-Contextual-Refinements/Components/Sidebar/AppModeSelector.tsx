@@ -40,6 +40,15 @@ export const AppModeSelector: React.FC = () => {
                     </label>
                 </div>
 
+                {/* Mathematical Reasoning Section */}
+                <div className="app-mode-section-label">Mathematical Reasoning</div>
+                <div className="radio-group-full-width-row">
+                    <label className="radio-label-modern radio-label-full-width">
+                        <input type="radio" name="app-mode" value="mathsolver" />
+                        <span>MathSolver (Z3 + Lean)</span>
+                    </label>
+                </div>
+
                 {/* Experimental Section */}
                 <div className="app-mode-section-label">Experimental (Not Recommended)</div>
                 <div className="radio-group-full-width-row">

@@ -7,6 +7,7 @@ import { getActiveAgenticState, setActiveAgenticStateForImport, renderAgenticMod
 import { getActiveGenerativeUIState, setActiveGenerativeUIStateForImport, renderGenerativeUIMode } from '../GenerativeUI/GenerativeUI';
 import { getContextualState, setContextualStateForImport, renderContextualMode } from '../Contextual/Contextual';
 import { getAdaptiveDeepthinkState, setAdaptiveDeepthinkStateForImport, renderAdaptiveDeepthinkMode } from '../AdaptiveDeepthink/AdaptiveDeepthinkMode';
+import { getActiveMathSolverState, setActiveMathSolverState } from '../MathSolver';
 import { renderReactModePipeline } from '../React/ReactUI';
 import { renderPipelines, activateTab, updateEvolutionModeDescription, updateUIAfterModeChange } from '../Refine/WebsiteUI';
 import { createDefaultCustomPromptsDeepthink } from '../Deepthink/DeepthinkPrompts';
@@ -15,6 +16,7 @@ import { createDefaultCustomPromptsReact } from '../React/ReactPrompts';
 import { createDefaultCustomPromptsContextual } from '../Contextual/ContextualPrompts';
 import { createDefaultCustomPromptsAdaptiveDeepthink } from '../AdaptiveDeepthink/AdaptiveDeepthinkPrompt';
 import { AGENTIC_SYSTEM_PROMPT } from '../Agentic/AgenticModePrompt';
+import { MATH_SOLVER_SYSTEM_PROMPT } from '../MathSolver/MathSolverPrompts';
 import {
     routingManager,
     updateCustomPromptTextareasFromState,
@@ -56,6 +58,7 @@ export async function exportConfiguration() {
         activeGenerativeUIState: globalState.currentMode === 'generativeui' ? getActiveGenerativeUIState() : null,
         activeContextualState: globalState.currentMode === 'contextual' ? getContextualState() : null,
         activeAdaptiveDeepthinkState: globalState.currentMode === 'adaptive-deepthink' ? getAdaptiveDeepthinkState() : null,
+        activeMathSolverState: globalState.currentMode === 'mathsolver' ? getActiveMathSolverState() : null,
         activePipelineId: globalState.activePipelineId,
         activeDeepthinkProblemTabId: deepthinkPipelineToExport?.activeTabId ?? '',
         globalStatusText: '',
@@ -66,6 +69,7 @@ export async function exportConfiguration() {
         customPromptsAgentic: globalState.customPromptsAgenticState,
         customPromptsAdaptiveDeepthink: globalState.customPromptsAdaptiveDeepthinkState,
         customPromptsContextual: globalState.customPromptsContextualState,
+        customPromptsMathSolver: globalState.customPromptsMathSolverState,
         isCustomPromptsOpen: false,
         // Export all model parameters
         modelParameters: {
@@ -367,6 +371,21 @@ export async function handleImportConfiguration(event: Event) {
                 }
 
                 renderAdaptiveDeepthinkMode();
+            } else if (globalState.currentMode === 'mathsolver') {
+                // Import MathSolver state
+                globalState.pipelinesState = [];
+                globalState.activeReactPipeline = null;
+                globalState.activeDeepthinkPipeline = null;
+                globalState.activePipelineId = null;
+
+                // Restore MathSolver state if available
+                if (importedConfig.activeMathSolverState) {
+                    setActiveMathSolverState(importedConfig.activeMathSolverState);
+                }
+
+                // Re-render MathSolver UI
+                const { rehydrateMathSolverUI } = await import('../MathSolver');
+                rehydrateMathSolverUI();
             } else { // Website mode               
                 // Restore website mode pipelines state
                 globalState.pipelinesState = importedConfig.pipelinesState ? importedConfig.pipelinesState.map(pipeline => ({
@@ -401,6 +420,9 @@ export async function handleImportConfiguration(event: Event) {
 
             const importedContextualPrompts = importedConfig.customPromptsContextual || createDefaultCustomPromptsContextual();
             globalState.customPromptsContextualState = JSON.parse(JSON.stringify(importedContextualPrompts));
+
+            const importedMathSolverPrompts = importedConfig.customPromptsMathSolver || { systemPrompt: MATH_SOLVER_SYSTEM_PROMPT };
+            globalState.customPromptsMathSolverState = JSON.parse(JSON.stringify(importedMathSolverPrompts));
 
             updateCustomPromptTextareasFromState();
 

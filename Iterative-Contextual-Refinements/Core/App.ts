@@ -14,6 +14,10 @@ import {
 import {
     startAdaptiveDeepthinkProcess
 } from '../AdaptiveDeepthink/AdaptiveDeepthinkMode';
+import {
+    initializeMathSolverMode,
+    startMathSolverProcess
+} from '../MathSolver';
 import { exportConfiguration, handleImportConfiguration } from './ConfigManager';
 import {
     updateUIAfterModeChange,
@@ -90,6 +94,11 @@ export class App {
         initializeAgenticMode();
         // Initialize GenerativeUI mode
         initializeGenerativeUIMode();
+        // Initialize MathSolver mode
+        const pipelinesContentContainer = document.getElementById('pipelines-content-container');
+        if (pipelinesContentContainer) {
+            initializeMathSolverMode(pipelinesContentContainer);
+        }
 
         initializeEvolutionConvergenceButtons();
 
@@ -195,6 +204,17 @@ export class App {
                     await startContextualProcess(initialIdea, globalState.customPromptsContextualState);
                 } else if (globalState.currentMode === 'adaptive-deepthink') {
                     await startAdaptiveDeepthinkProcess(initialIdea, globalState.customPromptsAdaptiveDeepthinkState, globalState.currentProblemImageBase64, globalState.currentProblemImageMimeType);
+                } else if (globalState.currentMode === 'mathsolver') {
+                    console.log('Starting MathSolver process');
+                    try {
+                        await startMathSolverProcess(initialIdea, {
+                            preferredSolver: 'auto',
+                            useKnowledgeBase: true,
+                            timeout: 300
+                        });
+                    } catch (e) {
+                        console.error('Error starting MathSolver process:', e);
+                    }
                 } else { // Website mode
                     console.log('Starting Website mode');
                     initPipelines();

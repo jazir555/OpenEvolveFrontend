@@ -37,7 +37,7 @@ export class PipelineStopRequestedError extends Error {
     }
 }
 
-export type ApplicationMode = 'website' | 'deepthink' | 'react' | 'agentic' | 'generativeui' | 'contextual' | 'adaptive-deepthink';
+export type ApplicationMode = 'website' | 'deepthink' | 'react' | 'agentic' | 'generativeui' | 'contextual' | 'adaptive-deepthink' | 'mathsolver';
 
 export interface IterationData {
     iterationNumber: number;
@@ -124,6 +124,7 @@ export interface ExportedConfig {
     activeGenerativeUIState?: any | null; // For generative UI mode
     activeContextualState?: any | null; // For contextual mode
     activeAdaptiveDeepthinkState?: any | null; // For adaptive deepthink mode
+    activeMathSolverState?: any | null; // For math solver mode
     activePipelineId: number | null; // For website
     activeDeepthinkProblemTabId?: string; // For deepthink UI
     globalStatusText: string;
@@ -134,6 +135,7 @@ export interface ExportedConfig {
     customPromptsAgentic: { systemPrompt: string }; // Added for Agentic mode
     customPromptsAdaptiveDeepthink?: CustomizablePromptsAdaptiveDeepthink; // Added for Adaptive Deepthink mode
     customPromptsContextual?: CustomizablePromptsContextual; // Added for Contextual mode
+    customPromptsMathSolver?: { systemPrompt: string }; // Added for MathSolver mode
     isCustomPromptsOpen?: boolean;
     // Model parameters for Deepthink modes
     modelParameters?: {
