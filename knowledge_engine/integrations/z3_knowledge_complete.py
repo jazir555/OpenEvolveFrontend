@@ -1261,6 +1261,10 @@ class Z3KnowledgeManager:
             "feature_extraction": self.feature_pipeline.extraction_stats,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
+    
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get knowledge manager statistics (alias for get_metrics)."""
+        return self.get_metrics()
 
 
 # Global instance
