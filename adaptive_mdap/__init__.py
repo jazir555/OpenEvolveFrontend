@@ -15,10 +15,51 @@ from adaptive_mdap.classifiers.task_complexity_classifier import TaskComplexityC
 from adaptive_mdap.allocators.resource_allocator import AdaptiveMDAPAllocator, SolveConfig, SolveStrategy
 from adaptive_mdap.controllers.execution_controller import AdaptiveExecutionController
 
+# Monitoring exports
+from adaptive_mdap.monitoring import (
+    HealthChecker,
+    HealthCheckResult,
+    ComponentStatus,
+    get_health_checker,
+    check_health,
+    DashboardGenerator,
+    get_dashboard,
+    get_summary,
+    get_full_dashboard,
+    get_prometheus_metrics,
+    AlertingEngine,
+    Alert,
+    AlertRule,
+    AlertSeverity,
+    AlertStatus,
+    get_alerting_engine,
+    check_and_alert,
+    get_active_alerts,
+)
+
 __all__ = [
     "TaskComplexityClassifier",
-    "AdaptiveMDAPAllocator", 
+    "AdaptiveMDAPAllocator",
     "SolveConfig",
     "SolveStrategy",
     "AdaptiveExecutionController",
+    # Monitoring
+    "HealthChecker",
+    "HealthCheckResult",
+    "ComponentStatus",
+    "get_health_checker",
+    "check_health",
+    "DashboardGenerator",
+    "get_dashboard",
+    "get_summary",
+    "get_full_dashboard",
+    "get_prometheus_metrics",
+    "AlertingEngine",
+    "Alert",
+    "AlertRule",
+    "AlertSeverity",
+    "AlertStatus",
+    "get_alerting_engine",
+    "check_and_alert",
+    "get_active_alerts",
 ]

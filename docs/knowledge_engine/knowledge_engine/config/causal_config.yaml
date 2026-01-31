@@ -1,0 +1,135 @@
+# Causal Modeling Configuration for Knowledge Engine
+#
+# This configuration controls how the knowledge engine builds, stores, and uses
+# causal models from agent outcomes.
+#
+# Author: Claude (Sonnet 4.5)
+# Date: January 30, 2026
+
+# Use causal-learn integration if available
+# If true, uses the well-tested CausalLearnAdapter from integrations/causal_learn/
+# If false, uses simplified correlation-based fallback
+use_causal_learn: true
+
+# Default algorithm for causal discovery
+# Options: pc, ges, fci, direct_lingam
+# - pc: Peter-Clark (constraint-based, good for continuous Gaussian data)
+# - ges: Greedy Equivalence Search (score-based, faster for large datasets)
+# - fci: Fast Causal Inference (handles latent confounders)
+# - direct_lingam: DirectLiNGAM (for non-Gaussian data)
+default_algorithm: "pc"
+
+# Algorithm selection based on data characteristics
+# This enables adaptive algorithm selection based on sample size
+algorithm_selection:
+  small_data_threshold: 100  # samples
+  medium_data_threshold: 1000  # samples
+  large_data_threshold: 5000  # samples
+
+  small_data: "pc"  # Use PC for small datasets (< 100 samples)
+  medium_data: "ges"  # Use GES for medium datasets (100-1000 samples)
+  large_data: "direct_lingam"  # Use LiNGAM for large datasets (> 1000 samples)
+
+# Independence test configuration
+# Used by constraint-based methods (PC, FCI)
+independence_test:
+  default: "fisherz"  # Fisher's Z test (Gaussian continuous)
+  # Options:
+  # - fisherz: Fisher's Z test (Gaussian continuous)
+  # - chisq: Chi-square test (discrete)
+  # - gsq: G-square test (discrete)
+  # - kci: Kernel-based conditional independence (nonlinear)
+
+# Significance level for independence tests
+# Lower = more conservative (fewer edges)
+alpha: 0.05
+
+# Score function for score-based methods (GES)
+score_function: "local_score_BIC"  # Bayesian Information Criterion
+
+# Caching configuration
+# Cache discovered causal structures to avoid re-computation
+cache:
+  enabled: true
+  max_size: 100  # Maximum number of cached graphs
+  ttl: 3600  # Time-to-live in seconds (1 hour)
+
+# Persistence configuration
+storage:
+  # Store in Neo4j graph database
+  neo4j:
+    enabled: true
+    collection: "causal_models"
+
+  # Store in Qdrant vector database for similarity search
+  qdrant:
+    enabled: true
+    collection: "causal_models"
+    embedding_size: 384
+
+  # Version models
+  version_models: true
+
+  # Auto-save after building models
+  auto_save: true
+
+# Model update configuration
+updates:
+  # Incremental learning
+  incremental: true
+
+  # Rebuild threshold (fraction of new data)
+  # If new_data / existing_data > rebuild_threshold, rebuild from scratch
+  rebuild_threshold: 0.5
+
+  # Minimum samples before update
+  min_samples: 10
+
+# Cross-domain learning
+cross_domain:
+  # Enable knowledge transfer across domains
+  enabled: true
+
+  # Similarity threshold for considering models similar
+  similarity_threshold: 0.7
+
+  # Maximum number of similar models to consider
+  max_similar: 5
+
+# Confidence thresholds
+confidence:
+  # Minimum confidence for including relationships
+  min_relationship_confidence: 0.7
+
+  # Minimum confidence for making predictions
+  min_prediction_confidence: 0.5
+
+  # Minimum confidence for counterfactual analysis
+  min_counterfactual_confidence: 0.6
+
+# Performance tuning
+performance:
+  # Maximum number of parent nodes per variable
+  max_parents: 5
+
+  # Maximum graph size (nodes)
+  max_nodes: 100
+
+  # Timeout for causal discovery (seconds)
+  timeout: 300
+
+  # Number of parallel workers (for large datasets)
+  max_workers: 4
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+
+  # Log discovered graphs
+  log_graphs: true
+
+  # Log model performance
+  log_performance: true
+
+  # Log storage operations
+  log_storage: true

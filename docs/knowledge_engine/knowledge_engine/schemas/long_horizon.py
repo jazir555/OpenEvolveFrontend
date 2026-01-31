@@ -476,3 +476,72 @@ class StrategyRecommendation:
             "alternative_strategies": self.alternative_strategies,
             "transfer_source": self.transfer_source
         }
+
+
+@dataclass
+class StoredCausalModel:
+    """
+    Causal model stored in knowledge engine with persistent storage
+
+    Attributes:
+        model_id: Unique identifier
+        domain: Problem domain
+        neo4j_id: Neo4j node ID (if stored in graph database)
+        qdrant_id: Qdrant point ID (if stored in vector database)
+        metadata: Additional metadata about the stored model
+    """
+    model_id: str
+    domain: str
+    neo4j_id: Optional[str] = None
+    qdrant_id: Optional[str] = None
+    metadata: Dict[str, Any] = None
+
+    def __post_init__(self):
+        """Initialize metadata if None"""
+        if self.metadata is None:
+            self.metadata = {}
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        return {
+            "model_id": self.model_id,
+            "domain": self.domain,
+            "neo4j_id": self.neo4j_id,
+            "qdrant_id": self.qdrant_id,
+            "metadata": self.metadata
+        }
+
+
+@dataclass
+class CounterfactualResult:
+    """
+    Result from counterfactual query on causal model
+
+    Attributes:
+        intervention: What was changed
+        outcome: Variable of interest
+        predicted_value: Predicted outcome under intervention
+        actual_value: Actual outcome without intervention
+        effect: Causal effect (predicted - actual)
+        confidence: Confidence in prediction
+        method: Method used for prediction
+    """
+    intervention: Dict[str, Any]
+    outcome: str
+    predicted_value: float
+    actual_value: Optional[float] = None
+    effect: Optional[float] = None
+    confidence: float = 0.0
+    method: str = "unknown"
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary"""
+        return {
+            "intervention": self.intervention,
+            "outcome": self.outcome,
+            "predicted_value": self.predicted_value,
+            "actual_value": self.actual_value,
+            "effect": self.effect,
+            "confidence": self.confidence,
+            "method": self.method
+        }

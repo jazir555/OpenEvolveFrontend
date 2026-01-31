@@ -193,3 +193,44 @@ class FeatureCache(BaseCache):
     def set_complexity(self, subproblem_id: str, score: float) -> None:
         """Cache complexity score."""
         self.set(f"complexity:{subproblem_id}", score)
+
+
+# Global cache instances
+_embedding_cache: Optional[EmbeddingCache] = None
+_feature_cache: Optional[FeatureCache] = None
+
+
+def get_embedding_cache() -> EmbeddingCache:
+    """Get the global embedding cache instance."""
+    global _embedding_cache
+    if _embedding_cache is None:
+        _embedding_cache = EmbeddingCache()
+    return _embedding_cache
+
+
+def get_feature_cache() -> FeatureCache:
+    """Get the global feature cache instance."""
+    global _feature_cache
+    if _feature_cache is None:
+        _feature_cache = FeatureCache()
+    return _feature_cache
+
+
+def get_cache_stats() -> Dict[str, Any]:
+    """Get combined cache statistics for monitoring."""
+    embedding_stats = get_embedding_cache().get_stats()
+    feature_stats = get_feature_cache().get_stats()
+    
+    # Calculate combined hit rate
+    total_hits = embedding_stats["hits"] + feature_stats["hits"]
+    total_misses = embedding_stats["misses"] + feature_stats["misses"]
+    total_requests = total_hits + total_misses
+    combined_hit_rate = total_hits / total_requests if total_requests > 0 else 0.0
+    
+    return {
+        "embedding_cache": embedding_stats,
+        "feature_cache": feature_stats,
+        "combined_hit_rate": combined_hit_rate,
+        "total_size": embedding_stats["size"] + feature_stats["size"],
+        "total_evictions": embedding_stats["evictions"] + feature_stats["evictions"],
+    }
