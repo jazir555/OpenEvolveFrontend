@@ -30,6 +30,7 @@
     *   3.5 Stage 4: Configurable Reassembly
     *   3.6 Stage 5: Final Verification & Self-Healing Loop
     *   3.7 Stage 6: Knowledge Extraction & Learning
+    *   3.8 Iterative Contextual Refinements
 4.  [UI/UX Configuration Concept](#40-uiux-configuration-concept)
     *   4.1 The Team Manager
     *   4.2 The Gauntlet Designer
@@ -3488,6 +3489,382 @@ inputs by enforcing schema checks and k-ahead consensus during solution generati
     - Process optimization impact on future workflows
     - Failure prediction accuracy improvements
     - Knowledge base query performance enhancements
+
+---
+
+## 3.8 Iterative Contextual Refinements
+
+### Overview
+
+The Iterative Contextual Refinement system enables continuous improvement of decomposition plans and solutions through contextual feedback loops. This system leverages multiple specialized teams (Red Team, Blue Team, Evaluator Team) to identify issues, propose fixes, and validate improvements in an iterative manner.
+
+**Key Files:**
+- [`sovereign_refinement_comprehensive.py`](sovereign_refinement_comprehensive.py) - Comprehensive refinement engine
+- [`sovereign_refinement.py`](sovereign_refinement.py) - Refinement coordinator
+- [`decomposition_recomposition_integration.py`](decomposition_recomposition_integration.py) - Pipeline refinement integration
+- [`comprehensive_decomposition_engine.py`](comprehensive_decomposition_engine.py) - Plan refinement
+
+### Core Architecture
+
+#### 3.8.1 Three-Team Refinement Model
+
+The refinement system uses a three-team collaborative approach:
+
+```
+┌─────────────────────────────────────────────────────────────────────┐
+│                    Iterative Refinement Cycle                        │
+├─────────────────────────────────────────────────────────────────────┤
+│                                                                     │
+│  ┌─────────────────┐                                                │
+│  │   Red Team      │  ← Critique & Issue Identification            │
+│  │   (Critics)     │    - Find weaknesses in current plan          │
+│  │                 │    - Identify edge cases                      │
+│  │                 │    - Generate issues list                     │
+│  └────────┬────────┘                                                │
+│           │                                                         │
+│           ▼                                                         │
+│  ┌─────────────────┐                                                │
+│  │   Blue Team     │  ← Fix Suggestions & Improvements             │
+│  │   (Fixers)      │    - Propose solutions to issues              │
+│  │                 │    - Generate improvement suggestions          │
+│  │                 │    - Apply fixes to plan                      │
+│  └────────┬────────┘                                                │
+│           │                                                         │
+│           ▼                                                         │
+│  ┌─────────────────┐                                                │
+│  │   Evaluator     │  ← Quality Assessment                         │
+│  │   Team          │    - Assess improvement quality               │
+│  │   (Judges)      │    - Calculate quality scores                 │
+│  │                 │    - Determine convergence                    │
+│  └────────┬────────┘                                                │
+│           │                                                         │
+│           ▼                                                         │
+│  ┌─────────────────┐                                                │
+│  │   Convergence   │  ← Continue or Terminate                      │
+│  │   Check         │    - Check quality threshold                  │
+│  │                 │    - Check improvement delta                  │
+│  │                 │    - Max iterations check                     │
+│  └─────────────────┘                                                │
+│                                                                     │
+└─────────────────────────────────────────────────────────────────────┘
+```
+
+#### 3.8.2 Refinement Cycle Data Models
+
+**RefinementCycle Data Class:**
+```python
+@dataclass
+class RefinementCycle:
+    """Represents one cycle of refinement."""
+    cycle_number: int                    # Current iteration (1, 2, 3...)
+    original_plan: DecompositionPlan     # Plan at cycle start
+    red_team_findings: List[IssueFinding]  # Issues identified by Red Team
+    blue_team_suggestions: List[FixSuggestion]  # Fixes from Blue Team
+    evaluator_assessment: Any             # Quality assessment
+    refined_plan: Optional[DecompositionPlan]  # Resulting plan
+    improvement_score: float              # Quality improvement [0-1]
+    timestamp: datetime                   # Cycle execution time
+```
+
+**RefinementResult Data Class:**
+```python
+@dataclass
+class RefinementResult:
+    """Complete refinement result."""
+    initial_plan: DecompositionPlan      # Original plan
+    final_plan: DecompositionPlan        # Refined plan
+    cycles: List[RefinementCycle]        # All cycles executed
+    total_improvements: int              # Count of fixes applied
+    final_quality_score: float           # Final quality [0-1]
+    converged: bool                      # Whether converged
+    iterations_used: int                 # Total iterations
+    total_time: float                    # Total time (seconds)
+```
+
+### Comprehensive Refinement Engine
+
+**Class:** [`ComprehensiveRefinementEngine`](sovereign_refinement_comprehensive.py:56)
+
+The engine coordinates iterative refinement with configurable parameters:
+
+```python
+class ComprehensiveRefinementEngine:
+    def __init__(
+        self,
+        orchestrator=None,
+        max_iterations: int = 5,              # Maximum cycles
+        convergence_threshold: float = 0.90,  # Quality threshold for convergence
+        min_improvement: float = 0.05         # Min improvement to continue
+    ):
+        """Initialize refinement engine."""
+        self.max_iterations = max_iterations
+        self.convergence_threshold = convergence_threshold
+        self.min_improvement = min_improvement
+        
+        # Initialize teams
+        self.red_team = RedTeam(orchestrator=orchestrator)
+        self.blue_team = BlueTeam(orchestrator=orchestrator)
+        self.evaluator_team = EvaluatorTeam(orchestrator=orchestrator)
+```
+
+**Refinement Process:**
+```python
+def refine_plan(
+    self,
+    plan: DecompositionPlan,
+    api_key: Optional[str] = None
+) -> RefinementResult:
+    """
+    Refine decomposition plan through iterative improvement.
+    
+    Algorithm:
+    1. For each iteration up to max_iterations:
+       a. Run Red Team critique on current plan
+       b. Generate Blue Team fixes for issues
+       c. Apply fixes to create refined plan
+       d. Evaluate quality improvement
+       e. Check convergence:
+          - Quality >= threshold → Converged
+          - Improvement < min_improvement → Converged
+    2. Return final plan with all cycles
+    """
+    cycles = []
+    current_plan = plan
+    previous_quality = 0.0
+    
+    for iteration in range(self.max_iterations):
+        # Run refinement cycle
+        cycle = self._run_refinement_cycle(
+            current_plan,
+            iteration + 1,
+            api_key
+        )
+        cycles.append(cycle)
+        
+        # Check convergence
+        if cycle.refined_plan:
+            current_plan = cycle.refined_plan
+            improvement = cycle.improvement_score - previous_quality
+            
+            if cycle.improvement_score >= self.convergence_threshold:
+                break  # Converged: quality threshold met
+            
+            if improvement < self.min_improvement and iteration > 0:
+                break  # Converged: diminishing returns
+            
+            previous_quality = cycle.improvement_score
+        
+    return RefinementResult(
+        initial_plan=plan,
+        final_plan=current_plan,
+        cycles=cycles,
+        total_improvements=sum(len(c.blue_team_suggestions) for c in cycles),
+        final_quality_score=previous_quality,
+        converged=previous_quality >= self.convergence_threshold,
+        iterations_used=len(cycles),
+        total_time=time.time() - start_time
+    )
+```
+
+### Refinement Coordinator
+
+**Class:** [`RefinementCoordinator`](sovereign_refinement.py:60)
+
+Coordinates refinement with feedback processing and plan generation:
+
+**Key Responsibilities:**
+1. **Feedback Processing:** Aggregate and prioritize feedback from multiple sources
+2. **Refinement Plan Generation:** Create actionable improvement plans
+3. **Quality Tracking:** Monitor improvement metrics across cycles
+4. **History Management:** Track refinement history for learning
+
+```python
+def process_feedback(
+    self,
+    plan: DecompositionPlan,
+    feedback_list: List[Feedback]
+) -> Dict[str, Any]:
+    """
+    Process feedback from multiple sources.
+    
+    Returns:
+        {
+            'total_feedback': len(feedback_list),
+            'categorized': categorized_feedback,
+            'prioritized': prioritized_feedback,
+            'improvements': actionable_improvements,
+            'critical_count': len(critical_issues),
+            'actionable': bool(improvements)
+        }
+    """
+    # Aggregate feedback by category
+    categorized = self._categorize_feedback(feedback_list)
+    
+    # Prioritize by severity
+    prioritized = self._prioritize_feedback(feedback_list)
+    
+    # Generate actionable improvements
+    improvements = self._generate_improvements(feedback_list, plan)
+    
+    return {...}
+```
+
+### Pipeline-Based Solution Refinement
+
+**Integration Point:** [`decomposition_recomposition_integration.py`](decomposition_recomposition_integration.py:516)
+
+The pipeline implements iterative refinement for assembled solutions:
+
+```python
+def _refine_solution(
+    self,
+    current_result: PipelineResult,
+    solver: SolutionSolver
+) -> Optional[PipelineResult]:
+    """
+    Refine solution based on quality feedback.
+    
+    Iterative Loop:
+    1. Identify quality issues in sub-problem solutions
+    2. Re-solve problematic sub-problems with feedback
+    3. Re-assemble solution
+    4. Check if quality improved
+    5. Repeat until convergence or max iterations
+    """
+    if current_result.refinement_iterations >= self.config.max_iterations:
+        return None  # Max iterations reached
+    
+    # Identify quality issues
+    quality_issues = self._identify_quality_issues(current_result)
+    
+    if not quality_issues:
+        return None  # No issues found
+    
+    # Re-solve problematic sub-problems
+    refined_solutions = current_result.sub_solutions.copy()
+    
+    for sub_problem_id in quality_issues:
+        sub_problem = self._get_sub_problem(current_result, sub_problem_id)
+        
+        if sub_problem:
+            # Enhance with refinement iteration context
+            sub_problem.metadata['refinement_iteration'] = (
+                sub_problem.metadata.get('refinement_iteration', 0) + 1
+            )
+            
+            # Re-solve with feedback
+            new_solution = solver.solve(sub_problem)
+            refined_solutions[sub_problem_id] = new_solution
+    
+    # Re-assemble
+    refined_solution = self._execute_recomposition(
+        current_result.decomposition_plan,
+        refined_solutions
+    )
+    
+    # Check improvement
+    if refined_solution.quality_metrics.overall_score > current_result.solution_quality:
+        current_result.integrated_solution = refined_solution
+        current_result.sub_solutions = refined_solutions
+        current_result.solution_quality = refined_solution.quality_metrics.overall_score
+        current_result.refinement_iterations += 1
+        
+        return current_result
+    
+    return None
+
+def _identify_quality_issues(self, result: PipelineResult) -> List[str]:
+    """Identify sub-problems with quality issues."""
+    issues = []
+    
+    # Check unresolved conflicts
+    for conflict in result.integrated_solution.conflicts_detected:
+        if not conflict.is_resolved():
+            if conflict.severity in [ConflictSeverity.CRITICAL, ConflictSeverity.HIGH]:
+                issues.extend(conflict.involved_solutions)
+    
+    # Check low-quality solutions
+    for sol_id, solution in result.sub_solutions.items():
+        if solution.quality_score < 0.6:
+            issues.append(sol_id)
+    
+    return list(set(issues))
+```
+
+### Uncertainty-Based Refinement Triggers
+
+**Integration:** [`comprehensive_decomposition_engine.py`](comprehensive_decomposition_engine.py:1150)
+
+Uncertainty estimation can trigger iterative refinement:
+
+```python
+def estimate_uncertainty(
+    self,
+    plan: DecompositionPlan,
+    sources: List[UncertaintySource] = None
+) -> UncertaintyEstimate:
+    """Estimate uncertainty in decomposition plan."""
+    # ... uncertainty calculation ...
+    
+    return UncertaintyEstimate(
+        level=level,
+        confidence_score=confidence,
+        mitigation_strategies=[
+            "iterative_refinement",      # ⬅️ Refinement strategy
+            "expert_review",
+            "prototyping"
+        ]
+    )
+
+def refine_decomposition(
+    self,
+    plan: DecompositionPlan,
+    feedback: Dict[str, Any]
+) -> DecompositionPlan:
+    """Refine decomposition based on feedback."""
+    # Apply feedback-based adjustments to each sub-problem
+    refined_subproblems = []
+    
+    for sp in plan.sub_problems:
+        adjusted_sp = self._apply_feedback(sp, feedback)
+        refined_subproblems.append(adjusted_sp)
+    
+    # Create new plan version
+    refined_plan = DecompositionPlan(
+        id=generate_id("plan"),
+        original_problem_id=plan.original_problem_id,
+        sub_problems=refined_subproblems,
+        strategy_used=plan.strategy_used,
+        dependency_graph=plan.dependency_graph,
+        parent_plan_id=plan.id,
+        version=plan.version + 1
+    )
+    
+    refined_plan.calculate_metrics()
+    return refined_plan
+```
+
+### Configuration Options
+
+**Refinement Configuration:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `max_iterations` | 5 | Maximum refinement cycles |
+| `convergence_threshold` | 0.90 | Quality score for convergence |
+| `min_improvement` | 0.05 | Minimum improvement to continue |
+| `red_team_enabled` | True | Enable Red Team critique |
+| `blue_team_enabled` | True | Enable Blue Team fixes |
+| `evaluator_enabled` | True | Enable quality assessment |
+| `parallel_cycles` | False | Run cycles in parallel |
+
+### Performance Metrics
+
+The system tracks:
+- **Cycle Metrics:** Iteration count, time per cycle, improvement per cycle
+- **Quality Metrics:** Initial score, final score, improvement delta
+- **Team Metrics:** Red Team findings per cycle, Blue Team fixes applied
+- **Convergence Metrics:** Convergence rate, average iterations to converge
+- **Pipeline Metrics:** Sub-problems refined, issues resolved, conflicts addressed
 
 ---
 

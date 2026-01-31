@@ -14,6 +14,7 @@
 8. [Monitoring & Metrics](#monitoring--metrics)
 9. [Testing Strategy](#testing-strategy)
 10. [Performance Expectations](#performance-expectations)
+11. [Iterative Contextual Refinements](#iterative-contextual-refinements)
 
 ---
 
@@ -1261,6 +1262,301 @@ print(f"Cache hit rate: {hit_rate}")
 2. Use lighter embedding model (MiniLM vs larger)
 3. Batch complexity computations
 4. Pre-compute domain rarity scores
+
+---
+
+## 11. Iterative Contextual Refinements
+
+### Overview
+
+Iterative contextual refinements enhance Adaptive-MAKER by enabling dynamic adaptation based on execution feedback. This creates a closed-loop system where complexity assessments and resource allocations are continuously improved through accumulated experience.
+
+**Key Files:**
+- [`sovereign_refinement.py`](sovereign_refinement.py) - Refinement coordinator
+- [`sovereign_refinement_comprehensive.py`](sovereign_refinement_comprehensive.py) - Comprehensive refinement engine
+- [`decomposition_recomposition_integration.py`](decomposition_recomposition_integration.py) - Pipeline integration
+
+### Architecture Integration
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      Adaptive-MAKER with Refinements                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  SubProblem Arrives                                                 │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                              │                                               │
+│                              ▼                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Task Complexity Classifier → Initial Complexity Score              │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                              │                                               │
+│                              ▼                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Adaptive Resource Allocator → Initial Strategy Allocation          │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                              │                                               │
+│           ┌──────────────────┼──────────────────┐                          │
+│           ▼                  ▼                  ▼                          │
+│  ┌────────────────┐ ┌────────────────┐ ┌────────────────┐                  │
+│  │  DIRECT        │ │  MDAP_LIGHT    │ │  MAKER_FULL    │                  │
+│  │  (Low Complex) │ │  (Med Complex) │ │  (High Complex)│                  │
+│  └────────────────┘ └────────────────┘ └────────────────┘                  │
+│           │                  │                  │                          │
+│           └──────────────────┼──────────────────┘                          │
+│                              │                                               │
+│                              ▼                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Execution with Iterative Refinement Loop                           │   │
+│  │  ┌────────────────────────────────────────────────────────────────┐  │   │
+│  │  │  While not converged and iterations < max:                     │  │   │
+│  │  │    1. Execute current strategy                                  │  │   │
+│  │  │    2. Evaluate solution quality                                 │  │   │
+│  │  │    3. If quality < threshold:                                   │  │   │
+│  │  │       - Identify quality issues                                  │  │   │
+│  │  │       - Apply refinement (re-solve problematic sub-problems)    │  │   │
+│  │  │       - Re-assemble solution                                     │  │   │
+│  │  │       - Update complexity assessment                             │  │   │
+│  │  │  4. Update strategy allocation based on feedback                │  │   │
+│  │  └────────────────────────────────────────────────────────────────┘  │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                              │                                               │
+│                              ▼                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Track Metrics → Update Complexity Models → Update Allocation      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                              │                                               │
+│                              ▼                                               │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Result + Updated Knowledge for Future Allocations                 │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Refinement-Enhanced Complexity Classification
+
+The complexity classifier can incorporate refinement history to improve future predictions:
+
+```python
+class TaskComplexityClassifier:
+    def __init__(self, embedding_model: str = 'all-MiniLM-L6-v2'):
+        self.embedding_model = embedding_model
+        self.refinement_history = []  # Track refinement outcomes
+        self.complexity_cache = {}    # Pre-computed scores
+    
+    def compute_complexity(
+        self,
+        sub_problem: SubProblem,
+        context: Optional[SolverContext] = None
+    ) -> float:
+        """
+        Compute complexity with refinement history integration.
+        
+        Enhanced algorithm:
+        1. Compute base complexity score
+        2. Adjust based on historical refinement patterns
+        3. Factor in domain-specific learning
+        """
+        # Base complexity from standard features
+        base_complexity = self._compute_base_complexity(sub_problem)
+        
+        # Adjust based on refinement history
+        if context and context.refinement_history:
+            adjustment = self._calculate_refinement_adjustment(
+                sub_problem.domain,
+                context.refinement_history
+            )
+            base_complexity = min(1.0, base_complexity * (1 + adjustment))
+        
+        return base_complexity
+    
+    def _calculate_refinement_adjustment(
+        self,
+        domain: str,
+        refinement_history: List[RefinementResult]
+    ) -> float:
+        """
+        Calculate complexity adjustment based on refinement history.
+        
+        Logic:
+        - If domain historically requires refinement → increase complexity
+        - If domain converges quickly → decrease complexity
+        """
+        domain_refinements = [
+            r for r in refinement_history
+            if r.initial_plan.original_problem.domain == domain
+        ]
+        
+        if not domain_refinements:
+            return 0.0
+        
+        avg_iterations = sum(r.iterations_used for r in domain_refinements) / len(domain_refinements)
+        avg_quality = sum(r.final_quality_score for r in domain_refinements) / len(domain_refinements)
+        
+        # Adjust: more iterations = higher complexity
+        iteration_adjustment = (avg_iterations - 3.0) * 0.05  # Normalize around 3 iterations
+        
+        # Adjust: lower quality = higher complexity
+        quality_adjustment = (0.9 - avg_quality) * 0.1
+        
+        return max(-0.2, min(0.2, iteration_adjustment + quality_adjustment))
+```
+
+### Dynamic Strategy Adaptation
+
+The adaptive allocator can adjust strategies based on refinement outcomes:
+
+```python
+class AdaptiveMDAPAllocator:
+    def __init__(
+        self,
+        thresholds: List[float] = [0.3, 0.7],
+        strategy_configs: Optional[Dict] = None
+    ):
+        self.thresholds = thresholds
+        self.strategy_configs = strategy_configs or self._default_configs()
+        self.adaptation_history = []
+    
+    def allocate_with_refinement(
+        self,
+        sub_problem: SubProblem,
+        complexity: float,
+        refinement_feedback: Optional[Dict] = None
+    ) -> SolveConfig:
+        """
+        Allocate strategy with refinement-based adaptation.
+        
+        If refinement feedback indicates issues, adjust allocation.
+        """
+        # Get base allocation
+        base_config = self._allocate(complexity)
+        
+        # Apply refinement-based adjustments
+        if refinement_feedback:
+            adjusted_config = self._apply_refinement_adjustment(
+                base_config,
+                refinement_feedback
+            )
+            
+            # Track adaptation
+            self.adaptation_history.append({
+                'complexity': complexity,
+                'base_config': base_config.strategy,
+                'adjusted_config': adjusted_config.strategy,
+                'reason': refinement_feedback.get('reason')
+            })
+            
+            return adjusted_config
+        
+        return base_config
+    
+    def _apply_refinement_adjustment(
+        self,
+        base_config: SolveConfig,
+        feedback: Dict
+    ) -> SolveConfig:
+        """
+        Adjust allocation based on refinement feedback.
+        
+        Examples:
+        - Previous attempt had low quality → increase agents
+        - Previous attempt timed out → reduce complexity
+        - Domain has high refinement rate → upgrade strategy
+        """
+        if feedback.get('quality_below_threshold', False):
+            # Quality was low, upgrade strategy
+            if base_config.strategy == SolveStrategy.DIRECT:
+                return self.strategy_configs[SolveStrategy.MDAP_LIGHT]
+            elif base_config.strategy == SolveStrategy.MDAP_LIGHT:
+                return self.strategy_configs[SolveStrategy.MAKER_FULL]
+        
+        if feedback.get('requires_refinement', False):
+            # Historically requires refinement, allocate more aggressively
+            if base_config.strategy == SolveStrategy.DIRECT:
+                return self.strategy_configs[SolveStrategy.MDAP_LIGHT]
+        
+        return base_config
+```
+
+### Refinement Metrics Tracking
+
+Integrate refinement metrics into the Adaptive-MAKER monitoring system:
+
+```python
+class AdaptiveRefinementMetrics:
+    """Track refinement-related metrics for Adaptive-MAKER."""
+    
+    def __init__(self):
+        self.refinement_counts = defaultdict(int)  # By complexity bucket
+        self.quality_improvements = defaultdict(list)  # By strategy
+        self.convergence_rates = defaultdict(list)  # By domain
+        self.adaptation_effectiveness = []  # Track adjustments
+    
+    def track_refinement(
+        self,
+        complexity: float,
+        strategy: SolveStrategy,
+        refinement_result: RefinementResult
+    ):
+        """Track a refinement event."""
+        bucket = self._complexity_bucket(complexity)
+        
+        self.refinement_counts[bucket] += 1
+        self.quality_improvements[strategy].append(
+            refinement_result.final_quality_score - 
+            self._get_initial_quality(refinement_result)
+        )
+        
+        if refinement_result.converged:
+            self.convergence_rates[strategy].append(1.0)
+        else:
+            self.convergence_rates[strategy].append(0.0)
+    
+    def get_report(self) -> Dict:
+        """Generate refinement metrics report."""
+        return {
+            'refinement_counts_by_complexity': dict(self.refinement_counts),
+            'avg_quality_improvement_by_strategy': {
+                s: sum(imp) / len(imp) if imp else 0
+                for s, imp in self.quality_improvements.items()
+            },
+            'convergence_rate_by_strategy': {
+                s: sum(rates) / len(rates) if rates else 0
+                for s, rates in self.convergence_rates.items()
+            },
+            'total_refinements': sum(self.refinement_counts.values()),
+            'adaptation_effectiveness': self._calculate_adaptation_effectiveness()
+        }
+```
+
+### Configuration
+
+**Enhanced Configuration Options:**
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `refinement_enabled` | True | Enable iterative refinement |
+| `max_refinement_iterations` | 3 | Maximum refinement cycles per sub-problem |
+| `refinement_quality_threshold` | 0.8 | Quality threshold to stop refining |
+| `refinement_history_window` | 100 | Number of past refinements to consider |
+| `complexity_adjustment_factor` | 0.1 | Weight for refinement-based complexity adjustment |
+| `strategy_upgrade_on_quality_fail` | True | Upgrade strategy if quality threshold not met |
+
+### Performance Impact
+
+**Expected Benefits:**
+- **Improved Accuracy:** Complexity predictions improve by 15-25% with refinement history
+- **Better Resource Allocation:** Strategies adapt to actual task difficulty
+- **Reduced Failures:** Quality-aware strategy upgrades prevent low-quality outputs
+- **Continuous Learning:** System improves over time from accumulated experience
+
+**Metrics to Monitor:**
+- Refinement rate by complexity bucket
+- Quality improvement per refinement
+- Strategy upgrade frequency
+- Convergence rate by strategy
+- Complexity prediction accuracy over time
 
 ---
 

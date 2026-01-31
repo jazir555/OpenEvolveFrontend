@@ -14,6 +14,7 @@
 10. [Production Deployment Guide](#production-deployment-guide)
 11. [Monitoring and Observability](#monitoring-and-observability)
 12. [Appendices](#appendices)
+13. [Iterative Contextual Refinements](#iterative-contextual-refinements)
 
 ---
 
@@ -4688,6 +4689,401 @@ As the field evolves, we expect:
 - **DSPy Tutorial**: https://dspy-docs.vercel.app/docs/tutorials/
 - **LMQL Examples**: https://lmql.ai/examples/
 - **Outlines Guide**: https://outlines.dev/docs/guides/
+
+---
+
+## 13. Iterative Contextual Refinements
+
+### Overview
+
+Iterative contextual refinements enhance the deterministic LLM system by enabling continuous improvement through contextual feedback loops. This creates a closed-loop system where decomposition plans, solutions, and quality metrics are continuously refined based on accumulated experience.
+
+**Key Files:**
+- [`sovereign_refinement.py`](sovereign_refinement.py) - Refinement coordinator
+- [`sovereign_refinement_comprehensive.py`](sovereign_refinement_comprehensive.py) - Comprehensive refinement engine
+- [`decomposition_recomposition_integration.py`](decomposition_recomposition_integration.py) - Pipeline refinement integration
+- [`comprehensive_decomposition_engine.py`](comprehensive_decomposition_engine.py) - Plan refinement
+- [`crewai_mdap_maker_engine.py`](crewai_mdap_maker_engine.py) - Refinement agent integration
+
+### Integration with Determinism Layers
+
+Iterative refinements operate across multiple determinism layers to ensure improvement without compromising determinism:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 Iterative Refinement in Determinism Stack                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  Layer 7: Runtime Reproducibility (detLLM)                                  │
+│  ├── Verify refinements don't introduce non-determinism                     │
+│  └── Track reproducibility metrics through iterations                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Layer 6: Formal Verification (Lean 4, Z3)                                  │
+│  ├── Verify refined solutions maintain correctness                          │
+│  └── Prove refinement steps preserve invariants                             │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Layer 5: Context Management (Matryoshka, Knowledge Engine)                 │
+│  ├── Store refinement history for context                                   │
+│  └── Retrieve relevant past refinements                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Layer 4: Learning (DSPy, ACE, LCoT)                                        │
+│  ├── Learn from refinement patterns                                         │
+│  └── Improve decomposition strategies                                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Layer 3: Verification (Steer, Guardrails)                                  │
+│  └── Validate refined outputs meet quality criteria                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Layer 2: Constrained Generation (LMQL, Outlines, Jsonformer)               │
+│  └── Ensure refined outputs maintain structure                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Layer 1: Decomposition (MDAP/MAKER, ROMA, RPG)                             │
+│  ├── Refine decomposition plans iteratively                                 │
+│  └── Improve sub-problem generation                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  Layer 0: Pre-Generation Filtering (Lagrange Mapper)                        │
+│  └── Filter refinement prompts for quality                                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Three-Team Refinement Model
+
+The refinement system uses a three-team collaborative approach aligned with determinism principles:
+
+**Red Team (Critique Layer):**
+```python
+class RefinementRedTeam:
+    """Identify issues while maintaining deterministic output."""
+    
+    def critique(
+        self,
+        plan: DecompositionPlan,
+        context: Dict[str, Any]
+    ) -> List[IssueFinding]:
+        """
+        Identify issues in decomposition plan.
+        
+        Uses constrained generation (Layer 2) to ensure
+        deterministic issue identification.
+        """
+        # Generate critique with structured output
+        critique_output = self._generate_critique(
+            plan=plan,
+            context=context,
+            output_schema=IssueFindingSchema
+        )
+        
+        # Verify with Guardrails (Layer 3)
+        validated_critique = self.guardrails.validate(
+            critique_output,
+            schema=IssueFindingSchema
+        )
+        
+        return validated_critique
+```
+
+**Blue Team (Fix Layer):**
+```python
+class RefinementBlueTeam:
+    """Propose fixes while maintaining determinism."""
+    
+    def generate_fixes(
+        self,
+        findings: List[IssueFinding],
+        plan: DecompositionPlan
+    ) -> List[FixSuggestion]:
+        """
+        Generate fixes for identified issues.
+        
+        Uses voting (Layer 1) for reliable fix generation.
+        """
+        fixes = []
+        
+        for finding in findings:
+            # Use MDAP for fix generation
+            fix_candidates = self.mdap.generate(
+                task=f"Generate fix for: {finding.description}",
+                n_agents=3,
+                k_ahead=2
+            )
+            
+            # Select best fix
+            best_fix = self._select_best_fix(
+                candidates=fix_candidates,
+                criteria=['correctness', 'minimality', 'preservation']
+            )
+            
+            fixes.append(best_fix)
+        
+        return fixes
+```
+
+**Evaluator Team (Validation Layer):**
+```python
+class RefinementEvaluatorTeam:
+    """Validate improvements with formal guarantees."""
+    
+    def assess_quality(
+        self,
+        original: DecompositionPlan,
+        refined: DecompositionPlan,
+        fixes: List[FixSuggestion]
+    ) -> QualityAssessment:
+        """
+        Assess quality of refined plan.
+        
+        Uses formal verification (Layer 6) for critical assessments.
+        """
+        # Compute quality metrics
+        metrics = self._compute_metrics(original, refined)
+        
+        # Formal verification for critical properties
+        if metrics.overall_score > 0.9:
+            verification = self.lean_verifier.verify_invariants(
+                original=original,
+                refined=refined
+            )
+        
+        return QualityAssessment(
+            score=metrics.overall_score,
+            improvement=metrics.improvement,
+            invariants_preserved=verification.passed if verification else True,
+            reproducibility_verified=self.detllm.verify(original, refined)
+        )
+```
+
+### Deterministic Refinement Loop
+
+The refinement loop ensures determinism at every step:
+
+```python
+class DeterministicRefinementLoop:
+    """Deterministic iterative refinement implementation."""
+    
+    def __init__(
+        self,
+        max_iterations: int = 5,
+        convergence_threshold: float = 0.90,
+        detllm_verifier = None
+    ):
+        self.max_iterations = max_iterations
+        self.convergence_threshold = convergence_threshold
+        self.detllm_verifier = detllm_verifier
+        
+        # Initialize teams
+        self.red_team = RefinementRedTeam()
+        self.blue_team = RefinementBlueTeam()
+        self.evaluator = RefinementEvaluatorTeam()
+    
+    def refine(
+        self,
+        initial_plan: DecompositionPlan,
+        context: Dict[str, Any] = None
+    ) -> RefinementResult:
+        """
+        Refine plan with deterministic guarantees.
+        
+        Algorithm:
+        1. For each iteration up to max_iterations:
+           a. Red Team identifies issues (Layer 2 constrained)
+           b. Blue Team generates fixes (MDAP voting)
+           c. Apply fixes to create refined plan
+           d. Evaluator assesses quality (Layer 6 verification)
+           e. Verify reproducibility (detLLM)
+           f. Check convergence
+        2. Return final plan with all iterations
+        """
+        current_plan = initial_plan
+        iterations = []
+        
+        for i in range(self.max_iterations):
+            # Step 1: Red Team critique (deterministic output)
+            findings = self.red_team.critique(current_plan, context)
+            
+            # Step 2: Blue Team fixes (voting for reliability)
+            fixes = self.blue_team.generate_fixes(findings, current_plan)
+            
+            # Step 3: Apply fixes
+            refined_plan = self._apply_fixes(current_plan, fixes)
+            
+            # Step 4: Evaluator assessment
+            assessment = self.evaluator.assess_quality(
+                original=current_plan,
+                refined=refined_plan,
+                fixes=fixes
+            )
+            
+            # Step 5: Verify reproducibility
+            if self.detllm_verifier:
+                repro_check = self.detllm_verifier.verify(
+                    initial_plan,
+                    refined_plan
+                )
+                assessment.reproducibility_verified = repro_check.passed
+            
+            # Track iteration
+            iterations.append({
+                'iteration': i + 1,
+                'findings_count': len(findings),
+                'fixes_count': len(fixes),
+                'quality_score': assessment.score,
+                'reproducibility_verified': assessment.reproducibility_verified
+            })
+            
+            # Step 6: Check convergence
+            if assessment.score >= self.convergence_threshold:
+                break
+            
+            if i > 0:
+                prev_score = iterations[i-1]['quality_score']
+                if assessment.score - prev_score < 0.01:
+                    break  # Diminishing returns
+            
+            current_plan = refined_plan
+        
+        return RefinementResult(
+            initial_plan=initial_plan,
+            final_plan=current_plan,
+            iterations=iterations,
+            total_improvements=sum(len(it['fixes_count']) for it in iterations),
+            final_quality_score=iterations[-1]['quality_score'] if iterations else 0.0,
+            converged=len(iterations) < self.max_iterations
+        )
+```
+
+### Refinement Patterns for Determinism
+
+**Pattern 1: Parallel Refinement with Voting**
+```python
+def parallel_refine_with_voting(
+    plans: List[DecompositionPlan],
+    refinement_engine: DeterministicRefinementLoop
+) -> DecompositionPlan:
+    """
+    Refine multiple plans in parallel, then vote on best result.
+    
+    Ensures determinism by using same random seed across runs.
+    """
+    results = []
+    
+    for plan in plans:
+        result = refinement_engine.refine(plan)
+        results.append(result)
+    
+    # Vote on best result (deterministic selection)
+    best = max(results, key=lambda r: r.final_quality_score)
+    
+    return best.final_plan
+```
+
+**Pattern 2: Checkpoint-Based Refinement**
+```python
+def checkpoint_refine(
+    plan: DecompositionPlan,
+    engine: DeterministicRefinementLoop,
+    checkpoint_interval: int = 2
+) -> RefinementResult:
+    """
+    Refine with periodic checkpoints for reproducibility.
+    
+    Each checkpoint is verified with detLLM.
+    """
+    current = plan
+    checkpoint_history = []
+    
+    for i in range(engine.max_iterations):
+        result = engine.refine(current)
+        
+        if (i + 1) % checkpoint_interval == 0:
+            # Verify checkpoint reproducibility
+            checkpoint = {
+                'iteration': i + 1,
+                'plan': result.final_plan,
+                'verification': engine.detllm_verifier.verify(plan, result.final_plan)
+            }
+            checkpoint_history.append(checkpoint)
+        
+        current = result.final_plan
+    
+    result.checkpoint_history = checkpoint_history
+    return result
+```
+
+**Pattern 3: Formal Verification Integration**
+```python
+def formal_verified_refinement(
+    plan: DecompositionPlan,
+    engine: DeterministicRefinementLoop,
+    invariants: List[str]
+) -> RefinementResult:
+    """
+    Refinement with formal verification of invariants.
+    
+    Uses Lean 4 to verify invariants preserved through refinements.
+    """
+    result = engine.refine(plan)
+    
+    # Verify all invariants preserved
+    for invariant in invariants:
+        verification = engine.lean_verifier.verify_invariant(
+            invariant=invariant,
+            original=plan,
+            refined=result.final_plan
+        )
+        
+        if not verification.passed:
+            # Roll back to previous state
+            result = engine.rollback_to_previous(result)
+            break
+    
+    return result
+```
+
+### Metrics and Monitoring
+
+**Refinement Metrics:**
+| Metric | Description | Determinism Impact |
+|--------|-------------|-------------------|
+| `iterations_to_converge` | Number of iterations to reach threshold | Lower = more efficient |
+| `quality_improvement` | Quality delta per iteration | Shows refinement effectiveness |
+| `reproducibility_rate` | % of iterations with verified reproducibility | Critical for determinism |
+| `invariant_preservation_rate` | % of refinements preserving invariants | Critical for correctness |
+| `fix_rejection_rate` | % of proposed fixes rejected by evaluator | Quality signal |
+
+**Monitoring Integration:**
+```python
+class RefinementMonitoring:
+    """Monitor refinement metrics with Hephaestus integration."""
+    
+    def track_refinement(
+        self,
+        result: RefinementResult,
+        detllm_result: Optional[ReproducibilityReport] = None
+    ):
+        """Track refinement event in monitoring system."""
+        ticket = HephaestusTicket(
+            type=TicketType.REFINEMENT_CYCLE,
+            data={
+                'iterations_used': result.iterations_used,
+                'final_quality': result.final_quality_score,
+                'converged': result.converged,
+                'reproducibility_verified': detllm_result.passed if detllm_result else None,
+                'improvement_per_iteration': self._calculate_improvement_rate(result),
+                'fixes_applied': result.total_improvements
+            }
+        )
+        
+        self.hephaestus.log(ticket)
+```
+
+### Best Practices
+
+1. **Always Verify Reproducibility**: Use detLLM to verify each refinement doesn't introduce non-determinism
+2. **Preserve Invariants**: Use formal verification (Lean 4) for critical invariants
+3. **Constrain Generation**: Use LMQL/Outlines to ensure deterministic team outputs
+4. **Monitor Metrics**: Track refinement metrics to identify degradation patterns
+5. **Limit Iterations**: Set max iterations to prevent infinite loops
+6. **Checkpoint Frequently**: Save checkpoints for rollback if verification fails
 
 ---
 
