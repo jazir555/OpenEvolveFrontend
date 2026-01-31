@@ -1,4 +1,4 @@
 // Bubble parameter extraction logic
-// TODO: Implement AST parsing and parameter extraction
+// Re-exports all extraction functionality from BubbleParser
 
 export * from './BubbleParser.js';

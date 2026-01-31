@@ -232,13 +232,110 @@ if HARBOR_AVAILABLE:
                 )
 
                 # Optional: Convert ROMA trace to ATIF format
-                # TODO: Implement ROMA -> ATIF conversion (defer to Phase 7)
-                # if "trace_id" in result_data:
-                #     trajectory = self._convert_trace_to_atif(result_data["trace_id"])
-                #     context.trajectory = trajectory
+                if "trace_id" in result_data:
+                    try:
+                        trajectory = self._convert_trace_to_atif(
+                            result_data["trace_id"],
+                            result_data
+                        )
+                        if trajectory:
+                            context.trajectory = trajectory
+                    except Exception as conv_error:
+                        logger.warning(f"Failed to convert trace to ATIF: {conv_error}")
 
             except Exception as e:
                 logger.error(f"Failed to parse result file: {e}")
+
+        def _convert_trace_to_atif(
+            self,
+            trace_id: str,
+            result_data: dict
+        ):
+            """
+            Convert ROMA trace to ATIF (Agent Trajectory Interchange Format).
+            
+            ATIF is a standard format for representing agent trajectories,
+            capturing the sequence of actions, observations, and reasoning.
+            
+            Args:
+                trace_id: ROMA trace identifier
+                result_data: Full result data from ROMA execution
+                
+            Returns:
+                ATIF-format trajectory dictionary or None if conversion fails
+            """
+            try:
+                # Build ATIF structure
+                atif_trajectory = {
+                    "version": "1.0",
+                    "trace_id": trace_id,
+                    "agent": {
+                        "name": "roma-dspy",
+                        "version": "2.0.0",
+                    },
+                    "task": {
+                        "instruction": result_data.get("instruction", ""),
+                        "status": result_data.get("status", "completed"),
+                    },
+                    "metrics": {
+                        "input_tokens": result_data.get("total_input_tokens", 0),
+                        "output_tokens": result_data.get("total_output_tokens", 0),
+                        "total_tokens": (
+                            result_data.get("total_input_tokens", 0) +
+                            result_data.get("total_output_tokens", 0)
+                        ),
+                    },
+                    "steps": []
+                }
+                
+                # Convert ROMA steps to ATIF steps if available
+                roma_steps = result_data.get("steps", [])
+                if not roma_steps and "dag" in result_data:
+                    # Extract steps from DAG structure
+                    dag = result_data["dag"]
+                    roma_steps = dag.get("tasks", [])
+                
+                for idx, step in enumerate(roma_steps):
+                    atif_step = {
+                        "step_number": idx + 1,
+                        "timestamp": step.get("timestamp") or step.get("start_time", ""),
+                        "action": {
+                            "type": step.get("action_type", "llm_call"),
+                            "name": step.get("name", f"step_{idx}"),
+                            "input": step.get("input", ""),
+                        },
+                        "observation": {
+                            "output": step.get("output", ""),
+                            "result": step.get("result", ""),
+                        },
+                        "reasoning": step.get("reasoning", ""),
+                        "metadata": {
+                            "input_tokens": step.get("input_tokens", 0),
+                            "output_tokens": step.get("output_tokens", 0),
+                            "duration_ms": step.get("duration_ms", 0),
+                        }
+                    }
+                    atif_trajectory["steps"].append(atif_step)
+                
+                # Add summary step if result is available
+                if "result" in result_data:
+                    atif_trajectory["steps"].append({
+                        "step_number": len(atif_trajectory["steps"]) + 1,
+                        "type": "final_result",
+                        "observation": {
+                            "output": str(result_data["result"]),
+                        },
+                        "metadata": {
+                            "status": result_data.get("status", "completed"),
+                        }
+                    })
+                
+                logger.info(f"Converted trace {trace_id} to ATIF with {len(atif_trajectory['steps'])} steps")
+                return atif_trajectory
+                
+            except Exception as e:
+                logger.error(f"Error converting trace to ATIF: {e}")
+                return None
 
 else:
     # Placeholder when Harbor not installed

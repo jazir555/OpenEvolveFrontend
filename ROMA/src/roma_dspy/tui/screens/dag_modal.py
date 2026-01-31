@@ -401,6 +401,7 @@ class DAGModal(ModalScreen):
         self.show_only_critical_path: bool = False
         self.show_only_blocked: bool = False
         self.show_only_ready: bool = False
+        self.show_only_parallel: bool = False
 
         # Replay state
         self.replay_mode: bool = False
@@ -587,6 +588,19 @@ class DAGModal(ModalScreen):
                 if task_id in ready_set
             }
 
+        # Show only parallel cluster tasks
+        if self.show_only_parallel:
+            # Collect all task IDs from parallel clusters
+            parallel_tasks: Set[str] = set()
+            for cluster in self.dag.parallel_clusters:
+                parallel_tasks.update(cluster.task_ids)
+            
+            filtered = {
+                task_id: task
+                for task_id, task in filtered.items()
+                if task_id in parallel_tasks
+            }
+
         return filtered
 
     def _on_filter_toggle(self, edge_type: EdgeType) -> None:
@@ -661,12 +675,28 @@ class DAGModal(ModalScreen):
         )
 
     def action_highlight_parallel(self) -> None:
-        """Highlight parallel clusters."""
-        # TODO: Implement parallel cluster highlighting
-        logger.info(f"Parallel clusters: {len(self.dag.parallel_clusters)}")
+        """Toggle parallel clusters filter."""
+        self.show_only_parallel = not self.show_only_parallel
+
+        # Reset other exclusive filters
+        if self.show_only_parallel:
+            self.show_only_critical_path = False
+            self.show_only_blocked = False
+            self.show_only_ready = False
+
+        # Count total tasks in parallel clusters
+        parallel_task_count = sum(
+            len(cluster.task_ids) for cluster in self.dag.parallel_clusters
+        )
+
+        logger.info(
+            f"Parallel clusters filter: {'ON' if self.show_only_parallel else 'OFF'}"
+        )
+        self.refresh_layout()
         self.notify(
-            f"Parallel clusters: {len(self.dag.parallel_clusters)}",
-            title="Parallel Execution",
+            f"Parallel clusters filter: {'ON' if self.show_only_parallel else 'OFF'} "
+            f"({len(self.dag.parallel_clusters)} clusters, {parallel_task_count} tasks)",
+            title="Parallel Execution Filter",
             severity="information",
         )
 

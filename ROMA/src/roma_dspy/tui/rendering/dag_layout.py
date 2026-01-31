@@ -294,16 +294,156 @@ class DAGLayoutEngine:
             from_pos = self.positions[from_id]
             to_pos = self.positions[to_id]
 
-            # Simple straight-line path for now
-            # TODO: Add waypoint routing to avoid overlaps
+            # Compute waypoint routing to avoid node overlaps
+            waypoints = self._compute_waypoints(from_pos, to_pos, from_id, to_id)
             path = EdgePath(
-                from_pos=from_pos, to_pos=to_pos, edge_type=edge.edge_type, waypoints=[]
+                from_pos=from_pos, to_pos=to_pos, edge_type=edge.edge_type, waypoints=waypoints
             )
             edge_paths.append(path)
 
         logger.debug(f"Routed {len(edge_paths)} edges")
         self.edge_paths = edge_paths
         return edge_paths
+
+
+    def _compute_waypoints(
+        self,
+        from_pos: Position,
+        to_pos: Position,
+        from_id: str,
+        to_id: str
+    ) -> List[Position]:
+        """
+        Compute waypoints for edge routing to avoid node overlaps.
+        
+        Uses a simple orthogonal routing algorithm that creates L-shaped
+        or Z-shaped paths to avoid crossing through other nodes.
+        
+        Args:
+            from_pos: Starting position
+            to_pos: Ending position
+            from_id: Source node ID
+            to_id: Target node ID
+            
+        Returns:
+            List of waypoint positions
+        """
+        waypoints = []
+        
+        # Calculate direction vector
+        dx = to_pos.x - from_pos.x
+        dy = to_pos.y - from_pos.y
+        
+        # Check if there's a direct vertical or horizontal path
+        # If nodes are aligned horizontally or vertically, use direct path
+        if abs(dx) < 0.1 or abs(dy) < 0.1:
+            return waypoints  # Direct path is fine
+        
+        # Check if any nodes are in the direct path
+        direct_path_blocked = False
+        mid_x = (from_pos.x + to_pos.x) / 2
+        mid_y = (from_pos.y + to_pos.y) / 2
+        
+        for node_id, node_pos in self.positions.items():
+            if node_id == from_id or node_id == to_id:
+                continue
+            
+            # Check if node is near the direct line path
+            # Simple bounding box check
+            min_x = min(from_pos.x, to_pos.x) - 0.5
+            max_x = max(from_pos.x, to_pos.x) + 0.5
+            min_y = min(from_pos.y, to_pos.y) - 0.5
+            max_y = max(from_pos.y, to_pos.y) + 0.5
+            
+            if min_x <= node_pos.x <= max_x and min_y <= node_pos.y <= max_y:
+                # Node is in the bounding box, check if it's close to the line
+                dist_to_line = self._point_to_line_distance(
+                    node_pos.x, node_pos.y,
+                    from_pos.x, from_pos.y,
+                    to_pos.x, to_pos.y
+                )
+                if dist_to_line < 0.8:  # Threshold for "blocking"
+                    direct_path_blocked = True
+                    break
+        
+        if not direct_path_blocked:
+            return waypoints  # Direct path is clear
+        
+        # Add waypoints for orthogonal routing
+        # Strategy: go horizontal first, then vertical (L-shape)
+        # or vertical first, then horizontal (inverse L-shape)
+        # Choose based on which creates shorter path
+        
+        # Option 1: Horizontal then vertical
+        h_then_v_dist = abs(dx) + abs(dy)
+        
+        # Option 2: Vertical then horizontal  
+        v_then_h_dist = abs(dy) + abs(dx)
+        
+        # Both are same distance for L-shapes, so choose based on node density
+        # Count nodes in each potential path
+        h_path_nodes = 0
+        v_path_nodes = 0
+        
+        for node_id, node_pos in self.positions.items():
+            if node_id == from_id or node_id == to_id:
+                continue
+            
+            # Check horizontal segment (from_pos.x to to_pos.x at from_pos.y)
+            if min(from_pos.x, to_pos.x) - 0.5 <= node_pos.x <= max(from_pos.x, to_pos.x) + 0.5:
+                if abs(node_pos.y - from_pos.y) < 0.8:
+                    h_path_nodes += 1
+            
+            # Check vertical segment (from_pos.y to to_pos.y at to_pos.x)
+            if min(from_pos.y, to_pos.y) - 0.5 <= node_pos.y <= max(from_pos.y, to_pos.y) + 0.5:
+                if abs(node_pos.x - to_pos.x) < 0.8:
+                    v_path_nodes += 1
+        
+        # Choose path with fewer blocking nodes
+        if h_path_nodes <= v_path_nodes:
+            # Horizontal then vertical
+            if abs(dx) > 0.1:
+                waypoints.append(Position(to_pos.x, from_pos.y))
+        else:
+            # Vertical then horizontal
+            if abs(dy) > 0.1:
+                waypoints.append(Position(from_pos.x, to_pos.y))
+        
+        return waypoints
+    
+    def _point_to_line_distance(
+        self,
+        px: float, py: float,
+        x1: float, y1: float,
+        x2: float, y2: float
+    ) -> float:
+        """
+        Calculate perpendicular distance from point to line segment.
+        
+        Args:
+            px, py: Point coordinates
+            x1, y1: Line start
+            x2, y2: Line end
+            
+        Returns:
+            Perpendicular distance
+        """
+        # Line length squared
+        line_len_sq = (x2 - x1) ** 2 + (y2 - y1) ** 2
+        
+        if line_len_sq == 0:
+            # Line is a point
+            return ((px - x1) ** 2 + (py - y1) ** 2) ** 0.5
+        
+        # Project point onto line
+        t = max(0, min(1, ((px - x1) * (x2 - x1) + (py - y1) * (y2 - y1)) / line_len_sq))
+        
+        # Closest point on line
+        proj_x = x1 + t * (x2 - x1)
+        proj_y = y1 + t * (y2 - y1)
+        
+        # Distance from point to projection
+        return ((px - proj_x) ** 2 + (py - proj_y) ** 2) ** 0.5
 
     def get_bounding_box(self) -> Tuple[Position, Position]:
         """

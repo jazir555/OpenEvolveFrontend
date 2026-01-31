@@ -317,9 +317,13 @@ class ToolkitManager:
             logger.debug(f"No ExecutionContext available for toolkit tracking")
             return
 
-        # TODO: Add config check once metrics config is integrated
-        # if not self._metrics_config or not self._metrics_config.track_lifecycle:
-        #     return
+        # Check if metrics tracking is enabled via ExecutionContext settings
+        # or fall back to default behavior (enabled)
+        if ctx.settings and hasattr(ctx.settings, 'toolkit_metrics'):
+            metrics_config = ctx.settings.toolkit_metrics
+            if not metrics_config.enabled or not metrics_config.track_lifecycle:
+                return
+        # If no settings or metrics config, default to tracking enabled
 
         try:
             event = ToolkitLifecycleEvent(
