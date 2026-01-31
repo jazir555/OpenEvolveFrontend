@@ -134,7 +134,7 @@ export class App {
         });
 
         // Default to first mode if none specifically checked (e.g. after import or on fresh load)
-        const appModeRadios = document.querySelectorAll('input[name="appMode"]');
+        const appModeRadios = document.querySelectorAll('input[name="app-mode"]');
         let modeIsAlreadySet = false;
         appModeRadios.forEach(radio => {
             if ((radio as HTMLInputElement).checked) {

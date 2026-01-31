@@ -44,6 +44,32 @@ export async function startMathSolverProcess(
         throw new Error('[MathSolver] Mode not initialized');
     }
 
+    // Set generating flag
+    const { globalState } = await import('../Core/State');
+    globalState.isGenerating = true;
+    globalState.isMathSolverRunning = true;
+
+    try {
+        await runMathSolverProcess(problemStatement, options);
+    } finally {
+        globalState.isGenerating = false;
+        globalState.isMathSolverRunning = false;
+    }
+}
+
+/**
+ * Internal function to run MathSolver process
+ */
+async function runMathSolverProcess(
+    problemStatement: string,
+    options?: {
+        preferredSolver?: 'z3' | 'lean' | 'unified' | 'auto';
+        useKnowledgeBase?: boolean;
+        timeout?: number;
+    }
+): Promise<void> {
+    if (!mathSolverContentContainer) return;
+
     // Clear previous content
     mathSolverContentContainer.innerHTML = '';
 
@@ -86,7 +112,7 @@ export async function startMathSolverProcess(
 /**
  * Stop MathSolver process
  */
-export function stopMathSolverProcess(): void {
+export async function stopMathSolverProcess(): Promise<void> {
     if (activeMathSolverCore) {
         // Reset the core
         activeMathSolverCore.reset();
@@ -96,6 +122,11 @@ export function stopMathSolverProcess(): void {
     if (mathSolverContentContainer) {
         mathSolverContentContainer.innerHTML = '';
     }
+
+    // Reset state flags
+    const { globalState } = await import('../Core/State');
+    globalState.isGenerating = false;
+    globalState.isMathSolverRunning = false;
     
     console.log('[MathSolver] Process stopped');
 }

@@ -672,6 +672,15 @@ export function updateUIAfterModeChange() {
         if (apiCallIndicator) apiCallIndicator.style.display = 'none';
         setDeepthinkControlsVisible(false);
         setRefineControlsVisible(false);
+    } else if (globalState.currentMode === 'mathsolver') {
+        if (initialIdeaLabel) initialIdeaLabel.textContent = 'Mathematical Problem:';
+        if (initialIdeaInput) initialIdeaInput.placeholder = 'E.g., "Prove that for all integers n, n² ≥ 0", "Find x such that x² + 3x + 2 = 0", "Show that the sum of two even numbers is even"...';
+        if (generateButtonText) generateButtonText.textContent = 'Solve with MathSolver';
+        if (modelSelectionContainer) modelSelectionContainer.style.display = 'flex';
+        if (modelParametersContainer) modelParametersContainer.style.display = 'none'; // MathSolver uses its own timeout config
+        if (apiCallIndicator) apiCallIndicator.style.display = 'flex';
+        setDeepthinkControlsVisible(false);
+        setRefineControlsVisible(false);
     }
 
     // Update mode selector UI
@@ -703,6 +712,11 @@ export function updateUIAfterModeChange() {
             stopContextualProcess();
         } else if (globalState.currentMode === 'adaptive-deepthink') {
             cleanupAdaptiveDeepthinkMode();
+        } else if (globalState.currentMode === 'mathsolver') {
+            // Import and call stopMathSolverProcess to clean up
+            import('../MathSolver').then(({ stopMathSolverProcess }) => {
+                stopMathSolverProcess();
+            });
         }
     }
 
@@ -712,5 +726,12 @@ export function updateUIAfterModeChange() {
     // If in React mode, also render the React pipeline if it exists
     if (globalState.currentMode === 'react' && globalState.activeReactPipeline) {
         renderReactModePipeline();
+    }
+
+    // If in MathSolver mode, rehydrate the UI if there's active state
+    if (globalState.currentMode === 'mathsolver' && globalState.activeMathSolverState) {
+        import('../MathSolver').then(({ rehydrateMathSolverUI }) => {
+            rehydrateMathSolverUI();
+        });
     }
 }

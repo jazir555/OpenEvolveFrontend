@@ -12,8 +12,9 @@ export function updateControlsState() {
     const generativeUIRunning = globalState.isGenerativeUIRunning;
     const contextualRunning = globalState.isContextualRunning;
     const adaptiveDeepthinkRunning = globalState.isAdaptiveDeepthinkRunning;
+    const mathSolverRunning = globalState.isMathSolverRunning;
 
-    globalState.isGenerating = anyPipelineRunningOrStopping || deepthinkPipelineRunningOrStopping || reactPipelineRunningOrStopping || agenticRunning || generativeUIRunning || contextualRunning || adaptiveDeepthinkRunning;
+    globalState.isGenerating = anyPipelineRunningOrStopping || deepthinkPipelineRunningOrStopping || reactPipelineRunningOrStopping || agenticRunning || generativeUIRunning || contextualRunning || adaptiveDeepthinkRunning || mathSolverRunning;
 
     const isApiKeyReady = hasValidApiKey();
 

@@ -6,6 +6,7 @@ import ReactPromptsContent from '../../React/ReactPromptsContent';
 import AgenticPromptsContent from '../../Agentic/AgenticPromptsContent';
 import AdaptivePromptsContent from '../../AdaptiveDeepthink/AdaptivePromptsContent';
 import ContextualPromptsContent from '../../Contextual/ContextualPromptsContent';
+import MathSolverPromptsContent from '../../MathSolver/MathSolverPromptsContent';
 
 /**
  * Prompts Modal Manager
@@ -24,6 +25,7 @@ export const PromptsModalManager: React.FC = () => {
             <AgenticPromptsContent />
             <AdaptivePromptsContent />
             <ContextualPromptsContent />
+            <MathSolverPromptsContent />
         </PromptsModalLayout>
     );
 };
