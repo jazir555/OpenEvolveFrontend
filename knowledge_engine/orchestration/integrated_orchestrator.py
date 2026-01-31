@@ -77,6 +77,42 @@ class ExecutionContext:
         }
 
 
+@dataclass
+class OrchestratorResult:
+    """
+    Result from orchestrator operations.
+    
+    Standardized result container used by the OpenEvolve Knowledge Engine
+    for all orchestrator operations.
+    """
+    success: bool
+    data: Dict[str, Any] = field(default_factory=dict)
+    metadata: Dict[str, Any] = field(default_factory=dict)
+    processing_time_ms: float = 0.0
+    error: Optional[str] = None
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert result to dictionary."""
+        return {
+            'success': self.success,
+            'data': self.data,
+            'metadata': self.metadata,
+            'processing_time_ms': self.processing_time_ms,
+            'error': self.error
+        }
+    
+    @classmethod
+    def from_dict(cls, data: Dict[str, Any]) -> 'OrchestratorResult':
+        """Create result from dictionary."""
+        return cls(
+            success=data.get('success', False),
+            data=data.get('data', {}),
+            metadata=data.get('metadata', {}),
+            processing_time_ms=data.get('processing_time_ms', 0.0),
+            error=data.get('error')
+        )
+
+
 class IntegratedOrchestrator(SelfHealingOrchestrator):
     """
     Fully integrated orchestrator with all capabilities.
@@ -569,6 +605,145 @@ class IntegratedOrchestrator(SelfHealingOrchestrator):
             'feedback': self.feedback_collector.get_feedback_stats() if self.feedback_collector else None,
             'improvements': self.improvement_engine.get_improvement_report() if self.improvement_engine else None
         }
+    
+    # ====================================================================================
+    # OpenEvolve Knowledge Engine Interface Methods
+    # ====================================================================================
+    
+    async def process_knowledge_request(
+        self,
+        query: str,
+        components: Optional[List[str]] = None,
+        correlation_id: Optional[str] = None
+    ) -> 'OrchestratorResult':
+        """
+        Process a knowledge request (OpenEvolve Knowledge Engine interface).
+        
+        Args:
+            query: Knowledge query to process
+            components: Specific components to use (None for all)
+            correlation_id: Correlation ID for tracking
+            
+        Returns:
+            OrchestratorResult with processing results
+        """
+        from datetime import datetime, timezone
+        
+        start_time = datetime.now(timezone.utc)
+        correlation_id = correlation_id or f"ke_req_{start_time.timestamp()}"
+        
+        input_data = {
+            'query': query,
+            'components': components,
+            'data_type': 'knowledge_request',
+            'timestamp': start_time.isoformat()
+        }
+        
+        try:
+            # Call the main process method
+            result = self.process(input_data, custom_config={'correlation_id': correlation_id})
+            
+            # Convert to OrchestratorResult
+            return OrchestratorResult(
+                success=result.get('status') in ('success', 'partial'),
+                data=result.get('results', {}),
+                metadata={
+                    'correlation_id': correlation_id,
+                    'components_used': components or list(self.components.keys()),
+                    'processing_time_ms': (datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
+                    'result_status': result.get('status', 'unknown')
+                }
+            )
+        except Exception as e:
+            logger.error({
+                "msg": "Knowledge request processing failed",
+                "correlation_id": correlation_id,
+                "error": str(e)
+            })
+            return OrchestratorResult(
+                success=False,
+                data={},
+                metadata={
+                    'correlation_id': correlation_id,
+                    'error': str(e),
+                    'processing_time_ms': (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                }
+            )
+    
+    async def run_comprehensive_analysis(
+        self,
+        text: str,
+        analysis_types: Optional[List[str]] = None,
+        correlation_id: Optional[str] = None
+    ) -> 'OrchestratorResult':
+        """
+        Run comprehensive analysis on text (OpenEvolve Knowledge Engine interface).
+        
+        Args:
+            text: Text to analyze
+            analysis_types: Types of analysis to perform
+            correlation_id: Correlation ID for tracking
+            
+        Returns:
+            OrchestratorResult with analysis results
+        """
+        from datetime import datetime, timezone
+        
+        start_time = datetime.now(timezone.utc)
+        correlation_id = correlation_id or f"ke_analysis_{start_time.timestamp()}"
+        
+        analysis_types = analysis_types or ["entities", "relations", "patterns", "insights"]
+        
+        input_data = {
+            'text': text,
+            'analysis_types': analysis_types,
+            'data_type': 'comprehensive_analysis',
+            'timestamp': start_time.isoformat()
+        }
+        
+        try:
+            # Call the main process method with analysis configuration
+            result = self.process(
+                input_data, 
+                custom_config={
+                    'correlation_id': correlation_id,
+                    'analysis_types': analysis_types
+                }
+            )
+            
+            return OrchestratorResult(
+                success=result.get('status') in ('success', 'partial'),
+                data=result.get('results', {}),
+                metadata={
+                    'correlation_id': correlation_id,
+                    'analysis_types': analysis_types,
+                    'processing_time_ms': (datetime.now(timezone.utc) - start_time).total_seconds() * 1000,
+                    'result_status': result.get('status', 'unknown')
+                }
+            )
+        except Exception as e:
+            logger.error({
+                "msg": "Comprehensive analysis failed",
+                "correlation_id": correlation_id,
+                "error": str(e)
+            })
+            return OrchestratorResult(
+                success=False,
+                data={},
+                metadata={
+                    'correlation_id': correlation_id,
+                    'error': str(e),
+                    'analysis_types': analysis_types,
+                    'processing_time_ms': (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
+                }
+            )
+    
+    async def get_system_status(self) -> Dict[str, Any]:
+        """
+        Get system status (OpenEvolve Knowledge Engine interface).
+        Alias for get_comprehensive_status().
+        """
+        return self.get_comprehensive_status()
 
 
 # Factory functions for creating integrated orchestrators

@@ -188,6 +188,7 @@ from .adaptive_orchestrator import (
 from .integrated_orchestrator import (
     IntegratedOrchestrator,
     ExecutionContext,
+    OrchestratorResult,
     create_integrated_finance_orchestrator,
     create_integrated_chemistry_orchestrator,
     create_integrated_research_orchestrator,
@@ -305,6 +306,7 @@ __all__ = [
     # Integrated orchestrator
     'IntegratedOrchestrator',
     'ExecutionContext',
+    'OrchestratorResult',
     'create_integrated_finance_orchestrator',
     'create_integrated_chemistry_orchestrator',
     'create_integrated_research_orchestrator',

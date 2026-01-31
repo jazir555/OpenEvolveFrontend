@@ -43,6 +43,18 @@ class ProjectLifecycleStage(Enum):
 
 
 @dataclass
+class KnowledgeEngineConfig:
+    """Configuration for OpenEvolve Knowledge Engine integration."""
+    project_id: str
+    api_endpoint: str = "http://localhost:8000"
+    api_key: Optional[str] = None
+    enable_realtime_updates: bool = True
+    auto_sync: bool = True
+    sync_interval_seconds: int = 300
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass
 class ProjectContext:
     """Context for an OpenEvolve project"""
     project_id: str
@@ -388,3 +400,39 @@ Description: {project.description or 'No description'}
         
         # Would query actual knowledge engine here
         return []
+
+
+# Alias for compatibility with knowledge_engine/__init__.py
+OpenEvolveKnowledgeEngineIntegration = OpenEvolveIntegration
+
+
+def create_knowledge_engine_integration(
+    project_id: str,
+    api_endpoint: str = "http://localhost:8000",
+    api_key: Optional[str] = None,
+    enable_realtime_updates: bool = True,
+    auto_sync: bool = True
+) -> OpenEvolveIntegration:
+    """
+    Create an OpenEvolve Knowledge Engine integration.
+    
+    Args:
+        project_id: The project ID
+        api_endpoint: API endpoint URL
+        api_key: Optional API key
+        enable_realtime_updates: Enable real-time updates
+        auto_sync: Enable auto-sync
+        
+    Returns:
+        Configured OpenEvolveIntegration instance
+    """
+    config = KnowledgeEngineConfig(
+        project_id=project_id,
+        api_endpoint=api_endpoint,
+        api_key=api_key,
+        enable_realtime_updates=enable_realtime_updates,
+        auto_sync=auto_sync
+    )
+    
+    integration = OpenEvolveIntegration(config)
+    return integration
