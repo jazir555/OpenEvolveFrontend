@@ -1,0 +1,317 @@
+# Z3-LeanAIDE-OpenEvolve-BubbleLabs Integration Configuration
+# This is the main configuration file for the entire integration
+
+# =============================================================================
+# Core Z3 Configuration
+# =============================================================================
+z3:
+  enabled: true
+  timeout: 60.0  # seconds
+  memory_limit_mb: 8192
+  num_threads: 4
+  proof_generation: true
+  
+  # Solver tactics configuration
+  tactics:
+    default: "default"
+    quantifier: "qe"
+    arithmetic: "qfnra"
+    bitvector: "qfbv"
+    arrays: "qfauflia"
+  
+  # Portfolio solving configuration
+  portfolio:
+    enabled: true
+    strategies:
+      - "default"
+      - "smt"
+      - "qflia"
+      - "qfnra"
+    parallel: true
+    max_workers: 4
+
+# =============================================================================
+# LeanAIDE Configuration
+# =============================================================================
+leanaide:
+  enabled: true
+  host: "localhost"
+  port: 7654
+  timeout: 300.0
+  max_retries: 3
+  
+  # Autoformalization settings
+  autoformalization:
+    enabled: true
+    auto_detect_math: true
+    confidence_threshold: 0.7
+    require_formal_proof: false
+    store_proofs: true
+  
+  # Translation settings
+  translation:
+    enable_smt_to_lean: true
+    enable_lean_to_smt: true
+    validate_translations: true
+
+# =============================================================================
+# Integration Bridge Configuration
+# =============================================================================
+bridge:
+  enabled: true
+  
+  # Verification strategy
+  default_strategy: "adaptive"  # z3_first, lean_first, parallel, consensus, adaptive
+  enable_cross_validation: true
+  confidence_threshold: 0.7
+  
+  # Strategy selection thresholds
+  use_z3_for_constraints: true
+  use_lean_for_theorems: true
+  use_parallel_for_critical: true
+
+# =============================================================================
+# Caching Configuration
+# =============================================================================
+cache:
+  enabled: true
+  max_size: 10000
+  default_ttl: 7200  # 2 hours
+  policy: "lru"  # lru, lfu, fifo, ttl
+  
+  # Persistent storage
+  persistent_storage: true
+  db_path: "./data/z3_cache.db"
+  compression: false
+  checksum_verification: true
+  
+  # Distributed cache (optional)
+  distributed: false
+  redis_host: "localhost"
+  redis_port: 6379
+  redis_db: 0
+
+# =============================================================================
+# Performance Monitoring
+# =============================================================================
+monitoring:
+  enabled: true
+  
+  # Collection settings
+  collection_interval: 10.0  # seconds
+  history_window: 3600  # 1 hour
+  
+  # Alert thresholds
+  thresholds:
+    solve_time_warning: 30.0
+    solve_time_critical: 60.0
+    error_rate_warning: 0.1
+    error_rate_critical: 0.25
+    memory_warning_mb: 1024
+    memory_critical_mb: 2048
+    queue_depth_warning: 10
+    queue_depth_critical: 50
+  
+  # Alert handlers
+  alerts:
+    log_to_console: true
+    log_to_file: true
+    log_file: "./logs/alerts.log"
+    webhook_url: null  # Optional webhook for external alerting
+
+# =============================================================================
+# Knowledge Extraction
+# =============================================================================
+knowledge:
+  enabled: true
+  
+  # Pattern extraction settings
+  pattern_extraction:
+    min_proof_length: 2
+    max_pattern_length: 5
+    min_confidence: 0.5
+  
+  # Strategy learning
+  strategy_learning:
+    enabled: true
+    min_successes: 3
+    update_threshold: 0.1
+  
+  # Storage
+  storage:
+    db_path: "./data/knowledge.db"
+    auto_save: true
+    save_interval: 300  # 5 minutes
+
+# =============================================================================
+# API Server Configuration
+# =============================================================================
+server:
+  enabled: true
+  host: "0.0.0.0"
+  port: 8765
+  
+  # HTTP settings
+  http:
+    max_request_size: 10485760  # 10 MB
+    timeout: 300.0
+    keep_alive: true
+    compression: true
+  
+  # WebSocket settings
+  websocket:
+    enabled: true
+    ping_interval: 20.0
+    ping_timeout: 10.0
+    max_connections: 1000
+  
+  # Security
+  security:
+    api_key_required: false
+    api_keys: []  # List of valid API keys
+    rate_limiting:
+      enabled: true
+      requests_per_minute: 60
+      burst_size: 10
+    cors:
+      enabled: true
+      allowed_origins:
+        - "http://localhost:3000"
+        - "http://localhost:8080"
+
+# =============================================================================
+# BubbleLabs Integration
+# =============================================================================
+bubblelabs:
+  enabled: true
+  
+  # Node configuration
+  nodes:
+    auto_register: true
+    enable_advanced_visualizations: true
+    refresh_interval: 1000  # ms
+  
+  # Visualization settings
+  visualization:
+    constraint_graphs: true
+    proof_trees: true
+    optimization_landscapes: true
+    real_time_progress: true
+    max_points_3d: 10000
+    export_formats:
+      - "json"
+      - "csv"
+      - "svg"
+      - "png"
+
+# =============================================================================
+# Logging Configuration
+# =============================================================================
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR, CRITICAL
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  
+  # File logging
+  file:
+    enabled: true
+    path: "./logs/z3_integration.log"
+    max_size_mb: 100
+    backup_count: 5
+  
+  # Console logging
+  console:
+    enabled: true
+    colorize: true
+  
+  # Structured logging (JSON)
+  structured:
+    enabled: false
+    path: "./logs/z3_integration.jsonl"
+
+# =============================================================================
+# OpenEvolve Workflow Integration
+# =============================================================================
+openevolve:
+  enabled: true
+  
+  # Problem classification
+  classification:
+    z3_preference_threshold: 0.6
+    lean_preference_threshold: 0.6
+    hybrid_threshold: 0.4
+  
+  # Workflow stages
+  workflow:
+    enable_classification: true
+    enable_translation: true
+    enable_cross_validation: true
+    enable_proof_assembly: true
+
+# =============================================================================
+# Database Configuration
+# =============================================================================
+database:
+  type: "sqlite"  # sqlite, postgresql, mysql
+  
+  # SQLite settings
+  sqlite:
+    path: "./data/z3_integration.db"
+    
+  # PostgreSQL settings (if type is postgresql)
+  postgresql:
+    host: "localhost"
+    port: 5432
+    database: "z3_integration"
+    username: "z3_user"
+    password: "${DB_PASSWORD}"  # Use environment variable
+    
+  # Connection pool
+  pool:
+    min_connections: 1
+    max_connections: 10
+    connection_timeout: 30.0
+
+# =============================================================================
+# Feature Flags
+# =============================================================================
+features:
+  # Core features
+  constraint_solving: true
+  optimization: true
+  theorem_proving: true
+  smt_translation: true
+  
+  # Advanced features
+  incremental_solving: true
+  portfolio_solving: true
+  proof_extraction: true
+  
+  # Integration features
+  mcp_tools: true
+  crewai_agents: true
+  knowledge_extraction: true
+  
+  # Experimental features
+  experimental:
+    distributed_solving: false
+    gpu_acceleration: false
+    quantum_optimization: false
+
+# =============================================================================
+# Development Settings
+# =============================================================================
+development:
+  debug: false
+  reload: false
+  
+  # Profiling
+  profiling:
+    enabled: false
+    type: "cprofile"  # cprofile, line_profiler, memory_profiler
+    output_path: "./profiles/"
+  
+  # Testing
+  testing:
+    mock_z3: false
+    mock_leanaide: false
+    test_timeout: 60.0

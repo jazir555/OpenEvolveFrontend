@@ -1,38 +1,168 @@
+# Z3-LeanAIDE-OpenEvolve-BubbleLabs Integration
+# Docker Compose Configuration
+
 version: '3.8'
 
 services:
-  sovereign-system:
-    build: .
-    container_name: sovereign-system
+  # ==========================================================================
+  # Main API Server
+  # ==========================================================================
+  z3-integration:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    image: openevolve/z3-integration:2.0.0
+    container_name: z3-integration
+    restart: unless-stopped
+    
     ports:
-      - "8501:8501"
-      - "8000:8000"
+      - "8765:8765"
+    
+    environment:
+      - Z3_CONFIG_PATH=/app/z3_config.yaml
+      - DB_PASSWORD=${DB_PASSWORD:-changeme}
+      - REDIS_URL=redis://redis:6379/0
+      - LOG_LEVEL=INFO
+    
     volumes:
       - ./data:/app/data
       - ./logs:/app/logs
-    environment:
-      - ENVIRONMENT=production
-      - LOG_LEVEL=INFO
-      - DATABASE_PATH=/app/data/sovereign_system.db
-    restart: unless-stopped
+      - ./z3_config.yaml:/app/z3_config.yaml:ro
+    
+    depends_on:
+      - redis
+      - db
+    
+    networks:
+      - z3-network
+    
     healthcheck:
-      test: ["CMD", "python", "-c", "from sovereign_reliability import get_health_monitor; m = get_health_monitor(); exit(0 if m.run_health_checks()['overall_healthy'] else 1)"]
+      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8765/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
-  sovereign-system-staging:
-    build: .
-    container_name: sovereign-system-staging
-    ports:
-      - "8502:8501"
-      - "8001:8000"
-    volumes:
-      - ./data-staging:/app/data
-      - ./logs-staging:/app/logs
-    environment:
-      - ENVIRONMENT=staging
-      - LOG_LEVEL=DEBUG
-      - DATABASE_PATH=/app/data/sovereign_system_staging.db
+  # ==========================================================================
+  # Redis Cache (Optional)
+  # ==========================================================================
+  redis:
+    image: redis:7-alpine
+    container_name: z3-redis
     restart: unless-stopped
+    
+    ports:
+      - "6379:6379"
+    
+    volumes:
+      - redis-data:/data
+    
+    networks:
+      - z3-network
+    
+    command: redis-server --appendonly yes
+
+  # ==========================================================================
+  # PostgreSQL Database (Optional, alternative to SQLite)
+  # ==========================================================================
+  db:
+    image: postgres:16-alpine
+    container_name: z3-db
+    restart: unless-stopped
+    
+    environment:
+      - POSTGRES_DB=z3_integration
+      - POSTGRES_USER=z3_user
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-changeme}
+    
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    
+    networks:
+      - z3-network
+    
+    ports:
+      - "5432:5432"
+
+  # ==========================================================================
+  # Monitoring Stack (Optional)
+  # ==========================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: z3-prometheus
+    restart: unless-stopped
+    
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    
+    ports:
+      - "9090:9090"
+    
+    networks:
+      - z3-network
+    
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: z3-grafana
+    restart: unless-stopped
+    
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+    
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    
+    ports:
+      - "3000:3000"
+    
+    networks:
+      - z3-network
+    
+    depends_on:
+      - prometheus
+
+  # ==========================================================================
+  # Load Balancer (Optional, for scaling)
+  # ==========================================================================
+  nginx:
+    image: nginx:alpine
+    container_name: z3-nginx
+    restart: unless-stopped
+    
+    ports:
+      - "80:80"
+      - "443:443"
+    
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    
+    networks:
+      - z3-network
+    
+    depends_on:
+      - z3-integration
+
+# ==========================================================================
+# Volumes
+# ==========================================================================
+volumes:
+  redis-data:
+  postgres-data:
+  prometheus-data:
+  grafana-data:
+
+# ==========================================================================
+# Networks
+# ==========================================================================
+networks:
+  z3-network:
+    driver: bridge
