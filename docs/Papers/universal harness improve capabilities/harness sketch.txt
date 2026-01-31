@@ -1,0 +1,32 @@
+┌─────────────────────────────────────────────────────────────┐
+│                     Universal Reasoning Harness             │
+├─────────────────────────────────────────────────────────────┤
+│ Inputs: prompt q, context state S, base model p              │
+│ Outputs: tokens / final answer + traces + metrics            │
+├─────────────────────────────────────────────────────────────┤
+│ 1) Candidate Generator                                       │
+│    - get logits from p(.|q,x)                                │
+│    - Top-K / nucleus / constrained tokens                    │
+│                                                             │
+│ 2) Lookahead Evaluator (the “future-quality” engine)         │
+│    - rollouts under p for each candidate                     │
+│    - optional truncation horizon H                           │
+│    - computes ζ-like future scores                           │
+│                                                             │
+│ 3) Reweighter / Sampler                                      │
+│    - combines base probs with lookahead scores               │
+│    - (power-sampling: p(a)^α * ζ(a) then normalize)          │
+│    - optional bias correction (jackknife)                    │
+│                                                             │
+│ 4) Controller / Budgeter                                     │
+│    - chooses K_t, M_t, H_t adaptively                         │
+│    - early-stop when confidence high                         │
+│                                                             │
+│ 5) Instrumentation / Trace                                   │
+│    - logs candidates, rollouts, chosen token, costs          │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+                 Base Model (any LLM)
+                 - logits()
+                 - sample()

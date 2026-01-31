@@ -11,14 +11,18 @@
 
 ## ✅ Gap Analysis Results
 
-**Status**: All gaps identified and filled
-
+### Pass 1
 | Gap | Component | Status | Fix |
 |-----|-----------|--------|-----|
 | Missing `get_statistics` method | Z3KnowledgeManager | ✅ Filled | Added as alias to `get_metrics` |
 
-**Total Gaps Found**: 1  
-**Total Gaps Filled**: 1  
+### Pass 2
+| Gap | Component | Status | Fix |
+|-----|-----------|--------|-----|
+| Missing core solver API endpoints | math_api_complete.py | ✅ Filled | Created complete API with /solve/* endpoints |
+
+**Total Gaps Found**: 2  
+**Total Gaps Filled**: 2  
 **Remaining Gaps**: 0
 
 ---
@@ -83,21 +87,24 @@
 - Solver execution logging
 - Redis caching layer
 
-### 5. API & Services (37KB)
+### 5. API & Services (51KB)
 
 | File | Size | Description |
 |------|------|-------------|
-| `z3_api.py` | 14KB | FastAPI REST endpoints |
+| `math_api_complete.py` | 14KB | Complete REST API (new) |
+| `z3_api.py` | 14KB | Z3 knowledge endpoints |
 | `z3_server_complete.py` | 23KB | Complete server implementation |
 
 **Endpoints**:
 - `POST /solve/z3` - Z3 solving
-- `POST /prove/lean` - Lean proving
+- `POST /solve/lean` - Lean proving
 - `POST /solve/unified` - Unified solving
 - `POST /knowledge/learn` - Knowledge extraction
 - `POST /knowledge/search` - Pattern search
+- `GET /knowledge/strategy` - Strategy recommendation
+- `GET /knowledge/stats` - Statistics
 - `GET /health` - Health check
-- `GET /stats` - System statistics
+- `GET /` - API info
 
 ### 6. Configuration & MCP Tools (36KB)
 
