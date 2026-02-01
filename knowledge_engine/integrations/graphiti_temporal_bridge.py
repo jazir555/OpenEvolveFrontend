@@ -11,14 +11,37 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime, timedelta
 from dataclasses import dataclass
 
-from ...integrations.graphiti.bridge import GraphitiBridge
-from ...integrations.graphiti.adapter import GraphitiAdapter
-from ...integrations.base.knowledge_interface import TemporalFilter
-from ..core.temporal_knowledge_engine import (
+# Graphiti integration - local modules within graphiti package
+try:
+    from .graphiti.temporal_bridge import TemporalFilter
+    GRAPHITI_TEMPORAL_AVAILABLE = True
+except ImportError:
+    TemporalFilter = None
+    GRAPHITI_TEMPORAL_AVAILABLE = False
+
+# Core temporal knowledge engine
+from knowledge_engine.core.temporal_knowledge_engine import (
     KnowledgeArtifact,
     RerankMethod,
     ContradictionDetection,
 )
+
+# Stub classes for missing GraphitiBridge/GraphitiAdapter
+class GraphitiBridge:
+    """Stub GraphitiBridge for when actual integration is unavailable."""
+    
+    def __init__(self, *args, **kwargs):
+        self.available = False
+        
+    async def check_health(self):
+        return {"available": False, "message": "GraphitiBridge not implemented"}
+
+
+class GraphitiAdapter:
+    """Stub GraphitiAdapter for when actual integration is unavailable."""
+    
+    def __init__(self, *args, **kwargs):
+        self.available = False
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,87 @@
 
 import requests
-from typing import Dict, Any, Optional, List
+import asyncio
+import logging
+from typing import Dict, Any, Optional, List, Tuple
+
+# Optional imports with fallbacks
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+
+try:
+    import anthropic
+    ANTHROPIC_AVAILABLE = True
+except ImportError:
+    ANTHROPIC_AVAILABLE = False
+
+try:
+    import google.generativeai as genai
+    GOOGLE_AVAILABLE = True
+except ImportError:
+    GOOGLE_AVAILABLE = False
+
+
+async def initialize_llm_client(
+    api_config: Dict[str, Any],
+    default_models: Dict[str, str],
+    logger: Optional[logging.Logger] = None,
+    verbose_output: bool = False
+) -> Tuple[Optional[Any], Optional[str]]:
+    """
+    Initialize an LLM client based on available API keys.
+    
+    Args:
+        api_config: Configuration dict with API keys
+        default_models: Dict of default models for each provider
+        logger: Optional logger for output
+        verbose_output: Whether to print verbose messages
+        
+    Returns:
+        Tuple of (client, client_type) or (None, None) if no client available
+    """
+    if logger is None:
+        logger = logging.getLogger(__name__)
+    
+    # Try Anthropic first
+    if ANTHROPIC_AVAILABLE and api_config.get("anthropic", {}).get("api_key"):
+        try:
+            client = anthropic.AsyncAnthropic(
+                api_key=api_config["anthropic"]["api_key"]
+            )
+            if verbose_output:
+                logger.info("Initialized Anthropic client")
+            return client, "anthropic"
+        except Exception as e:
+            logger.warning(f"Failed to initialize Anthropic client: {e}")
+    
+    # Try OpenAI second
+    if OPENAI_AVAILABLE and api_config.get("openai", {}).get("api_key"):
+        try:
+            client = openai.AsyncOpenAI(
+                api_key=api_config["openai"]["api_key"],
+                base_url=api_config["openai"].get("base_url", "https://api.openai.com/v1")
+            )
+            if verbose_output:
+                logger.info("Initialized OpenAI client")
+            return client, "openai"
+        except Exception as e:
+            logger.warning(f"Failed to initialize OpenAI client: {e}")
+    
+    # Try Google third
+    if GOOGLE_AVAILABLE and api_config.get("google", {}).get("api_key"):
+        try:
+            genai.configure(api_key=api_config["google"]["api_key"])
+            if verbose_output:
+                logger.info("Initialized Google client")
+            return genai, "google"
+        except Exception as e:
+            logger.warning(f"Failed to initialize Google client: {e}")
+    
+    logger.warning("No LLM client available - checked Anthropic, OpenAI, Google")
+    return None, None
 
 def _compose_messages(system_message: str, user_message: str) -> List[Dict[str, str]]:
     """Helper function to compose messages in the format expected by OpenAI-compatible chat APIs.

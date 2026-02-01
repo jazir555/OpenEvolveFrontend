@@ -326,6 +326,72 @@ details[open]>summary.sidebar-section-header {
     gap: 1.75rem;
 }
 
+/* Reward Calibration Panel */
+.reward-calibration-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-md);
+}
+
+.reward-calibration-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--gap-sm);
+}
+
+.reward-calibration-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(var(--card-bg-base-rgb), 0.4);
+    border: 1px solid var(--border-color);
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary-color);
+}
+
+.reward-calibration-options {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--gap-md);
+}
+
+.reward-calibration-option textarea.input-base {
+    min-height: 140px;
+}
+
+.reward-calibration-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--gap-sm);
+}
+
+.reward-calibration-prompt-text {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary-color);
+    line-height: 1.5;
+}
+
+.auto-refine-status {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-sm);
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary-color);
+}
+
+.auto-refine-status-text {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.auto-refine-progress-text {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary-color);
+    min-height: 16px;
+}
+
 .prompt-group {
     display: flex;
     flex-direction: column;

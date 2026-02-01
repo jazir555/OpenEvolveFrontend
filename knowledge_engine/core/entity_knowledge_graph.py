@@ -9,8 +9,10 @@ Following CLAUDE.md principles:
 - UTC TIME: All timestamps in UTC
 - STRUCTURED LOGGING: JSON logs with correlation IDs
 
+Uses unified Entity and Relationship from knowledge_engine.schemas.base.
+
 Author: OpenEvolve Distinguished Engineer
-Version: 2.0.0
+Version: 2.1.0
 """
 
 import asyncio
@@ -23,95 +25,29 @@ from threading import Lock
 import uuid
 import re
 
+# Import unified models
+from knowledge_engine.schemas.base import (
+    Entity,
+    Relationship,
+    ValidationResult,
+)
+
+
 logger = logging.getLogger(__name__)
 
-
-@dataclass
-class Entity:
-    """
-    Represents an entity in the knowledge graph.
-
-    Attributes:
-        name: Unique entity identifier
-        entity_type: Type/category of the entity
-        attributes: Key-value pairs of entity properties
-        created_at: UTC timestamp of creation
-        updated_at: UTC timestamp of last update
-    """
-    name: str
-    entity_type: str
-    attributes: Dict[str, Any] = field(default_factory=dict)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    updated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert entity to dictionary."""
-        return asdict(self)
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Entity':
-        """Create entity from dictionary."""
-        return cls(
-            name=data['name'],
-            entity_type=data['entity_type'],
-            attributes=data.get('attributes', {}),
-            created_at=data.get('created_at', datetime.now(timezone.utc).isoformat()),
-            updated_at=data.get('updated_at', datetime.now(timezone.utc).isoformat())
-        )
-
-
-@dataclass
-class Relationship:
-    """
-    Represents a relationship between two entities.
-
-    Attributes:
-        source: Source entity name
-        target: Target entity name
-        relation_type: Type of relationship
-        attributes: Key-value pairs of relationship properties
-        created_at: UTC timestamp of creation
-    """
-    source: str
-    target: str
-    relation_type: str
-    attributes: Dict[str, Any] = field(default_factory=dict)
-    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
-    id: str = field(default_factory=lambda: str(uuid.uuid4()))
-
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert relationship to dictionary."""
-        return asdict(self)
-
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Relationship':
-        """Create relationship from dictionary."""
-        return cls(
-            source=data['source'],
-            target=data['target'],
-            relation_type=data['relation_type'],
-            attributes=data.get('attributes', {}),
-            created_at=data.get('created_at', datetime.now(timezone.utc).isoformat()),
-            id=data.get('id', str(uuid.uuid4()))
-        )
-
-    def __hash__(self):
-        """Make relationship hashable for deduplication."""
-        return hash((self.source, self.target, self.relation_type))
-
-    def __eq__(self, other):
-        """Check relationship equality."""
-        if not isinstance(other, Relationship):
-            return False
-        return (self.source == other.source and
-                self.target == other.target and
-                self.relation_type == other.relation_type)
+# Re-export unified Entity and Relationship for backward compatibility
+__all__ = [
+    "Entity",
+    "Relationship",
+    "EntityKnowledgeGraph",
+    "ValidationResult",
+]
 
 
 class EntityKnowledgeGraph:
     """
     Thread-safe in-memory entity knowledge graph.
-
+    
     Features:
     - Add entities with attributes
     - Add relationships between entities
@@ -120,6 +56,8 @@ class EntityKnowledgeGraph:
     - Thread-safe operations
     - Idempotent operations
     - Structured logging with correlation IDs
+    
+    Uses unified Entity and Relationship models from schemas.base.
     """
 
     def __init__(self, correlation_id: Optional[str] = None):
@@ -175,9 +113,9 @@ class EntityKnowledgeGraph:
         IDEMPOTENT: If entity exists, attributes are merged.
 
         Args:
-            name: Unique entity identifier
+            name: Unique entity identifier (maps to entity_id in unified model)
             entity_type: Type/category of entity
-            attributes: Optional key-value pairs
+            attributes: Optional key-value pairs (maps to properties in unified model)
 
         Returns:
             True if entity was added or updated, False on error
@@ -197,17 +135,20 @@ class EntityKnowledgeGraph:
                 if name in self._entities:
                     # Merge attributes (idempotent update)
                     existing = self._entities[name]
-                    existing.attributes.update(attributes)
-                    existing.updated_at = datetime.now(timezone.utc).isoformat()
+                    existing.properties.update(attributes)
+                    existing.updated_at = datetime.now(timezone.utc)
 
                     self._log("info", f"Updated entity: {name}", entity_type=entity_type)
                     return True
                 else:
-                    # Create new entity
+                    # Create new entity using unified model
                     entity = Entity(
+                        entity_id=name,
                         name=name,
                         entity_type=entity_type,
-                        attributes=attributes
+                        properties=attributes,
+                        created_at=datetime.now(timezone.utc),
+                        updated_at=datetime.now(timezone.utc)
                     )
                     self._entities[name] = entity
 
@@ -257,17 +198,20 @@ class EntityKnowledgeGraph:
                 if name in self._entities:
                     # Merge attributes (idempotent update)
                     existing = self._entities[name]
-                    existing.attributes.update(attributes)
-                    existing.updated_at = datetime.now(timezone.utc).isoformat()
+                    existing.properties.update(attributes)
+                    existing.updated_at = datetime.now(timezone.utc)
 
                     self._log("info", f"Updated entity: {name}", entity_type=entity_type)
                     return True
                 else:
-                    # Create new entity
+                    # Create new entity using unified model
                     entity = Entity(
+                        entity_id=name,
                         name=name,
                         entity_type=entity_type,
-                        attributes=attributes
+                        properties=attributes,
+                        created_at=datetime.now(timezone.utc),
+                        updated_at=datetime.now(timezone.utc)
                     )
                     self._entities[name] = entity
 
@@ -296,10 +240,10 @@ class EntityKnowledgeGraph:
         IDEMPOTENT: Duplicate relationships are ignored.
 
         Args:
-            source: Source entity name
-            target: Target entity name
-            relation_type: Type of relationship
-            attributes: Optional relationship properties
+            source: Source entity name (maps to source_entity_id)
+            target: Target entity name (maps to target_entity_id)
+            relation_type: Type of relationship (maps to relationship_type)
+            attributes: Optional relationship properties (maps to properties)
 
         Returns:
             True if relationship was added, False on error or duplicate
@@ -320,10 +264,10 @@ class EntityKnowledgeGraph:
 
                 # Check for duplicate
                 new_rel = Relationship(
-                    source=source,
-                    target=target,
-                    relation_type=relation_type,
-                    attributes=attributes
+                    source_entity_id=source,
+                    target_entity_id=target,
+                    relationship_type=relation_type,
+                    properties=attributes
                 )
 
                 if new_rel in self._relationships:
@@ -379,10 +323,10 @@ class EntityKnowledgeGraph:
 
                 # Check for duplicate
                 new_rel = Relationship(
-                    source=source,
-                    target=target,
-                    relation_type=relation_type,
-                    attributes=attributes
+                    source_entity_id=source,
+                    target_entity_id=target,
+                    relationship_type=relation_type,
+                    properties=attributes
                 )
 
                 if new_rel in self._relationships:
@@ -456,7 +400,7 @@ class EntityKnowledgeGraph:
                 if attributes:
                     match = True
                     for key, value in attributes.items():
-                        if key not in entity.attributes or entity.attributes[key] != value:
+                        if key not in entity.properties or entity.properties[key] != value:
                             match = False
                             break
                     if not match:
@@ -493,7 +437,7 @@ class EntityKnowledgeGraph:
                 if attributes:
                     match = True
                     for key, value in attributes.items():
-                        if key not in entity.attributes or entity.attributes[key] != value:
+                        if key not in entity.properties or entity.properties[key] != value:
                             match = False
                             break
                     if not match:
@@ -519,13 +463,13 @@ class EntityKnowledgeGraph:
             query_lower = query.lower()
 
             for entity in self._entities.values():
-                # Search in name
+                # Search in name (entity_id is the unique identifier)
                 if query_lower in entity.name.lower():
                     results.append(entity.to_dict())
                     continue
 
-                # Search in attributes
-                for key, value in entity.attributes.items():
+                # Search in properties (formerly attributes)
+                for key, value in entity.properties.items():
                     if query_lower in str(value).lower():
                         results.append(entity.to_dict())
                         break
@@ -556,8 +500,8 @@ class EntityKnowledgeGraph:
                     results.append(entity.to_dict())
                     continue
 
-                # Search in attributes
-                for key, value in entity.attributes.items():
+                # Search in properties
+                for key, value in entity.properties.items():
                     if query_lower in str(value).lower():
                         results.append(entity.to_dict())
                         break
@@ -581,7 +525,7 @@ class EntityKnowledgeGraph:
             results = []
 
             for rel in self._relationships:
-                if rel.source == entity_name or rel.target == entity_name:
+                if rel.source_entity_id == entity_name or rel.target_entity_id == entity_name:
                     results.append(rel.to_dict())
 
             return results
@@ -600,7 +544,7 @@ class EntityKnowledgeGraph:
             results = []
 
             for rel in self._relationships:
-                if rel.source == entity_name or rel.target == entity_name:
+                if rel.source_entity_id == entity_name or rel.target_entity_id == entity_name:
                     results.append(rel.to_dict())
 
             return results
@@ -668,17 +612,17 @@ class EntityKnowledgeGraph:
                 self._relationships.clear()
                 self._entity_types.clear()
 
-                # Load entities
+                # Load entities using unified model
                 for entity_data in data.get("entities", []):
                     entity = Entity.from_dict(entity_data)
-                    self._entities[entity.name] = entity
+                    self._entities[entity.entity_id] = entity
 
                     # Update type index
                     if entity.entity_type not in self._entity_types:
                         self._entity_types[entity.entity_type] = set()
-                    self._entity_types[entity.entity_type].add(entity.name)
+                    self._entity_types[entity.entity_type].add(entity.entity_id)
 
-                # Load relationships
+                # Load relationships using unified model
                 for rel_data in data.get("relationships", []):
                     rel = Relationship.from_dict(rel_data)
                     self._relationships.append(rel)
@@ -714,17 +658,17 @@ class EntityKnowledgeGraph:
                 self._relationships.clear()
                 self._entity_types.clear()
 
-                # Load entities
+                # Load entities using unified model
                 for entity_data in data.get("entities", []):
                     entity = Entity.from_dict(entity_data)
-                    self._entities[entity.name] = entity
+                    self._entities[entity.entity_id] = entity
 
                     # Update type index
                     if entity.entity_type not in self._entity_types:
                         self._entity_types[entity.entity_type] = set()
-                    self._entity_types[entity.entity_type].add(entity.name)
+                    self._entity_types[entity.entity_type].add(entity.entity_id)
 
-                # Load relationships
+                # Load relationships using unified model
                 for rel_data in data.get("relationships", []):
                     rel = Relationship.from_dict(rel_data)
                     self._relationships.append(rel)

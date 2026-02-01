@@ -1058,6 +1058,57 @@ def pattern_operator(pattern: str) -> str:
         return ">"
     return "<"
 
+
+def generate_refutation_narrative(
+    result: Union[Z3SolverResult, Z3TheoremResult, str],
+    constraints: Optional[List[str]] = None,
+    counterexample: Optional[Dict[str, Any]] = None
+) -> str:
+    """
+    Generate a human-readable refutation narrative from a Z3 result.
+
+    Args:
+        result: Z3 result object or status string (e.g., "unsat", "sat").
+        constraints: Optional list of constraint strings to include in the narrative.
+        counterexample: Optional counterexample assignments from a model.
+
+    Returns:
+        Natural language refutation narrative.
+    """
+    status_value = ""
+    if isinstance(result, Z3SolverResult):
+        status_value = result.status.value
+        if counterexample is None and result.model:
+            counterexample = result.model.assignments
+    elif isinstance(result, Z3TheoremResult):
+        status_value = "unsat" if not result.proven else "sat"
+        if counterexample is None:
+            counterexample = result.counterexample
+    else:
+        status_value = str(result).lower()
+
+    constraint_text = ""
+    if constraints:
+        constraint_text = "Constraints involved:\n" + "\n".join(f"- {c}" for c in constraints)
+
+    if "unsat" in status_value:
+        narrative = (
+            "Refutation Narrative: A contradiction was found. "
+            "The constraints cannot be satisfied simultaneously."
+        )
+    elif "sat" in status_value:
+        narrative = "Refutation Narrative: A satisfying assignment exists for the constraints."
+    else:
+        narrative = "Refutation Narrative: Solver status unknown; unable to confirm satisfiability."
+
+    if counterexample:
+        narrative += "\nCounterexample:\n" + "\n".join(f"- {k} = {v}" for k, v in counterexample.items())
+
+    if constraint_text:
+        narrative += "\n" + constraint_text
+
+    return narrative
+
 # =============================================================================
 # Global Instance
 # =============================================================================

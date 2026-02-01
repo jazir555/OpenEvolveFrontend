@@ -32,7 +32,9 @@ import {
     getSkipSubStrategies,
     getDissectedObservationsEnabled,
     getIterativeCorrectionsEnabled,
-    getProvideAllSolutionsToCorrectors
+    getProvideAllSolutionsToCorrectors,
+    getPostQualityFilterEnabled,
+    getAutoRefineEnabled
 } from '../Routing';
 import { updateControlsState } from '../UI/Controls';
 
@@ -84,7 +86,9 @@ export async function exportConfiguration() {
             skipSubStrategies: getSkipSubStrategies(),
             dissectedObservationsEnabled: getDissectedObservationsEnabled(),
             iterativeCorrectionsEnabled: getIterativeCorrectionsEnabled(),
-            provideAllSolutionsToCorrectors: getProvideAllSolutionsToCorrectors()
+            provideAllSolutionsToCorrectors: getProvideAllSolutionsToCorrectors(),
+            postQualityFilterEnabled: getPostQualityFilterEnabled(),
+            autoRefineEnabled: getAutoRefineEnabled()
         },
         // Export solution pool versions for evolution view
         solutionPoolVersions: deepthinkPipelineToExport ? getSolutionPoolVersionsForExport(deepthinkPipelineToExport.id) : null
@@ -204,6 +208,9 @@ export async function handleImportConfiguration(event: Event) {
                     if (params.skipSubStrategies !== undefined) modelConfig.updateParameter('skipSubStrategies', params.skipSubStrategies);
                     if (params.dissectedObservationsEnabled !== undefined) modelConfig.updateParameter('dissectedObservationsEnabled', params.dissectedObservationsEnabled);
                     if (params.iterativeCorrectionsEnabled !== undefined) modelConfig.updateParameter('iterativeCorrectionsEnabled', params.iterativeCorrectionsEnabled);
+                    if (params.provideAllSolutionsToCorrectors !== undefined) modelConfig.updateParameter('provideAllSolutionsToCorrectors', params.provideAllSolutionsToCorrectors);
+                    if (params.postQualityFilterEnabled !== undefined) modelConfig.updateParameter('postQualityFilterEnabled', params.postQualityFilterEnabled);
+                    if (params.autoRefineEnabled !== undefined) modelConfig.updateParameter('autoRefineEnabled', params.autoRefineEnabled);
 
                     // Sync UI with the restored parameters
                     const modelSelectionUI = routingManager.getModelSelectionUI();

@@ -31,6 +31,12 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Import sprint components (with graceful degradation)
+# Add parent directory to path for imports
+import sys
+from pathlib import Path
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
+
 try:
     from knowledge_engine.integrations.graphiti import (
         GraphitiTemporalBridge,

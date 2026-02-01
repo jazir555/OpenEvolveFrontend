@@ -151,6 +151,8 @@ export interface ExportedConfig {
         dissectedObservationsEnabled: boolean;
         iterativeCorrectionsEnabled: boolean;
         provideAllSolutionsToCorrectors: boolean;
+        postQualityFilterEnabled: boolean;
+        autoRefineEnabled: boolean;
     };
     // Solution pool versions for evolution view
     solutionPoolVersions?: Array<{ content: string; title: string; timestamp: number }> | null;

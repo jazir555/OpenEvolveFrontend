@@ -11,7 +11,7 @@ import * as ReactDOM from 'react-dom/client';
 import { StructuredRepresentation, RewardFunction, EvaluationResult, IterationState, GenerativeUIState } from './GenerativeUICore';
 import { GenerativeUIPrompts } from './GenerativeUIPrompts';
 
-import { callAI, getSelectedModel, getSelectedTemperature, getSelectedTopP } from '../Routing';
+import { callAI, getAutoRefineEnabled, getSelectedModel, getSelectedTemperature, getSelectedTopP } from '../Routing';
 import { parseJsonSafe } from '../Parsing';
 import { updateControlsState } from '../UI/Controls';
 import { globalState } from '../Core/State';
@@ -301,6 +301,110 @@ function generateHeatmapDataUrl(points: import('./GenerativeUICore').HeatmapPoin
     return canvas.toDataURL('image/png');
 }
 
+function getIcrApiBase(): string | null {
+    const base = (window as any).__ICR_API_BASE as string | undefined;
+    return base && base.length > 0 ? base : 'http://127.0.0.1:8000';
+}
+
+function extractBodyHtml(screenHtml: string): { body: string; head: string } {
+    try {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(screenHtml, 'text/html');
+        const body = doc.body ? doc.body.innerHTML : screenHtml;
+        const head = doc.head ? doc.head.innerHTML : '';
+        return { body, head };
+    } catch {
+        return { body: screenHtml, head: '' };
+    }
+}
+
+async function generateCompositeImage(
+    screenHtml: string,
+    heatmapDataUrl: string,
+    width: number,
+    height: number
+): Promise<string> {
+    if (!screenHtml) return '';
+    const { body, head } = extractBodyHtml(screenHtml);
+    const wrappedHtml = `
+        <div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;height:${height}px;overflow:hidden;">
+            ${head}
+            ${body}
+        </div>`;
+    const svg = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+            <foreignObject width="100%" height="100%">
+                ${wrappedHtml}
+            </foreignObject>
+        </svg>`;
+
+    const svgBlob = new Blob([svg], { type: 'image/svg+xml;charset=utf-8' });
+    const svgUrl = URL.createObjectURL(svgBlob);
+
+    try {
+        const baseCanvas = document.createElement('canvas');
+        baseCanvas.width = width;
+        baseCanvas.height = height;
+        const ctx = baseCanvas.getContext('2d');
+        if (!ctx) return '';
+
+        const domImage = await new Promise<HTMLImageElement>((resolve, reject) => {
+            const img = new Image();
+            img.onload = () => resolve(img);
+            img.onerror = () => reject(new Error('Failed to load DOM snapshot'));
+            img.src = svgUrl;
+        });
+
+        ctx.drawImage(domImage, 0, 0, width, height);
+
+        if (heatmapDataUrl) {
+            const heatmapImage = await new Promise<HTMLImageElement>((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('Failed to load heatmap overlay'));
+                img.src = heatmapDataUrl;
+            });
+            ctx.drawImage(heatmapImage, 0, 0, width, height);
+        }
+
+        return baseCanvas.toDataURL('image/png');
+    } catch {
+        return '';
+    } finally {
+        URL.revokeObjectURL(svgUrl);
+    }
+}
+
+async function sendHeatmapSnapshot(
+    snapshot: import('./GenerativeUICore').HeatmapSnapshot,
+    contextText: string
+): Promise<void> {
+    const apiBase = getIcrApiBase();
+    if (!apiBase) return;
+
+    try {
+        const payload = {
+            snapshot_id: snapshot.id,
+            timestamp: snapshot.timestamp,
+            screen_html: snapshot.screenHtml,
+            heatmap_data_url: snapshot.heatmapDataUrl,
+            composite_data_url: snapshot.compositeDataUrl || '',
+            points: snapshot.points,
+            manual_code_delta: snapshot.manualCodeDelta,
+            context_text: contextText,
+            auto_refine: getAutoRefineEnabled()
+        };
+
+        await fetch(`${apiBase}/icr/heatmap/snapshot`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+    } catch {
+        // Best-effort: ignore heatmap transport errors.
+    }
+}
+
 function getManualCodeDelta(): number {
     if (!activeGenerativeUIState) return 0;
     const history = activeGenerativeUIState.screenHistory;
@@ -310,15 +414,17 @@ function getManualCodeDelta(): number {
     return Math.abs(latest.length - previous.length);
 }
 
-function createHeatmapSnapshot(currentScreenHtml: string) {
+async function createHeatmapSnapshot(currentScreenHtml: string) {
     if (!activeGenerativeUIState || !activeGenerativeUIState.heatmapEnabled) return;
     const { width, height } = getPreviewDimensions();
     const heatmapDataUrl = generateHeatmapDataUrl(activeGenerativeUIState.heatmapPoints, width, height);
+    const compositeDataUrl = await generateCompositeImage(currentScreenHtml, heatmapDataUrl, width, height);
     const snapshot = {
         id: `heatmap-${Date.now()}`,
         timestamp: Date.now(),
         screenHtml: currentScreenHtml,
         heatmapDataUrl,
+        compositeDataUrl,
         points: activeGenerativeUIState.heatmapPoints.slice(),
         manualCodeDelta: getManualCodeDelta()
     };
@@ -327,6 +433,9 @@ function createHeatmapSnapshot(currentScreenHtml: string) {
     if (activeGenerativeUIState.heatmapSnapshots.length > MAX_HEATMAP_SNAPSHOTS) {
         activeGenerativeUIState.heatmapSnapshots = activeGenerativeUIState.heatmapSnapshots.slice(-MAX_HEATMAP_SNAPSHOTS);
     }
+
+    const contextText = activeGenerativeUIState.requirementSpec || activeGenerativeUIState.userQuery || '';
+    await sendHeatmapSnapshot(snapshot, contextText);
 }
 
 // NO LIMITS - removed compression and trimming entirely
@@ -444,7 +553,7 @@ async function handleUserInteraction(interaction: import('./GenerativeUICore').C
         recordHeatmapPoint(interaction);
         activeGenerativeUIState.heatmapTurnCount += 1;
         if (activeGenerativeUIState.heatmapTurnCount % HEATMAP_SNAPSHOT_INTERVAL === 0) {
-            createHeatmapSnapshot(currentScreenHtml || '');
+            void createHeatmapSnapshot(currentScreenHtml || '');
         }
 
         // Trigger contextual generation with current HTML

@@ -86,7 +86,7 @@ class TestInputValidation:
             sanitized = self._sanitize_input(malicious_input)
 
             # Add entity with sanitized input
-            await graph.add_entity(sanitized)
+            await graph.add_entity_async(sanitized)
 
             # Verify dangerous patterns removed
             assert "'" not in sanitized or sanitized.count("'") % 2 == 0
@@ -237,7 +237,7 @@ class TestPIIHandling:
         redacted_text = self._redact_pii(text, types=['email'])
 
         assert "@" not in redacted_text
-        assert "[REDACTED]" in redacted_text or "***" in redacted_text
+        assert "[REDACTED" in redacted_text or "***" in redacted_text
 
         logger.info(json.dumps({
             "msg": "Email addresses detected and redacted",

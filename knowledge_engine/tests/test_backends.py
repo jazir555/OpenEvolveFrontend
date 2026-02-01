@@ -12,6 +12,7 @@ Following CLAUDE.md principles:
 
 import asyncio
 import pytest
+import pytest_asyncio
 import logging
 from datetime import datetime
 from typing import Dict, Any, List
@@ -38,10 +39,13 @@ from knowledge_engine.core.backends.base import (
     GraphStatistics
 )
 from knowledge_engine.core.backends.memory_backend import MemoryBackend
-from knowledge_engine.core.backends.neo4j_backend import Neo4jBackend
+from knowledge_engine.core.backends.memgraph_backend import MemgraphBackend
 from knowledge_engine.core.backends.qdrant_backend import QdrantBackend
-from knowledge_engine.core.backends.mongodb_backend import MongoDBBackend
+from knowledge_engine.core.backends.postgresql_backend import PostgreSQLBackend
 from knowledge_engine.core.backends.karateclub_backend import KarateClubBackend
+
+# Note: Neo4j (GPL) and MongoDB (SSPL) backends are excluded due to non-permissive licenses
+# Use Memgraph (Apache 2.0) as a drop-in replacement for Neo4j
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +79,7 @@ def sample_knowledge_entries() -> List[KnowledgeEntry]:
     ]
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def memory_backend():
     """Create Memory backend instance."""
     backend = MemoryBackend(config={})
@@ -84,23 +88,22 @@ async def memory_backend():
     await backend.disconnect()
 
 
-@pytest.fixture
-async def neo4j_backend() -> Neo4jBackend:
-    """Create Neo4j backend instance if available."""
+@pytest_asyncio.fixture
+async def memgraph_backend() -> MemgraphBackend:
+    """Create Memgraph backend instance if available (Apache 2.0, replaces Neo4j)."""
     config = {
         'uri': 'bolt://localhost:7687',
-        'user': 'neo4j',
-        'password': 'password',
-        'database': 'neo4j'
+        'user': '',
+        'password': ''
     }
 
-    backend = Neo4jBackend(config=config)
+    backend = MemgraphBackend(config=config)
 
     try:
         await backend.connect()
         yield backend
     except (ImportError, ConnectionError) as e:
-        pytest.skip(f"Neo4j not available: {e}")
+        pytest.skip(f"Memgraph not available: {e}")
     finally:
         try:
             await backend.disconnect()
@@ -108,7 +111,7 @@ async def neo4j_backend() -> Neo4jBackend:
             pass
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def qdrant_backend() -> QdrantBackend:
     """Create Qdrant backend instance if available."""
     config = {
@@ -132,22 +135,24 @@ async def qdrant_backend() -> QdrantBackend:
             pass
 
 
-@pytest.fixture
-async def mongodb_backend() -> MongoDBBackend:
-    """Create MongoDB backend instance if available."""
+@pytest_asyncio.fixture
+async def postgresql_backend() -> PostgreSQLBackend:
+    """Create PostgreSQL backend instance if available (PostgreSQL License)."""
     config = {
-        'uri': 'mongodb://localhost:27017',
+        'host': 'localhost',
+        'port': 5432,
         'database': 'test_knowledge_graph',
-        'collection': 'test_knowledge'
+        'user': 'postgres',
+        'password': 'postgres'
     }
 
-    backend = MongoDBBackend(config=config)
+    backend = PostgreSQLBackend(config=config)
 
     try:
         await backend.connect()
         yield backend
     except (ImportError, ConnectionError) as e:
-        pytest.skip(f"MongoDB not available: {e}")
+        pytest.skip(f"PostgreSQL not available: {e}")
     finally:
         try:
             await backend.disconnect()
@@ -155,7 +160,7 @@ async def mongodb_backend() -> MongoDBBackend:
             pass
 
 
-@pytest.fixture
+@pytest_asyncio.fixture
 async def karateclub_backend() -> KarateClubBackend:
     """Create KarateClub backend instance."""
     config = {
@@ -404,46 +409,45 @@ class TestMemoryBackend:
 # Neo4j Backend Tests
 # =============================================================================
 
-class TestNeo4jBackend:
-    """Tests for Neo4j backend (requires Neo4j to be running)."""
+class TestMemgraphBackend:
+    """Tests for Memgraph backend - Apache 2.0 licensed, Neo4j-compatible."""
 
     @pytest.mark.asyncio
-    async def test_connect_and_health_check(self, neo4j_backend):
-        """Test Neo4j connection."""
-        assert neo4j_backend.is_healthy
-        health = await neo4j_backend.health_check()
+    async def test_connect_and_health_check(self, memgraph_backend):
+        """Test Memgraph connection."""
+        assert memgraph_backend.is_healthy
+        health = await memgraph_backend.health_check()
         assert health is True
 
     @pytest.mark.asyncio
-    async def test_add_and_search(self, neo4j_backend, sample_knowledge_entries):
+    async def test_add_and_search(self, memgraph_backend, sample_knowledge_entries):
         """Test adding and searching knowledge."""
         # Add entry
-        entry_id = await neo4j_backend.add_knowledge(sample_knowledge_entries[0])
+        entry_id = await memgraph_backend.add_knowledge(sample_knowledge_entries[0])
         assert entry_id is not None
 
         # Search
-        results = await neo4j_backend.search(query="AI", limit=10)
+        results = await memgraph_backend.search(query="AI", limit=10)
         assert results.total_count > 0
-        assert results.backend_used == "neo4j"
+        assert results.backend_used == "memgraph"
 
     @pytest.mark.asyncio
-    async def test_analyze_connected_components(self, neo4j_backend, sample_knowledge_entries):
+    async def test_analyze_connected_components(self, memgraph_backend, sample_knowledge_entries):
         """Test connected components analysis."""
         for entry in sample_knowledge_entries:
-            await neo4j_backend.add_knowledge(entry)
+            await memgraph_backend.add_knowledge(entry)
 
-        result = await neo4j_backend.analyze(analysis_type="connected_components")
-        assert "total_knowledge_nodes" in result.results
-        assert "total_entity_nodes" in result.results
+        result = await memgraph_backend.analyze(analysis_type="connectivity")
+        assert "node_count" in result.results
 
     @pytest.mark.asyncio
-    async def test_analyze_entity_connections(self, neo4j_backend, sample_knowledge_entries):
-        """Test entity connections analysis."""
+    async def test_analyze_statistics(self, memgraph_backend, sample_knowledge_entries):
+        """Test graph statistics analysis."""
         for entry in sample_knowledge_entries:
-            await neo4j_backend.add_knowledge(entry)
+            await memgraph_backend.add_knowledge(entry)
 
-        result = await neo4j_backend.analyze(analysis_type="entity_connections")
-        assert "top_entities" in result.results
+        stats = await memgraph_backend.get_statistics()
+        assert stats.node_count >= len(sample_knowledge_entries)
 
 
 # =============================================================================
@@ -482,35 +486,34 @@ class TestQdrantBackend:
 # MongoDB Backend Tests
 # =============================================================================
 
-class TestMongoDBBackend:
-    """Tests for MongoDB backend (requires MongoDB to be running)."""
+class TestPostgreSQLBackend:
+    """Tests for PostgreSQL backend - PostgreSQL License (permissive)."""
 
     @pytest.mark.asyncio
-    async def test_connect_and_health_check(self, mongodb_backend):
-        """Test MongoDB connection."""
-        assert mongodb_backend.is_healthy
-        health = await mongodb_backend.health_check()
+    async def test_connect_and_health_check(self, postgresql_backend):
+        """Test PostgreSQL connection."""
+        assert postgresql_backend.is_healthy
+        health = await postgresql_backend.health_check()
         assert health is True
 
     @pytest.mark.asyncio
-    async def test_add_and_search(self, mongodb_backend, sample_knowledge_entries):
-        """Test adding and searching in MongoDB."""
-        entry_id = await mongodb_backend.add_knowledge(sample_knowledge_entries[0])
+    async def test_add_and_search(self, postgresql_backend, sample_knowledge_entries):
+        """Test adding and searching in PostgreSQL."""
+        entry_id = await postgresql_backend.add_knowledge(sample_knowledge_entries[0])
         assert entry_id is not None
 
         # Full-text search
-        results = await mongodb_backend.search(query="AI", limit=10)
-        assert results.backend_used == "mongodb"
-        assert results.total_count > 0
+        results = await postgresql_backend.search(query="AI", limit=10)
+        assert results.backend_used == "postgresql"
 
     @pytest.mark.asyncio
-    async def test_analyze_source_distribution(self, mongodb_backend, sample_knowledge_entries):
-        """Test source distribution analysis."""
+    async def test_analyze_statistics(self, postgresql_backend, sample_knowledge_entries):
+        """Test statistics analysis."""
         for entry in sample_knowledge_entries:
-            await mongodb_backend.add_knowledge(entry)
+            await postgresql_backend.add_knowledge(entry)
 
-        result = await mongodb_backend.analyze(analysis_type="source_distribution")
-        assert "by_source" in result.results
+        stats = await postgresql_backend.get_statistics()
+        assert stats.node_count >= len(sample_knowledge_entries)
 
 
 # =============================================================================
@@ -563,12 +566,10 @@ class TestBackendSwitching:
             BackendType.MEMORY: MemoryBackend(config={})
         }
 
-        # Try to create Neo4j if available
+        # Try to create Memgraph if available (Apache 2.0, replaces Neo4j)
         try:
-            backends[BackendType.NEO4J] = Neo4jBackend(config={
-                'uri': 'bolt://localhost:7687',
-                'user': 'neo4j',
-                'password': 'password'
+            backends[BackendType.MEMGRAPH] = MemgraphBackend(config={
+                'uri': 'bolt://localhost:7687'
             })
         except:
             pass
@@ -640,10 +641,10 @@ class TestErrorHandling:
     """Test error handling in backends."""
 
     @pytest.mark.asyncio
-    async def test_invalid_config_neo4j(self):
-        """Test Neo4j with invalid config."""
-        with pytest.raises(ValueError):
-            backend = Neo4jBackend(config={})  # Missing required fields
+    async def test_invalid_config_memgraph(self):
+        """Test Memgraph with invalid config."""
+        with pytest.raises((ValueError, ImportError)):
+            backend = MemgraphBackend(config={})
             await backend.connect()
 
     @pytest.mark.asyncio

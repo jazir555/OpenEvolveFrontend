@@ -214,10 +214,10 @@ async def populated_graph(
     Idempotent: can be called multiple times safely.
     """
     for entity_name, attrs in sample_entities.items():
-        await knowledge_graph.add_entity(entity_name, attrs)
+        await knowledge_graph.add_entity_async(entity_name, attrs)
 
     for rel in sample_relationships:
-        await knowledge_graph.add_relationship(
+        await knowledge_graph.add_relationship_async(
             rel["subject"],
             rel["predicate"],
             rel["object"],
@@ -591,10 +591,10 @@ async def sample_populated_graph(sample_entities, sample_relationships):
 
     graph = EntityKnowledgeGraph()
     for entity_name, attrs in sample_entities.items():
-        await graph.add_entity(entity_name, attrs)
+        await graph.add_entity_async(entity_name, attrs)
 
     for rel in sample_relationships:
-        await graph.add_relationship(
+        await graph.add_relationship_async(
             rel["subject"],
             rel["predicate"],
             rel["object"],

@@ -98,6 +98,7 @@ export interface HeatmapSnapshot {
     timestamp: number;
     screenHtml: string;
     heatmapDataUrl: string;
+    compositeDataUrl?: string;
     points: HeatmapPoint[];
     manualCodeDelta: number;
 }

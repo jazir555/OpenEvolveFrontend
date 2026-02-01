@@ -87,12 +87,13 @@ class TestExtractionPerformance:
             # Simple extraction simulation
             entities = [w for w in doc.split() if w[0].isupper() and len(w) > 3]
             for entity in entities[:5]:
-                await graph.add_entity(entity)
+                await graph.add_entity_async(entity)
 
         end_time = time.time()
         duration = (end_time - start_time) * 1000  # Convert to ms
 
-        docs_per_second = len(documents) / (end_time - start_time)
+        elapsed = end_time - start_time
+        docs_per_second = len(documents) / elapsed if elapsed > 0 else float('inf')
 
         logger.info(json.dumps({
             "msg": "Extraction throughput measured",
@@ -160,11 +161,11 @@ class TestGraphQueryPerformance:
 
         start_time = time.time()
         for i in range(entity_count):
-            await graph.add_entity(f"Entity_{i}", {"index": i})
+            await graph.add_entity_async(f"Entity_{i}", {"index": i})
 
         # Create relationships
         for i in range(0, entity_count - 1, 10):
-            await graph.add_relationship(f"Entity_{i}", "connects_to", f"Entity_{i+1}")
+            await graph.add_relationship_async(f"Entity_{i}", "connects_to", f"Entity_{i+1}")
 
         creation_time = (time.time() - start_time) * 1000
 
@@ -197,20 +198,20 @@ class TestGraphQueryPerformance:
 
         # Create entity with many relationships
         central_entity = "Central"
-        await graph.add_entity(central_entity)
+        await graph.add_entity_async(central_entity)
 
         relationship_count = 100
         start_time = time.time()
 
         for i in range(relationship_count):
-            await graph.add_entity(f"Related_{i}")
-            await graph.add_relationship(central_entity, "links_to", f"Related_{i}")
+            await graph.add_entity_async(f"Related_{i}")
+            await graph.add_relationship_async(central_entity, "links_to", f"Related_{i}")
 
         creation_time = (time.time() - start_time) * 1000
 
         # Query all relationships
         start_query = time.time()
-        relationships = await graph.get_relationships_for_entity(central_entity)
+        relationships = await graph.get_relationships_for_entity_async(central_entity)
         query_time = (time.time() - start_query) * 1000
 
         logger.info(json.dumps({
@@ -244,14 +245,14 @@ class TestVisualizationPerformance:
         entity_count = 500
 
         for i in range(entity_count):
-            await graph.add_entity(f"Entity_{i}", {"type": f"Type_{i % 5}"})
+            await graph.add_entity_async(f"Entity_{i}", {"type": f"Type_{i % 5}"})
 
         for i in range(0, entity_count - 1, 5):
-            await graph.add_relationship(f"Entity_{i}", "relates_to", f"Entity_{i+1}")
+            await graph.add_relationship_async(f"Entity_{i}", "relates_to", f"Entity_{i+1}")
 
         # Generate visualization
         start_time = time.time()
-        viz_data = await graph.to_dict()
+        viz_data = await graph.to_dict_async()
         gen_time = (time.time() - start_time) * 1000
 
         logger.info(json.dumps({
@@ -286,7 +287,7 @@ class TestConcurrentRequestHandling:
 
         async def add_entities(task_id: int):
             for i in range(entities_per_task):
-                await graph.add_entity(f"Task{task_id}_Entity{i}")
+                await graph.add_entity_async(f"Task{task_id}_Entity{i}")
 
         start_time = time.time()
         tasks = [add_entities(i) for i in range(concurrent_tasks)]
@@ -302,7 +303,7 @@ class TestConcurrentRequestHandling:
             "entities_per_task": entities_per_task,
             "total_ms": duration,
             "entities_added": actual_count,
-            "entities_per_second": total_entities / (duration / 1000),
+            "entities_per_second": total_entities / (duration / 1000) if duration > 0 else float("inf"),
             "level": "INFO"
         }))
 
@@ -323,7 +324,7 @@ class TestConcurrentRequestHandling:
         # Setup graph
         graph = EntityKnowledgeGraph()
         for i in range(100):
-            await graph.add_entity(f"Entity_{i}")
+            await graph.add_entity_async(f"Entity_{i}")
 
         # Concurrent queries
         concurrent_queries = 20
@@ -349,7 +350,7 @@ class TestConcurrentRequestHandling:
             "concurrent_queries": concurrent_queries,
             "total_duration_ms": total_duration,
             "avg_query_ms": avg_query_time,
-            "queries_per_second": concurrent_queries / (total_duration / 1000),
+            "queries_per_second": concurrent_queries / (total_duration / 1000) if total_duration > 0 else float("inf"),
             "level": "INFO"
         }))
 
@@ -381,7 +382,7 @@ class TestLoadTesting:
         async def perform_operation(op_id: int):
             nonlocal operation_count
             try:
-                await graph.add_entity(f"LoadEntity_{op_id}")
+                await graph.add_entity_async(f"LoadEntity_{op_id}")
                 operation_count += 1
             except Exception as e:
                 errors.append(str(e))
@@ -401,7 +402,7 @@ class TestLoadTesting:
             await asyncio.gather(*tasks)
 
         total_duration = time.time() - start_time
-        actual_ops_per_second = operation_count / total_duration
+        actual_ops_per_second = operation_count / total_duration if total_duration > 0 else float("inf")
 
         logger.info(json.dumps({
             "msg": "Sustained load test results",
@@ -438,7 +439,7 @@ class TestLoadTesting:
         # Add many entities
         entity_count = 1000
         for i in range(entity_count):
-            await graph.add_entity(f"MemEntity_{i}", {"data": "x" * 100})
+            await graph.add_entity_async(f"MemEntity_{i}", {"data": "x" * 100})
 
         gc.collect()
         final_memory = sys.getsizeof(graph)
@@ -474,7 +475,7 @@ class TestScalabilityBenchmarks:
         # Setup
         graph = EntityKnowledgeGraph()
         for i in range(entity_count):
-            await graph.add_entity(f"Entity_{i}")
+            await graph.add_entity_async(f"Entity_{i}")
 
         # Benchmark
         start_time = time.time()
@@ -504,16 +505,16 @@ class TestScalabilityBenchmarks:
         # Setup
         graph = EntityKnowledgeGraph()
         central = "Central"
-        await graph.add_entity(central)
+        await graph.add_entity_async(central)
 
         for i in range(relationship_count):
             entity = f"Rel_{i}"
-            await graph.add_entity(entity)
-            await graph.add_relationship(central, "links_to", entity)
+            await graph.add_entity_async(entity)
+            await graph.add_relationship_async(central, "links_to", entity)
 
         # Benchmark
         start_time = time.time()
-        relationships = await graph.get_relationships_for_entity(central)
+        relationships = await graph.get_relationships_for_entity_async(central)
         query_time = (time.time() - start_time) * 1000
 
         logger.info(json.dumps({

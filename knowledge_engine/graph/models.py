@@ -2,6 +2,7 @@
 Knowledge Graph Pydantic Models
 
 Data models for nodes, edges, and graphs with validation.
+Uses unified Entity and Relationship from knowledge_engine.schemas.base.
 
 Copyright 2026 OpenEvolve
 
@@ -19,7 +20,7 @@ limitations under the License.
 """
 
 from typing import Dict, List, Optional, Any, Set
-from datetime import datetime
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field, validator
 from enum import Enum
 import uuid
@@ -27,14 +28,22 @@ import json
 
 from .schema import NodeType, EdgeType, PropertyType
 
+# Import unified models for re-export
+from knowledge_engine.schemas.base import (
+    Entity,
+    Relationship,
+    EntityType,
+    RelationshipType,
+)
+
 
 class NodeProperties(BaseModel):
     """Properties common to all nodes"""
     model_config = {"extra": "allow"}
     
     name: str = Field(..., description="Human-readable name")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     source: Optional[str] = Field(None, description="Source of this knowledge")
     confidence: float = Field(1.0, ge=0.0, le=1.0)
     embedding: Optional[List[float]] = Field(None, description="Vector embedding")
@@ -42,7 +51,7 @@ class NodeProperties(BaseModel):
     
     def update_timestamp(self):
         """Update the updated_at timestamp"""
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
 
 
 class EdgeProperties(BaseModel):
@@ -105,6 +114,26 @@ class KnowledgeNode(BaseModel):
             "labels": self.labels,
             "properties": self.properties.model_dump()
         }
+    
+    def to_entity(self) -> Entity:
+        """Convert KnowledgeNode to unified Entity model."""
+        return Entity(
+            entity_id=self.id,
+            entity_type=self.node_type.value,
+            name=self.properties.name,
+            properties={
+                "source": self.properties.source,
+                "confidence": self.properties.confidence,
+                "embedding": self.properties.embedding,
+                **self.properties.metadata
+            },
+            metadata={
+                "labels": self.labels,
+                "graph_node": True
+            },
+            created_at=self.properties.created_at,
+            updated_at=self.properties.updated_at
+        )
 
 
 class KnowledgeEdge(BaseModel):
@@ -139,6 +168,22 @@ class KnowledgeEdge(BaseModel):
             "target_id": self.target_id,
             "properties": self.properties.model_dump()
         }
+    
+    def to_relationship(self) -> Relationship:
+        """Convert KnowledgeEdge to unified Relationship model."""
+        return Relationship(
+            relationship_id=self.id,
+            source_entity_id=self.source_id,
+            target_entity_id=self.target_id,
+            relationship_type=self.edge_type.value,
+            properties={
+                "weight": self.properties.weight,
+                "confidence": self.properties.confidence,
+                **self.properties.metadata
+            },
+            metadata={"graph_edge": True},
+            created_at=datetime.now(timezone.utc)
+        )
 
 
 class KnowledgeGraph(BaseModel):
@@ -148,14 +193,14 @@ class KnowledgeGraph(BaseModel):
     name: str = Field(..., description="Graph name")
     nodes: Dict[str, KnowledgeNode] = Field(default_factory=dict)
     edges: Dict[str, KnowledgeEdge] = Field(default_factory=dict)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     metadata: Dict[str, Any] = Field(default_factory=dict)
     
     def add_node(self, node: KnowledgeNode) -> str:
         """Add a node to the graph"""
         self.nodes[node.id] = node
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return node.id
     
     def add_edge(self, edge: KnowledgeEdge) -> str:
@@ -167,7 +212,7 @@ class KnowledgeGraph(BaseModel):
             raise ValueError(f"Target node {edge.target_id} does not exist")
         
         self.edges[edge.id] = edge
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return edge.id
     
     def get_node(self, node_id: str) -> Optional[KnowledgeNode]:
@@ -211,7 +256,7 @@ class KnowledgeGraph(BaseModel):
             del self.edges[eid]
         
         del self.nodes[node_id]
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return True
     
     def remove_edge(self, edge_id: str) -> bool:
@@ -220,7 +265,7 @@ class KnowledgeGraph(BaseModel):
             return False
         
         del self.edges[edge_id]
-        self.updated_at = datetime.utcnow()
+        self.updated_at = datetime.now(timezone.utc)
         return True
     
     def get_nodes_by_type(self, node_type: NodeType) -> List[KnowledgeNode]:
@@ -261,6 +306,23 @@ class KnowledgeGraph(BaseModel):
             "edge_count": len(self.edges),
             "nodes": {nid: n.to_dict() for nid, n in self.nodes.items()},
             "edges": {eid: e.to_dict() for eid, e in self.edges.items()},
+        }
+    
+    def to_entity_graph(self) -> Dict[str, Any]:
+        """Convert to unified Entity/Relationship format."""
+        entities = [node.to_entity().to_dict() for node in self.nodes.values()]
+        relationships = [edge.to_relationship().to_dict() for edge in self.edges.values()]
+        
+        return {
+            "entities": entities,
+            "relationships": relationships,
+            "metadata": {
+                "name": self.name,
+                "node_count": len(self.nodes),
+                "edge_count": len(self.edges),
+                "created_at": self.created_at.isoformat(),
+                "updated_at": self.updated_at.isoformat()
+            }
         }
     
     def get_statistics(self) -> Dict[str, Any]:

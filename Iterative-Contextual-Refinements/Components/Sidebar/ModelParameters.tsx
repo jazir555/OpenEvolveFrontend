@@ -78,6 +78,11 @@ export const ModelParameters: React.FC = () => {
                         <span className="input-hint">
                             Trigger hidden refinement cycles when analytics scores drop below the threshold.
                         </span>
+                        <div className="auto-refine-status">
+                            <span className="auto-refine-status-label">Status</span>
+                            <span id="auto-refine-status-text" className="auto-refine-status-text">Idle</span>
+                        </div>
+                        <div id="auto-refine-progress-text" className="auto-refine-progress-text" />
                     </div>
 
                     {/* Iterative Evolutions Convergence Container */}

@@ -418,7 +418,7 @@ class SandboxManager:
             
             container = client.containers.run(
                 'python:3.11-slim',
-                f'/bin/sh -lc \"{install_cmd}python /code/script.py\"',
+                f'/bin/sh -lc "{install_cmd}python /code/script.py"',
                 volumes={temp_dir: {'bind': '/code', 'mode': 'ro'}},
                 network_mode='none' if not policy.network_access else 'bridge',
                 mem_limit=f'{policy.max_memory_mb}m',
@@ -442,15 +442,15 @@ class SandboxManager:
             stdout = logs
             stderr = ""
 
-            missing_modules = re.findall(r\"No module named ['\\\"]([\\w_\\.]+)['\\\"]\", logs)
+            missing_modules = re.findall(r'No module named [\'"]([\w_.]+)[\'"]', logs)
             suggested_dockerfile = None
             if missing_modules:
-                pkgs = \" \".join(sorted(set(missing_modules)))
+                pkgs = " ".join(sorted(set(missing_modules)))
                 suggested_dockerfile = (
-                    \"FROM python:3.11-slim\\n\"
-                    f\"RUN pip install {pkgs}\\n\"
-                    \"COPY . /code\\n\"
-                    \"CMD [\\\"python\\\", \\\"/code/script.py\\\"]\\n\"
+                    "FROM python:3.11-slim\\n"
+                    f"RUN pip install {pkgs}\\n"
+                    "COPY . /code\\n"
+                    "CMD [\"python\", \"/code/script.py\"]\\n"
                 )
             
             # Collect artifacts

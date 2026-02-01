@@ -1,19 +1,35 @@
 """
-KG-Gen Integration for OpenEvolve Knowledge Engine (Mock Implementation)
+KG-Gen Integration for OpenEvolve Knowledge Engine (LLM-Based Implementation)
 
-This module provides a mock integration with the KG-Gen knowledge extraction pipeline
-for compatibility when the actual kg-gen library is not available due to dependency conflicts.
+This module provides integration with the KG-Gen knowledge extraction pipeline
+using LLM-based entity and relationship extraction with fallback to mock implementation
+when API is not available.
 """
 
 import asyncio
 import logging
+import os
+import re
+import json
 from datetime import datetime, timezone
 from typing import Dict, Any, List, Optional, Tuple
 from dataclasses import dataclass
-import uuid
-import json
 from pathlib import Path
 
+# Import llm_utils for API calls
+try:
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    from llm_utils import _request_openai_compatible_chat, _compose_messages
+    LLM_UTILS_AVAILABLE = True
+except ImportError:
+    LLM_UTILS_AVAILABLE = False
+
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -56,50 +72,82 @@ class KnowledgeGraph:
 
 class KGGenIntegration:
     """
-    Mock Integration with KG-Gen knowledge extraction pipeline.
+    Integration with KG-Gen knowledge extraction pipeline using LLM-based extraction.
 
     Provides methods for:
-    - Entity extraction using mock implementation
+    - Entity extraction using LLM (with mock fallback)
     - Relation extraction
     - Entity deduplication
     - Graph construction
     - Batch processing
     """
 
+    # Default model for cost-effective extraction
+    DEFAULT_MODEL = "gpt-4o-mini"
+    
+    # Extraction prompt template
+    EXTRACTION_PROMPT = """Extract a knowledge graph from the following text. Identify:
+1. Entities with their types (PERSON, ORGANIZATION, LOCATION, TECHNOLOGY, CONCEPT, PRODUCT, EVENT)
+2. Relationships between entities (as triples: subject, predicate, object)
+
+Text: {text}
+
+Return ONLY a JSON object in this exact format:
+{{
+  "entities": [{{"name": "Entity Name", "type": "TYPE"}}],
+  "relations": [["Subject", "predicate", "Object"]]
+}}"""
+
     def __init__(
         self,
-        model: str = "openai/gpt-4o",
+        model: Optional[str] = None,
         max_tokens: int = 16000,
         temperature: float = 0.0,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
-        config: Optional[Dict[str, Any]] = None
+        config: Optional[Dict[str, Any]] = None,
+        test_mode: bool = False
     ):
         """
         Initialize the KG-Gen integration.
 
         Args:
-            model: LLM model to use for extraction
+            model: LLM model to use for extraction (default: gpt-4o-mini)
             max_tokens: Maximum tokens for model
             temperature: Temperature for model sampling
             api_key: API key for model access
             api_base: API base for model access
             config: Additional configuration options
+            test_mode: If True, use mock extraction instead of LLM
         """
-        self.model = model
+        self.model = model or self.DEFAULT_MODEL
         self.max_tokens = max_tokens
         self.temperature = temperature
-        self.api_key = api_key
-        self.api_base = api_base
+        self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
+        self.api_base = api_base or os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
         self.config = config or self._get_default_config()
+        self.test_mode = test_mode
+        self._llm_available = self._check_llm_availability()
 
         logger.info({
-            "msg": "KGGenIntegration (Mock) initialized",
-            "model": model,
+            "msg": "KGGenIntegration initialized",
+            "model": self.model,
             "max_tokens": max_tokens,
             "temperature": temperature,
+            "llm_available": self._llm_available,
+            "test_mode": test_mode,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
+
+    def _check_llm_availability(self) -> bool:
+        """Check if LLM extraction is available."""
+        if self.test_mode:
+            return False
+        if not self.api_key:
+            return False
+        if not OPENAI_AVAILABLE and not LLM_UTILS_AVAILABLE:
+            return False
+        return True
 
     def _get_default_config(self) -> Dict[str, Any]:
         """Get default configuration."""
@@ -130,7 +178,7 @@ class KGGenIntegration:
         correlation_id: Optional[str] = None
     ) -> KnowledgeGraph:
         """
-        Extract knowledge graph from text using mock KG-Gen implementation.
+        Extract knowledge graph from text using LLM-based KG-Gen implementation.
 
         Args:
             text: Input text to extract knowledge from
@@ -147,18 +195,24 @@ class KGGenIntegration:
         start_time = datetime.now(timezone.utc)
 
         logger.info({
-            "msg": "Starting KG-Gen extraction (Mock)",
+            "msg": "Starting KG-Gen extraction",
             "text_length": len(text),
             "context": context,
             "deduplication_method": deduplication_method,
             "chunk_size": chunk_size,
+            "use_llm": self._llm_available,
             "correlation_id": correlation_id,
             "timestamp": start_time.isoformat()
         })
 
         try:
-            # Mock extraction implementation
-            entities, relations = self._mock_extract_knowledge(text)
+            # Use LLM extraction if available, otherwise fall back to mock
+            if self._llm_available:
+                entities, relations = await self._extract_knowledge_llm(text)
+                extraction_method = "llm"
+            else:
+                entities, relations = self._mock_extract_knowledge(text)
+                extraction_method = "mock"
 
             knowledge_graph = KnowledgeGraph(
                 entities=entities,
@@ -169,8 +223,9 @@ class KGGenIntegration:
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             logger.info({
-                "msg": "KG-Gen extraction completed (Mock)",
+                "msg": "KG-Gen extraction completed",
                 "correlation_id": correlation_id,
+                "extraction_method": extraction_method,
                 "entities_count": len(knowledge_graph.entities),
                 "relations_count": len(knowledge_graph.relations),
                 "processing_time_ms": processing_time_ms,
@@ -183,18 +238,19 @@ class KGGenIntegration:
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             logger.error({
-                "msg": "KG-Gen extraction failed (Mock)",
+                "msg": "KG-Gen extraction failed",
                 "correlation_id": correlation_id,
                 "error": str(e),
                 "processing_time_ms": processing_time_ms,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
 
+            # Return empty graph on failure
             return KnowledgeGraph()
 
-    def _mock_extract_knowledge(self, text: str) -> Tuple[List[str], List[Tuple[str, str, str]]]:
+    async def _extract_knowledge_llm(self, text: str) -> Tuple[List[str], List[Tuple[str, str, str]]]:
         """
-        Mock knowledge extraction implementation.
+        Extract knowledge using LLM API.
 
         Args:
             text: Input text to extract knowledge from
@@ -202,8 +258,116 @@ class KGGenIntegration:
         Returns:
             Tuple of (entities, relations)
         """
-        import re
+        # Truncate text if too long
+        max_text_length = 8000
+        if len(text) > max_text_length:
+            text = text[:max_text_length] + "..."
 
+        prompt = self.EXTRACTION_PROMPT.format(text=text)
+
+        try:
+            # Try using llm_utils first
+            if LLM_UTILS_AVAILABLE:
+                messages = _compose_messages(
+                    system_message="You are a knowledge graph extraction assistant. Extract entities and relationships accurately.",
+                    user_message=prompt
+                )
+                
+                response = _request_openai_compatible_chat(
+                    api_key=self.api_key,
+                    base_url=self.api_base,
+                    model=self.model,
+                    messages=messages,
+                    temperature=self.temperature,
+                    max_tokens=min(self.max_tokens, 4096),
+                    response_format={"type": "json_object"}
+                )
+            elif OPENAI_AVAILABLE:
+                # Fallback to direct OpenAI client
+                client = openai.AsyncOpenAI(
+                    api_key=self.api_key,
+                    base_url=self.api_base
+                )
+                
+                response_obj = await client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": "You are a knowledge graph extraction assistant. Extract entities and relationships accurately."},
+                        {"role": "user", "content": prompt}
+                    ],
+                    temperature=self.temperature,
+                    max_tokens=min(self.max_tokens, 4096),
+                    response_format={"type": "json_object"}
+                )
+                response = response_obj.choices[0].message.content
+            else:
+                # No LLM available, fall back to mock
+                logger.warning("No LLM client available, falling back to mock extraction")
+                return self._mock_extract_knowledge(text)
+
+            if not response:
+                logger.warning("Empty LLM response, falling back to mock extraction")
+                return self._mock_extract_knowledge(text)
+
+            # Parse JSON response
+            try:
+                parsed = json.loads(response)
+            except json.JSONDecodeError:
+                # Try to extract JSON from markdown code block
+                json_match = re.search(r'```(?:json)?\s*(\{.*?\})\s*```', response, re.DOTALL)
+                if json_match:
+                    parsed = json.loads(json_match.group(1))
+                else:
+                    logger.warning("Failed to parse LLM response as JSON, falling back to mock")
+                    return self._mock_extract_knowledge(text)
+
+            # Extract entities
+            entities = []
+            if "entities" in parsed and isinstance(parsed["entities"], list):
+                for entity in parsed["entities"]:
+                    if isinstance(entity, dict) and "name" in entity:
+                        entity_str = entity["name"]
+                        if "type" in entity:
+                            entity_str = f"{entity['name']} ({entity['type']})"
+                        entities.append(entity_str)
+                    elif isinstance(entity, str):
+                        entities.append(entity)
+
+            # Extract relations
+            relations = []
+            if "relations" in parsed and isinstance(parsed["relations"], list):
+                for rel in parsed["relations"]:
+                    if isinstance(rel, list) and len(rel) >= 3:
+                        relations.append((str(rel[0]), str(rel[1]), str(rel[2])))
+                    elif isinstance(rel, dict):
+                        # Handle dict format: {"subject": "...", "predicate": "...", "object": "..."}
+                        subj = rel.get("subject") or rel.get("source") or rel.get("from")
+                        pred = rel.get("predicate") or rel.get("relation") or rel.get("type")
+                        obj = rel.get("object") or rel.get("target") or rel.get("to")
+                        if subj and pred and obj:
+                            relations.append((str(subj), str(pred), str(obj)))
+
+            # If extraction returned no results, fall back to mock
+            if not entities and not relations:
+                logger.warning("LLM extraction returned empty results, falling back to mock")
+                return self._mock_extract_knowledge(text)
+
+            return entities, relations
+
+        except Exception as e:
+            logger.warning(f"LLM extraction failed: {e}, falling back to mock")
+            return self._mock_extract_knowledge(text)
+
+    def _mock_extract_knowledge(self, text: str) -> Tuple[List[str], List[Tuple[str, str, str]]]:
+        """
+        Mock knowledge extraction implementation (fallback).
+
+        Args:
+            text: Input text to extract knowledge from
+
+        Returns:
+            Tuple of (entities, relations)
+        """
         # Extract potential entities (capitalized words/phrases)
         entity_pattern = r'\b[A-Z][A-Za-z]{2,}(?:\s+[A-Z][A-Za-z]*){0,3}\b'
         potential_entities = list(set(re.findall(entity_pattern, text)))
@@ -244,7 +408,7 @@ class KGGenIntegration:
         start_time = datetime.now(timezone.utc)
 
         logger.info({
-            "msg": "Extracting from large document with KG-Gen (Mock)",
+            "msg": "Extracting from large document with KG-Gen",
             "document_length": len(document),
             "chunk_size": chunk_size,
             "overlap": overlap,
@@ -298,7 +462,7 @@ class KGGenIntegration:
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             logger.info({
-                "msg": "Large document extraction completed (Mock)",
+                "msg": "Large document extraction completed",
                 "correlation_id": correlation_id,
                 "successful_chunks": successful_extractions,
                 "total_chunks": len(chunks),
@@ -314,7 +478,7 @@ class KGGenIntegration:
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             logger.error({
-                "msg": "Large document extraction failed (Mock)",
+                "msg": "Large document extraction failed",
                 "correlation_id": correlation_id,
                 "error": str(e),
                 "processing_time_ms": processing_time_ms,
@@ -362,7 +526,7 @@ class KGGenIntegration:
         start_time = datetime.now(timezone.utc)
 
         logger.info({
-            "msg": "Starting batch extraction with KG-Gen (Mock)",
+            "msg": "Starting batch extraction with KG-Gen",
             "text_count": len(texts),
             "correlation_id": correlation_id,
             "timestamp": start_time.isoformat()
@@ -401,7 +565,7 @@ class KGGenIntegration:
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             logger.info({
-                "msg": "Batch extraction completed (Mock)",
+                "msg": "Batch extraction completed",
                 "correlation_id": correlation_id,
                 "successful": successful,
                 "total": len(texts),
@@ -415,7 +579,7 @@ class KGGenIntegration:
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             logger.error({
-                "msg": "Batch extraction failed (Mock)",
+                "msg": "Batch extraction failed",
                 "correlation_id": correlation_id,
                 "error": str(e),
                 "processing_time_ms": processing_time_ms,
@@ -446,7 +610,7 @@ class KGGenIntegration:
         start_time = datetime.now(timezone.utc)
 
         logger.info({
-            "msg": "Starting graph deduplication with KG-Gen (Mock)",
+            "msg": "Starting graph deduplication with KG-Gen",
             "entities_count": len(graph.entities),
             "relations_count": len(graph.relations),
             "method": method,
@@ -468,7 +632,7 @@ class KGGenIntegration:
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             logger.info({
-                "msg": "Graph deduplication completed (Mock)",
+                "msg": "Graph deduplication completed",
                 "correlation_id": correlation_id,
                 "original_entities": len(graph.entities),
                 "deduplicated_entities": len(result_graph.entities),
@@ -482,7 +646,7 @@ class KGGenIntegration:
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             logger.error({
-                "msg": "Graph deduplication failed (Mock)",
+                "msg": "Graph deduplication failed",
                 "correlation_id": correlation_id,
                 "error": str(e),
                 "processing_time_ms": processing_time_ms,
@@ -511,7 +675,7 @@ class KGGenIntegration:
         start_time = datetime.now(timezone.utc)
 
         logger.info({
-            "msg": "Starting graph aggregation (Mock)",
+            "msg": "Starting graph aggregation",
             "graph_count": len(graphs),
             "correlation_id": correlation_id,
             "timestamp": start_time.isoformat()
@@ -546,7 +710,7 @@ class KGGenIntegration:
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             logger.info({
-                "msg": "Graph aggregation completed (Mock)",
+                "msg": "Graph aggregation completed",
                 "correlation_id": correlation_id,
                 "original_graphs": len(graphs),
                 "aggregated_entities": len(result_graph.entities),
@@ -561,7 +725,7 @@ class KGGenIntegration:
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
 
             logger.error({
-                "msg": "Graph aggregation failed (Mock)",
+                "msg": "Graph aggregation failed",
                 "correlation_id": correlation_id,
                 "error": str(e),
                 "processing_time_ms": processing_time_ms,
@@ -591,7 +755,7 @@ class KGGenIntegration:
         start_time = datetime.now(timezone.utc)
 
         logger.info({
-            "msg": "Starting graph export (Mock)",
+            "msg": "Starting graph export",
             "output_path": output_path,
             "format": format,
             "entities_count": len(graph.entities),
@@ -614,7 +778,7 @@ class KGGenIntegration:
                     json.dump(graph_data, f, indent=2)
 
                 logger.info({
-                    "msg": "Graph exported to JSON successfully (Mock)",
+                    "msg": "Graph exported to JSON successfully",
                     "output_path": output_path,
                     "timestamp": datetime.now(timezone.utc).isoformat()
                 })
@@ -625,7 +789,7 @@ class KGGenIntegration:
 
         except Exception as e:
             logger.error({
-                "msg": "Graph export failed (Mock)",
+                "msg": "Graph export failed",
                 "output_path": output_path,
                 "error": str(e),
                 "timestamp": datetime.now(timezone.utc).isoformat()
@@ -641,24 +805,26 @@ class KGGenIntegration:
             Dictionary with integration status
         """
         return {
-            "available": True,  # Mock is always available
-            "client_initialized": True,
+            "available": True,
+            "client_initialized": self._llm_available,
             "model": self.model,
             "max_tokens": self.max_tokens,
             "temperature": self.temperature,
-            "implementation": "mock",
+            "implementation": "llm" if self._llm_available else "mock",
+            "llm_available": self._llm_available,
+            "test_mode": self.test_mode,
             "timestamp": datetime.now(timezone.utc).isoformat()
         }
 
     async def close(self):
         """Close resources used by the integration."""
         logger.info({
-            "msg": "Closing KG-Gen integration resources (Mock)",
+            "msg": "Closing KG-Gen integration resources",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
 
-        # No specific cleanup needed for mock implementation
+        # No specific cleanup needed
         logger.info({
-            "msg": "KG-Gen integration resources closed (Mock)",
+            "msg": "KG-Gen integration resources closed",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })

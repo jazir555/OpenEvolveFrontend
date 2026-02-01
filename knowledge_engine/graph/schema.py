@@ -4,6 +4,9 @@ Knowledge Graph Schema Definitions
 Defines the schema for nodes, edges, and properties in the knowledge graph.
 Uses Pydantic for validation and type safety.
 
+PropertyType is now aliased to the unified PropertyType from schemas.base
+for consistency across the codebase.
+
 Copyright 2026 OpenEvolve
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -22,8 +25,11 @@ limitations under the License.
 from enum import Enum, auto
 from typing import Dict, List, Optional, Any, Set, Union
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 import json
+
+# Import unified PropertyType
+from knowledge_engine.schemas.base import PropertyType
 
 
 class NodeType(Enum):
@@ -95,16 +101,9 @@ class EdgeType(Enum):
     TRIGGERED = "TRIGGERED"
 
 
-class PropertyType(Enum):
-    """Types of properties that can be stored"""
-    STRING = auto()
-    INTEGER = auto()
-    FLOAT = auto()
-    BOOLEAN = auto()
-    DATETIME = auto()
-    LIST = auto()
-    DICT = auto()
-    EMBEDDING = auto()  # Vector embedding
+# PropertyType is now imported from unified schemas.base
+# This provides: STRING, INTEGER, FLOAT, BOOLEAN, DATE, DATETIME, 
+#                ARRAY, OBJECT, ENUM, LIST, DICT, EMBEDDING
 
 
 @dataclass
@@ -130,7 +129,10 @@ class PropertySchema:
             PropertyType.FLOAT: lambda x: isinstance(x, (int, float)),
             PropertyType.BOOLEAN: lambda x: isinstance(x, bool),
             PropertyType.DATETIME: lambda x: isinstance(x, datetime),
+            PropertyType.DATE: lambda x: isinstance(x, datetime),  # datetime.date would be separate
+            PropertyType.ARRAY: lambda x: isinstance(x, list),
             PropertyType.LIST: lambda x: isinstance(x, list),
+            PropertyType.OBJECT: lambda x: isinstance(x, dict),
             PropertyType.DICT: lambda x: isinstance(x, dict),
             PropertyType.EMBEDDING: lambda x: isinstance(x, (list, tuple)),
         }
@@ -319,7 +321,7 @@ PROJECT_SCHEMA = GraphSchema(
             node_type=NodeType.TEAM,
             properties=[
                 PropertySchema("lead", PropertyType.STRING),
-                PropertySchema("members", PropertyType.LIST),
+                PropertySchema("members", PropertyType.ARRAY),
             ],
             description="A team working on projects"
         ),
@@ -345,3 +347,17 @@ PROJECT_SCHEMA = GraphSchema(
         ),
     }
 )
+
+
+# Backward compatibility exports
+__all__ = [
+    "NodeType",
+    "EdgeType",
+    "PropertyType",  # Now from unified schemas.base
+    "PropertySchema",
+    "NodeSchema",
+    "EdgeSchema",
+    "GraphSchema",
+    "DEFAULT_SCHEMA",
+    "PROJECT_SCHEMA",
+]

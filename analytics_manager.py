@@ -6,6 +6,10 @@ File size: ~1200 lines (under the 2000 line limit)
 
 import streamlit as st
 import logging
+import os
+import json
+import urllib.request
+import urllib.error
 from typing import Dict, Any, List, Optional
 from session_utils import (
     calculate_protocol_complexity,
@@ -119,6 +123,7 @@ class AnalyticsManager:
         self.recent_events.append(event)
         if len(self.recent_events) > 200:
             self.recent_events = self.recent_events[-200:]
+        self._forward_event_to_api(event)
         if event_type in self.event_callbacks:
             for callback in self.event_callbacks[event_type]:
                 try:
@@ -126,6 +131,26 @@ class AnalyticsManager:
                 except Exception as exc:
                     logger = logging.getLogger(__name__)
                     logger.error("Error in analytics event callback: %s", exc)
+
+    def _forward_event_to_api(self, event: Dict[str, Any]) -> None:
+        api_base = os.getenv("ICR_API_BASE_URL")
+        if not api_base:
+            return
+        if event.get("type") != "REFINEMENT_NEEDED":
+            return
+        payload = event.get("payload", {})
+        try:
+            data = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(
+                f"{api_base}/icr/events/refinement-needed",
+                data=data,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=5):
+                return
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError):
+            return
 
     def generate_multimodal_healing_prompt(
         self,

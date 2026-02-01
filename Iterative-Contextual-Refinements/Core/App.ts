@@ -46,6 +46,7 @@ import {
     getIterativeCorrectionsEnabled,
     getProvideAllSolutionsToCorrectors,
     getPostQualityFilterEnabled,
+    getAutoRefineEnabled,
     hasValidApiKey,
     callAI
 } from '../Routing';
@@ -64,12 +65,14 @@ import { runPipeline, initPipelines } from '../Refine/WebsiteLogic';
 import { renderPipelines } from '../Refine/WebsiteUI';
 import { LayoutController } from '../UI/LayoutController';
 import { GlobalModals } from '../UI/GlobalModals';
+import { startIcrEventBridge } from '../Utils/IcrEventBridge';
 
 export class App {
     public static init() {
         this.initializeGlobalFunctions();
         this.initializeUI();
         this.initializeEventListeners();
+        startIcrEventBridge();
         LayoutController.initialize();
         GlobalModals.initialize();
     }
@@ -297,6 +300,101 @@ export class App {
                 }
             });
         }
+
+        // Auto-refine event wiring
+        const updateAutoRefineStatus = (status: string, progress?: string) => {
+            const statusEl = document.getElementById('auto-refine-status-text');
+            const progressEl = document.getElementById('auto-refine-progress-text');
+            if (statusEl) statusEl.textContent = status;
+            if (progressEl) progressEl.textContent = progress || '';
+        };
+
+        let autoRefineInProgress = false;
+
+        const runAutoRefine = async (payload?: any) => {
+            if (autoRefineInProgress) return;
+            if (!getAutoRefineEnabled()) {
+                updateAutoRefineStatus('Disabled', 'Enable Auto-refine to run.');
+                return;
+            }
+
+            const initialIdea = initialIdeaInput.value.trim();
+            if (!initialIdea) {
+                updateAutoRefineStatus('Idle', 'Enter a request to refine.');
+                return;
+            }
+
+            autoRefineInProgress = true;
+            updateAutoRefineStatus('Running', payload?.reason ? `Reason: ${payload.reason}` : 'Refining...');
+
+            try {
+                if (globalState.currentMode === 'deepthink') {
+                    await startDeepthinkAnalysisProcess(initialIdea, globalState.currentProblemImageBase64, globalState.currentProblemImageMimeType);
+                } else if (globalState.currentMode === 'react') {
+                    await startReactModeProcess(initialIdea);
+                } else if (globalState.currentMode === 'agentic') {
+                    await startAgenticProcess(initialIdea);
+                } else if (globalState.currentMode === 'generativeui') {
+                    await startGenerativeUIProcess(initialIdea);
+                } else if (globalState.currentMode === 'contextual') {
+                    await startContextualProcess(initialIdea, globalState.customPromptsContextualState);
+                } else if (globalState.currentMode === 'adaptive-deepthink') {
+                    await startAdaptiveDeepthinkProcess(initialIdea, globalState.customPromptsAdaptiveDeepthinkState, globalState.currentProblemImageBase64, globalState.currentProblemImageMimeType);
+                } else if (globalState.currentMode === 'mathsolver') {
+                    if (!globalState.isMathSolverRunning) {
+                        await startMathSolverProcess(initialIdea, {
+                            preferredSolver: 'auto',
+                            useKnowledgeBase: true,
+                            timeout: 300
+                        });
+                    }
+                } else {
+                    initPipelines();
+                    renderPipelines();
+                    const runningPromises = globalState.pipelinesState.map(p => runPipeline(p.id, initialIdea));
+                    await Promise.allSettled(runningPromises);
+                }
+                updateAutoRefineStatus('Completed', 'Refinement cycle finished.');
+            } catch (error: any) {
+                updateAutoRefineStatus('Failed', error?.message || 'Auto-refine failed.');
+            } finally {
+                autoRefineInProgress = false;
+                updateControlsState();
+            }
+        };
+
+        const scheduleAutoRefine = (payload?: any) => {
+            if (globalState.isGenerating) {
+                updateAutoRefineStatus('Queued', 'Waiting for current run to finish...');
+                setTimeout(() => scheduleAutoRefine(payload), 2000);
+                return;
+            }
+            runAutoRefine(payload);
+        };
+
+        window.addEventListener('icr:refinement-needed', (event: Event) => {
+            const custom = event as CustomEvent<any>;
+            const payload = custom?.detail || {};
+            if (payload.auto_refine === false) {
+                updateAutoRefineStatus('Idle', 'Auto-refine disabled by analytics.');
+                return;
+            }
+            scheduleAutoRefine(payload);
+        });
+
+        window.addEventListener('icr:refinement-progress', (event: Event) => {
+            const custom = event as CustomEvent<{ status?: string; message?: string }>;
+            updateAutoRefineStatus(custom.detail?.status || 'Running', custom.detail?.message);
+        });
+
+        window.addEventListener('icr:refinement-complete', () => {
+            updateAutoRefineStatus('Completed', 'Refinement cycle finished.');
+        });
+
+        window.addEventListener('icr:refinement-error', (event: Event) => {
+            const custom = event as CustomEvent<{ message?: string }>;
+            updateAutoRefineStatus('Failed', custom.detail?.message || 'Auto-refine failed.');
+        });
     }
 
     private static initializeCustomPromptTextareas() {

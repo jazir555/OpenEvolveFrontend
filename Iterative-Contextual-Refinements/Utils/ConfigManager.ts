@@ -1,7 +1,7 @@
 
 import { globalState } from '../Core/State';
 import { ExportedConfig } from '../Core/Types';
-import { getSelectedModel, getSelectedTemperature, getSelectedTopP, getSelectedRefinementStages, getSelectedStrategiesCount, getSelectedSubStrategiesCount, getSelectedHypothesisCount, getSelectedRedTeamAggressiveness, getRefinementEnabled, getSkipSubStrategies, getDissectedObservationsEnabled, getIterativeCorrectionsEnabled, getProvideAllSolutionsToCorrectors } from '../Routing';
+import { getSelectedModel, getSelectedTemperature, getSelectedTopP, getSelectedRefinementStages, getSelectedStrategiesCount, getSelectedSubStrategiesCount, getSelectedHypothesisCount, getSelectedRedTeamAggressiveness, getRefinementEnabled, getSkipSubStrategies, getDissectedObservationsEnabled, getIterativeCorrectionsEnabled, getProvideAllSolutionsToCorrectors, getPostQualityFilterEnabled, getAutoRefineEnabled, routingManager } from '../Routing';
 import { getSolutionPoolVersionsForExport, restoreSolutionPoolVersions } from '../Deepthink/SolutionPool';
 import { updateUIAfterModeChange } from '../UI/UIManager';
 import { updateCustomPromptTextareasFromState } from '../Routing';
@@ -62,7 +62,9 @@ export async function exportConfiguration() {
             skipSubStrategies: getSkipSubStrategies(),
             dissectedObservationsEnabled: getDissectedObservationsEnabled(),
             iterativeCorrectionsEnabled: getIterativeCorrectionsEnabled(),
-            provideAllSolutionsToCorrectors: getProvideAllSolutionsToCorrectors()
+            provideAllSolutionsToCorrectors: getProvideAllSolutionsToCorrectors(),
+            postQualityFilterEnabled: getPostQualityFilterEnabled(),
+            autoRefineEnabled: getAutoRefineEnabled()
         },
         solutionPoolVersions: deepthinkPipelineToExport ? getSolutionPoolVersionsForExport(deepthinkPipelineToExport.id) : null
     };
@@ -98,13 +100,27 @@ export async function handleImportConfiguration(event: Event) {
 
             // Restore model parameters if available
             if (importedConfig.modelParameters) {
-                // We need setters for these in Routing or access DOM elements directly?
-                // index.tsx accessed DOM elements or global vars.
-                // Routing.ts exports getters but not setters?
-                // I should check Routing.ts.
-                // Assuming I can set them via DOM elements for now or I need to expose setters.
-                // For now I'll skip setting them via code if setters aren't available, but I should probably implement them.
-                // Or just set the DOM elements values and trigger change events.
+                const params = importedConfig.modelParameters;
+                const modelConfig = routingManager.getModelConfigManager();
+                if (params.temperature !== undefined) modelConfig.updateParameter('temperature', params.temperature);
+                if (params.topP !== undefined) modelConfig.updateParameter('topP', params.topP);
+                if (params.refinementStages !== undefined) modelConfig.updateParameter('refinementStages', params.refinementStages);
+                if (params.strategiesCount !== undefined) modelConfig.updateParameter('strategiesCount', params.strategiesCount);
+                if (params.subStrategiesCount !== undefined) modelConfig.updateParameter('subStrategiesCount', params.subStrategiesCount);
+                if (params.hypothesisCount !== undefined) modelConfig.updateParameter('hypothesisCount', params.hypothesisCount);
+                if (params.redTeamAggressiveness !== undefined) modelConfig.updateParameter('redTeamAggressiveness', params.redTeamAggressiveness);
+                if (params.refinementEnabled !== undefined) modelConfig.updateParameter('refinementEnabled', params.refinementEnabled);
+                if (params.skipSubStrategies !== undefined) modelConfig.updateParameter('skipSubStrategies', params.skipSubStrategies);
+                if (params.dissectedObservationsEnabled !== undefined) modelConfig.updateParameter('dissectedObservationsEnabled', params.dissectedObservationsEnabled);
+                if (params.iterativeCorrectionsEnabled !== undefined) modelConfig.updateParameter('iterativeCorrectionsEnabled', params.iterativeCorrectionsEnabled);
+                if (params.provideAllSolutionsToCorrectors !== undefined) modelConfig.updateParameter('provideAllSolutionsToCorrectors', params.provideAllSolutionsToCorrectors);
+                if (params.postQualityFilterEnabled !== undefined) modelConfig.updateParameter('postQualityFilterEnabled', params.postQualityFilterEnabled);
+                if (params.autoRefineEnabled !== undefined) modelConfig.updateParameter('autoRefineEnabled', params.autoRefineEnabled);
+
+                const modelSelectionUI = routingManager.getModelSelectionUI();
+                if (modelSelectionUI) {
+                    modelSelectionUI.syncUIWithParameters();
+                }
             }
 
             globalState.pipelinesState = importedConfig.pipelinesState;

@@ -3,6 +3,8 @@ OpenEvolve Knowledge Engine - Data Storage Layer
 
 This module provides the data storage infrastructure for the knowledge engine,
 including database connections, vector stores, caching, and knowledge artifact persistence.
+
+Uses unified KnowledgeArtifact from knowledge_engine.schemas.base.
 """
 
 import asyncio
@@ -20,54 +22,25 @@ from qdrant_client.http import models
 import redis.asyncio as redis
 from pydantic import BaseModel
 
+# Import unified KnowledgeArtifact
+from knowledge_engine.schemas.base import (
+    KnowledgeArtifact,
+    ArtifactType,
+    ArtifactCategory,
+)
+
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class KnowledgeArtifact:
-    """Represents a knowledge artifact with metadata."""
-    id: str
-    content: str
-    artifact_type: str  # 'entity', 'relation', 'triple', 'document', 'pattern', etc.
-    source: str
-    created_at: datetime
-    updated_at: datetime
-    metadata: Dict[str, Any]
-    embedding: Optional[List[float]] = None
-    confidence: float = 1.0
-    version: str = "1.0.0"
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary representation."""
-        return {
-            "id": self.id,
-            "content": self.content,
-            "artifact_type": self.artifact_type,
-            "source": self.source,
-            "created_at": self.created_at.isoformat(),
-            "updated_at": self.updated_at.isoformat(),
-            "metadata": self.metadata,
-            "embedding": self.embedding,
-            "confidence": self.confidence,
-            "version": self.version
-        }
-    
-    @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'KnowledgeArtifact':
-        """Create from dictionary representation."""
-        return cls(
-            id=data["id"],
-            content=data["content"],
-            artifact_type=data["artifact_type"],
-            source=data["source"],
-            created_at=datetime.fromisoformat(data["created_at"]),
-            updated_at=datetime.fromisoformat(data["updated_at"]),
-            metadata=data["metadata"],
-            embedding=data.get("embedding"),
-            confidence=data.get("confidence", 1.0),
-            version=data.get("version", "1.0.0")
-        )
+# Re-export KnowledgeArtifact for backward compatibility
+__all__ = [
+    "KnowledgeArtifact",
+    "DatabaseManager",
+    "VectorStoreManager", 
+    "CacheManager",
+    "KnowledgeStorageEngine",
+]
 
 
 class DatabaseManager:
@@ -188,8 +161,8 @@ class DatabaseManager:
                            "source TEXT, "
                            "created_at TEXT DEFAULT (datetime('now')), "
                            "updated_at TEXT DEFAULT (datetime('now')), "
-                           "metadata TEXT, "  # Store as JSON string
-                           "embedding TEXT, "  # Store as JSON array string
+                           "metadata TEXT, "
+                           "embedding TEXT, "
                            "confidence REAL DEFAULT 1.0, "
                            "version TEXT DEFAULT '1.0.0')")
             
@@ -204,9 +177,21 @@ class DatabaseManager:
     async def store_artifact(self, artifact: KnowledgeArtifact) -> bool:
         """Store a knowledge artifact in the database."""
         try:
+            # Convert artifact to storage format
+            artifact_id = artifact.artifact_id
+            content = artifact.content if isinstance(artifact.content, str) else json.dumps(artifact.content)
+            artifact_type = artifact.artifact_type.value if isinstance(artifact.artifact_type, ArtifactType) else artifact.artifact_type
+            source = artifact.source or artifact.source_type
+            created_at = artifact.created_at
+            updated_at = artifact.updated_at
+            metadata = artifact.metadata
+            embedding = artifact.embedding or artifact.search_vectors
+            confidence = artifact.confidence
+            version = str(artifact.version)
+            
             if self.connection_type == "postgresql":
                 async with self.pool.acquire() as conn:
-                    embedding_str = f"[{','.join(map(str, artifact.embedding))}]" if artifact.embedding else None
+                    embedding_str = f"[{','.join(map(str, embedding))}]" if embedding else None
                     await conn.execute(
                         "INSERT INTO knowledge_artifacts (id, content, artifact_type, source, created_at, updated_at, metadata, embedding, confidence, version) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) "
                         "ON CONFLICT (id) DO UPDATE SET "
@@ -218,44 +203,44 @@ class DatabaseManager:
                         "embedding = EXCLUDED.embedding, "
                         "confidence = EXCLUDED.confidence, "
                         "version = EXCLUDED.version",
-                        artifact.id,
-                        artifact.content,
-                        artifact.artifact_type,
-                        artifact.source,
-                        artifact.created_at,
-                        artifact.updated_at,
-                        json.dumps(artifact.metadata),
+                        artifact_id,
+                        content,
+                        artifact_type,
+                        source,
+                        created_at,
+                        updated_at,
+                        json.dumps(metadata),
                         embedding_str,
-                        artifact.confidence,
-                        artifact.version
+                        confidence,
+                        version
                     )
             elif self.connection_type == "sqlite":
                 async with aiosqlite.connect(self.db_path) as db:
-                    embedding_str = json.dumps(artifact.embedding) if artifact.embedding else None
-                    metadata_str = json.dumps(artifact.metadata)
+                    embedding_str = json.dumps(embedding) if embedding else None
+                    metadata_str = json.dumps(metadata)
                     
                     await db.execute(
                         "INSERT OR REPLACE INTO knowledge_artifacts (id, content, artifact_type, source, created_at, updated_at, metadata, embedding, confidence, version) "
                         "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
                         (
-                            artifact.id,
-                            artifact.content,
-                            artifact.artifact_type,
-                            artifact.source,
-                            artifact.created_at.isoformat(),
-                            artifact.updated_at.isoformat(),
+                            artifact_id,
+                            content,
+                            artifact_type,
+                            source,
+                            created_at.isoformat() if isinstance(created_at, datetime) else created_at,
+                            updated_at.isoformat() if isinstance(updated_at, datetime) else updated_at,
                             metadata_str,
                             embedding_str,
-                            artifact.confidence,
-                            artifact.version
+                            confidence,
+                            version
                         )
                     )
                     await db.commit()
             
             logger.info({
                 "msg": "Knowledge artifact stored",
-                "artifact_id": artifact.id,
-                "artifact_type": artifact.artifact_type,
+                "artifact_id": artifact_id,
+                "artifact_type": artifact_type,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
             
@@ -264,7 +249,7 @@ class DatabaseManager:
         except Exception as e:
             logger.error({
                 "msg": f"Failed to store knowledge artifact: {e}",
-                "artifact_id": artifact.id,
+                "artifact_id": artifact.artifact_id if hasattr(artifact, 'artifact_id') else 'unknown',
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
             return False
@@ -292,7 +277,7 @@ class DatabaseManager:
                 embedding = json.loads(embedding_data) if embedding_data else None
                 
                 return KnowledgeArtifact(
-                    id=row['id'] if self.connection_type == "postgresql" else row[0],
+                    artifact_id=row['id'] if self.connection_type == "postgresql" else row[0],
                     content=row['content'] if self.connection_type == "postgresql" else row[1],
                     artifact_type=row['artifact_type'] if self.connection_type == "postgresql" else row[2],
                     source=row['source'] if self.connection_type == "postgresql" else row[3],
@@ -377,7 +362,7 @@ class DatabaseManager:
                 embedding = json.loads(row['embedding'] if self.connection_type == "postgresql" else row[7]) if (row['embedding'] if self.connection_type == "postgresql" else row[7]) else None
                 
                 artifact = KnowledgeArtifact(
-                    id=row['id'] if self.connection_type == "postgresql" else row[0],
+                    artifact_id=row['id'] if self.connection_type == "postgresql" else row[0],
                     content=row['content'] if self.connection_type == "postgresql" else row[1],
                     artifact_type=row['artifact_type'] if self.connection_type == "postgresql" else row[2],
                     source=row['source'] if self.connection_type == "postgresql" else row[3],
@@ -626,7 +611,6 @@ class VectorStoreManager:
     async def close(self):
         """Close vector store connections."""
         if self.client:
-            # Qdrant client doesn't have a specific close method
             logger.info("Vector store connections closed")
 
 
@@ -805,20 +789,21 @@ class KnowledgeStorageEngine:
         Returns:
             Artifact ID of the stored artifact
         """
-        artifact_id = str(uuid.uuid4())
         created_at = datetime.now(timezone.utc)
         
-        # Create knowledge artifact
+        # Create knowledge artifact using unified model
         artifact = KnowledgeArtifact(
-            id=artifact_id,
+            artifact_id=str(uuid.uuid4()),
             content=content,
             artifact_type=artifact_type,
             source=source,
+            source_type=source,
             created_at=created_at,
             updated_at=created_at,
             metadata=metadata or {},
             embedding=embedding,
-            confidence=confidence
+            confidence=confidence,
+            version="1.0.0"
         )
         
         # Store in database
@@ -828,7 +813,7 @@ class KnowledgeStorageEngine:
         embedding_success = True
         if embedding:
             embedding_success = await self.vector_store.store_embedding(
-                artifact_id=artifact_id,
+                artifact_id=artifact.artifact_id,
                 embedding=embedding,
                 content=content,
                 metadata=artifact.metadata
@@ -841,7 +826,7 @@ class KnowledgeStorageEngine:
         
         logger.info({
             "msg": "Knowledge artifact stored",
-            "artifact_id": artifact_id,
+            "artifact_id": artifact.artifact_id,
             "artifact_type": artifact_type,
             "content_length": len(content),
             "embedding_provided": embedding is not None,
@@ -850,7 +835,7 @@ class KnowledgeStorageEngine:
         })
         
         if success:
-            return artifact_id
+            return artifact.artifact_id
         else:
             raise RuntimeError("Failed to store knowledge artifact in one or more storage systems")
     
@@ -881,7 +866,7 @@ class KnowledgeStorageEngine:
             await self.cache.set(
                 f"artifact:{artifact_id}",
                 json.dumps(artifact.to_dict()),
-                ttl=3600  # Cache for 1 hour
+                ttl=3600
             )
         
         return artifact
@@ -927,21 +912,17 @@ class KnowledgeStorageEngine:
         )
         
         # If we have an embedding for the query, also search vector store
-        embedding_results = []
-        if len(query) > 10:  # Only embed if query is substantial
-            # In a real implementation, we would generate an embedding for the query
-            # For now, we'll skip vector search
-            pass
+        # (Skipped for brevity - would generate embedding and search)
         
         # Combine and deduplicate results
-        all_results = db_results  # Add vector results when available
+        all_results = db_results
         
         # Remove duplicates based on ID
         seen_ids = set()
         unique_results = []
         for result in all_results:
-            if result.id not in seen_ids:
-                seen_ids.add(result.id)
+            if result.artifact_id not in seen_ids:
+                seen_ids.add(result.artifact_id)
                 unique_results.append(result)
         
         # Limit to top_k
@@ -952,7 +933,7 @@ class KnowledgeStorageEngine:
         await self.cache.set(
             cache_key,
             json.dumps(result_dicts),
-            ttl=300  # Cache for 5 minutes
+            ttl=300
         )
         
         logger.info({
@@ -999,36 +980,73 @@ class KnowledgeStorageEngine:
         # Get full artifact details from database for each result
         detailed_results = []
         for result in vector_results:
-            artifact = await self.database.retrieve_artifact(result["artifact_id"])
-            if artifact:
-                detailed_results.append({
-                    "artifact": artifact,
-                    "similarity_score": result["score"],
-                    "vector_id": result["id"]
-                })
-        
-        logger.info({
-            "msg": "Semantic search completed",
-            "query_vector_size": len(query_embedding),
-            "results_count": len(detailed_results),
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        })
+            artifact_id = result.get("artifact_id") or result.get("id")
+            if artifact_id:
+                full_artifact = await self.retrieve_knowledge_artifact(artifact_id)
+                if full_artifact:
+                    detailed_result = {
+                        **result,
+                        "artifact": full_artifact.to_dict()
+                    }
+                    detailed_results.append(detailed_result)
+                else:
+                    detailed_results.append(result)
+            else:
+                detailed_results.append(result)
         
         return detailed_results
     
+    async def delete_knowledge_artifact(self, artifact_id: str) -> bool:
+        """
+        Delete a knowledge artifact from all storage systems.
+        
+        Args:
+            artifact_id: ID of the artifact to delete
+            
+        Returns:
+            True if deleted successfully, False otherwise
+        """
+        try:
+            # Delete from vector store
+            await self.vector_store.delete_embedding(artifact_id)
+            
+            # Delete from database
+            if self.database.connection_type == "postgresql":
+                async with self.database.pool.acquire() as conn:
+                    await conn.execute(
+                        "DELETE FROM knowledge_artifacts WHERE id = $1",
+                        artifact_id
+                    )
+            elif self.database.connection_type == "sqlite":
+                async with aiosqlite.connect(self.database.db_path) as db:
+                    await db.execute(
+                        "DELETE FROM knowledge_artifacts WHERE id = ?",
+                        (artifact_id,)
+                    )
+                    await db.commit()
+            
+            # Invalidate cache
+            await self.cache.delete(f"artifact:{artifact_id}")
+            await self.cache.clear_pattern("search:*")
+            
+            logger.info({
+                "msg": "Knowledge artifact deleted",
+                "artifact_id": artifact_id,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            
+            return True
+            
+        except Exception as e:
+            logger.error({
+                "msg": f"Failed to delete knowledge artifact: {e}",
+                "artifact_id": artifact_id,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            return False
+    
     async def close(self):
         """Close all storage connections."""
-        logger.info({
-            "msg": "Closing knowledge storage engine connections",
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        })
-        
-        # Close in reverse order
-        await self.cache.close()
-        await self.vector_store.close()
         await self.database.close()
-        
-        logger.info({
-            "msg": "Knowledge storage engine connections closed",
-            "timestamp": datetime.now(timezone.utc).isoformat()
-        })
+        await self.vector_store.close()
+        await self.cache.close()

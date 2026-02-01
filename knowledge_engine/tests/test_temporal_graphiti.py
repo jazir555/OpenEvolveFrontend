@@ -5,9 +5,16 @@ Tests temporal reasoning, hybrid search, and contradiction detection.
 """
 
 import pytest
+import pytest_asyncio
 import asyncio
+import sys
+from pathlib import Path
 from datetime import datetime, timedelta
 from typing import List
+
+# Add parent directories to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent.parent))
 
 from knowledge_engine.core.temporal_knowledge_engine import (
     TemporalKnowledgeEngine,
@@ -103,7 +110,7 @@ class TestKnowledgeArtifact:
 class TestTemporalKnowledgeEngine:
     """Test TemporalKnowledgeEngine."""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def engine(self):
         """Create a temporal knowledge engine for testing."""
         engine = TemporalKnowledgeEngine(
@@ -260,7 +267,7 @@ class TestTemporalKnowledgeEngine:
 class TestGraphitiTemporalBridge:
     """Test GraphitiTemporalBridge."""
 
-    @pytest.fixture
+    @pytest_asyncio.fixture
     async def bridge(self):
         """Create a temporal bridge for testing."""
         # Create without initializing Graphiti

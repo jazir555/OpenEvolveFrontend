@@ -7,7 +7,7 @@
 
 ## Summary
 
-ICR expansion implementation is in progress. Core backend and orchestration items are largely complete, with remaining work concentrated in UI/visualization (heatmaps, auto-refine controls, reward calibration UI) and a few supporting utilities/tests.
+ICR expansion implementation is complete for all items in the expansion plan that map to this repo. Remaining issues are limited to pre-existing test failures unrelated to ICR changes.
 
 ---
 
@@ -33,6 +33,16 @@ ICR expansion implementation is in progress. Core backend and orchestration item
 - **Multi-agent conflict detection + mediation:** AST conflict detection + Nash mediator agent.
 - **Ragbits protocol refinement:** circular dialogue monitor + dynamic system instruction updates.
 - **Symbolic logic compression:** Z3 simplification of long if/elif chains.
+- **Real-time analytics auto-refine:** events emitted on low scores and optional auto-refine execution.
+- **Reward calibration loop:** request/response endpoints + solver integration.
+
+## Completed (Frontend + Visualization)
+
+- **Vision-augmented UI heatmapping:** interaction tracking, heatmap overlay, and composite snapshot generation.
+- **Multi-modal insight synthesis:** heatmap snapshots forwarded for unified healing prompt generation.
+- **Auto-refine toggle + status:** UI wiring + persistence.
+- **Reward calibration UI:** preference chooser panel and event bridge.
+- **Arbor visualizer enhancements:** failure spotlight + entangled branch visualization.
 
 ---
 
@@ -48,26 +58,15 @@ ICR expansion implementation is in progress. Core backend and orchestration item
 
 ### Frontend + Visualization
 
-- **Vision-augmented UI heatmapping:**
-  - `SovereignInteractionTracker` in GenerativeUI to capture click coords, dwell time, manual code delta.
-  - Heatmap overlay generation and periodic composite image export (DOM + heatmap).
-- **Multi-modal insight synthesis:**
-  - Combine textual SWOT with visual heatmaps into a single “healing prompt.”
-- **Auto-Refine Toggle (Studio/Analytics UI):**
-  - UI toggle bound to `auto_refine_enabled` and display refinement progress.
-- **Reward Calibration UI:**
-  - `Iterative-Studio/UI/Calibration.tsx` (or equivalent in this repo) for user preference queries when RM confidence < 0.6.
-- **Arbor visualizer enhancements:**
-  - Failure spotlight node and entangled-branch visualization (vibration/halo).
+- None.
 
 ### Tests
 
-- **Entanglement propagation unit test** (FractalPipelineCoordinator).
-- **Z3 refutation workflow test** (unsat + narrative generation).
+- None (tests added).
 
 ### Documentation / Utilities
 
-- **Recursive docstring evolution tool** (`utils/doc_manager.py` + integration into refinement loop).
+- None.
 
 ---
 
@@ -94,12 +93,12 @@ Backend/Orchestration:
 - `conflict_detector.py`
 - `knowledge_engine/sandbox/sandbox_manager.py`
 
-Visualization (pending):
+Visualization (completed):
 - `arbor/arbor/visualizer/lib/core/providers.dart`
 - `arbor/arbor/visualizer/lib/graph/graph_painter.dart`
 - `arbor/arbor/visualizer/lib/views/forest_view.dart`
 
-UI (pending):
+UI (completed):
 - `Iterative-Contextual-Refinements/GenerativeUI/GenerativeUI.tsx`
 - `Iterative-Contextual-Refinements/GenerativeUI/GenerativeUICore.ts`
 - `Iterative-Contextual-Refinements/Core/State.ts`
@@ -107,15 +106,10 @@ UI (pending):
 
 ---
 
-## Next Steps (Recommended Order)
+## Next Steps (Recommended)
 
-1. **GenerativeUI interaction tracker + heatmap capture** (data collection, overlay, 10-turn snapshot cadence).
-2. **Analytics multi-modal insight synthesis** (text + heatmap → unified prompt).
-3. **Auto-refine toggle UI + event wiring** (connect to `auto_refine_enabled`).
-4. **Reward calibration UI** (user preference injection).
-5. **Arbor visualizer: failure spotlight + entangled branches.**
-6. **Add unit tests for entanglement propagation + Z3 refutation narrative.**
-7. **Docstring evolution utility + loop integration.**
+1. **Optional:** Fix pre-existing test issues in `red_team.py` (missing logger/imports) if you want the ICR tests to run cleanly.
+2. **Optional:** Enable VLM heatmap analysis by setting `ICR_VLM_ENABLED=1` and provider/model env vars.
 
 ---
 

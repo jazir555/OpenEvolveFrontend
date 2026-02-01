@@ -29,14 +29,19 @@ from typing import Dict, Any, List, Optional, Callable, Tuple
 from enum import Enum
 from abc import ABC, abstractmethod
 import hashlib
+import os
 import random
 from datetime import datetime
 import asyncio
 import subprocess
+import urllib.request
+import urllib.error
+import uuid
 
 from chronicle_memory import ChronicleMemory
 from knowledge_manager import KnowledgeManager
 from z3prover_integration import Z3LogicCompressor
+from utils.doc_manager import DocstringManager
 # Import ROMA-MDAP-MAKER (Robust Execution)
 try:
     from roma_mdap_maker_associative_integration import (
@@ -1169,6 +1174,7 @@ class SolverWorkflow:
 
         # Knowledge/ADR integration
         self.knowledge_manager = KnowledgeManager()
+        self.doc_manager = DocstringManager()
 
     def select_strategy(
         self,
@@ -1280,6 +1286,7 @@ class SolverWorkflow:
         best_result = None
         best_quality = 0.0
         previous_solution: Optional[str] = None
+        previous_quality: Optional[QualityMetrics] = None
 
         converged = False
         for iteration in range(max_iterations):
@@ -1287,6 +1294,16 @@ class SolverWorkflow:
 
             # Solve
             result = solver.solve(sub_problem)
+
+            if result.status != SolutionStatus.FAILED and result.solution:
+                user_prompt_id = None
+                if sub_problem.context:
+                    user_prompt_id = sub_problem.context.get("user_prompt_id")
+                doc_result = self.doc_manager.ensure_docstring_refinement(result.solution, user_prompt_id=user_prompt_id)
+                result.solution = doc_result.updated_code
+                result.metadata["docstring_fidelity"] = doc_result.fidelity_score
+                if doc_result.changed:
+                    result.metadata["docstring_refined"] = True
 
             # Check if failed
             if result.status == SolutionStatus.FAILED:
@@ -1308,6 +1325,30 @@ class SolverWorkflow:
                     result.solution,
                     sub_problem.constraints
                 )
+                if previous_quality is not None:
+                    prev_score = self.reward_model.score_solution(
+                        previous_solution,
+                        previous_quality,
+                        sub_problem.constraints
+                    )
+                    curr_score = self.reward_model.score_solution(
+                        result.solution,
+                        result.quality_metrics,
+                        sub_problem.constraints
+                    )
+                    confidence = abs(curr_score - prev_score)
+                    threshold = float(self.config.get("reward_calibration_threshold", 0.6))
+                    result.metadata["reward_calibration_confidence"] = confidence
+                    if confidence < threshold:
+                        override = self._request_reward_calibration(
+                            previous_solution,
+                            result.solution,
+                            confidence,
+                            sub_problem.description
+                        )
+                        if override in (0, 1):
+                            preference_bit = int(override)
+                            result.metadata["reward_calibration_override"] = preference_bit
                 self.preference_store.add_record(
                     PreferenceRecord(
                         previous_solution=previous_solution,
@@ -1326,6 +1367,7 @@ class SolverWorkflow:
                         sub_problem.context["lean_specification"] = lean_spec
 
             previous_solution = result.solution
+            previous_quality = result.quality_metrics
 
             if current_quality > best_quality:
                 best_result = result
@@ -1476,6 +1518,73 @@ class SolverWorkflow:
             feedback.append("Consider more innovative approaches")
 
         return "; ".join(feedback) if feedback else "Good quality overall"
+
+    def _post_json(self, url: str, payload: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        try:
+            data = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(
+                url,
+                data=data,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=5) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError):
+            return None
+
+    def _get_json(self, url: str) -> Optional[Dict[str, Any]]:
+        try:
+            with urllib.request.urlopen(url, timeout=5) as response:
+                return json.loads(response.read().decode("utf-8"))
+        except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, ValueError):
+            return None
+
+    def _request_reward_calibration(
+        self,
+        previous_solution: str,
+        current_solution: str,
+        confidence: float,
+        prompt: str
+    ) -> Optional[int]:
+        """Queue a reward calibration request and optionally block for a response."""
+        handler = self.config.get("reward_calibration_handler")
+        if callable(handler):
+            try:
+                return handler(previous_solution, current_solution, confidence)
+            except Exception:
+                return None
+
+        api_base = os.getenv("ICR_API_BASE_URL")
+        if not api_base:
+            return None
+
+        request_id = str(uuid.uuid4())
+        payload = {
+            "request_id": request_id,
+            "option_a": previous_solution,
+            "option_b": current_solution,
+            "confidence": confidence,
+            "prompt": prompt,
+        }
+        self._post_json(f"{api_base}/icr/reward-calibration/request", payload)
+
+        if not self.config.get("reward_calibration_blocking", False):
+            return None
+
+        timeout_s = float(self.config.get("reward_calibration_timeout_s", 60))
+        start = time.time()
+        while time.time() - start < timeout_s:
+            response = self._get_json(f"{api_base}/icr/reward-calibration/response/{request_id}")
+            if response and response.get("choice"):
+                choice = response["choice"]
+                if str(choice).upper() == "A":
+                    return 0
+                if str(choice).upper() == "B":
+                    return 1
+                return None
+            time.sleep(2)
+        return None
 
     def _has_converged(self) -> bool:
         if len(self._score_history) < 4:

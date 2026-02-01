@@ -10,10 +10,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field, validator
 from typing import List, Dict, Any, Optional
+from collections import deque
 from enum import Enum
 import uvicorn
 import os
 import re
+import base64
 from datetime import datetime, timedelta
 import uuid
 import logging
@@ -109,6 +111,12 @@ workflows: Dict[str, WorkflowState] = {}
 
 # In-memory audit log (replace with persistent storage in production)
 AUDIT_LOGS: List[Dict[str, Any]] = []
+
+# ICR event queues (in-memory, best-effort)
+ICR_REFINEMENT_EVENTS: deque = deque(maxlen=200)
+ICR_REWARD_CALIBRATION_QUEUE: deque = deque(maxlen=100)
+ICR_REWARD_CALIBRATION_RESPONSES: Dict[str, Dict[str, Any]] = {}
+ICR_HEATMAP_SNAPSHOTS: deque = deque(maxlen=100)
 
 
 def record_audit_event(
@@ -301,6 +309,52 @@ class AuthUser(BaseModel):
     role: UserRole
     name: str
 
+
+class IcrRefinementEvent(BaseModel):
+    """Event signaling a refinement is needed."""
+    reason: Optional[str] = None
+    overall_score: Optional[float] = None
+    weaknesses: Optional[List[str]] = None
+    friction_points: Optional[List[str]] = None
+    auto_refine: Optional[bool] = None
+
+
+class IcrRewardCalibrationRequest(BaseModel):
+    """Reward calibration request payload."""
+    request_id: Optional[str] = None
+    option_a: str
+    option_b: str
+    confidence: Optional[float] = None
+    prompt: Optional[str] = None
+
+
+class IcrRewardCalibrationResponse(BaseModel):
+    """Reward calibration response payload."""
+    request_id: Optional[str] = None
+    choice: str
+
+
+class IcrHeatmapPoint(BaseModel):
+    """Heatmap point from GenerativeUI."""
+    x: float
+    y: float
+    intensity: float = 0.0
+    dwellMs: Optional[float] = None
+    timestamp: Optional[float] = None
+    type: Optional[str] = None
+
+
+class IcrHeatmapSnapshot(BaseModel):
+    """Heatmap snapshot payload for multimodal analysis."""
+    snapshot_id: Optional[str] = None
+    timestamp: Optional[float] = None
+    screen_html: str
+    heatmap_data_url: Optional[str] = None
+    composite_data_url: Optional[str] = None
+    points: List[IcrHeatmapPoint] = Field(default_factory=list)
+    manual_code_delta: Optional[float] = None
+    context_text: Optional[str] = None
+    auto_refine: Optional[bool] = None
 
 def verify_api_key(x_api_key: str = Header(...)) -> AuthUser:
     """Verify API key from header and return user info."""
@@ -1406,6 +1460,153 @@ def determinism_check(req: DeterminismCheckRequest):
         model=req.detllm_model,
     )
     return result
+
+
+# --- ICR Heatmap helpers ---
+
+def _decode_data_url(data_url: Optional[str]) -> Optional[bytes]:
+    if not data_url:
+        return None
+    if "," not in data_url:
+        return None
+    try:
+        _, b64_data = data_url.split(",", 1)
+        return base64.b64decode(b64_data)
+    except (ValueError, TypeError, base64.binascii.Error):
+        return None
+
+
+async def _analyze_heatmap_composite(data_url: Optional[str]) -> Optional[str]:
+    if not data_url:
+        return None
+    if os.getenv("ICR_VLM_ENABLED", "").lower() not in {"1", "true", "yes"}:
+        return None
+
+    image_bytes = _decode_data_url(data_url)
+    if not image_bytes:
+        return None
+
+    try:
+        from vision_language_monitor import VLMAnalyzer, VLMConfig, AnalysisType, VLMProvider
+    except ImportError:
+        logger.warning("VisionLanguageMonitor not available; skipping VLM heatmap analysis.")
+        return None
+
+    provider_env = os.getenv("ICR_VLM_PROVIDER", "").lower()
+    provider = VLMProvider.OPENAI
+    if provider_env:
+        for candidate in VLMProvider:
+            if candidate.value == provider_env:
+                provider = candidate
+                break
+
+    model = os.getenv("ICR_VLM_MODEL", "gpt-4o")
+    temperature = float(os.getenv("ICR_VLM_TEMPERATURE", "0.2"))
+    max_tokens = int(os.getenv("ICR_VLM_MAX_TOKENS", "1024"))
+
+    config = VLMConfig(provider=provider, model=model, temperature=temperature, max_tokens=max_tokens)
+    analyzer = VLMAnalyzer(config)
+
+    prompt = (
+        "Analyze this UI snapshot with an interaction heatmap overlay.\n"
+        "Identify cognitive friction points, confusing placements, and areas of repeated interaction.\n"
+        "Provide concise, actionable UI refinement suggestions."
+    )
+
+    analysis = await analyzer.analyze(image_bytes, prompt, AnalysisType.LAYOUT_ANALYSIS)
+    return analysis.summary or None
+
+
+# ICR Event Bridge Endpoints (optional, unauthenticated for local UI polling)
+
+@app.post("/icr/events/refinement-needed")
+def icr_emit_refinement_needed(event: IcrRefinementEvent):
+    payload = event.dict()
+    payload["timestamp"] = datetime.utcnow().isoformat()
+    ICR_REFINEMENT_EVENTS.append(payload)
+    return {"queued": True}
+
+
+@app.get("/icr/events/refinement-needed")
+def icr_get_refinement_needed(limit: int = 5):
+    items = []
+    while ICR_REFINEMENT_EVENTS and len(items) < limit:
+        items.append(ICR_REFINEMENT_EVENTS.popleft())
+    return items
+
+
+@app.post("/icr/reward-calibration/request")
+def icr_queue_reward_calibration(request: IcrRewardCalibrationRequest):
+    payload = request.dict()
+    if not payload.get("request_id"):
+        payload["request_id"] = str(uuid.uuid4())
+    payload["timestamp"] = datetime.utcnow().isoformat()
+    ICR_REWARD_CALIBRATION_QUEUE.append(payload)
+    return {"queued": True, "request_id": payload["request_id"]}
+
+
+@app.get("/icr/reward-calibration/next")
+def icr_next_reward_calibration():
+    if not ICR_REWARD_CALIBRATION_QUEUE:
+        return {}
+    return ICR_REWARD_CALIBRATION_QUEUE.popleft()
+
+
+@app.post("/icr/reward-calibration/respond")
+def icr_reward_calibration_respond(response: IcrRewardCalibrationResponse):
+    request_id = response.request_id or str(uuid.uuid4())
+    payload = response.dict()
+    payload["request_id"] = request_id
+    payload["timestamp"] = datetime.utcnow().isoformat()
+    ICR_REWARD_CALIBRATION_RESPONSES[request_id] = payload
+    return {"received": True, "request_id": request_id}
+
+
+@app.get("/icr/reward-calibration/response/{request_id}")
+def icr_reward_calibration_response(request_id: str):
+    return ICR_REWARD_CALIBRATION_RESPONSES.get(request_id, {})
+
+
+@app.post("/icr/heatmap/snapshot")
+async def icr_heatmap_snapshot(snapshot: IcrHeatmapSnapshot):
+    payload = snapshot.dict()
+    if not payload.get("snapshot_id"):
+        payload["snapshot_id"] = str(uuid.uuid4())
+    if not payload.get("timestamp"):
+        payload["timestamp"] = datetime.utcnow().timestamp()
+    payload["received_at"] = datetime.utcnow().isoformat()
+    ICR_HEATMAP_SNAPSHOTS.append(payload)
+
+    analysis = None
+    vision_summary = None
+
+    try:
+        from analytics_manager import analytics_manager
+        heatmap_payload = {
+            "points": payload.get("points", []),
+            "manual_code_delta": payload.get("manual_code_delta")
+        }
+        analysis = analytics_manager.generate_multimodal_healing_prompt(
+            payload.get("context_text", "") or "",
+            heatmap_snapshot=heatmap_payload,
+            auto_refine_enabled=bool(payload.get("auto_refine"))
+        )
+    except Exception as exc:
+        logger.warning("Failed to generate multimodal healing prompt: %s", exc)
+
+    try:
+        vision_summary = await _analyze_heatmap_composite(payload.get("composite_data_url"))
+        if vision_summary and analysis is not None:
+            analysis["vision_summary"] = vision_summary
+    except Exception as exc:
+        logger.warning("Failed to run VLM heatmap analysis: %s", exc)
+
+    return {
+        "queued": True,
+        "snapshot_id": payload["snapshot_id"],
+        "analysis": analysis,
+        "vision_summary": vision_summary,
+    }
 
 
 # Statistics endpoints

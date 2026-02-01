@@ -184,8 +184,13 @@ class ComponentRegistry:
         }
         
         # Core Knowledge Extraction (1-5)
+        import os
         self.components['graphiti'] = self._safe_init(
-            lambda: GraphitiIntegration(uri="bolt://localhost:7687", user="neo4j", password="password"),
+            lambda: GraphitiIntegration(
+                uri=os.getenv("NEO4J_URI", "bolt://localhost:7687"),
+                user=os.getenv("NEO4J_USER", "neo4j"),
+                password=os.getenv("NEO4J_PASSWORD", "")
+            ),
             'graphiti'
         )
         self.components['kggen'] = self._safe_init(KGGenIntegration, 'kggen')

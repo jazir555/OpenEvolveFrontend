@@ -60,6 +60,26 @@
     line-height: var(--line-height-tight);
 }
 
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--gap-md);
+}
+
+.checkbox-input {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--accent-purple);
+}
+
+.input-hint {
+    font-size: var(--font-size-xs);
+    color: var(--text-tertiary-color);
+    line-height: var(--line-height-tight);
+}
+
 /* Premium Input Styles */
 select,
 textarea.input-base,

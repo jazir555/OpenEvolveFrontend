@@ -2,6 +2,7 @@ import React from 'react';
 import SidebarHeader from './SidebarHeader';
 import AppModeSelector from './AppModeSelector';
 import ModelParameters from './ModelParameters';
+import RewardCalibration from './RewardCalibration';
 import SidebarFooter from './SidebarFooter';
 
 /**
@@ -29,6 +30,7 @@ export const Sidebar: React.FC = () => {
                 <AppModeSelector />
 
                 <ModelParameters />
+                <RewardCalibration />
 
                 <details className="sidebar-section" open>
                     <summary className="sidebar-section-header">Configuration</summary>

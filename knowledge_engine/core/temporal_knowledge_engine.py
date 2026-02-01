@@ -12,10 +12,25 @@ from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 from enum import Enum
 
-from ..core import KnowledgeEngine, KnowledgeState, EntityKnowledgeGraph
-from ...integrations.graphiti.bridge import GraphitiBridge
-from ...integrations.graphiti.adapter import GraphitiAdapter
-from ...integrations.base.knowledge_interface import TemporalFilter
+from knowledge_engine.core import KnowledgeEngine, KnowledgeState, EntityKnowledgeGraph
+
+# Optional Graphiti integration
+try:
+    from knowledge_engine.integrations.graphiti.bridge import GraphitiBridge
+    from knowledge_engine.integrations.graphiti.adapter import GraphitiAdapter
+    GRAPHITI_AVAILABLE = True
+except ImportError:
+    GraphitiBridge = None
+    GraphitiAdapter = None
+    GRAPHITI_AVAILABLE = False
+
+# Optional temporal filter
+try:
+    from knowledge_engine.integrations.base.knowledge_interface import TemporalFilter
+    TEMPORAL_FILTER_AVAILABLE = True
+except ImportError:
+    TemporalFilter = None
+    TEMPORAL_FILTER_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -128,9 +143,7 @@ class TemporalKnowledgeEngine(KnowledgeEngine):
 
     def __init__(
         self,
-        indexer_config_path: str = "knowledge_engine/indexer_config.yaml",
-        api_secrets_path: str = "mcp_agent.secrets.yaml",
-        persistence_path: str = "knowledge_graph.json",
+        config: Optional[Dict[str, Any]] = None,
         graphiti_config_path: Optional[str] = None,
         enable_temporal: bool = True,
         enable_hybrid_search: bool = True,
@@ -140,19 +153,13 @@ class TemporalKnowledgeEngine(KnowledgeEngine):
         Initialize the TemporalKnowledgeEngine.
 
         Args:
-            indexer_config_path: Path to indexer config
-            api_secrets_path: Path to API secrets
-            persistence_path: Path to persistence file
+            config: Configuration dictionary
             graphiti_config_path: Path to Graphiti config (optional)
             enable_temporal: Enable temporal tracking
             enable_hybrid_search: Enable hybrid search
             default_rerank_method: Default reranking method
         """
-        super().__init__(
-            indexer_config_path=indexer_config_path,
-            api_secrets_path=api_secrets_path,
-            persistence_path=persistence_path,
-        )
+        super().__init__(config=config)
 
         self.enable_temporal = enable_temporal
         self.enable_hybrid_search = enable_hybrid_search

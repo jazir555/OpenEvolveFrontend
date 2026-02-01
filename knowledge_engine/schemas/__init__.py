@@ -1,48 +1,59 @@
 """
 Knowledge Engine Schema System
 
-Provides unified entity schema management across all knowledge graph projects.
+Provides unified data models for:
+- Knowledge artifacts
+- Entities and relationships
+- Validation results
+- Schema definitions
+
+All models have been consolidated into schemas.base for consistency.
 """
 
 from .base import (
-    EntitySchema,
+    # Enums
+    PropertyType,
+    ArtifactType,
+    ArtifactCategory,
     EntityType,
     RelationshipType,
+    TOTAL_ARTIFACT_TYPES,
+    
+    # Core classes
     PropertyDefinition,
     ValidationRule,
+    KnowledgeArtifact,
     Entity,
-    Relationship
+    Relationship,
+    ValidationResult,
+    EntityTypeDefinition,
+    RelationshipTypeDefinition,
+    EntitySchema,
+    ArtifactTaxonomy,
 )
 
-from .entity_schema_manager import EntitySchemaManager, ValidationResult
-
-from .validators import SchemaValidator
-
-from .openevolve_schemas import (
-    SOFTWARE_ENGINEERING_SCHEMA,
-    MATHEMATICAL_REASONING_SCHEMA,
-    WORKFLOW_PROVENANCE_SCHEMA
-)
+# Also export from entity_schema_manager
+from .entity_schema_manager import EntitySchemaManager
 
 __all__ = [
-    # Base classes
-    'EntitySchema',
-    'EntityType',
-    'RelationshipType',
-    'PropertyDefinition',
-    'ValidationRule',
-    'Entity',
-    'Relationship',
-
-    # Manager
-    'EntitySchemaManager',
-    'ValidationResult',
-
-    # Validators
-    'SchemaValidator',
-
-    # Predefined schemas
-    'SOFTWARE_ENGINEERING_SCHEMA',
-    'MATHEMATICAL_REASONING_SCHEMA',
-    'WORKFLOW_PROVENANCE_SCHEMA',
+    # Enums
+    "PropertyType",
+    "ArtifactType",
+    "ArtifactCategory",
+    "EntityType",
+    "RelationshipType",
+    "TOTAL_ARTIFACT_TYPES",
+    
+    # Core classes
+    "PropertyDefinition",
+    "ValidationRule",
+    "KnowledgeArtifact",
+    "Entity",
+    "Relationship",
+    "ValidationResult",
+    "EntityTypeDefinition",
+    "RelationshipTypeDefinition",
+    "EntitySchema",
+    "ArtifactTaxonomy",
+    "EntitySchemaManager",
 ]

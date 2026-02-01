@@ -3,6 +3,8 @@ Entity Schema Manager
 
 Manages entity schemas across all knowledge graph projects.
 Provides unified schema validation, mapping, and generation.
+
+Uses unified ValidationResult from knowledge_engine.schemas.base.
 """
 
 import logging
@@ -13,56 +15,24 @@ from dataclasses import dataclass, field
 
 from .base import (
     EntitySchema,
-    EntityType,
-    RelationshipType,
+    EntityTypeDefinition,  # Renamed from EntityType for clarity
+    RelationshipTypeDefinition,  # Renamed from RelationshipType
     Entity,
     Relationship,
     PropertyDefinition,
-    PropertyType
+    PropertyType,
+    ValidationResult,  # Now from unified base
 )
 
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class ValidationResult:
-    """
-    Result of entity validation.
-
-    Attributes:
-        is_valid: Whether validation passed
-        errors: List of error messages
-        warnings: List of warning messages
-        entity_count: Number of entities validated
-        valid_count: Number of valid entities
-        invalid_count: Number of invalid entities
-    """
-    is_valid: bool
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    entity_count: int = 0
-    valid_count: int = 0
-    invalid_count: int = 0
-
-    def add_error(self, error: str):
-        """Add an error message."""
-        self.errors.append(error)
-        self.is_valid = False
-
-    def add_warning(self, warning: str):
-        """Add a warning message."""
-        self.warnings.append(warning)
-
-    def merge(self, other: 'ValidationResult'):
-        """Merge another validation result into this one."""
-        self.errors.extend(other.errors)
-        self.warnings.extend(other.warnings)
-        self.entity_count += other.entity_count
-        self.valid_count += other.valid_count
-        self.invalid_count += other.invalid_count
-        if not other.is_valid:
-            self.is_valid = False
+# Backward compatibility: ValidationResult is now from unified base
+# which includes all fields from both previous versions:
+# - is_valid, errors, warnings, entity_id, schema_name, timestamp (from schemas/base.py)
+# - entity_count, valid_count, invalid_count (from entity_schema_manager.py)
+# - validator, passed, score, feedback, improvements (from sovereign_data_models.py)
 
 
 class EntitySchemaManager:
@@ -221,6 +191,7 @@ class EntitySchemaManager:
             mapped_entity = Entity(
                 entity_id=entity.entity_id,
                 entity_type=mapped_type,
+                name=entity.name,
                 properties=entity.properties.copy(),
                 metadata={
                     **entity.metadata,
@@ -250,7 +221,7 @@ class EntitySchemaManager:
             schema: Schema domain name (uses default if not provided)
 
         Returns:
-            ValidationResult with validation status
+            ValidationResult with validation status (unified model)
         """
         schema_domain = schema or self.default_schema
         if not schema_domain:
@@ -272,6 +243,7 @@ class EntitySchemaManager:
         entity_type = schema_obj.get_entity_type(entity.entity_type)
         if not entity_type:
             result.add_error(f"Unknown entity type: {entity.entity_type}")
+            result.invalid_count = 1
             return result
 
         # Validate against type definition
@@ -284,6 +256,7 @@ class EntitySchemaManager:
             result.valid_count = 1
 
         result.is_valid = len(result.errors) == 0
+        result.passed = result.is_valid  # Sync with unified model
         return result
 
     def validate_entities(
@@ -367,6 +340,7 @@ class EntitySchemaManager:
                     result.add_error(f"Relationship {relationship.relationship_id}: {error}")
 
         result.is_valid = len(result.errors) == 0
+        result.passed = result.is_valid
         return result
 
     def generate_schema_prompt(
@@ -474,6 +448,7 @@ class EntitySchemaManager:
                     entity_copy = Entity(
                         entity_id=entity.entity_id,
                         entity_type=entity.entity_type,
+                        name=entity.name,
                         properties=entity.properties.copy(),
                         metadata={
                             **entity.metadata,
@@ -552,3 +527,10 @@ class EntitySchemaManager:
             }
 
         return stats
+
+
+# Export all
+__all__ = [
+    "ValidationResult",  # Unified from schemas.base
+    "EntitySchemaManager",
+]

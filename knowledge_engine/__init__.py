@@ -204,6 +204,33 @@ try:
 except ImportError:
     pass
 
+# Import unified knowledge graph integration hub (COMPREHENSIVE)
+try:
+    from .unified_kg_integration_hub import (
+        UnifiedKGIntegrationHub,
+        UnifiedKGConfig,
+        KnowledgeTriple,
+        KGSource,
+        IntegrationRegistry,
+        ExtractionResult,
+        AnalysisResult,
+        create_unified_hub,
+        quick_extract,
+    )
+    __all__.extend([
+        'UnifiedKGIntegrationHub',
+        'UnifiedKGConfig',
+        'KnowledgeTriple',
+        'KGSource',
+        'IntegrationRegistry',
+        'ExtractionResult',
+        'AnalysisResult',
+        'create_unified_hub',
+        'quick_extract',
+    ])
+except ImportError as e:
+    logger.warning(f"Could not import unified KG hub: {e}")
+
 # Add orchestration exports to __all__
 __all__.extend([
     # Base orchestrator

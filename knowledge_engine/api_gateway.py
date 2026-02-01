@@ -515,6 +515,12 @@ class KnowledgeAPIFactory:
             "highlights": "[String!]"
         })
         
+        schema.define_type("DeleteStatus", {
+            "success": "Boolean!",
+            "id": "ID!",
+            "message": "String"
+        })
+        
         # Define queries
         schema.define_query(
             "knowledgeItem",
@@ -525,23 +531,468 @@ class KnowledgeAPIFactory:
         schema.define_query(
             "search",
             "[SearchResult!]!",
-            {"query": "String!", "limit": "Int"}
+            {"query": "String!", "filters": "JSON", "limit": "Int"}
         )
         
         # Define mutations
         schema.define_mutation(
             "createKnowledge",
             "KnowledgeItem!",
-            {"content": "String!", "type": "String"}
+            {"input": "CreateKnowledgeInput!"}
         )
         
         schema.define_mutation(
             "updateKnowledge",
             "KnowledgeItem!",
-            {"id": "ID!", "content": "String"}
+            {"id": "ID!", "input": "UpdateKnowledgeInput!"}
         )
         
+        schema.define_mutation(
+            "deleteKnowledge",
+            "DeleteStatus!",
+            {"id": "ID!"}
+        )
+        
+        # Define input types (for schema documentation)
+        schema.define_type("CreateKnowledgeInput", {
+            "content": "String!",
+            "type": "String",
+            "tags": "[String!]",
+            "metadata": "JSON",
+            "source": "String",
+            "confidence": "Float"
+        })
+        
+        schema.define_type("UpdateKnowledgeInput", {
+            "content": "String",
+            "tags": "[String!]",
+            "metadata": "JSON",
+            "confidence": "Float"
+        })
+        
+        # Register resolvers
+        KnowledgeAPIFactory._register_graphql_resolvers(schema, platform)
+        
         return schema
+    
+    @staticmethod
+    def _register_graphql_resolvers(schema: GraphQLSchema, platform):
+        """Register GraphQL resolvers for the schema."""
+        
+        # ==================== Query Resolvers ====================
+        
+        async def resolve_knowledge_item(parent, info, id: str) -> Optional[Dict[str, Any]]:
+            """
+            Resolver for knowledgeItem(id) query.
+            
+            Args:
+                parent: Parent object (None for root query)
+                info: GraphQL execution info
+                id: Knowledge item ID
+                
+            Returns:
+                Knowledge item dictionary or None if not found
+            """
+            try:
+                # Access platform through knowledge_engine
+                if hasattr(platform, 'knowledge_engine'):
+                    item = await platform.knowledge_engine.get_knowledge(id)
+                elif hasattr(platform, 'platform') and hasattr(platform.platform, 'knowledge_engine'):
+                    item = await platform.platform.knowledge_engine.get_knowledge(id)
+                else:
+                    logger.error("Platform does not have knowledge_engine attribute")
+                    return None
+                
+                if item is None:
+                    return None
+                
+                return KnowledgeAPIFactory._knowledge_item_to_graphql(item)
+                
+            except Exception as e:
+                logger.error(f"Error resolving knowledgeItem({id}): {e}")
+                raise Exception(f"Failed to retrieve knowledge item: {str(e)}")
+        
+        async def resolve_search(
+            parent,
+            info,
+            query: str,
+            filters: Optional[Dict[str, Any]] = None,
+            limit: int = 10
+        ) -> List[Dict[str, Any]]:
+            """
+            Resolver for search(query, filters, limit) query.
+            
+            Args:
+                parent: Parent object (None for root query)
+                info: GraphQL execution info
+                query: Search query string
+                filters: Optional search filters
+                limit: Maximum number of results
+                
+            Returns:
+                List of search result dictionaries
+            """
+            try:
+                # Get user_id from context if available
+                user_id = None
+                if info and hasattr(info, 'context') and info.context:
+                    user_id = info.context.get('user_id')
+                
+                # Access platform search method
+                if hasattr(platform, 'search'):
+                    results = await platform.search(
+                        query=query,
+                        user_id=user_id,
+                        filters=filters,
+                        max_results=limit
+                    )
+                elif hasattr(platform, 'platform') and hasattr(platform.platform, 'search'):
+                    results = await platform.platform.search(
+                        query=query,
+                        user_id=user_id,
+                        filters=filters,
+                        max_results=limit
+                    )
+                else:
+                    logger.error("Platform does not have search method")
+                    return []
+                
+                return KnowledgeAPIFactory._search_results_to_graphql(results)
+                
+            except Exception as e:
+                logger.error(f"Error resolving search({query}): {e}")
+                raise Exception(f"Failed to search knowledge: {str(e)}")
+        
+        # ==================== Mutation Resolvers ====================
+        
+        async def resolve_create_knowledge(
+            parent,
+            info,
+            input: Dict[str, Any]
+        ) -> Dict[str, Any]:
+            """
+            Resolver for createKnowledge(input) mutation.
+            
+            Args:
+                parent: Parent object (None for root mutation)
+                info: GraphQL execution info
+                input: Create knowledge input containing content, type, tags, etc.
+                
+            Returns:
+                Created knowledge item dictionary
+            """
+            try:
+                # Get user_id from context if available
+                user_id = None
+                if info and hasattr(info, 'context') and info.context:
+                    user_id = info.context.get('user_id')
+                
+                content = input.get('content')
+                if not content:
+                    raise ValueError("Content is required")
+                
+                # Extract optional fields
+                knowledge_type_str = input.get('type', 'TEXT')
+                tags = set(input.get('tags', []))
+                metadata = input.get('metadata', {})
+                source = input.get('source', 'graphql_api')
+                confidence = input.get('confidence', 1.0)
+                
+                # Access platform add_knowledge method
+                if hasattr(platform, 'add_knowledge'):
+                    item, _ = await platform.add_knowledge(
+                        content=content,
+                        knowledge_type=knowledge_type_str,
+                        tags=tags,
+                        metadata=metadata,
+                        source=source,
+                        confidence=confidence,
+                        user_id=user_id
+                    )
+                elif hasattr(platform, 'platform') and hasattr(platform.platform, 'add_knowledge'):
+                    item, _ = await platform.platform.add_knowledge(
+                        content=content,
+                        knowledge_type=knowledge_type_str,
+                        tags=tags,
+                        metadata=metadata,
+                        source=source,
+                        confidence=confidence,
+                        user_id=user_id
+                    )
+                else:
+                    raise Exception("Platform does not have add_knowledge method")
+                
+                return KnowledgeAPIFactory._knowledge_item_to_graphql(item)
+                
+            except ValueError as e:
+                logger.warning(f"Validation error in createKnowledge: {e}")
+                raise Exception(f"Validation error: {str(e)}")
+            except Exception as e:
+                logger.error(f"Error resolving createKnowledge: {e}")
+                raise Exception(f"Failed to create knowledge item: {str(e)}")
+        
+        async def resolve_update_knowledge(
+            parent,
+            info,
+            id: str,
+            input: Dict[str, Any]
+        ) -> Dict[str, Any]:
+            """
+            Resolver for updateKnowledge(id, input) mutation.
+            
+            Args:
+                parent: Parent object (None for root mutation)
+                info: GraphQL execution info
+                id: Knowledge item ID to update
+                input: Update knowledge input containing fields to update
+                
+            Returns:
+                Updated knowledge item dictionary
+            """
+            try:
+                # Get user_id from context if available
+                user_id = None
+                if info and hasattr(info, 'context') and info.context:
+                    user_id = info.context.get('user_id')
+                
+                # Check if item exists first
+                if hasattr(platform, 'knowledge_engine'):
+                    existing = await platform.knowledge_engine.get_knowledge(id)
+                elif hasattr(platform, 'platform') and hasattr(platform.platform, 'knowledge_engine'):
+                    existing = await platform.platform.knowledge_engine.get_knowledge(id)
+                else:
+                    raise Exception("Platform does not have knowledge_engine attribute")
+                
+                if existing is None:
+                    raise Exception(f"Knowledge item with id '{id}' not found")
+                
+                # Build update parameters
+                new_content = input.get('content')
+                confidence = input.get('confidence')
+                
+                # Handle metadata merge if provided
+                if 'metadata' in input and existing.metadata:
+                    metadata = {**existing.metadata, **input['metadata']}
+                elif 'metadata' in input:
+                    metadata = input['metadata']
+                else:
+                    metadata = None
+                
+                # Handle tags merge if provided
+                if 'tags' in input:
+                    tags = set(input['tags'])
+                else:
+                    tags = None
+                
+                # Access platform update_knowledge method
+                if hasattr(platform, 'update_knowledge'):
+                    updated_item = await platform.update_knowledge(
+                        item_id=id,
+                        new_content=new_content if new_content else existing.content,
+                        user_id=user_id,
+                        confidence=confidence
+                    )
+                elif hasattr(platform, 'platform') and hasattr(platform.platform, 'update_knowledge'):
+                    updated_item = await platform.platform.update_knowledge(
+                        item_id=id,
+                        new_content=new_content if new_content else existing.content,
+                        user_id=user_id,
+                        confidence=confidence
+                    )
+                else:
+                    raise Exception("Platform does not have update_knowledge method")
+                
+                if updated_item is None:
+                    raise Exception(f"Failed to update knowledge item with id '{id}'")
+                
+                # Update additional fields if the platform supports it
+                if tags and hasattr(updated_item, 'tags'):
+                    updated_item.tags = tags
+                if metadata and hasattr(updated_item, 'metadata'):
+                    updated_item.metadata = metadata
+                
+                return KnowledgeAPIFactory._knowledge_item_to_graphql(updated_item)
+                
+            except Exception as e:
+                logger.error(f"Error resolving updateKnowledge({id}): {e}")
+                raise Exception(f"Failed to update knowledge item: {str(e)}")
+        
+        async def resolve_delete_knowledge(
+            parent,
+            info,
+            id: str
+        ) -> Dict[str, Any]:
+            """
+            Resolver for deleteKnowledge(id) mutation.
+            
+            Args:
+                parent: Parent object (None for root mutation)
+                info: GraphQL execution info
+                id: Knowledge item ID to delete
+                
+            Returns:
+                Delete status dictionary
+            """
+            try:
+                # Get user_id from context if available
+                user_id = None
+                if info and hasattr(info, 'context') and info.context:
+                    user_id = info.context.get('user_id')
+                
+                # Access platform delete_knowledge method
+                if hasattr(platform, 'delete_knowledge'):
+                    success = await platform.delete_knowledge(item_id=id, user_id=user_id)
+                elif hasattr(platform, 'platform') and hasattr(platform.platform, 'delete_knowledge'):
+                    success = await platform.platform.delete_knowledge(item_id=id, user_id=user_id)
+                else:
+                    raise Exception("Platform does not have delete_knowledge method")
+                
+                if success:
+                    return {
+                        "success": True,
+                        "id": id,
+                        "message": "Knowledge item deleted successfully"
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "id": id,
+                        "message": "Knowledge item not found or could not be deleted"
+                    }
+                
+            except Exception as e:
+                logger.error(f"Error resolving deleteKnowledge({id}): {e}")
+                return {
+                    "success": False,
+                    "id": id,
+                    "message": f"Failed to delete knowledge item: {str(e)}"
+                }
+        
+        # ==================== Type Resolvers ====================
+        
+        async def resolve_knowledge_item_type(item: Dict[str, Any], info) -> str:
+            """Resolver for KnowledgeItem.type field."""
+            return item.get('type', 'TEXT')
+        
+        async def resolve_knowledge_item_tags(item: Dict[str, Any], info) -> List[str]:
+            """Resolver for KnowledgeItem.tags field."""
+            tags = item.get('tags', [])
+            return list(tags) if tags else []
+        
+        async def resolve_search_result_item(result: Dict[str, Any], info) -> Dict[str, Any]:
+            """Resolver for SearchResult.item field."""
+            return result.get('item', result) if isinstance(result, dict) else result
+        
+        async def resolve_search_result_score(result: Dict[str, Any], info) -> float:
+            """Resolver for SearchResult.score field."""
+            return result.get('score', result.get('relevance_score', 0.0))
+        
+        # Register all resolvers
+        schema.register_resolver("knowledgeItem", resolve_knowledge_item)
+        schema.register_resolver("search", resolve_search)
+        schema.register_resolver("createKnowledge", resolve_create_knowledge)
+        schema.register_resolver("updateKnowledge", resolve_update_knowledge)
+        schema.register_resolver("deleteKnowledge", resolve_delete_knowledge)
+    
+    @staticmethod
+    def _knowledge_item_to_graphql(item) -> Dict[str, Any]:
+        """
+        Convert a KnowledgeItem to GraphQL response format.
+        
+        Args:
+            item: KnowledgeItem object or dictionary
+            
+        Returns:
+            Dictionary formatted for GraphQL response
+        """
+        # Handle dataclass objects with to_dict method
+        if hasattr(item, 'to_dict'):
+            data = item.to_dict()
+        elif isinstance(item, dict):
+            data = item
+        else:
+            # Extract attributes directly
+            data = {
+                "id": getattr(item, 'id', ''),
+                "content": getattr(item, 'content', ''),
+                "knowledge_type": getattr(item, 'knowledge_type', 'TEXT'),
+                "tags": getattr(item, 'tags', []),
+                "metadata": getattr(item, 'metadata', {}),
+                "created_at": getattr(item, 'created_at', None),
+                "updated_at": getattr(item, 'updated_at', None),
+                "source": getattr(item, 'source', 'unknown'),
+                "confidence": getattr(item, 'confidence', 1.0)
+            }
+        
+        # Map to GraphQL schema field names
+        created_at = data.get('created_at')
+        updated_at = data.get('updated_at')
+        
+        # Handle datetime serialization
+        if hasattr(created_at, 'isoformat'):
+            created_at = created_at.isoformat()
+        if hasattr(updated_at, 'isoformat'):
+            updated_at = updated_at.isoformat()
+        
+        # Handle knowledge_type (could be enum or string)
+        knowledge_type = data.get('knowledge_type', 'TEXT')
+        if hasattr(knowledge_type, 'value'):
+            knowledge_type = knowledge_type.value
+        
+        # Handle tags (could be set or list)
+        tags = data.get('tags', [])
+        if isinstance(tags, set):
+            tags = list(tags)
+        
+        return {
+            "id": data.get('id', ''),
+            "content": str(data.get('content', '')),
+            "type": str(knowledge_type),
+            "createdAt": created_at or '',
+            "updatedAt": updated_at,
+            "tags": tags or [],
+            "metadata": data.get('metadata', {}) or {}
+        }
+    
+    @staticmethod
+    def _search_results_to_graphql(results) -> List[Dict[str, Any]]:
+        """
+        Convert search results to GraphQL response format.
+        
+        Args:
+            results: List of SearchResult objects or dictionaries
+            
+        Returns:
+            List of search result dictionaries formatted for GraphQL
+        """
+        if not results:
+            return []
+        
+        graphql_results = []
+        for result in results:
+            # Handle SearchResult objects
+            if hasattr(result, 'to_dict'):
+                result_dict = result.to_dict()
+                item = result_dict.get('item')
+                score = result_dict.get('relevance_score', 0.0)
+                highlights = result_dict.get('match_details', {}).get('highlights', [])
+            elif isinstance(result, dict):
+                item = result.get('item', result)
+                score = result.get('score', result.get('relevance_score', 0.0))
+                highlights = result.get('highlights', [])
+            else:
+                # Handle SearchResult dataclass directly
+                item = getattr(result, 'item', result)
+                score = getattr(result, 'relevance_score', getattr(result, 'score', 0.0))
+                highlights = []
+            
+            graphql_results.append({
+                "item": KnowledgeAPIFactory._knowledge_item_to_graphql(item) if item else None,
+                "score": float(score),
+                "highlights": highlights if highlights else []
+            })
+        
+        return graphql_results
 
 
 __all__ = [

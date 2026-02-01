@@ -5,6 +5,7 @@ Standalone test for OpenEvolve-Only Mode (no dependencies)
 import asyncio
 import sys
 from pathlib import Path
+import pytest
 
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -18,6 +19,7 @@ from core.strategy_recommender import (
 )
 
 
+@pytest.mark.asyncio
 async def test_loongflow_checker():
     """Test LoongFlow availability checker"""
     print("=" * 60)
@@ -40,6 +42,7 @@ async def test_loongflow_checker():
     print("\n[PASS] All LoongFlowChecker tests passed!\n")
 
 
+@pytest.mark.asyncio
 async def test_selector_initialization():
     """Test selector initialization with LoongFlow disabled"""
     print("=" * 60)
@@ -71,6 +74,7 @@ async def test_selector_initialization():
     print("\n[PASS] All initialization tests passed!\n")
 
 
+@pytest.mark.asyncio
 async def test_openevolve_rule_based():
     """Test OpenEvolve-only rule-based prediction"""
     print("=" * 60)
@@ -130,13 +134,13 @@ async def test_openevolve_rule_based():
         "science"
     )
 
-    print(f"   System: {prediction.system.value if hasattr(prediction.system, "value") else prediction.system}")
-    print(f"   Mode: {prediction.mode.value if hasattr(prediction.mode, "value") else prediction.mode}")
+    print(f"   System: {prediction.system.value if hasattr(prediction.system, 'value') else prediction.system}")
+    print(f"   Mode: {prediction.mode.value if hasattr(prediction.mode, 'value') else prediction.mode}")
     print(f"   Confidence: {prediction.confidence:.2f}")
 
-    system_value = prediction.system.value if hasattr(prediction.system, "value") else prediction.system
+    system_value = prediction.system.value if hasattr(prediction.system, 'value') else prediction.system
     assert system_value == "openevolve", "Should recommend OpenEvolve"
-    mode_value = prediction.mode.value if hasattr(prediction.mode, "value") else prediction.mode
+    mode_value = prediction.mode.value if hasattr(prediction.mode, 'value') else prediction.mode
     assert mode_value == "qd", "Should recommend QD for diversity"
     print("   [OK] Correctly selects QD mode")
 
@@ -158,13 +162,13 @@ async def test_openevolve_rule_based():
         "engineering"
     )
 
-    print(f"   System: {prediction.system.value if hasattr(prediction.system, "value") else prediction.system}")
-    print(f"   Mode: {prediction.mode.value if hasattr(prediction.mode, "value") else prediction.mode}")
+    print(f"   System: {prediction.system.value if hasattr(prediction.system, 'value') else prediction.system}")
+    print(f"   Mode: {prediction.mode.value if hasattr(prediction.mode, 'value') else prediction.mode}")
     print(f"   Confidence: {prediction.confidence:.2f}")
 
-    system_value = prediction.system.value if hasattr(prediction.system, "value") else prediction.system
+    system_value = prediction.system.value if hasattr(prediction.system, 'value') else prediction.system
     assert system_value == "openevolve", "Should recommend OpenEvolve"
-    mode_value = prediction.mode.value if hasattr(prediction.mode, "value") else prediction.mode
+    mode_value = prediction.mode.value if hasattr(prediction.mode, 'value') else prediction.mode
     assert mode_value == "adversarial", "Should recommend Adversarial for robustness"
     print("   [OK] Correctly selects Adversarial mode")
 
@@ -186,19 +190,20 @@ async def test_openevolve_rule_based():
         "web"
     )
 
-    print(f"   System: {prediction.system.value if hasattr(prediction.system, "value") else prediction.system}")
-    print(f"   Mode: {prediction.mode.value if hasattr(prediction.mode, "value") else prediction.mode}")
+    print(f"   System: {prediction.system.value if hasattr(prediction.system, 'value') else prediction.system}")
+    print(f"   Mode: {prediction.mode.value if hasattr(prediction.mode, 'value') else prediction.mode}")
     print(f"   Confidence: {prediction.confidence:.2f}")
 
-    system_value = prediction.system.value if hasattr(prediction.system, "value") else prediction.system
+    system_value = prediction.system.value if hasattr(prediction.system, 'value') else prediction.system
     assert system_value == "openevolve", "Should recommend OpenEvolve"
-    mode_value = prediction.mode.value if hasattr(prediction.mode, "value") else prediction.mode
+    mode_value = prediction.mode.value if hasattr(prediction.mode, 'value') else prediction.mode
     assert mode_value == "standard", "Should recommend Standard as default"
     print("   [OK] Correctly selects Standard mode")
 
     print("\n[PASS] All rule-based tests passed!\n")
 
 
+@pytest.mark.asyncio
 async def test_full_recommendation():
     """Test full recommendation in OpenEvolve-only mode"""
     print("=" * 60)
@@ -252,6 +257,7 @@ async def test_full_recommendation():
     print("\n[PASS] Full recommendation test passed!\n")
 
 
+@pytest.mark.asyncio
 async def test_convenience_method():
     """Test convenience method for OpenEvolve-only"""
     print("=" * 60)
@@ -279,8 +285,8 @@ async def test_convenience_method():
     print(f"  System: {system}")
     print(f"  Mode: {mode}")
 
-    system_value = system.value if hasattr(system, "value") else system
-    mode_value = mode.value if hasattr(mode, "value") else mode
+    system_value = system.value if hasattr(system, 'value') else system
+    mode_value = mode.value if hasattr(mode, 'value') else mode
     # Should be OpenEvolve-only despite enable_loongflow=True
     assert system_value == "openevolve", "Should recommend OpenEvolve"
     assert mode_value in ["qd", "mo", "adversarial", "standard"], "Should be OpenEvolve mode"
@@ -289,6 +295,7 @@ async def test_convenience_method():
     print("\n[PASS] Convenience method test passed!\n")
 
 
+@pytest.mark.asyncio
 async def test_cold_start():
     """Test cold start handling in OpenEvolve-only mode"""
     print("=" * 60)
@@ -325,8 +332,8 @@ async def test_cold_start():
     print(f"  Point Estimate: {prediction.point_estimate:.2%}")
     print(f"  Confidence Level: {prediction.confidence_level:.1%}")
 
-    system_value = system.value if hasattr(system, "value") else system
-    mode_value = mode.value if hasattr(mode, "value") else mode
+    system_value = system.value if hasattr(system, 'value') else system
+    mode_value = mode.value if hasattr(mode, 'value') else mode
     # Should still return valid prediction
     assert system_value == "openevolve", "Should recommend OpenEvolve"
     assert prediction.confidence_level < 1.0, "Should have lower confidence in cold start"
@@ -335,6 +342,7 @@ async def test_cold_start():
     print("\n[PASS] Cold start test passed!\n")
 
 
+@pytest.mark.asyncio
 async def test_mode_determination():
     """Test LoongFlow usage determination logic"""
     print("=" * 60)
