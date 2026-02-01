@@ -140,6 +140,7 @@ export {
     getMathSolverSystemPrompt,
     rehydrateMathSolverUI,
     renderMathSolverUI,
+    clearAllToasts,
     activeMathSolverCore
 } from './MathSolverMode';
 

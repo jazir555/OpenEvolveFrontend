@@ -20,7 +20,7 @@ import {
     ProveLeanResponse,
     SolveUnifiedResponse,
     MathSolverMessage
-} from './index';
+} from './MathSolverCore';
 
 interface MathSolverUIProps {
     onClose?: () => void;
@@ -343,7 +343,7 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
                         id="math-timeout-input"
                         type="number" 
                         value={solverTimeout} 
-                        onChange={(e) => setSolverTimeout(parseInt(e.target.value) || 300)}
+                        onChange={(e) => setSolverTimeout(parseInt(e.target.value, 10) || 300)}
                         disabled={state.isProcessing}
                         aria-label="Solver timeout in seconds"
                         style={{ marginLeft: '8px', width: '80px' }}

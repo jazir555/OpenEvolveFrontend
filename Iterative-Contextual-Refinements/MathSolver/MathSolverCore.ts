@@ -19,7 +19,7 @@
 /**
  * Track analytics event for MathSolver
  */
-function trackMathSolverEvent(eventName: string, properties?: Record<string, any>): void {
+function trackMathSolverEvent(eventName: string, properties?: Record<string, unknown>): void {
     // Check for common analytics implementations
     const analytics = (window as any).analytics;
     if (analytics && typeof analytics.track === 'function') {
@@ -34,8 +34,10 @@ function trackMathSolverEvent(eventName: string, properties?: Record<string, any
             ...properties
         });
     }
-    // Log to console in development
-    console.log(`[Analytics] ${eventName}`, properties);
+    // Log to console only in development
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`[Analytics] ${eventName}`, properties);
+    }
 }
 
 // ============================================================================
@@ -560,6 +562,11 @@ export class MathSolverCore {
             throw new Error('A solve operation is already in progress. Please wait or cancel it first.');
         }
 
+        // Performance profiling
+        if (typeof performance !== 'undefined') {
+            performance.mark('mathsolver-solve-start');
+        }
+
         const startTime = Date.now();
         const problem = options.problem;
 
@@ -652,6 +659,12 @@ export class MathSolverCore {
             this.state.isProcessing = false;
             this.state.activeSolvers = [];
             this.currentAbortController = null;
+            
+            // Performance profiling
+            if (typeof performance !== 'undefined') {
+                performance.mark('mathsolver-solve-end');
+                performance.measure('mathsolver-solve', 'mathsolver-solve-start', 'mathsolver-solve-end');
+            }
         }
     }
 
