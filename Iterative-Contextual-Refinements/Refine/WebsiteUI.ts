@@ -480,6 +480,28 @@ export function renderPipelines() {
         clearTabsContainer();
         if (pipelinesContentContainer) pipelinesContentContainer.innerHTML = '';
         return;
+    } else if (globalState.currentMode === 'mathsolver') {
+        // MathSolver mode - show header, hide tabs (MathSolver has its own UI)
+        if (mainHeaderContent) mainHeaderContent.style.display = '';
+        if (tabsNavContainer) tabsNavContainer.style.display = 'none';
+
+        // Re-enable sidebar collapse
+        if (sidebarCollapseButton) {
+            sidebarCollapseButton.disabled = false;
+            sidebarCollapseButton.style.opacity = '';
+            sidebarCollapseButton.style.cursor = '';
+            sidebarCollapseButton.title = 'Collapse Sidebar';
+        }
+
+        clearTabsContainer();
+        
+        // Render MathSolver UI if container exists
+        if (pipelinesContentContainer) {
+            import('../MathSolver').then(({ renderMathSolverUI }) => {
+                renderMathSolverUI(pipelinesContentContainer);
+            });
+        }
+        return;
     }
 
     // Show header and tabs container for other modes (website, etc.)

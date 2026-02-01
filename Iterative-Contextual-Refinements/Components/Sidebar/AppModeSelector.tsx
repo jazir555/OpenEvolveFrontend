@@ -1,4 +1,5 @@
 import React from 'react';
+import { globalState } from '../Core/State';
 
 /**
  * App Mode Selector component
@@ -44,7 +45,14 @@ export const AppModeSelector: React.FC = () => {
                 <div className="app-mode-section-label">Mathematical Reasoning</div>
                 <div className="radio-group-full-width-row">
                     <label className="radio-label-modern radio-label-full-width">
-                        <input type="radio" name="app-mode" value="mathsolver" />
+                        <input 
+                            type="radio" 
+                            name="app-mode" 
+                            value="mathsolver"
+                            role="radio"
+                            aria-checked={globalState.currentMode === 'mathsolver'}
+                            aria-label="MathSolver mode - Z3 SMT solver and Lean theorem prover"
+                        />
                         <span>MathSolver (Z3 + Lean)</span>
                     </label>
                 </div>

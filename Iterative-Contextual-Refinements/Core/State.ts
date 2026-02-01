@@ -13,6 +13,7 @@ export const NUM_SUB_STRATEGIES_PER_MAIN_DEEPTHINK = 3;
 
 class GlobalStateManager {
     currentMode: ApplicationMode = 'deepthink';
+    previousMode: ApplicationMode | null = null;
     currentEvolutionMode: 'off' | 'novelty' | 'quality' = 'novelty';
     pipelinesState: PipelineState[] = [];
     activeDeepthinkPipeline: DeepthinkPipelineState | null = null;

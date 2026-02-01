@@ -121,7 +121,8 @@ export class RoutingManager {
         reactPromptsRef: { current: any },
         agenticPromptsRef?: { current: any },
         adaptiveDeepthinkPromptsRef?: { current: any },
-        contextualPromptsRef?: { current: any }
+        contextualPromptsRef?: { current: any },
+        mathSolverPromptsRef?: { current: any }
     ): void {
         this.promptsManager = new PromptsManager(
             websitePromptsRef,
@@ -129,7 +130,8 @@ export class RoutingManager {
             reactPromptsRef,
             agenticPromptsRef,
             adaptiveDeepthinkPromptsRef,
-            contextualPromptsRef
+            contextualPromptsRef,
+            mathSolverPromptsRef
         );
         this.promptsManager.initializeTextareas();
 

@@ -378,9 +378,15 @@ export async function handleImportConfiguration(event: Event) {
                 globalState.activeDeepthinkPipeline = null;
                 globalState.activePipelineId = null;
 
-                // Restore MathSolver state if available
-                if (importedConfig.activeMathSolverState) {
-                    setActiveMathSolverState(importedConfig.activeMathSolverState);
+                // Restore MathSolver state if available (with validation)
+                if (importedConfig.activeMathSolverState && 
+                    typeof importedConfig.activeMathSolverState === 'object') {
+                    try {
+                        setActiveMathSolverState(importedConfig.activeMathSolverState);
+                    } catch (error) {
+                        console.warn('[ConfigManager] Failed to restore MathSolver state:', error);
+                        // Continue without state - UI will show empty state
+                    }
                 }
 
                 // Re-render MathSolver UI

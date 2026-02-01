@@ -13,6 +13,32 @@
  */
 
 // ============================================================================
+// Analytics Tracking
+// ============================================================================
+
+/**
+ * Track analytics event for MathSolver
+ */
+function trackMathSolverEvent(eventName: string, properties?: Record<string, any>): void {
+    // Check for common analytics implementations
+    const analytics = (window as any).analytics;
+    if (analytics && typeof analytics.track === 'function') {
+        analytics.track(eventName, properties);
+    } else if ((window as any).gtag) {
+        // Google Analytics
+        (window as any).gtag('event', eventName, properties);
+    } else if ((window as any).dataLayer) {
+        // GTM data layer
+        (window as any).dataLayer.push({
+            event: eventName,
+            ...properties
+        });
+    }
+    // Log to console in development
+    console.log(`[Analytics] ${eventName}`, properties);
+}
+
+// ============================================================================
 // Types and Interfaces - Aligned with Backend API
 // ============================================================================
 
@@ -211,13 +237,13 @@ export class MathSolverAPI {
      * Solve using Z3 SMT solver
      * POST /solve/z3
      */
-    async solveZ3(request: Z3SolveRequest): Promise<Z3SolveResponse> {
+    async solveZ3(request: Z3SolveRequest, signal?: AbortSignal): Promise<Z3SolveResponse> {
         const response = await this.post<Z3SolveResponse>('/solve/z3', {
             content: request.content,
             timeout_ms: request.timeout_ms ?? 30000,
             get_model: request.get_model ?? true,
             get_proof: request.get_proof ?? true
-        });
+        }, signal);
         return response;
     }
 
@@ -225,12 +251,12 @@ export class MathSolverAPI {
      * Prove theorem using Lean
      * POST /solve/lean
      */
-    async proveLean(request: ProveLeanRequest): Promise<ProveLeanResponse> {
+    async proveLean(request: ProveLeanRequest, signal?: AbortSignal): Promise<ProveLeanResponse> {
         const response = await this.post<ProveLeanResponse>('/solve/lean', {
             theorem: request.theorem,
             timeout_seconds: request.timeout_seconds ?? 300,
             auto_tactics: request.auto_tactics ?? ['simp', 'rfl', 'tauto']
-        });
+        }, signal);
         return response;
     }
 
@@ -238,13 +264,13 @@ export class MathSolverAPI {
      * Solve using unified approach
      * POST /solve/unified
      */
-    async solveUnified(request: SolveUnifiedRequest): Promise<SolveUnifiedResponse> {
+    async solveUnified(request: SolveUnifiedRequest, signal?: AbortSignal): Promise<SolveUnifiedResponse> {
         const response = await this.post<SolveUnifiedResponse>('/solve/unified', {
             problem: request.problem,
             preferred_solver: request.preferred_solver ?? 'auto',
             timeout_seconds: request.timeout_seconds ?? 300,
             require_consensus: request.require_consensus ?? false
-        });
+        }, signal);
         return response;
     }
 
@@ -318,9 +344,14 @@ export class MathSolverAPI {
     }
 
     // Private helper methods
-    private async get<T>(path: string): Promise<T> {
+    private async get<T>(path: string, externalSignal?: AbortSignal): Promise<T> {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+        // If external signal provided, abort when either timeout or external signal fires
+        if (externalSignal) {
+            externalSignal.addEventListener('abort', () => controller.abort());
+        }
 
         try {
             const response = await fetch(`${this.baseUrl}${path}`, {
@@ -341,15 +372,23 @@ export class MathSolverAPI {
         } catch (error) {
             clearTimeout(timeoutId);
             if (error instanceof Error && error.name === 'AbortError') {
+                if (externalSignal?.aborted) {
+                    throw new Error('Request cancelled');
+                }
                 throw new Error('Request timeout');
             }
             throw error;
         }
     }
 
-    private async post<T>(path: string, body: any): Promise<T> {
+    private async post<T>(path: string, body: any, externalSignal?: AbortSignal): Promise<T> {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+
+        // If external signal provided, abort when either timeout or external signal fires
+        if (externalSignal) {
+            externalSignal.addEventListener('abort', () => controller.abort());
+        }
 
         try {
             const response = await fetch(`${this.baseUrl}${path}`, {
@@ -371,6 +410,9 @@ export class MathSolverAPI {
         } catch (error) {
             clearTimeout(timeoutId);
             if (error instanceof Error && error.name === 'AbortError') {
+                if (externalSignal?.aborted) {
+                    throw new Error('Request cancelled');
+                }
                 throw new Error('Request timeout - proof may be too complex');
             }
             throw error;
@@ -385,15 +427,49 @@ export const mathSolverAPI = new MathSolverAPI();
 // Core MathSolver Manager
 // ============================================================================
 
+// Event listener types
+type MathSolverEventMap = {
+    'messageAdded': MathSolverMessage;
+    'solvingStarted': { problem: MathProblem; solver?: SolverSystem };
+    'solvingCompleted': SolveResult;
+    'solvingError': SolveResult;
+    'solvingCancelled': null;
+    'problemCreated': MathProblem;
+    'stateImported': MathSolverState;
+    'stateReset': null;
+};
+
 export class MathSolverCore {
     private state: MathSolverState;
     private api: MathSolverAPI;
-    private eventListeners: Map<string, ((data: any) => void)[]>;
+    private eventListeners: Map<string, ((data: unknown) => void)[]>;
+    private currentAbortController: AbortController | null = null;
 
     constructor() {
         this.state = this.createInitialState();
         this.api = mathSolverAPI;
         this.eventListeners = new Map();
+    }
+
+    /**
+     * Cancel the current solve operation
+     */
+    cancelSolve(): void {
+        if (this.currentAbortController) {
+            this.currentAbortController.abort();
+            this.currentAbortController = null;
+            this.state.isProcessing = false;
+            this.state.activeSolvers = [];
+            this.addMessage('system', 'Solve operation cancelled by user');
+            this.emit('solvingCancelled', null);
+        }
+    }
+
+    /**
+     * Check if a solve operation is in progress
+     */
+    isSolving(): boolean {
+        return this.state.isProcessing;
     }
 
     private createInitialState(): MathSolverState {
@@ -421,17 +497,30 @@ export class MathSolverCore {
     /**
      * Subscribe to state changes
      */
-    on(event: string, callback: (data: any) => void): void {
+    on<K extends keyof MathSolverEventMap>(event: K, callback: (data: MathSolverEventMap[K]) => void): void {
         if (!this.eventListeners.has(event)) {
             this.eventListeners.set(event, []);
         }
-        this.eventListeners.get(event)!.push(callback);
+        this.eventListeners.get(event)!.push(callback as (data: unknown) => void);
+    }
+
+    /**
+     * Unsubscribe from state changes
+     */
+    off<K extends keyof MathSolverEventMap>(event: K, callback: (data: MathSolverEventMap[K]) => void): void {
+        const listeners = this.eventListeners.get(event);
+        if (listeners) {
+            const index = listeners.indexOf(callback as (data: unknown) => void);
+            if (index !== -1) {
+                listeners.splice(index, 1);
+            }
+        }
     }
 
     /**
      * Emit event to listeners
      */
-    private emit(event: string, data: any): void {
+    private emit<K extends keyof MathSolverEventMap>(event: K, data: MathSolverEventMap[K]): void {
         const listeners = this.eventListeners.get(event);
         if (listeners) {
             listeners.forEach(cb => cb(data));
@@ -466,13 +555,29 @@ export class MathSolverCore {
      * Solve the current problem
      */
     async solve(options: SolveOptions): Promise<SolveResult> {
+        // Prevent concurrent solve requests
+        if (this.state.isProcessing) {
+            throw new Error('A solve operation is already in progress. Please wait or cancel it first.');
+        }
+
         const startTime = Date.now();
         const problem = options.problem;
 
+        // Create new abort controller for this solve
+        this.currentAbortController = new AbortController();
         this.state.isProcessing = true;
         this.state.activeSolvers = [options.preferredSolver || 'auto'];
         this.addMessage('system', `Starting ${options.preferredSolver || 'auto'} solver...`);
         this.emit('solvingStarted', { problem, solver: options.preferredSolver });
+        
+        // Track solve start
+        trackMathSolverEvent('mathsolver_solve_start', {
+            problem_id: problem.id,
+            solver_type: options.preferredSolver || 'auto',
+            domain: problem.domain,
+            difficulty: problem.difficulty,
+            use_knowledge_base: options.useKnowledgeBase
+        });
 
         try {
             let result: SolveResult;
@@ -510,6 +615,17 @@ export class MathSolverCore {
                 this.learnFromSuccess(problem, result);
             }
 
+            // Track successful completion
+            trackMathSolverEvent('mathsolver_solve_complete', {
+                problem_id: problem.id,
+                solver_type: options.preferredSolver || 'auto',
+                success: result.success,
+                execution_time_ms: result.executionTimeMs,
+                has_z3_result: !!result.z3Result,
+                has_lean_result: !!result.leanResult,
+                has_unified_result: !!result.unifiedResult
+            });
+
             this.emit('solvingCompleted', result);
             return result;
 
@@ -520,18 +636,35 @@ export class MathSolverCore {
                 executionTimeMs: Date.now() - startTime,
                 error: error instanceof Error ? error.message : 'Unknown error'
             };
+            
+            // Track error
+            trackMathSolverEvent('mathsolver_error', {
+                problem_id: problem.id,
+                solver_type: options.preferredSolver || 'auto',
+                error_type: error instanceof Error ? error.name : 'Unknown',
+                error_message: errorResponse.error
+            });
+            
             this.addMessage('system', `Error: ${errorResponse.error}`, 'error');
             this.emit('solvingError', errorResponse);
             return errorResponse;
         } finally {
             this.state.isProcessing = false;
             this.state.activeSolvers = [];
+            this.currentAbortController = null;
         }
     }
 
     private async solveWithZ3(problem: MathProblem, timeout?: number): Promise<SolveResult> {
         const startTime = Date.now();
         this.addMessage('solver', 'Solving with Z3 SMT solver...', undefined, 'z3');
+        
+        // Track Z3 tool call
+        trackMathSolverEvent('mathsolver_tool_call', {
+            problem_id: problem.id,
+            tool: 'z3',
+            domain: problem.domain
+        });
 
         // Convert problem to SMT-LIB format
         const smtlibContent = this.problemToSMTLIB(problem);
@@ -543,7 +676,7 @@ export class MathSolverCore {
             get_proof: true
         };
 
-        const z3Result = await this.api.solveZ3(request);
+        const z3Result = await this.api.solveZ3(request, this.currentAbortController?.signal);
         this.state.z3Results.set(problem.id, z3Result);
 
         const message = z3Result.status === 'sat' 
@@ -565,6 +698,13 @@ export class MathSolverCore {
     private async solveWithLean(problem: MathProblem, timeout?: number): Promise<SolveResult> {
         const startTime = Date.now();
         this.addMessage('solver', 'Proving with Lean theorem prover...', undefined, 'lean');
+        
+        // Track Lean tool call
+        trackMathSolverEvent('mathsolver_tool_call', {
+            problem_id: problem.id,
+            tool: 'lean',
+            domain: problem.domain
+        });
 
         const request: ProveLeanRequest = {
             theorem: problem.statement,
@@ -572,7 +712,7 @@ export class MathSolverCore {
             auto_tactics: ['simp', 'rfl', 'tauto']
         };
 
-        const leanResult = await this.api.proveLean(request);
+        const leanResult = await this.api.proveLean(request, this.currentAbortController?.signal);
         this.state.leanResults.set(problem.id, leanResult);
 
         const message = leanResult.success
@@ -596,6 +736,14 @@ export class MathSolverCore {
     private async solveWithUnified(problem: MathProblem, options: SolveOptions): Promise<SolveResult> {
         const startTime = Date.now();
         this.addMessage('solver', 'Running unified Z3+Lean solver...', undefined, 'unified');
+        
+        // Track Unified tool call
+        trackMathSolverEvent('mathsolver_tool_call', {
+            problem_id: problem.id,
+            tool: 'unified',
+            domain: problem.domain,
+            preferred_solver: options.preferredSolver
+        });
 
         const request: SolveUnifiedRequest = {
             problem: problem.statement,
@@ -604,7 +752,7 @@ export class MathSolverCore {
             require_consensus: options.requireConsensus ?? false
         };
 
-        const unifiedResult = await this.api.solveUnified(request);
+        const unifiedResult = await this.api.solveUnified(request, this.currentAbortController?.signal);
         this.state.unifiedResults.set(problem.id, unifiedResult);
 
         const consensusMsg = unifiedResult.verified
@@ -701,14 +849,19 @@ export class MathSolverCore {
     }
 
     /**
-     * Export current session state
+     * Export current session state (serializable)
      */
     exportState(): object {
+        // Convert Maps to arrays for serialization
         return {
             id: this.state.id,
             history: this.state.history,
             messages: this.state.messages,
             knowledgeBase: this.state.knowledgeBase,
+            currentProblem: this.state.currentProblem,
+            z3Results: Array.from(this.state.z3Results.entries()),
+            leanResults: Array.from(this.state.leanResults.entries()),
+            unifiedResults: Array.from(this.state.unifiedResults.entries()),
             exportTimestamp: Date.now()
         };
     }
@@ -716,10 +869,23 @@ export class MathSolverCore {
     /**
      * Import session state
      */
-    importState(state: Partial<MathSolverState>): void {
+    importState(state: any): void {
         if (state.history) this.state.history = state.history;
         if (state.messages) this.state.messages = state.messages;
         if (state.knowledgeBase) this.state.knowledgeBase = state.knowledgeBase;
+        if (state.currentProblem) this.state.currentProblem = state.currentProblem;
+        
+        // Restore Maps from arrays
+        if (state.z3Results) {
+            this.state.z3Results = new Map(state.z3Results);
+        }
+        if (state.leanResults) {
+            this.state.leanResults = new Map(state.leanResults);
+        }
+        if (state.unifiedResults) {
+            this.state.unifiedResults = new Map(state.unifiedResults);
+        }
+        
         this.emit('stateImported', this.state);
     }
 
@@ -732,18 +898,49 @@ export class MathSolverCore {
     }
 
     /**
-     * Check if backend is available
+     * Check if backend is available and version compatible
      */
-    async checkBackendHealth(): Promise<{ available: boolean; details?: HealthResponse }> {
+    async checkBackendHealth(): Promise<{ 
+        available: boolean; 
+        versionCompatible?: boolean;
+        versionError?: string;
+        details?: HealthResponse 
+    }> {
         try {
             const health = await this.api.getHealth();
+            
+            // Check API version compatibility
+            let versionCompatible = true;
+            let versionError: string | undefined;
+            
+            try {
+                const apiInfo = await this.api.getApiInfo();
+                const backendVersion = apiInfo.version;
+                const frontendVersion = '1.1.0'; // MATH_SOLVER_API_VERSION
+                
+                // Major version must match, minor version can be different
+                const backendMajor = backendVersion?.split('.')[0];
+                const frontendMajor = frontendVersion.split('.')[0];
+                
+                if (backendMajor !== frontendMajor) {
+                    versionCompatible = false;
+                    versionError = `Version mismatch: Frontend v${frontendVersion}, Backend v${backendVersion}`;
+                }
+            } catch (versionError) {
+                // Version check failed but backend is still available
+                console.warn('[MathSolver] Could not verify API version:', versionError);
+            }
+            
             return {
                 available: health.status === 'healthy',
+                versionCompatible,
+                versionError,
                 details: health
             };
         } catch (error) {
             return {
                 available: false,
+                versionCompatible: false,
                 details: undefined
             };
         }

@@ -43,51 +43,121 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
     const [timeout, setTimeout] = useState(300);
     
     // Backend status
-    const [backendStatus, setBackendStatus] = useState<{ available: boolean; details?: any } | null>(null);
+    const [backendStatus, setBackendStatus] = useState<{ available: boolean; versionCompatible?: boolean; versionError?: string; details?: any } | null>(null);
     const [checkingBackend, setCheckingBackend] = useState(false);
+    
+    // Refs
+    const solveButtonRef = React.useRef<HTMLButtonElement>(null);
+    const isMountedRef = React.useRef(true);
+    
+    useEffect(() => {
+        return () => {
+            isMountedRef.current = false;
+        };
+    }, []);
 
     // Update state from core
     useEffect(() => {
-        const updateState = () => setState(core.getState());
+        const updateState = () => {
+            if (isMountedRef.current) {
+                setState(core.getState());
+            }
+        };
         core.on('messageAdded', updateState);
         core.on('solvingStarted', updateState);
         core.on('solvingCompleted', updateState);
         core.on('solvingError', updateState);
+        core.on('solvingCancelled', updateState);
         
         // Check backend health on mount
         checkBackend();
         
         return () => {
-            // Cleanup if needed
+            // Clean up event listeners to prevent memory leaks
+            core.off('messageAdded', updateState);
+            core.off('solvingStarted', updateState);
+            core.off('solvingCompleted', updateState);
+            core.off('solvingError', updateState);
+            core.off('solvingCancelled', updateState);
+        };
+    }, [core]);
+    
+    // Keyboard shortcuts in separate effect to avoid stale closures
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            // Escape to cancel solving
+            if (e.key === 'Escape' && core.isSolving()) {
+                e.preventDefault();
+                core.cancelSolve();
+            }
+            // Ctrl+Enter to solve
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey) && !core.isSolving()) {
+                e.preventDefault();
+                // Use a ref to avoid stale closure
+                solveButtonRef.current?.click();
+            }
+        };
+        
+        document.addEventListener('keydown', handleKeyDown);
+        
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
         };
     }, [core]);
 
-    const checkBackend = async () => {
+    const checkBackend = async (retryCount = 0) => {
         setCheckingBackend(true);
-        const status = await core.checkBackendHealth();
-        setBackendStatus(status);
-        setCheckingBackend(false);
+        try {
+            const status = await core.checkBackendHealth();
+            if (isMountedRef.current) {
+                setBackendStatus(status);
+            }
+        } catch (error) {
+            console.error('[MathSolverUI] Backend health check failed:', error);
+            // Retry up to 2 times
+            if (retryCount < 2 && isMountedRef.current) {
+                setTimeout(() => checkBackend(retryCount + 1), 1000 * (retryCount + 1));
+                return;
+            }
+            if (isMountedRef.current) {
+                setBackendStatus({ available: false, versionCompatible: false });
+            }
+        } finally {
+            if (isMountedRef.current) {
+                setCheckingBackend(false);
+            }
+        }
     };
 
     const handleSolve = useCallback(async () => {
         if (!problemInput.trim()) return;
 
-        const problem = core.createProblem(problemInput, {
-            domain: undefined // Auto-detect
-        });
+        try {
+            const problem = core.createProblem(problemInput, {
+                domain: undefined // Auto-detect
+            });
 
-        await core.solve({
-            problem,
-            preferredSolver: selectedSolver,
-            useKnowledgeBase: useKnowledge,
-            consensusLevel,
-            timeout
-        });
+            await core.solve({
+                problem,
+                preferredSolver: selectedSolver,
+                useKnowledgeBase: useKnowledge,
+                consensusLevel,
+                timeout
+            });
+        } catch (error) {
+            // Error is already handled by MathSolverCore and emitted via solvingError
+            // This catch prevents unhandled promise rejection
+            console.log('[MathSolverUI] Solve error caught (handled by core):', error);
+        }
     }, [core, problemInput, selectedSolver, useKnowledge, consensusLevel, timeout]);
 
     const handleClear = useCallback(() => {
         core.reset();
         setProblemInput('');
+        setSelectedSolver('auto');
+        setConsensusLevel('confidence');
+        setUseKnowledge(true);
+        setTimeout(300);
         setState(core.getState());
     }, [core]);
 
@@ -224,10 +294,13 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
             {/* Configuration */}
             <div style={{ display: 'flex', gap: '16px', marginBottom: '16px', flexWrap: 'wrap' }}>
                 <div>
-                    <label>Solver:</label>
+                    <label htmlFor="math-solver-select">Solver:</label>
                     <select 
+                        id="math-solver-select"
                         value={selectedSolver} 
                         onChange={(e) => setSelectedSolver(e.target.value as SolverSystem)}
+                        disabled={state.isProcessing}
+                        aria-label="Select solver type"
                         style={{ marginLeft: '8px' }}
                     >
                         <option value="auto">Auto-select</option>
@@ -238,10 +311,13 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
                 </div>
                 
                 <div>
-                    <label>Consensus:</label>
+                    <label htmlFor="math-consensus-select">Consensus:</label>
                     <select 
+                        id="math-consensus-select"
                         value={consensusLevel} 
                         onChange={(e) => setConsensusLevel(e.target.value as ConsensusLevel)}
+                        disabled={state.isProcessing}
+                        aria-label="Select consensus level"
                         style={{ marginLeft: '8px' }}
                     >
                         <option value="strict">Strict</option>
@@ -274,10 +350,17 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
 
             {/* Problem Input */}
             <div style={{ marginBottom: '16px' }}>
+                <label htmlFor="math-problem-input" style={{ display: 'block', marginBottom: '8px', fontWeight: 500 }}>
+                    Mathematical Problem:
+                </label>
                 <textarea
+                    id="math-problem-input"
                     value={problemInput}
                     onChange={(e) => setProblemInput(e.target.value)}
                     placeholder="Enter your mathematical problem or theorem...\n\nExamples:\n- Prove that for all integers n, n² ≥ 0\n- Find x such that x² + 3x + 2 = 0\n- Show that the sum of two even numbers is even"
+                    disabled={state.isProcessing}
+                    aria-label="Mathematical problem input"
+                    aria-describedby="math-problem-help"
                     style={{
                         width: '100%',
                         minHeight: '120px',
@@ -286,13 +369,20 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
                         fontSize: '14px',
                         borderRadius: '8px',
                         border: '1px solid #ddd',
-                        resize: 'vertical'
+                        resize: 'vertical',
+                        opacity: state.isProcessing ? 0.6 : 1
                     }}
                 />
+                <div id="math-problem-help" style={{ fontSize: '0.875rem', color: '#666', marginTop: '4px' }}>
+                    Supports natural language mathematical statements, theorems, and equations.
+                </div>
                 <div style={{ marginTop: '8px', display: 'flex', gap: '8px' }}>
                     <button 
+                        ref={solveButtonRef}
                         onClick={handleSolve}
                         disabled={!problemInput.trim() || state.isProcessing || !backendStatus?.available}
+                        aria-label={state.isProcessing ? 'Solving in progress' : 'Solve mathematical problem'}
+                        aria-busy={state.isProcessing}
                         style={{
                             padding: '10px 24px',
                             backgroundColor: '#1976d2',
@@ -305,7 +395,32 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
                     >
                         {state.isProcessing ? 'Solving...' : 'Solve'}
                     </button>
-                    <button onClick={handleClear} style={{ padding: '10px 24px' }}>
+                    {state.isProcessing && (
+                        <button 
+                            onClick={() => core.cancelSolve()}
+                            aria-label="Cancel solving"
+                            style={{ 
+                                padding: '10px 24px',
+                                backgroundColor: '#dc2626',
+                                color: 'white',
+                                border: 'none',
+                                borderRadius: '4px',
+                                cursor: 'pointer'
+                            }}
+                        >
+                            Stop
+                        </button>
+                    )}
+                    <button 
+                        onClick={handleClear}
+                        aria-label="Clear problem and reset"
+                        disabled={state.isProcessing}
+                        style={{ 
+                            padding: '10px 24px',
+                            opacity: state.isProcessing ? 0.6 : 1,
+                            cursor: state.isProcessing ? 'not-allowed' : 'pointer'
+                        }}
+                    >
                         Clear
                     </button>
                 </div>

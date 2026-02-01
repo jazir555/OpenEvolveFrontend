@@ -12,6 +12,10 @@ import { AdaptiveDeepthinkPromptsManager } from '../AdaptiveDeepthink/AdaptiveDe
 import { CustomizablePromptsContextual } from '../Contextual/ContextualPrompts';
 import { ContextualPromptsManager } from '../Contextual/ContextualPromptsManager';
 
+interface MathSolverPrompts {
+    systemPrompt: string;
+}
+
 export class PromptsManager {
     private websitePromptsRef: { current: CustomizablePromptsWebsite };
     private deepthinkPromptsRef: { current: CustomizablePromptsDeepthink };
@@ -19,6 +23,7 @@ export class PromptsManager {
     private agenticPromptsRef: { current: AgenticPrompts };
     private adaptiveDeepthinkPromptsRef?: { current: CustomizablePromptsAdaptiveDeepthink };
     private contextualPromptsRef?: { current: CustomizablePromptsContextual };
+    private mathSolverPromptsRef?: { current: MathSolverPrompts };
 
     private agenticPromptsManager: AgenticPromptsManager;
     private adaptiveDeepthinkPromptsManager?: AdaptiveDeepthinkPromptsManager;
@@ -30,7 +35,8 @@ export class PromptsManager {
         reactPromptsRef: { current: CustomizablePromptsReact },
         agenticPromptsRef?: { current: AgenticPrompts },
         adaptiveDeepthinkPromptsRef?: { current: CustomizablePromptsAdaptiveDeepthink },
-        contextualPromptsRef?: { current: CustomizablePromptsContextual }
+        contextualPromptsRef?: { current: CustomizablePromptsContextual },
+        mathSolverPromptsRef?: { current: MathSolverPrompts }
     ) {
         this.websitePromptsRef = websitePromptsRef;
         this.deepthinkPromptsRef = deepthinkPromptsRef;
@@ -38,6 +44,7 @@ export class PromptsManager {
         this.agenticPromptsRef = agenticPromptsRef || { current: { systemPrompt: '', verifierPrompt: '' } };
         this.adaptiveDeepthinkPromptsRef = adaptiveDeepthinkPromptsRef;
         this.contextualPromptsRef = contextualPromptsRef;
+        this.mathSolverPromptsRef = mathSolverPromptsRef;
 
         this.agenticPromptsManager = new AgenticPromptsManager(this.agenticPromptsRef);
         if (this.adaptiveDeepthinkPromptsRef) {
@@ -53,6 +60,7 @@ export class PromptsManager {
         this.initializeDeepthinkTextareas();
         this.initializeReactTextareas();
         this.initializeAgenticTextarea();
+        this.initializeMathSolverTextareas();
         if (this.adaptiveDeepthinkPromptsManager) {
             this.adaptiveDeepthinkPromptsManager.initializeTextareas();
         }
@@ -270,6 +278,37 @@ export class PromptsManager {
         this.agenticPromptsManager.initializeTextarea();
     }
 
+    private initializeMathSolverTextareas(): void {
+        if (!this.mathSolverPromptsRef) return;
+
+        const textareaMap: { [key: string]: string } = {
+            systemPrompt: 'sys-mathsolver',
+            z3Prompt: 'sys-mathsolver-z3',
+            leanPrompt: 'sys-mathsolver-lean'
+        };
+
+        for (const [key, elementId] of Object.entries(textareaMap)) {
+            const textarea = document.getElementById(elementId) as HTMLTextAreaElement;
+            if (textarea) {
+                // Prevent duplicate listeners
+                if (textarea.dataset.hasListener) continue;
+
+                // Set initial value from state
+                const currentValue = this.mathSolverPromptsRef!.current[key as keyof MathSolverPrompts];
+                if (currentValue) {
+                    textarea.value = currentValue;
+                }
+
+                // Add event listener to save changes
+                textarea.addEventListener('input', (e) => {
+                    const target = e.target as HTMLTextAreaElement;
+                    (this.mathSolverPromptsRef!.current as any)[key] = target.value;
+                });
+                textarea.dataset.hasListener = 'true';
+            }
+        }
+    }
+
     private initializeReactTextareas(): void {
         const textareaMap: { [K in keyof CustomizablePromptsReact]: string } = {
             sys_orchestrator: 'sys-react-orchestrator',
@@ -345,6 +384,25 @@ export class PromptsManager {
         // Contextual prompts
         if (this.contextualPromptsManager) {
             this.contextualPromptsManager.updateTextareasFromState();
+        }
+
+        // MathSolver prompts
+        if (this.mathSolverPromptsRef) {
+            const mathSolverTextareaMap: { [key: string]: string } = {
+                systemPrompt: 'sys-mathsolver',
+                z3Prompt: 'sys-mathsolver-z3',
+                leanPrompt: 'sys-mathsolver-lean'
+            };
+
+            for (const [key, elementId] of Object.entries(mathSolverTextareaMap)) {
+                const textarea = document.getElementById(elementId) as HTMLTextAreaElement;
+                if (textarea) {
+                    const currentValue = this.mathSolverPromptsRef.current[key as keyof MathSolverPrompts];
+                    if (currentValue) {
+                        textarea.value = currentValue;
+                    }
+                }
+            }
         }
 
         // Update model selectors from state

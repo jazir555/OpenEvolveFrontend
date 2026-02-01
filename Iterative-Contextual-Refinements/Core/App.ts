@@ -167,6 +167,24 @@ export class App {
         const exportConfigButton = document.getElementById('export-config-button') as HTMLButtonElement;
         const importConfigInput = document.getElementById('import-config-input') as HTMLInputElement;
 
+        // Keyboard shortcut: Ctrl+Enter to trigger generation
+        document.addEventListener('keydown', (e: KeyboardEvent) => {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+                // Only trigger if not inside a text input/textarea (unless it's the initial-idea)
+                const activeElement = document.activeElement;
+                const isInputElement = activeElement instanceof HTMLInputElement || 
+                                       activeElement instanceof HTMLTextAreaElement;
+                const isInitialIdea = activeElement === initialIdeaInput;
+                
+                if (!isInputElement || isInitialIdea) {
+                    e.preventDefault();
+                    if (generateButton && !generateButton.disabled) {
+                        generateButton.click();
+                    }
+                }
+            }
+        });
+
         if (generateButton) {
             generateButton.addEventListener('click', async () => {
                 console.log('Generate button clicked');
@@ -205,6 +223,10 @@ export class App {
                 } else if (globalState.currentMode === 'adaptive-deepthink') {
                     await startAdaptiveDeepthinkProcess(initialIdea, globalState.customPromptsAdaptiveDeepthinkState, globalState.currentProblemImageBase64, globalState.currentProblemImageMimeType);
                 } else if (globalState.currentMode === 'mathsolver') {
+                    if (globalState.isMathSolverRunning) {
+                        alert('MathSolver is already processing a problem. Please wait or cancel the current operation.');
+                        return;
+                    }
                     console.log('Starting MathSolver process');
                     try {
                         await startMathSolverProcess(initialIdea, {
@@ -235,7 +257,18 @@ export class App {
         if (appModeSelector) {
             appModeSelector.querySelectorAll('input[name="app-mode"]').forEach(radio => {
                 radio.addEventListener('change', (e) => {
-                    globalState.currentMode = (e.target as HTMLInputElement).value as ApplicationMode;
+                    const newMode = (e.target as HTMLInputElement).value as ApplicationMode;
+                    // Track previous mode for cleanup
+                    globalState.previousMode = globalState.currentMode;
+                    globalState.currentMode = newMode;
+                    
+                    // Cleanup previous mode if it was MathSolver and we're switching away
+                    if (globalState.previousMode === 'mathsolver' && newMode !== 'mathsolver') {
+                        import('../MathSolver').then(({ stopMathSolverProcess }) => {
+                            stopMathSolverProcess();
+                        });
+                    }
+                    
                     updateUIAfterModeChange();
                 });
             });
@@ -274,7 +307,8 @@ export class App {
             { current: globalState.customPromptsReactState },
             { current: globalState.customPromptsAgenticState },
             { current: globalState.customPromptsAdaptiveDeepthinkState },
-            { current: globalState.customPromptsContextualState }
+            { current: globalState.customPromptsContextualState },
+            { current: globalState.customPromptsMathSolverState }
         );
 
         // Set up Agentic mode with prompts manager
