@@ -1,0 +1,209 @@
+syntax = "proto3";
+
+package openevolve.grpc;
+
+import "common.proto";
+import "google/protobuf/struct.proto";
+
+// Knowledge document types
+enum DocumentType {
+  DOCUMENT_TYPE_UNSPECIFIED = 0;
+  DOCUMENT_TYPE_TEXT = 1;
+  DOCUMENT_TYPE_MARKDOWN = 2;
+  DOCUMENT_TYPE_JSON = 3;
+  DOCUMENT_TYPE_CODE = 4;
+  DOCUMENT_TYPE_PDF = 5;
+  DOCUMENT_TYPE_WEBPAGE = 6;
+  DOCUMENT_TYPE_DATABASE_RECORD = 7;
+}
+
+// Knowledge document
+message KnowledgeDocument {
+  string id = 1;
+  string title = 2;
+  string content = 3;
+  DocumentType document_type = 4;
+  repeated string tags = 5;
+  map<string, string> metadata = 6;
+  string source = 7;
+  string author = 8;
+  google.protobuf.Timestamp created_at = 9;
+  google.protobuf.Timestamp updated_at = 10;
+  float relevance_score = 11;
+  repeated float embedding = 12;
+}
+
+// Knowledge query
+message KnowledgeQuery {
+  string query_text = 1;
+  repeated string filters = 2;
+  int32 limit = 3;
+  float min_relevance = 4;
+  string search_type = 5;  // "semantic", "keyword", "hybrid"
+  map<string, google.protobuf.Value> parameters = 6;
+}
+
+// Knowledge query result
+message KnowledgeQueryResult {
+  repeated KnowledgeDocument documents = 1;
+  int32 total_count = 2;
+  float query_time_ms = 3;
+  map<string, google.protobuf.Value> facets = 4;
+}
+
+// Knowledge extraction request
+message KnowledgeExtractionRequest {
+  string source_content = 1;
+  string source_type = 2;
+  repeated string entity_types = 3;
+  repeated string relation_types = 4;
+  bool extract_hierarchy = 5;
+  google.protobuf.Struct options = 6;
+}
+
+// Knowledge extraction result
+message KnowledgeExtractionResult {
+  repeated ExtractedEntity entities = 1;
+  repeated ExtractedRelation relations = 2;
+  ExtractedHierarchy hierarchy = 3;
+  KnowledgeDocument extracted_document = 4;
+  google.protobuf.Struct statistics = 5;
+}
+
+// Extracted entity
+message ExtractedEntity {
+  string id = 1;
+  string name = 2;
+  string entity_type = 3;
+  repeated string aliases = 4;
+  map<string, google.protobuf.Value> attributes = 5;
+  float confidence = 6;
+  repeated string source_locations = 7;
+}
+
+// Extracted relation
+message ExtractedRelation {
+  string id = 1;
+  string source_entity_id = 2;
+  string target_entity_id = 3;
+  string relation_type = 4;
+  map<string, google.protobuf.Value> attributes = 5;
+  float confidence = 6;
+}
+
+// Extracted hierarchy
+message ExtractedHierarchy {
+  string root_id = 1;
+  map<string, repeated string> parent_child_map = 2;
+  int32 max_depth = 3;
+}
+
+// Knowledge reasoning request
+message KnowledgeReasoningRequest {
+  string query = 1;
+  repeated string context_document_ids = 2;
+  string reasoning_type = 3;  // "deductive", "inductive", "abductive", "analogical"
+  int32 max_hops = 4;
+  bool explain_reasoning = 5;
+}
+
+// Knowledge reasoning result
+message KnowledgeReasoningResult {
+  string answer = 1;
+  double confidence = 2;
+  repeated ReasoningStep steps = 3;
+  repeated string supporting_documents = 4;
+  bool is_complete = 5;
+}
+
+// Reasoning step
+message ReasoningStep {
+  int32 step_number = 1;
+  string description = 2;
+  string premise = 3;
+  string conclusion = 4;
+  string rule_applied = 5;
+  float confidence = 6;
+}
+
+// Knowledge federation request
+message KnowledgeFederationRequest {
+  repeated string source_endpoints = 1;
+  KnowledgeQuery query = 2;
+  string merge_strategy = 3;  // "union", "intersection", "weighted"
+}
+
+// Knowledge federation result
+message KnowledgeFederationResult {
+  repeated FederatedSourceResults source_results = 1;
+  KnowledgeQueryResult merged_results = 2;
+  map<string, google.protobuf.Value> source_stats = 3;
+}
+
+// Federated source results
+message FederatedSourceResults {
+  string source_id = 1;
+  string source_name = 2;
+  KnowledgeQueryResult results = 3;
+  int32 response_time_ms = 4;
+  bool success = 5;
+  string error_message = 6;
+}
+
+// Knowledge graph node
+message KnowledgeGraphNode {
+  string id = 1;
+  string label = 2;
+  string node_type = 3;
+  map<string, google.protobuf.Value> properties = 4;
+}
+
+// Knowledge graph edge
+message KnowledgeGraphEdge {
+  string id = 1;
+  string source_id = 2;
+  string target_id = 3;
+  string relation_type = 4;
+  map<string, google.protobuf.Value> properties = 5;
+  float weight = 6;
+}
+
+// Knowledge graph
+message KnowledgeGraph {
+  repeated KnowledgeGraphNode nodes = 1;
+  repeated KnowledgeGraphEdge edges = 2;
+  map<string, google.protobuf.Value> statistics = 3;
+}
+
+// Knowledge Service
+service KnowledgeService {
+  // Query knowledge base
+  rpc Query(KnowledgeQuery) returns (KnowledgeQueryResult);
+  
+  // Stream query results
+  rpc QueryStreaming(KnowledgeQuery) returns (stream KnowledgeDocument);
+  
+  // Extract knowledge from content
+  rpc Extract(KnowledgeExtractionRequest) returns (KnowledgeExtractionResult);
+  
+  // Stream extraction progress
+  rpc ExtractStreaming(KnowledgeExtractionRequest) returns (stream Progress);
+  
+  // Reason over knowledge
+  rpc Reason(KnowledgeReasoningRequest) returns (KnowledgeReasoningResult);
+  
+  // Federate query across multiple sources
+  rpc Federate(KnowledgeFederationRequest) returns (KnowledgeFederationResult);
+  
+  // Get knowledge graph
+  rpc GetKnowledgeGraph(KnowledgeQuery) returns (KnowledgeGraph);
+  
+  // Validate knowledge
+  rpc ValidateKnowledge(KnowledgeDocument) returns (google.protobuf.Struct);
+  
+  // Enrich knowledge document
+  rpc EnrichKnowledge(KnowledgeDocument) returns (KnowledgeDocument);
+  
+  // Summarize knowledge
+  rpc SummarizeKnowledge(KnowledgeDocument) returns (KnowledgeDocument);
+}

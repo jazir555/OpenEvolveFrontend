@@ -1,0 +1,173 @@
+syntax = "proto3";
+
+package openevolve.grpc;
+
+import "common.proto";
+import "google/protobuf/struct.proto";
+
+// Decomposition strategy types
+enum DecompositionStrategy {
+  DECOMPOSITION_STRATEGY_UNSPECIFIED = 0;
+  DECOMPOSITION_STRATEGY_SEMANTIC = 1;
+  DECOMPOSITION_STRATEGY_DEPENDENCY = 2;
+  DECOMPOSITION_STRATEGY_COMPLEXITY = 3;
+  DECOMPOSITION_STRATEGY_HYBRID = 4;
+  DECOMPOSITION_STRATEGY_RESEARCH = 5;
+  DECOMPOSITION_STRATEGY_FUNCTIONAL = 6;
+  DECOMPOSITION_STRATEGY_TEMPORAL = 7;
+  DECOMPOSITION_STRATEGY_RISK_BASED = 8;
+  DECOMPOSITION_STRATEGY_VALUE_BASED = 9;
+  DECOMPOSITION_STRATEGY_TECHNICAL_DEPENDENCY = 10;
+}
+
+// Problem type classification
+enum ProblemType {
+  PROBLEM_TYPE_UNSPECIFIED = 0;
+  PROBLEM_TYPE_RESEARCH = 1;
+  PROBLEM_TYPE_ENGINEERING = 2;
+  PROBLEM_TYPE_ANALYTICAL = 3;
+  PROBLEM_TYPE_CREATIVE = 4;
+  PROBLEM_TYPE_OPTIMIZATION = 5;
+  PROBLEM_TYPE_VERIFICATION = 6;
+  PROBLEM_TYPE_IMPLEMENTATION = 7;
+  PROBLEM_TYPE_EXPLORATORY = 8;
+}
+
+// Complexity score
+message ComplexityScore {
+  int32 cognitive_load = 1;  // 1-10
+  int32 technical_difficulty = 2;  // 1-10
+  int32 domain_knowledge_required = 3;  // 1-10
+  int32 uncertainty_level = 4;  // 1-10
+  int32 overall_score = 5;  // 1-100
+}
+
+// Constraint definition
+message Constraint {
+  string id = 1;
+  string description = 2;
+  string constraint_type = 3;  // "hard", "soft", "preferential"
+  google.protobuf.Struct parameters = 4;
+}
+
+// Domain context
+message DomainContext {
+  string primary_domain = 1;
+  repeated string related_domains = 2;
+  repeated string key_terms = 3;
+  map<string, google.protobuf.Value> metadata = 4;
+}
+
+// Problem definition
+message ProblemDefinition {
+  string id = 1;
+  string title = 2;
+  string description = 3;
+  ProblemType problem_type = 4;
+  ComplexityScore complexity = 5;
+  DomainContext domain = 6;
+  repeated Constraint constraints = 7;
+  repeated string success_criteria = 8;
+  map<string, google.protobuf.Value> metadata = 9;
+}
+
+// Subproblem definition
+message SubProblem {
+  string id = 1;
+  string parent_id = 2;
+  string title = 3;
+  string description = 4;
+  int32 depth = 5;
+  int32 order_index = 6;
+  ProblemType problem_type = 7;
+  ComplexityScore complexity = 8;
+  repeated string dependencies = 9;  // IDs of prerequisite subproblems
+  repeated string tags = 10;
+  repeated string assigned_teams = 11;
+  map<string, google.protobuf.Value> metadata = 12;
+  string estimated_effort = 13;  // e.g., "2-3 days"
+  int32 priority = 14;  // 1-10
+  string status = 15;
+}
+
+// Quality scores for decomposition
+message QualityScores {
+  double coherence = 1;  // 0.0 - 1.0
+  double independence = 2;  // 0.0 - 1.0
+  double completeness = 3;  // 0.0 - 1.0
+  double granularity = 4;  // 0.0 - 1.0
+  double traceability = 5;  // 0.0 - 1.0
+  double overall_score = 6;  // 0.0 - 1.0
+  map<string, string> improvement_suggestions = 7;
+}
+
+// Decomposition result
+message DecompositionResult {
+  string decomposition_id = 1;
+  ProblemDefinition original_problem = 2;
+  repeated SubProblem subproblems = 3;
+  DecompositionStrategy strategy_used = 4;
+  QualityScores quality = 5;
+  google.protobuf.Struct execution_metrics = 6;
+  string summary = 7;
+}
+
+// Decomposition request
+message DecompositionRequest {
+  ProblemDefinition problem = 1;
+  DecompositionStrategy strategy = 2;
+  bool auto_select_strategy = 3;
+  int32 max_depth = 4;
+  int32 max_subproblems = 5;
+  bool enable_team_assignment = 6;
+  bool enable_mdap = 7;
+  google.protobuf.Struct options = 8;
+}
+
+// Recomposition request
+message RecompositionRequest {
+  string decomposition_id = 1;
+  repeated SubProblem subproblems = 2;
+  bool validate_completeness = 3;
+  bool check_dependencies = 4;
+}
+
+// Recomposition result
+message RecompositionResult {
+  string solution_id = 1;
+  string synthesized_solution = 2;
+  repeated string component_solutions = 3;
+  bool is_complete = 4;
+  repeated string missing_components = 5;
+  repeated string dependency_issues = 6;
+  QualityScores quality = 7;
+}
+
+// Strategy recommendation
+message StrategyRecommendation {
+  DecompositionStrategy recommended_strategy = 1;
+  double confidence = 2;
+  map<string, double> all_scores = 3;
+  string reasoning = 4;
+}
+
+// Decomposition Service
+service DecompositionService {
+  // Decompose a problem into subproblems
+  rpc Decompose(DecompositionRequest) returns (DecompositionResult);
+  
+  // Stream decomposition progress
+  rpc DecomposeStreaming(DecompositionRequest) returns (stream Progress);
+  
+  // Recompose subproblems into a solution
+  rpc Recompose(RecompositionRequest) returns (RecompositionResult);
+  
+  // Get strategy recommendation
+  rpc RecommendStrategy(ProblemDefinition) returns (StrategyRecommendation);
+  
+  // Analyze decomposition quality
+  rpc AnalyzeQuality(DecompositionResult) returns (QualityScores);
+  
+  // Validate decomposition completeness
+  rpc ValidateDecomposition(DecompositionResult) returns (google.protobuf.Struct);
+}

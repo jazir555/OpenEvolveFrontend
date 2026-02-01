@@ -1,0 +1,227 @@
+syntax = "proto3";
+
+package openevolve.grpc;
+
+import "common.proto";
+import "decomposition.proto";
+import "math.proto";
+import "google/protobuf/struct.proto";
+
+// Gauntlet type
+enum GauntletType {
+  GAUNTLET_TYPE_UNSPECIFIED = 0;
+  GAUNTLET_TYPE_FORMAL = 1;
+  GAUNTLET_TYPE_ADVERSARIAL = 2;
+  GAUNTLET_TYPE_EDGE_CASE = 3;
+  GAUNTLET_TYPE_STRESS = 4;
+  GAUNTLET_TYPE_COMPREHENSIVE = 5;
+}
+
+// Attack vector for adversarial gauntlets
+enum AttackVector {
+  ATTACK_VECTOR_UNSPECIFIED = 0;
+  ATTACK_VECTOR_EDGE_CASES = 1;
+  ATTACK_VECTOR_ASSUMPTIONS = 2;
+  ATTACK_VECTOR_BOUNDARIES = 3;
+  ATTACK_VECTOR_CONTRADICTIONS = 4;
+  ATTACK_VECTOR_AMBIGUITY = 5;
+  ATTACK_VECTOR_SCALE = 6;
+  ATTACK_VECTOR_COMPOSITION = 7;
+}
+
+// Gauntlet challenge
+message GauntletChallenge {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  GauntletType type = 4;
+  repeated AttackVector attack_vectors = 5;
+  google.protobuf.Struct parameters = 6;
+  int32 difficulty = 7;  // 1-10
+  repeated string tags = 8;
+}
+
+// Target for gauntlet testing
+message GauntletTarget {
+  oneof target {
+    ProblemDefinition problem = 1;
+    SubProblem subproblem = 2;
+    LeanProof proof = 3;
+    string solution_code = 4;
+    google.protobuf.Struct generic_target = 5;
+  }
+}
+
+// Gauntlet execution request
+message GauntletRequest {
+  string gauntlet_id = 1;
+  GauntletTarget target = 2;
+  google.protobuf.Struct config = 3;
+  bool enable_red_team = 4;
+  bool enable_blue_team = 5;
+  int32 max_iterations = 6;
+  int32 timeout_seconds = 7;
+}
+
+// Gauntlet result
+message GauntletResult {
+  string execution_id = 1;
+  GauntletStatus status = 2;
+  repeated ChallengeResult challenge_results = 3;
+  RedTeamReport red_team_report = 4;
+  BlueTeamReport blue_team_report = 5;
+  OverallScore overall_score = 6;
+  google.protobuf.Struct metadata = 7;
+}
+
+// Gauntlet status
+message GauntletStatus {
+  ExecutionState state = 1;
+  int32 current_iteration = 2;
+  int32 total_iterations = 3;
+  string current_phase = 4;
+  google.protobuf.Timestamp started_at = 5;
+  google.protobuf.Timestamp completed_at = 6;
+  int32 elapsed_seconds = 7;
+}
+
+// Individual challenge result
+message ChallengeResult {
+  string challenge_id = 1;
+  string challenge_name = 2;
+  bool passed = 3;
+  double score = 4;  // 0.0 - 1.0
+  repeated Finding findings = 5;
+  string execution_time_ms = 6;
+  google.protobuf.Struct details = 7;
+}
+
+// Finding from a challenge
+message Finding {
+  string id = 1;
+  string type = 2;  // "error", "warning", "info", "vulnerability"
+  string severity = 3;  // "critical", "high", "medium", "low"
+  string title = 4;
+  string description = 5;
+  string location = 6;
+  string recommendation = 7;
+  google.protobuf.Struct evidence = 8;
+}
+
+// Red team report
+message RedTeamReport {
+  int32 total_attacks = 1;
+  int32 successful_attacks = 2;
+  double success_rate = 3;
+  repeated AttackResult attacks = 4;
+  map<string, double> attack_vector_effectiveness = 5;
+  repeated string vulnerabilities_found = 6;
+}
+
+// Individual attack result
+message AttackResult {
+  string attack_id = 1;
+  AttackVector vector = 2;
+  string description = 3;
+  bool succeeded = 4;
+  string target_component = 5;
+  double severity_score = 6;
+  google.protobuf.Struct payload = 7;
+  string result_description = 8;
+}
+
+// Blue team report
+message BlueTeamReport {
+  int32 total_defenses = 1;
+  int32 successful_defenses = 2;
+  double defense_rate = 3;
+  repeated DefenseResult defenses = 4;
+  map<string, double> defense_strategy_effectiveness = 5;
+  repeated string improvements_made = 6;
+}
+
+// Individual defense result
+message DefenseResult {
+  string defense_id = 1;
+  string strategy = 2;
+  string description = 3;
+  bool succeeded = 4;
+  string countered_attack = 5;
+  double effectiveness_score = 6;
+  google.protobuf.Struct modifications = 7;
+}
+
+// Overall gauntlet score
+message OverallScore {
+  double total_score = 1;  // 0.0 - 1.0
+  double robustness = 2;
+  double correctness = 3;
+  double completeness = 4;
+  double performance = 5;
+  string grade = 6;  // "A", "B", "C", "D", "F"
+  string summary = 7;
+}
+
+// Gauntlet streaming update
+message GauntletUpdate {
+  string execution_id = 1;
+  GauntletStatus status = 2;
+  ChallengeResult current_challenge = 3;
+  Progress progress = 4;
+  repeated Finding new_findings = 5;
+  string phase_message = 6;
+}
+
+// Create custom gauntlet request
+message CreateGauntletRequest {
+  string name = 1;
+  string description = 2;
+  GauntletType type = 3;
+  repeated string challenge_templates = 4;
+  google.protobuf.Struct custom_parameters = 5;
+}
+
+// Create custom gauntlet response
+message CreateGauntletResponse {
+  string gauntlet_id = 1;
+  GauntletChallenge challenge = 2;
+  bool success = 3;
+  string message = 4;
+}
+
+// List available gauntlets request
+message ListGauntletsRequest {
+  GauntletType type = 1;
+  repeated string tags = 2;
+  int32 min_difficulty = 3;
+  int32 max_difficulty = 4;
+}
+
+// List available gauntlets response
+message ListGauntletsResponse {
+  repeated GauntletChallenge gauntlets = 1;
+}
+
+// Gauntlet Service
+service GauntletService {
+  // Run a gauntlet
+  rpc RunGauntlet(GauntletRequest) returns (GauntletResult);
+  
+  // Stream gauntlet progress
+  rpc RunGauntletStreaming(GauntletRequest) returns (stream GauntletUpdate);
+  
+  // Get gauntlet status
+  rpc GetGauntletStatus(google.protobuf.Struct) returns (GauntletStatus);
+  
+  // List available gauntlets
+  rpc ListGauntlets(ListGauntletsRequest) returns (ListGauntletsResponse);
+  
+  // Create custom gauntlet
+  rpc CreateGauntlet(CreateGauntletRequest) returns (CreateGauntletResponse);
+  
+  // Analyze gauntlet results
+  rpc AnalyzeResults(GauntletResult) returns (google.protobuf.Struct);
+  
+  // Compare gauntlet results
+  rpc CompareResults(google.protobuf.Struct) returns (google.protobuf.Struct);
+}

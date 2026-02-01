@@ -1,0 +1,53 @@
+{
+  "name": "@openevolve/grpc-client",
+  "version": "2.0.0",
+  "description": "OpenEvolve gRPC Client for TypeScript",
+  "main": "dist/client.js",
+  "types": "dist/client.d.ts",
+  "files": [
+    "dist",
+    "generated"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "generate": "../scripts/generate.sh",
+    "test": "jest",
+    "lint": "eslint src --ext .ts",
+    "clean": "rm -rf dist generated"
+  },
+  "keywords": [
+    "openevolve",
+    "grpc",
+    "workflow",
+    "ai",
+    "ml"
+  ],
+  "author": "OpenEvolve Team",
+  "license": "MIT",
+  "dependencies": {
+    "@grpc/grpc-js": "^1.9.0",
+    "@grpc/proto-loader": "^0.7.0",
+    "grpc-health-proto": "^1.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "eslint": "^8.0.0",
+    "grpc_tools_node_protoc_ts": "^5.3.0",
+    "jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "typescript": "^5.0.0"
+  },
+  "peerDependencies": {
+    "@grpc/grpc-js": "^1.9.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openevolve/openevolve.git",
+    "directory": "bubblelab/integrations/openevolve-grpc/typescript"
+  }
+}

@@ -1,0 +1,305 @@
+syntax = "proto3";
+
+package openevolve.grpc;
+
+import "common.proto";
+import "google/protobuf/struct.proto";
+
+// Proof status
+enum ProofStatus {
+  PROOF_STATUS_UNSPECIFIED = 0;
+  PROOF_STATUS_PROVED = 1;
+  PROOF_STATUS_DISPROVED = 2;
+  PROOF_STATUS_UNKNOWN = 3;
+  PROOF_STATUS_IN_PROGRESS = 4;
+  PROOF_STATUS_TIMEOUT = 5;
+  PROOF_STATUS_ERROR = 6;
+}
+
+// Lean 4 proof
+message LeanProof {
+  string theorem_name = 1;
+  string statement = 2;
+  string proof_code = 3;
+  ProofStatus status = 4;
+  repeated string tactics_used = 5;
+  int32 proof_length = 6;
+  int32 elaboration_time_ms = 7;
+  string error_message = 8;
+}
+
+// Z3 result
+message Z3Result {
+  ProofStatus status = 1;
+  string model = 2;
+  string proof = 3;
+  map<string, google.protobuf.Value> statistics = 4;
+  int32 solving_time_ms = 5;
+  string error_message = 6;
+}
+
+// Math problem classification
+message MathProblemClassification {
+  string problem_type = 1;  // "algebra", "analysis", "topology", etc.
+  repeated string relevant_tactics = 2;
+  repeated string suggested_libraries = 3;
+  double estimated_difficulty = 4;  // 0.0 - 1.0
+  map<string, google.protobuf.Value> features = 5;
+}
+
+// Autoformalization request
+message AutoformalizationRequest {
+  string natural_language_statement = 1;
+  string target_language = 2;  // "lean4", "coq", "isabelle"
+  string domain_hint = 3;
+  int32 max_attempts = 4;
+  bool include_explanation = 5;
+}
+
+// Autoformalization result
+message AutoformalizationResult {
+  string formal_statement = 1;
+  string explanation = 2;
+  bool is_well_formed = 3;
+  repeated string warnings = 4;
+  int32 attempts_made = 5;
+  float confidence = 6;
+}
+
+// Proof checking request
+message ProofCheckRequest {
+  string theorem_statement = 1;
+  string proof_code = 2;
+  string language = 3;
+  bool check_completeness = 4;
+  int32 timeout_seconds = 5;
+}
+
+// Proof checking result
+message ProofCheckResult {
+  ProofStatus status = 1;
+  bool is_valid = 2;
+  repeated ProofError errors = 3;
+  repeated ProofWarning warnings = 4;
+  string elaborated_code = 5;
+  map<string, google.protobuf.Value> metadata = 6;
+}
+
+// Proof error
+message ProofError {
+  int32 line = 1;
+  int32 column = 2;
+  string message = 3;
+  string error_type = 4;
+  string suggestion = 5;
+}
+
+// Proof warning
+message ProofWarning {
+  int32 line = 1;
+  string message = 2;
+  string warning_type = 3;
+}
+
+// Tactic recommendation request
+message TacticRecommendationRequest {
+  string theorem_statement = 1;
+  string current_proof_state = 2;
+  string goal = 3;
+  int32 num_recommendations = 4;
+  string context = 5;
+}
+
+// Tactic recommendation
+message TacticRecommendation {
+  string tactic = 1;
+  float confidence = 2;
+  string explanation = 3;
+  string expected_outcome = 4;
+  int32 typical_usage_count = 5;
+}
+
+// Tactic recommendation result
+message TacticRecommendationResult {
+  repeated TacticRecommendation recommendations = 1;
+  string reasoning = 2;
+}
+
+// Library search request
+message LibrarySearchRequest {
+  string query = 1;
+  string language = 2;
+  repeated string filter_libraries = 3;
+  int32 max_results = 4;
+}
+
+// Library search result
+message LibrarySearchResult {
+  repeated LibraryItem items = 1;
+  int32 total_matches = 2;
+}
+
+// Library item
+message LibraryItem {
+  string name = 1;
+  string signature = 2;
+  string documentation = 3;
+  string library = 4;
+  string module = 5;
+  float relevance_score = 6;
+  repeated string tags = 7;
+}
+
+// Conjecture request
+message ConjectureRequest {
+  string problem_statement = 1;
+  repeated string known_theorems = 2;
+  string target_property = 3;
+  int32 max_conjectures = 4;
+}
+
+// Conjecture result
+message ConjectureResult {
+  repeated Conjecture conjectures = 1;
+  string reasoning = 2;
+}
+
+// Conjecture
+message Conjecture {
+  string statement = 1;
+  float plausibility = 2;
+  string justification = 3;
+  repeated string supporting_evidence = 4;
+  repeated string counter_examples = 5;
+}
+
+// Counterexample request
+message CounterexampleRequest {
+  string statement = 1;
+  repeated string constraints = 2;
+  int32 max_counterexamples = 3;
+  int32 search_depth = 4;
+}
+
+// Counterexample result
+message CounterexampleResult {
+  repeated Counterexample counterexamples = 1;
+  bool exhaustive_search = 2;
+  int32 search_space_size = 3;
+}
+
+// Counterexample
+message Counterexample {
+  map<string, google.protobuf.Value> values = 1;
+  string explanation = 2;
+  bool is_minimal = 3;
+}
+
+// Proof simplification request
+message ProofSimplificationRequest {
+  string proof_code = 1;
+  string language = 2;
+  bool aggressive = 3;
+  int32 target_length = 4;
+}
+
+// Proof simplification result
+message ProofSimplificationResult {
+  string simplified_proof = 1;
+  int32 original_length = 2;
+  int32 simplified_length = 3;
+  float compression_ratio = 4;
+  repeated string transformations_applied = 5;
+  bool preserves_semantics = 6;
+}
+
+// Induction helper request
+message InductionHelperRequest {
+  string property = 1;
+  string induction_variable = 2;
+  string base_case = 3;
+  string inductive_step_template = 4;
+}
+
+// Induction helper result
+message InductionHelperResult {
+  string base_case_proof = 1;
+  string inductive_hypothesis = 2;
+  string inductive_step_proof = 3;
+  repeated string suggested_lemmas = 4;
+}
+
+// Z3 constraint solving request
+message Z3ConstraintRequest {
+  repeated string constraints = 1;
+  repeated string variables = 2;
+  string objective = 3;  // optional optimization objective
+  int32 timeout_seconds = 4;
+}
+
+// Z3 theorem proving request
+message Z3TheoremRequest {
+  string theorem = 1;
+  repeated string axioms = 2;
+  repeated string definitions = 3;
+  int32 timeout_seconds = 4;
+  bool generate_proof = 5;
+}
+
+// Equivalence checking request
+message EquivalenceRequest {
+  string expression1 = 1;
+  string expression2 = 2;
+  string language = 3;
+  repeated string assumptions = 4;
+}
+
+// Equivalence result
+message EquivalenceResult {
+  bool are_equivalent = 1;
+  string proof = 2;
+  string counterexample = 3;
+  map<string, google.protobuf.Value> statistics = 4;
+}
+
+// Math Service
+service MathService {
+  // Autoformalize natural language to formal language
+  rpc Autoformalize(AutoformalizationRequest) returns (AutoformalizationResult);
+  
+  // Stream autoformalization attempts
+  rpc AutoformalizeStreaming(AutoformalizationRequest) returns (stream AutoformalizationResult);
+  
+  // Check a proof
+  rpc CheckProof(ProofCheckRequest) returns (ProofCheckResult);
+  
+  // Recommend tactics for current proof state
+  rpc RecommendTactics(TacticRecommendationRequest) returns (TacticRecommendationResult);
+  
+  // Search mathematical libraries
+  rpc SearchLibrary(LibrarySearchRequest) returns (LibrarySearchResult);
+  
+  // Generate conjectures
+  rpc GenerateConjectures(ConjectureRequest) returns (ConjectureResult);
+  
+  // Find counterexamples
+  rpc FindCounterexamples(CounterexampleRequest) returns (CounterexampleResult);
+  
+  // Simplify a proof
+  rpc SimplifyProof(ProofSimplificationRequest) returns (ProofSimplificationResult);
+  
+  // Help with induction proofs
+  rpc InductionHelper(InductionHelperRequest) returns (InductionHelperResult);
+  
+  // Classify math problem
+  rpc ClassifyProblem(google.protobuf.Struct) returns (MathProblemClassification);
+  
+  // Solve with Z3 constraints
+  rpc Z3Solve(Z3ConstraintRequest) returns (Z3Result);
+  
+  // Prove with Z3
+  rpc Z3Prove(Z3TheoremRequest) returns (Z3Result);
+  
+  // Check equivalence
+  rpc CheckEquivalence(EquivalenceRequest) returns (EquivalenceResult);
+}

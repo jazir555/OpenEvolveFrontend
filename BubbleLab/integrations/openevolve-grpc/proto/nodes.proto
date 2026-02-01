@@ -1,0 +1,270 @@
+syntax = "proto3";
+
+package openevolve.grpc;
+
+import "common.proto";
+import "google/protobuf/struct.proto";
+
+// Node type enumeration
+enum NodeType {
+  NODE_TYPE_UNSPECIFIED = 0;
+  
+  // Analysis nodes
+  NODE_TYPE_DECOMPOSITION = 1;
+  NODE_TYPE_PROBLEM_ANALYZER = 2;
+  NODE_TYPE_COMPLEXITY_ANALYZER = 3;
+  
+  // Knowledge nodes
+  NODE_TYPE_KNOWLEDGE_QUERY = 10;
+  NODE_TYPE_KNOWLEDGE_EXTRACTION = 11;
+  NODE_TYPE_KNOWLEDGE_INTEGRATION = 12;
+  NODE_TYPE_KNOWLEDGE_REASONING = 13;
+  NODE_TYPE_KNOWLEDGE_VALIDATION = 14;
+  NODE_TYPE_KNOWLEDGE_ENRICHMENT = 15;
+  NODE_TYPE_KNOWLEDGE_FEDERATION = 16;
+  NODE_TYPE_KNOWLEDGE_LEARNING = 17;
+  NODE_TYPE_KNOWLEDGE_EVOLUTION = 18;
+  NODE_TYPE_KNOWLEDGE_ALERTING = 19;
+  NODE_TYPE_KNOWLEDGE_ANALYTICS = 20;
+  NODE_TYPE_KNOWLEDGE_SUMMARIZATION = 21;
+  NODE_TYPE_KNOWLEDGE_IMPORT_EXPORT = 22;
+  NODE_TYPE_TEMPORAL_KNOWLEDGE = 23;
+  NODE_TYPE_ENTITY_PROFILE = 24;
+  
+  // Math/Verification nodes
+  NODE_TYPE_MATH_PROOF_CHECKING = 30;
+  NODE_TYPE_MATH_CONJECTURE = 31;
+  NODE_TYPE_MATH_COUNTEREXAMPLE = 32;
+  NODE_TYPE_MATH_EQUIVALENCE = 33;
+  NODE_TYPE_MATH_INDUCTION = 34;
+  NODE_TYPE_MATH_LIBRARY_SEARCH = 35;
+  NODE_TYPE_MATH_PROBLEM_CLASSIFICATION = 36;
+  NODE_TYPE_MATH_PROOF_COMPLETION = 37;
+  NODE_TYPE_MATH_PROOF_SIMPLIFICATION = 38;
+  NODE_TYPE_MATH_TACTIC_RECOMMENDATION = 39;
+  NODE_TYPE_LEAN_AUTOFORMALIZATION = 40;
+  NODE_TYPE_Z3_CONSTRAINT_SOLVING = 41;
+  NODE_TYPE_Z3_THEOREM_PROVING = 42;
+  NODE_TYPE_MATH_WORKFLOW_ORCHESTRATOR = 43;
+  NODE_TYPE_MATH_VERIFICATION_PIPELINE = 44;
+  NODE_TYPE_MATH_VERIFICATION_DASHBOARD = 45;
+  
+  // Gauntlet nodes
+  NODE_TYPE_GAUNTLET = 50;
+  NODE_TYPE_FORMAL_GAUNTLET = 51;
+  
+  // Quality nodes
+  NODE_TYPE_QUALITY_ASSURANCE = 60;
+  NODE_TYPE_CONTRADICTION_DETECTION = 61;
+  NODE_TYPE_BIAS_DETECTION = 62;
+  
+  // Workflow nodes
+  NODE_TYPE_WORKFLOW_ORCHESTRATION = 70;
+  NODE_TYPE_SOLUTION = 71;
+  NODE_TYPE_SUBPROBLEM = 72;
+  NODE_TYPE_OUTPUT = 73;
+  NODE_TYPE_ASSEMBLY = 74;
+  
+  // Utility nodes
+  NODE_TYPE_BACKUP_RECOVERY = 80;
+  NODE_TYPE_VERSION_CONTROL = 81;
+  NODE_TYPE_EXPLAINABILITY = 82;
+  NODE_TYPE_UNCERTAINTY_QUANTIFICATION = 83;
+  NODE_TYPE_PATTERN_MINING = 84;
+  NODE_TYPE_RECOMMENDATION_ENGINE = 85;
+  NODE_TYPE_CAUSAL_ANALYSIS = 86;
+  NODE_TYPE_CHANGE_DETECTION = 87;
+  NODE_TYPE_SECURITY_COMPLIANCE = 88;
+  NODE_TYPE_NATURAL_LANGUAGE_INTERFACE = 89;
+  NODE_TYPE_STREAMING_INGESTION = 90;
+  NODE_TYPE_DEDUPLICATION = 91;
+  NODE_TYPE_SEMANTIC_SEARCH = 92;
+}
+
+// Node category for organization
+enum NodeCategory {
+  NODE_CATEGORY_UNSPECIFIED = 0;
+  NODE_CATEGORY_ANALYSIS = 1;
+  NODE_CATEGORY_KNOWLEDGE = 2;
+  NODE_CATEGORY_MATH = 3;
+  NODE_CATEGORY_VERIFICATION = 4;
+  NODE_CATEGORY_QUALITY = 5;
+  NODE_CATEGORY_WORKFLOW = 6;
+  NODE_CATEGORY_UTILITY = 7;
+}
+
+// Node capability flags
+message NodeCapabilities {
+  bool supports_streaming = 1;
+  bool supports_cancellation = 2;
+  bool supports_progress = 3;
+  bool supports_checkpointing = 4;
+  bool supports_parallel_execution = 5;
+  int32 max_timeout_seconds = 6;
+  repeated string required_resources = 7;
+}
+
+// Node metadata for discovery
+message NodeInfo {
+  string node_id = 1;
+  NodeType node_type = 2;
+  NodeCategory category = 3;
+  string display_name = 4;
+  string description = 5;
+  string icon = 6;
+  string version = 7;
+  repeated string tags = 8;
+  NodeCapabilities capabilities = 9;
+  google.protobuf.Struct parameter_schema = 10;
+  google.protobuf.Struct input_schema = 11;
+  google.protobuf.Struct output_schema = 12;
+  repeated string example_inputs = 13;
+  map<string, string> documentation_urls = 14;
+}
+
+// Node execution request
+message NodeExecutionRequest {
+  RequestMetadata metadata = 1;
+  string node_id = 2;
+  NodeType node_type = 3;
+  google.protobuf.Struct config = 4;
+  google.protobuf.Struct inputs = 5;
+  ExecutionOptions options = 6;
+}
+
+// Execution options
+message ExecutionOptions {
+  int32 timeout_seconds = 1;
+  bool enable_streaming = 2;
+  bool enable_checkpointing = 3;
+  string checkpoint_id = 4;
+  int32 max_retries = 5;
+  string execution_priority = 6;  // "low", "normal", "high", "critical"
+  map<string, string> labels = 7;
+  google.protobuf.Struct resource_limits = 8;
+}
+
+// Node execution response
+message NodeExecutionResponse {
+  ResponseMetadata metadata = 1;
+  string execution_id = 2;
+  ExecutionState state = 3;
+  google.protobuf.Struct result = 4;
+  ErrorDetails error = 5;
+  Progress final_progress = 6;
+  string checkpoint_id = 7;
+  google.protobuf.Struct execution_metrics = 8;
+}
+
+// Streaming execution update
+message ExecutionUpdate {
+  string execution_id = 1;
+  ExecutionState state = 2;
+  Progress progress = 3;
+  google.protobuf.Struct partial_result = 4;
+  ErrorDetails error = 5;
+  google.protobuf.Struct metrics = 6;
+}
+
+// Cancel execution request
+message CancelExecutionRequest {
+  RequestMetadata metadata = 1;
+  string execution_id = 2;
+  string reason = 3;
+}
+
+// Cancel execution response
+message CancelExecutionResponse {
+  ResponseMetadata metadata = 1;
+  bool success = 2;
+  string message = 3;
+  ExecutionState final_state = 4;
+}
+
+// Get execution status request
+message GetExecutionStatusRequest {
+  RequestMetadata metadata = 1;
+  string execution_id = 2;
+}
+
+// Get execution status response
+message GetExecutionStatusResponse {
+  ResponseMetadata metadata = 1;
+  string execution_id = 2;
+  ExecutionState state = 3;
+  Progress current_progress = 4;
+  google.protobuf.Struct result = 5;
+  ErrorDetails error = 6;
+  google.protobuf.Timestamp started_at = 7;
+  google.protobuf.Timestamp completed_at = 8;
+  int32 elapsed_seconds = 9;
+}
+
+// List available nodes request
+message ListNodesRequest {
+  RequestMetadata metadata = 1;
+  NodeCategory category = 2;
+  string search_query = 3;
+  repeated string tags = 4;
+  Pagination pagination = 5;
+}
+
+// List available nodes response
+message ListNodesResponse {
+  ResponseMetadata metadata = 1;
+  repeated NodeInfo nodes = 2;
+  PaginationInfo pagination = 3;
+}
+
+// Get node schema request
+message GetNodeSchemaRequest {
+  RequestMetadata metadata = 1;
+  NodeType node_type = 2;
+}
+
+// Get node schema response
+message GetNodeSchemaResponse {
+  ResponseMetadata metadata = 1;
+  NodeInfo node_info = 2;
+}
+
+// Batch execution request
+message BatchExecutionRequest {
+  RequestMetadata metadata = 1;
+  repeated NodeExecutionRequest requests = 2;
+  bool parallel = 3;
+  int32 max_concurrency = 4;
+}
+
+// Batch execution response
+message BatchExecutionResponse {
+  ResponseMetadata metadata = 1;
+  repeated NodeExecutionResponse responses = 2;
+  int32 succeeded = 3;
+  int32 failed = 4;
+  int32 total = 5;
+}
+
+// Node Registry Service
+service NodeRegistry {
+  // List all available nodes
+  rpc ListNodes(ListNodesRequest) returns (ListNodesResponse);
+  
+  // Get detailed information about a specific node
+  rpc GetNodeSchema(GetNodeSchemaRequest) returns (GetNodeSchemaResponse);
+  
+  // Execute a node synchronously (for quick operations)
+  rpc ExecuteNode(NodeExecutionRequest) returns (NodeExecutionResponse);
+  
+  // Execute a node with streaming updates (for long-running operations)
+  rpc ExecuteNodeStreaming(NodeExecutionRequest) returns (stream ExecutionUpdate);
+  
+  // Execute multiple nodes in batch
+  rpc ExecuteBatch(BatchExecutionRequest) returns (BatchExecutionResponse);
+  
+  // Get status of a running or completed execution
+  rpc GetExecutionStatus(GetExecutionStatusRequest) returns (GetExecutionStatusResponse);
+  
+  // Cancel a running execution
+  rpc CancelExecution(CancelExecutionRequest) returns (CancelExecutionResponse);
+}
