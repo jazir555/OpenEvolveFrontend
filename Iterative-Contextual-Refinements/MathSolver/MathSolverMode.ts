@@ -264,6 +264,7 @@ export async function renderMathSolverUI(container: HTMLElement): Promise<void> 
         const React = await import('react');
         const { createRoot } = await import('react-dom/client');
         const { MathSolverUI } = await import('./MathSolverUI');
+        const { MathSolverErrorBoundary } = await import('./MathSolverErrorBoundary');
         
         const root = createRoot(reactContainer);
         activeReactRoot = root; // Store for cleanup
@@ -271,12 +272,19 @@ export async function renderMathSolverUI(container: HTMLElement): Promise<void> 
         const state = activeMathSolverCore.getState();
         
         root.render(
-            React.createElement(MathSolverUI, {
+            React.createElement(MathSolverErrorBoundary, {
+                onReset: () => {
+                    // Reset MathSolver state on error boundary reset
+                    if (activeMathSolverCore) {
+                        activeMathSolverCore.reset();
+                    }
+                }
+            }, React.createElement(MathSolverUI, {
                 initialProblem: state.currentProblem?.statement || '',
                 onClose: () => {
                     console.log('[MathSolver] UI closed');
                 }
-            })
+            }))
         );
         
         console.log('[MathSolver] UI rendered');

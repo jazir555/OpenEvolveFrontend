@@ -65,7 +65,7 @@ export interface Z3SolveRequest {
 
 export interface Z3SolveResponse {
     status: 'sat' | 'unsat' | 'unknown' | 'timeout' | 'error';
-    model?: Record<string, any> | null;
+    model?: Record<string, string | number | boolean> | null;
     proof?: string | null;
     solving_time_ms: number;
     error?: string | null;
@@ -96,7 +96,7 @@ export interface SolveUnifiedRequest {
 export interface SolveUnifiedResponse {
     result_status: string;
     primary_solver: string;
-    result?: any;
+    result?: Record<string, unknown>;
     verified: boolean;
     consensus_status?: string | null;
     solving_time_ms: number;
@@ -108,7 +108,7 @@ export interface LearnRequest {
     constraints: string[];
     result: string;
     proof?: string | null;
-    metadata?: Record<string, any> | null;
+    metadata?: Record<string, string | number | boolean> | null;
 }
 
 export interface LearnResponse {
@@ -143,7 +143,7 @@ export interface KnowledgeStats {
     total_patterns?: number;
     total_strategies?: number;
     learning_enabled?: boolean;
-    [key: string]: any;
+    [key: string]: string | number | boolean | undefined;
 }
 
 // Health check response
@@ -189,7 +189,7 @@ export interface MathSolverMessage {
     timestamp: number;
     solverType?: SolverSystem;
     proofStatus?: ProofStatus;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, string | number | boolean>;
 }
 
 export interface SolveOptions {
@@ -381,7 +381,7 @@ export class MathSolverAPI {
         }
     }
 
-    private async post<T>(path: string, body: any, externalSignal?: AbortSignal): Promise<T> {
+    private async post<T>(path: string, body: unknown, externalSignal?: AbortSignal): Promise<T> {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), this.timeout);
 
@@ -869,11 +869,19 @@ export class MathSolverCore {
     /**
      * Import session state
      */
-    importState(state: any): void {
+    importState(state: {
+        history?: MathProblem[];
+        messages?: MathSolverMessage[];
+        knowledgeBase?: KnowledgeEntry[];
+        currentProblem?: MathProblem | null;
+        z3Results?: [string, Z3SolveResponse][];
+        leanResults?: [string, ProveLeanResponse][];
+        unifiedResults?: [string, SolveUnifiedResponse][];
+    }): void {
         if (state.history) this.state.history = state.history;
         if (state.messages) this.state.messages = state.messages;
         if (state.knowledgeBase) this.state.knowledgeBase = state.knowledgeBase;
-        if (state.currentProblem) this.state.currentProblem = state.currentProblem;
+        if (state.currentProblem !== undefined) this.state.currentProblem = state.currentProblem;
         
         // Restore Maps from arrays
         if (state.z3Results) {

@@ -40,7 +40,7 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
     const [selectedSolver, setSelectedSolver] = useState<SolverSystem>('auto');
     const [consensusLevel, setConsensusLevel] = useState<ConsensusLevel>('confidence');
     const [useKnowledge, setUseKnowledge] = useState(true);
-    const [timeout, setTimeout] = useState(300);
+    const [solverTimeout, setSolverTimeout] = useState(300);
     
     // Backend status
     const [backendStatus, setBackendStatus] = useState<{ available: boolean; versionCompatible?: boolean; versionError?: string; details?: any } | null>(null);
@@ -142,14 +142,14 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
                 preferredSolver: selectedSolver,
                 useKnowledgeBase: useKnowledge,
                 consensusLevel,
-                timeout
+                timeout: solverTimeout
             });
         } catch (error) {
             // Error is already handled by MathSolverCore and emitted via solvingError
             // This catch prevents unhandled promise rejection
             console.log('[MathSolverUI] Solve error caught (handled by core):', error);
         }
-    }, [core, problemInput, selectedSolver, useKnowledge, consensusLevel, timeout]);
+    }, [core, problemInput, selectedSolver, useKnowledge, consensusLevel, solverTimeout]);
 
     const handleClear = useCallback(() => {
         core.reset();
@@ -157,7 +157,7 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
         setSelectedSolver('auto');
         setConsensusLevel('confidence');
         setUseKnowledge(true);
-        setTimeout(300);
+        setSolverTimeout(300);
         setState(core.getState());
     }, [core]);
 
@@ -338,11 +338,14 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
                 </div>
                 
                 <div>
-                    <label>Timeout (s):</label>
+                    <label htmlFor="math-timeout-input">Timeout (s):</label>
                     <input 
+                        id="math-timeout-input"
                         type="number" 
-                        value={timeout} 
-                        onChange={(e) => setTimeout(parseInt(e.target.value) || 300)}
+                        value={solverTimeout} 
+                        onChange={(e) => setSolverTimeout(parseInt(e.target.value) || 300)}
+                        disabled={state.isProcessing}
+                        aria-label="Solver timeout in seconds"
                         style={{ marginLeft: '8px', width: '80px' }}
                     />
                 </div>

@@ -97,6 +97,7 @@ export type { MathSolverConfig } from './MathSolverPrompts';
 // ============================================================================
 
 export { MathSolverUI } from './MathSolverUI';
+export { MathSolverErrorBoundary } from './MathSolverErrorBoundary';
 
 // ============================================================================
 // Tool Exports
