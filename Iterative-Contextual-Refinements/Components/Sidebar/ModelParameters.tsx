@@ -63,6 +63,22 @@ export const ModelParameters: React.FC = () => {
                             aria-label="Number of refinement stages slider"
                         />
                     </div>
+                    <div className="input-group-tight">
+                        <div className="checkbox-row">
+                            <label htmlFor="auto-refine-toggle" className="input-label">
+                                Auto-refine
+                            </label>
+                            <input
+                                type="checkbox"
+                                id="auto-refine-toggle"
+                                className="checkbox-input"
+                                aria-label="Auto-refine when analytics detects low quality"
+                            />
+                        </div>
+                        <span className="input-hint">
+                            Trigger hidden refinement cycles when analytics scores drop below the threshold.
+                        </span>
+                    </div>
 
                     {/* Iterative Evolutions Convergence Container */}
                     <div className="evolution-convergence-container">

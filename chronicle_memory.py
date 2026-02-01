@@ -433,6 +433,84 @@ class ChronicleMemory:
     def set_agent(self, agent_id: str):
         """Set the current agent ID"""
         self._current_agent = agent_id
+
+    async def synthesize_adr(
+        self,
+        title: str,
+        decision: str,
+        rationale: str,
+        consequences: str,
+        alternatives_rejected: Optional[List[str]] = None,
+        entangled_components: Optional[List[str]] = None,
+        convergence_trace_event_ids: Optional[List[str]] = None
+    ) -> Dict[str, Any]:
+        """
+        Synthesize an Architecture Decision Record (ADR) using MADR template.
+
+        Returns:
+            Dictionary with ADR metadata and content.
+        """
+        decision_id = str(uuid.uuid4())[:12]
+        alternatives_rejected = alternatives_rejected or []
+        entangled_components = entangled_components or []
+
+        # Build convergence trace if not provided
+        if convergence_trace_event_ids is None:
+            recent_events = await self.store.get_session_events(self.session_id)
+            convergence_trace_event_ids = [e.event_id for e in recent_events[-10:]]
+
+        adr_content = (
+            f"# ADR-{decision_id}: {title}\n"
+            "## Context\n"
+            f"{rationale}\n"
+            "## Decision\n"
+            f"{decision}\n"
+            "## Rationale\n"
+            f"{rationale}\n"
+            "## Consequences\n"
+            f"{consequences}\n"
+            f"## Alternatives Rejected\n"
+            f"{'- ' + '\\n- '.join(alternatives_rejected) if alternatives_rejected else '- None'}\n"
+            f"## Entangled Components\n"
+            f"{'- ' + '\\n- '.join(entangled_components) if entangled_components else '- None'}\n"
+        )
+
+        adr_dir = self.store.storage_path / "adrs"
+        adr_dir.mkdir(parents=True, exist_ok=True)
+        adr_path = adr_dir / f"ADR-{decision_id}.md"
+        with open(adr_path, "w", encoding="utf-8") as f:
+            f.write(adr_content)
+
+        await self.record_event(
+            event_type=EventType.DECISION_MADE,
+            action="adr_synthesized",
+            parameters={
+                "decision_id": decision_id,
+                "adr_path": str(adr_path),
+                "alternatives_rejected": alternatives_rejected,
+                "convergence_trace": convergence_trace_event_ids
+            },
+            outcome=Outcome.SUCCESS,
+            narrative=f"ADR synthesized: {title}"
+        )
+
+        return {
+            "decision_id": decision_id,
+            "title": title,
+            "adr_path": str(adr_path),
+            "alternatives_rejected": alternatives_rejected,
+            "convergence_trace": convergence_trace_event_ids,
+            "entangled_components": entangled_components,
+            "content": adr_content
+        }
+
+    async def extract_reasoning_path(self, limit: int = 25) -> List[str]:
+        """
+        Extract a reasoning path (sequence of actions) from recent chronicle events.
+        """
+        events = await self.store.get_session_events(self.session_id)
+        path = [e.action for e in events[-limit:]]
+        return [p for p in path if p]
     
     async def record_event(
         self,

@@ -36,6 +36,9 @@ let generativeUIPrompts: GenerativeUIPrompts = new GenerativeUIPrompts();
 // Configuration constants
 const DEBOUNCE_MS = 500; // Debounce rapid interactions
 const INTERACTION_QUEUE_LIMIT = 5; // Max queued interactions
+const HEATMAP_SNAPSHOT_INTERVAL = 10; // Every 10 interactions
+const MAX_HEATMAP_POINTS = 200;
+const MAX_HEATMAP_SNAPSHOTS = 50;
 
 // ========== INTERACTIVE MODE HELPER FUNCTIONS ==========
 
@@ -58,6 +61,26 @@ function injectInteractionTracking(html: string): string {
     // extractApplicationState removed - not used in prompts
     // All state is already in screenSnapshot (full HTML)
 
+    var hoverTarget = null;
+    var hoverStartTime = 0;
+
+    function getNormalizedPosition(position) {
+        if (!position) return null;
+        var width = window.innerWidth || 1;
+        var height = window.innerHeight || 1;
+        return {
+            x: position.x / width,
+            y: position.y / height
+        };
+    }
+
+    function getDwellTimeMs(element) {
+        if (hoverTarget && hoverTarget === element && hoverStartTime) {
+            return Date.now() - hoverStartTime;
+        }
+        return 0;
+    }
+
     // Send interaction to parent with error handling
     function sendInteraction(eventType, element, position) {
         try {
@@ -66,13 +89,19 @@ function injectInteractionTracking(html: string): string {
                 console.warn('[GenerativeUI Tracking] Interaction processing timeout - recovering');
             }, 30000); // 30 second timeout
             
+            var normalized = getNormalizedPosition(position);
+            var dwellTimeMs = getDwellTimeMs(element);
+
             window.parent.postMessage({
                 type: 'generativeui-interaction',
                 eventType: eventType,
                 element: getElementInfo(element),
-                // Removed: position (not used), extractedState (duplicate of HTML)
+                position: position,
+                normalizedPosition: normalized,
+                dwellTimeMs: dwellTimeMs,
                 screenSnapshot: document.documentElement.outerHTML, // Full HTML, no limits
-                timestamp: Date.now()
+                timestamp: Date.now(),
+                viewport: { width: window.innerWidth, height: window.innerHeight }
             }, '*');
         } catch (error) {
             console.error('[GenerativeUI Tracking] Failed to send interaction:', error);
@@ -95,6 +124,18 @@ function injectInteractionTracking(html: string): string {
         console.error('[GenerativeUI Tracking] Unhandled promise rejection:', e.reason);
         e.preventDefault();
     });
+
+    document.addEventListener('mouseover', function(e) {
+        hoverTarget = e.target;
+        hoverStartTime = Date.now();
+    }, true);
+
+    document.addEventListener('mouseout', function(e) {
+        if (hoverTarget === e.target) {
+            hoverTarget = null;
+            hoverStartTime = 0;
+        }
+    }, true);
 
     // Click handler - ONLY for buttons, links, and submit buttons
     document.addEventListener('click', function(e) {
@@ -207,6 +248,87 @@ function isDuplicateInteraction(interaction: import('./GenerativeUICore').Captur
     return false;
 }
 
+function recordHeatmapPoint(interaction: import('./GenerativeUICore').CapturedInteraction) {
+    if (!activeGenerativeUIState || !activeGenerativeUIState.heatmapEnabled) return;
+    if (!interaction.normalizedPosition) return;
+
+    const dwellMs = interaction.dwellTimeMs || 0;
+    const intensity = interaction.type === 'click' || interaction.type === 'submit' ? 1.0 : 0.6;
+
+    activeGenerativeUIState.heatmapPoints.push({
+        x: interaction.normalizedPosition.x,
+        y: interaction.normalizedPosition.y,
+        intensity,
+        dwellMs,
+        timestamp: interaction.timestamp,
+        type: interaction.type
+    });
+
+    if (activeGenerativeUIState.heatmapPoints.length > MAX_HEATMAP_POINTS) {
+        activeGenerativeUIState.heatmapPoints = activeGenerativeUIState.heatmapPoints.slice(-MAX_HEATMAP_POINTS);
+    }
+}
+
+function getPreviewDimensions(): { width: number; height: number } {
+    const container = document.querySelector('.generativeui-preview-content') as HTMLElement | null;
+    if (container && container.clientWidth && container.clientHeight) {
+        return { width: container.clientWidth, height: container.clientHeight };
+    }
+    return { width: 800, height: 450 };
+}
+
+function generateHeatmapDataUrl(points: import('./GenerativeUICore').HeatmapPoint[], width: number, height: number): string {
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return '';
+
+    ctx.clearRect(0, 0, width, height);
+
+    for (const point of points) {
+        const x = point.x * width;
+        const y = point.y * height;
+        const radius = 30 + Math.min(70, point.dwellMs / 30);
+        const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+        const alpha = Math.min(0.5, 0.2 + point.intensity * 0.3);
+        gradient.addColorStop(0, `rgba(255, 80, 120, ${alpha})`);
+        gradient.addColorStop(1, 'rgba(255, 80, 120, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+    }
+
+    return canvas.toDataURL('image/png');
+}
+
+function getManualCodeDelta(): number {
+    if (!activeGenerativeUIState) return 0;
+    const history = activeGenerativeUIState.screenHistory;
+    if (history.length < 2) return 0;
+    const latest = history[history.length - 1]?.screenHtml || '';
+    const previous = history[history.length - 2]?.screenHtml || '';
+    return Math.abs(latest.length - previous.length);
+}
+
+function createHeatmapSnapshot(currentScreenHtml: string) {
+    if (!activeGenerativeUIState || !activeGenerativeUIState.heatmapEnabled) return;
+    const { width, height } = getPreviewDimensions();
+    const heatmapDataUrl = generateHeatmapDataUrl(activeGenerativeUIState.heatmapPoints, width, height);
+    const snapshot = {
+        id: `heatmap-${Date.now()}`,
+        timestamp: Date.now(),
+        screenHtml: currentScreenHtml,
+        heatmapDataUrl,
+        points: activeGenerativeUIState.heatmapPoints.slice(),
+        manualCodeDelta: getManualCodeDelta()
+    };
+
+    activeGenerativeUIState.heatmapSnapshots.push(snapshot);
+    if (activeGenerativeUIState.heatmapSnapshots.length > MAX_HEATMAP_SNAPSHOTS) {
+        activeGenerativeUIState.heatmapSnapshots = activeGenerativeUIState.heatmapSnapshots.slice(-MAX_HEATMAP_SNAPSHOTS);
+    }
+}
+
 // NO LIMITS - removed compression and trimming entirely
 
 // Process queued interactions
@@ -270,8 +392,10 @@ function handleIframeMessage(event: MessageEvent) {
         timestamp: event.data.timestamp,
         element: event.data.element,
         position: event.data.position,
+        normalizedPosition: event.data.normalizedPosition,
         extractedState: event.data.extractedState,
-        screenSnapshot: event.data.screenSnapshot  // Only used for current generation
+        screenSnapshot: event.data.screenSnapshot,  // Only used for current generation
+        dwellTimeMs: event.data.dwellTimeMs
     };
 
     // Check for duplicate
@@ -315,6 +439,13 @@ async function handleUserInteraction(interaction: import('./GenerativeUICore').C
             // Removed: position, extractedState, screenSnapshot (all unused or duplicate)
         };
         activeGenerativeUIState.interactionHistory.push(interactionForHistory);
+
+        // Heatmap tracking
+        recordHeatmapPoint(interaction);
+        activeGenerativeUIState.heatmapTurnCount += 1;
+        if (activeGenerativeUIState.heatmapTurnCount % HEATMAP_SNAPSHOT_INTERVAL === 0) {
+            createHeatmapSnapshot(currentScreenHtml || '');
+        }
 
         // Trigger contextual generation with current HTML
         await startContextualGeneration(interaction, currentScreenHtml);
@@ -565,6 +696,9 @@ const GenerativeUIPreview: React.FC<{
     iframeRef: React.RefObject<HTMLIFrameElement | null>;
     onStop: () => void;
 }> = ({ state, iframeRef, onStop }) => {
+    const heatmapCanvasRef = useRef<HTMLCanvasElement>(null);
+    const previewContentRef = useRef<HTMLDivElement>(null);
+
     const toggleIterativeRefinements = () => {
         if (activeGenerativeUIState && activeGenerativeUIState.status !== 'processing') {
             activeGenerativeUIState.enableIterativeRefinements = !activeGenerativeUIState.enableIterativeRefinements;
@@ -573,9 +707,60 @@ const GenerativeUIPreview: React.FC<{
         }
     };
 
+    const toggleHeatmap = () => {
+        if (activeGenerativeUIState) {
+            activeGenerativeUIState.heatmapEnabled = !activeGenerativeUIState.heatmapEnabled;
+            renderGenerativeUIMode();
+        }
+    };
+
     useEffect(() => {
         // Effect for iframe loading state
     }, [state.finalCode]);
+
+    useEffect(() => {
+        const canvas = heatmapCanvasRef.current;
+        const container = previewContentRef.current;
+        if (!canvas || !container) return;
+
+        const resize = () => {
+            const width = container.clientWidth || 800;
+            const height = container.clientHeight || 450;
+            if (canvas.width !== width || canvas.height !== height) {
+                canvas.width = width;
+                canvas.height = height;
+            }
+        };
+
+        resize();
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        if (!state.heatmapEnabled) return;
+
+        for (const point of state.heatmapPoints) {
+            const x = point.x * canvas.width;
+            const y = point.y * canvas.height;
+            const radius = 30 + Math.min(70, point.dwellMs / 30);
+            const gradient = ctx.createRadialGradient(x, y, 0, x, y, radius);
+            const alpha = Math.min(0.5, 0.2 + point.intensity * 0.3);
+            gradient.addColorStop(0, `rgba(255, 80, 120, ${alpha})`);
+            gradient.addColorStop(1, 'rgba(255, 80, 120, 0)');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+        }
+
+        if (typeof ResizeObserver !== 'undefined') {
+            const observer = new ResizeObserver(() => {
+                resize();
+            });
+            observer.observe(container);
+            return () => observer.disconnect();
+        }
+        return;
+    }, [state.heatmapPoints, state.heatmapEnabled, state.finalCode]);
 
     return (
         <div className="generativeui-preview-container">
@@ -594,6 +779,14 @@ const GenerativeUIPreview: React.FC<{
                         />
                         <span className="toggle-label">Enable Iterative Refinements</span>
                     </label>
+                    <label className="refinements-toggle">
+                        <input
+                            type="checkbox"
+                            checked={state.heatmapEnabled}
+                            onChange={toggleHeatmap}
+                        />
+                        <span className="toggle-label">Heatmap</span>
+                    </label>
                     {state.status === 'processing' && (
                         <button className="stop-btn" onClick={onStop}>
                             Stop Generation
@@ -602,15 +795,18 @@ const GenerativeUIPreview: React.FC<{
                 </div>
             </div>
 
-            <div className="generativeui-preview-content">
+            <div className="generativeui-preview-content" ref={previewContentRef}>
                 {state.finalCode ? (
-                    <iframe
-                        ref={iframeRef}
-                        srcDoc={state.finalCode}
-                        title="Generated UI"
-                        className="generativeui-iframe"
-                        sandbox="allow-scripts allow-forms"
-                    />
+                    <>
+                        <iframe
+                            ref={iframeRef}
+                            srcDoc={state.finalCode}
+                            title="Generated UI"
+                            className="generativeui-iframe"
+                            sandbox="allow-scripts allow-forms"
+                        />
+                        <canvas className="generativeui-heatmap" ref={heatmapCanvasRef} />
+                    </>
                 ) : state.status === 'processing' ? (
                     <div className="loading-state">
                         <div className="spinner"></div>
@@ -1010,7 +1206,11 @@ export async function startGenerativeUIProcess(initialIdea: string) {
         interactionQueue: [],
         lastInteractionTimestamp: 0,
         interactionSummary: undefined,
-        maxHistorySize: Infinity // No limits
+        maxHistorySize: Infinity, // No limits
+        heatmapEnabled: true,
+        heatmapPoints: [],
+        heatmapSnapshots: [],
+        heatmapTurnCount: 0
     };
 
     globalState.isGenerativeUIRunning = true;
@@ -1379,6 +1579,18 @@ export function setActiveGenerativeUIStateForImport(state: GenerativeUIState | n
         }
         if (state.maxHistorySize === undefined) {
             state.maxHistorySize = Infinity; // No limits
+        }
+        if (state.heatmapEnabled === undefined) {
+            state.heatmapEnabled = true;
+        }
+        if (state.heatmapPoints === undefined) {
+            state.heatmapPoints = [];
+        }
+        if (state.heatmapSnapshots === undefined) {
+            state.heatmapSnapshots = [];
+        }
+        if (state.heatmapTurnCount === undefined) {
+            state.heatmapTurnCount = 0;
         }
     }
     activeGenerativeUIState = state;

@@ -23,6 +23,7 @@ export class ModelSelectionUI {
         iterativeCorrectionsToggle: HTMLInputElement | null;
         provideAllSolutionsToggle: HTMLInputElement | null;
         postQualityFilterToggle: HTMLInputElement | null;
+        autoRefineToggle: HTMLInputElement | null;
         temperatureValue: HTMLSpanElement | null;
         topPValue: HTMLSpanElement | null;
         refinementStagesValue: HTMLSpanElement | null;
@@ -47,6 +48,7 @@ export class ModelSelectionUI {
             iterativeCorrectionsToggle: null,
             provideAllSolutionsToggle: null,
             postQualityFilterToggle: null,
+            autoRefineToggle: null,
             temperatureValue: null,
             topPValue: null,
             refinementStagesValue: null,
@@ -71,6 +73,7 @@ export class ModelSelectionUI {
             iterativeCorrectionsToggle: document.getElementById('iterative-corrections-toggle') as HTMLInputElement,
             provideAllSolutionsToggle: document.getElementById('provide-all-solutions-toggle') as HTMLInputElement,
             postQualityFilterToggle: document.getElementById('post-quality-filter-toggle') as HTMLInputElement,
+            autoRefineToggle: document.getElementById('auto-refine-toggle') as HTMLInputElement,
             temperatureValue: document.getElementById('temperature-value') as HTMLSpanElement,
             topPValue: document.getElementById('top-p-value') as HTMLSpanElement,
             refinementStagesValue: document.getElementById('refinement-stages-value') as HTMLSpanElement,
@@ -564,6 +567,13 @@ export class ModelSelectionUI {
             });
         }
 
+        // Auto-refine toggle
+        if (this.elements.autoRefineToggle) {
+            this.elements.autoRefineToggle.addEventListener('change', () => {
+                this.modelConfig.updateParameter('autoRefineEnabled', this.elements.autoRefineToggle!.checked);
+            });
+        }
+
         // Red team buttons
         this.initializeRedTeamButtons();
 
@@ -685,6 +695,10 @@ export class ModelSelectionUI {
 
         if (this.elements.refinementToggle) {
             this.elements.refinementToggle.checked = params.refinementEnabled;
+        }
+
+        if (this.elements.autoRefineToggle) {
+            this.elements.autoRefineToggle.checked = params.autoRefineEnabled;
         }
 
         if (this.elements.skipSubStrategiesToggle) {

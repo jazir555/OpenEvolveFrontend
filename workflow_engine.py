@@ -12,6 +12,7 @@ import logging
 
 import streamlit as st
 from ui_components import render_manual_review_panel # Import for Stage 2 UI
+from memory_agent import MemoryAgent
 
 try:
     from lean_client_adapter.api import WorkflowIntegrationAPI, MathematicalVerificationAPI
@@ -55,6 +56,15 @@ from llm_utils import _request_openai_compatible_chat
 logger = logging.getLogger(__name__)
 
 
+class RecursivePlanFailure(RuntimeError):
+    """Raised when the refinement loop hits the maximum allowed iterations."""
+
+    def __init__(self, problematic_sub_problem_ids: List[str], failure_summary: str = ""):
+        super().__init__(failure_summary or "Refinement loop exceeded max iterations.")
+        self.problematic_sub_problem_ids = problematic_sub_problem_ids
+        self.failure_summary = failure_summary
+
+
 def _record_workflow_completion(
     workflow_state: WorkflowState,
     resource_manager: ResourceManager,
@@ -86,6 +96,92 @@ def _record_workflow_completion(
             MetricType.COUNTER,
             {"workflow_id": workflow_state.workflow_id}
         )
+
+
+def _apply_top_down_repair(
+    workflow_state: WorkflowState,
+    planner_team: Team,
+    disambiguation_constraints: List[str],
+    failing_sub_problem_ids: List[str]
+) -> None:
+    """
+    Attempt a top-down repair of the decomposition plan by re-decomposing
+    the problem with added disambiguation constraints.
+    """
+    if not workflow_state.decomposition_plan:
+        return
+
+    constraint_text = "\n".join(f"- {c}" for c in disambiguation_constraints) if disambiguation_constraints else ""
+    repaired_statement = workflow_state.problem_statement
+    if constraint_text:
+        repaired_statement = f"{workflow_state.problem_statement}\n\nDISAMBIGUATION CONSTRAINTS:\n{constraint_text}"
+
+    try:
+        repaired_plan = run_ai_decomposition(
+            repaired_statement,
+            workflow_state.decomposition_plan.analyzed_context,
+            planner_team
+        )
+        workflow_state.decomposition_plan.sub_problems = repaired_plan.sub_problems
+        workflow_state.decomposition_plan.analyzed_context = {
+            **workflow_state.decomposition_plan.analyzed_context,
+            "top_down_repair": {
+                "failing_sub_problem_ids": failing_sub_problem_ids,
+                "constraints": disambiguation_constraints,
+                "repaired_at": time.time(),
+            },
+            "disambiguation_constraints": disambiguation_constraints,
+        }
+    except Exception as e:
+        logger.error(f"Top-down repair failed: {e}")
+
+
+def _handle_recursive_plan_failure(
+    workflow_state: WorkflowState,
+    planner_team: Team,
+    failure: RecursivePlanFailure,
+    workflow_started_at: float,
+    resource_manager: ResourceManager
+) -> None:
+    """Handle recursive plan failure via MemoryAgent and top-down repair."""
+    st.error("Recursive plan failure detected. Initiating top-down repair.")
+    memory_agent = MemoryAgent()
+    failure_history = []
+    for report in (workflow_state.all_critique_reports + workflow_state.all_verification_reports):
+        summary = getattr(report, "summary", "") if report else ""
+        failure_history.append(summary or str(report))
+
+    disambiguation_constraints = memory_agent.analyze_failure_history(failure_history)
+    _apply_top_down_repair(
+        workflow_state,
+        planner_team,
+        disambiguation_constraints,
+        failure.problematic_sub_problem_ids
+    )
+
+    workflow_state.refinement_loop_count = 0
+    workflow_state.solved_sub_problem_ids.clear()
+    workflow_state.sub_problem_solutions.clear()
+    workflow_state.rejected_sub_problems.clear()
+    workflow_state.status = "running"
+    workflow_state.current_stage = "AI-Assisted Decomposition"
+    workflow_state.progress = 0.2
+
+    add_metric(
+        "workflow_repair_total",
+        1,
+        MetricType.COUNTER,
+        {"workflow_id": workflow_state.workflow_id}
+    )
+
+    # Record the failure event in metrics for traceability
+    add_metric(
+        "workflow_timeouts_total",
+        1,
+        MetricType.COUNTER,
+        {"workflow_id": workflow_state.workflow_id}
+    )
+    # Do not finalize workflow; it will re-enter decomposition after repair.
     add_metric(
         "active_workflows",
         0,
@@ -1950,17 +2046,19 @@ async def run_sovereign_workflow(
                 
                 workflow_state.refinement_loop_count += 1
                 # Check if max refinement loops have been reached.
-                if workflow_state.refinement_loop_count > workflow_state.max_refinement_loops:
-                    st.error("Max refinement loops reached for final solution. Manual intervention required.")
-                    workflow_state.status = "failed"
-                    add_metric(
-                        "workflow_timeouts_total",
-                        1,
-                        MetricType.COUNTER,
-                        {"workflow_id": workflow_state.workflow_id}
-                    )
-                    _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
-                    return
+                if workflow_state.refinement_loop_count >= workflow_state.max_refinement_loops:
+                    summary = getattr(final_red_gauntlet_result.get('critique_report'), 'summary', '')
+                    try:
+                        raise RecursivePlanFailure(problematic_sub_problem_ids, summary)
+                    except RecursivePlanFailure as e:
+                        _handle_recursive_plan_failure(
+                            workflow_state,
+                            planner_team,
+                            e,
+                            workflow_started_at,
+                            resource_manager
+                        )
+                        return
                 
                 workflow_state.current_stage = "Sub-Problem Solving Loop" # Go back to solve problematic sub-problems.
                 return # Exit current run, Streamlit will re-run and and continue from Stage 3.
@@ -2032,17 +2130,19 @@ async def run_sovereign_workflow(
                 
                 workflow_state.refinement_loop_count += 1
                 # Check if max refinement loops have been reached.
-                if workflow_state.refinement_loop_count > workflow_state.max_refinement_loops:
-                    st.error("Max refinement loops reached for final solution. Manual intervention required.")
-                    workflow_state.status = "failed"
-                    add_metric(
-                        "workflow_timeouts_total",
-                        1,
-                        MetricType.COUNTER,
-                        {"workflow_id": workflow_state.workflow_id}
-                    )
-                    _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
-                    return
+                if workflow_state.refinement_loop_count >= workflow_state.max_refinement_loops:
+                    summary = getattr(final_gold_gauntlet_result.get('verification_report'), 'summary', '')
+                    try:
+                        raise RecursivePlanFailure(problematic_sub_problem_ids, summary)
+                    except RecursivePlanFailure as e:
+                        _handle_recursive_plan_failure(
+                            workflow_state,
+                            planner_team,
+                            e,
+                            workflow_started_at,
+                            resource_manager
+                        )
+                        return
                 
                 workflow_state.current_stage = "Sub-Problem Solving Loop" # Go back to solve problematic sub-problems.
                 return # Exit current run, Streamlit will re-run and continue from Stage 3.

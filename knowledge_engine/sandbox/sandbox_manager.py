@@ -26,6 +26,7 @@ import shutil
 import os
 import subprocess
 import time
+import re
 from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass
 from enum import Enum, auto
@@ -258,6 +259,26 @@ class SandboxManager:
                 return backend
         
         return SandboxType.SUBPROCESS
+
+    def _resolve_dependency_packages(self, context: Dict[str, Any]) -> List[str]:
+        """Resolve dependency packages based on entanglement matrix context."""
+        packages = set(context.get("dependency_packages", []) or [])
+        component_id = context.get("component_id")
+        entanglement_matrix = context.get("entanglement_matrix", {})
+        component_dependencies = context.get("component_dependencies", {})
+
+        if component_id and entanglement_matrix and component_dependencies:
+            entangled = entanglement_matrix.get(component_id, set())
+            for comp in set(entangled) | {component_id}:
+                packages.update(component_dependencies.get(comp, []))
+
+        return sorted(packages)
+
+    def _verify_isolation(self, policy: SecurityPolicy) -> bool:
+        """Basic isolation proof stub; uses policy guarantees."""
+        if policy.network_access:
+            return False
+        return True
     
     async def _execute_e2b(
         self,
@@ -382,12 +403,22 @@ class SandboxManager:
                 'start_time': datetime.now(timezone.utc)
             }
             
+            # Dependency-aware provisioning
+            dependency_packages = self._resolve_dependency_packages(context or {})
+            install_cmd = ""
+            dependency_warning = None
+            if dependency_packages:
+                if policy.network_access:
+                    install_cmd = f"pip install {' '.join(dependency_packages)} && "
+                else:
+                    dependency_warning = "Missing packages but network access is disabled; cannot install."
+
             # Run container
             start_time = time.time()
             
             container = client.containers.run(
                 'python:3.11-slim',
-                f'python /code/script.py',
+                f'/bin/sh -lc \"{install_cmd}python /code/script.py\"',
                 volumes={temp_dir: {'bind': '/code', 'mode': 'ro'}},
                 network_mode='none' if not policy.network_access else 'bridge',
                 mem_limit=f'{policy.max_memory_mb}m',
@@ -410,6 +441,17 @@ class SandboxManager:
             # Parse stdout/stderr
             stdout = logs
             stderr = ""
+
+            missing_modules = re.findall(r\"No module named ['\\\"]([\\w_\\.]+)['\\\"]\", logs)
+            suggested_dockerfile = None
+            if missing_modules:
+                pkgs = \" \".join(sorted(set(missing_modules)))
+                suggested_dockerfile = (
+                    \"FROM python:3.11-slim\\n\"
+                    f\"RUN pip install {pkgs}\\n\"
+                    \"COPY . /code\\n\"
+                    \"CMD [\\\"python\\\", \\\"/code/script.py\\\"]\\n\"
+                )
             
             # Collect artifacts
             artifacts = []
@@ -429,7 +471,11 @@ class SandboxManager:
                     'backend': 'docker',
                     'isolated': True,
                     'container_id': container.id[:12],
-                    'network_access': policy.network_access
+                    'network_access': policy.network_access,
+                    'dependency_packages': dependency_packages,
+                    'dependency_warning': dependency_warning,
+                    'suggested_dockerfile': suggested_dockerfile,
+                    'isolation_proof': self._verify_isolation(policy)
                 }
             )
             

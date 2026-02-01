@@ -9,6 +9,7 @@ import json
 import logging
 import asyncio
 import time
+import difflib
 from typing import Optional, Dict, Any, AsyncGenerator
 from datetime import datetime
 from pathlib import Path
@@ -40,6 +41,113 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# ============================================================================
+# API Contract Monitoring (Self-Healing)
+# ============================================================================
+
+class APIContractMonitor:
+    """Monitor API responses for schema drift and generate adapter shims."""
+
+    def __init__(self, storage_path: str = "./api_contracts.json"):
+        self.storage_path = storage_path
+        self.contracts: Dict[str, Any] = {}
+        self._load()
+
+    def _load(self) -> None:
+        if not os.path.exists(self.storage_path):
+            self.contracts = {}
+            return
+        try:
+            with open(self.storage_path, "r", encoding="utf-8") as f:
+                self.contracts = json.load(f)
+        except (OSError, IOError, json.JSONDecodeError):
+            self.contracts = {}
+
+    def _save(self) -> None:
+        try:
+            with open(self.storage_path, "w", encoding="utf-8") as f:
+                json.dump(self.contracts, f, indent=2)
+        except (OSError, IOError) as e:
+            logger.warning(f"Failed to save API contracts: {e}")
+
+    def _schema_fields(self, payload: Any) -> List[str]:
+        if isinstance(payload, dict):
+            return sorted(payload.keys())
+        if isinstance(payload, list) and payload and isinstance(payload[0], dict):
+            return sorted(payload[0].keys())
+        return []
+
+    def check_response(self, path: str, payload: Any) -> Optional[Dict[str, Any]]:
+        fields = self._schema_fields(payload)
+        if not fields:
+            return None
+
+        contract = self.contracts.get(path)
+        if not contract:
+            self.contracts[path] = {
+                "expected_fields": fields,
+                "last_seen_fields": fields,
+                "adapter_shims": []
+            }
+            self._save()
+            return None
+
+        expected = contract.get("expected_fields", [])
+        if set(fields) != set(expected):
+            shim = self._generate_shim(expected, fields)
+            contract["last_seen_fields"] = fields
+            contract["adapter_shims"].append(shim)
+            self.contracts[path] = contract
+            self._save()
+            self._record_shim(path, shim)
+            return shim
+
+        return None
+
+    def _generate_shim(self, expected: List[str], actual: List[str]) -> Dict[str, Any]:
+        mapping = {}
+        for exp in expected:
+            if exp in actual:
+                continue
+            matches = difflib.get_close_matches(exp, actual, n=1, cutoff=0.6)
+            if matches:
+                mapping[exp] = matches[0]
+        return {
+            "missing_fields": [f for f in expected if f not in actual],
+            "new_fields": [f for f in actual if f not in expected],
+            "field_mapping": mapping,
+            "generated_at": datetime.now().isoformat()
+        }
+
+    def _record_shim(self, path: str, shim: Dict[str, Any]) -> None:
+        """Persist shim to knowledge base and link into knowledge graph if available."""
+        try:
+            from knowledge_manager import KnowledgeManager
+            from workflow_structures import KnowledgeArtifact
+        except ImportError:
+            return
+
+        try:
+            km = KnowledgeManager()
+            artifact = KnowledgeArtifact(
+                artifact_id=f"shim_{path.replace('/', '_')}_{int(time.time())}",
+                artifact_type="solution_pattern",
+                source_workflow_id="api_bridge",
+                source_stage=0,
+                timestamp=datetime.now(),
+                confidence=0.8,
+                title=f"AdapterShim for {path}",
+                description="Auto-generated shim for schema drift.",
+                content=shim,
+                metadata={"path": path}
+            )
+            km.store_knowledge_artifact(artifact)
+        except Exception as e:
+            logger.warning(f"Failed to store shim artifact: {e}")
+
+
+contract_monitor = APIContractMonitor()
 
 # ============================================================================
 # FastAPI Application Setup
@@ -93,6 +201,23 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         return response
 
 api_bridge.add_middleware(RequestLoggingMiddleware)
+
+# ============================================================================
+# Contract Monitoring Middleware
+# ============================================================================
+
+@api_bridge.middleware("http")
+async def contract_monitor_middleware(request: Request, call_next):
+    response = await call_next(request)
+    if isinstance(response, JSONResponse):
+        try:
+            payload = json.loads(response.body)
+            shim = contract_monitor.check_response(request.url.path, payload)
+            if shim:
+                logger.warning(f"Schema drift detected for {request.url.path}: {shim}")
+        except (json.JSONDecodeError, TypeError, ValueError):
+            pass
+    return response
 
 # ============================================================================
 # Health Check

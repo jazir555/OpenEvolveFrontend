@@ -19,6 +19,7 @@ from typing import List, Dict, Any, Optional, Set, Tuple
 from collections import deque, defaultdict
 
 from sovereign_data_models import SubProblem, ComplexityScore
+from utils.symbolic_analyzer import SymbolicAnalyzer
 
 logger = logging.getLogger(__name__)
 
@@ -34,6 +35,7 @@ class DependencyAnalyzer:
     def __init__(self):
         """Initialize the DependencyAnalyzer."""
         self.logger = logging.getLogger(__name__)
+        self.symbolic_analyzer = SymbolicAnalyzer()
 
     def detect_cycles(self, sub_problems: List[SubProblem]) -> List[List[str]]:
         """
@@ -554,6 +556,32 @@ class DependencyAnalyzer:
             if sp.id == node_id:
                 return sp.dependencies
         return []
+
+    def build_entanglement_matrix(
+        self,
+        sub_problems: List[SubProblem]
+    ) -> Dict[str, Set[str]]:
+        """
+        Build a symbolic entanglement matrix based on shared interface symbols.
+
+        Returns:
+            Dict mapping sub-problem id -> set of entangled sub-problem ids.
+        """
+        matrix: Dict[str, Set[str]] = {sp.id: set() for sp in sub_problems}
+        symbol_map: Dict[str, Set[str]] = {}
+
+        for sp in sub_problems:
+            analysis = self.symbolic_analyzer.analyze(sp.description or "")
+            for sym in analysis.symbols:
+                symbol_map.setdefault(sym, set()).add(sp.id)
+
+        for sym, components in symbol_map.items():
+            if len(components) < 2:
+                continue
+            for comp in components:
+                matrix[comp].update({c for c in components if c != comp})
+
+        return matrix
 
 
 def analyze_dependency_graph(

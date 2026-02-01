@@ -24,6 +24,7 @@ from sovereign_data_models import (
     SubProblemType, ComplexityScore, SuccessCriterion, DependencyGraph,
     QualityScores, ValidationCheckpoint, generate_id
 )
+from sovereign_data_models import DomainContext, ProblemType
 from problem_analyzer import ProblemAnalyzer
 from sovereign_knowledge_manager import KnowledgeManager
 from sovereign_reliability import with_error_handling, ErrorSeverity
@@ -1209,6 +1210,77 @@ class DecompositionEngine:
         )
         
         self.logger.info(f"Decomposition complete: {len(sub_problems)} sub-problems created")
+        return plan
+
+    def top_down_repair(
+        self,
+        plan: DecompositionPlan,
+        failing_sub_problem_id: str,
+        disambiguation_constraints: Optional[List[str]] = None
+    ) -> DecompositionPlan:
+        """
+        Perform a top-down repair by removing the failing leaf and its parent,
+        then re-decomposing with added disambiguation constraints.
+
+        Args:
+            plan: Existing decomposition plan
+            failing_sub_problem_id: ID of the failing leaf sub-problem
+            disambiguation_constraints: Extra constraints derived from failure analysis
+
+        Returns:
+            Updated DecompositionPlan
+        """
+        disambiguation_constraints = disambiguation_constraints or []
+        subproblem_map = {sp.id: sp for sp in plan.sub_problems}
+        failing = subproblem_map.get(failing_sub_problem_id)
+        parent = subproblem_map.get(failing.parent_id) if failing and failing.parent_id else None
+
+        remove_ids = {failing_sub_problem_id}
+        if parent:
+            remove_ids.add(parent.id)
+
+        # Build repair problem definition
+        base_title = parent.title if parent else (failing.title if failing else "Repaired Decomposition")
+        base_description = parent.description if parent else (failing.description if failing else "")
+        if not base_description:
+            base_description = plan.metadata.get("problem_statement", plan.problem_id)
+
+        if disambiguation_constraints:
+            constraint_text = "\n".join(f"- {c}" for c in disambiguation_constraints)
+            base_description = f"{base_description}\n\nDISAMBIGUATION CONSTRAINTS:\n{constraint_text}"
+
+        complexity = failing.complexity_score if failing else ComplexityScore(overall_complexity=5.0)
+        domain = plan.metadata.get("domain", "general")
+
+        repair_problem = ProblemDefinition(
+            id=generate_id("problem"),
+            title=base_title,
+            description=base_description,
+            problem_type=ProblemType.GENERAL,
+            domain_context=DomainContext(domain=domain),
+            complexity_score=complexity,
+            parent_id=parent.id if parent else None,
+            metadata={"top_down_repair": True, "original_plan_id": plan.id}
+        )
+
+        self.logger.info(
+            "Top-down repair triggered: removing %s and re-decomposing.",
+            ", ".join(sorted(remove_ids))
+        )
+
+        repaired_sub_problems = self.decompose(repair_problem, strategy=plan.strategy.value).sub_problems
+        plan.sub_problems = [sp for sp in plan.sub_problems if sp.id not in remove_ids] + repaired_sub_problems
+        plan.updated_at = datetime.now()
+        plan.metadata = {
+            **plan.metadata,
+            "top_down_repair": {
+                "failing_sub_problem_id": failing_sub_problem_id,
+                "removed_ids": list(remove_ids),
+                "constraints": disambiguation_constraints,
+                "repaired_at": plan.updated_at.isoformat()
+            }
+        }
+        plan.dependency_graph = self._build_dependency_graph(plan.sub_problems)
         return plan
     
     @with_error_handling(severity=ErrorSeverity.HIGH, fallback=lambda problem: "hybrid")

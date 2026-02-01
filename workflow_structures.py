@@ -867,7 +867,9 @@ class KnowledgeArtifact:
         "gauntlet_effectiveness", 
         "critique_insight", 
         "decomposition_strategy", 
-        "verification_method"
+        "verification_method",
+        "adr",
+        "refinement_template"
     ]
     source_workflow_id: str
     source_stage: Literal[0, 1, 2, 3, 4, 5, 6]
@@ -891,6 +893,11 @@ class KnowledgeArtifact:
         if not self.timestamp:
             self.timestamp = datetime.now()
 
+    @property
+    def id(self) -> str:
+        """Backward-compatible alias for artifact_id."""
+        return self.artifact_id
+
     def validate(self) -> bool:
         """
         Validates all fields of the knowledge artifact.
@@ -908,7 +915,8 @@ class KnowledgeArtifact:
         # Validate artifact_type
         valid_types = [
             "solution_pattern", "team_performance", "gauntlet_effectiveness",
-            "critique_insight", "decomposition_strategy", "verification_method"
+            "critique_insight", "decomposition_strategy", "verification_method",
+            "adr", "refinement_template"
         ]
         if self.artifact_type not in valid_types:
             raise ValueError(f"artifact_type must be one of {valid_types}")
@@ -1425,6 +1433,10 @@ class WorkflowState:
     rejected_sub_problems: Dict[str, Any] = dataclasses.field(default_factory=dict)
     final_solution: Optional[SolutionAttempt] = None
     refinement_loop_count: int = 0
+    # Auto-refine toggle for analytics-driven refinement
+    auto_refine_enabled: bool = False
+    # Fractal entanglement matrix for dependency propagation
+    entanglement_matrix: Dict[str, Set[str]] = dataclasses.field(default_factory=dict)
     
     # Store the specific teams and gauntlets used for THIS workflow run.
     # This ensures consistency even if global definitions in TeamManager/GauntletManager change later.

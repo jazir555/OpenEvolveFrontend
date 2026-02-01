@@ -19,7 +19,7 @@
 /**
  * Track analytics event for MathSolver
  */
-function trackMathSolverEvent(eventName: string, properties?: Record<string, any>): void {
+function trackMathSolverEvent(eventName: string, properties?: Record<string, unknown>): void {
     // Check for common analytics implementations
     const analytics = (window as any).analytics;
     if (analytics && typeof analytics.track === 'function') {
@@ -34,8 +34,10 @@ function trackMathSolverEvent(eventName: string, properties?: Record<string, any
             ...properties
         });
     }
-    // Log to console in development
-    console.log(`[Analytics] ${eventName}`, properties);
+    // Log to console only in development
+    if (process.env.NODE_ENV === 'development') {
+        console.log(`[Analytics] ${eventName}`, properties);
+    }
 }
 
 // ============================================================================
@@ -156,6 +158,13 @@ export interface HealthResponse {
         knowledge: boolean;
     };
     timestamp: string;
+}
+
+// Knowledge engine availability status
+export interface KnowledgeEngineStatus {
+    available: boolean;
+    lastChecked: number;
+    error?: string;
 }
 
 // Internal types
@@ -444,11 +453,51 @@ export class MathSolverCore {
     private api: MathSolverAPI;
     private eventListeners: Map<string, ((data: unknown) => void)[]>;
     private currentAbortController: AbortController | null = null;
+    private knowledgeStatus: KnowledgeEngineStatus;
 
     constructor() {
         this.state = this.createInitialState();
         this.api = mathSolverAPI;
         this.eventListeners = new Map();
+        this.knowledgeStatus = {
+            available: true, // Assume available until proven otherwise
+            lastChecked: Date.now()
+        };
+    }
+
+    /**
+     * Check if knowledge engine is available
+     */
+    isKnowledgeEngineAvailable(): boolean {
+        return this.knowledgeStatus.available;
+    }
+
+    /**
+     * Get knowledge engine status
+     */
+    getKnowledgeEngineStatus(): KnowledgeEngineStatus {
+        return { ...this.knowledgeStatus };
+    }
+
+    /**
+     * Check knowledge engine availability
+     */
+    async checkKnowledgeEngineAvailability(): Promise<boolean> {
+        try {
+            await this.api.getKnowledgeStats();
+            this.knowledgeStatus = {
+                available: true,
+                lastChecked: Date.now()
+            };
+            return true;
+        } catch (error) {
+            this.knowledgeStatus = {
+                available: false,
+                lastChecked: Date.now(),
+                error: error instanceof Error ? error.message : 'Unknown error'
+            };
+            return false;
+        }
     }
 
     /**
@@ -560,6 +609,11 @@ export class MathSolverCore {
             throw new Error('A solve operation is already in progress. Please wait or cancel it first.');
         }
 
+        // Performance profiling
+        if (typeof performance !== 'undefined') {
+            performance.mark('mathsolver-solve-start');
+        }
+
         const startTime = Date.now();
         const problem = options.problem;
 
@@ -583,15 +637,26 @@ export class MathSolverCore {
             let result: SolveResult;
 
             if (options.useKnowledgeBase) {
-                // Search for similar problems first
-                const knowledge = await this.api.searchKnowledge({
-                    query: problem.statement,
-                    top_k: 3
-                });
-                this.state.knowledgeBase = [...this.state.knowledgeBase, ...knowledge.results];
-                
-                if (knowledge.results.length > 0 && knowledge.results[0].successRate > 0.8) {
-                    this.addMessage('system', `Found similar problem in knowledge base (success rate: ${knowledge.results[0].successRate})`);
+                try {
+                    // Search for similar problems first
+                    const knowledge = await this.api.searchKnowledge({
+                        query: problem.statement,
+                        top_k: 3
+                    });
+                    this.state.knowledgeBase = [...this.state.knowledgeBase, ...knowledge.results];
+                    
+                    if (knowledge.results.length > 0 && knowledge.results[0].successRate > 0.8) {
+                        this.addMessage('system', `Found similar problem in knowledge base (success rate: ${knowledge.results[0].successRate})`);
+                    }
+                } catch (error) {
+                    // Knowledge engine unavailable - continue without it
+                    this.knowledgeStatus = {
+                        available: false,
+                        lastChecked: Date.now(),
+                        error: error instanceof Error ? error.message : 'Knowledge engine unavailable'
+                    };
+                    this.addMessage('system', 'Knowledge base unavailable - continuing with direct solving', 'error');
+                    // Don't throw - allow solving to continue
                 }
             }
 
@@ -610,9 +675,11 @@ export class MathSolverCore {
                     break;
             }
 
-            // Learn from successful solutions
-            if (result.success && options.useKnowledgeBase) {
-                this.learnFromSuccess(problem, result);
+            // Learn from successful solutions (only if knowledge engine is available)
+            if (result.success && options.useKnowledgeBase && this.knowledgeStatus.available) {
+                this.learnFromSuccess(problem, result).catch(() => {
+                    // Silently fail - learning is optional
+                });
             }
 
             // Track successful completion
@@ -652,6 +719,12 @@ export class MathSolverCore {
             this.state.isProcessing = false;
             this.state.activeSolvers = [];
             this.currentAbortController = null;
+            
+            // Performance profiling
+            if (typeof performance !== 'undefined') {
+                performance.mark('mathsolver-solve-end');
+                performance.measure('mathsolver-solve', 'mathsolver-solve-start', 'mathsolver-solve-end');
+            }
         }
     }
 
@@ -772,6 +845,11 @@ export class MathSolverCore {
 
     private async learnFromSuccess(problem: MathProblem, response: SolveResult): Promise<void> {
         try {
+            // Skip if knowledge engine is known to be unavailable
+            if (!this.knowledgeStatus.available) {
+                return;
+            }
+
             const resultStr = response.z3Result?.status 
                 || (response.leanResult?.success ? 'proved' : 'failed')
                 || (response.unifiedResult?.result_status || 'unknown');

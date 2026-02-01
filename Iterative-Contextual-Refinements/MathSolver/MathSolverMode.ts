@@ -13,6 +13,9 @@
 import { MathSolverCore, MathSolverState } from './MathSolverCore';
 import { MATH_SOLVER_SYSTEM_PROMPT } from './MathSolverPrompts';
 
+// Active toast timers for cleanup
+const activeToastTimers: Set<number> = new Set();
+
 // Toast notification helper
 function showToast(message: string, type: 'info' | 'success' | 'error' = 'info'): void {
     const toast = document.createElement('div');
@@ -30,12 +33,29 @@ function showToast(message: string, type: 'info' | 'success' | 'error' = 'info')
         animation: slideIn 0.3s ease;
         background: ${type === 'success' ? '#10B981' : type === 'error' ? '#EF4444' : '#3B82F6'};
     `;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'polite');
     document.body.appendChild(toast);
     
-    setTimeout(() => {
+    const timer1 = window.setTimeout(() => {
         toast.style.animation = 'slideOut 0.3s ease';
-        setTimeout(() => toast.remove(), 300);
+        const timer2 = window.setTimeout(() => {
+            toast.remove();
+            activeToastTimers.delete(timer2);
+        }, 300);
+        activeToastTimers.add(timer2);
+        activeToastTimers.delete(timer1);
     }, 4000);
+    activeToastTimers.add(timer1);
+}
+
+/**
+ * Clear all active toast notifications
+ */
+export function clearAllToasts(): void {
+    activeToastTimers.forEach(timer => clearTimeout(timer));
+    activeToastTimers.clear();
+    document.querySelectorAll('.mathsolver-toast').forEach(toast => toast.remove());
 }
 
 // Global state for MathSolver mode
@@ -51,7 +71,7 @@ export function initializeMathSolverMode(
 ): void {
     mathSolverContentContainer = contentContainer;
     isMathSolverInitialized = true;
-    console.log('[MathSolver] Mode initialized');
+    // Mode initialized successfully
 }
 
 /**
@@ -144,6 +164,13 @@ async function runMathSolverProcess(
         })
     );
 
+    // Check knowledge engine availability (non-blocking)
+    // If unavailable, solving will continue without knowledge base features
+    activeMathSolverCore.checkKnowledgeEngineAvailability().catch(() => {
+        // Knowledge engine unavailable - solving will continue without it
+        // This is a graceful degradation, not a failure
+    });
+
     // If problem statement provided, start solving
     if (problemStatement.trim()) {
         const problem = activeMathSolverCore.createProblem(problemStatement);
@@ -188,7 +215,7 @@ export async function stopMathSolverProcess(): Promise<void> {
     globalState.isGenerating = false;
     globalState.isMathSolverRunning = false;
     
-    console.log('[MathSolver] Process stopped');
+    // Process stopped
 }
 
 /**
@@ -214,6 +241,23 @@ export function setActiveMathSolverState(state: Parameters<MathSolverCore['impor
  */
 export function isMathSolverRunning(): boolean {
     return activeMathSolverCore !== null;
+}
+
+/**
+ * Check if knowledge engine is available
+ * Returns false if no core is active or if knowledge engine is unavailable
+ */
+export function isKnowledgeEngineAvailable(): boolean {
+    if (!activeMathSolverCore) return false;
+    return activeMathSolverCore.isKnowledgeEngineAvailable();
+}
+
+/**
+ * Get knowledge engine status
+ */
+export function getKnowledgeEngineStatus(): { available: boolean; lastChecked: number; error?: string } | null {
+    if (!activeMathSolverCore) return null;
+    return activeMathSolverCore.getKnowledgeEngineStatus();
 }
 
 /**
@@ -280,14 +324,9 @@ export async function renderMathSolverUI(container: HTMLElement): Promise<void> 
                     }
                 }
             }, React.createElement(MathSolverUI, {
-                initialProblem: state.currentProblem?.statement || '',
-                onClose: () => {
-                    console.log('[MathSolver] UI closed');
-                }
+                initialProblem: state.currentProblem?.statement || ''
             }))
         );
-        
-        console.log('[MathSolver] UI rendered');
     } catch (error) {
         console.error('[MathSolver] Failed to render UI:', error);
         // Show error in container using safe DOM manipulation
@@ -319,12 +358,7 @@ export function rehydrateMathSolverUI(): void {
     if (!mathSolverContentContainer) return;
     
     // Re-render the UI with existing state
-    if (activeMathSolverCore) {
-        const state = activeMathSolverCore.getState();
-        if (state.currentProblem) {
-            console.log('[MathSolver] Rehydrating UI with problem:', state.currentProblem.statement);
-        }
-    }
+    // Note: Rehydration happens automatically in renderMathSolverUI
     
     // Re-render the UI
     renderMathSolverUI(mathSolverContentContainer);
@@ -340,7 +374,6 @@ export function displayMathSolverResult(result: {
     error?: string;
 }): void {
     // Results are displayed via the MathSolverUI React component
-    console.log('[MathSolver] Result:', result);
     
     // Ensure results container exists
     let resultsContainer = document.getElementById('mathsolver-results-container');

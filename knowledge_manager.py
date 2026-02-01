@@ -10,6 +10,8 @@ import hashlib
 
 from workflow_structures import KnowledgeArtifact, WorkflowState, PerformanceMetrics
 from knowledge_engine.engine import KnowledgeEngine
+from knowledge_engine.core import EntityKnowledgeGraph
+from ace_knowledge_artifacts import SkillbookStore, create_refinement_template
 
 
 class KnowledgeManager:
@@ -17,11 +19,15 @@ class KnowledgeManager:
         self.storage_path = storage_path
         self.artifacts_file = os.path.join(storage_path, "knowledge_artifacts.json")
         self.metrics_file = os.path.join(storage_path, "performance_metrics.json")
+        self.entity_graph_path = os.path.join(storage_path, "entity_graph.json")
         os.makedirs(storage_path, exist_ok=True)
         self.engine = KnowledgeEngine()
         self.main_index_path = os.path.join(self.storage_path, "main_index.json")
         self.knowledge_index: Dict[str, Any] = {}
         self._load_main_index()
+        self.skillbook = SkillbookStore(os.path.join(storage_path, "ace_skillbook.json"))
+        self.artifacts = self._load_artifacts()
+        self.metrics = self._load_metrics()
 
     def _load_main_index(self):
         """Loads the main knowledge index if it exists."""
@@ -76,6 +82,23 @@ class KnowledgeManager:
         except (OSError, IOError, json.JSONDecodeError, TypeError, KeyError) as e:
             print(f"Error loading knowledge artifacts: {e}")
             return {}
+
+    def _load_entity_graph(self) -> EntityKnowledgeGraph:
+        if not os.path.exists(self.entity_graph_path):
+            return EntityKnowledgeGraph()
+        try:
+            with open(self.entity_graph_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+            return EntityKnowledgeGraph.from_dict(data)
+        except (OSError, IOError, json.JSONDecodeError):
+            return EntityKnowledgeGraph()
+
+    def _save_entity_graph(self, graph: EntityKnowledgeGraph) -> None:
+        try:
+            with open(self.entity_graph_path, "w", encoding="utf-8") as f:
+                json.dump(graph.to_dict(), f, indent=2)
+        except (OSError, IOError, TypeError) as e:
+            print(f"Error saving entity graph: {e}")
     
     def _load_metrics(self) -> List[PerformanceMetrics]:
         if not os.path.exists(self.metrics_file):
@@ -167,6 +190,48 @@ class KnowledgeManager:
 
         except (OSError, IOError, TypeError) as e:
             print(f"Warning: Could not save artifact content to file for indexing. Error: {e}")
+
+    def record_adr(self, adr: Dict[str, Any], entity_ids: Optional[List[str]] = None) -> KnowledgeArtifact:
+        """Store an ADR as a knowledge artifact and link to entities."""
+        artifact = KnowledgeArtifact(
+            artifact_id=adr.get("decision_id", ""),
+            artifact_type="adr",
+            source_workflow_id=adr.get("workflow_id", "unknown"),
+            source_stage=6,
+            timestamp=datetime.now(),
+            confidence=adr.get("confidence", 0.9),
+            title=adr.get("title", "Architecture Decision Record"),
+            description=adr.get("summary", "ADR synthesized on convergence."),
+            content=adr,
+            metadata={"adr_path": adr.get("adr_path")}
+        )
+        self.store_knowledge_artifact(artifact)
+
+        if entity_ids:
+            graph = self._load_entity_graph()
+            for entity_id in entity_ids:
+                graph.add_decision_link(entity_id, adr.get("decision_id", ""))
+            self._save_entity_graph(graph)
+
+        return artifact
+
+    def store_refinement_template(
+        self,
+        title: str,
+        description: str,
+        reasoning_path: List[str],
+        context_signature: Dict[str, Any],
+        domain: str = "general"
+    ) -> None:
+        """Persist a refinement template to the ACE Skillbook."""
+        template = create_refinement_template(
+            title=title,
+            description=description,
+            reasoning_path=reasoning_path,
+            context_signature=context_signature,
+            domain=domain
+        )
+        self.skillbook.add_template(template)
 
     
     def retrieve_relevant_knowledge(self, problem_statement: str, domain: Optional[str] = None, problem_type: Optional[str] = None, artifact_types: Optional[List[str]] = None, limit: int = 10) -> List[KnowledgeArtifact]:

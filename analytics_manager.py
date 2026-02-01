@@ -5,6 +5,7 @@ File size: ~1200 lines (under the 2000 line limit)
 """
 
 import streamlit as st
+import logging
 from typing import Dict, Any, List, Optional
 from session_utils import (
     calculate_protocol_complexity,
@@ -23,6 +24,8 @@ class AnalyticsManager:
     def __init__(self):
         self.last_generated_at: Optional[float] = None
         self.insight_cache: Dict[str, Dict[str, Any]] = {}
+        self.event_callbacks: Dict[str, List] = {}
+        self.recent_events: List[Dict[str, Any]] = []
 
     def generate_ai_insights(self, protocol_text: str) -> Dict[str, Any]:
         """
@@ -73,7 +76,7 @@ class AnalyticsManager:
             structure, complexity, readability_score
         )
 
-        return {
+        insights = {
             "overall_score": round(overall_score, 2),
             "strengths": strengths,
             "weaknesses": weaknesses,
@@ -84,6 +87,122 @@ class AnalyticsManager:
             "readability_score": round(readability_score, 2),
             "compliance_risk": self._assess_compliance_risk(protocol_text),
         }
+        # Emit refinement-needed event for low scores
+        if insights["overall_score"] < 0.5:
+            self._emit_event(
+                "REFINEMENT_NEEDED",
+                {
+                    "reason": "overall_score_below_threshold",
+                    "overall_score": insights["overall_score"],
+                    "weaknesses": weaknesses,
+                },
+            )
+        return insights
+
+    def register_event_callback(self, event_type: str, callback) -> None:
+        """Register callback for analytics events."""
+        if event_type not in self.event_callbacks:
+            self.event_callbacks[event_type] = []
+        self.event_callbacks[event_type].append(callback)
+
+    def get_recent_events(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Return recent analytics events."""
+        return self.recent_events[-limit:]
+
+    def _emit_event(self, event_type: str, payload: Dict[str, Any]) -> None:
+        """Emit an analytics event."""
+        event = {
+            "type": event_type,
+            "timestamp": time.time(),
+            "payload": payload,
+        }
+        self.recent_events.append(event)
+        if len(self.recent_events) > 200:
+            self.recent_events = self.recent_events[-200:]
+        if event_type in self.event_callbacks:
+            for callback in self.event_callbacks[event_type]:
+                try:
+                    callback(event)
+                except Exception as exc:
+                    logger = logging.getLogger(__name__)
+                    logger.error("Error in analytics event callback: %s", exc)
+
+    def generate_multimodal_healing_prompt(
+        self,
+        protocol_text: str,
+        heatmap_snapshot: Optional[Dict[str, Any]] = None,
+        auto_refine_enabled: bool = False
+    ) -> Dict[str, Any]:
+        """
+        Combine textual SWOT insights with visual heatmap signals into a single prompt.
+        """
+        ai_insights = self.generate_ai_insights(protocol_text)
+        visual_summary = self._summarize_heatmap(heatmap_snapshot or {})
+
+        weaknesses = ai_insights.get("weaknesses", [])
+        friction_points = visual_summary.get("friction_points", [])
+
+        healing_prompt = (
+            "ICR Multi-Modal Healing Prompt\n\n"
+            "Textual Weaknesses:\n"
+            + "\n".join(f"- {w}" for w in weaknesses[:5]) +
+            "\n\nVisual Friction Points:\n"
+            + "\n".join(f"- {f}" for f in friction_points[:5]) +
+            "\n\nAction:\n"
+            "Propose refinements that address both logical weaknesses and UI friction."
+        )
+
+        if ai_insights.get("overall_score", 1.0) < 0.5:
+            payload = {
+                "reason": "multimodal_low_score",
+                "overall_score": ai_insights.get("overall_score"),
+                "weaknesses": weaknesses,
+                "friction_points": friction_points,
+                "auto_refine": auto_refine_enabled,
+            }
+            self._emit_event("REFINEMENT_NEEDED", payload)
+
+        return {
+            "healing_prompt": healing_prompt,
+            "ai_insights": ai_insights,
+            "visual_summary": visual_summary,
+        }
+
+    def _summarize_heatmap(self, heatmap_snapshot: Dict[str, Any]) -> Dict[str, Any]:
+        """Summarize heatmap data into friction points."""
+        points = heatmap_snapshot.get("points", []) if isinstance(heatmap_snapshot, dict) else []
+        if not points:
+            return {"friction_points": [], "hotspots": []}
+
+        # Bin into 3x3 grid
+        grid = [[0 for _ in range(3)] for _ in range(3)]
+        for point in points:
+            try:
+                x = min(2, max(0, int(float(point.get("x", 0)) * 3)))
+                y = min(2, max(0, int(float(point.get("y", 0)) * 3)))
+                grid[y][x] += 1
+            except Exception:
+                continue
+
+        labels = [
+            ["top-left", "top-center", "top-right"],
+            ["center-left", "center", "center-right"],
+            ["bottom-left", "bottom-center", "bottom-right"],
+        ]
+
+        hotspots = []
+        for row_idx, row in enumerate(grid):
+            for col_idx, count in enumerate(row):
+                if count > 0:
+                    hotspots.append({"area": labels[row_idx][col_idx], "count": count})
+
+        hotspots.sort(key=lambda x: x["count"], reverse=True)
+        friction_points = [
+            f"Repeated interactions near {h['area']} (count={h['count']})"
+            for h in hotspots[:3]
+        ]
+
+        return {"friction_points": friction_points, "hotspots": hotspots}
 
     def _calculate_structure_score(self, structure: Dict) -> float:
         """Calculate structure quality score."""

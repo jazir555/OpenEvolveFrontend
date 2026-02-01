@@ -158,12 +158,24 @@ class PenaltyLoss(AggregateLoss):
         https://en.wikipedia.org/wiki/Penalty_method
     """
 
-    def __init__(self, objectives, constraints):
+    def __init__(
+        self,
+        objectives,
+        constraints,
+        infeasibility_monitor: bool = True,
+        grad_epsilon: float = 1e-4,
+        loss_threshold: float = 1.0,
+        relaxation_pct: float = 0.05
+    ):
         """
         :param objectives: (list (Objective)) list of neuromancer objective classes
         :param constraints: (list (Constraint)) list of neuromancer constraint classes
         """
         super().__init__(objectives, constraints)
+        self.infeasibility_monitor = infeasibility_monitor
+        self.grad_epsilon = grad_epsilon
+        self.loss_threshold = loss_threshold
+        self.relaxation_pct = relaxation_pct
 
     def forward(self, input_dict):
         """
@@ -178,7 +190,59 @@ class PenaltyLoss(AggregateLoss):
         input_dict = {**input_dict, **penalties_dict}
         penalties = penalties_dict['penalty_loss']
         input_dict['loss'] = fx + penalties
+        if self.infeasibility_monitor:
+            suggestion = self._monitor_infeasibility(input_dict, penalties_dict)
+            if suggestion:
+                input_dict['relaxation_suggestion'] = suggestion
         return input_dict
+
+    def _monitor_infeasibility(self, input_dict, penalties_dict):
+        """Detect infeasibility and suggest a symbolic constraint relaxation."""
+        loss = input_dict.get('loss')
+        if loss is None:
+            return None
+
+        grad_norm = None
+        try:
+            grad_targets = [v for v in input_dict.values() if isinstance(v, torch.Tensor) and v.requires_grad]
+            if grad_targets:
+                grads = torch.autograd.grad(
+                    loss,
+                    grad_targets,
+                    retain_graph=True,
+                    allow_unused=True
+                )
+                grads = [g for g in grads if g is not None]
+                if grads:
+                    grad_norm = torch.norm(torch.stack([torch.norm(g) for g in grads])).item()
+        except Exception:
+            grad_norm = None
+
+        if grad_norm is None:
+            return None
+
+        if grad_norm < self.grad_epsilon and loss.item() > self.loss_threshold:
+            # Identify tightest constraint by max violation
+            max_violation = None
+            max_name = None
+            for con in self.constraints:
+                key = f"{con.name}_violation"
+                violation = penalties_dict.get(key)
+                if violation is None:
+                    continue
+                value = torch.mean(torch.abs(violation)).item()
+                if max_violation is None or value > max_violation:
+                    max_violation = value
+                    max_name = con.name
+
+            if max_name:
+                return {
+                    "constraint": max_name,
+                    "action": "relax_bound",
+                    "relaxation_pct": self.relaxation_pct,
+                    "reason": "Gradient stalled with high loss; relaxing tightest boundary.",
+                }
+        return None
 
 
 class BarrierLoss(PenaltyLoss):

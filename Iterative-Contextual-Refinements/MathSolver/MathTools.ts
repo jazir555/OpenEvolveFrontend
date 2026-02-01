@@ -134,45 +134,82 @@ export async function executeMathToolCall(toolCall: MathToolCall): Promise<strin
             }
 
             case 'search_math_knowledge': {
-                const request: SearchKnowledgeRequest = {
-                    query: toolCall.query,
-                    top_k: toolCall.top_k ?? 5
-                };
-                
-                const response = await mathSolverAPI.searchKnowledge(request);
-                
-                if (response.total_found === 0) {
-                    return `No similar problems found in knowledge base for query: "${toolCall.query}"`;
+                try {
+                    const request: SearchKnowledgeRequest = {
+                        query: toolCall.query,
+                        top_k: toolCall.top_k ?? 5
+                    };
+                    
+                    const response = await mathSolverAPI.searchKnowledge(request);
+                    
+                    if (response.total_found === 0) {
+                        return `No similar problems found in knowledge base for query: "${toolCall.query}"`;
+                    }
+                    
+                    let output = `## Knowledge Base Search Results\n\n`;
+                    output += `Found ${response.total_found} similar problems:\n\n`;
+                    
+                    response.results.forEach((entry, idx) => {
+                        output += `### [${idx + 1}] ${entry.problemPattern.substring(0, 80)}...\n`;
+                        output += `- **Solver**: ${entry.solverType}\n`;
+                        output += `- **Success Rate**: ${Math.round(entry.successRate * 100)}%\n`;
+                        output += `- **Usage Count**: ${entry.usageCount}\n\n`;
+                    });
+                    
+                    return output;
+                } catch (error) {
+                    // Knowledge engine unavailable - return graceful fallback
+                    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+                    return `## Knowledge Base Search\n\n` +
+                        `⚠️ **Knowledge engine currently unavailable**\n\n` +
+                        `Error: ${errorMsg}\n\n` +
+                        `**Suggestion**: Continue with direct solving using:\n` +
+                        `- \`solve_z3\` for constraint problems\n` +
+                        `- \`solve_lean\` for theorem proving\n` +
+                        `- \`solve_unified\` for automatic selection`;
                 }
-                
-                let output = `## Knowledge Base Search Results\n\n`;
-                output += `Found ${response.total_found} similar problems:\n\n`;
-                
-                response.results.forEach((entry, idx) => {
-                    output += `### [${idx + 1}] ${entry.problemPattern.substring(0, 80)}...\n`;
-                    output += `- **Solver**: ${entry.solverType}\n`;
-                    output += `- **Success Rate**: ${Math.round(entry.successRate * 100)}%\n`;
-                    output += `- **Usage Count**: ${entry.usageCount}\n\n`;
-                });
-                
-                return output;
             }
 
             case 'get_strategy': {
-                const result = await mathSolverAPI.getStrategy({
-                    problem_statement: toolCall.problem_statement,
-                    constraints: toolCall.constraints ?? []
-                });
-                
-                let output = `## Strategy Recommendation\n\n`;
-                output += `**Recommended Strategy**: ${result.strategy || 'None'}\n`;
-                output += `**Confidence**: ${Math.round(result.confidence * 100)}%\n`;
-                
-                if (result.expected_time_ms) {
-                    output += `**Expected Time**: ${result.expected_time_ms}ms\n`;
+                try {
+                    const result = await mathSolverAPI.getStrategy({
+                        problem_statement: toolCall.problem_statement,
+                        constraints: toolCall.constraints ?? []
+                    });
+                    
+                    let output = `## Strategy Recommendation\n\n`;
+                    output += `**Recommended Strategy**: ${result.strategy || 'None'}\n`;
+                    output += `**Confidence**: ${Math.round(result.confidence * 100)}%\n`;
+                    
+                    if (result.expected_time_ms) {
+                        output += `**Expected Time**: ${result.expected_time_ms}ms\n`;
+                    }
+                    
+                    return output;
+                } catch (error) {
+                    // Knowledge engine unavailable - return heuristic-based strategy
+                    const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+                    
+                    // Simple heuristic strategy based on problem content
+                    const problem = toolCall.problem_statement.toLowerCase();
+                    let recommendedStrategy = 'unified';
+                    
+                    if (problem.includes('prove') || problem.includes('theorem') || problem.includes('∀') || problem.includes('∃')) {
+                        recommendedStrategy = 'lean';
+                    } else if (problem.includes('solve') || problem.includes('=') || problem.includes('>') || problem.includes('<')) {
+                        recommendedStrategy = 'z3';
+                    }
+                    
+                    return `## Strategy Recommendation\n\n` +
+                        `⚠️ **Knowledge engine unavailable** - using heuristic fallback\n\n` +
+                        `**Recommended Strategy**: ${recommendedStrategy}\n` +
+                        `**Confidence**: 60% (heuristic-based)\n\n` +
+                        `*Note: ${errorMsg}*\n\n` +
+                        `**Recommendation**: \n` +
+                        `- For theorems/proofs: Use \`solve_lean\`\n` +
+                        `- For equations/constraints: Use \`solve_z3\`\n` +
+                        `- For uncertain cases: Use \`solve_unified\``;
                 }
-                
-                return output;
             }
 
             case 'translate_math': {

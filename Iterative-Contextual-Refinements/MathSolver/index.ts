@@ -67,6 +67,9 @@ export type {
     // Health API Types
     HealthResponse,
     
+    // Knowledge Engine Status
+    KnowledgeEngineStatus,
+    
     // API Types
     MathSolverAPI
 } from './MathSolverCore';
@@ -137,9 +140,12 @@ export {
     getActiveMathSolverState,
     setActiveMathSolverState,
     isMathSolverRunning,
+    isKnowledgeEngineAvailable,
+    getKnowledgeEngineStatus,
     getMathSolverSystemPrompt,
     rehydrateMathSolverUI,
     renderMathSolverUI,
+    clearAllToasts,
     activeMathSolverCore
 } from './MathSolverMode';
 

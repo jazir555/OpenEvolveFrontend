@@ -8,9 +8,21 @@ import os
 import sys
 import re
 from collections import defaultdict
+from typing import Optional, List
 
 bugs = []
-py_files = sorted([f for f in os.listdir('.') if f.endswith('.py')])
+
+DEFAULT_EXCLUDE_DIRS = {".git", "__pycache__", "node_modules", "dist", "build"}
+
+def _iter_python_files(root: str = ".", exclude_dirs: Optional[set] = None) -> List[str]:
+    exclude_dirs = exclude_dirs or DEFAULT_EXCLUDE_DIRS
+    files = []
+    for dirpath, dirnames, filenames in os.walk(root):
+        dirnames[:] = [d for d in dirnames if d not in exclude_dirs]
+        for filename in filenames:
+            if filename.endswith(".py"):
+                files.append(os.path.join(dirpath, filename))
+    return sorted(files)
 
 def scan_file(filename):
     """Scan a single Python file for bugs."""
@@ -169,11 +181,24 @@ def scan_file(filename):
             'evidence': ''
         })
 
-print('Scanning for bugs...', file=sys.stderr)
-for f in py_files:
-    scan_file(f)
+def scan_all_files(root: str = ".", exclude_dirs: Optional[set] = None) -> List[dict]:
+    """Scan all Python files under the root directory."""
+    global bugs
+    bugs = []
+    for f in _iter_python_files(root, exclude_dirs):
+        scan_file(f)
+    return bugs
 
-# Output results
-print(f'Total bugs found: {len(bugs)}')
-for bug in bugs:
-    print(f'{bug["severity"]}|{bug["category"]}|{bug["file"]}|{bug["line"]}|{bug["description"]}|{bug["evidence"]}')
+def generate_report(scan_results: List[dict]) -> str:
+    """Generate a plain-text report for scan results."""
+    lines = [f"Total bugs found: {len(scan_results)}"]
+    for bug in scan_results:
+        lines.append(
+            f'{bug["severity"]}|{bug["category"]}|{bug["file"]}|{bug["line"]}|{bug["description"]}|{bug["evidence"]}'
+        )
+    return "\n".join(lines)
+
+if __name__ == "__main__":
+    print('Scanning for bugs...', file=sys.stderr)
+    results = scan_all_files(".")
+    print(generate_report(results))

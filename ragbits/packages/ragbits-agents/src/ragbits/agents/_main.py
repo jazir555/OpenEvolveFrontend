@@ -34,6 +34,42 @@ from ragbits.core.prompt.prompt import Prompt, PromptInputT, PromptOutputT
 from ragbits.core.types import NOT_GIVEN, NotGiven
 from ragbits.core.utils.config_handling import ConfigurableComponent
 from ragbits.core.utils.decorators import requires_dependencies
+from memory_agent import MemoryAgent
+
+
+class CircularDialogueMonitor:
+    """Monitor for circular dialogue and provide refinement hints."""
+
+    def __init__(self, similarity_threshold: float = 0.9, trigger_turns: int = 3):
+        self.similarity_threshold = similarity_threshold
+        self.trigger_turns = trigger_turns
+        self._stagnation_count = 0
+
+    def _jaccard(self, a: str, b: str) -> float:
+        tokens_a = set(a.lower().split())
+        tokens_b = set(b.lower().split())
+        if not tokens_a or not tokens_b:
+            return 0.0
+        return len(tokens_a & tokens_b) / len(tokens_a | tokens_b)
+
+    def check(self, history: ChatFormat) -> str | None:
+        assistant_msgs = [m.get("content", "") for m in history if m.get("role") == "assistant"]
+        if len(assistant_msgs) < 3:
+            return None
+        current = assistant_msgs[-1]
+        compare = assistant_msgs[-3]
+        similarity = self._jaccard(current, compare)
+        if similarity > self.similarity_threshold:
+            self._stagnation_count += 1
+        else:
+            self._stagnation_count = 0
+
+        if self._stagnation_count >= self.trigger_turns:
+            memory_agent = MemoryAgent()
+            confusion = memory_agent.identify_confusion(assistant_msgs[-5:])
+            self._stagnation_count = 0
+            return confusion
+        return None
 
 with suppress(ImportError):
     from a2a.types import AgentCapabilities, AgentCard, AgentSkill
@@ -252,6 +288,8 @@ class Agent(
         self.mcp_servers = mcp_servers or []
         self.history = history or []
         self.keep_history = keep_history
+        self._dialogue_monitor = CircularDialogueMonitor()
+        self._dynamic_system_instruction = ""
 
     @overload
     async def run(
@@ -352,6 +390,10 @@ class Agent(
             }
 
             prompt_with_history = prompt_with_history.add_assistant_message(response.content)
+
+            refinement_note = self._dialogue_monitor.check(prompt_with_history.chat)
+            if refinement_note:
+                self._dynamic_system_instruction = refinement_note
 
             if self.keep_history:
                 self.history = prompt_with_history.chat
@@ -464,6 +506,9 @@ class Agent(
 
             yield context.usage
             yield prompt_with_history
+            refinement_note = self._dialogue_monitor.check(prompt_with_history.chat)
+            if refinement_note:
+                self._dynamic_system_instruction = refinement_note
             if self.keep_history:
                 self.history = prompt_with_history.chat
             yield outputs
@@ -518,7 +563,12 @@ class Agent(
             return self.prompt
 
         if isinstance(self.prompt, str) and isinstance(input, str):
-            system_prompt = {"role": "system", "content": self.prompt}
+            system_content = self.prompt
+            if self._dynamic_system_instruction:
+                system_content = (
+                    f"{self.prompt}\n\n[Protocol Refinement]\n{self._dynamic_system_instruction}"
+                )
+            system_prompt = {"role": "system", "content": system_content}
             if len(curr_history) == 0:
                 curr_history.append(system_prompt)
             else:

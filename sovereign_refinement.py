@@ -4,6 +4,7 @@ Implements iterative refinement with feedback loops and continuous improvement.
 """
 
 import logging
+import os
 from typing import List, Dict, Any, Optional, Tuple
 from datetime import datetime
 from dataclasses import dataclass, field
@@ -424,6 +425,20 @@ class RefinementCoordinator:
         effort_by_severity = {'critical': 4, 'major': 2, 'minor': 1, 'info': 0.5}
         total_effort = sum(effort_by_severity.get(issue['severity'], 1) for issue in issues)
         return int(total_effort)
+
+    def _compute_fatigue_score(self, text: str) -> float:
+        """
+        Compute a fatigue score based on repetition and lexical diversity.
+        Higher values indicate potential stagnation.
+        """
+        tokens = [t for t in (text or "").split() if t]
+        if not tokens:
+            return 0.0
+        unique_ratio = len(set(tokens)) / len(tokens)
+        repetition_rate = 1.0 - unique_ratio
+        perplexity_proxy = min(1.0, 1.0 - unique_ratio)
+        fatigue = min(1.0, 0.6 * repetition_rate + 0.4 * perplexity_proxy)
+        return fatigue
     
     def _apply_improvements(
         self,
@@ -550,6 +565,20 @@ Be specific and actionable."""
             temperature=0.3,
             max_tokens=800
         )
+
+        fatigue_score = self._compute_fatigue_score(result.best_code or "")
+        if fatigue_score > 0.8:
+            self.logger.warning("Agent fatigue detected (score %.2f). Forcing temperature reset.", fatigue_score)
+            fallback_model = os.getenv("FATIGUE_FALLBACK_MODEL")
+            result = self.openevolve_client.evolve(
+                content=prompt,
+                evolution_mode="standard",
+                content_type="analysis",
+                max_iterations=1,
+                temperature=0.7,
+                max_tokens=800,
+                model_name=fallback_model
+            )
         
         if not result.success or not result.best_code:
             raise RuntimeError("LLM evolution failed to produce a result for sub-problem refinement.")
@@ -615,6 +644,67 @@ Be specific and actionable."""
         )
         
         return refined_sp
+
+    def auto_remediate_bugs(
+        self,
+        plan: DecompositionPlan,
+        scan_root: str = "."
+    ) -> Tuple[DecompositionPlan, Optional[RefinementMetrics]]:
+        """
+        Connect bug_scanner outputs to refinement loops for high severity issues.
+
+        Args:
+            plan: Decomposition plan to refine
+            scan_root: Root directory to scan
+
+        Returns:
+            Tuple of (refined_plan, metrics) or (plan, None) if no action
+        """
+        try:
+            from bug_scanner import scan_all_files
+        except ImportError as e:
+            self.logger.error(f"bug_scanner not available: {e}")
+            return plan, None
+
+        scan_results = scan_all_files(scan_root)
+        high_severity = [
+            bug for bug in scan_results
+            if bug.get("severity") in {"CRITICAL", "HIGH"}
+        ]
+        if not high_severity:
+            return plan, None
+
+        feedback_list = []
+        for bug in high_severity:
+            feedback_list.append(
+                Feedback(
+                    id=generate_id("feedback"),
+                    source="bug_scanner",
+                    feedback_type="security",
+                    content=f"{bug.get('description')} ({bug.get('file')}:{bug.get('line')})",
+                    severity=bug.get("severity", "HIGH"),
+                    actionable=True,
+                    metadata=bug
+                )
+            )
+
+        refinement_plan = self.generate_refinement_plan(
+            plan,
+            feedback_list,
+            strategy={"strategy_type": "bug_scanner"}
+        )
+        refined_plan, metrics = self.execute_refinement(plan, refinement_plan)
+
+        # Validate fix by re-scanning
+        remaining = [
+            bug for bug in scan_all_files(scan_root)
+            if bug.get("severity") in {"CRITICAL", "HIGH"}
+        ]
+        if remaining:
+            self.logger.warning("Bug scanner remediation incomplete; high severity issues remain.")
+            return plan, metrics
+
+        return refined_plan, metrics
     
     def _is_issue_resolved(
         self,

@@ -18,6 +18,7 @@ import hashlib
 import uuid
 import logging
 import copy
+import os
 
 # SECURITY FIX: Phase 1 - Import security utilities
 from ace_security_utils import (
@@ -50,6 +51,7 @@ class ArtifactType(Enum):
     DEBUG_STRATEGY = "debug_strategy"                # Debugging approaches
     OPTIMIZATION = "optimization"                    # Performance optimizations
     DOMAIN_KNOWLEDGE = "domain_knowledge"            # Domain-specific insights
+    REFINEMENT_TEMPLATE = "refinement_template"      # Core reasoning path templates
 
 
 class ArtifactSource(Enum):
@@ -986,6 +988,91 @@ def create_decomposition_strategy(
     )
 
 
+def create_refinement_template(
+    title: str,
+    description: str,
+    reasoning_path: List[str],
+    context_signature: Dict[str, Any],
+    domain: str = "general",
+    tags: Optional[List[str]] = None,
+) -> KnowledgeArtifact:
+    """Create a refinement template artifact for the ACE Skillbook."""
+    metadata = ArtifactMetadata(
+        artifact_type=ArtifactType.REFINEMENT_TEMPLATE,
+        source=ArtifactSource.REFACTOR_LEARNING,
+        domain=domain,
+        tags=tags or [],
+    )
+    content = json.dumps(
+        {
+            "reasoning_path": reasoning_path,
+            "context_signature": context_signature,
+        },
+        indent=2
+    )
+    return KnowledgeArtifact(
+        metadata=metadata,
+        title=title,
+        description=description,
+        content=content,
+        context="Reusable refinement template extracted from a converged workflow."
+    )
+
+
+class SkillbookStore:
+    """Persistent store for refinement templates (Skillbook 2.0)."""
+
+    def __init__(self, storage_path: str = "./ace_skillbook.json"):
+        self.storage_path = storage_path
+        self.templates: List[Dict[str, Any]] = []
+        self._load()
+
+    def _load(self) -> None:
+        if not os.path.exists(self.storage_path):
+            self.templates = []
+            return
+        try:
+            with open(self.storage_path, "r", encoding="utf-8") as f:
+                self.templates = json.load(f)
+        except (OSError, IOError, json.JSONDecodeError):
+            self.templates = []
+
+    def _save(self) -> None:
+        try:
+            with open(self.storage_path, "w", encoding="utf-8") as f:
+                json.dump(self.templates, f, indent=2)
+        except (OSError, IOError) as e:
+            logger.warning("Failed to persist Skillbook: %s", sanitize_for_logging(str(e)))
+
+    def add_template(self, template: KnowledgeArtifact) -> None:
+        entry = {
+            "metadata": template.metadata.__dict__,
+            "title": template.title,
+            "description": template.description,
+            "content": template.content,
+            "context": template.context,
+            "created_at": template.metadata.created_at.isoformat(),
+        }
+        self.templates.append(entry)
+        self._save()
+
+    def find_templates(self, context_signature: Dict[str, Any], limit: int = 3) -> List[Dict[str, Any]]:
+        """Retrieve templates matching the context signature."""
+        if not context_signature:
+            return self.templates[-limit:]
+
+        def score(entry: Dict[str, Any]) -> int:
+            content = entry.get("content", "")
+            hits = 0
+            for k, v in context_signature.items():
+                if k in content or str(v) in content:
+                    hits += 1
+            return hits
+
+        ranked = sorted(self.templates, key=score, reverse=True)
+        return ranked[:limit]
+
+
 # Export all classes
 __all__ = [
     # Enums
@@ -1009,4 +1096,6 @@ __all__ = [
     "create_solution_pattern",
     "create_anti_pattern",
     "create_decomposition_strategy",
+    "create_refinement_template",
+    "SkillbookStore",
 ]

@@ -77,8 +77,29 @@ export interface CapturedInteraction {
         attributes?: Record<string, string>;
     };
     position?: { x: number; y: number };
+    normalizedPosition?: { x: number; y: number };
     extractedState?: ApplicationState;
     screenSnapshot?: string; // HTML of current screen
+    dwellTimeMs?: number;
+    manualCodeDelta?: number;
+}
+
+export interface HeatmapPoint {
+    x: number; // normalized 0..1
+    y: number; // normalized 0..1
+    intensity: number;
+    dwellMs: number;
+    timestamp: number;
+    type: 'click' | 'submit' | 'hover' | 'focus' | 'change' | 'input';
+}
+
+export interface HeatmapSnapshot {
+    id: string;
+    timestamp: number;
+    screenHtml: string;
+    heatmapDataUrl: string;
+    points: HeatmapPoint[];
+    manualCodeDelta: number;
 }
 
 export interface ScreenHistoryItem {
@@ -122,4 +143,10 @@ export interface GenerativeUIState {
     lastInteractionTimestamp: number; // For debouncing
     interactionSummary?: string; // Compressed old interactions for token management
     maxHistorySize: number; // Maximum interactions to keep in full detail
+
+    // Heatmap tracking
+    heatmapEnabled: boolean;
+    heatmapPoints: HeatmapPoint[];
+    heatmapSnapshots: HeatmapSnapshot[];
+    heatmapTurnCount: number;
 }

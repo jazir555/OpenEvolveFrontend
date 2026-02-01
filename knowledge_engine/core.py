@@ -68,6 +68,14 @@ class EntityKnowledgeGraph:
         }
         self.relationships.append(relationship)
 
+    def add_decision_link(self, entity_name: str, decision_id: str):
+        """Link an entity to an ADR decision record."""
+        self.add_entity(entity_name)
+        entity = self.entities.get(entity_name, {})
+        entity["DECIDED_BY"] = decision_id
+        self.entities[entity_name] = entity
+        self.add_relationship(entity_name, "DECIDED_BY", decision_id)
+
     def get_entity(self, entity_name: str) -> Optional[Dict[str, Any]]:
         return self.entities.get(entity_name)
 

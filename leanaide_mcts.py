@@ -32,6 +32,7 @@ Created: 2025-12-30
 import asyncio
 import json
 import logging
+import hashlib
 import math
 import random
 import time
@@ -66,6 +67,22 @@ except ImportError:
     logging.warning("LeanAide integration not available - using simulation mode")
 
 logger = logging.getLogger(__name__)
+
+# Global failure lineage registry for adversarial biasing
+FAILURE_LINEAGE_HASHES: set[str] = set()
+
+
+def compute_lineage_hash(tactics: List[str]) -> str:
+    """Hash a tactic sequence to identify failure lineages."""
+    joined = "|".join(tactics)
+    return hashlib.sha256(joined.encode("utf-8")).hexdigest()
+
+
+def record_failure_lineage(tactics: List[str]) -> str:
+    """Record a failure lineage hash for adversarial biasing."""
+    lineage_hash = compute_lineage_hash(tactics)
+    FAILURE_LINEAGE_HASHES.add(lineage_hash)
+    return lineage_hash
 
 
 # =============================================================================
@@ -117,6 +134,8 @@ class MCTSConfig:
     max_tree_depth: int = 50
     pruning_threshold: float = 0.1
     cache_size_mb: int = 500
+    # Adversarial biasing
+    failure_penalty_multiplier: float = -10.0
 
     # LeanAide-specific settings
     server_url: str = "http://localhost:7654"
@@ -1356,7 +1375,12 @@ class MCTSBackpropagation:
     Supports both standard MCTS and AMAF updates.
     """
 
-    def __init__(self, enable_amaf: bool = True, amaf_alpha: float = 0.5):
+    def __init__(
+        self,
+        enable_amaf: bool = True,
+        amaf_alpha: float = 0.5,
+        failure_penalty_multiplier: float = -10.0
+    ):
         """
         Initialize backpropagation strategy.
 
@@ -1366,6 +1390,7 @@ class MCTSBackpropagation:
         """
         self.enable_amaf = enable_amaf
         self.amaf_alpha = amaf_alpha
+        self.failure_penalty_multiplier = failure_penalty_multiplier
 
     def backpropagate(
         self,
@@ -1382,6 +1407,13 @@ class MCTSBackpropagation:
             actions_seen: Actions seen during rollout (for AMAF)
         """
         current = node
+        # Apply adversarial negative bias for failure lineages
+        tactics_sequence = [
+            getattr(t, "name", str(t)) for t in node.state.tactics_sequence
+        ]
+        lineage_hash = compute_lineage_hash(tactics_sequence)
+        if lineage_hash in FAILURE_LINEAGE_HASHES:
+            reward = reward * self.failure_penalty_multiplier
 
         while current is not None:
             # Update node statistics
@@ -1463,7 +1495,8 @@ class MCTS:
         )
         self.backpropagation = MCTSBackpropagation(
             enable_amaf=config.enable_amaf,
-            amaf_alpha=config.amaf_alpha
+            amaf_alpha=config.amaf_alpha,
+            failure_penalty_multiplier=config.failure_penalty_multiplier
         )
 
         # Initialize tree
@@ -1637,6 +1670,10 @@ class MCTS:
         )
 
         return proof
+
+    def record_failure_lineage(self, tactics_sequence: List[str]) -> str:
+        """Record a failure lineage for adversarial biasing."""
+        return record_failure_lineage(tactics_sequence)
 
 
 # =============================================================================

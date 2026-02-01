@@ -95,6 +95,10 @@ export function getPostQualityFilterEnabled(): boolean {
     return getRoutingManager().isPostQualityFilterEnabled();
 }
 
+export function getAutoRefineEnabled(): boolean {
+    return getRoutingManager().isAutoRefineEnabled();
+}
+
 export function getAIProvider() {
     return getRoutingManager().getAIProvider();
 }

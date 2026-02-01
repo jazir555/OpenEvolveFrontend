@@ -176,6 +176,7 @@ class LearningLoopManager:
             "balance": 0.7
         }
         self.team_capability_scores: Dict[str, Dict[str, float]] = defaultdict(lambda: defaultdict(float))
+        self.teacher_traces: List[Dict[str, Any]] = []
 
         # Load existing data
         self._load_from_storage()
@@ -737,6 +738,8 @@ class LearningLoopManager:
                             for k, v in data['team_capability_scores'].items()
                         }
                     )
+                if 'teacher_traces' in data:
+                    self.teacher_traces = data['teacher_traces']
 
             logger.info(f"Loaded {len(self.learning_history)} learning sessions from storage")
 
@@ -756,7 +759,8 @@ class LearningLoopManager:
                 'lessons': [lesson.to_dict() for lesson in self.lessons],
                 'strategy_preferences': self.strategy_preferences,
                 'quality_thresholds': self.quality_thresholds,
-                'team_capability_scores': dict(self.team_capability_scores)
+                'team_capability_scores': dict(self.team_capability_scores),
+                'teacher_traces': self.teacher_traces
             }
 
             with open(self.knowledge_store_path, 'w') as f:
@@ -766,3 +770,39 @@ class LearningLoopManager:
 
         except Exception as e:  # TODO: Catch specific exception instead of Exception
             logger.error(f"Error saving learning data: {e}")
+
+    def register_teacher_trace(self, narrative: str, metadata: Optional[Dict[str, Any]] = None) -> None:
+        """Store a converged narrative for federated distillation."""
+        self.teacher_traces.append({
+            "narrative": narrative,
+            "metadata": metadata or {},
+            "timestamp": datetime.now().isoformat()
+        })
+        self._save_to_storage()
+
+    def distill_local_model(
+        self,
+        student_model_name: str = "local-student",
+        max_samples: int = 200
+    ) -> Dict[str, Any]:
+        """
+        Prepare a dataset for federated distillation of a local model.
+
+        Returns:
+            Metadata about the prepared distillation dataset.
+        """
+        dataset = self.teacher_traces[-max_samples:]
+        output_path = f"distillation_{student_model_name}.json"
+        try:
+            with open(output_path, "w", encoding="utf-8") as f:
+                json.dump(dataset, f, indent=2)
+        except (OSError, IOError) as e:
+            logger.error(f"Failed to write distillation dataset: {e}")
+            return {"status": "error", "error": str(e)}
+
+        return {
+            "status": "prepared",
+            "student_model": student_model_name,
+            "dataset_path": output_path,
+            "samples": len(dataset)
+        }

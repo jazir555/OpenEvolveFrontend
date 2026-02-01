@@ -36,6 +36,7 @@ except ImportError:
     REQUESTS_AVAILABLE = False
 
 from problem_decomposition import ProblemDecomposer, DecompositionStrategy, Component
+from dependency_analyzer import DependencyAnalyzer
 from problem_recomposition import SolutionAssembler
 from decomposition_mcp_tools import (
     list_available_teams,
@@ -259,7 +260,9 @@ class FractalPipelineCoordinator:
     def __init__(self, config: Optional[FractalPipelineConfig] = None) -> None:
         self.config = config or FractalPipelineConfig()
         self.decomposer = ProblemDecomposer()
+        self.dependency_analyzer = DependencyAnalyzer()
         self._openevolve_client = None
+        self.entanglement_matrix: Dict[str, set] = {}
 
     def run(self, problem_statement: str, requirements: Optional[List[str]] = None) -> FractalPipelineResult:
         requirements = requirements or []
@@ -302,6 +305,15 @@ class FractalPipelineCoordinator:
         component_map = {comp.id: comp for comp in result.components}
         plan = self._build_plan_from_components(result.components, result.dependency_graph)
         plan.metadata["problem_statement"] = content
+
+        # Build symbolic entanglement matrix
+        try:
+            self.entanglement_matrix = self.dependency_analyzer.build_entanglement_matrix(plan.sub_problems)
+            plan.metadata["entanglement_matrix"] = {
+                k: list(v) for k, v in self.entanglement_matrix.items()
+            }
+        except (ValueError, AttributeError) as exc:
+            logger.warning("Failed to build entanglement matrix: %s", exc)
 
         if self.config.enable_mdap_maker_decomposition:
             if self.config.enable_roma_decomposition:
@@ -346,10 +358,47 @@ class FractalPipelineCoordinator:
 
         sub_solutions: Dict[str, SolutionAttempt] = {}
 
+        solved_ids = set()
         for sub_problem in plan.sub_problems:
+            if sub_problem.id in solved_ids:
+                continue
             component = component_map.get(sub_problem.id)
             if not component:
                 continue
+
+            # Super-node merge for tightly coupled entanglement
+            partner_id = self._select_super_node_partner(sub_problem.id, solved_ids)
+            if partner_id:
+                partner_component = component_map.get(partner_id)
+                if partner_component:
+                    merged_description = self._merge_component_context(component, partner_component)
+                    attempt = execute_mdap_step(
+                        sub_problem_id=f"{sub_problem.id}+{partner_id}",
+                        sub_problem_description=merged_description,
+                        team_name=team_name,
+                        requirements=requirements,
+                        config=self.config,
+                        context={"super_node": [sub_problem.id, partner_id]},
+                        red_gauntlet=red_gauntlet,
+                        gold_gauntlet=gold_gauntlet,
+                    )
+                    attempt.metadata["super_node"] = [sub_problem.id, partner_id]
+                    sub_solutions[sub_problem.id] = attempt
+                    sub_solutions[partner_id] = SolutionAttempt(
+                        id=generate_id("solution_attempt"),
+                        sub_problem_id=partner_id,
+                        approach=attempt.approach,
+                        solution_content=attempt.solution_content,
+                        team_id=attempt.team_id,
+                        confidence_score=attempt.confidence_score,
+                        status=attempt.status,
+                        metadata={"super_node": [sub_problem.id, partner_id]},
+                    )
+                    solved_ids.update({sub_problem.id, partner_id})
+                    self._propagate_entanglement(sub_problem.id, sub_solutions, plan)
+                    self._propagate_entanglement(partner_id, sub_solutions, plan)
+                    continue
+
             attempt = self._solve_component_recursive(
                 component=component,
                 team_name=team_name,
@@ -360,6 +409,8 @@ class FractalPipelineCoordinator:
                 parent_task_id=plan.metadata.get("CrewAI_tasks", {}).get(sub_problem.id),
             )
             sub_solutions[sub_problem.id] = attempt
+            solved_ids.add(sub_problem.id)
+            self._propagate_entanglement(sub_problem.id, sub_solutions, plan)
 
             if self.config.use_CrewAI_mirroring:
                 task_id = plan.metadata.get("CrewAI_tasks", {}).get(sub_problem.id)
@@ -378,6 +429,43 @@ class FractalPipelineCoordinator:
                     )
 
         return sub_solutions
+
+    def _propagate_entanglement(
+        self,
+        source_id: str,
+        sub_solutions: Dict[str, SolutionAttempt],
+        plan: DecompositionPlan
+    ) -> None:
+        entangled = self.entanglement_matrix.get(source_id, set())
+        if not entangled:
+            return
+
+        for target_id in entangled:
+            attempt = sub_solutions.get(target_id)
+            if attempt and attempt.status == "solved":
+                attempt.status = "needs_consistency_refinement"
+                attempt.metadata.setdefault("entanglement_invalidation", []).append(source_id)
+                for sp in plan.sub_problems:
+                    if sp.id == target_id:
+                        sp.metadata["needs_consistency_refinement"] = True
+                        break
+
+    def _select_super_node_partner(self, component_id: str, solved_ids: set) -> Optional[str]:
+        entangled = self.entanglement_matrix.get(component_id, set())
+        for candidate in entangled:
+            if candidate in solved_ids:
+                continue
+            # Tight coupling if both directions are entangled
+            if component_id in self.entanglement_matrix.get(candidate, set()):
+                return candidate
+        return None
+
+    def _merge_component_context(self, comp_a: Component, comp_b: Component) -> str:
+        return (
+            f"[Super-Node Merge]\n"
+            f"Component {comp_a.id}: {comp_a.title}\n{comp_a.content}\n\n"
+            f"Component {comp_b.id}: {comp_b.title}\n{comp_b.content}\n"
+        )
 
     def _solve_component_recursive(
         self,

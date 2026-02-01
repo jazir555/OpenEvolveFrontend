@@ -19,8 +19,9 @@ import {
     Z3SolveResponse,
     ProveLeanResponse,
     SolveUnifiedResponse,
-    MathSolverMessage
-} from './index';
+    MathSolverMessage,
+    KnowledgeEngineStatus
+} from './MathSolverCore';
 
 interface MathSolverUIProps {
     onClose?: () => void;
@@ -45,6 +46,10 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
     // Backend status
     const [backendStatus, setBackendStatus] = useState<{ available: boolean; versionCompatible?: boolean; versionError?: string; details?: any } | null>(null);
     const [checkingBackend, setCheckingBackend] = useState(false);
+    
+    // Knowledge engine status
+    const [knowledgeStatus, setKnowledgeStatus] = useState<KnowledgeEngineStatus | null>(null);
+    const [checkingKnowledge, setCheckingKnowledge] = useState(false);
     
     // Refs
     const solveButtonRef = React.useRef<HTMLButtonElement>(null);
@@ -71,6 +76,9 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
         
         // Check backend health on mount
         checkBackend();
+        
+        // Check knowledge engine availability
+        checkKnowledgeEngine();
         
         return () => {
             // Clean up event listeners to prevent memory leaks
@@ -125,6 +133,29 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
         } finally {
             if (isMountedRef.current) {
                 setCheckingBackend(false);
+            }
+        }
+    };
+    
+    const checkKnowledgeEngine = async () => {
+        setCheckingKnowledge(true);
+        try {
+            await core.checkKnowledgeEngineAvailability();
+            if (isMountedRef.current) {
+                setKnowledgeStatus(core.getKnowledgeEngineStatus());
+            }
+        } catch (error) {
+            console.error('[MathSolverUI] Knowledge engine check failed:', error);
+            if (isMountedRef.current) {
+                setKnowledgeStatus({
+                    available: false,
+                    lastChecked: Date.now(),
+                    error: error instanceof Error ? error.message : 'Unknown error'
+                });
+            }
+        } finally {
+            if (isMountedRef.current) {
+                setCheckingKnowledge(false);
             }
         }
     };
@@ -284,6 +315,19 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
                         {checkingBackend ? '● Checking backend...' :
                          backendStatus?.available ? '● Backend connected' : '● Backend unavailable'}
                     </span>
+                    <span 
+                        style={{ 
+                            marginRight: '16px',
+                            color: checkingKnowledge ? '#ff9800' : 
+                                   knowledgeStatus?.available === true ? '#4caf50' : 
+                                   knowledgeStatus?.available === false ? '#f44336' : '#757575'
+                        }}
+                        title={knowledgeStatus?.error || 'Knowledge engine status'}
+                    >
+                        {checkingKnowledge ? '● KB...' :
+                         knowledgeStatus?.available === true ? '● KB ✓' : 
+                         knowledgeStatus?.available === false ? '● KB ✗' : '● KB ?'}
+                    </span>
                     <button onClick={checkBackend} disabled={checkingBackend} style={{ marginRight: '8px' }}>
                         Refresh
                     </button>
@@ -327,13 +371,35 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
                 </div>
                 
                 <div>
-                    <label>
+                    <label style={{ 
+                        opacity: knowledgeStatus?.available === false ? 0.6 : 1,
+                        cursor: knowledgeStatus?.available === false ? 'not-allowed' : 'pointer'
+                    }}>
                         <input 
                             type="checkbox" 
-                            checked={useKnowledge} 
+                            checked={useKnowledge && knowledgeStatus?.available !== false} 
                             onChange={(e) => setUseKnowledge(e.target.checked)}
+                            disabled={knowledgeStatus?.available === false}
                         />
                         Use Knowledge Base
+                        {knowledgeStatus?.available === false && (
+                            <span style={{ 
+                                color: '#f44336', 
+                                fontSize: '0.75rem', 
+                                marginLeft: '8px' 
+                            }}>
+                                (Unavailable)
+                            </span>
+                        )}
+                        {knowledgeStatus?.available === true && (
+                            <span style={{ 
+                                color: '#4caf50', 
+                                fontSize: '0.75rem', 
+                                marginLeft: '8px' 
+                            }}>
+                                (Available)
+                            </span>
+                        )}
                     </label>
                 </div>
                 
@@ -343,7 +409,7 @@ export const MathSolverUI: React.FC<MathSolverUIProps> = ({
                         id="math-timeout-input"
                         type="number" 
                         value={solverTimeout} 
-                        onChange={(e) => setSolverTimeout(parseInt(e.target.value) || 300)}
+                        onChange={(e) => setSolverTimeout(parseInt(e.target.value, 10) || 300)}
                         disabled={state.isProcessing}
                         aria-label="Solver timeout in seconds"
                         style={{ marginLeft: '8px', width: '80px' }}

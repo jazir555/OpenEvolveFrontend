@@ -76,6 +76,14 @@ class InputValidator:
             'code': ['class'],
             'pre': ['class']
         }
+        # Zero-trust fuzzing patterns for sanitization hardening
+        self._fuzz_patterns = [
+            r'javascript\s*:',
+            r'data:text/html',
+            r'vbscript\s*:',
+            r'on\w+\s*=',
+            r'<svg[^>]*onload',
+        ]
     
     def validate(self, data: Any, field_name: str, rules: List[ValidationRuleConfig]) -> Any:
         """Validate a single field against multiple rules"""
@@ -229,8 +237,60 @@ class InputValidator:
             value = re.sub(r'on\w+\s*=', 'safe_', value, flags=re.IGNORECASE)
             # Remove javascript: protocol
             value = re.sub(r'javascript:', 'safe_javascript:', value, flags=re.IGNORECASE)
+            for pattern in self._fuzz_patterns:
+                value = re.sub(pattern, 'blocked_', value, flags=re.IGNORECASE)
             return value
         return value
+
+    def run_zero_trust_fuzzing(self, max_rounds: int = 3) -> Dict[str, Any]:
+        """
+        Run fuzzing loop against sanitizer and harden patterns.
+
+        Returns:
+            Dict with failures and applied patterns.
+        """
+        payloads = [
+            '<script>alert(1)</script>',
+            '<IMG SRC=javascript:alert(1)>',
+            '<svg onload=alert(1)>',
+            '<a href=\"javascript:alert(1)\">x</a>',
+            '<div onmouseover=alert(1)>x</div>',
+            'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg=='
+        ]
+        failures = []
+
+        for _ in range(max_rounds):
+            failures.clear()
+            for payload in payloads:
+                sanitized = self._remove_script_tags(payload)
+                if self._contains_malicious(sanitized):
+                    failures.append(payload)
+
+            if not failures:
+                break
+            # Harden by adding patterns for failing payloads
+            for payload in failures:
+                if '<script' in payload.lower() and r'<script' not in self._fuzz_patterns:
+                    self._fuzz_patterns.append(r'<script')
+                if 'onload' in payload.lower() and r'onload' not in self._fuzz_patterns:
+                    self._fuzz_patterns.append(r'onload')
+
+        return {
+            "failures": failures,
+            "patterns": list(self._fuzz_patterns)
+        }
+
+    def _contains_malicious(self, value: str) -> bool:
+        suspicious = [
+            r'<script',
+            r'javascript\s*:',
+            r'on\w+\s*=',
+            r'data:text/html',
+        ]
+        for pattern in suspicious:
+            if re.search(pattern, value, flags=re.IGNORECASE):
+                return True
+        return False
     
     def validate_problem_definition(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Validate a complete problem definition"""

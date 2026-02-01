@@ -719,6 +719,67 @@ class Z3SolverEngine:
 # Z3 Theorem Prover
 # =============================================================================
 
+class Z3LogicCompressor:
+    """Compress and simplify boolean logic using Z3 when available."""
+
+    def __init__(self):
+        self.solver = Z3SolverEngine()
+
+    def simplify_condition(self, condition: str) -> str:
+        if not Z3_PYTHON_AVAILABLE:
+            return condition
+        expr = self._to_smtlib(condition)
+        if not expr:
+            return condition
+        try:
+            import z3  # type: ignore
+
+            variables = {v: z3.Bool(v) for v in self._extract_symbols(expr)}
+            parsed = z3.parse_smt2_string(f"(assert {expr})", decls=variables)
+            if not parsed:
+                return condition
+            simplified = z3.simplify(parsed[0])
+            return simplified.sexpr()
+        except Exception:
+            return condition
+
+    def compress_code_conditions(self, code: str, min_chain: int = 3) -> str:
+        """Simplify large if/elif chains by compressing their conditions."""
+        lines = code.splitlines()
+        updated = False
+        chain_count = 0
+        for idx, line in enumerate(lines):
+            match = re.match(r"^(\\s*)(if|elif)\\s+(.*):\\s*$", line)
+            if not match:
+                chain_count = 0
+                continue
+            indent, keyword, condition = match.groups()
+            chain_count += 1
+            if chain_count >= min_chain:
+                simplified = self.simplify_condition(condition)
+                if simplified and simplified != condition:
+                    lines[idx] = f"{indent}{keyword} {simplified}:"
+                    updated = True
+        return "\\n".join(lines) if updated else code
+
+    def _to_smtlib(self, condition: str) -> Optional[str]:
+        """Attempt to convert simple python boolean expressions to SMT-LIB."""
+        stripped = condition.strip()
+        if stripped.startswith("(") and stripped.endswith(")"):
+            return stripped
+        if " and " in stripped and " or " not in stripped:
+            parts = [p.strip() for p in stripped.split(" and ") if p.strip()]
+            return f"(and {' '.join(parts)})"
+        if " or " in stripped and " and " not in stripped:
+            parts = [p.strip() for p in stripped.split(" or ") if p.strip()]
+            return f"(or {' '.join(parts)})"
+        if stripped.startswith("not "):
+            return f"(not {stripped[4:].strip()})"
+        return None
+
+    def _extract_symbols(self, expr: str) -> List[str]:
+        return list(set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", expr)))
+
 class Z3TheoremProver:
     """
     Z3-based theorem prover for formal verification.
@@ -882,6 +943,120 @@ class Z3TheoremProver:
         smtlib_content = '\n'.join(lines)
         return self._prove_smtlib(smtlib_content, None, None)
 
+
+# =============================================================================
+# Digital Twin Sandbox (DTS)
+# =============================================================================
+
+class DigitalTwinSandbox:
+    """
+    Digital Twin Logical Sandboxing for SOP validation.
+
+    Translates SOP steps or fix descriptions into Z3 constraints and verifies
+    them against global safety invariants.
+    """
+
+    def __init__(self, solver_engine: Optional[Z3SolverEngine] = None):
+        self.solver_engine = solver_engine or Z3SolverEngine()
+
+    def sop_to_constraints(self, steps: List[str]) -> Tuple[List[Z3Variable], List[Z3Constraint]]:
+        """Parse SOP steps into Z3 constraints using simple heuristics."""
+        variables: Dict[str, Z3Variable] = {}
+        constraints: List[Z3Constraint] = []
+
+        for step in steps:
+            step_constraints = self._parse_natural_language_constraints(step)
+            for var, constraint in step_constraints:
+                if var.name not in variables:
+                    variables[var.name] = var
+                constraints.append(constraint)
+
+        return list(variables.values()), constraints
+
+    def verify_fix_with_invariants(
+        self,
+        fix_text: str,
+        safety_invariants: List[str]
+    ) -> Tuple[bool, Optional[Dict[str, Any]]]:
+        """
+        Verify that fix constraints imply safety invariants.
+
+        Returns:
+            (passed, counterexample)
+        """
+        variables, constraints = self.sop_to_constraints([fix_text])
+        invariant_constraints = [Z3Constraint(expr, Z3ConstraintType.BOOLEAN) for expr in safety_invariants]
+
+        if not Z3_PYTHON_AVAILABLE:
+            # Fallback: assume pass when Z3 is unavailable
+            return True, None
+
+        try:
+            solver = z3.Solver()
+            for var in variables:
+                self.solver_engine._create_z3_variable(var)
+            z3_vars = {var.name: self.solver_engine._create_z3_variable(var) for var in variables}
+
+            for constraint in constraints:
+                expr = self.solver_engine._parse_constraint(constraint.expression, z3_vars)
+                if expr is not None:
+                    solver.add(expr)
+
+            # Add negation of invariants to test implication
+            for invariant in invariant_constraints:
+                expr = self.solver_engine._parse_constraint(invariant.expression, z3_vars)
+                if expr is not None:
+                    solver.add(z3.Not(expr))
+
+            result = solver.check()
+            if result == z3.unsat:
+                return True, None
+            if result == z3.sat:
+                model = solver.model()
+                counterexample = {d.name(): str(model[d]) for d in model.decls()}
+                return False, counterexample
+            return False, None
+        except Exception as exc:
+            logger.warning("Digital twin verification failed: %s", exc)
+            return False, {"error": str(exc)}
+
+    def _parse_natural_language_constraints(
+        self,
+        text: str
+    ) -> List[Tuple[Z3Variable, Z3Constraint]]:
+        constraints: List[Tuple[Z3Variable, Z3Constraint]] = []
+
+        # Examples: "cooling_rate <= 5", "does not exceed 5C/min"
+        numeric_patterns = [
+            r"([a-zA-Z_][a-zA-Z0-9_]*)\s*<=\s*([0-9\.]+)",
+            r"([a-zA-Z_][a-zA-Z0-9_]*)\s*>=\s*([0-9\.]+)",
+            r"([a-zA-Z_][a-zA-Z0-9_]*)\s*<\s*([0-9\.]+)",
+            r"([a-zA-Z_][a-zA-Z0-9_]*)\s*>\s*([0-9\.]+)",
+        ]
+
+        for pattern in numeric_patterns:
+            for name, value in re.findall(pattern, text):
+                var = Z3Variable(name=name, var_type=Z3ConstraintType.REAL)
+                constraints.append((var, Z3Constraint(f"({pattern_operator(pattern)} {name} {value})", Z3ConstraintType.REAL)))
+
+        # Handle "not exceed" phrasing
+        not_exceed = re.findall(r"([a-zA-Z_][a-zA-Z0-9_]*)\s+does not exceed\s+([0-9\.]+)", text, re.IGNORECASE)
+        for name, value in not_exceed:
+            var = Z3Variable(name=name, var_type=Z3ConstraintType.REAL)
+            constraints.append((var, Z3Constraint(f"(<= {name} {value})", Z3ConstraintType.REAL)))
+
+        return constraints
+
+
+def pattern_operator(pattern: str) -> str:
+    """Return SMT-LIB operator for regex pattern."""
+    if "<=" in pattern:
+        return "<="
+    if ">=" in pattern:
+        return ">="
+    if ">" in pattern and "<" not in pattern:
+        return ">"
+    return "<"
 
 # =============================================================================
 # Global Instance

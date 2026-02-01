@@ -38,6 +38,7 @@ import sqlite3
 import threading
 from collections import defaultdict, deque
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from leanaide_mcts import record_failure_lineage
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from enum import Enum
@@ -774,6 +775,12 @@ class BlueTeamAgent:
 
         # 6. Check if attack was blocked
         attack_blocked = defense_strength > 0.8
+
+        if not attack_blocked and proof and hasattr(proof, "tactic_sequence"):
+            try:
+                record_failure_lineage(list(proof.tactic_sequence))
+            except Exception as e:
+                logger.warning(f"Failed to record failure lineage: {e}")
 
         # 7. Track performance
         self.total_defenses += 1

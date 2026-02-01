@@ -752,6 +752,65 @@ class CollaborationManager:
             st.error(f"Error updating collaborator role: {e}")
             return False
 
+    def resolve_conflict_with_nash(self, conflict_record: Dict, agent_intents: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Resolve a conflict using a lightweight Nash-style mediation.
+
+        Args:
+            conflict_record: Existing conflict record
+            agent_intents: List of agent intent dicts (agent_id, intent)
+
+        Returns:
+            Updated conflict record with resolution details
+        """
+        mediator = MediatorAgent()
+        if len(agent_intents) < 2:
+            conflict_record["resolution_status"] = "pending"
+            conflict_record["resolution_notes"] = "Insufficient agent intents for mediation."
+            return conflict_record
+
+        intent_a = agent_intents[0].get("intent", "")
+        intent_b = agent_intents[1].get("intent", "")
+        proposal = mediator.propose_nash_equilibrium(intent_a, intent_b)
+
+        ack_a = mediator.self_refine_ack(intent_a, proposal)
+        ack_b = mediator.self_refine_ack(intent_b, proposal)
+
+        conflict_record["resolution_status"] = "resolved" if (ack_a and ack_b) else "pending"
+        conflict_record["resolution_proposal"] = proposal
+        conflict_record["acknowledged_by"] = [
+            agent_intents[0].get("agent_id") if ack_a else None,
+            agent_intents[1].get("agent_id") if ack_b else None,
+        ]
+        conflict_record["resolved_at"] = datetime.now().isoformat() if ack_a and ack_b else None
+        return conflict_record
+
+
+class MediatorAgent:
+    """Simple mediator that proposes a balanced solution for conflicting intents."""
+
+    def propose_nash_equilibrium(self, intent_a: str, intent_b: str) -> str:
+        # Heuristic blending of two intents
+        if "performance" in intent_a.lower() and "readability" in intent_b.lower():
+            return (
+                "Preserve performance in core logic while adding clear interface-level documentation "
+                "and examples to maintain readability."
+            )
+        if "readability" in intent_a.lower() and "performance" in intent_b.lower():
+            return (
+                "Optimize core logic for performance and add concise explanations and tests "
+                "to preserve readability."
+            )
+        return (
+            "Combine both intents by keeping the core implementation minimal and efficient, "
+            "while documenting the interface and rationale."
+        )
+
+    def self_refine_ack(self, intent: str, proposal: str) -> bool:
+        """Heuristic acknowledgment check that the proposal addresses the intent."""
+        intent_tokens = {t for t in intent.lower().split() if len(t) > 3}
+        return any(token in proposal.lower() for token in intent_tokens)
+
 
 # Initialize collaboration manager on import
 collaboration_manager = CollaborationManager()

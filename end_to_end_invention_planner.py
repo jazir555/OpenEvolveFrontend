@@ -68,6 +68,7 @@ from generic_maker_integration import (
     GenericEvaluator,
     GenericTask
 )
+from z3prover_integration import DigitalTwinSandbox
 
 # Try to import LeanAide
 try:
@@ -356,6 +357,7 @@ class EndToEndInventionPlanner:
         # Phase 4: Initialize Advanced Integrations
         self.integrations = None
         self.enable_integrations = enable_integrations and ADVANCED_INTEGRATIONS_AVAILABLE
+        self.digital_twin = DigitalTwinSandbox()
 
         if self.enable_integrations and InventionPlannerIntegrations:
             try:
@@ -1462,7 +1464,30 @@ Ensure fixes address the root cause, not just symptoms.
 
         blue_fixes = self._parse_findings(blue_result.solution)
 
-        return red_findings, blue_fixes
+        # Digital Twin Sandbox validation of fixes against safety invariants
+        safety_invariants = self._get_global_safety_invariants(goal)
+        validated_fixes: List[str] = []
+        for fix in blue_fixes:
+            passed, counterexample = self.digital_twin.verify_fix_with_invariants(
+                fix_text=fix,
+                safety_invariants=safety_invariants
+            )
+            if passed:
+                validated_fixes.append(fix)
+            else:
+                red_findings.append(
+                    f"Digital Twin refutation for fix '{fix[:80]}': {counterexample}"
+                )
+
+        return red_findings, validated_fixes
+
+    def _get_global_safety_invariants(self, goal: InventionGoal) -> List[str]:
+        """Derive global safety invariants from goal constraints."""
+        if not goal.constraints:
+            return ["true"]
+        _, constraints = self.digital_twin.sop_to_constraints(goal.constraints)
+        expressions = [c.expression for c in constraints if c.expression]
+        return expressions or ["true"]
 
     async def _generate_bulletproof_sop(
         self,

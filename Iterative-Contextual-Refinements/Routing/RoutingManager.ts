@@ -198,6 +198,10 @@ export class RoutingManager {
         return this.modelConfigManager.isPostQualityFilterEnabled();
     }
 
+    public isAutoRefineEnabled(): boolean {
+        return this.modelConfigManager.isAutoRefineEnabled();
+    }
+
     public hasValidApiKey(): boolean {
         return this.apiKeyManager.hasValidApiKey();
     }

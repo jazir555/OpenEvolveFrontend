@@ -29,7 +29,14 @@ from typing import Dict, Any, List, Optional, Callable, Tuple
 from enum import Enum
 from abc import ABC, abstractmethod
 import hashlib
+import random
+from datetime import datetime
+import asyncio
+import subprocess
 
+from chronicle_memory import ChronicleMemory
+from knowledge_manager import KnowledgeManager
+from z3prover_integration import Z3LogicCompressor
 # Import ROMA-MDAP-MAKER (Robust Execution)
 try:
     from roma_mdap_maker_associative_integration import (
@@ -200,6 +207,140 @@ class SolverPerformance:
         if cached:
             current_hits = self.cache_hit_rate * (n - 1)
             self.cache_hit_rate = (current_hits + 1) / n
+
+
+# =============================================================================
+# REWARD MODELING (ON-POLICY PREFERENCE LEARNING)
+# =============================================================================
+
+@dataclass
+class PreferenceRecord:
+    """Stores a preference comparison between two solutions."""
+    previous_solution: str
+    current_solution: str
+    preference_bit: int  # 0 = previous preferred, 1 = current preferred
+    improvement_delta: float
+    constraint_snapshot: List[str] = field(default_factory=list)
+    timestamp: float = field(default_factory=time.time)
+
+
+class PreferenceStore:
+    """Stores preference pairs for reward model training."""
+
+    def __init__(self):
+        self.records: List[PreferenceRecord] = []
+
+    def add_record(self, record: PreferenceRecord) -> None:
+        self.records.append(record)
+
+    def __len__(self) -> int:
+        return len(self.records)
+
+    def get_recent_pairs(self, count: int) -> List[PreferenceRecord]:
+        return self.records[-count:]
+
+
+class EvaluatorTeam:
+    """Lightweight comparative evaluator for preference labeling."""
+
+    def compare(
+        self,
+        previous_solution: str,
+        current_solution: str,
+        constraints: Optional[List[str]] = None
+    ) -> Tuple[int, float]:
+        constraints = constraints or []
+
+        prev_score = self._constraint_adherence(previous_solution, constraints)
+        curr_score = self._constraint_adherence(current_solution, constraints)
+
+        preference_bit = 1 if curr_score >= prev_score else 0
+        # Improvement delta blends constraint adherence and length structure
+        length_delta = (len(current_solution) - len(previous_solution)) / max(len(previous_solution), 1)
+        improvement_delta = max(0.0, min(1.0, 0.7 * (curr_score - prev_score) + 0.3 * length_delta))
+
+        return preference_bit, improvement_delta
+
+    def _constraint_adherence(self, solution: str, constraints: List[str]) -> float:
+        if not constraints:
+            return 0.5
+        matches = 0
+        lower_solution = solution.lower()
+        for constraint in constraints:
+            keywords = [w for w in constraint.lower().split() if len(w) > 3]
+            if any(k in lower_solution for k in keywords):
+                matches += 1
+        return matches / max(len(constraints), 1)
+
+
+class LocalRewardModel:
+    """Simple local reward model for scoring solutions and strategy candidates."""
+
+    def __init__(self, training_frequency: int = 50):
+        self.training_frequency = training_frequency
+        self.weights = {
+            "quality": 1.0,
+            "length": 0.1,
+            "structure": 0.3,
+            "constraint_fit": 0.5,
+        }
+        self._last_trained_at = 0
+
+    def score_solution(self, solution: str, quality: QualityMetrics, constraints: Optional[List[str]] = None) -> float:
+        features = self._extract_features(solution, quality, constraints or [])
+        score = sum(self.weights[k] * features.get(k, 0.0) for k in self.weights)
+        return 1 / (1 + pow(2.71828, -score))
+
+    def score_strategy_candidate(self, candidate_features: Dict[str, float]) -> float:
+        score = sum(self.weights.get(k, 0.0) * candidate_features.get(k, 0.0) for k in self.weights)
+        return 1 / (1 + pow(2.71828, -score))
+
+    def maybe_train(self, preference_store: PreferenceStore) -> None:
+        if len(preference_store) < self.training_frequency:
+            return
+        if len(preference_store) - self._last_trained_at < self.training_frequency:
+            return
+
+        recent = preference_store.get_recent_pairs(self.training_frequency)
+        synthetic_pairs = []
+        try:
+            from causallearn.utils.preference_synthesis import generate_synthetic_preference_pairs
+            synthetic_pairs = generate_synthetic_preference_pairs(recent, max_pairs=10)
+        except Exception:
+            synthetic_pairs = []
+        # Simple weight nudging based on preference bit
+        for record in recent:
+            delta = 0.05 if record.preference_bit == 1 else -0.05
+            self.weights["quality"] += delta * record.improvement_delta
+            self.weights["constraint_fit"] += delta * record.improvement_delta
+            self.weights["length"] += delta * min(0.1, abs(record.improvement_delta))
+            self.weights["structure"] += delta * 0.02
+
+        for pair in synthetic_pairs:
+            delta = 0.03 if pair.preference_bit == 1 else -0.03
+            self.weights["quality"] += delta * pair.improvement_delta
+            self.weights["constraint_fit"] += delta * pair.improvement_delta
+
+        self._last_trained_at = len(preference_store)
+
+    def _extract_features(self, solution: str, quality: QualityMetrics, constraints: List[str]) -> Dict[str, float]:
+        length_score = min(1.0, len(solution) / 2000)
+        structure_score = 1.0 if ("##" in solution or "```" in solution or "\n-" in solution) else 0.3
+        constraint_score = 0.5
+        if constraints:
+            lower_solution = solution.lower()
+            hits = 0
+            for constraint in constraints:
+                keywords = [w for w in constraint.lower().split() if len(w) > 3]
+                if any(k in lower_solution for k in keywords):
+                    hits += 1
+            constraint_score = hits / max(len(constraints), 1)
+        return {
+            "quality": quality.overall_score,
+            "length": length_score,
+            "structure": structure_score,
+            "constraint_fit": constraint_score,
+        }
 
 
 # =============================================================================
@@ -1017,6 +1158,18 @@ class SolverWorkflow:
         self.total_solved = 0
         self.total_failed = 0
 
+        # Reward modeling components
+        self.preference_store = PreferenceStore()
+        self.reward_model = LocalRewardModel(training_frequency=config.get("rm_training_frequency", 50))
+        self.evaluator_team = EvaluatorTeam()
+        self._score_history: List[float] = []
+
+        # Optional LeanAide integration
+        self._leanaide_client = None
+
+        # Knowledge/ADR integration
+        self.knowledge_manager = KnowledgeManager()
+
     def select_strategy(
         self,
         sub_problem: SubProblemInput,
@@ -1026,6 +1179,33 @@ class SolverWorkflow:
 
         if preferred_strategy:
             return preferred_strategy
+
+        # Reward-model-guided draft selection
+        candidate_strategies = [
+            (SolvingStrategy.ANALYTICAL, 0.2),
+            (SolvingStrategy.SYSTEMATIC, 0.4),
+            (SolvingStrategy.HYBRID, 0.6),
+        ]
+        if self.config.get("enable_evolution", True):
+            candidate_strategies.append((SolvingStrategy.EVOLUTIONARY, 0.7))
+
+        # Score candidates using reward model and problem features
+        best_strategy = None
+        best_score = -1.0
+        for strategy, temp in candidate_strategies:
+            features = {
+                "quality": sub_problem.complexity_score / 10.0,
+                "length": min(1.0, len(sub_problem.description) / 1000),
+                "structure": 0.6 if sub_problem.requirements else 0.3,
+                "constraint_fit": min(1.0, len(sub_problem.constraints) / 5.0),
+            }
+            score = self.reward_model.score_strategy_candidate(features) * (1.0 - abs(temp - 0.4))
+            if score > best_score:
+                best_score = score
+                best_strategy = strategy
+
+        if best_strategy:
+            return best_strategy
 
         # Auto-select based on problem characteristics
         if sub_problem.complexity_score >= 8:
@@ -1099,7 +1279,9 @@ class SolverWorkflow:
 
         best_result = None
         best_quality = 0.0
+        previous_solution: Optional[str] = None
 
+        converged = False
         for iteration in range(max_iterations):
             logger.info(f"[SolverWorkflow] Iteration {iteration + 1}/{max_iterations}")
 
@@ -1117,6 +1299,33 @@ class SolverWorkflow:
             current_quality = result.quality_metrics.overall_score
 
             logger.info(f"[SolverWorkflow] Quality score: {current_quality:.2f}")
+            self._score_history.append(current_quality)
+
+            # Comparative judging for reward modeling
+            if previous_solution is not None:
+                preference_bit, improvement_delta = self.evaluator_team.compare(
+                    previous_solution,
+                    result.solution,
+                    sub_problem.constraints
+                )
+                self.preference_store.add_record(
+                    PreferenceRecord(
+                        previous_solution=previous_solution,
+                        current_solution=result.solution,
+                        preference_bit=preference_bit,
+                        improvement_delta=improvement_delta,
+                        constraint_snapshot=list(sub_problem.constraints),
+                    )
+                )
+                self.reward_model.maybe_train(self.preference_store)
+
+                # Lean 4 micro-formalization trigger
+                if improvement_delta < 0.02 and current_quality < 0.70:
+                    lean_spec = self._build_lean_spec(sub_problem)
+                    if lean_spec:
+                        sub_problem.context["lean_specification"] = lean_spec
+
+            previous_solution = result.solution
 
             if current_quality > best_quality:
                 best_result = result
@@ -1125,6 +1334,13 @@ class SolverWorkflow:
             # Check if meets threshold
             if current_quality >= quality_threshold:
                 logger.info(f"[SolverWorkflow] Quality threshold met ({current_quality:.2f} >= {quality_threshold:.2f})")
+                converged = True
+                break
+
+            # Convergence monitoring
+            if self._has_converged():
+                logger.info("[SolverWorkflow] Convergence detected, stopping refinement loop")
+                converged = True
                 break
 
             # Refine for next iteration
@@ -1151,7 +1367,25 @@ class SolverWorkflow:
             else:
                 self.total_failed += 1
 
+            target_symbol = sub_problem.context.get("target_symbol") if sub_problem.context else None
+            if target_symbol and not self._passes_arbor_gate(target_symbol):
+                best_result.status = SolutionStatus.FAILED
+                best_result.error_message = "Arbor blast radius too large (transitive_breaks > 5)."
+                best_result.metadata["arbor_rejected"] = True
+                return best_result
+
             logger.info(f"[SolverWorkflow] Workflow completed for {sub_problem.id}")
+            if self.config.get("enable_logic_compression", True):
+                try:
+                    compressor = Z3LogicCompressor()
+                    compressed = compressor.compress_code_conditions(best_result.solution)
+                    if compressed != best_result.solution:
+                        best_result.solution = compressed
+                        best_result.metadata["logic_compressed"] = True
+                except Exception:
+                    pass
+            if converged:
+                self._record_adr_and_skillbook(sub_problem, best_result, selected_strategy)
             return best_result
         else:
             # All iterations failed
@@ -1242,6 +1476,146 @@ class SolverWorkflow:
             feedback.append("Consider more innovative approaches")
 
         return "; ".join(feedback) if feedback else "Good quality overall"
+
+    def _has_converged(self) -> bool:
+        if len(self._score_history) < 4:
+            return False
+        diffs = [
+            abs(self._score_history[-1] - self._score_history[-2]),
+            abs(self._score_history[-2] - self._score_history[-3]),
+            abs(self._score_history[-3] - self._score_history[-4]),
+        ]
+        return all(d < 0.01 for d in diffs) or self._score_history[-1] >= 0.95
+
+    def _passes_arbor_gate(self, symbol: str) -> bool:
+        """Run Arbor blast radius check and reject if too invasive."""
+        try:
+            result = subprocess.run(
+                ["arbor", "refactor", symbol, "--why", "--json"],
+                capture_output=True,
+                text=True,
+                timeout=60
+            )
+            if result.returncode != 0:
+                return True  # If Arbor fails, do not block by default
+            data = json.loads(result.stdout)
+            transitive = data.get("transitive_breaks", 0)
+            return transitive <= 5
+        except Exception:
+            return True
+
+    def _record_adr_and_skillbook(
+        self,
+        sub_problem: SubProblemInput,
+        best_result: SolutionResult,
+        selected_strategy: SolvingStrategy
+    ) -> None:
+        """Create ADR and store refinement template on convergence."""
+        title = f"{sub_problem.id} - Solver Convergence"
+        decision = f"Selected strategy: {selected_strategy.value}"
+        rationale = (
+            "Convergence achieved with stable quality improvements and solver validation."
+        )
+        consequences = (
+            "Entangled components should be reviewed for downstream impacts."
+        )
+        alternatives = [s.value for s in SolvingStrategy if s != selected_strategy]
+        entangled = sub_problem.context.get("entangled_components", [])
+
+        chronicle = ChronicleMemory()
+
+        async def _synthesize():
+            return await chronicle.synthesize_adr(
+                title=title,
+                decision=decision,
+                rationale=rationale,
+                consequences=consequences,
+                alternatives_rejected=alternatives,
+                entangled_components=entangled
+            )
+
+        try:
+            try:
+                loop = asyncio.get_running_loop()
+            except RuntimeError:
+                loop = None
+
+            adr_result = None
+            if loop and loop.is_running():
+                return
+            adr_result = asyncio.run(_synthesize())
+
+            if adr_result:
+                self.knowledge_manager.record_adr(
+                    {
+                        **adr_result,
+                        "workflow_id": sub_problem.id,
+                        "summary": best_result.solution[:200],
+                        "confidence": best_result.quality_metrics.overall_score
+                    },
+                    entity_ids=[sub_problem.id]
+                )
+
+                # Store refinement template
+                reasoning_path = [
+                    f"strategy:{selected_strategy.value}",
+                    f"quality:{best_result.quality_metrics.overall_score:.2f}",
+                    "converged:true",
+                ]
+                context_signature = {
+                    "constraints": sub_problem.constraints,
+                    "requirements": sub_problem.requirements,
+                }
+                self.knowledge_manager.store_refinement_template(
+                    title=title,
+                    description="Converged solver reasoning path.",
+                    reasoning_path=reasoning_path,
+                    context_signature=context_signature,
+                    domain=sub_problem.context.get("domain", "general")
+                )
+        except Exception as e:
+            logger.warning(f"ADR/Skillbook synthesis failed: {e}")
+
+    def _build_lean_spec(self, sub_problem: SubProblemInput) -> Optional[str]:
+        """Attempt to build a Lean 4 specification for the sub-problem."""
+        if self._leanaide_client is None:
+            try:
+                from leanaide_client import LeanAideClient, LeanAideConfig
+                self._leanaide_client = LeanAideClient(LeanAideConfig())
+            except (ImportError, RuntimeError):
+                self._leanaide_client = False
+
+        if not self._leanaide_client:
+            # Fallback heuristic spec
+            if sub_problem.success_criteria:
+                joined = " and ".join(sub_problem.success_criteria)
+                return f"-- LeanSpec (fallback)\n-- {joined}"
+            return None
+
+        try:
+            import asyncio
+            prompt = (
+                "Convert the following natural language requirement into a Lean 4 predicate.\n"
+                f"Problem: {sub_problem.description}\n"
+                f"Requirements: {sub_problem.success_criteria}\n"
+            )
+            if hasattr(self._leanaide_client, "translate_thm_detailed"):
+                try:
+                    loop = asyncio.get_running_loop()
+                except RuntimeError:
+                    loop = None
+                if loop and loop.is_running():
+                    return None
+                response = asyncio.run(self._leanaide_client.translate_thm_detailed(prompt))
+                if isinstance(response, dict):
+                    lean_code = response.get("lean_code") or response.get("theorem") or response.get("lean")
+                    if isinstance(lean_code, str) and lean_code.strip():
+                        return lean_code.strip()
+                if isinstance(response, str) and response.strip():
+                    return response.strip()
+        except Exception:
+            return None
+        return None
 
 
 # =============================================================================

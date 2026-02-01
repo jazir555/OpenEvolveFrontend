@@ -381,6 +381,52 @@ class ConflictDetector:
 
         return conflicts
 
+    def detect_ast_edit_conflicts(
+        self,
+        agent_edits: List[Dict[str, Any]]
+    ) -> List[Conflict]:
+        """
+        Detect conflicts where multiple agents edit the same AST node with different intents.
+
+        Args:
+            agent_edits: List of edits containing at least agent_id, node_id, intent
+
+        Returns:
+            List of conflicts requiring mediation
+        """
+        conflicts: List[Conflict] = []
+        edits_by_node: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
+        for edit in agent_edits:
+            node_id = edit.get("node_id")
+            if node_id:
+                edits_by_node[node_id].append(edit)
+
+        for node_id, edits in edits_by_node.items():
+            intents = {e.get("intent", "") for e in edits}
+            if len(intents) <= 1:
+                continue
+
+            affected_agents = [e.get("agent_id", "unknown") for e in edits]
+            conflicts.append(
+                Conflict(
+                    conflict_type=ConflictType.STRUCTURAL_CONFLICT,
+                    severity=ConflictSeverity.HIGH,
+                    description=f"Agents have conflicting intents for AST node {node_id}.",
+                    affected_solutions=affected_agents,
+                    source_locations=[{"node_id": node_id}],
+                    suggested_resolution={
+                        "strategy": "nash_mediation",
+                        "mediator_required": True,
+                        "node_id": node_id,
+                        "intents": list(intents)
+                    },
+                    metadata={"node_id": node_id, "edits": edits},
+                    confidence=0.85
+                )
+            )
+
+        return conflicts
+
     def _analyze_solution(self, solution_code: str, solution_id: str) -> SolutionAnalysis:
         """
         Analyze a single solution using AST
