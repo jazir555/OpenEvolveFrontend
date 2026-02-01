@@ -49,6 +49,10 @@ export { OpenEvolveExecutionBubble } from './bubbles/service-bubble/openevolve-e
 export { OpenEvolveTeamBubble } from './bubbles/service-bubble/openevolve-team-bubble.js';
 export { OpenEvolveGauntletBubble } from './bubbles/service-bubble/openevolve-gauntlet-bubble.js';
 export { OpenEvolveSettingsBubble } from './bubbles/service-bubble/openevolve-settings-bubble.js';
+export { OpenEvolveIcrBubble } from './bubbles/service-bubble/openevolve-icr-bubble.js';
+export { OpenEvolveDeterminismBubble } from './bubbles/service-bubble/openevolve-determinism-bubble.js';
+export { OpenEvolveDecompositionBubble } from './bubbles/service-bubble/openevolve-decomposition-bubble.js';
+export { OpenEvolveDecompositionWorkflowBubble } from './bubbles/service-bubble/openevolve-decomposition-workflow-bubble.js';
 export { OpenEvolveKnowledgeEngineBubble } from './bubbles/service-bubble/openevolve-knowledge-engine-bubble.js';
 export { OpenEvolveWorkflowOrchestratorBubble } from './bubbles/service-bubble/openevolve-workflow-orchestrator-bubble.js';
 export { OpenEvolveAceToolsBubble } from './bubbles/service-bubble/openevolve-ace-tools-bubble.js';

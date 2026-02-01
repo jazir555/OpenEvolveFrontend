@@ -447,6 +447,108 @@ export interface UpdateLLMConfigRequest {
   presence_penalty?: number;
 }
 
+/**
+ * ICR configuration
+ */
+export interface ICRConfig {
+  auto_refine_enabled: boolean;
+  reward_calibration_enabled: boolean;
+  reward_calibration_threshold: number;
+  heatmap_analysis_enabled: boolean;
+  heatmap_snapshot_interval: number;
+  vlm_provider?: string;
+  vlm_model?: string;
+}
+
+/**
+ * Update ICR config request
+ */
+export interface UpdateICRConfigRequest {
+  auto_refine_enabled?: boolean;
+  reward_calibration_enabled?: boolean;
+  reward_calibration_threshold?: number;
+  heatmap_analysis_enabled?: boolean;
+  heatmap_snapshot_interval?: number;
+  vlm_provider?: string;
+  vlm_model?: string;
+}
+
+/**
+ * Determinism defaults
+ */
+export interface DeterminismDefaults {
+  mode: string;
+  cloud_provider?: string;
+  cloud_model?: string;
+  cloud_base_url?: string;
+  local_provider?: string;
+  local_model?: string;
+  local_device?: string;
+  local_dtype?: string;
+  config?: Record<string, any>;
+  detllm_backend?: string;
+  detllm_model?: string;
+  check_tier: number;
+  check_runs: number;
+  check_provider?: string;
+  check_model?: string;
+  check_base_url?: string;
+  check_device?: string;
+  check_dtype?: string;
+}
+
+/**
+ * Update determinism defaults
+ */
+export interface UpdateDeterminismDefaultsRequest {
+  mode?: string;
+  cloud_provider?: string;
+  cloud_model?: string;
+  cloud_base_url?: string;
+  local_provider?: string;
+  local_model?: string;
+  local_device?: string;
+  local_dtype?: string;
+  config?: Record<string, any>;
+  detllm_backend?: string;
+  detllm_model?: string;
+  check_tier?: number;
+  check_runs?: number;
+  check_provider?: string;
+  check_model?: string;
+  check_base_url?: string;
+  check_device?: string;
+  check_dtype?: string;
+}
+
+/**
+ * Decomposition defaults
+ */
+export interface DecompositionDefaults {
+  strategy?: string;
+  enable_adaptive_selection: boolean;
+  maker_config?: Record<string, any>;
+  openevolve_client_config?: Record<string, any>;
+  mdap_enabled: boolean;
+  mdap_config?: Record<string, any>;
+  maker_enabled: boolean;
+  workflow_max_refinement_loops: number;
+}
+
+/**
+ * Update decomposition defaults
+ */
+export interface UpdateDecompositionDefaultsRequest {
+  strategy?: string;
+  enable_adaptive_selection?: boolean;
+  maker_config?: Record<string, any>;
+  openevolve_client_config?: Record<string, any>;
+  mdap_enabled?: boolean;
+  mdap_config?: Record<string, any>;
+  maker_enabled?: boolean;
+  workflow_max_refinement_loops?: number;
+}
+
 // ============================================================================
 // Benchmark Types
 // ============================================================================

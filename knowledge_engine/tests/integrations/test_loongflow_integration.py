@@ -150,8 +150,8 @@ class TestLoongFlowKnowledgeExtractor:
         # Should extract 5 artifacts
         assert len(artifacts) == 5
 
-        # Check artifact types
-        artifact_types = [a["artifact_type"] for a in artifacts]
+        # Check artifact types (KnowledgeArtifact objects, not dicts)
+        artifact_types = [a.artifact_type for a in artifacts]
         assert "planning_strategy" in artifact_types
         assert "execution_pattern" in artifact_types
         assert "reflection_insight" in artifact_types

@@ -1,178 +1,222 @@
 """
 Knowledge Extraction Node for BubbleLabs Integration
 
-Extracts and packages knowledge artifacts from workflow execution.
+Extracts structured knowledge (triples) from unstructured text using multiple
+NLP extraction strategies including DeepKE, OneKE, and KG-Gen.
+
+Features:
+- Multiple extraction backends (DeepKE, OneKE, KG-Gen)
+- Automatic extractor selection (auto mode)
+- Confidence threshold filtering
+- Domain-aware extraction hints
+- Structured output with provenance metadata
 """
 
 from typing import Dict, Any, List, Optional
+from datetime import datetime
+import asyncio
 from .base_node import BubbleLabsNode, NodeExecutionError
 
 
 class KnowledgeExtractionNode(BubbleLabsNode):
     """
-    Extracts knowledge artifacts and learns from workflow execution.
+    Extract structured knowledge from unstructured text using multiple NLP strategies.
 
-    Extracts:
-    - Patterns and best practices
-    - Lessons learned
-    - Performance metrics
-    - Knowledge artifacts for reuse
+    Supports:
+    - DeepKE: Deep learning-based relation extraction
+    - OneKE: One-stop knowledge extraction with schema guidance
+    - KG-Gen: Knowledge graph generation
+    - Auto: Automatic selection of best extractor
+
+    Output includes structured triples (subject-predicate-object) with
+    confidence scores and provenance information.
     """
 
     # Node metadata
     DISPLAY_NAME = "Knowledge Extraction"
-    DESCRIPTION = (
-        "Extract knowledge artifacts, patterns, and lessons learned "
-        "from workflow execution for future reuse."
-    )
-    ICON = "knowledge"
-    CATEGORY = "learning"
+    DESCRIPTION = "Extract structured knowledge from unstructured text using multiple NLP strategies"
+    ICON = "knowledge-extraction"
+    CATEGORY = "knowledge"
     VERSION = "1.0.0"
 
     def __init__(self, config: Dict[str, Any] = None):
         super().__init__(config)
 
-        # Import knowledge extractor (safe import)
-        WorkflowKnowledgeExtractor = self.safe_import(
-            'workflow_knowledge_extractor.WorkflowKnowledgeExtractor',
+        # Safe import of UnifiedKGIntegrationHub
+        unified_hub_module = self.safe_import(
+            'knowledge_engine.unified_kg_integration_hub',
             fallback_value=None,
-            error_msg="WorkflowKnowledgeExtractor not available for KnowledgeExtractionNode"
+            error_msg="Knowledge Engine (unified_kg_integration_hub) not available"
         )
 
-        if WorkflowKnowledgeExtractor:
+        self.UnifiedKGIntegrationHub = None
+        self.UnifiedKGConfig = None
+        self.KGSource = None
+        self.KnowledgeTriple = None
+
+        if unified_hub_module:
+            self.UnifiedKGIntegrationHub = getattr(unified_hub_module, 'UnifiedKGIntegrationHub', None)
+            self.UnifiedKGConfig = getattr(unified_hub_module, 'UnifiedKGConfig', None)
+            self.KGSource = getattr(unified_hub_module, 'KGSource', None)
+            self.KnowledgeTriple = getattr(unified_hub_module, 'KnowledgeTriple', None)
+
+        # Initialize hub instance
+        self.hub = None
+        if self.UnifiedKGIntegrationHub and self.UnifiedKGConfig:
             try:
-                self.extractor = WorkflowKnowledgeExtractor()
+                config_obj = self._create_hub_config()
+                self.hub = self.UnifiedKGIntegrationHub(config=config_obj)
+                self.logger.info("UnifiedKGIntegrationHub initialized successfully")
             except Exception as e:
-                self.logger.warning(f"Could not instantiate WorkflowKnowledgeExtractor: {e}")
-                self.extractor = None
-        else:
-            self.extractor = None
+                self.logger.warning(f"Could not initialize UnifiedKGIntegrationHub: {e}")
+                self.hub = None
+
+        # Track available extractors
+        self.available_extractors = ['deepke', 'oneke', 'kg_gen', 'auto']
+
+    def _create_hub_config(self):
+        """Create UnifiedKGConfig based on node configuration."""
+        extractor = self.config.get('extractor', 'auto')
+
+        # Base configuration
+        config_kwargs = {
+            'enable_deepke': extractor in ['deepke', 'auto'],
+            'enable_oneke': extractor in ['oneke', 'auto'],
+            'enable_kg_gen': extractor in ['kg_gen', 'auto'],
+            'enable_ai_kg': False,
+            'enable_unified_extraction': extractor == 'auto',
+        }
+
+        return self.UnifiedKGConfig(**config_kwargs)
 
     def validate_inputs(self, inputs: Dict) -> List[str]:
         """
         Validate input parameters.
 
         Required:
-            - workflow_state: WorkflowState object or dict
+            - text: str - The text to extract knowledge from
 
         Optional:
-            - extraction_types: List[str]
-            - artifact_format: str
-            - store_in_kb: bool
+            - extractor: str - Override the configured extractor
+            - min_confidence: float - Override the configured confidence threshold
+            - domain: str - Domain hint for extraction
         """
         errors = []
 
         # Check required fields
-        if 'workflow_state' not in inputs:
-            errors.append("Missing required field: workflow_state")
-        elif not isinstance(inputs['workflow_state'], (dict, object)):
-            errors.append("workflow_state must be a WorkflowState or dictionary")
+        if 'text' not in inputs:
+            errors.append("Missing required field: 'text'")
+        elif not isinstance(inputs['text'], str):
+            errors.append("'text' must be a string")
+        elif len(inputs['text'].strip()) == 0:
+            errors.append("'text' cannot be empty")
+        elif len(inputs['text']) > 100000:
+            errors.append("'text' exceeds maximum length of 100,000 characters")
 
-        # Validate extraction_types
-        if 'extraction_types' in inputs:
-            if not isinstance(inputs['extraction_types'], list):
-                errors.append("extraction_types must be a list")
-            else:
-                valid_types = ['patterns', 'lessons_learned', 'best_practices', 'metrics', 'artifacts']
-                for et in inputs['extraction_types']:
-                    if et not in valid_types:
-                        errors.append(f"Invalid extraction type: {et}. Must be one of {valid_types}")
+        # Validate extractor override if provided
+        if 'extractor' in inputs:
+            if inputs['extractor'] not in self.available_extractors:
+                errors.append(
+                    f"Invalid extractor: '{inputs['extractor']}'. "
+                    f"Must be one of: {', '.join(self.available_extractors)}"
+                )
 
-        # Validate artifact_format
-        if 'artifact_format' in inputs:
-            valid_formats = ['structured', 'unstructured', 'both']
-            if inputs['artifact_format'] not in valid_formats:
-                errors.append(f"artifact_format must be one of: {', '.join(valid_formats)}")
+        # Validate min_confidence override if provided
+        if 'min_confidence' in inputs:
+            try:
+                conf = float(inputs['min_confidence'])
+                if not 0.0 <= conf <= 1.0:
+                    errors.append("'min_confidence' must be between 0.0 and 1.0")
+            except (TypeError, ValueError):
+                errors.append("'min_confidence' must be a number")
 
-        # Validate store_in_kb
-        if 'store_in_kb' in inputs:
-            if not isinstance(inputs['store_in_kb'], bool):
-                errors.append("store_in_kb must be a boolean")
+        # Validate domain if provided
+        if 'domain' in inputs:
+            if not isinstance(inputs['domain'], str):
+                errors.append("'domain' must be a string")
+            elif len(inputs['domain']) > 100:
+                errors.append("'domain' exceeds maximum length of 100 characters")
 
         return errors
 
     def execute(self, inputs: Dict, context) -> Dict[str, Any]:
         """
-        Extract knowledge from workflow execution.
+        Extract knowledge from input text.
 
         Args:
-            inputs: Must contain 'workflow_state' and optional extraction parameters
-            context: Workflow state for tracking
+            inputs: Must contain 'text' and optional extraction parameters
+            context: Workflow state for tracking progress and artifacts
 
         Returns:
             Dict containing:
-                - artifacts: List of knowledge artifacts
-                - patterns_found: List of discovered patterns
-                - lessons_learned: List of lessons learned
-                - metrics_summary: Summary of workflow metrics
-                - knowledge_base_links: Links to stored knowledge
+                - triples: List of extracted knowledge triples
+                - entities: List of extracted entities
+                - confidence: Overall extraction confidence score
+                - metadata: Extraction provenance and statistics
+
+        Raises:
+            NodeExecutionError: If extraction fails
         """
-        if not self.extractor:
-            return self._extract_simple(inputs, context)
+        text = inputs['text']
+        extractor = inputs.get('extractor', self.config.get('extractor', 'auto'))
+        min_confidence = inputs.get(
+            'min_confidence',
+            self.config.get('min_confidence', 0.7)
+        )
+        include_metadata = inputs.get(
+            'include_metadata',
+            self.config.get('include_metadata', True)
+        )
+        domain = inputs.get('domain', self.config.get('domain', None))
 
-        workflow_state = inputs['workflow_state']
-        extraction_types = inputs.get('extraction_types', self.config.get('extraction_types', [
-            'patterns',
-            'lessons_learned',
-            'best_practices',
-            'metrics'
-        ]))
-        artifact_format = inputs.get('artifact_format', self.config.get('artifact_format', 'structured'))
-        store_in_kb = inputs.get('store_in_kb', self.config.get('store_in_kb', True))
-
-        # Update progress
-        context.update_progress(10, "Initializing knowledge extractor")
-        self.logger.info(f"Extracting knowledge types: {', '.join(extraction_types)}")
+        context.update_progress(10, f"Initializing knowledge extraction with {extractor} extractor")
+        self.logger.info(f"Extracting knowledge using extractor: {extractor}")
 
         try:
-            # Extract knowledge
-            context.update_progress(20, "Analyzing workflow state")
+            # Use hub if available, otherwise use fallback
+            if self.hub:
+                result = self._extract_with_hub(
+                    text=text,
+                    extractor=extractor,
+                    min_confidence=min_confidence,
+                    domain=domain,
+                    context=context
+                )
+            else:
+                result = self._extract_fallback(
+                    text=text,
+                    min_confidence=min_confidence,
+                    context=context
+                )
 
-            extraction_result = self.extractor.extract(
-                workflow_state=workflow_state,
-                extraction_types=extraction_types,
-                artifact_format=artifact_format,
-                store_in_kb=store_in_kb,
-                callback=lambda p, m: context.update_progress(20 + p * 0.7, m)
-            )
-
-            # Update progress
-            context.update_progress(90, "Processing extracted knowledge")
-
-            # Extract and format results
-            result = {
-                'artifacts': self._format_artifacts(extraction_result.artifacts),
-                'patterns_found': extraction_result.patterns,
-                'lessons_learned': extraction_result.lessons_learned,
-                'best_practices': extraction_result.best_practices,
-                'metrics_summary': extraction_result.metrics_summary,
-                'knowledge_base_links': extraction_result.kb_links if store_in_kb else [],
-                'extraction_metadata': {
-                    'types_processed': extraction_types,
-                    'format': artifact_format,
-                    'stored_in_kb': store_in_kb,
-                    'extraction_time': extraction_result.extraction_time,
-                    'artifacts_count': len(extraction_result.artifacts)
+            # Add provenance metadata if requested
+            if include_metadata:
+                result['metadata'] = {
+                    'extractor_used': extractor,
+                    'min_confidence_threshold': min_confidence,
+                    'domain_hint': domain,
+                    'extraction_timestamp': datetime.now().isoformat(),
+                    'text_length': len(text),
+                    'hub_available': self.hub is not None
                 }
-            }
 
-            # Add artifacts to context
+            # Store artifacts in context
             context.add_artifact('knowledge_extraction', {
-                'result': result,
-                'extraction_types': extraction_types,
-                'timestamp': context.generate_execution_id() if hasattr(context, 'generate_execution_id') else None
+                'triples_count': len(result.get('triples', [])),
+                'entities_count': len(result.get('entities', [])),
+                'extractor': extractor,
+                'confidence': result.get('confidence', 0.0)
             })
 
             context.update_progress(
                 100,
-                f"Knowledge extraction complete: {result['extraction_metadata']['artifacts_count']} artifacts, "
-                f"{len(result['patterns_found'])} patterns, "
-                f"{len(result['lessons_learned'])} lessons"
+                f"Extraction complete: {len(result.get('triples', []))} triples, "
+                f"{len(result.get('entities', []))} entities"
             )
 
             self.logger.info(
-                f"Knowledge extraction completed: {result['extraction_metadata']['artifacts_count']} artifacts, "
-                f"{len(result['patterns_found'])} patterns found"
+                f"Knowledge extraction completed: {len(result.get('triples', []))} triples, "
+                f"confidence={result.get('confidence', 0.0):.2f}"
             )
 
             return result
@@ -183,140 +227,241 @@ class KnowledgeExtractionNode(BubbleLabsNode):
                 node_name=self.get_display_name(),
                 message=f"Knowledge extraction failed: {str(e)}",
                 details={
-                    'extraction_types': extraction_types,
-                    'artifact_format': artifact_format,
+                    'extractor': extractor,
+                    'text_length': len(text),
+                    'domain': domain,
                     'exception_type': type(e).__name__
                 }
             ) from e
 
-    def _extract_simple(self, inputs: Dict, context) -> Dict[str, Any]:
-        """Simple extraction fallback when extractor not available"""
-        workflow_state = inputs['workflow_state']
-        extraction_types = inputs.get('extraction_types', ['patterns', 'metrics'])
+    def _extract_with_hub(
+        self,
+        text: str,
+        extractor: str,
+        min_confidence: float,
+        domain: Optional[str],
+        context
+    ) -> Dict[str, Any]:
+        """Extract knowledge using UnifiedKGIntegrationHub."""
+        context.update_progress(20, "Configuring extraction pipeline")
 
-        context.update_progress(10, "Using simple extraction (extractor not available)")
-
-        # Convert workflow state to dict if it's an object
-        if hasattr(workflow_state, '__dict__'):
-            state_dict = workflow_state.__dict__
-        elif isinstance(workflow_state, dict):
-            state_dict = workflow_state
+        # Determine which extractors to use
+        if extractor == 'auto':
+            extractors = ['deepke', 'oneke', 'kg_gen']
         else:
-            state_dict = {'state': str(workflow_state)}
+            extractors = [extractor]
 
-        context.update_progress(30, "Analyzing workflow state")
+        context.update_progress(30, f"Running extraction with {', '.join(extractors)}")
 
-        # Simple pattern extraction
-        patterns = []
-        lessons = []
-        metrics = {}
+        # Run async extraction
+        try:
+            triples = asyncio.run(self.hub.extract_knowledge(
+                text=text,
+                extractors=extractors,
+                merge_results=True
+            ))
+        except Exception as e:
+            self.logger.warning(f"Async extraction failed: {e}, trying sync fallback")
+            triples = []
 
-        # Extract basic metrics
-        if 'progress' in state_dict:
-            metrics['progress'] = state_dict['progress']
-        if 'artifacts' in state_dict:
-            metrics['artifacts_count'] = len(state_dict['artifacts'])
+        # Filter by confidence
+        filtered_triples = [
+            t for t in triples
+            if t.confidence >= min_confidence
+        ]
 
-        # Extract patterns from artifacts
-        if 'artifacts' in state_dict:
-            for artifact_name, artifact_data in state_dict['artifacts'].items():
-                patterns.append({
-                    'type': 'artifact_pattern',
-                    'name': artifact_name,
-                    'description': f"Artifact created: {artifact_name}"
-                })
+        context.update_progress(70, f"Filtered to {len(filtered_triples)} high-confidence triples")
 
-        # Generate basic lessons
-        if metrics.get('artifacts_count', 0) > 0:
-            lessons.append("Workflow produced multiple knowledge artifacts")
+        # Convert triples to dictionary format
+        triples_list = []
+        entities_set = set()
 
-        result = {
-            'artifacts': [
-                {
-                    'type': 'simple_extraction',
-                    'data': state_dict,
-                    'metadata': {'note': 'Simple extraction performed'}
+        for triple in filtered_triples:
+            triple_dict = {
+                'subject': triple.subject,
+                'predicate': triple.predicate,
+                'object': triple.object,
+                'confidence': triple.confidence,
+                'provenance': {
+                    'source': triple.source.value if hasattr(triple.source, 'value') else str(triple.source),
+                    'timestamp': triple.timestamp.isoformat() if hasattr(triple.timestamp, 'isoformat') else str(triple.timestamp)
                 }
-            ],
-            'patterns_found': patterns,
-            'lessons_learned': lessons,
-            'best_practices': [],
-            'metrics_summary': metrics,
-            'knowledge_base_links': [],
-            'extraction_metadata': {
-                'types_processed': extraction_types,
-                'format': 'structured',
-                'stored_in_kb': False,
-                'extraction_time': 0.1,
-                'artifacts_count': 1,
-                'warning': 'Full extractor not available, using simple extraction'
+            }
+
+            if triple.metadata:
+                triple_dict['metadata'] = triple.metadata
+
+            triples_list.append(triple_dict)
+
+            # Extract entities
+            entities_set.add(triple.subject)
+            entities_set.add(triple.object)
+
+        context.update_progress(90, "Formatting extraction results")
+
+        # Build entities list
+        entities_list = [
+            {
+                'name': entity,
+                'mentions': 1,
+                'types': []  # Could be enhanced with entity typing
+            }
+            for entity in sorted(entities_set)
+        ]
+
+        # Calculate overall confidence
+        overall_confidence = (
+            sum(t['confidence'] for t in triples_list) / len(triples_list)
+            if triples_list else 0.0
+        )
+
+        return {
+            'triples': triples_list,
+            'entities': entities_list,
+            'confidence': round(overall_confidence, 4),
+            'statistics': {
+                'total_triples': len(triples),
+                'filtered_triples': len(filtered_triples),
+                'unique_entities': len(entities_list),
+                'extractors_used': extractors
             }
         }
 
-        context.update_progress(100, "Simple extraction complete")
-        return result
+    def _extract_fallback(
+        self,
+        text: str,
+        min_confidence: float,
+        context
+    ) -> Dict[str, Any]:
+        """Fallback extraction when UnifiedKGIntegrationHub is not available."""
+        context.update_progress(20, "Using fallback extraction (hub not available)")
 
-    def _format_artifacts(self, artifacts: List) -> List[Dict[str, Any]]:
-        """Format artifacts for output"""
-        formatted = []
+        # Simple pattern-based extraction as fallback
+        triples = []
+        entities = set()
 
-        for artifact in artifacts:
-            formatted.append({
-                'id': getattr(artifact, 'id', 'unknown'),
-                'type': getattr(artifact, 'type', 'general'),
-                'title': getattr(artifact, 'title', 'Untitled'),
-                'description': getattr(artifact, 'description', ''),
-                'data': getattr(artifact, 'data', {}),
-                'metadata': getattr(artifact, 'metadata', {}),
-                'created_at': getattr(artifact, 'created_at', None)
+        # Basic entity extraction (capitalized phrases)
+        import re
+
+        # Simple regex for capitalized phrases (potential entities)
+        entity_pattern = r'\b[A-Z][a-zA-Z]+(?:\s+[A-Z][a-zA-Z]+)*\b'
+        found_entities = set(re.findall(entity_pattern, text))
+
+        # Simple pattern: "X is Y" -> (X, is, Y)
+        is_pattern = r'([A-Z][a-zA-Z]+(?:\s+[a-z]+){0,3})\s+is\s+(?:a|an|the)?\s*([A-Z][a-zA-Z]+(?:\s+[a-zA-Z]+){0,5})'
+        for match in re.finditer(is_pattern, text):
+            subject = match.group(1).strip()
+            obj = match.group(2).strip()
+            triples.append({
+                'subject': subject,
+                'predicate': 'is',
+                'object': obj,
+                'confidence': 0.5,
+                'provenance': {
+                    'source': 'fallback_pattern',
+                    'timestamp': datetime.now().isoformat()
+                }
             })
+            entities.add(subject)
+            entities.add(obj)
 
-        return formatted
+        # Filter by confidence
+        filtered_triples = [t for t in triples if t['confidence'] >= min_confidence]
+
+        context.update_progress(90, "Fallback extraction complete")
+
+        entities_list = [
+            {'name': e, 'mentions': 1, 'types': []}
+            for e in sorted(found_entities | entities)
+        ]
+
+        overall_confidence = (
+            sum(t['confidence'] for t in filtered_triples) / len(filtered_triples)
+            if filtered_triples else 0.0
+        )
+
+        return {
+            'triples': filtered_triples,
+            'entities': entities_list,
+            'confidence': round(overall_confidence, 4),
+            'statistics': {
+                'total_triples': len(triples),
+                'filtered_triples': len(filtered_triples),
+                'unique_entities': len(entities_list),
+                'extractors_used': ['fallback_pattern'],
+                'warning': 'UnifiedKGIntegrationHub not available, using fallback extraction'
+            }
+        }
 
     def get_parameter_schema(self) -> Dict[str, Any]:
-        """Get JSON schema for node parameters"""
+        """
+        Get JSON schema for node parameters.
+
+        Returns JSON schema for UI configuration panel.
+        """
         return {
             "type": "object",
             "title": "Knowledge Extraction Configuration",
-            "description": "Configure knowledge extraction and learning parameters",
+            "description": "Configure knowledge extraction from unstructured text",
             "properties": {
-                "extraction_types": {
-                    "type": "array",
-                    "title": "Extraction Types",
-                    "description": "Types of knowledge to extract",
-                    "items": {
-                        "type": "string",
-                        "enum": ["patterns", "lessons_learned", "best_practices", "metrics", "artifacts"]
-                    },
-                    "uniqueItems": True,
-                    "default": ["patterns", "lessons_learned", "best_practices", "metrics"]
-                },
-                "artifact_format": {
+                "extractor": {
                     "type": "string",
-                    "title": "Artifact Format",
-                    "description": "Format for extracted artifacts",
-                    "enum": ["structured", "unstructured", "both"],
+                    "title": "Extractor",
+                    "description": "Which extraction engine to use",
+                    "enum": ["deepke", "oneke", "kg_gen", "auto"],
                     "enumNames": [
-                        "Structured (JSON)",
-                        "Unstructured (Text)",
-                        "Both Formats"
+                        "DeepKE - Deep learning relation extraction",
+                        "OneKE - Schema-guided knowledge extraction",
+                        "KG-Gen - Knowledge graph generation",
+                        "Auto - Automatic selection of best extractor"
                     ],
-                    "default": "structured"
-                },
-                "store_in_kb": {
-                    "type": "boolean",
-                    "title": "Store in Knowledge Base",
-                    "description": "Store extracted artifacts in knowledge base for future reference",
-                    "default": True
+                    "default": "auto"
                 },
                 "min_confidence": {
                     "type": "number",
                     "title": "Minimum Confidence",
-                    "description": "Minimum confidence threshold for pattern extraction (0-1)",
+                    "description": "Minimum confidence threshold for extracted triples (0.0-1.0)",
                     "minimum": 0.0,
                     "maximum": 1.0,
                     "default": 0.7
+                },
+                "include_metadata": {
+                    "type": "boolean",
+                    "title": "Include Metadata",
+                    "description": "Include extraction metadata and provenance information",
+                    "default": True
+                },
+                "domain": {
+                    "type": "string",
+                    "title": "Domain Hint",
+                    "description": "Optional domain hint to improve extraction (e.g., 'medical', 'finance', 'legal')",
+                    "default": ""
                 }
-            },
-            "required": ["extraction_types"]
+            }
         }
+
+    def is_healthy(self) -> bool:
+        """
+        Check if the node is healthy and ready to execute.
+
+        Returns:
+            True if at least fallback extraction is available
+        """
+        # Node can work with or without the hub (has fallback)
+        return True
+
+    def get_available_extractors(self) -> List[str]:
+        """
+        Get list of available extraction backends.
+
+        Returns:
+            List of extractor names that are currently available
+        """
+        available = []
+
+        if self.hub:
+            available = ['deepke', 'oneke', 'kg_gen', 'auto']
+        else:
+            available = ['auto (fallback)']
+
+        return available

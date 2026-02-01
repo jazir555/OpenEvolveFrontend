@@ -12,11 +12,11 @@ from fastapi.responses import StreamingResponse
 
 try:
     # Try relative imports first (when run as module)
-    from .api import workflows, teams, gauntlets, execution, settings
+    from .api import workflows, teams, gauntlets, execution, settings, icr, determinism, decomposition
     from .services.execution_service import execution_manager
 except ImportError:
     # Fall back to absolute imports (when run directly)
-    from api import workflows, teams, gauntlets, execution, settings
+    from api import workflows, teams, gauntlets, execution, settings, icr, determinism, decomposition
     from services.execution_service import execution_manager
 
 # Structured logging
@@ -61,6 +61,9 @@ app.include_router(teams.router, prefix="/api/teams", tags=["teams"])
 app.include_router(gauntlets.router, prefix="/api/gauntlets", tags=["gauntlets"])
 app.include_router(execution.router, prefix="/api/executions", tags=["executions"])
 app.include_router(settings.router, prefix="/api/settings", tags=["settings"])
+app.include_router(icr.router, prefix="/icr", tags=["icr"])
+app.include_router(determinism.router, prefix="/determinism", tags=["determinism"])
+app.include_router(decomposition.router, prefix="/api/decomposition", tags=["decomposition"])
 
 # Health check
 @app.get("/health")

@@ -282,3 +282,133 @@ class UpdateLLMConfig(BaseModel):
     max_tokens: Optional[int] = None
     frequency_penalty: Optional[float] = None
     presence_penalty: Optional[float] = None
+
+
+class ICRConfig(BaseModel):
+    """ICR configuration"""
+    auto_refine_enabled: bool = False
+    reward_calibration_enabled: bool = True
+    reward_calibration_threshold: float = Field(default=0.6, ge=0.0, le=1.0)
+    heatmap_analysis_enabled: bool = True
+    heatmap_snapshot_interval: int = Field(default=10, ge=1, le=1000)
+    vlm_provider: Optional[str] = None
+    vlm_model: Optional[str] = None
+
+
+class UpdateICRConfig(BaseModel):
+    """ICR config update request"""
+    auto_refine_enabled: Optional[bool] = None
+    reward_calibration_enabled: Optional[bool] = None
+    reward_calibration_threshold: Optional[float] = Field(default=None, ge=0.0, le=1.0)
+    heatmap_analysis_enabled: Optional[bool] = None
+    heatmap_snapshot_interval: Optional[int] = Field(default=None, ge=1, le=1000)
+    vlm_provider: Optional[str] = None
+    vlm_model: Optional[str] = None
+
+
+class DeterminismDefaults(BaseModel):
+    """Defaults for determinism endpoints"""
+    mode: str = "auto"
+    cloud_provider: Optional[str] = None
+    cloud_model: Optional[str] = None
+    cloud_base_url: Optional[str] = None
+    local_provider: Optional[str] = "hf"
+    local_model: Optional[str] = None
+    local_device: Optional[str] = "cpu"
+    local_dtype: Optional[str] = "auto"
+    config: Dict[str, Any] = Field(default_factory=dict)
+    detllm_backend: Optional[str] = None
+    detllm_model: Optional[str] = None
+    check_tier: int = Field(default=2, ge=1, le=5)
+    check_runs: int = Field(default=3, ge=1, le=20)
+    check_provider: Optional[str] = None
+    check_model: Optional[str] = None
+    check_base_url: Optional[str] = None
+    check_device: Optional[str] = "cpu"
+    check_dtype: Optional[str] = "auto"
+
+
+class UpdateDeterminismDefaults(BaseModel):
+    """Determinism defaults update request"""
+    mode: Optional[str] = None
+    cloud_provider: Optional[str] = None
+    cloud_model: Optional[str] = None
+    cloud_base_url: Optional[str] = None
+    local_provider: Optional[str] = None
+    local_model: Optional[str] = None
+    local_device: Optional[str] = None
+    local_dtype: Optional[str] = None
+    config: Optional[Dict[str, Any]] = None
+    detllm_backend: Optional[str] = None
+    detllm_model: Optional[str] = None
+    check_tier: Optional[int] = Field(default=None, ge=1, le=5)
+    check_runs: Optional[int] = Field(default=None, ge=1, le=20)
+    check_provider: Optional[str] = None
+    check_model: Optional[str] = None
+    check_base_url: Optional[str] = None
+    check_device: Optional[str] = None
+    check_dtype: Optional[str] = None
+
+
+class DecompositionDefaults(BaseModel):
+    """Defaults for decomposition planning + workflow creation"""
+    strategy: Optional[str] = None
+    enable_adaptive_selection: bool = True
+    maker_config: Dict[str, Any] = Field(default_factory=dict)
+    openevolve_client_config: Dict[str, Any] = Field(default_factory=dict)
+    mdap_enabled: bool = False
+    mdap_config: Dict[str, Any] = Field(default_factory=dict)
+    maker_enabled: bool = False
+    workflow_max_refinement_loops: int = Field(default=3, ge=1, le=10)
+
+
+class UpdateDecompositionDefaults(BaseModel):
+    """Decomposition defaults update request"""
+    strategy: Optional[str] = None
+    enable_adaptive_selection: Optional[bool] = None
+    maker_config: Optional[Dict[str, Any]] = None
+    openevolve_client_config: Optional[Dict[str, Any]] = None
+    mdap_enabled: Optional[bool] = None
+    mdap_config: Optional[Dict[str, Any]] = None
+    maker_enabled: Optional[bool] = None
+    workflow_max_refinement_loops: Optional[int] = Field(default=None, ge=1, le=10)
+
+
+class AdaptiveDecompositionDefaults(BaseModel):
+    """Defaults for adaptive decomposition integration"""
+    strategy_hint: Optional[str] = None
+    config: Dict[str, Any] = Field(default_factory=dict)
+
+
+class UpdateAdaptiveDecompositionDefaults(BaseModel):
+    """Adaptive decomposition defaults update request"""
+    strategy_hint: Optional[str] = None
+    config: Optional[Dict[str, Any]] = None
+
+
+class MDAPMakerDefaults(BaseModel):
+    """Defaults for MDAP/MAKER recomposition workflow"""
+    use_mdap: bool = True
+    use_associative: bool = True
+    num_mdap_agents: int = Field(default=5, ge=1, le=20)
+    llm_config: Dict[str, Any] = Field(default_factory=dict)
+
+
+class UpdateMDAPMakerDefaults(BaseModel):
+    """MDAP/MAKER defaults update request"""
+    use_mdap: Optional[bool] = None
+    use_associative: Optional[bool] = None
+    num_mdap_agents: Optional[int] = Field(default=None, ge=1, le=20)
+    llm_config: Optional[Dict[str, Any]] = None
+
+
+class ROMAMDAPMakerDefaults(BaseModel):
+    """Defaults for ROMA-MDAP-MAKER associative pipeline"""
+    recursive: bool = True
+    config: Dict[str, Any] = Field(default_factory=dict)
+
+
+class UpdateROMAMDAPMakerDefaults(BaseModel):
+    """ROMA-MDAP-MAKER defaults update request"""
+    recursive: Optional[bool] = None
+    config: Optional[Dict[str, Any]] = None

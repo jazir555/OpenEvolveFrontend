@@ -191,6 +191,10 @@ export class BubbleFactory {
       'openevolve-team',
       'openevolve-gauntlet',
       'openevolve-settings',
+      'openevolve-icr',
+      'openevolve-determinism',
+      'openevolve-decomposition',
+      'openevolve-decomposition-workflow',
       'openevolve-knowledge-engine',
       'openevolve-workflow-orchestrator',
       'openevolve-ace-tools',
@@ -470,6 +474,18 @@ export class BubbleFactory {
     );
     const { OpenEvolveSettingsBubble } = await import(
       './bubbles/service-bubble/openevolve-settings-bubble.js'
+    );
+    const { OpenEvolveIcrBubble } = await import(
+      './bubbles/service-bubble/openevolve-icr-bubble.js'
+    );
+    const { OpenEvolveDeterminismBubble } = await import(
+      './bubbles/service-bubble/openevolve-determinism-bubble.js'
+    );
+    const { OpenEvolveDecompositionBubble } = await import(
+      './bubbles/service-bubble/openevolve-decomposition-bubble.js'
+    );
+    const { OpenEvolveDecompositionWorkflowBubble } = await import(
+      './bubbles/service-bubble/openevolve-decomposition-workflow-bubble.js'
     );
     const { OpenEvolveKnowledgeEngineBubble } = await import(
       './bubbles/service-bubble/openevolve-knowledge-engine-bubble.js'
@@ -796,6 +812,22 @@ export class BubbleFactory {
     this.register(
       'openevolve-settings' as BubbleName,
       OpenEvolveSettingsBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-icr' as BubbleName,
+      OpenEvolveIcrBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-determinism' as BubbleName,
+      OpenEvolveDeterminismBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-decomposition' as BubbleName,
+      OpenEvolveDecompositionBubble as BubbleClassWithMetadata
+    );
+    this.register(
+      'openevolve-decomposition-workflow' as BubbleName,
+      OpenEvolveDecompositionWorkflowBubble as BubbleClassWithMetadata
     );
     this.register(
       'openevolve-knowledge-engine' as BubbleName,

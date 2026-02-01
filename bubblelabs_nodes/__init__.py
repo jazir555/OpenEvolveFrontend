@@ -128,6 +128,15 @@ from .checkpoint_manager import (
     create_checkpoint_manager,
 )
 
+from .change_detection_node import (
+    ChangeDetectionNode,
+    KnowledgeChange,
+)
+
+from .recommendation_engine_node import (
+    RecommendationEngineNode,
+)
+
 __all__ += [
     # Parallel Execution (WORKING)
     'ParallelProblemExecutor',
@@ -161,4 +170,11 @@ __all__ += [
     'PipelineState',
     'CheckpointMetadata',
     'create_checkpoint_manager',
+
+    # Change Detection Node
+    'ChangeDetectionNode',
+    'KnowledgeChange',
+
+    # Recommendation Engine
+    'RecommendationEngineNode',
 ]

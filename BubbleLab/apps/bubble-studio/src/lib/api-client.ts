@@ -14,6 +14,9 @@ import {
   CreateGauntletRequest,
   UpdateGauntletRequest,
   LLMConfig,
+  ICRConfig,
+  DeterminismDefaults,
+  DecompositionDefaults,
   ExecutionResult,
   WorkflowListResponse,
   TeamListResponse,
@@ -274,6 +277,30 @@ class ApiClient {
 
   async updateLLMConfig(data: Partial<LLMConfig>) {
     return this.put<LLMConfig>('/api/settings/llm', data);
+  }
+
+  async getICRConfig() {
+    return this.get<ICRConfig>('/api/settings/icr');
+  }
+
+  async updateICRConfig(data: Partial<ICRConfig>) {
+    return this.put<ICRConfig>('/api/settings/icr', data);
+  }
+
+  async getDeterminismDefaults() {
+    return this.get<DeterminismDefaults>('/api/settings/determinism');
+  }
+
+  async updateDeterminismDefaults(data: Partial<DeterminismDefaults>) {
+    return this.put<DeterminismDefaults>('/api/settings/determinism', data);
+  }
+
+  async getDecompositionDefaults() {
+    return this.get<DecompositionDefaults>('/api/settings/decomposition');
+  }
+
+  async updateDecompositionDefaults(data: Partial<DecompositionDefaults>) {
+    return this.put<DecompositionDefaults>('/api/settings/decomposition', data);
   }
 }
 
