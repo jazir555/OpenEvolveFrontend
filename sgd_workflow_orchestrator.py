@@ -11,7 +11,7 @@ import threading
 import time
 import json
 import requests
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 from datetime import datetime
 from enum import Enum
 
@@ -41,16 +41,40 @@ class SGDWorkflowStatus(Enum):
 class SGDWorkflowOrchestrator:
     """
     Orchestrates the complete Sovereign-Grade Decomposition Workflow within CREWAI
+    
+    ICR Integration:
+    - Stores workflow patterns for learning
+    - Recommends optimal team/gauntlet configuration
+    - Predicts workflow success probability
+    - Learns from workflow outcomes
     """
     
-    def __init__(self, CREWAI_api_base: str = "http://localhost:8002", 
-                 openevolve_api_base: str = "http://localhost:8000"):
+    def __init__(
+        self, 
+        CREWAI_api_base: str = "http://localhost:8002", 
+        openevolve_api_base: str = "http://localhost:8000",
+        enable_icr: bool = True
+    ):
         self.CREWAI_api_base = CREWAI_api_base
         self.openevolve_api_base = openevolve_api_base
         self.active_workflows: Dict[str, WorkflowState] = {}
+        self.completed_workflows: List[Dict] = []  # For ICR learning
         self.running = True
         self.session = requests.Session()
         self.session.headers.update({"Content-Type": "application/json"})
+        
+        # ICR Integration: Pattern storage
+        self.enable_icr = enable_icr
+        self.icr_patterns: Dict[str, Any] = {
+            'problem_type_patterns': {},  # problem_type -> success patterns
+            'complexity_patterns': {},  # complexity_range -> patterns
+            'team_config_patterns': {},  # team_config_hash -> success_rate
+            'gauntlet_config_patterns': {},  # gauntlet_config -> pass_rate
+            'stage_duration_patterns': {},  # stage_name -> avg_duration
+        }
+        
+        # ICR: Workflow outcome predictions
+        self._prediction_cache: Dict[str, Dict] = {}
 
     def create_workflow(self, problem_statement: str, 
                        content_analyzer_team: str,
@@ -516,6 +540,513 @@ Reassembled from {len(workflow_state.sub_problem_solutions)} sub-problem solutio
         """
         self.running = False
         logger.info("SGD Workflow Orchestrator shutdown initiated")
+    
+    # =========================================================================
+    # ICR INTEGRATION METHODS
+    # =========================================================================
+    
+    def _analyze_problem_complexity(self, problem_statement: str) -> Tuple[str, int]:
+        """
+        Analyze problem statement to determine complexity and type.
+        
+        Returns:
+            Tuple of (problem_type, complexity_score)
+        """
+        problem_lower = problem_statement.lower()
+        
+        # Determine problem type
+        if any(kw in problem_lower for kw in ['implement', 'build', 'create', 'develop']):
+            problem_type = "implementation"
+        elif any(kw in problem_lower for kw in ['design', 'architecture', 'plan']):
+            problem_type = "design"
+        elif any(kw in problem_lower for kw in ['optimize', 'improve', 'enhance']):
+            problem_type = "optimization"
+        elif any(kw in problem_lower for kw in ['fix', 'debug', 'resolve', 'repair']):
+            problem_type = "debugging"
+        elif any(kw in problem_lower for kw in ['research', 'analyze', 'investigate']):
+            problem_type = "research"
+        else:
+            problem_type = "general"
+        
+        # Estimate complexity (1-10)
+        complexity = 5  # Base complexity
+        
+        # Length indicator
+        if len(problem_statement) > 500:
+            complexity += 2
+        elif len(problem_statement) > 200:
+            complexity += 1
+        
+        # Keyword indicators
+        if any(kw in problem_lower for kw in ['distributed', 'microservices', 'scalable']):
+            complexity += 2
+        if any(kw in problem_lower for kw in ['machine learning', 'ai', 'neural']):
+            complexity += 2
+        if any(kw in problem_lower for kw in ['security', 'encryption', 'authentication']):
+            complexity += 1
+        
+        # Cap at 10
+        complexity = min(10, max(1, complexity))
+        
+        return problem_type, complexity
+    
+    def predict_workflow_success(
+        self,
+        problem_statement: str,
+        team_config: Dict[str, str],
+        gauntlet_config: Dict[str, str]
+    ) -> Dict[str, Any]:
+        """
+        Predict workflow success probability using ICR patterns.
+        
+        Args:
+            problem_statement: Description of the problem
+            team_config: Team configuration (content_analyzer_team, planner_team, etc.)
+            gauntlet_config: Gauntlet configuration (sub_problem_red_gauntlet, etc.)
+            
+        Returns:
+            Prediction dictionary with success probability and confidence
+        """
+        if not self.enable_icr:
+            return {
+                'success_probability': 0.5,
+                'confidence': 0.0,
+                'reason': 'ICR disabled'
+            }
+        
+        problem_type, complexity = self._analyze_problem_complexity(problem_statement)
+        
+        # Create cache key
+        cache_key = f"{problem_type}_{complexity}_{hash(json.dumps(team_config, sort_keys=True))}"
+        
+        # Check cache
+        if cache_key in self._prediction_cache:
+            cached = self._prediction_cache[cache_key]
+            if time.time() - cached['timestamp'] < 3600:  # Cache for 1 hour
+                return cached['prediction']
+        
+        # Get patterns for this problem type
+        type_patterns = self.icr_patterns['problem_type_patterns'].get(problem_type, [])
+        complexity_patterns = self.icr_patterns['complexity_patterns'].get(f"{complexity // 2}", [])
+        
+        # Calculate base success probability
+        if type_patterns:
+            passed = sum(1 for p in type_patterns if p.get('success', False))
+            type_success_rate = passed / len(type_patterns)
+        else:
+            type_success_rate = 0.5
+        
+        if complexity_patterns:
+            passed = sum(1 for p in complexity_patterns if p.get('success', False))
+            complexity_success_rate = passed / len(complexity_patterns)
+        else:
+            complexity_success_rate = 0.5
+        
+        # Weight the factors
+        success_probability = (type_success_rate * 0.4 + complexity_success_rate * 0.4 + 0.2)
+        
+        # Adjust for team configuration if we have patterns
+        team_hash = hash(json.dumps(team_config, sort_keys=True))
+        team_patterns = self.icr_patterns['team_config_patterns'].get(team_hash, [])
+        
+        if team_patterns:
+            team_success_rate = sum(1 for p in team_patterns if p.get('success', False)) / len(team_patterns)
+            # Blend team pattern with base rate
+            success_probability = success_probability * 0.7 + team_success_rate * 0.3
+        
+        # Adjust for gauntlet configuration
+        gauntlet_hash = hash(json.dumps(gauntlet_config, sort_keys=True))
+        gauntlet_patterns = self.icr_patterns['gauntlet_config_patterns'].get(gauntlet_hash, [])
+        
+        if gauntlet_patterns:
+            gauntlet_pass_rate = sum(1 for p in gauntlet_patterns if p.get('passed', False)) / len(gauntlet_patterns)
+            success_probability = success_probability * 0.8 + gauntlet_pass_rate * 0.2
+        
+        # Calculate confidence based on pattern count
+        total_patterns = len(type_patterns) + len(complexity_patterns)
+        if total_patterns >= 20:
+            confidence = 0.9
+        elif total_patterns >= 10:
+            confidence = 0.7
+        elif total_patterns >= 5:
+            confidence = 0.5
+        else:
+            confidence = 0.25
+        
+        # Generate risk factors
+        risk_factors = []
+        if complexity > 7:
+            risk_factors.append("High complexity problem")
+        if complexity > 5 and not team_patterns:
+            risk_factors.append("No historical data for this complexity level")
+        if not type_patterns:
+            risk_factors.append(f"No historical data for {problem_type} problems")
+        
+        prediction = {
+            'success_probability': max(0.0, min(1.0, success_probability)),
+            'confidence': confidence,
+            'problem_type': problem_type,
+            'estimated_complexity': complexity,
+            'risk_factors': risk_factors,
+            'recommendations': self._get_recommendations(problem_type, complexity, team_config)
+        }
+        
+        # Cache prediction
+        self._prediction_cache[cache_key] = {
+            'timestamp': time.time(),
+            'prediction': prediction
+        }
+        
+        return prediction
+    
+    def _get_recommendations(
+        self,
+        problem_type: str,
+        complexity: int,
+        team_config: Dict[str, str]
+    ) -> List[str]:
+        """Generate recommendations based on patterns"""
+        recommendations = []
+        
+        # Get patterns for this problem type
+        type_patterns = self.icr_patterns['problem_type_patterns'].get(problem_type, [])
+        
+        if not type_patterns:
+            recommendations.append(f"No historical data for {problem_type} problems - monitor closely")
+        else:
+            # Find successful team configurations
+            successful_configs = [p for p in type_patterns if p.get('success', False)]
+            
+            if successful_configs:
+                # Recommend teams from successful workflows
+                for sp in successful_configs[:3]:
+                    if sp.get('content_analyzer_team') != team_config.get('content_analyzer_team'):
+                        recommendations.append(f"Consider using '{sp.get('content_analyzer_team')}' for content analysis")
+                        break
+        
+        # Complexity-based recommendations
+        if complexity > 7:
+            recommendations.append("High complexity - consider additional refinement cycles")
+            recommendations.append("Consider using MDAP for better decomposition")
+        
+        if complexity > 5:
+            recommendations.append("Consider using more thorough gauntlet validation")
+        
+        return recommendations
+    
+    def store_workflow_pattern(
+        self,
+        workflow_id: str,
+        problem_statement: str,
+        team_config: Dict[str, str],
+        gauntlet_config: Dict[str, str],
+        success: bool,
+        duration_seconds: float,
+        stages_completed: List[str],
+        final_metrics: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Store workflow pattern for ICR learning.
+        
+        Args:
+            workflow_id: Unique workflow identifier
+            problem_statement: Original problem statement
+            team_config: Team configuration used
+            gauntlet_config: Gauntlet configuration used
+            success: Whether workflow succeeded
+            duration_seconds: Total duration in seconds
+            stages_completed: List of completed stages
+            final_metrics: Optional metrics from the workflow
+        """
+        if not self.enable_icr:
+            return
+        
+        logger.info(f"Storing workflow pattern for {workflow_id}")
+        
+        problem_type, complexity = self._analyze_problem_complexity(problem_statement)
+        
+        # Create pattern record
+        pattern = {
+            'workflow_id': workflow_id,
+            'problem_type': problem_type,
+            'complexity': complexity,
+            'problem_statement': problem_statement[:200],  # Truncate for storage
+            'team_config': team_config,
+            'gauntlet_config': gauntlet_config,
+            'success': success,
+            'duration_seconds': duration_seconds,
+            'stages_completed': stages_completed,
+            'final_metrics': final_metrics or {},
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        # Store by problem type
+        if problem_type not in self.icr_patterns['problem_type_patterns']:
+            self.icr_patterns['problem_type_patterns'][problem_type] = []
+        
+        patterns = self.icr_patterns['problem_type_patterns'][problem_type]
+        patterns.append(pattern)
+        if len(patterns) > 100:
+            patterns.pop(0)  # Keep last 100
+        
+        # Store by complexity
+        complexity_key = str(complexity // 2)
+        if complexity_key not in self.icr_patterns['complexity_patterns']:
+            self.icr_patterns['complexity_patterns'][complexity_key] = []
+        
+        complexity_patterns = self.icr_patterns['complexity_patterns'][complexity_key]
+        complexity_patterns.append(pattern)
+        if len(complexity_patterns) > 100:
+            complexity_patterns.pop(0)
+        
+        # Store by team configuration
+        team_hash = hash(json.dumps(team_config, sort_keys=True))
+        if team_hash not in self.icr_patterns['team_config_patterns']:
+            self.icr_patterns['team_config_patterns'][team_hash] = []
+        
+        team_patterns = self.icr_patterns['team_config_patterns'][team_hash]
+        team_patterns.append(pattern)
+        if len(team_patterns) > 50:
+            team_patterns.pop(0)
+        
+        # Store by gauntlet configuration
+        gauntlet_hash = hash(json.dumps(gauntlet_config, sort_keys=True))
+        if gauntlet_hash not in self.icr_patterns['gauntlet_config_patterns']:
+            self.icr_patterns['gauntlet_config_patterns'][gauntlet_hash] = []
+        
+        gauntlet_patterns = self.icr_patterns['gauntlet_config_patterns'][gauntlet_hash]
+        gauntlet_patterns.append(pattern)
+        if len(gauntlet_patterns) > 50:
+            gauntlet_patterns.pop(0)
+        
+        # Add to completed workflows
+        self.completed_workflows.append(pattern)
+        if len(self.completed_workflows) > 200:
+            self.completed_workflows.pop(0)
+        
+        logger.info(f"Workflow pattern stored: success={success}, type={problem_type}, complexity={complexity}")
+    
+    def recommend_optimal_config(
+        self,
+        problem_statement: str,
+        complexity_hint: Optional[int] = None
+    ) -> Dict[str, Any]:
+        """
+        Recommend optimal team and gauntlet configuration based on ICR patterns.
+        
+        Args:
+            problem_statement: Description of the problem
+            complexity_hint: Optional complexity hint (1-10)
+            
+        Returns:
+            Recommended configuration dictionary
+        """
+        if not self.enable_icr:
+            return {
+                'content_analyzer_team': 'default_team',
+                'planner_team': 'default_team',
+                'solver_team': 'default_team',
+                'patcher_team': 'default_team',
+                'assembler_team': 'default_team',
+                'sub_problem_red_gauntlet': 'coherence',
+                'sub_problem_gold_gauntlet': 'completeness',
+                'final_red_gauntlet': 'coherence',
+                'final_gold_gauntlet': 'completeness',
+                'mdap_enabled': False,
+                'reason': 'ICR disabled - using defaults'
+            }
+        
+        problem_type, complexity = self._analyze_problem_complexity(problem_statement)
+        if complexity_hint:
+            complexity = min(10, max(1, complexity_hint))
+        
+        # Find successful patterns for this problem type
+        type_patterns = self.icr_patterns['problem_type_patterns'].get(problem_type, [])
+        successful_patterns = [p for p in type_patterns if p.get('success', False)]
+        
+        if not successful_patterns:
+            # Fall back to complexity patterns
+            complexity_patterns = self.icr_patterns['complexity_patterns'].get(str(complexity // 2), [])
+            successful_patterns = [p for p in complexity_patterns if p.get('success', False)]
+        
+        if not successful_patterns:
+            # No patterns available - return defaults with explanation
+            return {
+                'content_analyzer_team': 'content_analysis_team',
+                'planner_team': 'planning_team',
+                'solver_team': 'solver_team',
+                'patcher_team': 'patcher_team',
+                'assembler_team': 'assembler_team',
+                'sub_problem_red_gauntlet': 'coherence',
+                'sub_problem_gold_gauntlet': 'completeness',
+                'final_red_gauntlet': 'coherence',
+                'final_gold_gauntlet': 'completeness',
+                'mdap_enabled': complexity > 6,
+                'maker_enabled': complexity > 8,
+                'reason': f'No historical data for {problem_type} problems - using recommended defaults'
+            }
+        
+        # Find most successful team configuration
+        team_scores: Dict[str, float] = {}
+        team_counts: Dict[str, int] = {}
+        
+        for pattern in successful_patterns:
+            team_config = pattern.get('team_config', {})
+            for team_role, team_name in team_config.items():
+                if team_name not in team_scores:
+                    team_scores[team_name] = 0.0
+                    team_counts[team_name] = 0
+                team_scores[team_name] += pattern.get('duration_seconds', 0) / 1000  # Lower duration = better
+                team_counts[team_name] += 1
+        
+        # Normalize scores (lower is better, so invert)
+        for team_name in team_scores:
+            if team_counts[team_name] > 0:
+                team_scores[team_name] = team_counts[team_name] / max(1, team_scores[team_name])
+        
+        # Get best teams for each role
+        role_teams: Dict[str, str] = {}
+        for pattern in successful_patterns:
+            team_config = pattern.get('team_config', {})
+            for role, team in team_config.items():
+                if role not in role_teams:
+                    role_teams[role] = team
+        
+        # Recommend gauntlets based on complexity
+        if complexity <= 3:
+            recommended_red = 'coherence'
+            recommended_gold = 'completeness'
+        elif complexity <= 6:
+            recommended_red = 'feasibility'
+            recommended_gold = 'dependency'
+        else:
+            recommended_red = 'adaptive'
+            recommended_gold = 'hierarchical'
+        
+        # Check for gauntlet patterns
+        complexity_key = str(complexity // 2)
+        complexity_patterns = self.icr_patterns['complexity_patterns'].get(complexity_key, [])
+        successful_gauntlets = [p for p in complexity_patterns if p.get('success', False)]
+        
+        if successful_gauntlets:
+            # Find most successful gauntlet configuration
+            gauntlet_pass_rates: Dict[str, float] = {}
+            gauntlet_counts: Dict[str, int] = {}
+            
+            for pattern in successful_gauntlets:
+                gauntlet_config = pattern.get('gauntlet_config', {})
+                for key, value in gauntlet_config.items():
+                    if 'gauntlet' in key:
+                        if value not in gauntlet_pass_rates:
+                            gauntlet_pass_rates[value] = 0.0
+                            gauntlet_counts[value] = 0
+                        # Calculate pass rate
+                        patterns_for_gauntlet = [
+                            p for p in self.icr_patterns['gauntlet_config_patterns'].get(
+                                hash(json.dumps(pattern.get('gauntlet_config', {}), sort_keys=True)), []
+                            )
+                        ]
+                        if patterns_for_gauntlet:
+                            passed = sum(1 for p in patterns_for_gauntlet if p.get('passed', False))
+                            gauntlet_pass_rates[value] = passed / len(patterns_for_gauntlet)
+                            gauntlet_counts[value] = len(patterns_for_gauntlet)
+        
+        return {
+            'content_analyzer_team': role_teams.get('content_analyzer_team', 'content_analysis_team'),
+            'planner_team': role_teams.get('planner_team', 'planning_team'),
+            'solver_team': role_teams.get('solver_team', 'solver_team'),
+            'patcher_team': role_teams.get('patcher_team', 'patcher_team'),
+            'assembler_team': role_teams.get('assembler_team', 'assembler_team'),
+            'sub_problem_red_gauntlet': successful_patterns[0].get('gauntlet_config', {}).get('sub_problem_red_gauntlet', recommended_red),
+            'sub_problem_gold_gauntlet': successful_patterns[0].get('gauntlet_config', {}).get('sub_problem_gold_gauntlet', recommended_gold),
+            'final_red_gauntlet': successful_patterns[0].get('gauntlet_config', {}).get('final_red_gauntlet', recommended_red),
+            'final_gold_gauntlet': successful_patterns[0].get('gauntlet_config', {}).get('final_gold_gauntlet', recommended_gold),
+            'mdap_enabled': complexity > 6 or any(p.get('team_config', {}).get('mdap_enabled', False) for p in successful_patterns),
+            'maker_enabled': complexity > 8,
+            'reason': f'Based on {len(successful_patterns)} successful {problem_type} workflows',
+            'confidence': min(0.9, 0.3 + len(successful_patterns) * 0.1),
+            'estimated_success_rate': len(successful_patterns) / max(1, len(type_patterns)) if type_patterns else 0.5
+        }
+    
+    def get_icr_statistics(self) -> Dict[str, Any]:
+        """Get ICR-related statistics"""
+        if not self.enable_icr:
+            return {'icr_enabled': False}
+        
+        total_workflows = len(self.completed_workflows)
+        
+        # Calculate success rates
+        success_counts = {'total': 0}
+        for pattern in self.completed_workflows:
+            ptype = pattern.get('problem_type', 'unknown')
+            if ptype not in success_counts:
+                success_counts[ptype] = {'total': 0, 'success': 0}
+            success_counts['total'] += 1
+            success_counts[ptype]['total'] += 1
+            if pattern.get('success', False):
+                success_counts[ptype]['success'] += 1
+        
+        # Calculate success rates
+        success_rates = {}
+        for ptype, counts in success_counts.items():
+            if ptype != 'total' and counts['total'] > 0:
+                success_rates[ptype] = counts['success'] / counts['total']
+        
+        # Calculate average duration
+        durations = [p.get('duration_seconds', 0) for p in self.completed_workflows]
+        avg_duration = sum(durations) / len(durations) if durations else 0
+        
+        return {
+            'icr_enabled': True,
+            'total_workflows': total_workflows,
+            'overall_success_rate': success_counts['total'] / max(1, total_workflows),
+            'success_rates_by_type': success_rates,
+            'patterns_by_problem_type': {
+                ptype: len(patterns) 
+                for ptype, patterns in self.icr_patterns['problem_type_patterns'].items()
+            },
+            'patterns_by_complexity': {
+                complexity: len(patterns)
+                for complexity, patterns in self.icr_patterns['complexity_patterns'].items()
+            },
+            'average_duration_seconds': avg_duration,
+            'unique_team_configs': len(self.icr_patterns['team_config_patterns']),
+            'unique_gauntlet_configs': len(self.icr_patterns['gauntlet_config_patterns'])
+        }
+    
+    def clear_icr_patterns(self) -> None:
+        """Clear all stored ICR patterns"""
+        if not self.enable_icr:
+            return
+        
+        logger.info("Clearing all ICR patterns")
+        
+        self.icr_patterns = {
+            'problem_type_patterns': {},
+            'complexity_patterns': {},
+            'team_config_patterns': {},
+            'gauntlet_config_patterns': {},
+            'stage_duration_patterns': {},
+        }
+        self.completed_workflows.clear()
+        self._prediction_cache.clear()
+    
+    def _learn_from_completed_workflows(self) -> None:
+        """Learn patterns from completed workflows (for periodic re-training)"""
+        if not self.enable_icr or len(self.completed_workflows) < 5:
+            return
+        
+        # Calculate success rates by configuration
+        for team_hash, patterns in self.icr_patterns['team_config_patterns'].items():
+            if len(patterns) >= 3:
+                passed = sum(1 for p in patterns if p.get('success', False))
+                success_rate = passed / len(patterns)
+                
+                # Update team config patterns with success rate
+                for pattern in patterns:
+                    pattern['calculated_success_rate'] = success_rate
+        
+        logger.info(f"Learned from {len(self.completed_workflows)} completed workflows")
 
 
 # Example usage function

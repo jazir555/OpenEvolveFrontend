@@ -715,406 +715,104 @@ In the visual editor:
 
 ---
 
-## 15. Iterative Contextual Refinements
+## 15. Visual Workflow Diagrams
 
-### Overview
+This section provides visual architectural references for how the system processes different types of content.
 
-Iterative contextual refinements enhance the Gauntlet System by enabling continuous improvement of validation processes through contextual feedback loops. This creates a closed-loop system where gauntlet configurations, issue detection patterns, and validation strategies are continuously refined based on accumulated execution experience.
+### 15.1 The Core Code Evolution Loop
+The standard workflow for software generation.
 
-**Key Files:**
-- [`sovereign_refinement.py`](sovereign_refinement.py) - Refinement coordinator
-- [`sovereign_refinement_comprehensive.py`](sovereign_refinement_comprehensive.py) - Comprehensive refinement engine
-- [`formal_gauntlet_system.py`](formal_gauntlet_system.py) - Core gauntlet execution
-- [`gauntlet_effectiveness_analyzer.py`](gauntlet_effectiveness_analyzer.py) - Analytics and optimization
-
-### Integration with Gauntlet Architecture
-
-Iterative refinements operate at multiple levels within the Gauntlet System:
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│              Iterative Refinement in Gauntlet Architecture                   │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Gauntlet Definition Layer                                           │   │
-│  │  ├── Refine round configurations based on effectiveness             │   │
-│  │  ├── Adjust min_score thresholds dynamically                       │   │
-│  │  └── Update success_criteria based on patterns                     │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                              │                                               │
-│                              ▼                                               │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Execution Layer                                                     │   │
-│  │  ├── Red Team refinement (critique patterns)                        │   │
-│  │  ├── Gold Team refinement (verification patterns)                   │   │
-│  │  └── Blue Team refinement (peer review patterns)                    │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                              │                                               │
-│                              ▼                                               │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Analytics Layer                                                     │   │
-│  │  ├── Catch rate optimization                                        │   │
-│  │  ├── False positive reduction                                       │   │
-│  │  └── Rule effectiveness scoring                                     │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                              │                                               │
-│                              ▼                                               │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  Self-Healing Loop                                                   │   │
-│  │  ├── Detect ineffective rounds                                      │   │
-│  │  ├── Generate improvement suggestions                               │   │
-│  │  ├── Apply refinements with validation                              │   │
-│  │  └── Monitor for convergence                                        │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    User((User Input)) -->|Problem Statement| DE[Decomposition Engine]
+    DE -->|Sub-Problem A| EV_A[MAKER Evolution]
+    DE -->|Sub-Problem B| EV_B[MAKER Evolution]
+    
+    subgraph "Evolutionary Island (Per Sub-Problem)"
+        EV_A --> POP[Population]
+        POP -->|Select| SEL[Adaptive MAKER Selection]
+        SEL -->|Recombine/Mutate| CHILD[Child Solution]
+        CHILD --> GAUNTLET{Gauntlet Filter}
+        
+        GAUNTLET -->|Pass| ARCHIVE[Archive]
+        GAUNTLET -->|Fail| RED_FLAG[Red Flag Log]
+        RED_FLAG -->|Feedback| POP
+        
+        ARCHIVE -->|Migration| ISLAND_B[Other Islands]
+    end
+    
+    ARCHIVE -->|Best Solution| ASSEMBLY[Assembly Node]
+    EV_B -->|Best Solution| ASSEMBLY
+    ASSEMBLY --> FINAL[Final Integrated Code]
+    FINAL -->|Final Verification| GOLD_GAUNTLET[Gold Team Gauntlet]
 ```
 
-### Refinement Team Integration
+### 15.2 The Universal Business Plan Workflow
+How the system adapts to abstract content (e.g., "Create a Series A Pitch Deck").
 
-The Gauntlet System's three-team model aligns with iterative refinements:
-
-**Red Team (Refinement - Issue Detection):**
-```python
-class RefinementRedTeam:
-    """Red Team with iterative refinement capabilities."""
+```mermaid
+graph TD
+    Input((Startup Concept)) --> DE[Decomposition]
     
-    def critique_with_refinement(
-        self,
-        content: str,
-        gauntlet_round: GauntletRoundRule,
-        context: Dict[str, Any] = None
-    ) -> CritiqueReport:
-        """
-        Execute Red Team critique with refinement history.
+    DE -->|Financials| EV_FIN[Evolution: Financial Model]
+    DE -->|Strategy| EV_STRAT[Evolution: Market Strategy]
+    DE -->|Product| EV_PROD[Evolution: Product Roadmap]
+    
+    subgraph "Financial Evolution Island"
+        EV_FIN --> GEN[Generate Model]
+        GEN --> EVAL{Evaluator}
         
-        Uses historical refinement patterns to improve issue detection.
-        """
-        # Retrieve relevant refinement history
-        history = self._get_refinement_history(
-            gauntlet_round_id=gauntlet_round.rule_id,
-            domain=context.get('domain', 'general')
-        )
+        EVAL -->|Tier 1: Format| VALID[Valid CSV?]
+        VALID -->|Tier 2: Math| LOGIC[Math Check]
+        LOGIC -->|Tier 3: Persona| VC[Agent: 'Skeptical VC']
         
-        # Enhance prompt with refinement context
-        enhanced_prompt = self._enhance_prompt(
-            prompt=gauntlet_round.evaluation_prompt,
-            refinement_patterns=history.patterns,
-            common_issues=history.frequent_issues
-        )
-        
-        # Execute critique
-        report = self._execute_critique(
-            content=content,
-            prompt=enhanced_prompt,
-            success_criteria=gauntlet_round.success_criteria
-        )
-        
-        # Update refinement history
-        self._update_refinement_history(
-            gauntlet_round=gauntlet_round,
-            report=report,
-            context=context
-        )
-        
-        return report
+        VC -->|Feedback: 'Burn rate too high'| GEN
+        VC -->|Pass| FIN_FINAL[Optimized Model]
+    end
+    
+    subgraph "Strategy Evolution Island"
+        EV_STRAT --> GEN_S[Generate Deck]
+        GEN_S --> EVAL_S{Evaluator}
+        EVAL_S -->|Tier 3: Persona| MARKET[Agent: 'Gartner Analyst']
+        MARKET -->|Feedback: 'TAM underestimated'| GEN_S
+    end
+    
+    FIN_FINAL --> MERGE[Pitch Deck Assembly]
+    EV_PROD --> MERGE
+    EV_STRAT --> MERGE
+    
+    MERGE --> SIM[Board Simulation]
+    SIM -->|Approved| OUTPUT((Final Pitch Deck))
 ```
 
-**Gold Team (Refinement - Verification):**
-```python
-class RefinementGoldTeam:
-    """Gold Team with iterative refinement capabilities."""
+### 15.3 The Gauntlet Internal Logic
+The detailed decision tree within a single validation step.
+
+```mermaid
+graph TD
+    Input[Candidate Solution] --> R1{Tier 1: Automated}
     
-    def verify_with_refinement(
-        self,
-        content: str,
-        gauntlet_round: GauntletRoundRule,
-        critique_report: CritiqueReport = None,
-        context: Dict[str, Any] = None
-    ) -> VerificationReport:
-        """
-        Execute Gold Team verification with refinement history.
+    R1 -->|Fail| REJECT[Reject Immediately]
+    R1 -->|Pass| R2{Tier 2: Red Team}
+    
+    subgraph "Adversarial Phase"
+        R2 --> ATTACK[Generate Attacks]
+        ATTACK -->|Exploit Found| FAIL_RED[Fail: Critical Vulnerability]
+        ATTACK -->|Resisted| PASS_RED[Pass: Robust]
+    end
+    
+    FAIL_RED --> FEEDBACK[Generate Remediation Prompt]
+    PASS_RED --> R3{Tier 3: Gold Team}
+    
+    subgraph "Verification Phase"
+        R3 --> COMP[Compliance Check]
+        R3 --> SPEC[Spec Alignment]
         
-        Uses historical refinement patterns to improve verification accuracy.
-        """
-        # Get refinement context
-        history = self._get_refinement_history(
-            gauntlet_round_id=gauntlet_round.rule_id,
-            content_type=context.get('content_type', 'code')
-        )
+        COMP -->|Violation| FAIL_GOLD
+        SPEC -->|Misalignment| FAIL_GOLD
         
-        # Enhance verification with historical patterns
-        enhanced_prompt = self._enhance_verification_prompt(
-            base_prompt=gauntlet_round.evaluation_prompt,
-            refinement_patterns=history.positive_patterns,
-            false_positive_patterns=history.reduced_false_positives
-        )
-        
-        # Execute verification
-        report = self._execute_verification(
-            content=content,
-            prompt=enhanced_prompt,
-            success_criteria=gauntlet_round.success_criteria,
-            critique_report=critique_report
-        )
-        
-        # Track effectiveness
-        self._track_verification_effectiveness(
-            gauntlet_round=gauntlet_round,
-            report=report,
-            context=context
-        )
-        
-        return report
+        COMP & SPEC -->|Success| PASS_GOLD
+    end
+    
+    PASS_GOLD --> APPROVED[Mark as Elite]
 ```
-
-### Adaptive Gauntlet Refinement
-
-The `DynamicGauntletAdaptation` module integrates with iterative refinements:
-
-```python
-class AdaptiveGauntletRefinement:
-    """Adaptive refinement for gauntlet configurations."""
-    
-    def __init__(
-        self,
-        effectiveness_analyzer: GauntletEffectivenessAnalyzer,
-        refinement_engine: ComprehensiveRefinementEngine
-    ):
-        self.effectiveness_analyzer = effectiveness_analyzer
-        self.refinement_engine = refinement_engine
-        self.refinement_history = []
-    
-    def adapt_and_refine(
-        self,
-        gauntlet_definition: GauntletDefinition,
-        execution_history: List[GauntletExecution]
-    ) -> GauntletDefinition:
-        """
-        Adapt gauntlet based on execution history with iterative refinement.
-        
-        Algorithm:
-        1. Analyze effectiveness metrics from execution history
-        2. Identify underperforming rounds
-        3. Generate refinement suggestions
-        4. Apply refinements with validation
-        5. Return adapted gauntlet
-        """
-        # Analyze effectiveness
-        metrics = self.effectiveness_analyzer.analyze(
-            gauntlet_id=gauntlet_definition.gauntlet_id,
-            executions=execution_history
-        )
-        
-        # Identify issues
-        issues = self._identify_issues(metrics)
-        
-        if not issues:
-            return gauntlet_definition  # No refinement needed
-        
-        # Generate refinement plan
-        refinement_plan = self._generate_refinement_plan(
-            gauntlet=gauntlet_definition,
-            issues=issues,
-            metrics=metrics
-        )
-        
-        # Apply refinements
-        refined_gauntlet = self._apply_refinements(
-            gauntlet=gauntlet_definition,
-            plan=refinement_plan
-        )
-        
-        # Track refinement
-        self.refinement_history.append({
-            'timestamp': datetime.now(),
-            'gauntlet_id': gauntlet_definition.gauntlet_id,
-            'issues_identified': len(issues),
-            'refinements_applied': len(refinement_plan.improvements)
-        })
-        
-        return refined_gauntlet
-    
-    def _identify_issues(self, metrics: Dict) -> List[Dict]:
-        """Identify issues based on effectiveness metrics."""
-        issues = []
-        
-        # Low catch rate
-        if metrics.catch_rate < 0.7:
-            issues.append({
-                'type': 'low_catch_rate',
-                'severity': 'high',
-                'description': f"Catch rate {metrics.catch_rate:.2%} below threshold",
-                'affected_rounds': metrics.low_catch_rounds
-            })
-        
-        # High false positive rate
-        if metrics.false_positive_rate > 0.15:
-            issues.append({
-                'type': 'high_false_positive',
-                'severity': 'medium',
-                'description': f"FPR {metrics.false_positive_rate:.2%} above threshold",
-                'affected_rounds': metrics.high_fpr_rounds
-            })
-        
-        # Ineffective rules
-        for rule_metrics in metrics.rule_effectiveness:
-            if rule_metrics.effectiveness_score < 0.3:
-                issues.append({
-                    'type': 'ineffective_rule',
-                    'severity': 'medium',
-                    'description': f"Rule {rule_metrics.rule_id} has low effectiveness",
-                    'rule_id': rule_metrics.rule_id
-                })
-        
-        return issues
-    
-    def _generate_refinement_plan(
-        self,
-        gauntlet: GauntletDefinition,
-        issues: List[Dict],
-        metrics: Dict
-    ) -> RefinementPlan:
-        """Generate a plan for refining the gauntlet."""
-        improvements = []
-        
-        for issue in issues:
-            if issue['type'] == 'low_catch_rate':
-                # Suggest adding more rigorous rounds
-                for round_id in issue['affected_rounds']:
-                    improvements.append({
-                        'round_id': round_id,
-                        'improvement_type': 'increase_strictness',
-                        'action': 'Increase min_score threshold by 0.1',
-                        'rationale': f"Address low catch rate"
-                    })
-            
-            elif issue['type'] == 'high_false_positive':
-                # Suggest relaxing thresholds
-                for round_id in issue['affected_rounds']:
-                    improvements.append({
-                        'round_id': round_id,
-                        'improvement_type': 'decrease_strictness',
-                        'action': 'Decrease min_score threshold by 0.05',
-                        'rationale': f"Reduce false positive rate"
-                    })
-            
-            elif issue['type'] == 'ineffective_rule':
-                # Suggest refining or removing
-                improvements.append({
-                    'round_id': issue['rule_id'],
-                    'improvement_type': 'refine_or_remove',
-                    'action': f"Review rule {issue['rule_id']} for refinement or removal",
-                    'rationale': f"Low effectiveness score"
-                })
-        
-        return RefinementPlan(
-            gauntlet_id=gauntlet.gauntlet_id,
-            issues=issues,
-            improvements=improvements,
-            estimated_effort=len(improvements) * 0.5  # hours
-        )
-```
-
-### Refinement-Enhanced Execution Strategies
-
-**Refinement-Enhanced Adaptive Execution:**
-```python
-class RefinementAdaptiveExecutor:
-    """Adaptive execution with iterative refinement."""
-    
-    def execute_with_refinement(
-        self,
-        gauntlet_definition: GauntletDefinition,
-        content: str,
-        context: Dict[str, Any] = None
-    ) -> GauntletExecution:
-        """
-        Execute gauntlet with iterative refinement enabled.
-        
-        Key enhancement: After initial execution, run refinement loop
-        to improve effectiveness before final result.
-        """
-        # Initial execution
-        execution = self._execute_standard(
-            gauntlet=gauntlet_definition,
-            content=content
-        )
-        
-        # Check if refinement needed
-        if self._should_refine(execution):
-            # Get refinement history
-            history = self._get_history(
-                gauntlet_id=gauntlet_definition.gauntlet_id
-            )
-            
-            # Apply refinement patterns
-            if history.has_patterns:
-                execution = self._apply_refinement_patterns(
-                    execution=execution,
-                    gauntlet=gauntlet_definition,
-                    patterns=history.patterns
-                )
-        
-        # Track for future refinements
-        self._track_execution(execution, context)
-        
-        return execution
-```
-
-### Configuration Options
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `refinement_enabled` | True | Enable iterative refinement |
-| `refinement_max_iterations` | 3 | Maximum refinement cycles |
-| `refinement_quality_threshold` | 0.85 | Quality threshold to stop refining |
-| `history_window` | 100 | Number of past executions to consider |
-| `auto_apply_refinements` | False | Auto-apply suggested refinements |
-| `refinement_min_catch_rate` | 0.70 | Min catch rate threshold |
-| `refinement_max_fpr` | 0.15 | Max false positive rate threshold |
-
-### Metrics and Analytics
-
-**Refinement Metrics:**
-| Metric | Description | Target |
-|--------|-------------|--------|
-| `refinement_catch_rate_improvement` | % improvement in catch rate after refinement | > 10% |
-| `refinement_fpr_reduction` | % reduction in false positive rate | > 20% |
-| `refinement_iterations_to_converge` | Avg iterations to reach quality threshold | < 3 |
-| `refinement_applied_count` | Number of refinements applied | N/A |
-
-**Analytics Integration:**
-```python
-class GauntletRefinementAnalytics:
-    """Track refinement metrics for gauntlets."""
-    
-    def track_refinement(
-        self,
-        gauntlet_id: str,
-        execution: GauntletExecution,
-        refinement_result: RefinementResult = None
-    ):
-        """Track refinement event."""
-        metrics = {
-            'gauntlet_id': gauntlet_id,
-            'execution_id': execution.execution_id,
-            'initial_score': refinement_result.initial_score if refinement_result else None,
-            'final_score': refinement_result.final_quality_score if refinement_result else execution.final_score,
-            'refinement_iterations': refinement_result.iterations_used if refinement_result else 0,
-            'converged': refinement_result.converged if refinement_result else True,
-            'improvements_applied': refinement_result.total_improvements if refinement_result else 0
-        }
-        
-        self._log_metrics(metrics)
-```
-
-### Best Practices
-
-1. **Track History Consistently**: Maintain execution history for each gauntlet to enable pattern detection
-2. **Set Appropriate Thresholds**: Tune `refinement_quality_threshold` based on your quality requirements
-3. **Monitor False Positives**: Refinement should reduce FPR, not increase it
-4. **Validate Refinements**: Before auto-applying refinements, validate on a test set
-5. **Use Feedback Loops**: Connect refinement outcomes back to the GauntletDefinition for continuous improvement
-6. **Review Periodically**: Periodically review refinement suggestions for quality assurance

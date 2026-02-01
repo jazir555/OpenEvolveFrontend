@@ -403,9 +403,20 @@ class QualityGateEngine:
     Main quality gate evaluation engine.
 
     Evaluates solutions against quality thresholds and makes pass/fail decisions.
+    
+    ICR Integration:
+    - Stores evaluation patterns for learning
+    - Predicts pass/fail probability before evaluation
+    - Adapts thresholds based on historical outcomes
+    - Learns from refinement results
     """
 
-    def __init__(self, threshold_manager: Optional[QualityThresholdManager] = None):
+    def __init__(
+        self, 
+        threshold_manager: Optional[QualityThresholdManager] = None,
+        icr_pattern_store: Optional[Dict[str, Any]] = None,
+        enable_icr: bool = True
+    ):
         self.threshold_manager = threshold_manager or QualityThresholdManager()
         self.evaluation_history: List[QualityGateReport] = []
         self.performance_metrics: Dict[str, Any] = {
@@ -416,13 +427,31 @@ class QualityGateEngine:
             'average_score': 0.0,
             'average_time': 0.0
         }
+        
+        # ICR Integration: Pattern storage and learning
+        self.enable_icr = enable_icr
+        self.icr_pattern_store = icr_pattern_store or {
+            'content_type_patterns': {},  # content_type -> pattern list
+            'quality_level_patterns': {},  # quality_level -> pattern list
+            'complexity_patterns': {},  # complexity_range -> pattern list
+            'metric_patterns': {},  # metric_name -> {score_range: pass_rate}
+            'refinement_history': [],  # Refinement outcomes
+        }
+        
+        # ICR: Adaptive threshold adjustments
+        self._adaptive_thresholds: Dict[str, float] = {}
+        
+        # ICR: Prediction cache
+        self._prediction_cache: Dict[str, Dict] = {}
 
     def evaluate(
         self,
         assessments: List[EvaluatorAssessment],
         content_type: ContentType = ContentType.GENERAL,
         quality_level: QualityLevel = QualityLevel.STANDARD,
-        complexity_score: int = 5
+        complexity_score: int = 5,
+        store_pattern: bool = True,
+        solution_context: Optional[Dict[str, Any]] = None
     ) -> QualityGateReport:
         """
         Evaluate solution against quality gate.
@@ -432,6 +461,8 @@ class QualityGateEngine:
             content_type: Type of content being evaluated
             quality_level: Required quality level
             complexity_score: Problem complexity (1-10) for adaptive thresholds
+            store_pattern: Whether to store ICR pattern (default True)
+            solution_context: Optional context about the solution for ICR learning
 
         Returns:
             QualityGateReport with decision and rationale
@@ -449,6 +480,10 @@ class QualityGateEngine:
         if threshold.adaptive_thresholds:
             threshold = self.threshold_manager.adjust_for_complexity(threshold, complexity_score)
             logger.info(f"Adjusted thresholds for complexity: {complexity_score}")
+
+        # ICR: Apply adaptive threshold adjustments based on patterns
+        if self.enable_icr:
+            threshold = self.adapt_threshold(threshold, content_type, quality_level, complexity_score)
 
         # Aggregate scores from all assessments
         scores_by_metric = self._aggregate_scores(assessments)
@@ -493,6 +528,10 @@ class QualityGateEngine:
         self.evaluation_history.append(report)
         if len(self.evaluation_history) > 100:
             self.evaluation_history = self.evaluation_history[-100:]
+
+        # ICR: Store pattern for learning
+        if self.enable_icr and store_pattern:
+            self.store_icr_pattern(assessments, report, solution_context)
 
         logger.info(f"Quality gate evaluation complete: {decision.value} (score: {report.overall_score:.2f})")
         return report
@@ -719,6 +758,482 @@ class QualityGateEngine:
             'average_score': 0.0,
             'average_time': 0.0
         }
+
+    # =========================================================================
+    # ICR INTEGRATION METHODS
+    # =========================================================================
+    
+    def predict_pass_probability(
+        self,
+        assessments: List[EvaluatorAssessment],
+        content_type: ContentType = ContentType.GENERAL,
+        quality_level: QualityLevel = QualityLevel.STANDARD,
+        complexity_score: int = 5
+    ) -> Dict[str, Any]:
+        """
+        Predict pass/fail probability before full evaluation using ICR patterns.
+        
+        Args:
+            assessments: List of evaluator assessments
+            content_type: Type of content
+            quality_level: Required quality level
+            complexity_score: Problem complexity (1-10)
+            
+        Returns:
+            Dictionary with prediction details
+        """
+        if not self.enable_icr:
+            return {
+                'prediction': 'unknown',
+                'confidence': 0.0,
+                'reason': 'ICR disabled'
+            }
+        
+        logger.info(f"Predicting pass probability for {content_type.value}/{quality_level.value}")
+        
+        # Aggregate scores for prediction
+        scores = self._aggregate_scores(assessments)
+        overall_score = scores.get('overall', 0.0)
+        
+        # Get historical pattern for this content/quality/complexity
+        pattern_key = f"{content_type.value}_{quality_level.value}_{complexity_score // 2}"
+        historical_patterns = self.icr_pattern_store['content_type_patterns'].get(pattern_key, [])
+        
+        # Calculate predicted pass probability based on patterns
+        if historical_patterns:
+            # Use weighted average based on similar historical outcomes
+            total_weight = 0.0
+            weighted_pass_rate = 0.0
+            
+            for pattern in historical_patterns:
+                # Weight by similarity of scores
+                pattern_score = pattern.get('overall_score', 0.0)
+                score_diff = abs(overall_score - pattern_score)
+                weight = max(0.0, 1.0 - (score_diff / 100.0))  # Higher weight for closer scores
+                
+                pass_rate = pattern.get('pass_rate', 0.5)
+                weighted_pass_rate += pass_rate * weight
+                total_weight += weight
+            
+            if total_weight > 0:
+                predicted_pass_prob = weighted_pass_rate / total_weight
+            else:
+                predicted_pass_prob = 0.5
+        else:
+            # Fallback: use score-based prediction
+            threshold = self.threshold_manager.get_threshold(content_type, quality_level)
+            if threshold:
+                predicted_pass_prob = max(0.0, min(1.0, (overall_score - threshold.min_overall_score + 20) / 40))
+            else:
+                predicted_pass_prob = 0.5
+        
+        # Get metric-specific predictions
+        metric_predictions = {}
+        for metric, score in scores.items():
+            if metric != 'overall':
+                metric_patterns = self.icr_pattern_store['metric_patterns'].get(metric, {})
+                
+                # Find closest score range
+                closest_range = None
+                closest_rate = 0.5
+                for score_range, pass_rate in metric_patterns.items():
+                    try:
+                        low, high = score_range.split('-')
+                        low, high = float(low), float(high)
+                        if low <= score <= high:
+                            closest_range = score_range
+                            closest_rate = pass_rate
+                            break
+                        elif abs(score - low) < abs(score - (high if closest_range is None else float(closest_range.split('-')[1]))):
+                            closest_range = score_range
+                            closest_rate = pass_rate
+                    except:
+                        pass
+                
+                metric_predictions[metric] = {
+                    'score': score,
+                    'predicted_pass_rate': closest_rate,
+                    'range': closest_range
+                }
+        
+        # Determine confidence based on amount of historical data
+        pattern_count = len(historical_patterns)
+        if pattern_count >= 20:
+            confidence = 0.9
+        elif pattern_count >= 10:
+            confidence = 0.75
+        elif pattern_count >= 5:
+            confidence = 0.5
+        else:
+            confidence = 0.25
+        
+        # Predict likely decision
+        if predicted_pass_prob >= 0.8:
+            predicted_decision = 'pass'
+        elif predicted_pass_prob >= 0.5:
+            predicted_decision = 'conditional_pass'
+        elif predicted_pass_prob >= 0.2:
+            predicted_decision = 'conditional_pass'
+        else:
+            predicted_decision = 'fail'
+        
+        return {
+            'prediction': predicted_decision,
+            'pass_probability': predicted_pass_prob,
+            'confidence': confidence,
+            'estimated_score': overall_score,
+            'metric_predictions': metric_predictions,
+            'pattern_count': pattern_count,
+            'recommended_threshold_adj': self._get_threshold_adjustment(content_type, quality_level, complexity_score)
+        }
+    
+    def _get_threshold_adjustment(
+        self, 
+        content_type: ContentType, 
+        quality_level: QualityLevel,
+        complexity_score: int
+    ) -> float:
+        """Get recommended threshold adjustment based on ICR patterns"""
+        if not self.enable_icr:
+            return 0.0
+        
+        # Check if we have enough data to recommend adjustment
+        pattern_key = f"{content_type.value}_{quality_level.value}_{complexity_score // 2}"
+        patterns = self.icr_pattern_store['content_type_patterns'].get(pattern_key, [])
+        
+        if len(patterns) < 5:
+            return 0.0
+        
+        # Calculate average score gap for passed vs failed evaluations
+        passed_scores = [p['overall_score'] for p in patterns if p.get('passed', False)]
+        failed_scores = [p['overall_score'] for p in patterns if not p.get('passed', False)]
+        
+        if not passed_scores or not failed_scores:
+            return 0.0
+        
+        avg_pass = sum(passed_scores) / len(passed_scores)
+        avg_fail = sum(failed_scores) / len(failed_scores)
+        
+        # If pass threshold is too high (avg_pass - avg_fail is small), recommend adjustment
+        gap = avg_pass - avg_fail
+        if gap < 10:  # Pass/fail scores are close - threshold might be too strict
+            return -2.0  # Recommend lowering threshold by 2 points
+        elif gap > 30:  # Pass/fail scores are far apart - threshold might be too lenient
+            return 2.0  # Recommend raising threshold by 2 points
+        
+        return 0.0
+    
+    def store_icr_pattern(
+        self,
+        assessments: List[EvaluatorAssessment],
+        report: QualityGateReport,
+        solution_context: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Store evaluation pattern for ICR learning.
+        
+        Args:
+            assessments: Evaluator assessments used
+            report: Quality gate report
+            solution_context: Optional context about the solution
+        """
+        if not self.enable_icr:
+            return
+        
+        logger.info(f"Storing ICR pattern for {report.decision.value}")
+        
+        scores = self._aggregate_scores(assessments)
+        threshold = report.threshold_used
+        
+        # Create pattern record
+        pattern = {
+            'timestamp': datetime.now().isoformat(),
+            'overall_score': report.overall_score,
+            'decision': report.decision.value,
+            'passed': report.decision in [GateDecision.PASS, GateDecision.CONDITIONAL_PASS],
+            'scores_by_metric': scores,
+            'content_type': threshold.content_type.value,
+            'quality_level': threshold.quality_level.value,
+            'complexity_score': report.metadata.get('complexity_score', 5),
+            'evaluation_time': report.metadata.get('evaluation_time', 0.0),
+            'context': solution_context or {}
+        }
+        
+        # Store by content_type/quality_level/complexity
+        pattern_key = f"{threshold.content_type.value}_{threshold.quality_level.value}_{report.metadata.get('complexity_score', 5) // 2}"
+        
+        if pattern_key not in self.icr_pattern_store['content_type_patterns']:
+            self.icr_pattern_store['content_type_patterns'][pattern_key] = []
+        
+        # Keep only last 100 patterns per key
+        patterns = self.icr_pattern_store['content_type_patterns'][pattern_key]
+        patterns.append(pattern)
+        if len(patterns) > 100:
+            patterns.pop(0)  # Remove oldest
+        
+        # Store by quality_level
+        quality_key = threshold.quality_level.value
+        if quality_key not in self.icr_pattern_store['quality_level_patterns']:
+            self.icr_pattern_store['quality_level_patterns'][quality_key] = []
+        self.icr_pattern_store['quality_level_patterns'][quality_key].append(pattern)
+        
+        # Store metric-specific patterns
+        for metric, score in scores.items():
+            if metric != 'overall':
+                if metric not in self.icr_pattern_store['metric_patterns']:
+                    self.icr_pattern_store['metric_patterns'][metric] = {}
+                
+                # Create score range bucket
+                score_range = f"{int(score // 10) * 10}-{(int(score // 10) + 1) * 10}"
+                
+                if score_range not in self.icr_pattern_store['metric_patterns'][metric]:
+                    self.icr_pattern_store['metric_patterns'][metric][score_range] = {
+                        'total': 0,
+                        'passed': 0
+                    }
+                
+                # Update pass rate
+                stats = self.icr_pattern_store['metric_patterns'][metric][score_range]
+                stats['total'] += 1
+                if report.decision in [GateDecision.PASS, GateDecision.CONDITIONAL_PASS]:
+                    stats['passed'] += 1
+        
+        # Calculate pass rate for this pattern
+        all_patterns = self.icr_pattern_store['content_type_patterns'].get(pattern_key, [])
+        passed = sum(1 for p in all_patterns if p.get('passed', False))
+        pattern['pass_rate'] = passed / len(all_patterns) if all_patterns else 0.5
+        
+        logger.info(f"ICR pattern stored: pass_rate={pattern['pass_rate']:.2%}")
+    
+    def learn_from_refinement(
+        self,
+        original_report: QualityGateReport,
+        refined_report: QualityGateReport,
+        refinement_type: str
+    ) -> Dict[str, Any]:
+        """
+        Learn from refinement outcomes to improve future predictions.
+        
+        Args:
+            original_report: Original quality gate report
+            refined_report: Quality gate report after refinement
+            refinement_type: Type of refinement applied
+            
+        Returns:
+            Learning statistics
+        """
+        if not self.enable_icr:
+            return {'learned': False}
+        
+        logger.info(f"Learning from refinement: {refinement_type}")
+        
+        # Record refinement outcome
+        refinement_record = {
+            'timestamp': datetime.now().isoformat(),
+            'refinement_type': refinement_type,
+            'original_decision': original_report.decision.value,
+            'refined_decision': refined_report.decision.value,
+            'original_score': original_report.overall_score,
+            'refined_score': refined_report.overall_score,
+            'score_improvement': refined_report.overall_score - original_report.overall_score,
+            'content_type': original_report.threshold_used.content_type.value,
+            'quality_level': original_report.threshold_used.quality_level.value
+        }
+        
+        self.icr_pattern_store['refinement_history'].append(refinement_record)
+        
+        # Keep only last 200 refinement records
+        if len(self.icr_pattern_store['refinement_history']) > 200:
+            self.icr_pattern_store['refinement_history'] = self.icr_pattern_store['refinement_history'][-200:]
+        
+        # Calculate statistics
+        ref_type_patterns = [
+            r for r in self.icr_pattern_store['refinement_history']
+            if r['refinement_type'] == refinement_type
+        ]
+        
+        if ref_type_patterns:
+            improvements = [r['score_improvement'] for r in ref_type_patterns]
+            avg_improvement = sum(improvements) / len(improvements)
+            success_count = sum(
+                1 for r in ref_type_patterns 
+                if r['refined_decision'] in ['pass', 'conditional_pass']
+            )
+            success_rate = success_count / len(ref_type_patterns)
+        else:
+            avg_improvement = 0.0
+            success_rate = 0.0
+        
+        # Update adaptive thresholds based on successful refinements
+        content_type = original_report.threshold_used.content_type
+        quality_level = original_report.threshold_used.quality_level
+        
+        if success_rate > 0.7:
+            # High success rate - this refinement type works well
+            self._adaptive_thresholds[f"{content_type.value}_{quality_level.value}"] = \
+                self._adaptive_thresholds.get(f"{content_type.value}_{quality_level.value}", 0) - 1
+        elif success_rate < 0.3:
+            # Low success rate - this refinement type might not be effective
+            self._adaptive_thresholds[f"{content_type.value}_{quality_level.value}"] = \
+                self._adaptive_thresholds.get(f"{content_type.value}_{quality_level.value}", 0) + 1
+        
+        result = {
+            'learned': True,
+            'refinement_type': refinement_type,
+            'avg_score_improvement': avg_improvement,
+            'success_rate': success_rate,
+            'total_refinements': len(ref_type_patterns),
+            'adaptive_threshold_adj': self._adaptive_thresholds.get(
+                f"{content_type.value}_{quality_level.value}", 0
+            )
+        }
+        
+        logger.info(f"Refinement learning complete: success_rate={success_rate:.2%}")
+        return result
+    
+    def get_icr_statistics(self) -> Dict[str, Any]:
+        """Get ICR-related statistics"""
+        if not self.enable_icr:
+            return {'icr_enabled': False}
+        
+        total_patterns = sum(
+            len(patterns) 
+            for patterns in self.icr_pattern_store['content_type_patterns'].values()
+        )
+        
+        # Calculate overall pass rate
+        all_patterns = []
+        for patterns in self.icr_pattern_store['content_type_patterns'].values():
+            all_patterns.extend(patterns)
+        
+        passed = sum(1 for p in all_patterns if p.get('passed', False))
+        overall_pass_rate = passed / len(all_patterns) if all_patterns else 0.0
+        
+        # Calculate refinement success rates
+        refinement_stats = {}
+        for record in self.icr_pattern_store['refinement_history']:
+            ref_type = record['refinement_type']
+            if ref_type not in refinement_stats:
+                refinement_stats[ref_type] = {
+                    'count': 0,
+                    'total_improvement': 0.0,
+                    'successes': 0
+                }
+            refinement_stats[ref_type]['count'] += 1
+            refinement_stats[ref_type]['total_improvement'] += record['score_improvement']
+            if record['refined_decision'] in ['pass', 'conditional_pass']:
+                refinement_stats[ref_type]['successes'] += 1
+        
+        for ref_type, stats in refinement_stats.items():
+            stats['avg_improvement'] = stats['total_improvement'] / stats['count']
+            stats['success_rate'] = stats['successes'] / stats['count']
+            del stats['total_improvement']
+        
+        return {
+            'icr_enabled': True,
+            'total_patterns': total_patterns,
+            'overall_pass_rate': overall_pass_rate,
+            'patterns_by_content_type': {
+                key: len(patterns) 
+                for key, patterns in self.icr_pattern_store['content_type_patterns'].items()
+            },
+            'refinement_statistics': refinement_stats,
+            'adaptive_thresholds': self._adaptive_thresholds.copy()
+        }
+    
+    def clear_icr_patterns(self) -> None:
+        """Clear all stored ICR patterns"""
+        if not self.enable_icr:
+            return
+        
+        logger.info("Clearing all ICR patterns")
+        
+        self.icr_pattern_store = {
+            'content_type_patterns': {},
+            'quality_level_patterns': {},
+            'complexity_patterns': {},
+            'metric_patterns': {},
+            'refinement_history': [],
+        }
+        self._adaptive_thresholds.clear()
+        self._prediction_cache.clear()
+    
+    def adapt_threshold(
+        self,
+        threshold: QualityThreshold,
+        content_type: ContentType,
+        quality_level: QualityLevel,
+        complexity_score: int
+    ) -> QualityThreshold:
+        """
+        Adapt threshold based on ICR patterns and historical performance.
+        
+        Args:
+            threshold: Original threshold
+            content_type: Content type
+            quality_level: Quality level
+            complexity_score: Problem complexity
+            
+        Returns:
+            Potentially adapted threshold
+        """
+        if not self.enable_icr:
+            return threshold
+        
+        # Check for adaptive threshold adjustment
+        adaptive_key = f"{content_type.value}_{quality_level.value}"
+        adaptive_adj = self._adaptive_thresholds.get(adaptive_key, 0)
+        
+        # Check for complexity-based adjustment
+        complexity_key = f"{content_type.value}_{quality_level.value}_{complexity_score // 2}"
+        complexity_patterns = self.icr_pattern_store['content_type_patterns'].get(complexity_key, [])
+        
+        if len(complexity_patterns) >= 5:
+            # Have enough data to adjust for complexity
+            passed_patterns = [p for p in complexity_patterns if p.get('passed', False)]
+            if passed_patterns:
+                avg_pass_score = sum(p['overall_score'] for p in passed_patterns) / len(passed_patterns)
+                # Adjust threshold to be more realistic based on actual pass scores
+                score_gap = avg_pass_score - threshold.min_overall_score
+                if score_gap < 5:  # Pass scores are close to threshold
+                    # Make threshold slightly more lenient
+                    complexity_adj = -2.0
+                elif score_gap > 20:  # Pass scores are well above threshold
+                    # Could make threshold slightly stricter
+                    complexity_adj = 2.0
+                else:
+                    complexity_adj = 0.0
+            else:
+                complexity_adj = 0.0
+        else:
+            complexity_adj = 0.0
+        
+        # Combine adjustments
+        total_adjustment = adaptive_adj + complexity_adj
+        
+        if total_adjustment == 0:
+            return threshold
+        
+        # Create adapted threshold
+        adjusted = QualityThreshold(
+            content_type=threshold.content_type,
+            quality_level=threshold.quality_level,
+            min_overall_score=max(0, threshold.min_overall_score + total_adjustment),
+            min_correctness=max(0, threshold.min_correctness + total_adjustment),
+            min_completeness=max(0, threshold.min_completeness + total_adjustment),
+            min_clarity=max(0, threshold.min_clarity + total_adjustment),
+            min_effectiveness=max(0, threshold.min_effectiveness + total_adjustment),
+            min_efficiency=max(0, threshold.min_efficiency + total_adjustment),
+            min_maintainability=max(0, threshold.min_maintainability + total_adjustment),
+            min_security=max(0, getattr(threshold, 'min_security', 70.0) + total_adjustment) if hasattr(threshold, 'min_security') else 70.0,
+            min_compliance=max(0, getattr(threshold, 'min_compliance', 70.0) + total_adjustment) if hasattr(threshold, 'min_compliance') else 70.0,
+            required_metrics=threshold.required_metrics.copy(),
+            adaptive_thresholds=True,
+            complexity_modifier=threshold.complexity_modifier
+        )
+        
+        logger.info(f"Adapted threshold: {threshold.min_overall_score:.1f} -> {adjusted.min_overall_score:.1f} (adj={total_adjustment})")
+        return adjusted
 
 
 # =============================================================================

@@ -405,3 +405,311 @@ class AdaptiveMDAPAllocator:
             self.allocate_resources(score, context)
             for score in complexity_scores
         ]
+    
+    # =========================================================================
+    # ICR PATTERN LEARNING METHODS
+    # =========================================================================
+    
+    def detect_strategy_patterns(self) -> Dict[str, Any]:
+        """
+        Detect patterns in strategy effectiveness from recorded outcomes.
+        
+        This is the key ICR integration for MDAP strategy selection.
+        Analyzes which strategies work best for which complexity ranges
+        and identifies underperforming configurations.
+        
+        Returns:
+            Dictionary with detected patterns and recommendations
+        """
+        if not self.enable_learning or len(self._learning_data) < 10:
+            return {
+                'has_enough_data': False,
+                'message': 'Need at least 10 recorded outcomes for pattern detection'
+            }
+        
+        patterns = {
+            'has_enough_data': True,
+            'total_samples': len(self._learning_data),
+            'complexity_ranges': {},
+            'strategy_effectiveness': {},
+            'underperforming': [],
+            'recommendations': []
+        }
+        
+        # Analyze by complexity range
+        complexity_bands = [
+            ('low', 0.0, 0.2),
+            ('medium-low', 0.2, 0.4),
+            ('medium', 0.4, 0.6),
+            ('medium-high', 0.6, 0.8),
+            ('high', 0.8, 1.0)
+        ]
+        
+        for band_name, low, high in complexity_bands:
+            band_data = [d for d in self._learning_data 
+                        if low <= d['complexity_score'] < high]
+            
+            if band_data:
+                patterns['complexity_ranges'][band_name] = {
+                    'sample_count': len(band_data),
+                    'success_rate_by_strategy': {},
+                    'avg_quality_by_strategy': {},
+                    'avg_cost_by_strategy': {}
+                }
+                
+                # Group by strategy
+                strategies_in_band = set(d['strategy'] for d in band_data)
+                for strategy in strategies_in_band:
+                    strategy_data = [d for d in band_data if d['strategy'] == strategy]
+                    success_count = sum(1 for d in strategy_data if d['success'])
+                    
+                    patterns['complexity_ranges'][band_name]['success_rate_by_strategy'][strategy] = {
+                        'count': len(strategy_data),
+                        'success_rate': success_count / len(strategy_data),
+                        'avg_quality': sum(d['quality'] for d in strategy_data) / len(strategy_data),
+                        'avg_cost': sum(d['cost'] for d in strategy_data) / len(strategy_data)
+                    }
+        
+        # Calculate overall strategy effectiveness
+        for strategy in SolveStrategy:
+            strategy_data = [d for d in self._learning_data if d['strategy'] == strategy.value]
+            if strategy_data:
+                success_count = sum(1 for d in strategy_data if d['success'])
+                patterns['strategy_effectiveness'][strategy.value] = {
+                    'total_uses': len(strategy_data),
+                    'success_rate': success_count / len(strategy_data),
+                    'avg_quality': sum(d['quality'] for d in strategy_data) / len(strategy_data),
+                    'avg_cost': sum(d['cost'] for d in strategy_data) / len(strategy_data)
+                }
+        
+        # Identify underperforming configurations
+        # Strategy is underperforming if success rate < 0.5 for its complexity band
+        for band_name, band_data in patterns['complexity_ranges'].items():
+            for strategy, metrics in band_data.get('success_rate_by_strategy', {}).items():
+                if metrics['success_rate'] < 0.5 and metrics['count'] >= 3:
+                    patterns['underperforming'].append({
+                        'complexity_band': band_name,
+                        'strategy': strategy,
+                        'success_rate': metrics['success_rate'],
+                        'sample_count': metrics['count']
+                    })
+        
+        # Generate recommendations
+        if patterns['underperforming']:
+            patterns['recommendations'].append({
+                'type': 'strategy_adjustment',
+                'message': f"Found {len(patterns['underperforming'])} underperforming strategy configurations",
+                'details': patterns['underperforming']
+            })
+        
+        # Check if thresholds need adjustment
+        for band_name, band_data in patterns['complexity_ranges'].items():
+            strategies = band_data.get('success_rate_by_strategy', {})
+            for strategy, metrics in strategies.items():
+                if band_name == 'low' and strategy != 'DIRECT' and metrics['success_rate'] > 0.9:
+                    patterns['recommendations'].append({
+                        'type': 'threshold_adjustment',
+                        'message': f"Low complexity band using {strategy} successfully - consider lowering threshold",
+                        'action': f'lower_{band_name}_threshold'
+                    })
+        
+        return patterns
+    
+    def adapt_thresholds_from_patterns(
+        self,
+        patterns: Optional[Dict[str, Any]] = None,
+        target_success_rate: float = 0.85
+    ) -> Tuple[List[float], List[str]]:
+        """
+        Adapt allocation thresholds based on detected ICR patterns.
+        
+        Args:
+            patterns: Optional pre-computed patterns (will detect if not provided)
+            target_success_rate: Desired success rate for strategy selection
+            
+        Returns:
+            Tuple of (new_thresholds, list of changes made)
+        """
+        if patterns is None:
+            patterns = self.detect_strategy_patterns()
+        
+        if not patterns.get('has_enough_data', False):
+            return self.thresholds, ["Not enough data for threshold adaptation"]
+        
+        changes = []
+        new_thresholds = list(self.thresholds)
+        
+        # Analyze each complexity band
+        for band_name, band_data in patterns.get('complexity_ranges', {}).items():
+            strategies = band_data.get('success_rate_by_strategy', {})
+            
+            # Find the most effective strategy for this band
+            best_strategy = None
+            best_rate = 0
+            for strategy, metrics in strategies.items():
+                if metrics['success_rate'] > best_rate:
+                    best_rate = metrics['success_rate']
+                    best_strategy = strategy
+            
+            if best_strategy and best_rate < target_success_rate:
+                # Need to adjust threshold to use a different strategy
+                changes.append(f"{band_name}: Best strategy {best_strategy} only {best_rate:.1%} success - consider higher threshold")
+        
+        # If DIRECT is successful in medium complexity, lower t1
+        medium_data = patterns.get('complexity_ranges', {}).get('medium', {})
+        direct_metrics = medium_data.get('success_rate_by_strategy', {}).get('DIRECT', {})
+        if direct_metrics.get('success_rate', 0) > 0.8 and new_thresholds[0] > 0.15:
+            new_thresholds[0] -= 0.05
+            changes.append("Lowered t1 threshold: DIRECT successful in medium complexity")
+        
+        # If MAKER_FULL fails in high complexity, raise t3
+        high_data = patterns.get('complexity_ranges', {}).get('high', {})
+        maker_metrics = high_data.get('success_rate_by_strategy', {}).get('MAKER_FULL', {})
+        if maker_metrics.get('success_rate', 0) < 0.7 and new_thresholds[2] < 0.75:
+            new_thresholds[2] += 0.05
+            changes.append("Raised t3 threshold: MAKER_FULL struggling in high complexity")
+        
+        # Validate new thresholds
+        try:
+            self._validate_thresholds(new_thresholds)
+        except AllocationError as e:
+            changes.append(f"Threshold adjustment invalid: {e}")
+            return self.thresholds, changes
+        
+        # Apply changes
+        if changes:
+            old_thresholds = list(self.thresholds)
+            self.update_thresholds(new_thresholds, reason="ICR_pattern_adaptation")
+            changes.append(f"Updated thresholds: {old_thresholds} → {new_thresholds}")
+        else:
+            changes.append("No threshold adjustments needed")
+        
+        return new_thresholds, changes
+    
+    def get_strategy_for_context(
+        self,
+        complexity_score: float,
+        context: Optional[AllocationContext] = None,
+        use_icr_patterns: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Get comprehensive strategy recommendation with ICR patterns.
+        
+        Args:
+            complexity_score: Problem complexity score
+            context: Optional allocation context
+            use_icr_patterns: Whether to use learned patterns for recommendation
+            
+        Returns:
+            Dictionary with strategy recommendation and reasoning
+        """
+        base_config = self.allocate_resources(complexity_score, context)
+        
+        result = {
+            'complexity_score': complexity_score,
+            'recommended_strategy': base_config.strategy.value,
+            'n_agents': base_config.n_agents,
+            'k_ahead': base_config.k_ahead,
+            'max_retries': base_config.max_retries,
+            'reasoning': [],
+            'icr_insights': None
+        }
+        
+        if use_icr_patterns and self.enable_learning:
+            patterns = self.detect_strategy_patterns()
+            
+            if patterns.get('has_enough_data'):
+                # Get complexity band
+                band = None
+                thresholds = self.thresholds
+                if complexity_score < thresholds[0]:
+                    band = 'low'
+                elif complexity_score < thresholds[1]:
+                    band = 'medium-low'
+                elif complexity_score < thresholds[2]:
+                    band = 'medium'
+                elif complexity_score < thresholds[3]:
+                    band = 'medium-high'
+                else:
+                    band = 'high'
+                
+                band_data = patterns.get('complexity_ranges', {}).get(band, {})
+                strategy_data = band_data.get('success_rate_by_strategy', {}).get(
+                    base_config.strategy.value, {}
+                )
+                
+                result['icr_insights'] = {
+                    'complexity_band': band,
+                    'strategy_success_rate': strategy_data.get('success_rate', 'N/A'),
+                    'sample_count': strategy_data.get('count', 0),
+                    'alternative_strategies': []
+                }
+                
+                # Check for better alternatives
+                for strat, metrics in band_data.get('success_rate_by_strategy', {}).items():
+                    if strat != base_config.strategy.value and metrics['success_rate'] > strategy_data.get('success_rate', 0):
+                        result['icr_insights']['alternative_strategies'].append({
+                            'strategy': strat,
+                            'success_rate': metrics['success_rate'],
+                            'avg_quality': metrics.get('avg_quality', 0)
+                        })
+                        result['reasoning'].append(
+                            f"ICR: {band} complexity - {strat} has higher success rate "
+                            f"({metrics['success_rate']:.1%} vs {strategy_data.get('success_rate', 0):.1%})"
+                        )
+        
+        return result
+    
+    def record_gauntlet_feedback(
+        self,
+        complexity_score: float,
+        strategy: SolveStrategy,
+        gauntlet_results: Dict[str, Any],
+        refinement_applied: bool = False
+    ) -> None:
+        """
+        Record gauntlet feedback for MDAP strategy learning.
+        
+        This integrates GauntletSystem feedback into MDAP strategy selection.
+        
+        Args:
+            complexity_score: Problem complexity
+            strategy: Strategy that was used
+            gauntlet_results: Results from gauntlet validation
+            refinement_applied: Whether refinement was triggered
+        """
+        if not self.enable_learning:
+            return
+        
+        # Calculate overall quality from gauntlet results
+        if isinstance(gauntlet_results, dict):
+            scores = []
+            passed = []
+            for name, result in gauntlet_results.items():
+                if isinstance(result, dict):
+                    scores.append(result.get('score', 0.5))
+                    passed.append(result.get('passed', False))
+                elif hasattr(result, 'score'):
+                    scores.append(result.score)
+                    passed.append(result.passed)
+            
+            quality = sum(scores) / len(scores) if scores else 0.5
+            success = all(passed) if passed else (sum(passed) / len(passed) > 0.7)
+        else:
+            quality = 0.5
+            success = True
+        
+        self.record_outcome(
+            complexity_score=complexity_score,
+            strategy=strategy,
+            success=success,
+            cost=1.0,  # Simplified cost estimate
+            quality=quality
+        )
+        
+        # Log refinement trigger
+        if refinement_applied:
+            logger.info(
+                f"ICR: Refinement triggered for complexity {complexity_score:.2f} "
+                f"using {strategy.value} - quality: {quality:.2f}"
+            )

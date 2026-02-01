@@ -1,78 +1,162 @@
 # Iterative Contextual Refinements (ICR) Expansion Status
 
 **Date:** 2026-02-01
-**Scope:** `docs/Iterative Contextual Refinements/ICR_EXPANSION_PLANS.md` implementation status
+**Source Spec:** `docs/Iterative Contextual Refinements/ICR_EXPANSION_PLANS.md`
 
 ---
 
-## Summary
+## Executive Status
 
-ICR expansion implementation is complete for all items in the expansion plan that map to this repo. Remaining issues are limited to pre-existing test failures unrelated to ICR changes.
-
----
-
-## Completed (Backend + Core Orchestration)
-
-- **Blue Team Solver (RLHF-L):** preference store, comparative judging, local reward model updates, convergence checks, strategy selection scaffolding.
-- **Lean 4 micro-formalization trigger:** low improvement + low quality triggers Lean spec prepend.
-- **Entanglement Matrix:** symbolic analyzer + matrix build, propagation/invalidation, and super-node merge for tight coupling.
-- **Digital Twin Sandbox (Z3):** SOP-to-constraint parsing and invariant verification with counterexample support.
-- **Meta-cognitive repair loop:** `RecursivePlanFailure` + top-down repair workflow with MemoryAgent analysis.
-- **ADR synthesis + Knowledge Graph linkage:** MADR template generation, DECIDED_BY linkage, ADR persistence.
-- **Skillbook 2.0:** reasoning-path extraction and refinement template storage/recall in knowledge store.
-- **Adversarial MCTS hardening:** failure lineage hashing + negative reward bias.
-- **Graph-native refinement (Arbor):** blast-radius JSON output + solver gate for transitive breaks.
-- **NeuroMANCER infeasibility monitor:** gradient-based detection + symbolic relaxation suggestion.
-- **API contract self-healing:** contract monitor + shim generation + artifact capture.
-- **Bug scanner bridge:** auto-remediation loop + validation re-scan.
-- **Causal preference synthesis:** synthetic preference pairs for reward model training.
-- **Federated distillation:** teacher traces storage + local distillation hooks.
-- **Agent fatigue monitoring:** repetition-based fatigue score + temperature reset fallback.
-- **Zero-trust input fuzzing:** fuzz loop + sanitizer hardening helpers.
-- **Dependency-aware sandbox provisioning:** missing dependency detection + isolation proof reporting.
-- **Multi-agent conflict detection + mediation:** AST conflict detection + Nash mediator agent.
-- **Ragbits protocol refinement:** circular dialogue monitor + dynamic system instruction updates.
-- **Symbolic logic compression:** Z3 simplification of long if/elif chains.
-- **Real-time analytics auto-refine:** events emitted on low scores and optional auto-refine execution.
-- **Reward calibration loop:** request/response endpoints + solver integration.
-
-## Completed (Frontend + Visualization)
-
-- **Vision-augmented UI heatmapping:** interaction tracking, heatmap overlay, and composite snapshot generation.
-- **Multi-modal insight synthesis:** heatmap snapshots forwarded for unified healing prompt generation.
-- **Auto-refine toggle + status:** UI wiring + persistence.
-- **Reward calibration UI:** preference chooser panel and event bridge.
-- **Arbor visualizer enhancements:** failure spotlight + entangled branch visualization.
+Most backend/orchestration expansions are implemented. Remaining work is primarily UI/visualization (heatmaps, auto-refine UI, reward calibration UI, Arbor visualizer UX) plus a small test/doc utility gap.
 
 ---
 
-## Completed (Data Model + Knowledge Updates)
+## Implemented (Mapped to Spec Sections)
 
-- `WorkflowState` includes `auto_refine_enabled` and `entanglement_matrix`.
-- Knowledge artifacts extended for ADRs and refinement templates.
-- Entity knowledge graph now supports `DECIDED_BY` linkage.
+### II. Core Cognitive Engine & Solver Architecture
+
+- **Blue Team Solver RLHF-L**
+  - Comparative judging protocol implemented.
+  - Preference store + improvement delta + local reward model training loop.
+  - Strategy selection uses reward scoring across candidates.
+  - Convergence monitoring logic present.
+
+- **Lean 4 Micro-Formalization Trigger**
+  - Trigger on low improvement + low quality; inserts Lean spec into context when available.
+
+- **Fractal Contextual Entanglement Matrix**
+  - Symbolic analyzer created.
+  - Entanglement matrix built + stored; propagation/invalidation implemented.
+  - Super-node merge for tight coupling included.
+
+- **Digital Twin Logical Sandboxing (Z3)**
+  - SOP-to-constraint parsing.
+  - Invariant implication verification + counterexample return.
+
+- **Symbolic Logic Compression**
+  - Z3-based simplification for long if/elif chains and solver integration.
+
+### III. Meta-Cognitive & Self-Healing Architecture
+
+- **Meta-Cognitive Sovereign Loop**
+  - `RecursivePlanFailure` raised at max loops.
+  - MemoryAgent post-mortem synthesis.
+  - Top-down repair deletes failing node + parent, re-decomposes with constraints.
+
+- **Autonomous ADRs (MADR)**
+  - ADR synthesis on convergence using MADR template.
+  - ADRs stored to chronicle + DECIDED_BY linkage in knowledge graph.
+
+- **Skillbook 2.0 (Cross-Session Strategy Persistence)**
+  - Reasoning path extraction.
+  - Refinement template storage + recall hooks in knowledge manager.
+
+### V. Advanced Multi-Agent Collaboration
+
+- **Nash Negotiation Conflict Resolution**
+  - AST-level conflict detection.
+  - Mediator agent + Nash negotiation flow.
+
+- **Ragbits Protocol Refinement**
+  - Circular dialogue monitor.
+  - MemoryAgent-driven confusion analysis + dynamic role update.
+
+### VI. Domain-Specific Refinements
+
+- **Adversarial MCTS Proof Hardening**
+  - Failure lineage hashing.
+  - Negative reward bias for repeated failure paths.
+
+- **NeuroMANCER Infeasibility Monitor**
+  - Gradient-based infeasibility detection + relaxation suggestions.
+
+- **Graph-Native Code Refinement (Arbor)**
+  - Arbor CLI JSON output enhanced with break counts.
+  - Solver gate rejects transitive breaks > 5.
+
+### VII. Advanced Intelligence Workflows (Plans 28-40)
+
+- **API Contract Self-Healing**
+  - Contract monitor detects schema drift.
+  - Shim generation + knowledge artifact capture.
+
+- **Autonomous Bug Remediation**
+  - Bug scanner refactor (importable + reportable).
+  - Scan-to-refine bridge + rescan validation.
+
+- **Causal Data Synthesis for Reward Models**
+  - Preference synthesis via causal-learn utility.
+  - RM training augmented with synthetic pairs.
+
+- **Federated Model Distillation**
+  - Teacher traces stored + local distillation hooks.
+
+- **Agent Fatigue & Stagnation Monitoring**
+  - Fatigue scoring via repetition/diversity proxy.
+  - Temperature reset + optional fallback model.
+
+- **Zero-Trust Input Sanitization**
+  - Fuzzing loop + malicious pattern checks.
+  - Sanitizer hardening extensions.
+
+- **Dependency-Aware Sandbox Provisioning**
+  - Missing dependency detection + suggestions.
+  - Isolation proof reporting in sandbox security report.
 
 ---
 
-## Pending / In Progress
+## Implemented (Core Data Model + Knowledge)
 
-### Frontend + Visualization
+- `WorkflowState` now includes:
+  - `auto_refine_enabled`
+  - `entanglement_matrix`
+- Knowledge artifacts extended to include:
+  - ADRs
+  - Refinement templates
+- Entity knowledge graph supports `DECIDED_BY` linkage.
 
-- None.
+---
+
+## Partially Implemented / Incomplete
+
+### Vision-Augmented UI (Heatmapping)
+
+- **Missing:** SovereignInteractionTracker in GenerativeUI (click coords, dwell time, manual code delta).
+- **Missing:** Heatmap overlay generation + composite snapshot generation (every 10 turns).
+
+### Multi-Modal Insight Synthesis
+
+- **Missing:** Merge textual SWOT + heatmap analysis into unified healing prompt.
+
+### Auto-Refine Toggle (Analytics + UI)
+
+- `WorkflowState.auto_refine_enabled` exists, but UI toggle + event wiring not implemented.
+- No `REFINEMENT_NEEDED` event emission from analytics to workflow.
+
+### Reward Calibration UI
+
+- `Iterative-Studio/UI/Calibration.tsx` equivalent not present in this repo.
+- No user preference prompt wiring when RM confidence < 0.6.
+
+### Arbor Visualizer UX
+
+- **Missing:** Failure spotlight node UX.
+- **Missing:** Entangled branch visualization (vibration/halo).
+
+### Recursive Docstring Evolution
+
+- **Missing:** `utils/doc_manager.py` + integration in refinement loop.
 
 ### Tests
 
-- None (tests added).
-
-### Documentation / Utilities
-
-- None.
+- **Missing:** Entanglement propagation test.
+- **Missing:** Z3 refutation narrative test.
 
 ---
 
-## Files Touched (High-Level)
+## File Touchpoints (Non-Exhaustive)
 
-Backend/Orchestration:
+Backend/Orchestration (done):
 - `blue_team_solver_engine.py`
 - `workflow_engine.py`
 - `workflow_structures.py`
@@ -93,12 +177,12 @@ Backend/Orchestration:
 - `conflict_detector.py`
 - `knowledge_engine/sandbox/sandbox_manager.py`
 
-Visualization (completed):
+Visualization (pending):
 - `arbor/arbor/visualizer/lib/core/providers.dart`
 - `arbor/arbor/visualizer/lib/graph/graph_painter.dart`
 - `arbor/arbor/visualizer/lib/views/forest_view.dart`
 
-UI (completed):
+UI (pending):
 - `Iterative-Contextual-Refinements/GenerativeUI/GenerativeUI.tsx`
 - `Iterative-Contextual-Refinements/GenerativeUI/GenerativeUICore.ts`
 - `Iterative-Contextual-Refinements/Core/State.ts`
@@ -106,15 +190,19 @@ UI (completed):
 
 ---
 
-## Next Steps (Recommended)
+## Next Steps (Recommended Order)
 
-1. **Optional:** Fix pre-existing test issues in `red_team.py` (missing logger/imports) if you want the ICR tests to run cleanly.
-2. **Optional:** Enable VLM heatmap analysis by setting `ICR_VLM_ENABLED=1` and provider/model env vars.
+1. Implement GenerativeUI interaction tracker + heatmap capture/overlay.
+2. Add multi-modal insight synthesis in analytics manager (text + heatmap).
+3. Add auto-refine toggle UI and analytics-driven refinement triggering.
+4. Add reward calibration UI for low-confidence RM pairs.
+5. Update Arbor visualizer with failure spotlight + entangled branch effects.
+6. Add unit tests for entanglement propagation + Z3 refutation narrative.
+7. Add recursive docstring evolution utility + integration.
 
 ---
 
 ## Notes
 
-- Repo does not currently contain `Iterative-Studio/` paths; UI items are mapped to `Iterative-Contextual-Refinements/` equivalents.
-- Tests should live alongside existing suite (e.g., `test_sovereign_refinement.py`).
-- All new UI additions should preserve existing design language unless explicitly directed otherwise.
+- Repo does not contain a literal `Iterative-Studio/` directory; UI tasks are mapped to `Iterative-Contextual-Refinements/`.
+- This doc reflects current implementation state as of 2026-02-01.

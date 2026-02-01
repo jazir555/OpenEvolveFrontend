@@ -977,10 +977,17 @@ Justification: <Explanation of why the new solution is superior>
 
 
 class GauntletSystem:
-    """Orchestrates decomposition gauntlets."""
+    """Orchestrates decomposition gauntlets with ICR integration."""
     
-    def __init__(self, openevolve_client=None):
+    def __init__(
+        self, 
+        openevolve_client=None,
+        refinement_coordinator=None,  # ICR integration
+        track_patterns: bool = True
+    ):
         self.openevolve_client = openevolve_client
+        self.refinement_coordinator = refinement_coordinator
+        self.track_patterns = track_patterns
         if not self.openevolve_client:
             try:
                 from openevolve_client import OpenEvolveClient
@@ -999,6 +1006,10 @@ class GauntletSystem:
             'collaborative': CollaborativeGauntlet(self.openevolve_client)
         }
         self.logger = logging.getLogger(__name__)
+        
+        # ICR: Gauntlet effectiveness patterns storage
+        self._gauntlet_patterns: Dict[str, List[Dict]] = {}
+        self._gauntlet_metrics: Dict[str, Dict[str, float]] = {}
     
     def run_decomposition_gauntlets(
         self, 
@@ -1139,3 +1150,283 @@ class GauntletSystem:
                 improvements=[],
                 timestamp=datetime.now()
             )
+    
+    # =========================================================================
+    # ICR INTEGRATION METHODS
+    # =========================================================================
+    
+    def run_with_icr_refinement(
+        self,
+        plan: 'DecompositionPlan',
+        max_refinement_cycles: int = 5,
+        refinement_threshold: float = 0.7,
+        convergence_threshold: float = 0.01
+    ) -> Dict[str, Any]:
+        """
+        Run gauntlets with automatic ICR refinement trigger.
+        
+        This is the key integration point between GauntletSystem and ICR.
+        When gauntlets fail, automatically triggers refinement and re-runs.
+        
+        Args:
+            plan: The decomposition plan to validate
+            max_refinement_cycles: Maximum refinement iterations
+            refinement_threshold: Quality score below which to trigger refinement
+            convergence_threshold: Minimum improvement to continue refining
+            
+        Returns:
+            Dictionary with final results, refinement history, and metrics
+        """
+        self.logger.info(f"Running gauntlets with ICR refinement for plan: {plan.id}")
+        
+        current_plan = plan
+        cycle_number = 0
+        converged = False
+        refinement_history = []
+        
+        while cycle_number < max_refinement_cycles and not converged:
+            cycle_number += 1
+            self.logger.info(f"ICR Cycle {cycle_number}/{max_refinement_cycles}")
+            
+            # Run gauntlets
+            gauntlet_results = self.run_decomposition_gauntlets(current_plan)
+            overall_quality = self.get_overall_quality(gauntlet_results)
+            all_passed = self.all_passed(gauntlet_results)
+            
+            cycle_result = {
+                'cycle': cycle_number,
+                'gauntlet_results': {name: {
+                    'passed': r.passed,
+                    'score': r.score,
+                    'feedback': r.feedback
+                } for name, r in gauntlet_results.items()},
+                'overall_quality': overall_quality,
+                'all_passed': all_passed
+            }
+            
+            # Store pattern for ICR learning
+            if self.track_patterns:
+                self._store_gauntlet_pattern(plan.id, gauntlet_results)
+            
+            refinement_history.append(cycle_result)
+            
+            # Check if refinement needed
+            if all_passed:
+                self.logger.info("All gauntlets passed - no refinement needed")
+                converged = True
+                break
+            
+            if overall_quality >= refinement_threshold:
+                self.logger.info(f"Quality {overall_quality:.2f} >= threshold {refinement_threshold} - refining anyway")
+            
+            # Check convergence (from previous cycle)
+            if cycle_number > 1:
+                prev_quality = refinement_history[-2]['overall_quality']
+                improvement = overall_quality - prev_quality
+                if improvement < convergence_threshold:
+                    self.logger.info(f"Converged: improvement {improvement:.3f} < threshold")
+                    converged = True
+                    break
+            
+            # Trigger ICR refinement via RefinementCoordinator
+            if self.refinement_coordinator:
+                # Convert gauntlet results to feedback
+                feedback = self.process_gauntlet_feedback(gauntlet_results)
+                
+                # Generate and execute refinement plan
+                smart_strategy = self.refinement_coordinator.generate_smart_refinement_strategy(
+                    current_plan, feedback
+                )
+                refinement_plan = self.refinement_coordinator.generate_refinement_plan(
+                    current_plan, feedback, smart_strategy
+                )
+                
+                # Execute refinement
+                current_plan, metrics = self.refinement_coordinator.execute_refinement(
+                    current_plan, refinement_plan
+                )
+                
+                cycle_result['refinement_applied'] = True
+                cycle_result['refinement_metrics'] = {
+                    'quality_improvement': metrics.quality_improvement,
+                    'issues_resolved': metrics.issues_resolved
+                }
+                
+                self.logger.info(f"Refinement complete: {metrics.issues_resolved} issues resolved")
+            else:
+                self.logger.warning("No RefinementCoordinator configured - skipping refinement")
+                cycle_result['refinement_applied'] = False
+                break
+        
+        # Final gauntlet run
+        final_results = self.run_decomposition_gauntlets(current_plan)
+        final_quality = self.get_overall_quality(final_results)
+        
+        return {
+            'plan_id': plan.id,
+            'initial_plan_id': plan.id,
+            'final_plan_id': current_plan.id,
+            'total_cycles': cycle_number,
+            'converged': converged,
+            'final_quality': final_quality,
+            'final_results': {name: {'passed': r.passed, 'score': r.score} for name, r in final_results.items()},
+            'refinement_history': refinement_history
+        }
+    
+    def _store_gauntlet_pattern(
+        self,
+        plan_id: str,
+        results: Dict[str, ValidationResult]
+    ) -> None:
+        """
+        Store gauntlet execution pattern for ICR learning.
+        
+        This enables the system to learn which gauntlets tend to fail together
+        and which refinements are most effective for specific patterns.
+        """
+        pattern = {
+            'plan_id': plan_id,
+            'timestamp': datetime.now().isoformat(),
+            'overall_quality': self.get_overall_quality(results),
+            'passed_count': sum(1 for r in results.values() if r.passed),
+            'failed_gauntlets': [name for name, r in results.items() if not r.passed],
+            'avg_score': sum(r.score for r in results.values()) / len(results),
+            'failed_scores': {name: r.score for name, r in results.items() if not r.passed}
+        }
+        
+        # Store by pattern type for quick lookup
+        failed_key = tuple(sorted(pattern['failed_gauntlets']))
+        if failed_key not in self._gauntlet_patterns:
+            self._gauntlet_patterns[failed_key] = []
+        self._gauntlet_patterns[failed_key].append(pattern)
+        
+        # Update metrics
+        for name, result in results.items():
+            if name not in self._gauntlet_metrics:
+                self._gauntlet_metrics[name] = {
+                    'total_runs': 0,
+                    'total_score': 0,
+                    'pass_count': 0,
+                    'fail_count': 0
+                }
+            self._gauntlet_metrics[name]['total_runs'] += 1
+            self._gauntlet_metrics[name]['total_score'] += result.score
+            if result.passed:
+                self._gauntlet_metrics[name]['pass_count'] += 1
+            else:
+                self._gauntlet_metrics[name]['fail_count'] += 1
+    
+    def get_gauntlet_effectiveness(self) -> Dict[str, Dict[str, float]]:
+        """
+        Get effectiveness metrics for each gauntlet.
+        
+        Returns:
+            Dictionary mapping gauntlet names to effectiveness metrics
+        """
+        effectiveness = {}
+        
+        for name, metrics in self._gauntlet_metrics.items():
+            if metrics['total_runs'] > 0:
+                effectiveness[name] = {
+                    'total_runs': metrics['total_runs'],
+                    'pass_rate': metrics['pass_count'] / metrics['total_runs'],
+                    'avg_score': metrics['total_score'] / metrics['total_runs'],
+                    'fail_rate': metrics['fail_count'] / metrics['total_runs']
+                }
+        
+        return effectiveness
+    
+    def get_failure_patterns(self) -> Dict[str, List[Dict]]:
+        """
+        Get learned failure patterns from gauntlet executions.
+        
+        Returns:
+            Dictionary mapping failed gauntlet tuples to pattern lists
+        """
+        return self._gauntlet_patterns
+    
+    def suggest_optimal_gauntlets(
+        self,
+        plan_type: str = "general",
+        complexity: float = 0.5
+    ) -> List[str]:
+        """
+        Suggest optimal gauntlet configuration based on ICR patterns.
+        
+        Args:
+            plan_type: Type of plan (e.g., "analysis", "synthesis")
+            complexity: Plan complexity score (0.0 - 1.0)
+            
+        Returns:
+            List of recommended gauntlet names
+        """
+        # Learn from patterns: which gauntlets fail together?
+        common_failures = {}
+        for pattern_list in self._gauntlet_patterns.values():
+            for pattern in pattern_list:
+                for failed in pattern['failed_gauntlets']:
+                    if failed not in common_failures:
+                        common_failures[failed] = 0
+                    common_failures[failed] += 1
+        
+        # Suggest gauntlets that commonly fail together should be run together
+        recommended = ['coherence', 'completeness', 'feasibility', 'dependency']
+        
+        # Add adaptive gauntlet for complex plans
+        if complexity > 0.6:
+            recommended.append('adaptive')
+        
+        # Add hierarchical for nested decompositions
+        if complexity > 0.7:
+            recommended.append('hierarchical')
+        
+        # Add competitive/collaborative for multi-solution scenarios
+        recommended.extend(['competitive', 'collaborative'])
+        
+        return list(set(recommended))  # Remove duplicates
+    
+    def adapt_gauntlet_config(
+        self,
+        gauntlet_name: str,
+        plan_context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Adapt gauntlet configuration based on ICR patterns and plan context.
+        
+        Args:
+            gauntlet_name: Name of the gauntlet to adapt
+            plan_context: Context information about the plan
+            
+        Returns:
+            Adapted configuration parameters
+        """
+        config = {}
+        
+        # Get historical effectiveness
+        metrics = self._gauntlet_metrics.get(gauntlet_name, {})
+        pass_rate = metrics.get('pass_rate', 0.5)
+        avg_score = metrics.get('avg_score', 0.5)
+        
+        # Adjust min_score based on historical performance
+        if pass_rate < 0.5:
+            # Gauntlet is too strict - lower the threshold
+            config['min_score'] = max(0.4, avg_score - 0.1)
+        elif pass_rate > 0.9:
+            # Gauntlet is too lenient - raise the threshold
+            config['min_score'] = min(0.9, avg_score + 0.1)
+        else:
+            config['min_score'] = avg_score
+        
+        # Adjust based on plan complexity
+        complexity = plan_context.get('complexity', 0.5)
+        if complexity > 0.7:
+            # More complex plans need stricter validation
+            config['min_score'] = min(0.9, config['min_score'] + 0.05)
+        
+        return config
+    
+    def clear_patterns(self) -> None:
+        """Clear stored gauntlet patterns and metrics."""
+        self._gauntlet_patterns.clear()
+        self._gauntlet_metrics.clear()
+        self.logger.info("Cleared all gauntlet patterns and metrics")
