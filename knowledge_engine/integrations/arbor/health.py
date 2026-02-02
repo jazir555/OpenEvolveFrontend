@@ -10,7 +10,7 @@ import asyncio
 import logging
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional, Dict, Any, Callable, Awaitable
+from typing import Optional, Dict, Any, Callable, Awaitable, List
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -84,7 +84,7 @@ class ArborHealthChecker:
             status=HealthStatus.UNKNOWN,
             message="Health check not yet performed"
         )
-        self._callbacks: list[Callable[[HealthCheckResult], Awaitable[None]]] = []
+        self._callbacks: List[Callable[[HealthCheckResult], Awaitable[None]]] = []
         self._check_task: Optional[asyncio.Task] = None
         self._running = False
     
@@ -231,7 +231,7 @@ class CompositeHealthChecker:
     
     def __init__(self):
         self._checkers: Dict[str, ArborHealthChecker] = {}
-        self._callbacks: list[Callable[[str, HealthCheckResult], Awaitable[None]]] = []
+        self._callbacks: List[Callable[[str, HealthCheckResult], Awaitable[None]]] = []
     
     def add_checker(self, name: str, checker: ArborHealthChecker) -> None:
         """Add a health checker."""

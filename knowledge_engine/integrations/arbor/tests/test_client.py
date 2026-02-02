@@ -8,6 +8,7 @@ Following CLAUDE.md principles:
 
 import asyncio
 import json
+import os
 import pytest
 from unittest.mock import Mock, patch, AsyncMock
 from datetime import datetime
