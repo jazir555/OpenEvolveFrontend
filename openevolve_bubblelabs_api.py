@@ -84,6 +84,7 @@ SAFE_PARAMETERS: Set[str] = {
     "problem_statement",
     "content",
     "max_refinement_loops",
+    "entanglement_strict_mode",
     # State parameters
     "progress",
     "start_time",
@@ -571,9 +572,23 @@ class OpenEvolveBubbleLabsIntegration:
                 # Validate parameter value
                 validated_value = validate_parameter_value(param_name, param_value)
                 setattr(workflow_state, param_name, validated_value)
+            elif param_name in ["openevolve_parameters"] or param_name.startswith(("formal_", "z3_", "leanaide_")):
+                continue
             elif param_name not in SAFE_PARAMETERS:
                 # Log warning for non-whitelisted parameters
                 logger.warning(f"Skipping non-whitelisted parameter: {param_name}")
+
+        # Merge OpenEvolve parameters if provided
+        openevolve_params = final_parameters.get("openevolve_parameters")
+        if isinstance(openevolve_params, dict):
+            workflow_state.openevolve_parameters.update(openevolve_params)
+            if "entanglement_strict_mode" in openevolve_params and hasattr(workflow_state, "entanglement_strict_mode"):
+                workflow_state.entanglement_strict_mode = bool(openevolve_params.get("entanglement_strict_mode"))
+
+        # Allow root-level formal/z3/leanaide params to be forwarded into openevolve_parameters
+        for param_name, param_value in final_parameters.items():
+            if param_name.startswith(("formal_", "z3_", "leanaide_")):
+                workflow_state.openevolve_parameters[param_name] = param_value
         
         # Set up teams and gauntlets if specified in parameters
         if "content_analyzer_team" in final_parameters:
@@ -1231,9 +1246,23 @@ class OpenEvolveBubbleLabsIntegration:
                 validated_value = validate_parameter_value(param_name, param_value)
                 setattr(workflow_state, param_name, validated_value)
                 updated_count += 1
+            elif param_name in ["openevolve_parameters"] or param_name.startswith(("formal_", "z3_", "leanaide_")):
+                continue
             elif param_name not in SAFE_PARAMETERS:
                 # Log warning for non-whitelisted parameters
                 logger.warning(f"Skipping non-whitelisted parameter in sync: {param_name}")
+
+        openevolve_params = parameters.get("openevolve_parameters")
+        if isinstance(openevolve_params, dict):
+            workflow_state.openevolve_parameters.update(openevolve_params)
+            updated_count += 1
+            if "entanglement_strict_mode" in openevolve_params and hasattr(workflow_state, "entanglement_strict_mode"):
+                workflow_state.entanglement_strict_mode = bool(openevolve_params.get("entanglement_strict_mode"))
+
+        for param_name, param_value in parameters.items():
+            if param_name.startswith(("formal_", "z3_", "leanaide_")):
+                workflow_state.openevolve_parameters[param_name] = param_value
+                updated_count += 1
 
         return {
             "message": f"Parameters synced successfully ({updated_count} updated)",

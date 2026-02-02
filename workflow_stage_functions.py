@@ -71,7 +71,7 @@ def analyze_component_interfaces(
         if '{' in content and '}' in content:
             interface["format"] = "json"
 
-        api_pattern = r'@(?:app\.)?(get|post|put|delete)\s*[\'"](/[^\\'"]+)'
+        api_pattern = r"@(?:app\.)?(get|post|put|delete)\s*['\"](/[^'\"]+)"
         for match in re.finditer(api_pattern, content, re.IGNORECASE):
             interface["outputs"].append({
                 "type": "api_endpoint",
@@ -1104,6 +1104,62 @@ def integrate_learning_into_system(
 # LEANAIDE INTEGRATION FOR STAGE 3C AND STAGE 5
 # =============================================================================
 
+def _build_entanglement_verification_context(
+    workflow_state: 'WorkflowState',
+    sub_problem_id: Optional[str] = None
+) -> Dict[str, Any]:
+    """Build entanglement-aware context for formal verification."""
+    matrix = getattr(workflow_state, "entanglement_matrix", {}) or {}
+    entangled_with = []
+    if sub_problem_id:
+        entangled_with = sorted(list(matrix.get(sub_problem_id, set())))
+
+    entangled_solutions: Dict[str, str] = {}
+    if entangled_with:
+        for sp_id in entangled_with:
+            attempt = workflow_state.sub_problem_solutions.get(sp_id)
+            if attempt and hasattr(attempt, "content"):
+                entangled_solutions[sp_id] = attempt.content
+
+    return {
+        "entanglement_matrix": {k: sorted(list(v)) for k, v in matrix.items()},
+        "entangled_with": entangled_with,
+        "entangled_solutions": entangled_solutions,
+    }
+
+
+def _merge_smtlib_constraints(smtlib: str, constraints: List[str]) -> str:
+    """Inject constraints into SMT-LIB text as assert statements."""
+    if not constraints:
+        return smtlib
+
+    smtlib = smtlib or ""
+    assert_lines = []
+    for constraint in constraints:
+        if constraint is None:
+            continue
+        text = str(constraint).strip()
+        if not text:
+            continue
+        if text.startswith("(assert"):
+            assert_lines.append(text)
+        else:
+            assert_lines.append(f"(assert {text})")
+
+    if not assert_lines:
+        return smtlib
+
+    insertion = "\n".join(assert_lines) + "\n"
+    lower = smtlib.lower()
+    idx = lower.rfind("(check-sat")
+    if idx != -1:
+        return smtlib[:idx] + insertion + smtlib[idx:]
+
+    if smtlib and not smtlib.endswith("\n"):
+        smtlib += "\n"
+    return smtlib + insertion
+
+
 def verify_sub_problem_with_leanaide(
     sub_problem: 'SubProblem',
     solution_attempt: 'SolutionAttempt',
@@ -1166,11 +1222,16 @@ def verify_sub_problem_with_leanaide(
             if not initialized:
                 return None
 
+            requirements = sub_problem.solution_requirements or {}
+            requirements.setdefault(
+                "entanglement_context",
+                _build_entanglement_verification_context(workflow_state, sub_problem.id),
+            )
             result = await integrator.verify_sub_problem_solution(
                 sub_problem_id=sub_problem.id,
                 problem_statement=sub_problem.description,
                 solution_content=solution_attempt.content,
-                verification_requirements=sub_problem.solution_requirements
+                verification_requirements=requirements
             )
             return result
         finally:
@@ -1333,11 +1394,16 @@ def verify_final_solution_with_leanaide(
             if not initialized:
                 return None
 
+            requirements = workflow_state.openevolve_parameters.get("formal_verification_requirements", {}) or {}
+            requirements.setdefault(
+                "entanglement_context",
+                _build_entanglement_verification_context(workflow_state),
+            )
             result = await integrator.verify_final_solution(
                 problem_statement=workflow_state.problem_statement,
                 final_solution=integrated_solution,
                 sub_problems=sub_problems_data,
-                verification_requirements=None
+                verification_requirements=requirements
             )
             return result
         finally:
@@ -1416,3 +1482,382 @@ Verification Method: {leanaide_result.verification_method}
         criteria_not_met=criteria_not_met,
         resource_usage={"verification_method": "leanaide", "execution_time": leanaide_result.execution_time}
     )
+
+
+# =============================================================================
+# Z3 FORMAL VERIFICATION INTEGRATION
+# =============================================================================
+
+def verify_sub_problem_with_z3(
+    sub_problem: 'SubProblem',
+    solution_attempt: 'SolutionAttempt',
+    workflow_state: 'WorkflowState'
+) -> 'VerificationReport':
+    """Verify a sub-problem using Z3 constraints or SMT-LIB if provided."""
+    import time
+    from workflow_structures import VerificationReport, VerificationMethod
+
+    try:
+        from z3prover_integration import (
+            Z3Constraint, Z3ConstraintType, Z3Variable, Z3Config,
+            get_z3_solver_engine, get_z3_theorem_prover, is_z3_available, Z3ResultStatus
+        )
+    except ImportError:
+        return VerificationReport(
+            solution_attempt_id=solution_attempt.sub_problem_id,
+            gauntlet_name="z3_unavailable",
+            is_approved=False,
+            reports_by_judge=[],
+            average_score=0.0,
+            summary="Z3 integration not available.",
+            verification_timestamp=time.time(),
+            dimension_scores={},
+            criteria_met=[],
+            criteria_not_met=["Z3 not configured"],
+            verification_method=VerificationMethod.Z3
+        )
+
+    if not is_z3_available():
+        return VerificationReport(
+            solution_attempt_id=solution_attempt.sub_problem_id,
+            gauntlet_name="z3_unavailable",
+            is_approved=False,
+            reports_by_judge=[],
+            average_score=0.0,
+            summary="Z3 solver not available.",
+            verification_timestamp=time.time(),
+            dimension_scores={},
+            criteria_met=[],
+            criteria_not_met=["Z3 solver unavailable"],
+            verification_method=VerificationMethod.Z3
+        )
+
+    entanglement_ctx = _build_entanglement_verification_context(workflow_state, sub_problem.id)
+    metadata = sub_problem.metadata if hasattr(sub_problem, "metadata") else {}
+    metadata = metadata or {}
+
+    smtlib = (
+        metadata.get("z3_smtlib")
+        or metadata.get("smtlib")
+        or workflow_state.openevolve_parameters.get("z3_smtlib_by_subproblem", {}).get(sub_problem.id)
+    )
+    formula = metadata.get("z3_formula") or metadata.get("formula")
+
+    constraints = list(metadata.get("z3_constraints", []) or [])
+    variables_data = list(metadata.get("z3_variables", []) or [])
+
+    entanglement_constraints = workflow_state.openevolve_parameters.get("entanglement_constraints", {}) or {}
+    for ent_id in entanglement_ctx.get("entangled_with", []):
+        constraints.extend(entanglement_constraints.get(ent_id, []) or [])
+
+    if not smtlib and not formula and not constraints:
+        return VerificationReport(
+            solution_attempt_id=solution_attempt.sub_problem_id,
+            gauntlet_name="z3_not_applicable",
+            is_approved=True,
+            reports_by_judge=[{
+                "method": "Z3 Formal Verification",
+                "result": {"status": "skipped", "reason": "No Z3 constraints or SMT-LIB provided"},
+                "entanglement_context": entanglement_ctx,
+            }],
+            average_score=0.8,
+            summary="Z3 verification skipped: no formal constraints provided.",
+            verification_timestamp=time.time(),
+            dimension_scores={"formal_verification": 0.0},
+            criteria_met=["Z3 verification not applicable"],
+            criteria_not_met=[],
+            verification_method=VerificationMethod.Z3
+        )
+
+    solver = get_z3_solver_engine(Z3Config())
+    prover = get_z3_theorem_prover(Z3Config())
+
+    details = {}
+    approved = False
+
+    if smtlib:
+        smtlib = _merge_smtlib_constraints(smtlib, constraints)
+        z3_result = solver.solve_smtlib(smtlib)
+        details = z3_result.to_dict()
+        approved = z3_result.status == Z3ResultStatus.SAT
+    elif formula:
+        theorem_result = prover.verify_formula(formula)
+        details = theorem_result.to_dict()
+        approved = bool(theorem_result.proven)
+    else:
+        z3_vars = []
+        for v in variables_data:
+            if not isinstance(v, dict) or "name" not in v:
+                continue
+            var_type = v.get("type", "Int")
+            if isinstance(var_type, str):
+                var_type = var_type.lower()
+            type_map = {
+                "int": Z3ConstraintType.INTEGER,
+                "integer": Z3ConstraintType.INTEGER,
+                "real": Z3ConstraintType.REAL,
+                "bool": Z3ConstraintType.BOOLEAN,
+                "boolean": Z3ConstraintType.BOOLEAN,
+            }
+            bounds = None
+            if "lower_bound" in v or "upper_bound" in v:
+                bounds = (v.get("lower_bound"), v.get("upper_bound"))
+            z3_vars.append(Z3Variable(
+                name=v["name"],
+                var_type=type_map.get(var_type, Z3ConstraintType.INTEGER),
+                bounds=bounds,
+                bit_width=v.get("bit_width"),
+            ))
+
+        z3_constraints = [
+            Z3Constraint(str(c), Z3ConstraintType.INTEGER) for c in constraints if c
+        ]
+        z3_result = solver.solve_constraints(z3_vars, z3_constraints)
+        details = z3_result.to_dict()
+        approved = z3_result.status == Z3ResultStatus.SAT
+
+    summary = (
+        f"Z3 Formal Verification Result: {'PASSED' if approved else 'FAILED'}\n"
+        f"Status: {details.get('status') or details.get('proven')}\n"
+    )
+
+    return VerificationReport(
+        solution_attempt_id=solution_attempt.sub_problem_id,
+        gauntlet_name="z3_formal_verification",
+        is_approved=approved,
+        reports_by_judge=[{
+            "method": "Z3 Formal Verification",
+            "result": details,
+            "entanglement_context": entanglement_ctx,
+        }],
+        average_score=1.0 if approved else 0.0,
+        summary=summary,
+        verification_timestamp=time.time(),
+        dimension_scores={"formal_verification": 1.0 if approved else 0.0},
+        criteria_met=["Z3 constraints satisfied"] if approved else [],
+        criteria_not_met=[] if approved else ["Z3 constraints failed"],
+        verification_method=VerificationMethod.Z3,
+        mathematical_verified=approved,
+        mathematical_confidence=1.0 if approved else 0.0
+    )
+
+
+def verify_final_solution_with_z3(
+    integrated_solution: str,
+    workflow_state: 'WorkflowState'
+) -> 'VerificationReport':
+    """Verify the final integrated solution using Z3 when formal constraints are provided."""
+    import time
+    from workflow_structures import VerificationReport, VerificationMethod
+
+    try:
+        from z3prover_integration import (
+            Z3Config, get_z3_solver_engine, get_z3_theorem_prover,
+            is_z3_available, Z3ResultStatus
+        )
+    except ImportError:
+        return VerificationReport(
+            solution_attempt_id="final_solution",
+            gauntlet_name="z3_unavailable",
+            is_approved=False,
+            reports_by_judge=[],
+            average_score=0.0,
+            summary="Z3 integration not available.",
+            verification_timestamp=time.time(),
+            dimension_scores={},
+            criteria_met=[],
+            criteria_not_met=["Z3 not configured"],
+            verification_method=VerificationMethod.Z3
+        )
+
+    if not is_z3_available():
+        return VerificationReport(
+            solution_attempt_id="final_solution",
+            gauntlet_name="z3_unavailable",
+            is_approved=False,
+            reports_by_judge=[],
+            average_score=0.0,
+            summary="Z3 solver not available.",
+            verification_timestamp=time.time(),
+            dimension_scores={},
+            criteria_met=[],
+            criteria_not_met=["Z3 solver unavailable"],
+            verification_method=VerificationMethod.Z3
+        )
+
+    entanglement_ctx = _build_entanglement_verification_context(workflow_state)
+    smtlib = workflow_state.openevolve_parameters.get("final_z3_smtlib")
+    formula = workflow_state.openevolve_parameters.get("final_z3_formula")
+
+    entanglement_constraints = workflow_state.openevolve_parameters.get("entanglement_constraints", {}) or {}
+    constraints: List[str] = []
+    for ent_id in entanglement_ctx.get("entangled_with", []):
+        constraints.extend(entanglement_constraints.get(ent_id, []) or [])
+
+    if not smtlib and not formula:
+        return VerificationReport(
+            solution_attempt_id="final_solution",
+            gauntlet_name="z3_not_applicable",
+            is_approved=True,
+            reports_by_judge=[{
+                "method": "Z3 Formal Verification",
+                "result": {"status": "skipped", "reason": "No Z3 constraints provided"},
+                "entanglement_context": entanglement_ctx,
+            }],
+            average_score=0.8,
+            summary="Z3 verification skipped for final solution.",
+            verification_timestamp=time.time(),
+            dimension_scores={"formal_verification": 0.0},
+            criteria_met=["Z3 verification not applicable"],
+            criteria_not_met=[],
+            verification_method=VerificationMethod.Z3
+        )
+
+    solver = get_z3_solver_engine(Z3Config())
+    prover = get_z3_theorem_prover(Z3Config())
+
+    details = {}
+    approved = False
+    if smtlib:
+        smtlib = _merge_smtlib_constraints(smtlib, constraints)
+        z3_result = solver.solve_smtlib(smtlib)
+        details = z3_result.to_dict()
+        approved = z3_result.status == Z3ResultStatus.SAT
+    else:
+        theorem_result = prover.verify_formula(formula)
+        details = theorem_result.to_dict()
+        approved = bool(theorem_result.proven)
+
+    summary = (
+        f"Z3 Final Verification Result: {'PASSED' if approved else 'FAILED'}\n"
+        f"Status: {details.get('status') or details.get('proven')}\n"
+    )
+
+    return VerificationReport(
+        solution_attempt_id="final_solution",
+        gauntlet_name="z3_final_verification",
+        is_approved=approved,
+        reports_by_judge=[{
+            "method": "Z3 Final Verification",
+            "result": details,
+            "entanglement_context": entanglement_ctx,
+        }],
+        average_score=1.0 if approved else 0.0,
+        summary=summary,
+        verification_timestamp=time.time(),
+        dimension_scores={"formal_verification": 1.0 if approved else 0.0},
+        criteria_met=["Z3 constraints satisfied"] if approved else [],
+        criteria_not_met=[] if approved else ["Z3 constraints failed"],
+        verification_method=VerificationMethod.Z3,
+        mathematical_verified=approved,
+        mathematical_confidence=1.0 if approved else 0.0
+    )
+
+
+def verify_sub_problem_with_formal_methods(
+    sub_problem: 'SubProblem',
+    solution_attempt: 'SolutionAttempt',
+    workflow_state: 'WorkflowState'
+) -> Optional['VerificationReport']:
+    """Dispatch formal verification to LeanAide, Z3, or both based on workflow configuration."""
+    config = workflow_state.openevolve_parameters or {}
+    enabled = bool(
+        config.get("formal_verification_enabled")
+        or config.get("z3_enabled")
+        or config.get("leanaide_enabled")
+    )
+    if not enabled:
+        return None
+
+    mode = config.get("formal_verification_mode", "auto").lower()
+    enable_z3 = bool(config.get("z3_enabled", mode in ["z3", "hybrid"]))
+    enable_lean = bool(config.get("leanaide_enabled", mode in ["leanaide", "hybrid", "lean"]))
+
+    if mode == "leanaide" and enable_lean:
+        return verify_sub_problem_with_leanaide(sub_problem, solution_attempt, workflow_state)
+    if mode == "z3" and enable_z3:
+        return verify_sub_problem_with_z3(sub_problem, solution_attempt, workflow_state)
+
+    reports = []
+    if enable_lean:
+        reports.append(verify_sub_problem_with_leanaide(sub_problem, solution_attempt, workflow_state))
+    if enable_z3:
+        reports.append(verify_sub_problem_with_z3(sub_problem, solution_attempt, workflow_state))
+
+    reports = [r for r in reports if r is not None]
+    if not reports:
+        return None
+
+    is_approved = all(r.is_approved for r in reports)
+    avg_score = sum(r.average_score for r in reports) / len(reports) if reports else 0.0
+
+    combined = VerificationReport(
+        solution_attempt_id=solution_attempt.sub_problem_id,
+        gauntlet_name="formal_hybrid_verification",
+        is_approved=is_approved,
+        reports_by_judge=[jr for r in reports for jr in r.reports_by_judge],
+        average_score=avg_score,
+        summary="Hybrid formal verification (LeanAide + Z3)",
+        verification_timestamp=time.time(),
+        dimension_scores={},
+        criteria_met=[c for r in reports for c in r.criteria_met],
+        criteria_not_met=[c for r in reports for c in r.criteria_not_met],
+        verification_method=VerificationMethod.HYBRID,
+        mathematical_verified=is_approved,
+        mathematical_confidence=avg_score
+    )
+    return combined
+
+
+def verify_final_solution_with_formal_methods(
+    integrated_solution: str,
+    workflow_state: 'WorkflowState'
+) -> Optional['VerificationReport']:
+    """Run formal verification on the final solution based on workflow configuration."""
+    config = workflow_state.openevolve_parameters or {}
+    enabled = bool(
+        config.get("formal_verification_enabled")
+        or config.get("z3_enabled")
+        or config.get("leanaide_enabled")
+    )
+    if not enabled:
+        return None
+
+    mode = config.get("formal_verification_mode", "auto").lower()
+    enable_z3 = bool(config.get("z3_enabled", mode in ["z3", "hybrid"]))
+    enable_lean = bool(config.get("leanaide_enabled", mode in ["leanaide", "hybrid", "lean"]))
+
+    if mode == "leanaide" and enable_lean:
+        return verify_final_solution_with_leanaide(integrated_solution, workflow_state)
+    if mode == "z3" and enable_z3:
+        return verify_final_solution_with_z3(integrated_solution, workflow_state)
+
+    reports = []
+    if enable_lean:
+        reports.append(verify_final_solution_with_leanaide(integrated_solution, workflow_state))
+    if enable_z3:
+        reports.append(verify_final_solution_with_z3(integrated_solution, workflow_state))
+
+    reports = [r for r in reports if r is not None]
+    if not reports:
+        return None
+
+    is_approved = all(r.is_approved for r in reports)
+    avg_score = sum(r.average_score for r in reports) / len(reports) if reports else 0.0
+
+    combined = VerificationReport(
+        solution_attempt_id="final_solution",
+        gauntlet_name="formal_hybrid_final_verification",
+        is_approved=is_approved,
+        reports_by_judge=[jr for r in reports for jr in r.reports_by_judge],
+        average_score=avg_score,
+        summary="Hybrid formal verification (LeanAide + Z3) for final solution",
+        verification_timestamp=time.time(),
+        dimension_scores={},
+        criteria_met=[c for r in reports for c in r.criteria_met],
+        criteria_not_met=[c for r in reports for c in r.criteria_not_met],
+        verification_method=VerificationMethod.HYBRID,
+        mathematical_verified=is_approved,
+        mathematical_confidence=avg_score
+    )
+    return combined

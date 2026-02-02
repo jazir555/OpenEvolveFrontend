@@ -163,6 +163,7 @@ class IntegratedSolution:
     confidence_score: float = 0.0
     verification_status: str = "pending"
     proof_steps: List[Dict[str, Any]] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -172,7 +173,8 @@ class IntegratedSolution:
             "formal_representation": self.formal_representation,
             "confidence_score": self.confidence_score,
             "verification_status": self.verification_status,
-            "proof_steps": self.proof_steps
+            "proof_steps": self.proof_steps,
+            "metadata": self.metadata
         }
 
 
@@ -462,7 +464,8 @@ class Z3LeanAideOpenEvolveIntegration:
     async def process_problem(
         self,
         problem_statement: str,
-        workflow_id: Optional[str] = None
+        workflow_id: Optional[str] = None,
+        entanglement_context: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """
         Process a problem through the integrated workflow.
@@ -488,12 +491,12 @@ class Z3LeanAideOpenEvolveIntegration:
             bubble_instance = None
             if self.bubblelabs:
                 bubble_instance = self._create_bubblelabs_workflow(
-                    workflow_id, problem_statement, classification
+                    workflow_id, problem_statement, classification, entanglement_context=entanglement_context
                 )
             
             # Stage 3: Solve based on classification
             solution = await self._solve_problem(
-                problem_statement, classification, workflow_id
+                problem_statement, classification, workflow_id, entanglement_context=entanglement_context
             )
             
             # Stage 4: Verify
@@ -508,7 +511,8 @@ class Z3LeanAideOpenEvolveIntegration:
                 "classification": classification.to_dict(),
                 "solution": solution.to_dict(),
                 "verification": verification.to_dict() if hasattr(verification, 'to_dict') else verification,
-                "execution_time": time.time() - start_time
+                "execution_time": time.time() - start_time,
+                "entanglement_context": entanglement_context or {}
             }
             
             # Update BubbleLabs
@@ -530,29 +534,30 @@ class Z3LeanAideOpenEvolveIntegration:
         self,
         problem_statement: str,
         classification: ProblemClassification,
-        workflow_id: str
+        workflow_id: str,
+        entanglement_context: Optional[Dict[str, Any]] = None
     ) -> IntegratedSolution:
         """Solve problem based on classification."""
         solution_id = f"sol_{workflow_id}"
-        
+
         if classification.category == ProblemCategory.CONSTRAINT_SOLVING:
-            return await self._solve_constraint(problem_statement, solution_id)
-        
+            solution = await self._solve_constraint(problem_statement, solution_id)
         elif classification.category == ProblemCategory.OPTIMIZATION:
-            return await self._solve_optimization(problem_statement, solution_id)
-        
+            solution = await self._solve_optimization(problem_statement, solution_id)
         elif classification.category == ProblemCategory.THEOREM_PROVING:
-            return await self._solve_theorem(problem_statement, solution_id)
-        
+            solution = await self._solve_theorem(problem_statement, solution_id)
         elif classification.category == ProblemCategory.SMT_VERIFICATION:
-            return await self._solve_smt(problem_statement, solution_id)
-        
+            solution = await self._solve_smt(problem_statement, solution_id, entanglement_context=entanglement_context)
         elif classification.category == ProblemCategory.HYBRID:
-            return await self._solve_hybrid(problem_statement, solution_id)
-        
+            solution = await self._solve_hybrid(problem_statement, solution_id, entanglement_context=entanglement_context)
         else:
             # Standard problem - use OpenEvolve
-            return await self._solve_standard(problem_statement, solution_id)
+            solution = await self._solve_standard(problem_statement, solution_id)
+
+        if entanglement_context:
+            solution.metadata.setdefault("entanglement_context", entanglement_context)
+
+        return solution
     
     async def _solve_constraint(
         self,
@@ -645,7 +650,8 @@ class Z3LeanAideOpenEvolveIntegration:
     async def _solve_smt(
         self,
         problem: str,
-        solution_id: str
+        solution_id: str,
+        entanglement_context: Optional[Dict[str, Any]] = None
     ) -> IntegratedSolution:
         """Solve SMT-LIB problem."""
         if not self.z3_solver:
@@ -656,6 +662,7 @@ class Z3LeanAideOpenEvolveIntegration:
                 verification_status="failed"
             )
         
+        problem = self._apply_entanglement_to_smt(problem, entanglement_context)
         result = self.z3_solver.solve_smtlib(problem)
         
         content = f"SMT result: {result.status.value}"
@@ -674,7 +681,8 @@ class Z3LeanAideOpenEvolveIntegration:
     async def _solve_hybrid(
         self,
         problem: str,
-        solution_id: str
+        solution_id: str,
+        entanglement_context: Optional[Dict[str, Any]] = None
     ) -> IntegratedSolution:
         """Solve hybrid problem using combined approach."""
         if not self.z3_bridge:
@@ -686,7 +694,11 @@ class Z3LeanAideOpenEvolveIntegration:
             )
         
         # Use combined verification
-        result = await self.z3_bridge.verify_with_both(problem, VerificationStrategy.PARALLEL)
+        result = await self.z3_bridge.verify_with_both(
+            problem,
+            VerificationStrategy.PARALLEL,
+            entanglement_context=entanglement_context
+        )
         
         return IntegratedSolution(
             solution_id=solution_id,
@@ -722,7 +734,13 @@ class Z3LeanAideOpenEvolveIntegration:
             return None
         
         if self.z3_bridge and classification.category in [ProblemCategory.HYBRID, ProblemCategory.THEOREM_PROVING]:
-            return await self.z3_bridge.verify_with_both(problem)
+            entanglement_context = None
+            if hasattr(solution, "metadata") and isinstance(solution.metadata, dict):
+                entanglement_context = solution.metadata.get("entanglement_context")
+            return await self.z3_bridge.verify_with_both(
+                problem,
+                entanglement_context=entanglement_context
+            )
         
         return None
     
@@ -766,6 +784,67 @@ class Z3LeanAideOpenEvolveIntegration:
                     ))
         
         return variables, constraints
+
+    @staticmethod
+    def _merge_smtlib_constraints(smtlib: str, constraints: List[str]) -> str:
+        """Inject constraints into SMT-LIB text as assert statements."""
+        if not constraints:
+            return smtlib
+
+        smtlib = smtlib or ""
+        assert_lines = []
+        for constraint in constraints:
+            if constraint is None:
+                continue
+            text = str(constraint).strip()
+            if not text:
+                continue
+            if text.startswith("(assert"):
+                assert_lines.append(text)
+            else:
+                assert_lines.append(f"(assert {text})")
+
+        if not assert_lines:
+            return smtlib
+
+        insertion = "\n".join(assert_lines) + "\n"
+        lower = smtlib.lower()
+        idx = lower.rfind("(check-sat")
+        if idx != -1:
+            return smtlib[:idx] + insertion + smtlib[idx:]
+
+        if smtlib and not smtlib.endswith("\n"):
+            smtlib += "\n"
+        return smtlib + insertion
+
+    @staticmethod
+    def _resolve_entangled_constraints(entanglement_context: Optional[Dict[str, Any]]) -> List[str]:
+        if not entanglement_context:
+            return []
+
+        entangled_constraints = entanglement_context.get("entangled_constraints")
+        if entangled_constraints:
+            return list(entangled_constraints)
+
+        entanglement_constraints = entanglement_context.get("entanglement_constraints", {}) or {}
+        entangled_with = entanglement_context.get("entangled_with", []) or []
+
+        constraints: List[str] = []
+        if isinstance(entanglement_constraints, dict):
+            for ent_id in entangled_with:
+                constraints.extend(entanglement_constraints.get(ent_id, []) or [])
+
+        return constraints
+
+    def _apply_entanglement_to_smt(
+        self,
+        problem: str,
+        entanglement_context: Optional[Dict[str, Any]]
+    ) -> str:
+        constraints = self._resolve_entangled_constraints(entanglement_context)
+        if not constraints:
+            return problem
+        return self._merge_smtlib_constraints(problem, constraints)
     
     # =========================================================================
     # BubbleLabs Integration
@@ -775,7 +854,8 @@ class Z3LeanAideOpenEvolveIntegration:
         self,
         workflow_id: str,
         problem: str,
-        classification: ProblemClassification
+        classification: ProblemClassification,
+        entanglement_context: Optional[Dict[str, Any]] = None
     ) -> Optional[BubbleWorkflowInstance]:
         """Create workflow visualization in BubbleLabs."""
         if not self.bubblelabs:
@@ -810,7 +890,8 @@ class Z3LeanAideOpenEvolveIntegration:
                 progress=0.0,
                 data={
                     "classification": classification.to_dict(),
-                    "current_stage": "problem_classification"
+                    "current_stage": "problem_classification",
+                    "entanglement_context": entanglement_context or {}
                 }
             )
             

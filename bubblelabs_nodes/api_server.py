@@ -130,12 +130,12 @@ app.add_middleware(
 class APIExecutionContext:
     """Execution context that mimics BubbleLabs workflow context"""
 
-    def __init__(self, execution_id: str):
+    def __init__(self, execution_id: str, metadata: Optional[Dict[str, Any]] = None):
         self.execution_id = execution_id
         self.progress = 0
         self.status_message = ""
         self.artifacts = {}
-        self.metadata = {}
+        self.metadata = metadata or {}
 
     def update_progress(self, progress: int, message: str = ""):
         """Update execution progress"""
@@ -285,7 +285,8 @@ async def execute_node(node_type: str, request: ExecutionRequest):
             )
 
         # Create execution context
-        context = APIExecutionContext(request.executionId)
+        metadata = request.options.get("metadata") if request.options else None
+        context = APIExecutionContext(request.executionId, metadata=metadata)
 
         # Validate inputs
         try:
@@ -323,7 +324,8 @@ async def execute_node(node_type: str, request: ExecutionRequest):
             metadata={
                 "node_type": node_type,
                 "artifacts": context.artifacts,
-                "progress": context.progress
+                "progress": context.progress,
+                "context_metadata": context.metadata
             }
         )
 

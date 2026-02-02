@@ -270,6 +270,11 @@ class DecompositionNode(BubbleLabsNode):
             if not isinstance(inputs['enable_quality_tracking'], bool):
                 errors.append("enable_quality_tracking must be a boolean")
 
+        # Validate entanglement strict mode option
+        if 'entanglement_strict_mode' in inputs:
+            if not isinstance(inputs['entanglement_strict_mode'], bool):
+                errors.append("entanglement_strict_mode must be a boolean")
+
         return errors
 
     def execute(self, inputs: Dict, context) -> Dict[str, Any]:
@@ -438,6 +443,54 @@ class DecompositionNode(BubbleLabsNode):
                     self.logger.warning(f"Failed to get MDAP statistics: {e}")
                     mdap_stats = {}
 
+            # Build/attach entanglement matrix if available
+            entanglement_matrix = {}
+            entanglement_strict = inputs.get(
+                'entanglement_strict_mode',
+                self.config.get('entanglement_strict_mode', False)
+            )
+            if hasattr(context, "metadata") and isinstance(context.metadata, dict):
+                entanglement_strict = context.metadata.get("entanglement_strict_mode", entanglement_strict)
+
+            try:
+                if not hasattr(plan, "metadata") or plan.metadata is None:
+                    plan.metadata = {}
+                entanglement_matrix = plan.metadata.get("entanglement_matrix") or {}
+
+                if not entanglement_matrix:
+                    try:
+                        from dependency_analyzer import DependencyAnalyzer
+                        from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
+
+                        analyzer = DependencyAnalyzer()
+                        raw_matrix = analyzer.build_entanglement_matrix(plan.sub_problems)
+                        normalized = normalize_entanglement_matrix(
+                            raw_matrix,
+                            allowed_ids=[sp.id for sp in plan.sub_problems],
+                            enforce_symmetry=True,
+                            strict=bool(entanglement_strict),
+                        )
+                        entanglement_matrix = serialize_entanglement_matrix(normalized)
+                        plan.metadata["entanglement_matrix"] = entanglement_matrix
+
+                        for sp in plan.sub_problems:
+                            entangled_with = entanglement_matrix.get(sp.id, [])
+                            sp.metadata["entangled_with"] = entangled_with
+                            if entangled_with and "entanglement_source" not in sp.metadata:
+                                sp.metadata["entanglement_source"] = "symbolic_overlap"
+                    except Exception as e:
+                        self.logger.warning(f"Entanglement matrix generation failed: {e}")
+                        if entanglement_strict:
+                            raise NodeExecutionError(
+                                node_name=self.get_display_name(),
+                                message="Entanglement matrix generation failed in strict mode",
+                                details={"error": str(e)}
+                            )
+            except Exception as e:
+                self.logger.warning(f"Entanglement matrix handling failed: {e}")
+                if entanglement_strict:
+                    raise
+
             # Update progress
             context.update_progress(90, "Converting to output format")
 
@@ -458,6 +511,7 @@ class DecompositionNode(BubbleLabsNode):
                 'validation_checkpoints': len(plan.validation_checkpoints),
                 'plan_id': plan.id,
                 'problem_id': plan.id,
+                'entanglement_matrix': entanglement_matrix,
 
                 # NEW: Enhanced fields from Phase 2
                 'enhanced_quality': self._convert_enhanced_quality(enhanced_quality) if enhanced_quality else None,
@@ -485,7 +539,8 @@ class DecompositionNode(BubbleLabsNode):
                 'method': method,
                 'plan_id': plan.id,
                 'sub_problems_count': len(plan.sub_problems),
-                'enhanced_features': result['features_used']
+                'enhanced_features': result['features_used'],
+                'entanglement_matrix': entanglement_matrix
             })
 
             context.update_progress(
@@ -644,6 +699,10 @@ class DecompositionNode(BubbleLabsNode):
                 # Quality metrics
                 if 'quality_metrics' in metadata:
                     sp_dict['quality_targets'] = metadata['quality_metrics']
+                if 'entangled_with' in metadata:
+                    sp_dict['entangled_with'] = metadata['entangled_with']
+                if 'entanglement_source' in metadata:
+                    sp_dict['entanglement_source'] = metadata['entanglement_source']
 
             # Phase 3: Check for dedicated team assignment field
             if hasattr(sp, 'ai_suggested_team_assignment') and sp.ai_suggested_team_assignment:
@@ -771,6 +830,12 @@ class DecompositionNode(BubbleLabsNode):
                     "title": "Enable Quality Tracking",
                     "description": "Track quality metrics over time and provide insights",
                     "default": True
+                },
+                "entanglement_strict_mode": {
+                    "type": "boolean",
+                    "title": "Entanglement Strict Mode",
+                    "description": "Enforce strict validation of entanglement matrix generation",
+                    "default": False
                 },
                 # Standard parameters
                 "requirements": {

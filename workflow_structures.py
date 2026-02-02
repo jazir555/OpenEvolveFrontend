@@ -61,6 +61,7 @@ class VerificationMethod(Enum):
     AUTOMATED_TESTING = "automated_testing"
     PEER_REVIEW = "peer_review"
     LEAN4 = "lean4"
+    Z3 = "z3"
     HYBRID = "hybrid"
     STATISTICAL = "statistical"
     CROSS_VALIDATION = "cross_validation"

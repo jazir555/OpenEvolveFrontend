@@ -1890,6 +1890,82 @@ async def run_sovereign_workflow(
                     )
             else:
                 st.info(f"  - No Gold Team Gauntlet configured for {current_sp_id}. Skipping Gold Team evaluation.")
+
+            # Optional formal verification (LeanAide/Z3) after Gold Team evaluation
+            formal_report = None
+            formal_config = workflow_state.openevolve_parameters or {}
+            formal_required = bool(
+                formal_config.get("formal_verification_enabled")
+                or formal_config.get("z3_enabled")
+                or formal_config.get("leanaide_enabled")
+                or getattr(current_sub_problem, "requires_formal_verification", False)
+                or getattr(current_sub_problem, "formal_verification_enabled", False)
+            )
+            strict_formal = bool(
+                formal_config.get("formal_verification_strict")
+                or getattr(current_sub_problem, "requires_formal_verification", False)
+            )
+            if formal_required:
+                try:
+                    from workflow_stage_functions import verify_sub_problem_with_formal_methods
+                    formal_report = verify_sub_problem_with_formal_methods(
+                        current_sub_problem,
+                        solution_attempt,
+                        workflow_state
+                    )
+                except Exception as e:
+                    st.warning(f"Formal verification failed to run for {current_sp_id}: {e}")
+
+            if formal_report:
+                workflow_state.all_verification_reports.append(formal_report)
+                solution_attempt.verification_reports.append(formal_report)
+
+                if strict_formal and not formal_report.is_approved:
+                    st.warning(f"  - Formal verification rejected solution for {current_sp_id}. Marking for rework.")
+                    workflow_state.rejected_sub_problems[current_sp_id] = formal_report
+                    add_metric(
+                        "gauntlet_failures_total",
+                        1,
+                        MetricType.COUNTER,
+                        {
+                            "workflow_id": workflow_state.workflow_id,
+                            "gauntlet_name": formal_report.gauntlet_name,
+                            "team_role": "formal"
+                        }
+                    )
+                    add_metric(
+                        "workflow_retries_total",
+                        1,
+                        MetricType.COUNTER,
+                        {"workflow_id": workflow_state.workflow_id}
+                    )
+                    queue.append(current_sp_id)
+                    continue
+            elif strict_formal and formal_required:
+                st.warning(f"  - Formal verification required but not available for {current_sp_id}. Marking for rework.")
+                fallback_report = VerificationReport(
+                    solution_attempt_id=solution_attempt.sub_problem_id,
+                    gauntlet_name="formal_verification_unavailable",
+                    is_approved=False,
+                    reports_by_judge=[],
+                    average_score=0.0,
+                    summary="Formal verification required but unavailable",
+                    verification_timestamp=time.time(),
+                    dimension_scores={},
+                    criteria_met=[],
+                    criteria_not_met=["Formal verification unavailable"]
+                )
+                workflow_state.all_verification_reports.append(fallback_report)
+                solution_attempt.verification_reports.append(fallback_report)
+                workflow_state.rejected_sub_problems[current_sp_id] = fallback_report
+                add_metric(
+                    "workflow_retries_total",
+                    1,
+                    MetricType.COUNTER,
+                    {"workflow_id": workflow_state.workflow_id}
+                )
+                queue.append(current_sp_id)
+                continue
             
             # Sync completion status to crewai if integration is active
             crewai_api_base = os.getenv("crewai_API_BASE", "http://localhost:8080")
@@ -2197,6 +2273,132 @@ async def run_sovereign_workflow(
                 
                 workflow_state.current_stage = "Sub-Problem Solving Loop" # Go back to solve problematic sub-problems.
                 return # Exit current run, Streamlit will re-run and continue from Stage 3.
+
+            # Optional formal verification on final solution
+            formal_report = None
+            formal_config = workflow_state.openevolve_parameters or {}
+            formal_required = bool(
+                formal_config.get("formal_verification_enabled")
+                or formal_config.get("z3_enabled")
+                or formal_config.get("leanaide_enabled")
+            )
+            strict_formal = bool(formal_config.get("formal_verification_strict"))
+
+            if formal_required:
+                try:
+                    from workflow_stage_functions import verify_final_solution_with_formal_methods
+                    formal_report = verify_final_solution_with_formal_methods(
+                        workflow_state.final_solution.content,
+                        workflow_state
+                    )
+                except Exception as e:
+                    st.warning(f"Final formal verification failed to run: {e}")
+
+            if formal_report:
+                workflow_state.all_verification_reports.append(formal_report)
+                if workflow_state.final_solution:
+                    workflow_state.final_solution.verification_reports.append(formal_report)
+
+                if strict_formal and not formal_report.is_approved:
+                    st.warning("  - Final formal verification rejected solution. Initiating self-healing.")
+                    add_metric(
+                        "gauntlet_failures_total",
+                        1,
+                        MetricType.COUNTER,
+                        {
+                            "workflow_id": workflow_state.workflow_id,
+                            "gauntlet_name": formal_report.gauntlet_name,
+                            "team_role": "formal"
+                        }
+                    )
+                    add_metric(
+                        "workflow_retries_total",
+                        1,
+                        MetricType.COUNTER,
+                        {"workflow_id": workflow_state.workflow_id}
+                    )
+
+                    problematic_sub_problem_ids = parse_targeted_feedback(formal_report)
+                    if not problematic_sub_problem_ids:
+                        problematic_sub_problem_ids = list(workflow_state.sub_problem_solutions.keys())
+
+                    if not problematic_sub_problem_ids:
+                        st.error("  - Formal verification rejected, but no sub-problems identified. Cannot self-heal.")
+                        workflow_state.status = "failed"
+                        _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+                        return
+
+                    st.info(
+                        "  - Formal verification rejected. Re-queuing sub-problems: "
+                        f"{', '.join(problematic_sub_problem_ids)}."
+                    )
+                    for sp_id in problematic_sub_problem_ids:
+                        if sp_id in workflow_state.sub_problem_solutions:
+                            del workflow_state.sub_problem_solutions[sp_id]
+                            workflow_state.rejected_sub_problems[sp_id] = formal_report
+
+                    workflow_state.refinement_loop_count += 1
+                    if workflow_state.refinement_loop_count >= workflow_state.max_refinement_loops:
+                        summary = getattr(formal_report, 'summary', '')
+                        try:
+                            raise RecursivePlanFailure(problematic_sub_problem_ids, summary)
+                        except RecursivePlanFailure as e:
+                            _handle_recursive_plan_failure(
+                                workflow_state,
+                                planner_team,
+                                e,
+                                workflow_started_at,
+                                resource_manager
+                            )
+                            return
+
+                    workflow_state.current_stage = "Sub-Problem Solving Loop"
+                    return
+            elif strict_formal and formal_required:
+                st.warning("  - Final formal verification required but unavailable. Initiating self-healing.")
+                fallback_report = VerificationReport(
+                    solution_attempt_id="final_solution",
+                    gauntlet_name="formal_verification_unavailable",
+                    is_approved=False,
+                    reports_by_judge=[],
+                    average_score=0.0,
+                    summary="Formal verification required but unavailable",
+                    verification_timestamp=time.time(),
+                    dimension_scores={},
+                    criteria_met=[],
+                    criteria_not_met=["Formal verification unavailable"]
+                )
+                workflow_state.all_verification_reports.append(fallback_report)
+                if workflow_state.final_solution:
+                    workflow_state.final_solution.verification_reports.append(fallback_report)
+
+                problematic_sub_problem_ids = list(workflow_state.sub_problem_solutions.keys())
+                if not problematic_sub_problem_ids:
+                    workflow_state.status = "failed"
+                    _record_workflow_completion(workflow_state, resource_manager, workflow_started_at, "failed")
+                    return
+
+                for sp_id in problematic_sub_problem_ids:
+                    if sp_id in workflow_state.sub_problem_solutions:
+                        del workflow_state.sub_problem_solutions[sp_id]
+                        workflow_state.rejected_sub_problems[sp_id] = fallback_report
+
+                workflow_state.refinement_loop_count += 1
+                if workflow_state.refinement_loop_count >= workflow_state.max_refinement_loops:
+                    try:
+                        raise RecursivePlanFailure(problematic_sub_problem_ids, "Formal verification required but unavailable")
+                    except RecursivePlanFailure as e:
+                        _handle_recursive_plan_failure(
+                            workflow_state,
+                            planner_team,
+                            e,
+                            workflow_started_at,
+                            resource_manager
+                        )
+                        return
+
+                workflow_state.current_stage = "Sub-Problem Solving Loop"
+                return
             
             # If both final gauntlets pass, the workflow is completed successfully.
             st.success(f"[{workflow_state.current_stage}] Final solution verified. Workflow completed successfully!")

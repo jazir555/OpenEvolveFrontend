@@ -97,6 +97,32 @@ class MathVerificationPipelineNode(BubbleLabsNode):
             self._bridge = Z3LeanAideBridge()
         except Exception as e:
             logger.warning(f"Could not initialize bridge: {e}")
+
+    def _extract_entanglement_context(self, inputs: Dict[str, Any], context) -> Dict[str, Any]:
+        """Extract entanglement context from inputs, context metadata, or artifacts."""
+        entanglement_context = inputs.get("entanglement_context") or {}
+
+        entanglement_matrix = entanglement_context.get("entanglement_matrix") or inputs.get("entanglement_matrix")
+        entangled_with = entanglement_context.get("entangled_with") or inputs.get("entangled_with")
+
+        if hasattr(context, "metadata") and isinstance(context.metadata, dict):
+            entanglement_matrix = entanglement_matrix or context.metadata.get("entanglement_matrix")
+            entangled_with = entangled_with or context.metadata.get("entangled_with")
+
+        if not entanglement_matrix and hasattr(context, "artifacts"):
+            entanglement_matrix = context.artifacts.get("decomposition", {}).get("entanglement_matrix")
+
+        if entanglement_matrix and not entangled_with:
+            sub_problem_id = inputs.get("sub_problem_id") or inputs.get("component_id")
+            if sub_problem_id and isinstance(entanglement_matrix, dict):
+                entangled_with = entanglement_matrix.get(sub_problem_id)
+
+        entangled_with = entangled_with or []
+
+        return {
+            "entanglement_matrix": entanglement_matrix or {},
+            "entangled_with": entangled_with
+        }
     
     def validate_inputs(self, inputs: Dict) -> List[str]:
         """Validate node inputs."""
@@ -183,6 +209,19 @@ class MathVerificationPipelineNode(BubbleLabsNode):
                     "default": True,
                     "description": "Generate detailed report"
                 },
+                "sub_problem_id": {
+                    "type": "string",
+                    "description": "Sub-problem identifier for entanglement lookup"
+                },
+                "entanglement_matrix": {
+                    "type": "object",
+                    "description": "Entanglement matrix mapping sub-problems to entangled peers"
+                },
+                "entangled_with": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Explicit list of entangled sub-problem ids"
+                },
                 "compare_all_strategies": {
                     "type": "boolean",
                     "default": False,
@@ -196,6 +235,7 @@ class MathVerificationPipelineNode(BubbleLabsNode):
         """Execute verification pipeline."""
         start_time = time.time()
         operation = inputs.get("operation", self.config.get("operation", "verify"))
+        entanglement_context = self._extract_entanglement_context(inputs, context)
         
         context.update_progress(5)
         
@@ -226,6 +266,7 @@ class MathVerificationPipelineNode(BubbleLabsNode):
             execution_time = time.time() - start_time
             result["execution_time"] = execution_time
             result["timestamp"] = datetime.utcnow().isoformat()
+            result["entanglement_context"] = entanglement_context
             
             context.add_artifact("math_verification_result", result)
             

@@ -82,6 +82,84 @@ class Z3TheoremProvingNode(BubbleLabsNode):
         except Exception as e:
             logger.warning(f"Could not initialize Z3 prover: {e}")
             return False
+
+    def _extract_entanglement_context(self, inputs: Dict[str, Any], context) -> Dict[str, Any]:
+        """Extract entanglement context from inputs, context metadata, or artifacts."""
+        entanglement_context = inputs.get("entanglement_context") or {}
+
+        entanglement_matrix = entanglement_context.get("entanglement_matrix") or inputs.get("entanglement_matrix")
+        entangled_with = entanglement_context.get("entangled_with") or inputs.get("entangled_with")
+
+        if hasattr(context, "metadata") and isinstance(context.metadata, dict):
+            entanglement_matrix = entanglement_matrix or context.metadata.get("entanglement_matrix")
+            entangled_with = entangled_with or context.metadata.get("entangled_with")
+
+        if not entanglement_matrix and hasattr(context, "artifacts"):
+            entanglement_matrix = context.artifacts.get("decomposition", {}).get("entanglement_matrix")
+
+        if entanglement_matrix and not entangled_with:
+            sub_problem_id = inputs.get("sub_problem_id") or inputs.get("component_id")
+            if sub_problem_id and isinstance(entanglement_matrix, dict):
+                entangled_with = entanglement_matrix.get(sub_problem_id)
+
+        entangled_with = entangled_with or []
+
+        return {
+            "entanglement_matrix": entanglement_matrix or {},
+            "entangled_with": entangled_with,
+            "entangled_constraints": self._resolve_entangled_constraints(inputs, context, entangled_with)
+        }
+
+    @staticmethod
+    def _resolve_entangled_constraints(
+        inputs: Dict[str, Any],
+        context,
+        entangled_with: List[str]
+    ) -> List[str]:
+        entangled_constraints = inputs.get("entangled_constraints")
+        entanglement_constraints = inputs.get("entanglement_constraints")
+
+        if entangled_constraints is None and hasattr(context, "metadata") and isinstance(context.metadata, dict):
+            entanglement_constraints = entanglement_constraints or context.metadata.get("entanglement_constraints")
+
+        if entangled_constraints is None and isinstance(entanglement_constraints, dict):
+            entangled_constraints = []
+            for ent_id in entangled_with:
+                entangled_constraints.extend(entanglement_constraints.get(ent_id, []) or [])
+
+        return entangled_constraints or []
+
+    @staticmethod
+    def _merge_smtlib_constraints(smtlib: str, constraints: List[str]) -> str:
+        """Inject constraints into SMT-LIB text as assert statements."""
+        if not constraints:
+            return smtlib
+
+        smtlib = smtlib or ""
+        assert_lines = []
+        for constraint in constraints:
+            if constraint is None:
+                continue
+            text = str(constraint).strip()
+            if not text:
+                continue
+            if text.startswith("(assert"):
+                assert_lines.append(text)
+            else:
+                assert_lines.append(f"(assert {text})")
+
+        if not assert_lines:
+            return smtlib
+
+        insertion = "\n".join(assert_lines) + "\n"
+        lower = smtlib.lower()
+        idx = lower.rfind("(check-sat")
+        if idx != -1:
+            return smtlib[:idx] + insertion + smtlib[idx:]
+
+        if smtlib and not smtlib.endswith("\n"):
+            smtlib += "\n"
+        return smtlib + insertion
     
     def validate_inputs(self, inputs: Dict) -> List[str]:
         """Validate node inputs."""
@@ -126,6 +204,28 @@ class Z3TheoremProvingNode(BubbleLabsNode):
                 "smtlib": {
                     "type": "string",
                     "description": "SMT-LIB formatted theorem"
+                },
+                "sub_problem_id": {
+                    "type": "string",
+                    "description": "Sub-problem identifier for entanglement lookup"
+                },
+                "entanglement_matrix": {
+                    "type": "object",
+                    "description": "Entanglement matrix mapping sub-problems to entangled peers"
+                },
+                "entangled_with": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Explicit list of entangled sub-problem ids"
+                },
+                "entanglement_constraints": {
+                    "type": "object",
+                    "description": "Mapping of sub-problem id to constraints"
+                },
+                "entangled_constraints": {
+                    "type": "array",
+                    "items": {"type": "string"},
+                    "description": "Constraints inherited from entangled peers"
                 },
                 "assumptions": {
                     "type": "array",
@@ -174,6 +274,7 @@ class Z3TheoremProvingNode(BubbleLabsNode):
         """Execute theorem proving operation."""
         start_time = time.time()
         operation = inputs.get("operation", self.config.get("operation", "prove"))
+        entanglement_context = self._extract_entanglement_context(inputs, context)
         
         context.update_progress(10)
         
@@ -206,6 +307,7 @@ class Z3TheoremProvingNode(BubbleLabsNode):
             execution_time = time.time() - start_time
             result["execution_time"] = execution_time
             result["timestamp"] = datetime.utcnow().isoformat()
+            result["entanglement_context"] = entanglement_context
             
             context.add_artifact("z3_theorem_result", result)
             
@@ -405,6 +507,10 @@ class Z3TheoremProvingNode(BubbleLabsNode):
     def _prove_smtlib(self, inputs: Dict, context) -> Dict[str, Any]:
         """Prove theorem in SMT-LIB format."""
         smtlib = inputs.get("smtlib", self.config.get("smtlib", ""))
+        entanglement_context = self._extract_entanglement_context(inputs, context)
+        entangled_constraints = entanglement_context.get("entangled_constraints", [])
+        if entangled_constraints:
+            smtlib = self._merge_smtlib_constraints(smtlib, entangled_constraints)
         
         context.update_progress(40)
         

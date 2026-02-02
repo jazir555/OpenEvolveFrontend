@@ -600,6 +600,67 @@ class Z3LeanAideBridge:
                 "enable_cross_validation": self.config.enable_cross_validation
             }
         }
+
+    @staticmethod
+    def _merge_smtlib_constraints(smtlib: str, constraints: List[str]) -> str:
+        """Inject constraints into SMT-LIB text as assert statements."""
+        if not constraints:
+            return smtlib
+
+        smtlib = smtlib or ""
+        assert_lines = []
+        for constraint in constraints:
+            if constraint is None:
+                continue
+            text = str(constraint).strip()
+            if not text:
+                continue
+            if text.startswith("(assert"):
+                assert_lines.append(text)
+            else:
+                assert_lines.append(f"(assert {text})")
+
+        if not assert_lines:
+            return smtlib
+
+        insertion = "\n".join(assert_lines) + "\n"
+        lower = smtlib.lower()
+        idx = lower.rfind("(check-sat")
+        if idx != -1:
+            return smtlib[:idx] + insertion + smtlib[idx:]
+
+        if smtlib and not smtlib.endswith("\n"):
+            smtlib += "\n"
+        return smtlib + insertion
+
+    @staticmethod
+    def _resolve_entangled_constraints(entanglement_context: Optional[Dict[str, Any]]) -> List[str]:
+        if not entanglement_context:
+            return []
+
+        entangled_constraints = entanglement_context.get("entangled_constraints")
+        if entangled_constraints:
+            return list(entangled_constraints)
+
+        entanglement_constraints = entanglement_context.get("entanglement_constraints", {}) or {}
+        entangled_with = entanglement_context.get("entangled_with", []) or []
+
+        constraints: List[str] = []
+        if isinstance(entanglement_constraints, dict):
+            for ent_id in entangled_with:
+                constraints.extend(entanglement_constraints.get(ent_id, []) or [])
+
+        return constraints
+
+    def _apply_entanglement_to_smt(
+        self,
+        problem: str,
+        entanglement_context: Optional[Dict[str, Any]]
+    ) -> str:
+        constraints = self._resolve_entangled_constraints(entanglement_context)
+        if not constraints:
+            return problem
+        return self._merge_smtlib_constraints(problem, constraints)
     
     async def translate_smt_to_lean(self, smtlib_content: str) -> TranslationResult:
         """Translate SMT-LIB to Lean 4."""
@@ -612,7 +673,8 @@ class Z3LeanAideBridge:
     async def verify_with_both(
         self,
         problem: str,
-        strategy: Optional[VerificationStrategy] = None
+        strategy: Optional[VerificationStrategy] = None,
+        entanglement_context: Optional[Dict[str, Any]] = None
     ) -> CombinedVerificationResult:
         """
         Verify problem using both Z3 and LeanAIDE.
@@ -632,6 +694,9 @@ class Z3LeanAideBridge:
         
         if strategy == VerificationStrategy.ADAPTIVE:
             strategy = self._select_strategy(problem, is_smt)
+
+        if is_smt:
+            problem = self._apply_entanglement_to_smt(problem, entanglement_context)
         
         # Execute based on strategy
         if strategy == VerificationStrategy.Z3_FIRST:
@@ -873,7 +938,8 @@ class Z3LeanAideBridge:
     
     async def cross_validate(
         self,
-        smtlib_problem: str
+        smtlib_problem: str,
+        entanglement_context: Optional[Dict[str, Any]] = None
     ) -> CombinedVerificationResult:
         """
         Cross-validate by translating SMT to Lean and verifying both ways.
@@ -886,6 +952,8 @@ class Z3LeanAideBridge:
         """
         start_time = time.time()
         
+        smtlib_problem = self._apply_entanglement_to_smt(smtlib_problem, entanglement_context)
+
         # Translate to Lean
         translation = await self.translate_smt_to_lean(smtlib_problem)
         
