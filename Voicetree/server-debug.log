@@ -1,0 +1,425 @@
+[2026-02-01T21:48:48.650Z] === Voicetree Server Startup ===
+[2026-02-01T21:48:48.651Z] [TextToTreeServer] Found available port: 8001
+[2026-02-01T21:48:48.651Z] App launched from: C:\Users\mmeadow\AppData\Local\Programs\voicetree-webapp\Voicetree.exe
+[2026-02-01T21:48:48.651Z] App packaged: true
+[2026-02-01T21:48:48.651Z] Process CWD: C:\Users\mmeadow\AppData\Local\Programs\voicetree-webapp
+[2026-02-01T21:48:48.651Z] Process Platform: win32
+[2026-02-01T21:48:48.651Z] Node version: v22.19.0
+[2026-02-01T21:48:48.651Z] Electron version: 38.1.2
+[2026-02-01T21:48:48.651Z] --- Environment Variables ---
+[2026-02-01T21:48:48.651Z] PATH: C:\Program Files (x86)\Razer\ChromaBroadcast\bin;C:\Program Files\Razer\ChromaBroadcast\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft VS Code\bin;C:\Program Files\dotnet\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\Gpg4win\..\GnuPG\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Users\mmeadow\AppData\Local\nvm;C:\nvm4w\nodejs;C:\Program Files\nodejs\;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\php84;C:\ProgramData\ComposerSetup\bin;C:\Program Files\Docker\Docker\resources\bin;C:\WINDOWS\system32\config\systemprofile\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Razer Chroma SDK\bin;C:\Program Files\Razer Chroma SDK\bin;C:\Users\mmeadow\.local\bin;C:\Users\mmeadow\.elan\bin;C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\;C:\Users\mmeadow\AppData\Local\Microsoft\WindowsApps;C:\Users\mmeadow\AppData\Roaming\npm;C:\Users\mmeadow\.dotnet\tools;C:\Users\mmeadow\AppData\Local\Programs\Kiro\bin;C:\Users\mmeadow\AppData\Roaming\Composer\vendor\bin;C:\Users\mmeadow\AppData\Local\Programs\Antigravity\bin;C:\Program Files\cursor\resources\app\bin;C:\Program Files\PowerShell\7\;C:\Users\mmeadow\.cargo\bin;C:\Users\mmeadow\AppData\Local\pnpm;C:\Users\mmeadow\.local\bin;C:\Users\mmeadow\.elan\bin;C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\;C:\Users\mmeadow\AppData\Local\Microsoft\WindowsApps;C:\Users\mmeadow\AppData\Local\nvm;C:\nvm4w\nodejs;C:\Users\mmeadow\AppData\Roaming\npm;C:\Users\mmeadow\.dotnet\tools;C:\Users\mmeadow\AppData\Local\Programs\Kiro\bin;C:\Users\mmeadow\AppData\Roaming\Composer\vendor\bin;C:\Users\mmeadow\AppData\Local\Programs\Antigravity\bin;C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\vendor\bin;C:\Users\mmeadow\.bun\bin;C:\Users\mmeadow\AppData\Local\Microsoft\WinGet\Packages\Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe;
+[2026-02-01T21:48:48.651Z] HOME: UNDEFINED
+[2026-02-01T21:48:48.651Z] USER: UNDEFINED
+[2026-02-01T21:48:48.651Z] SHELL: UNDEFINED
+[2026-02-01T21:48:48.651Z] PYTHONPATH: NOT SET
+[2026-02-01T21:48:48.651Z] PYTHONHOME: NOT SET
+[2026-02-01T21:48:48.651Z] Total env vars count: 49
+Full environment:
+{
+  "ALLUSERSPROFILE": "C:\\ProgramData",
+  "APPDATA": "C:\\Users\\mmeadow\\AppData\\Roaming",
+  "arbor": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\arbor\\arbor-windows-x64.exe",
+  "asl.log": "Destination=file",
+  "ChocolateyInstall": "C:\\ProgramData\\chocolatey",
+  "ChocolateyLastPathUpdate": "134065458086438240",
+  "ChocolateyToolsLocation": "C:\\tools",
+  "CommonProgramFiles": "C:\\Program Files\\Common Files",
+  "CommonProgramFiles(x86)": "C:\\Program Files (x86)\\Common Files",
+  "CommonProgramW6432": "C:\\Program Files\\Common Files",
+  "COMPUTERNAME": "DESKTOP-13SIOB5",
+  "ComSpec": "C:\\WINDOWS\\system32\\cmd.exe",
+  "DriverData": "C:\\Windows\\System32\\Drivers\\DriverData",
+  "elan": "C:\\Users\\mmeadow\\.elan\\bin",
+  "HOMEDRIVE": "C:",
+  "HOMEPATH": "\\Users\\mmeadow",
+  "JD2_HOME": "C:\\Users\\mmeadow\\AppData\\Local\\JDownloader 2.0",
+  "LOCALAPPDATA": "C:\\Users\\mmeadow\\AppData\\Local",
+  "LOGONSERVER": "\\\\DESKTOP-13SIOB5",
+  "NUMBER_OF_PROCESSORS": "20",
+  "OneDrive": "C:\\Users\\mmeadow\\OneDrive",
+  "ORIGINAL_XDG_CURRENT_DESKTOP": "undefined",
+  "OS": "Windows_NT",
+  "Path": "C:\\Program Files (x86)\\Razer\\ChromaBroadcast\\bin;C:\\Program Files\\Razer\\ChromaBroadcast\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Program Files\\dotnet\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\Gpg4win\\..\\GnuPG\\bin;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\mmeadow\\AppData\\Local\\nvm;C:\\nvm4w\\nodejs;C:\\Program Files\\nodejs\\;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\Git\\cmd;C:\\tools\\php84;C:\\ProgramData\\ComposerSetup\\bin;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\WINDOWS\\system32\\config\\systemprofile\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Program Files (x86)\\Razer Chroma SDK\\bin;C:\\Program Files\\Razer Chroma SDK\\bin;C:\\Users\\mmeadow\\.local\\bin;C:\\Users\\mmeadow\\.elan\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\;C:\\Users\\mmeadow\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\mmeadow\\AppData\\Roaming\\npm;C:\\Users\\mmeadow\\.dotnet\\tools;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Kiro\\bin;C:\\Users\\mmeadow\\AppData\\Roaming\\Composer\\vendor\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Antigravity\\bin;C:\\Program Files\\cursor\\resources\\app\\bin;C:\\Program Files\\PowerShell\\7\\;C:\\Users\\mmeadow\\.cargo\\bin;C:\\Users\\mmeadow\\AppData\\Local\\pnpm;C:\\Users\\mmeadow\\.local\\bin;C:\\Users\\mmeadow\\.elan\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\;C:\\Users\\mmeadow\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\mmeadow\\AppData\\Local\\nvm;C:\\nvm4w\\nodejs;C:\\Users\\mmeadow\\AppData\\Roaming\\npm;C:\\Users\\mmeadow\\.dotnet\\tools;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Kiro\\bin;C:\\Users\\mmeadow\\AppData\\Roaming\\Composer\\vendor\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Antigravity\\bin;C:\\Users\\mmeadow\\Documents\\locallyhostassetsbackup\\classes\\vendor\\bin;C:\\Users\\mmeadow\\.bun\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe;",
+  "PATHEXT": ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC",
+  "PNPM_HOME": "C:\\Users\\mmeadow\\AppData\\Local\\pnpm",
+  "POWERSHELL_DISTRIBUTION_CHANNEL": "MSI:Windows 10 Pro",
+  "POWERSHELL_TELEMETRY_OPTOUT": "1",
+  "PROCESSOR_ARCHITECTURE": "AMD64",
+  "PROCESSOR_IDENTIFIER": "Intel64 Family 6 Model 151 Stepping 2, GenuineIntel",
+  "PROCESSOR_LEVEL": "6",
+  "PROCESSOR_REVISION": "9702",
+  "ProgramData": "C:\\ProgramData",
+  "ProgramFiles": "C:\\Program Files",
+  "ProgramFiles(x86)": "C:\\Program Files (x86)",
+  "ProgramW6432": "C:\\Program Files",
+  "PSModulePath": "C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules;C:\\Program Files\\Intel\\Wired Networking\\",
+  "PUBLIC": "C:\\Users\\Public",
+  "SESSIONNAME": "Console",
+  "SystemDrive": "C:",
+  "SystemRoot": "C:\\WINDOWS",
+  "TEMP": "C:\\Users\\mmeadow\\AppData\\Local\\Temp",
+  "TMP": "C:\\Users\\mmeadow\\AppData\\Local\\Temp",
+  "USERDOMAIN": "DESKTOP-13SIOB5",
+  "USERDOMAIN_ROAMINGPROFILE": "DESKTOP-13SIOB5",
+  "USERNAME": "mmeadow",
+  "USERPROFILE": "C:\\Users\\mmeadow",
+  "windir": "C:\\WINDOWS",
+  "__COMPAT_LAYER": "DetectorsAppHealth"
+}
+[2026-02-01T21:48:48.651Z] [TextToTreeServer] Starting Voicetree server on port 8001...
+[2026-02-01T21:48:48.651Z] [TextToTreeServer] Command: C:\Users\mmeadow\AppData\Local\Programs\voicetree-webapp\resources\server\voicetree-server.exe
+[2026-02-01T21:48:48.651Z] [TextToTreeServer] Args: 8001
+[2026-02-01T21:48:48.651Z] [TextToTreeServer] Working directory: C:\Users\mmeadow\AppData\Local\Programs\voicetree-webapp
+[2026-02-01T21:48:48.652Z] [TextToTreeServer] Server file exists, size: 35427680 bytes
+[2026-02-01T21:48:48.765Z] [TextToTreeServer] Started with PID: 20416
+[2026-02-01T21:48:50.797Z] [TextToTreeServer] Health check failed: 
+[2026-02-01T21:49:09.968Z] [Server stderr] server.py:194: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+[2026-02-01T21:49:10.275Z] [Server stderr] INFO:     Started server process [20416]
+INFO:     Waiting for application startup.
+[2026-02-01T21:49:10.276Z] [Server stderr] 2026-02-01 13:49:10,276 - root - INFO - Voicetree server started with background processing
+[2026-02-01T21:49:10.276Z] [Server stderr] 2026-02-01 13:49:10,276 - root - INFO - Starting buffer processing loop...
+[2026-02-01T21:49:10.277Z] [Server stderr] 2026-02-01 13:49:10,277 - root - ERROR - Skipping buffer processing - no directory loaded yet
+INFO:     Application startup complete.
+[2026-02-01T21:49:10.278Z] [Server stderr] INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+[2026-02-01T21:49:15.285Z] [Server stderr] 2026-02-01 13:49:15,285 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:49:20.296Z] [Server stderr] 2026-02-01 13:49:20,296 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:49:25.299Z] [Server stderr] 2026-02-01 13:49:25,298 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:49:30.305Z] [Server stderr] 2026-02-01 13:49:30,305 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:49:35.321Z] [Server stderr] 2026-02-01 13:49:35,322 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:49:40.324Z] [Server stderr] 2026-02-01 13:49:40,324 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:49:45.333Z] [Server stderr] 2026-02-01 13:49:45,333 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:49:50.338Z] [Server stderr] 2026-02-01 13:49:50,338 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:49:55.339Z] [Server stderr] 2026-02-01 13:49:55,339 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:50:00.343Z] [Server stderr] 2026-02-01 13:50:00,343 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:50:05.352Z] [Server stderr] 2026-02-01 13:50:05,352 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:50:10.355Z] [Server stderr] 2026-02-01 13:50:10,355 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:50:15.366Z] [Server stderr] 2026-02-01 13:50:15,366 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:50:20.376Z] [Server stderr] 2026-02-01 13:50:20,376 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:50:25.386Z] [Server stderr] 2026-02-01 13:50:25,385 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:50:30.392Z] [Server stderr] 2026-02-01 13:50:30,392 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:50:35.395Z] [Server stderr] 2026-02-01 13:50:35,395 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:50:40.410Z] [Server stderr] 2026-02-01 13:50:40,410 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:50:45.419Z] [Server stderr] 2026-02-01 13:50:45,419 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:50:50.426Z] [Server stderr] 2026-02-01 13:50:50,426 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:50:55.439Z] [Server stderr] 2026-02-01 13:50:55,439 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:51:00.446Z] [Server stderr] 2026-02-01 13:51:00,446 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:51:05.462Z] [Server stderr] 2026-02-01 13:51:05,462 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:51:10.464Z] [Server stderr] 2026-02-01 13:51:10,464 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:51:15.474Z] [Server stderr] 2026-02-01 13:51:15,474 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:51:20.477Z] [Server stderr] 2026-02-01 13:51:20,477 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:51:25.482Z] [Server stderr] 2026-02-01 13:51:25,482 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:51:30.488Z] [Server stderr] 2026-02-01 13:51:30,488 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:51:35.495Z] [Server stderr] 2026-02-01 13:51:35,495 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:51:40.513Z] [Server stderr] 2026-02-01 13:51:40,513 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:51:45.528Z] [Server stderr] 2026-02-01 13:51:45,528 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:51:50.533Z] [Server stderr] 2026-02-01 13:51:50,533 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:51:55.550Z] [Server stderr] 2026-02-01 13:51:55,550 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:52:00.553Z] [Server stderr] 2026-02-01 13:52:00,553 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:52:05.555Z] [Server stderr] 2026-02-01 13:52:05,555 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:52:10.571Z] [Server stderr] 2026-02-01 13:52:10,571 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:52:15.587Z] [Server stderr] 2026-02-01 13:52:15,588 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:52:20.625Z] [Server stderr] 2026-02-01 13:52:20,626 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:52:25.685Z] [Server stderr] 2026-02-01 13:52:25,685 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:52:30.725Z] [Server stderr] 2026-02-01 13:52:30,726 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:52:35.784Z] [Server stderr] 2026-02-01 13:52:35,785 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:52:40.851Z] [Server stderr] 2026-02-01 13:52:40,851 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:52:46.038Z] [Server stderr] 2026-02-01 13:52:46,038 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:52:51.093Z] [Server stderr] 2026-02-01 13:52:51,093 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:52:56.118Z] [Server stderr] 2026-02-01 13:52:56,118 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:53:01.211Z] [Server stderr] 2026-02-01 13:53:01,211 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:53:06.270Z] [Server stderr] 2026-02-01 13:53:06,270 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:53:11.301Z] [Server stderr] 2026-02-01 13:53:11,301 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:53:16.304Z] [Server stderr] 2026-02-01 13:53:16,304 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:53:21.326Z] [Server stderr] 2026-02-01 13:53:21,325 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:53:26.367Z] [Server stderr] 2026-02-01 13:53:26,367 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:53:31.388Z] [Server stderr] 2026-02-01 13:53:31,388 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:53:36.393Z] [Server stderr] 2026-02-01 13:53:36,393 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:53:41.416Z] [Server stderr] 2026-02-01 13:53:41,416 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:53:46.433Z] [Server stderr] 2026-02-01 13:53:46,432 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:53:51.463Z] [Server stderr] 2026-02-01 13:53:51,464 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:53:56.488Z] [Server stderr] 2026-02-01 13:53:56,488 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:54:01.521Z] [Server stderr] 2026-02-01 13:54:01,521 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:54:06.525Z] [Server stderr] 2026-02-01 13:54:06,525 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:54:11.547Z] [Server stderr] 2026-02-01 13:54:11,547 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:54:16.568Z] [Server stderr] 2026-02-01 13:54:16,568 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:54:21.600Z] [Server stderr] 2026-02-01 13:54:21,600 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:54:26.614Z] [Server stderr] 2026-02-01 13:54:26,614 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:54:31.633Z] [Server stderr] 2026-02-01 13:54:31,634 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:54:36.640Z] [Server stderr] 2026-02-01 13:54:36,640 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:54:41.671Z] [Server stderr] 2026-02-01 13:54:41,671 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:54:46.694Z] [Server stderr] 2026-02-01 13:54:46,694 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:54:51.702Z] [Server stderr] 2026-02-01 13:54:51,703 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:54:56.712Z] [Server stderr] 2026-02-01 13:54:56,712 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:55:01.735Z] [Server stderr] 2026-02-01 13:55:01,735 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:55:06.743Z] [Server stderr] 2026-02-01 13:55:06,743 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:55:11.749Z] [Server stderr] 2026-02-01 13:55:11,750 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:55:16.764Z] [Server stderr] 2026-02-01 13:55:16,764 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:55:21.766Z] [Server stderr] 2026-02-01 13:55:21,766 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:55:26.781Z] [Server stderr] 2026-02-01 13:55:26,781 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:55:31.796Z] [Server stderr] 2026-02-01 13:55:31,796 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:55:36.812Z] [Server stderr] 2026-02-01 13:55:36,812 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:55:41.846Z] [Server stderr] 2026-02-01 13:55:41,846 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:55:46.855Z] [Server stderr] 2026-02-01 13:55:46,855 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:55:51.898Z] [Server stderr] 2026-02-01 13:55:51,898 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:55:56.919Z] [Server stderr] 2026-02-01 13:55:56,919 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:56:01.988Z] [Server stderr] 2026-02-01 13:56:01,988 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:56:07.016Z] [Server stderr] 2026-02-01 13:56:07,016 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:56:12.038Z] [Server stderr] 2026-02-01 13:56:12,038 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:56:17.092Z] [Server stderr] 2026-02-01 13:56:17,092 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:56:22.107Z] [Server stderr] 2026-02-01 13:56:22,107 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-01T21:56:26.976Z] [Server stderr] 2026-02-01 13:56:26,976 - root - INFO - [REQUEST] 127.0.0.1 - POST /load-directory
+[2026-02-01T21:56:26.978Z] [Server stderr] 2026-02-01 13:56:26,977 - root - INFO - POST /load-directory parameters: {'directory_path': 'C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\voicetree-1-2'}
+2026-02-01 13:56:26,977 - root - INFO - Loading markdown tree from directory: C:\Users\mmeadow\Documents\OpenEvolve\Frontend\voicetree-1-2
+[2026-02-01T21:56:26.982Z] [Server stderr] 2026-02-01 13:56:26,982 - root - WARNING - Could not parse file sun\1769982986958nIF.md
+[2026-02-01T21:56:29.626Z] [Server stderr] 2026-02-01 13:56:29,626 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Initialized ChromaDB with persistence at C:\Users\mmeadow\Documents\OpenEvolve\Frontend\voicetree-1-2\chromadb_data
+2026-02-01 13:56:29,626 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Configured Chroma DefaultEmbeddingFunction (ONNX MiniLM local embeddings)
+[2026-02-01T21:56:29.661Z] [Server stderr] 2026-02-01 13:56:29,661 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Created new collection: voicetree_nodes
+[2026-02-01T21:56:29.666Z] [Server stderr] 2026-02-01 13:56:29,666 - backend.markdown_tree_manager.embeddings.embedding_manager - INFO - EmbeddingManager initialized with 0 nodes with ChromaDB at C:\Users\mmeadow\Documents\OpenEvolve\Frontend\voicetree-1-2\chromadb_data
+[2026-02-01T21:56:29.666Z] [Server stderr] 2026-02-01 13:56:29,666 - root - INFO - Real embeddings initialized
+[2026-02-01T21:56:30.301Z] [Server stderr] 2026-02-01 13:56:30,301 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Added/updated 4 nodes to ChromaDB
+2026-02-01 13:56:30,301 - backend.markdown_tree_manager.embeddings.embedding_manager - INFO - Added 4 missing nodes to embeddings: {1, 2, 3, 4}
+[2026-02-01T21:56:30.303Z] [Server stderr] 2026-02-01 13:56:30,302 - root - INFO - Successfully loaded directory C:\Users\mmeadow\Documents\OpenEvolve\Frontend\voicetree-1-2 with 4 nodes
+[2026-02-01T21:56:30.303Z] [Server stderr] 2026-02-01 13:56:30,303 - root - INFO - [RESPONSE] /load-directory completed in 3.327s with status 200
+[2026-02-01T21:56:30.303Z] [Server stdout] Voicetree server started - background processing loop is running
+INFO:     127.0.0.1:49294 - "POST /load-directory HTTP/1.1" 200 OK
+[2026-02-01T21:56:30.310Z] [Server stderr] 2026-02-01 13:56:30,304 - root - INFO - [REQUEST] 127.0.0.1 - GET /stream-progress
+2026-02-01 13:56:30,304 - root - INFO - [RESPONSE] /stream-progress completed in 0.001s with status 200
+[2026-02-01T21:56:30.310Z] [Server stdout] INFO:     127.0.0.1:49297 - "GET /stream-progress HTTP/1.1" 200 OK
+[2026-02-01T23:45:09.642Z] === Voicetree Server Startup ===
+[2026-02-01T23:45:09.644Z] [TextToTreeServer] Found available port: 8001
+[2026-02-01T23:45:09.644Z] App launched from: C:\Users\mmeadow\AppData\Local\Programs\voicetree-webapp\Voicetree.exe
+[2026-02-01T23:45:09.644Z] App packaged: true
+[2026-02-01T23:45:09.644Z] Process CWD: C:\Users\mmeadow\AppData\Local\Programs\voicetree-webapp
+[2026-02-01T23:45:09.644Z] Process Platform: win32
+[2026-02-01T23:45:09.644Z] Node version: v22.19.0
+[2026-02-01T23:45:09.644Z] Electron version: 38.1.2
+[2026-02-01T23:45:09.644Z] --- Environment Variables ---
+[2026-02-01T23:45:09.644Z] PATH: C:\Program Files (x86)\Razer\ChromaBroadcast\bin;C:\Program Files\Razer\ChromaBroadcast\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft VS Code\bin;C:\Program Files\dotnet\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\Gpg4win\..\GnuPG\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Users\mmeadow\AppData\Local\nvm;C:\nvm4w\nodejs;C:\Program Files\nodejs\;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\php84;C:\ProgramData\ComposerSetup\bin;C:\Program Files\Docker\Docker\resources\bin;C:\WINDOWS\system32\config\systemprofile\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Razer Chroma SDK\bin;C:\Program Files\Razer Chroma SDK\bin;C:\Users\mmeadow\.local\bin;C:\Users\mmeadow\.elan\bin;C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\;C:\Users\mmeadow\AppData\Local\Microsoft\WindowsApps;C:\Users\mmeadow\AppData\Roaming\npm;C:\Users\mmeadow\.dotnet\tools;C:\Users\mmeadow\AppData\Local\Programs\Kiro\bin;C:\Users\mmeadow\AppData\Roaming\Composer\vendor\bin;C:\Users\mmeadow\AppData\Local\Programs\Antigravity\bin;C:\Program Files\cursor\resources\app\bin;C:\Program Files\PowerShell\7\;C:\Users\mmeadow\.cargo\bin;C:\Users\mmeadow\AppData\Local\pnpm;C:\Users\mmeadow\.local\bin;C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\;C:\Users\mmeadow\AppData\Local\Microsoft\WindowsApps;C:\Users\mmeadow\AppData\Local\nvm;C:\nvm4w\nodejs;C:\Users\mmeadow\AppData\Roaming\npm;C:\Users\mmeadow\.dotnet\tools;C:\Users\mmeadow\AppData\Local\Programs\Kiro\bin;C:\Users\mmeadow\AppData\Roaming\Composer\vendor\bin;C:\Users\mmeadow\AppData\Local\Programs\Antigravity\bin;C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\vendor\bin;C:\Users\mmeadow\.bun\bin;C:\Users\mmeadow\AppData\Local\Microsoft\WinGet\Packages\Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe;
+[2026-02-01T23:45:09.644Z] HOME: UNDEFINED
+[2026-02-01T23:45:09.644Z] USER: UNDEFINED
+[2026-02-01T23:45:09.644Z] SHELL: UNDEFINED
+[2026-02-01T23:45:09.644Z] PYTHONPATH: NOT SET
+[2026-02-01T23:45:09.644Z] PYTHONHOME: NOT SET
+[2026-02-01T23:45:09.644Z] Total env vars count: 54
+Full environment:
+{
+  "ALLUSERSPROFILE": "C:\\ProgramData",
+  "APPDATA": "C:\\Users\\mmeadow\\AppData\\Roaming",
+  "arbor": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\arbor\\arbor-windows-x64.exe",
+  "asl.log": "Destination=file",
+  "ChocolateyInstall": "C:\\ProgramData\\chocolatey",
+  "ChocolateyLastPathUpdate": "134065458086438240",
+  "ChocolateyToolsLocation": "C:\\tools",
+  "CommonProgramFiles": "C:\\Program Files\\Common Files",
+  "CommonProgramFiles(x86)": "C:\\Program Files (x86)\\Common Files",
+  "CommonProgramW6432": "C:\\Program Files\\Common Files",
+  "COMPUTERNAME": "DESKTOP-13SIOB5",
+  "ComSpec": "C:\\WINDOWS\\system32\\cmd.exe",
+  "DriverData": "C:\\Windows\\System32\\Drivers\\DriverData",
+  "EFC_11448_1262719628": "1",
+  "EFC_11448_2283032206": "1",
+  "EFC_11448_2775293581": "1",
+  "EFC_11448_3789132940": "1",
+  "elan": "C:\\Users\\mmeadow\\.elan\\bin",
+  "FPS_BROWSER_APP_PROFILE_STRING": "Internet Explorer",
+  "FPS_BROWSER_USER_PROFILE_STRING": "Default",
+  "HOMEDRIVE": "C:",
+  "HOMEPATH": "\\Users\\mmeadow",
+  "JD2_HOME": "C:\\Users\\mmeadow\\AppData\\Local\\JDownloader 2.0",
+  "LOCALAPPDATA": "C:\\Users\\mmeadow\\AppData\\Local",
+  "LOGONSERVER": "\\\\DESKTOP-13SIOB5",
+  "NUMBER_OF_PROCESSORS": "20",
+  "OneDrive": "C:\\Users\\mmeadow\\OneDrive",
+  "ORIGINAL_XDG_CURRENT_DESKTOP": "undefined",
+  "OS": "Windows_NT",
+  "Path": "C:\\Program Files (x86)\\Razer\\ChromaBroadcast\\bin;C:\\Program Files\\Razer\\ChromaBroadcast\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Program Files\\dotnet\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\Gpg4win\\..\\GnuPG\\bin;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\mmeadow\\AppData\\Local\\nvm;C:\\nvm4w\\nodejs;C:\\Program Files\\nodejs\\;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\Git\\cmd;C:\\tools\\php84;C:\\ProgramData\\ComposerSetup\\bin;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\WINDOWS\\system32\\config\\systemprofile\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Program Files (x86)\\Razer Chroma SDK\\bin;C:\\Program Files\\Razer Chroma SDK\\bin;C:\\Users\\mmeadow\\.local\\bin;C:\\Users\\mmeadow\\.elan\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\;C:\\Users\\mmeadow\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\mmeadow\\AppData\\Roaming\\npm;C:\\Users\\mmeadow\\.dotnet\\tools;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Kiro\\bin;C:\\Users\\mmeadow\\AppData\\Roaming\\Composer\\vendor\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Antigravity\\bin;C:\\Program Files\\cursor\\resources\\app\\bin;C:\\Program Files\\PowerShell\\7\\;C:\\Users\\mmeadow\\.cargo\\bin;C:\\Users\\mmeadow\\AppData\\Local\\pnpm;C:\\Users\\mmeadow\\.local\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\;C:\\Users\\mmeadow\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\mmeadow\\AppData\\Local\\nvm;C:\\nvm4w\\nodejs;C:\\Users\\mmeadow\\AppData\\Roaming\\npm;C:\\Users\\mmeadow\\.dotnet\\tools;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Kiro\\bin;C:\\Users\\mmeadow\\AppData\\Roaming\\Composer\\vendor\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Antigravity\\bin;C:\\Users\\mmeadow\\Documents\\locallyhostassetsbackup\\classes\\vendor\\bin;C:\\Users\\mmeadow\\.bun\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe;",
+  "PATHEXT": ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC",
+  "PNPM_HOME": "C:\\Users\\mmeadow\\AppData\\Local\\pnpm",
+  "POWERSHELL_DISTRIBUTION_CHANNEL": "MSI:Windows 10 Pro",
+  "POWERSHELL_TELEMETRY_OPTOUT": "1",
+  "PROCESSOR_ARCHITECTURE": "AMD64",
+  "PROCESSOR_IDENTIFIER": "Intel64 Family 6 Model 151 Stepping 2, GenuineIntel",
+  "PROCESSOR_LEVEL": "6",
+  "PROCESSOR_REVISION": "9702",
+  "ProgramData": "C:\\ProgramData",
+  "ProgramFiles": "C:\\Program Files",
+  "ProgramFiles(x86)": "C:\\Program Files (x86)",
+  "ProgramW6432": "C:\\Program Files",
+  "PSModulePath": "C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules;C:\\Program Files\\Intel\\Wired Networking\\",
+  "PUBLIC": "C:\\Users\\Public",
+  "SESSIONNAME": "Console",
+  "SystemDrive": "C:",
+  "SystemRoot": "C:\\WINDOWS",
+  "TEMP": "C:\\Users\\mmeadow\\AppData\\Local\\Temp",
+  "TMP": "C:\\Users\\mmeadow\\AppData\\Local\\Temp",
+  "USERDOMAIN": "DESKTOP-13SIOB5",
+  "USERDOMAIN_ROAMINGPROFILE": "DESKTOP-13SIOB5",
+  "USERNAME": "mmeadow",
+  "USERPROFILE": "C:\\Users\\mmeadow",
+  "windir": "C:\\WINDOWS"
+}
+[2026-02-01T23:45:09.644Z] [TextToTreeServer] Starting Voicetree server on port 8001...
+[2026-02-01T23:45:09.644Z] [TextToTreeServer] Command: C:\Users\mmeadow\AppData\Local\Programs\voicetree-webapp\resources\server\voicetree-server.exe
+[2026-02-01T23:45:09.644Z] [TextToTreeServer] Args: 8001
+[2026-02-01T23:45:09.644Z] [TextToTreeServer] Working directory: C:\Users\mmeadow\AppData\Local\Programs\voicetree-webapp
+[2026-02-01T23:45:09.645Z] [TextToTreeServer] Server file exists, size: 35427680 bytes
+[2026-02-01T23:45:10.799Z] [TextToTreeServer] Started with PID: 12256
+[2026-02-01T23:45:12.811Z] [TextToTreeServer] Health check failed: 
+[2026-02-01T23:45:18.422Z] [Server stderr] server.py:194: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+[2026-02-01T23:45:18.566Z] [Server stderr] INFO:     Started server process [12256]
+INFO:     Waiting for application startup.
+[2026-02-01T23:45:18.567Z] [Server stderr] 2026-02-01 15:45:18,567 - root - INFO - Voicetree server started with background processing
+[2026-02-01T23:45:18.567Z] [Server stderr] 2026-02-01 15:45:18,567 - root - INFO - Starting buffer processing loop...
+[2026-02-01T23:45:18.567Z] [Server stderr] 2026-02-01 15:45:18,568 - root - ERROR - Skipping buffer processing - no directory loaded yet
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+[2026-02-01T23:45:23.068Z] [Server stderr] 2026-02-01 15:45:23,068 - root - INFO - [REQUEST] 127.0.0.1 - POST /load-directory
+[2026-02-01T23:45:23.070Z] [Server stderr] 2026-02-01 15:45:23,070 - root - INFO - POST /load-directory parameters: {'directory_path': 'C:/Users/mmeadow/Documents/OpenEvolve/Frontend/voicetree-1-2'}
+2026-02-01 15:45:23,070 - root - INFO - Loading markdown tree from directory: C:/Users/mmeadow/Documents/OpenEvolve/Frontend/voicetree-1-2
+[2026-02-01T23:45:24.614Z] [Server stderr] 2026-02-01 15:45:24,614 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Initialized ChromaDB with persistence at C:\Users\mmeadow\Documents\OpenEvolve\Frontend\voicetree-1-2\chromadb_data
+2026-02-01 15:45:24,614 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Configured Chroma DefaultEmbeddingFunction (ONNX MiniLM local embeddings)
+[2026-02-01T23:45:24.621Z] [Server stderr] 2026-02-01 15:45:24,622 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Using existing collection: voicetree_nodes
+[2026-02-01T23:45:24.635Z] [Server stderr] 2026-02-01 15:45:24,635 - backend.markdown_tree_manager.embeddings.embedding_manager - INFO - EmbeddingManager initialized with 4 nodes with ChromaDB at C:\Users\mmeadow\Documents\OpenEvolve\Frontend\voicetree-1-2\chromadb_data
+2026-02-01 15:45:24,636 - root - INFO - Real embeddings initialized
+[2026-02-01T23:45:25.171Z] [Server stderr] 2026-02-01 15:45:25,172 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Added/updated 1 nodes to ChromaDB
+[2026-02-01T23:45:25.172Z] [Server stderr] 2026-02-01 15:45:25,172 - backend.markdown_tree_manager.embeddings.embedding_manager - INFO - Added 1 missing nodes to embeddings: {5}
+[2026-02-01T23:45:25.172Z] [Server stderr] 2026-02-01 15:45:25,173 - root - INFO - Successfully loaded directory C:/Users/mmeadow/Documents/OpenEvolve/Frontend/voicetree-1-2 with 5 nodes
+[2026-02-01T23:45:25.173Z] [Server stderr] 2026-02-01 15:45:25,174 - root - INFO - [RESPONSE] /load-directory completed in 2.106s with status 200
+[2026-02-01T23:45:25.173Z] [Server stdout] Voicetree server started - background processing loop is running
+INFO:     127.0.0.1:51294 - "POST /load-directory HTTP/1.1" 200 OK
+[2026-02-01T23:45:25.179Z] [Server stderr] 2026-02-01 15:45:25,174 - root - INFO - [REQUEST] 127.0.0.1 - GET /stream-progress
+2026-02-01 15:45:25,175 - root - INFO - [RESPONSE] /stream-progress completed in 0.001s with status 200
+[2026-02-01T23:45:25.179Z] [Server stdout] INFO:     127.0.0.1:51296 - "GET /stream-progress HTTP/1.1" 200 OK
+[2026-02-02T00:07:08.312Z] [Server stderr] 2026-02-01 16:07:08,309 - root - INFO - [REQUEST] 127.0.0.1 - POST /load-directory
+2026-02-01 16:07:08,310 - root - INFO - POST /load-directory parameters: {'directory_path': 'C:/Users/mmeadow/Documents/OpenEvolve/Frontend/voicetree-1-2'}
+2026-02-01 16:07:08,310 - root - INFO - Loading markdown tree from directory: C:/Users/mmeadow/Documents/OpenEvolve/Frontend/voicetree-1-2
+[2026-02-02T00:07:08.339Z] [Server stderr] 2026-02-01 16:07:08,340 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Initialized ChromaDB with persistence at C:\Users\mmeadow\Documents\OpenEvolve\Frontend\voicetree-1-2\chromadb_data
+[2026-02-02T00:07:08.339Z] [Server stderr] 2026-02-01 16:07:08,340 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Configured Chroma DefaultEmbeddingFunction (ONNX MiniLM local embeddings)
+[2026-02-02T00:07:08.340Z] [Server stderr] 2026-02-01 16:07:08,341 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Using existing collection: voicetree_nodes
+[2026-02-02T00:07:08.341Z] [Server stderr] 2026-02-01 16:07:08,341 - backend.markdown_tree_manager.embeddings.embedding_manager - INFO - EmbeddingManager initialized with 5 nodes with ChromaDB at C:\Users\mmeadow\Documents\OpenEvolve\Frontend\voicetree-1-2\chromadb_data
+[2026-02-02T00:07:08.341Z] [Server stderr] 2026-02-01 16:07:08,342 - root - INFO - Real embeddings initialized
+[2026-02-02T00:07:08.542Z] [Server stderr] 2026-02-01 16:07:08,542 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Added/updated 1 nodes to ChromaDB
+2026-02-01 16:07:08,542 - backend.markdown_tree_manager.embeddings.embedding_manager - INFO - Added 1 missing nodes to embeddings: {6}
+[2026-02-02T00:07:08.542Z] [Server stderr] 2026-02-01 16:07:08,543 - root - INFO - Successfully loaded directory C:/Users/mmeadow/Documents/OpenEvolve/Frontend/voicetree-1-2 with 6 nodes
+[2026-02-02T00:07:08.542Z] [Server stderr] 2026-02-01 16:07:08,543 - root - INFO - [RESPONSE] /load-directory completed in 0.234s with status 200
+[2026-02-02T00:07:08.542Z] [Server stdout] INFO:     127.0.0.1:65414 - "POST /load-directory HTTP/1.1" 200 OK
+[2026-02-02T00:13:17.377Z] === Voicetree Server Startup ===
+[2026-02-02T00:13:17.378Z] [TextToTreeServer] Found available port: 8001
+[2026-02-02T00:13:17.378Z] App launched from: C:\Users\mmeadow\AppData\Local\Programs\voicetree-webapp\Voicetree.exe
+[2026-02-02T00:13:17.378Z] App packaged: true
+[2026-02-02T00:13:17.378Z] Process CWD: C:\Users\mmeadow\AppData\Local\Programs\voicetree-webapp
+[2026-02-02T00:13:17.378Z] Process Platform: win32
+[2026-02-02T00:13:17.378Z] Node version: v22.19.0
+[2026-02-02T00:13:17.378Z] Electron version: 38.1.2
+[2026-02-02T00:13:17.378Z] --- Environment Variables ---
+[2026-02-02T00:13:17.378Z] PATH: C:\Program Files (x86)\Razer\ChromaBroadcast\bin;C:\Program Files\Razer\ChromaBroadcast\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Microsoft VS Code\bin;C:\Program Files\dotnet\;C:\Program Files\NVIDIA Corporation\NVIDIA App\NvDLISR;C:\Program Files (x86)\Gpg4win\..\GnuPG\bin;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\Users\mmeadow\AppData\Local\nvm;C:\nvm4w\nodejs;C:\Program Files\nodejs\;C:\ProgramData\chocolatey\bin;C:\Program Files\Git\cmd;C:\tools\php84;C:\ProgramData\ComposerSetup\bin;C:\Program Files\Docker\Docker\resources\bin;C:\WINDOWS\system32\config\systemprofile\AppData\Local\Microsoft\WindowsApps;C:\Program Files (x86)\Razer Chroma SDK\bin;C:\Program Files\Razer Chroma SDK\bin;C:\Users\mmeadow\.local\bin;C:\Users\mmeadow\.elan\bin;C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\;C:\Users\mmeadow\AppData\Local\Microsoft\WindowsApps;C:\Users\mmeadow\AppData\Roaming\npm;C:\Users\mmeadow\.dotnet\tools;C:\Users\mmeadow\AppData\Local\Programs\Kiro\bin;C:\Users\mmeadow\AppData\Roaming\Composer\vendor\bin;C:\Users\mmeadow\AppData\Local\Programs\Antigravity\bin;C:\Program Files\cursor\resources\app\bin;C:\Program Files\PowerShell\7\;C:\Users\mmeadow\.cargo\bin;C:\Users\mmeadow\AppData\Local\pnpm;C:\Users\mmeadow\.local\bin;C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\mmeadow\AppData\Local\Programs\Python\Python311\;C:\Users\mmeadow\AppData\Local\Microsoft\WindowsApps;C:\Users\mmeadow\AppData\Local\nvm;C:\nvm4w\nodejs;C:\Users\mmeadow\AppData\Roaming\npm;C:\Users\mmeadow\.dotnet\tools;C:\Users\mmeadow\AppData\Local\Programs\Kiro\bin;C:\Users\mmeadow\AppData\Roaming\Composer\vendor\bin;C:\Users\mmeadow\AppData\Local\Programs\Antigravity\bin;C:\Users\mmeadow\Documents\locallyhostassetsbackup\classes\vendor\bin;C:\Users\mmeadow\.bun\bin;C:\Users\mmeadow\AppData\Local\Microsoft\WinGet\Packages\Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe;
+[2026-02-02T00:13:17.378Z] HOME: UNDEFINED
+[2026-02-02T00:13:17.378Z] USER: UNDEFINED
+[2026-02-02T00:13:17.378Z] SHELL: UNDEFINED
+[2026-02-02T00:13:17.378Z] PYTHONPATH: NOT SET
+[2026-02-02T00:13:17.378Z] PYTHONHOME: NOT SET
+[2026-02-02T00:13:17.378Z] Total env vars count: 54
+Full environment:
+{
+  "ALLUSERSPROFILE": "C:\\ProgramData",
+  "APPDATA": "C:\\Users\\mmeadow\\AppData\\Roaming",
+  "arbor": "C:\\Users\\mmeadow\\Documents\\OpenEvolve\\Frontend\\arbor\\arbor-windows-x64.exe",
+  "asl.log": "Destination=file",
+  "ChocolateyInstall": "C:\\ProgramData\\chocolatey",
+  "ChocolateyLastPathUpdate": "134065458086438240",
+  "ChocolateyToolsLocation": "C:\\tools",
+  "CommonProgramFiles": "C:\\Program Files\\Common Files",
+  "CommonProgramFiles(x86)": "C:\\Program Files (x86)\\Common Files",
+  "CommonProgramW6432": "C:\\Program Files\\Common Files",
+  "COMPUTERNAME": "DESKTOP-13SIOB5",
+  "ComSpec": "C:\\WINDOWS\\system32\\cmd.exe",
+  "DriverData": "C:\\Windows\\System32\\Drivers\\DriverData",
+  "EFC_11448_1262719628": "1",
+  "EFC_11448_2283032206": "1",
+  "EFC_11448_2775293581": "1",
+  "EFC_11448_3789132940": "1",
+  "elan": "C:\\Users\\mmeadow\\.elan\\bin",
+  "FPS_BROWSER_APP_PROFILE_STRING": "Internet Explorer",
+  "FPS_BROWSER_USER_PROFILE_STRING": "Default",
+  "HOMEDRIVE": "C:",
+  "HOMEPATH": "\\Users\\mmeadow",
+  "JD2_HOME": "C:\\Users\\mmeadow\\AppData\\Local\\JDownloader 2.0",
+  "LOCALAPPDATA": "C:\\Users\\mmeadow\\AppData\\Local",
+  "LOGONSERVER": "\\\\DESKTOP-13SIOB5",
+  "NUMBER_OF_PROCESSORS": "20",
+  "OneDrive": "C:\\Users\\mmeadow\\OneDrive",
+  "ORIGINAL_XDG_CURRENT_DESKTOP": "undefined",
+  "OS": "Windows_NT",
+  "Path": "C:\\Program Files (x86)\\Razer\\ChromaBroadcast\\bin;C:\\Program Files\\Razer\\ChromaBroadcast\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\WINDOWS\\System32\\Wbem;C:\\WINDOWS\\System32\\WindowsPowerShell\\v1.0\\;C:\\WINDOWS\\System32\\OpenSSH\\;C:\\Program Files\\Microsoft VS Code\\bin;C:\\Program Files\\dotnet\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA App\\NvDLISR;C:\\Program Files (x86)\\Gpg4win\\..\\GnuPG\\bin;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\mmeadow\\AppData\\Local\\nvm;C:\\nvm4w\\nodejs;C:\\Program Files\\nodejs\\;C:\\ProgramData\\chocolatey\\bin;C:\\Program Files\\Git\\cmd;C:\\tools\\php84;C:\\ProgramData\\ComposerSetup\\bin;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\WINDOWS\\system32\\config\\systemprofile\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Program Files (x86)\\Razer Chroma SDK\\bin;C:\\Program Files\\Razer Chroma SDK\\bin;C:\\Users\\mmeadow\\.local\\bin;C:\\Users\\mmeadow\\.elan\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\;C:\\Users\\mmeadow\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\mmeadow\\AppData\\Roaming\\npm;C:\\Users\\mmeadow\\.dotnet\\tools;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Kiro\\bin;C:\\Users\\mmeadow\\AppData\\Roaming\\Composer\\vendor\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Antigravity\\bin;C:\\Program Files\\cursor\\resources\\app\\bin;C:\\Program Files\\PowerShell\\7\\;C:\\Users\\mmeadow\\.cargo\\bin;C:\\Users\\mmeadow\\AppData\\Local\\pnpm;C:\\Users\\mmeadow\\.local\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\Scripts\\;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Python\\Python311\\;C:\\Users\\mmeadow\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\mmeadow\\AppData\\Local\\nvm;C:\\nvm4w\\nodejs;C:\\Users\\mmeadow\\AppData\\Roaming\\npm;C:\\Users\\mmeadow\\.dotnet\\tools;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Kiro\\bin;C:\\Users\\mmeadow\\AppData\\Roaming\\Composer\\vendor\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Programs\\Antigravity\\bin;C:\\Users\\mmeadow\\Documents\\locallyhostassetsbackup\\classes\\vendor\\bin;C:\\Users\\mmeadow\\.bun\\bin;C:\\Users\\mmeadow\\AppData\\Local\\Microsoft\\WinGet\\Packages\\Anthropic.ClaudeCode_Microsoft.Winget.Source_8wekyb3d8bbwe;",
+  "PATHEXT": ".COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC",
+  "PNPM_HOME": "C:\\Users\\mmeadow\\AppData\\Local\\pnpm",
+  "POWERSHELL_DISTRIBUTION_CHANNEL": "MSI:Windows 10 Pro",
+  "POWERSHELL_TELEMETRY_OPTOUT": "1",
+  "PROCESSOR_ARCHITECTURE": "AMD64",
+  "PROCESSOR_IDENTIFIER": "Intel64 Family 6 Model 151 Stepping 2, GenuineIntel",
+  "PROCESSOR_LEVEL": "6",
+  "PROCESSOR_REVISION": "9702",
+  "ProgramData": "C:\\ProgramData",
+  "ProgramFiles": "C:\\Program Files",
+  "ProgramFiles(x86)": "C:\\Program Files (x86)",
+  "ProgramW6432": "C:\\Program Files",
+  "PSModulePath": "C:\\Program Files\\WindowsPowerShell\\Modules;C:\\WINDOWS\\system32\\WindowsPowerShell\\v1.0\\Modules;C:\\Program Files\\Intel\\Wired Networking\\",
+  "PUBLIC": "C:\\Users\\Public",
+  "SESSIONNAME": "Console",
+  "SystemDrive": "C:",
+  "SystemRoot": "C:\\WINDOWS",
+  "TEMP": "C:\\Users\\mmeadow\\AppData\\Local\\Temp",
+  "TMP": "C:\\Users\\mmeadow\\AppData\\Local\\Temp",
+  "USERDOMAIN": "DESKTOP-13SIOB5",
+  "USERDOMAIN_ROAMINGPROFILE": "DESKTOP-13SIOB5",
+  "USERNAME": "mmeadow",
+  "USERPROFILE": "C:\\Users\\mmeadow",
+  "windir": "C:\\WINDOWS"
+}
+[2026-02-02T00:13:17.378Z] [TextToTreeServer] Starting Voicetree server on port 8001...
+[2026-02-02T00:13:17.378Z] [TextToTreeServer] Command: C:\Users\mmeadow\AppData\Local\Programs\voicetree-webapp\resources\server\voicetree-server.exe
+[2026-02-02T00:13:17.378Z] [TextToTreeServer] Args: 8001
+[2026-02-02T00:13:17.378Z] [TextToTreeServer] Working directory: C:\Users\mmeadow\AppData\Local\Programs\voicetree-webapp
+[2026-02-02T00:13:17.379Z] [TextToTreeServer] Server file exists, size: 35427680 bytes
+[2026-02-02T00:13:17.779Z] [TextToTreeServer] Started with PID: 23292
+[2026-02-02T00:13:19.787Z] [TextToTreeServer] Health check failed: 
+[2026-02-02T00:13:29.078Z] [Server stderr] server.py:194: DeprecationWarning: 
+        on_event is deprecated, use lifespan event handlers instead.
+
+        Read more about it in the
+        [FastAPI docs for Lifespan Events](https://fastapi.tiangolo.com/advanced/events/).
+[2026-02-02T00:13:29.273Z] [Server stderr] INFO:     Started server process [23292]
+INFO:     Waiting for application startup.
+[2026-02-02T00:13:29.273Z] [Server stderr] 2026-02-01 16:13:29,273 - root - INFO - Voicetree server started with background processing
+[2026-02-02T00:13:29.274Z] [Server stderr] 2026-02-01 16:13:29,274 - root - INFO - Starting buffer processing loop...
+[2026-02-02T00:13:29.274Z] [Server stderr] 2026-02-01 16:13:29,274 - root - ERROR - Skipping buffer processing - no directory loaded yet
+INFO:     Application startup complete.
+[2026-02-02T00:13:29.274Z] [Server stderr] INFO:     Uvicorn running on http://127.0.0.1:8001 (Press CTRL+C to quit)
+[2026-02-02T00:13:34.289Z] [Server stderr] 2026-02-01 16:13:34,289 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-02T00:13:39.291Z] [Server stderr] 2026-02-01 16:13:39,291 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-02T00:13:44.303Z] [Server stderr] 2026-02-01 16:13:44,302 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-02T00:13:49.305Z] [Server stderr] 2026-02-01 16:13:49,305 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-02T00:13:54.320Z] [Server stderr] 2026-02-01 16:13:54,319 - root - ERROR - Skipping buffer processing - no directory loaded yet
+[2026-02-02T00:13:55.335Z] [Server stderr] 2026-02-01 16:13:55,335 - root - INFO - [REQUEST] 127.0.0.1 - POST /load-directory
+[2026-02-02T00:13:55.336Z] [Server stderr] 2026-02-01 16:13:55,336 - root - INFO - POST /load-directory parameters: {'directory_path': 'C:/Users/mmeadow/Documents/OpenEvolve/Frontend/voicetree-1-2'}
+2026-02-01 16:13:55,336 - root - INFO - Loading markdown tree from directory: C:/Users/mmeadow/Documents/OpenEvolve/Frontend/voicetree-1-2
+[2026-02-02T00:13:56.899Z] [Server stderr] 2026-02-01 16:13:56,899 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Initialized ChromaDB with persistence at C:\Users\mmeadow\Documents\OpenEvolve\Frontend\voicetree-1-2\chromadb_data
+[2026-02-02T00:13:56.899Z] [Server stderr] 2026-02-01 16:13:56,899 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Configured Chroma DefaultEmbeddingFunction (ONNX MiniLM local embeddings)
+[2026-02-02T00:13:56.902Z] [Server stderr] 2026-02-01 16:13:56,901 - backend.markdown_tree_manager.embeddings.chromadb_vector_store - INFO - Using existing collection: voicetree_nodes
+[2026-02-02T00:13:56.912Z] [Server stderr] 2026-02-01 16:13:56,912 - backend.markdown_tree_manager.embeddings.embedding_manager - INFO - EmbeddingManager initialized with 6 nodes with ChromaDB at C:\Users\mmeadow\Documents\OpenEvolve\Frontend\voicetree-1-2\chromadb_data
+2026-02-01 16:13:56,912 - root - INFO - Real embeddings initialized
+[2026-02-02T00:13:56.929Z] [Server stderr] 2026-02-01 16:13:56,929 - root - INFO - Successfully loaded directory C:/Users/mmeadow/Documents/OpenEvolve/Frontend/voicetree-1-2 with 6 nodes
+[2026-02-02T00:13:56.929Z] [Server stderr] 2026-02-01 16:13:56,929 - root - INFO - [RESPONSE] /load-directory completed in 1.594s with status 200
+[2026-02-02T00:13:56.930Z] [Server stdout] Voicetree server started - background processing loop is running
+INFO:     127.0.0.1:53649 - "POST /load-directory HTTP/1.1" 200 OK
+[2026-02-02T00:13:56.934Z] [Server stderr] 2026-02-01 16:13:56,930 - root - INFO - [REQUEST] 127.0.0.1 - GET /stream-progress
+2026-02-01 16:13:56,930 - root - INFO - [RESPONSE] /stream-progress completed in 0.001s with status 200
+[2026-02-02T00:13:56.934Z] [Server stdout] INFO:     127.0.0.1:53651 - "GET /stream-progress HTTP/1.1" 200 OK

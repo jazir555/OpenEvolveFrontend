@@ -262,8 +262,9 @@ class TestMemoryBackend:
             await memory_backend.add_knowledge(entry)
 
         # Search with source filter
+        # Use "Artificial" as query since "ai" is not a substring of "artificial"
         results = await memory_backend.search(
-            query="AI",
+            query="Artificial",
             filters={"source": "test_document_1"},
             limit=10
         )
@@ -345,7 +346,7 @@ class TestMemoryBackend:
         entry_id = await memory_backend.add_knowledge(sample_knowledge_entries[0])
 
         # Verify entry exists
-        results = await memory_backend.search(query="AI", limit=10)
+        results = await memory_backend.search(query="Artificial", limit=10)
         assert results.total_count > 0
 
         # Delete entry
@@ -396,12 +397,12 @@ class TestMemoryBackend:
         for entry in sample_knowledge_entries:
             await memory_backend.add_knowledge(entry)
 
-        # Get first page
-        page1 = await memory_backend.search(query="AI", limit=2, offset=0)
+        # Get first page (use 'learning' which matches 2 entries)
+        page1 = await memory_backend.search(query="learning", limit=2, offset=0)
         assert len(page1.results) <= 2
 
         # Get second page
-        page2 = await memory_backend.search(query="AI", limit=2, offset=2)
+        page2 = await memory_backend.search(query="learning", limit=2, offset=2)
         assert len(page2.results) <= 2
 
 
@@ -427,7 +428,7 @@ class TestMemgraphBackend:
         assert entry_id is not None
 
         # Search
-        results = await memgraph_backend.search(query="AI", limit=10)
+        results = await memgraph_backend.search(query="Artificial", limit=10)
         assert results.total_count > 0
         assert results.backend_used == "memgraph"
 
@@ -503,7 +504,7 @@ class TestPostgreSQLBackend:
         assert entry_id is not None
 
         # Full-text search
-        results = await postgresql_backend.search(query="AI", limit=10)
+        results = await postgresql_backend.search(query="Artificial", limit=10)
         assert results.backend_used == "postgresql"
 
     @pytest.mark.asyncio

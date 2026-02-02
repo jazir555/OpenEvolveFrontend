@@ -464,6 +464,9 @@ class OpenEvolveKnowledgeEngine:
     
     def _initialize_learning_components(self):
         """Initialize learning and adaptation components."""
+        # Always initialize basic learning memory first
+        self._initialize_basic_learning_components()
+        
         try:
             # Initialize adaptation engine if available
             if self.config.get("learning", {}).get("enable_adaptive_learning", True):
@@ -492,8 +495,7 @@ class OpenEvolveKnowledgeEngine:
                 "msg": "Learning components not available, using basic implementation",
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
-            # Initialize basic learning components
-            self._initialize_basic_learning_components()
+            # Basic learning components already initialized above
     
     def _initialize_basic_learning_components(self):
         """Initialize basic learning components when advanced ones aren't available."""
@@ -1150,7 +1152,8 @@ async def get_knowledge_engine(config: Optional[Dict[str, Any]] = None) -> OpenE
     
     if _openevolve_knowledge_engine is None:
         _openevolve_knowledge_engine = OpenEvolveKnowledgeEngine(config)
-        await _openevolve_knowledge_engine.orchestrator.initialize_components()  # Initialize if needed
+        # Components are initialized automatically during orchestrator construction
+        # No explicit initialization needed
     
     return _openevolve_knowledge_engine
 

@@ -1,7 +1,7 @@
 ---
 position:
-  x: 1626
-  y: -1253
+  x: 954
+  y: -1823
 isContextNode: false
 ---
 # Voicetree
@@ -13,7 +13,5 @@ isContextNode: false
 Optimise for seeing only the most relevant information at the necessary level of abstraction.
 
 ready? [[run_me.md]]
-
-The frontend directory is the parent directory to this directory
 
 explore the features [[hover_over_me.md]]

@@ -222,6 +222,27 @@ class IntegratedOrchestrator(SelfHealingOrchestrator):
             )
             self.circuit_breakers[component_type.value] = breaker
     
+    async def initialize_components(self) -> bool:
+        """
+        Initialize all components. Called after construction if needed.
+        
+        This is a compatibility method that ensures all components
+        are properly initialized. Since IntegratedOrchestrator
+        initializes components during __init__, this method
+        mainly serves as a hook for custom initialization logic.
+        
+        Returns:
+            True if initialization successful
+        """
+        # Components are initialized during __init__, but we provide
+        # this method for API compatibility and post-construction hooks
+        logger.info({
+            "msg": "IntegratedOrchestrator components initialized",
+            "component_count": len(self.components),
+            "timestamp": datetime.now(timezone.utc).isoformat()
+        })
+        return True
+    
     def process(self, input_data: Dict[str, Any],
                 custom_config: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """

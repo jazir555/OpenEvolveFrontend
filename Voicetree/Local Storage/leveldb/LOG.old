@@ -1,0 +1,6 @@
+2026/02/01-15:45:10.878 1a28 Reusing MANIFEST C:\Users\mmeadow\AppData\Roaming\Voicetree\Local Storage\leveldb/MANIFEST-000001
+2026/02/01-15:45:10.955 1a28 Recovering log #3
+2026/02/01-15:45:10.955 1a28 Reusing old log C:\Users\mmeadow\AppData\Roaming\Voicetree\Local Storage\leveldb/000003.log 
+2026/02/01-16:08:11.568 1294 Level-0 table #5: started
+2026/02/01-16:08:11.574 1294 Level-0 table #5: 19082 bytes OK
+2026/02/01-16:08:11.581 1294 Delete type=0 #3

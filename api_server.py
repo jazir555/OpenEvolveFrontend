@@ -5,9 +5,10 @@ This module provides a REST API for external systems to interact with the
 Decomposition Workflow system.
 """
 
-from fastapi import FastAPI, HTTPException, Depends, Header, status
+from fastapi import FastAPI, HTTPException, Depends, Header, status, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, validator
 from typing import List, Dict, Any, Optional
 from collections import deque
@@ -87,6 +88,10 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Initialize templates for dashboard
+templates = Jinja2Templates(directory="templates")
 
 
 # Global exception handler
@@ -1476,23 +1481,52 @@ def _decode_data_url(data_url: Optional[str]) -> Optional[bytes]:
         return None
 
 
-async def _analyze_heatmap_composite(data_url: Optional[str]) -> Optional[str]:
-    if not data_url:
-        return None
+async def _analyze_heatmap_composite(data_url: Optional[str]) -> Optional[Dict[str, Any]]:
+    """
+    Analyze a heatmap composite image using VLM (Vision Language Model).
+
+    This function provides UI interaction insights from heatmap composite images
+    using configurable VLM providers (OpenAI, Anthropic, etc.).
+
+    Args:
+        data_url: Base64-encoded data URL of the heatmap composite image
+
+    Returns:
+        Dictionary containing VLM analysis results, or None if analysis is disabled/unavailable.
+        Returns:
+        {
+            "summary": str,
+            "insights": List[str],
+            "friction_points": List[str],
+            "recommendations": List[str],
+            "confidence": float,
+            "provider": str,
+            "model": str
+        }
+    """
+    # Check if VLM analysis is enabled
     if os.getenv("ICR_VLM_ENABLED", "").lower() not in {"1", "true", "yes"}:
+        logger.debug("VLM analysis is disabled via ICR_VLM_ENABLED")
         return None
 
+    if not data_url:
+        logger.debug("No composite data URL provided for VLM analysis")
+        return None
+
+    # Decode the image
     image_bytes = _decode_data_url(data_url)
     if not image_bytes:
+        logger.warning("Failed to decode composite data URL for VLM analysis")
         return None
 
     try:
         from vision_language_monitor import VLMAnalyzer, VLMConfig, AnalysisType, VLMProvider
     except ImportError:
-        logger.warning("VisionLanguageMonitor not available; skipping VLM heatmap analysis.")
+        logger.warning("vision_language_monitor module not available; skipping VLM heatmap analysis")
         return None
 
-    provider_env = os.getenv("ICR_VLM_PROVIDER", "").lower()
+    # Load configuration from environment variables
+    provider_env = os.getenv("ICR_VLM_PROVIDER", "openai").lower()
     provider = VLMProvider.OPENAI
     if provider_env:
         for candidate in VLMProvider:
@@ -1503,18 +1537,41 @@ async def _analyze_heatmap_composite(data_url: Optional[str]) -> Optional[str]:
     model = os.getenv("ICR_VLM_MODEL", "gpt-4o")
     temperature = float(os.getenv("ICR_VLM_TEMPERATURE", "0.2"))
     max_tokens = int(os.getenv("ICR_VLM_MAX_TOKENS", "1024"))
+    api_key = os.getenv("ICR_VLM_API_KEY")
+    base_url = os.getenv("ICR_VLM_BASE_URL")
 
-    config = VLMConfig(provider=provider, model=model, temperature=temperature, max_tokens=max_tokens)
+    # Create VLM config
+    config = VLMConfig(
+        provider=provider,
+        model=model,
+        api_key=api_key,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        base_url=base_url
+    )
+
+    # Initialize analyzer
     analyzer = VLMAnalyzer(config)
 
+    # Check if VLM is properly configured
+    if not analyzer.is_configured():
+        logger.warning("VLM is not properly configured (missing API key). Skipping analysis.")
+        return None
+
+    # Build analysis prompt
     prompt = (
         "Analyze this UI snapshot with an interaction heatmap overlay.\n"
         "Identify cognitive friction points, confusing placements, and areas of repeated interaction.\n"
         "Provide concise, actionable UI refinement suggestions."
     )
 
-    analysis = await analyzer.analyze(image_bytes, prompt, AnalysisType.LAYOUT_ANALYSIS)
-    return analysis.summary or None
+    # Run analysis
+    try:
+        analysis = await analyzer.analyze(image_bytes, prompt, AnalysisType.LAYOUT_ANALYSIS)
+        return analysis.to_dict()
+    except Exception as e:
+        logger.error(f"VLM analysis failed: {e}")
+        return None
 
 
 # ICR Event Bridge Endpoints (optional, unauthenticated for local UI polling)
@@ -1582,6 +1639,15 @@ async def icr_heatmap_snapshot(snapshot: IcrHeatmapSnapshot):
         
     Returns:
         Success response with snapshot_id and optional analysis results
+        
+    Environment Variables for VLM:
+        - ICR_VLM_ENABLED: Enable/disable VLM analysis (default: false)
+        - ICR_VLM_PROVIDER: VLM provider - openai, anthropic, mock (default: openai)
+        - ICR_VLM_MODEL: Model name (default: gpt-4o for OpenAI, claude-3-5-sonnet-20241022 for Anthropic)
+        - ICR_VLM_API_KEY: API key for the VLM provider (optional if using provider's default env var)
+        - ICR_VLM_TEMPERATURE: Temperature for VLM (default: 0.2)
+        - ICR_VLM_MAX_TOKENS: Max tokens for VLM response (default: 1024)
+        - ICR_VLM_BASE_URL: Custom base URL for VLM API (optional)
     """
     payload = snapshot.model_dump()
     if not payload.get("snapshot_id"):
@@ -1592,7 +1658,7 @@ async def icr_heatmap_snapshot(snapshot: IcrHeatmapSnapshot):
     ICR_HEATMAP_SNAPSHOTS.append(payload)
 
     analysis = None
-    vision_summary = None
+    vlm_analysis = None
 
     # Generate multimodal healing prompt if analytics_manager is available
     try:
@@ -1611,9 +1677,9 @@ async def icr_heatmap_snapshot(snapshot: IcrHeatmapSnapshot):
 
     # Run VLM analysis if enabled and composite data is available
     try:
-        vision_summary = await _analyze_heatmap_composite(payload.get("composite_data_url"))
-        if vision_summary and analysis is not None:
-            analysis["vision_summary"] = vision_summary
+        vlm_analysis = await _analyze_heatmap_composite(payload.get("composite_data_url"))
+        if vlm_analysis and analysis is not None:
+            analysis["vlm_analysis"] = vlm_analysis
     except Exception as exc:
         logger.warning("Failed to run VLM heatmap analysis: %s", exc)
 
@@ -1621,8 +1687,417 @@ async def icr_heatmap_snapshot(snapshot: IcrHeatmapSnapshot):
         "queued": True,
         "snapshot_id": payload["snapshot_id"],
         "analysis": analysis,
-        "vision_summary": vision_summary,
+        "vlm_analysis": vlm_analysis,
     }
+
+
+@app.get("/icr/vlm/config")
+def icr_vlm_config():
+    """
+    Get VLM configuration status.
+    
+    Returns current VLM configuration and whether it's properly set up.
+    Useful for debugging and checking if VLM analysis is available.
+    
+    Returns:
+        Dictionary with VLM configuration information
+    """
+    try:
+        from vision_language_monitor import VLMAnalyzer, VLMConfig
+    except ImportError:
+        return {
+            "available": False,
+            "error": "vision_language_monitor module not available",
+            "message": "VLM analysis is not available"
+        }
+
+    config = VLMAnalyzer._load_config_from_env()
+    analyzer = VLMAnalyzer(config)
+    
+    return {
+        "available": True,
+        "enabled": os.getenv("ICR_VLM_ENABLED", "").lower() in {"1", "true", "yes"},
+        "configured": analyzer.is_configured(),
+        "config": analyzer.get_config_info()
+    }
+
+
+# =============================================================================
+# ICR ANALYTICS DASHBOARD ENDPOINTS
+# =============================================================================
+
+# In-memory storage for ICR analytics data (simulated)
+ICR_ANALYTICS_DATA = {
+    "overview": {
+        "icr_enabled": True,
+        "total_patterns": 0,
+        "overall_success_rate": 0.0,
+        "active_components": 5,
+        "total_refinements": 0
+    },
+    "components": {
+        "quality_gate_engine": {
+            "active": True,
+            "total_patterns": 0,
+            "overall_pass_rate": 0.0,
+            "overall_quality": 0.0
+        },
+        "workflow_orchestrator": {
+            "active": True,
+            "total_patterns": 0,
+            "overall_pass_rate": 0.0,
+            "overall_quality": 0.0
+        },
+        "robustness_coordinator": {
+            "active": True,
+            "total_patterns": 0,
+            "overall_pass_rate": 0.0,
+            "overall_quality": 0.0
+        },
+        "bubblelab": {
+            "active": True,
+            "total_patterns": 0,
+            "overall_pass_rate": 0.0,
+            "overall_quality": 0.0
+        },
+        "roma": {
+            "active": True,
+            "total_patterns": 0,
+            "overall_pass_rate": 0.0,
+            "overall_quality": 0.0
+        }
+    },
+    "patterns": {
+        "pattern_types": {},
+        "trends": {
+            "timestamps": [],
+            "values": []
+        },
+        "by_content_type": {},
+        "by_quality_level": {},
+        "by_complexity": {}
+    },
+    "vlm": {
+        "available": False,
+        "enabled": False,
+        "total_analyses": 0,
+        "total_tokens": 0,
+        "avg_confidence": 0.0,
+        "cache_hit_rate": 0.0,
+        "by_provider": {},
+        "config": None
+    },
+    "heatmap": {
+        "points": []
+    },
+    "config": {
+        "enabled": True,
+        "enable_prediction": True,
+        "enable_learning": True,
+        "quality_gate_enabled": True,
+        "workflow_orchestrator_enabled": True,
+        "gauntlet_system_enabled": True,
+        "robustness_enabled": True,
+        "roma_modules_enabled": True
+    }
+}
+
+
+@app.get("/icr/dashboard")
+async def icr_dashboard(request: Request):
+    """
+    Serve the ICR Analytics Dashboard.
+    
+    Returns the HTML template for the ICR analytics dashboard.
+    """
+    return templates.TemplateResponse("icr_dashboard.html", {"request": request})
+
+
+@app.get("/icr/analytics/overview")
+async def icr_analytics_overview():
+    """
+    Get ICR overview statistics.
+    
+    Returns:
+        - Total patterns stored
+        - Overall success rate
+        - Active components count
+        - Total refinements applied
+        - ICR enabled status
+    """
+    # Calculate total patterns from all components
+    total_patterns = sum(
+        comp["total_patterns"]
+        for comp in ICR_ANALYTICS_DATA["components"].values()
+    )
+    
+    # Calculate overall success rate
+    component_rates = [
+        comp["overall_pass_rate"]
+        for comp in ICR_ANALYTICS_DATA["components"].values()
+        if comp["overall_pass_rate"] > 0
+    ]
+    overall_success_rate = sum(component_rates) / len(component_rates) if component_rates else 0.0
+    
+    # Count active components
+    active_components = sum(
+        1 for comp in ICR_ANALYTICS_DATA["components"].values()
+        if comp["active"]
+    )
+    
+    return {
+        "icr_enabled": ICR_ANALYTICS_DATA["overview"]["icr_enabled"],
+        "total_patterns": total_patterns,
+        "overall_success_rate": overall_success_rate,
+        "active_components": active_components,
+        "total_refinements": ICR_ANALYTICS_DATA["overview"]["total_refinements"]
+    }
+
+
+@app.get("/icr/analytics/components")
+async def icr_analytics_components():
+    """
+    Get component-specific ICR statistics.
+    
+    Returns statistics for each ICR component:
+        - QualityGateEngine
+        - SGDWorkflowOrchestrator
+        - RobustnessCoordinator
+        - BubbleLab
+        - ROMA
+    """
+    return ICR_ANALYTICS_DATA["components"]
+
+
+@app.get("/icr/analytics/patterns")
+async def icr_analytics_patterns():
+    """
+    Get pattern analysis data.
+    
+    Returns:
+        - Pattern types distribution
+        - Success rate trends over time
+        - Patterns by content type
+        - Patterns by quality level
+        - Patterns by complexity
+    """
+    return ICR_ANALYTICS_DATA["patterns"]
+
+
+@app.get("/icr/analytics/vlm")
+async def icr_analytics_vlm():
+    """
+    Get VLM analytics data.
+    
+    Returns:
+        - Total analyses performed
+        - Total tokens consumed
+        - Average confidence
+        - Cache hit rate
+        - Analysis count by provider
+        - Current VLM configuration
+    """
+    # Get VLM status from existing endpoint
+    vlm_status = icr_vlm_config()
+    
+    return {
+        "available": vlm_status.get("available", False),
+        "enabled": vlm_status.get("enabled", False),
+        "total_analyses": ICR_ANALYTICS_DATA["vlm"]["total_analyses"],
+        "total_tokens": ICR_ANALYTICS_DATA["vlm"]["total_tokens"],
+        "avg_confidence": ICR_ANALYTICS_DATA["vlm"]["avg_confidence"],
+        "cache_hit_rate": ICR_ANALYTICS_DATA["vlm"]["cache_hit_rate"],
+        "by_provider": ICR_ANALYTICS_DATA["vlm"]["by_provider"],
+        "config": vlm_status.get("config")
+    }
+
+
+@app.get("/icr/analytics/refinements")
+async def icr_analytics_refinements(limit: int = 10):
+    """
+    Get recent refinement events.
+    
+    Args:
+        limit: Maximum number of events to return (default: 10)
+    
+    Returns:
+        - List of recent refinement events with details
+    """
+    # Get events from the global queue
+    events = []
+    while ICR_REFINEMENT_EVENTS and len(events) < limit:
+        event = ICR_REFINEMENT_EVENTS.popleft()
+        events.append(event)
+        # Put it back for other consumers
+        ICR_REFINEMENT_EVENTS.appendleft(event)
+    
+    return {
+        "events": events[:limit],
+        "total_count": len(ICR_REFINEMENT_EVENTS)
+    }
+
+
+@app.get("/icr/analytics/heatmap")
+async def icr_analytics_heatmap():
+    """
+    Get ICR pattern heatmap data.
+    
+    Returns:
+        - Heatmap points with coordinates and intensity
+        - Snapshot metadata
+    """
+    # Aggregate heatmap data from snapshots
+    heatmap_points = []
+    
+    for snapshot in list(ICR_HEATMAP_SNAPSHOTS):
+        points = snapshot.get("points", [])
+        heatmap_points.extend(points)
+    
+    return {
+        "points": heatmap_points,
+        "total_snapshots": len(ICR_HEATMAP_SNAPSHOTS)
+    }
+
+
+@app.get("/icr/config")
+async def icr_get_config():
+    """
+    Get current ICR configuration.
+    
+    Returns:
+        - ICR enabled status
+        - Component enablement flags
+        - Feature flags (prediction, learning)
+    """
+    return ICR_ANALYTICS_DATA["config"]
+
+
+# =============================================================================
+# ICR DATA UPDATE HELPERS (for component integration)
+# =============================================================================
+
+def update_icr_component_stats(component_name: str, stats: dict):
+    """
+    Update statistics for a specific ICR component.
+    
+    Args:
+        component_name: Name of the component (e.g., "quality_gate_engine")
+        stats: Statistics dictionary with keys:
+            - total_patterns: int
+            - overall_pass_rate: float
+            - overall_quality: float
+            - active: bool
+    """
+    if component_name in ICR_ANALYTICS_DATA["components"]:
+        ICR_ANALYTICS_DATA["components"][component_name].update(stats)
+
+
+def update_icr_pattern_data(pattern_type: str, content_type: str = None,
+                           quality_level: str = None, complexity: int = None):
+    """
+    Update pattern analysis data when new patterns are stored.
+    
+    Args:
+        pattern_type: Type of pattern (e.g., "content_type", "metric")
+        content_type: Content type (e.g., "code", "text")
+        quality_level: Quality level (e.g., "standard", "high")
+        complexity: Complexity score (1-10)
+    """
+    # Update pattern types
+    if pattern_type not in ICR_ANALYTICS_DATA["patterns"]["pattern_types"]:
+        ICR_ANALYTICS_DATA["patterns"]["pattern_types"][pattern_type] = 0
+    ICR_ANALYTICS_DATA["patterns"]["pattern_types"][pattern_type] += 1
+    
+    # Update by content type
+    if content_type:
+        if content_type not in ICR_ANALYTICS_DATA["patterns"]["by_content_type"]:
+            ICR_ANALYTICS_DATA["patterns"]["by_content_type"][content_type] = 0
+        ICR_ANALYTICS_DATA["patterns"]["by_content_type"][content_type] += 1
+    
+    # Update by quality level
+    if quality_level:
+        if quality_level not in ICR_ANALYTICS_DATA["patterns"]["by_quality_level"]:
+            ICR_ANALYTICS_DATA["patterns"]["by_quality_level"][quality_level] = 0
+        ICR_ANALYTICS_DATA["patterns"]["by_quality_level"][quality_level] += 1
+    
+    # Update by complexity
+    if complexity:
+        complexity_key = str(complexity)
+        if complexity_key not in ICR_ANALYTICS_DATA["patterns"]["by_complexity"]:
+            ICR_ANALYTICS_DATA["patterns"]["by_complexity"][complexity_key] = 0
+        ICR_ANALYTICS_DATA["patterns"]["by_complexity"][complexity_key] += 1
+    
+    # Update trend
+    now = datetime.utcnow()
+    ICR_ANALYTICS_DATA["patterns"]["trends"]["timestamps"].append(now.isoformat())
+    # Placeholder for actual success rate calculation
+    ICR_ANALYTICS_DATA["patterns"]["trends"]["values"].append(0.8)
+    
+    # Keep only last 50 trend points
+    if len(ICR_ANALYTICS_DATA["patterns"]["trends"]["timestamps"]) > 50:
+        ICR_ANALYTICS_DATA["patterns"]["trends"]["timestamps"] = \
+            ICR_ANALYTICS_DATA["patterns"]["trends"]["timestamps"][-50:]
+        ICR_ANALYTICS_DATA["patterns"]["trends"]["values"] = \
+            ICR_ANALYTICS_DATA["patterns"]["trends"]["values"][-50:]
+
+
+def update_icr_vlm_stats(provider: str, tokens_used: int = 0,
+                        confidence: float = 0.0, cached: bool = False):
+    """
+    Update VLM analytics statistics.
+    
+    Args:
+        provider: VLM provider name (e.g., "openai", "anthropic")
+        tokens_used: Number of tokens consumed
+        confidence: Analysis confidence score
+        cached: Whether the result was from cache
+    """
+    ICR_ANALYTICS_DATA["vlm"]["total_analyses"] += 1
+    ICR_ANALYTICS_DATA["vlm"]["total_tokens"] += tokens_used
+    
+    # Update average confidence
+    current_avg = ICR_ANALYTICS_DATA["vlm"]["avg_confidence"]
+    total = ICR_ANALYTICS_DATA["vlm"]["total_analyses"]
+    ICR_ANALYTICS_DATA["vlm"]["avg_confidence"] = \
+        (current_avg * (total - 1) + confidence) / total
+    
+    # Update cache hit rate
+    if cached:
+        cache_hits = ICR_ANALYTICS_DATA["vlm"]["cache_hit_rate"] * (total - 1) + 1
+    else:
+        cache_hits = ICR_ANALYTICS_DATA["vlm"]["cache_hit_rate"] * (total - 1)
+    ICR_ANALYTICS_DATA["vlm"]["cache_hit_rate"] = cache_hits / total
+    
+    # Update by provider
+    if provider not in ICR_ANALYTICS_DATA["vlm"]["by_provider"]:
+        ICR_ANALYTICS_DATA["vlm"]["by_provider"][provider] = 0
+    ICR_ANALYTICS_DATA["vlm"]["by_provider"][provider] += 1
+
+
+def record_icr_refinement(refinement_type: str, component: str,
+                          reason: str, success: bool, confidence: float):
+    """
+    Record a refinement event.
+    
+    Args:
+        refinement_type: Type of refinement (e.g., "threshold_adjustment")
+        component: Component that triggered the refinement
+        reason: Reason for the refinement
+        success: Whether the refinement was successful
+        confidence: Confidence in the refinement
+    """
+    event = {
+        "event_id": str(uuid.uuid4()),
+        "timestamp": datetime.utcnow().isoformat(),
+        "refinement_type": refinement_type,
+        "component": component,
+        "reason": reason,
+        "success": success,
+        "confidence": confidence
+    }
+    
+    ICR_REFINEMENT_EVENTS.append(event)
+    ICR_ANALYTICS_DATA["overview"]["total_refinements"] += 1
 
 
 # Statistics endpoints

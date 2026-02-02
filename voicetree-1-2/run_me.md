@@ -1,8 +1,8 @@
 ---
 color: green
 position:
-  x: 1594
-  y: -1005
+  x: 901
+  y: -1608
 isContextNode: false
 ---
 # Generate codebase graph (run me)
@@ -17,7 +17,6 @@ isContextNode: false
     - Notable gotchas or tech debt
 There is no need for you or the subagents to create an additional progress node, the module nodes already satisfy this requirement.
 4. **Spawn voicetree agents** on each module to break it down one level further
-   5. C:\Users\mmeadow\AppData\Roaming\Voicetree\tools\prompts\addNode.md"
 
 ## Constraints
 

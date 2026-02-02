@@ -1,0 +1,136 @@
+{
+  "terminalSpawnPathRelativeToWatchedDirectory": "/",
+  "contextNodeMaxDistance": 9,
+  "askModeContextDistance": 3,
+  "emptyFolderTemplate": "# {{DATE}}\n\nHighest priority task: ",
+  "agents": [
+    {
+      "name": "Claude",
+      "command": "gemini \"$env:AGENT_PROMPT\" --yolo"
+    },
+    {
+      "name": "Gemini",
+      "command": "gemini -i \"$env:AGENT_PROMPT\" --yolo"
+    },
+    {
+      "name": "Qwen",
+      "command": "Qwen -i \"$env:AGENT_PROMPT\" --yolo"
+    },
+    {
+      "name": "Codex",
+      "command": "codex \"$env:AGENT_PROMPT\" --yolo"
+    },
+    {
+      "name": "Rovodev",
+      "command": "acli rovodev run \"$env:AGENT_PROMPT\""
+    },
+    {
+      "name": "Opencode",
+      "command": "opencode --prompt \"$env:AGENT_PROMPT\""
+    }
+  ],
+  "shiftEnterSendsOptionEnter": true,
+  "vimMode": false,
+  "INJECT_ENV_VARS": {
+    "AGENT_PROMPT": "First read and analyze the context of your task, which is stored at $CONTEXT_NODE_PATH\nYou are being run within a graph of Markdown files that represents your project context. These markdown files are stored within $ALL_MARKDOWN_READ_PATHS\n<HANDLING_AMBIGUITY>\nIf your task has non-trivial ambiguity, stop and ask the user for clarifications. For each clarifying question include your current working assumption. Otherwise, if the task is clear, continue working on it, or developing your task plan until ambiguity does arise.\n</HANDLING_AMBIGUITY>\n\n<TASK_NODES_INSTRUCTION>\nFor the entire duration of this session, before you report completion to the user for any query, task, sub-task, proposal, or other form of non-trivial progress, you MUST:\n1. Read $VOICETREE_APP_SUPPORT/tools/prompts/addNode.md\n2. Follow the instructions to create progress nodes documenting your work\n\nIf using a todolist, add \"Read addNode.md instructions and create progress node\" as an item.\n\nYou must create a progress node before reporting completion to the user. You must continue to do this for any follow-ups by either updating existing progress nodes, or creating new ones.\n</TASK_NODES_INSTRUCTION>"
+  },
+  "hotkeys": {
+    "fitToLastNode": {
+      "key": " ",
+      "modifiers": []
+    },
+    "nextTerminal": {
+      "key": "]",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "prevTerminal": {
+      "key": "[",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "createNewNode": {
+      "key": "n",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "runTerminal": {
+      "key": "Enter",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "deleteSelectedNodes": {
+      "key": "Backspace",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "closeWindow": {
+      "key": "w",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "openSettings": {
+      "key": ",",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "openSearch": {
+      "key": "f",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "openSearchAlt": {
+      "key": "e",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "recentNode1": {
+      "key": "1",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "recentNode2": {
+      "key": "2",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "recentNode3": {
+      "key": "3",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "recentNode4": {
+      "key": "4",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "recentNode5": {
+      "key": "5",
+      "modifiers": [
+        "Control"
+      ]
+    },
+    "voiceRecording": {
+      "key": "r",
+      "modifiers": [
+        "Alt"
+      ]
+    }
+  },
+  "defaultAllowlistPatterns": [],
+  "darkMode": false,
+  "agentPermissionModeChosen": true
+}
