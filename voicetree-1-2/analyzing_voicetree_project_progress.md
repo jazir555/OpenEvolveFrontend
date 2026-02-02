@@ -1,3 +1,9 @@
+---
+position:
+  x: 2172
+  y: -735
+isContextNode: false
+---
 # Analyzing Voicetree Project Progress
 
 ## Analysis of the Voicetree project structure and identification of major modules

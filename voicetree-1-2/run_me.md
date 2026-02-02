@@ -1,8 +1,8 @@
 ---
 color: green
 position:
-  x: 1496
-  y: -1040
+  x: 1594
+  y: -1005
 isContextNode: false
 ---
 # Generate codebase graph (run me)
