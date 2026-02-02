@@ -32,6 +32,8 @@ import subprocess
 import tempfile
 import threading
 import time
+import ast
+import operator
 from dataclasses import dataclass, field, asdict
 from enum import Enum, auto
 from pathlib import Path
@@ -88,6 +90,7 @@ class Z3ConstraintType(Enum):
     BIT_VECTOR = auto()
     ARRAY = auto()
     FLOATING_POINT = auto()
+    STRING = auto()
 
 
 @dataclass
@@ -106,7 +109,8 @@ class Z3Variable:
             Z3ConstraintType.REAL: "Real",
             Z3ConstraintType.BIT_VECTOR: f"(_ BitVec {self.bit_width or 32})",
             Z3ConstraintType.ARRAY: "(Array Int Int)",
-            Z3ConstraintType.FLOATING_POINT: "Float64"
+            Z3ConstraintType.FLOATING_POINT: "Float64",
+            Z3ConstraintType.STRING: "String"
         }
         return f"(declare-fun {self.name} () {type_map.get(self.var_type, 'Int')})"
 
@@ -456,25 +460,91 @@ class Z3SolverEngine:
             return z3.Int(var.name)  # Default to Int
     
     def _parse_constraint(self, expression: str, z3_vars: Dict[str, Any]) -> Optional[Any]:
-        """Parse constraint expression using Z3 Python API."""
+        """Parse constraint expression using safe AST evaluation."""
         try:
-            # Simple expression parser for common patterns
-            # For complex expressions, use eval with restricted globals
-            local_vars = z3_vars.copy()
-            local_vars.update({
-                'And': z3.And,
-                'Or': z3.Or,
-                'Not': z3.Not,
-                'Implies': z3.Implies,
-                'If': z3.If,
-                'Sum': z3.Sum,
-                'ForAll': z3.ForAll,
-                'Exists': z3.Exists
-            })
+            # Safe AST-based evaluator
+            tree = ast.parse(expression, mode='eval')
             
-            # Safely evaluate the expression
-            result = eval(expression, {"__builtins__": {}}, local_vars)
-            return result
+            # Whitelisted nodes and operators
+            valid_nodes = (
+                ast.Expression, ast.Call, ast.Name, ast.Constant,
+                ast.BinOp, ast.UnaryOp, ast.Compare, ast.BoolOp,
+                ast.Load, ast.keyword, ast.Attribute,
+                # Operators
+                ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow, ast.Mod,
+                ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE,
+                ast.USub, ast.Not, ast.And, ast.Or
+            )
+            
+            # Check for disallowed nodes
+            for node in ast.walk(tree):
+                if not isinstance(node, valid_nodes):
+                    logger.warning(f"Security: Disallowed AST node {type(node).__name__} in constraint")
+                    return None
+
+            # Local context with Z3 functions
+            context = z3_vars.copy()
+            context.update({
+                'And': z3.And, 'Or': z3.Or, 'Not': z3.Not,
+                'Implies': z3.Implies, 'If': z3.If,
+                'Sum': z3.Sum, 'ForAll': z3.ForAll, 'Exists': z3.Exists
+            })
+
+            # Safe evaluation helper
+            def safe_eval(node):
+                if isinstance(node, ast.Expression):
+                    return safe_eval(node.body)
+                elif isinstance(node, ast.Constant):
+                    return node.value
+                elif isinstance(node, ast.Name):
+                    if node.id in context:
+                        return context[node.id]
+                    raise ValueError(f"Unknown variable: {node.id}")
+                elif isinstance(node, ast.BinOp):
+                    left = safe_eval(node.left)
+                    right = safe_eval(node.right)
+                    op_type = type(node.op)
+                    ops = {
+                        ast.Add: operator.add, ast.Sub: operator.sub,
+                        ast.Mult: operator.mul, ast.Div: operator.truediv,
+                        ast.Pow: operator.pow, ast.Mod: operator.mod
+                    }
+                    if op_type in ops:
+                        return ops[op_type](left, right)
+                    raise ValueError(f"Unsupported operator: {op_type}")
+                elif isinstance(node, ast.Compare):
+                    left = safe_eval(node.left)
+                    for op, comparator in zip(node.ops, node.comparators):
+                        right = safe_eval(comparator)
+                        op_type = type(op)
+                        ops = {
+                            ast.Eq: operator.eq, ast.NotEq: operator.ne,
+                            ast.Lt: operator.lt, ast.LtE: operator.le,
+                            ast.Gt: operator.gt, ast.GtE: operator.ge
+                        }
+                        if op_type in ops:
+                            left = ops[op_type](left, right)
+                        else:
+                            raise ValueError(f"Unsupported comparison: {op_type}")
+                    return left
+                elif isinstance(node, ast.Call):
+                    func = safe_eval(node.func)
+                    args = [safe_eval(arg) for arg in node.args]
+                    return func(*args)
+                elif isinstance(node, ast.UnaryOp):
+                     operand = safe_eval(node.operand)
+                     if isinstance(node.op, ast.USub):
+                         return -operand
+                     elif isinstance(node.op, ast.Not):
+                         if hasattr(operand, '__class__') and getattr(operand.__class__, '__module__', '').startswith('z3'):
+                             return z3.Not(operand)
+                         return not operand
+                     raise ValueError(f"Unsupported unary op: {type(node.op)}")
+                
+                raise ValueError(f"Unsupported node type: {type(node)}")
+
+            return safe_eval(tree)
+
         except Exception as e:
             logger.warning(f"Failed to parse constraint '{expression}': {e}")
             return None
@@ -960,16 +1030,16 @@ class DigitalTwinSandbox:
         self.solver_engine = solver_engine or Z3SolverEngine()
 
     def sop_to_constraints(self, steps: List[str]) -> Tuple[List[Z3Variable], List[Z3Constraint]]:
-        """Parse SOP steps into Z3 constraints using simple heuristics."""
+        """Parse SOP steps into Z3 constraints using LLM extraction."""
         variables: Dict[str, Z3Variable] = {}
         constraints: List[Z3Constraint] = []
 
         for step in steps:
-            step_constraints = self._parse_natural_language_constraints(step)
-            for var, constraint in step_constraints:
+            step_vars, step_constraints = self._parse_natural_language_constraints(step)
+            for var in step_vars:
                 if var.name not in variables:
                     variables[var.name] = var
-                constraints.append(constraint)
+            constraints.extend(step_constraints)
 
         return list(variables.values()), constraints
 
@@ -1023,29 +1093,170 @@ class DigitalTwinSandbox:
     def _parse_natural_language_constraints(
         self,
         text: str
-    ) -> List[Tuple[Z3Variable, Z3Constraint]]:
-        constraints: List[Tuple[Z3Variable, Z3Constraint]] = []
+    ) -> Tuple[List[Z3Variable], List[Z3Constraint]]:
+        """
+        Extract Z3 constraints from natural language text using LLM.
+        Replaces legacy regex-based parsing.
+        """
+        variables: List[Z3Variable] = []
+        constraints: List[Z3Constraint] = []
+        
+        if not text or not text.strip():
+            return variables, constraints
 
-        # Examples: "cooling_rate <= 5", "does not exceed 5C/min"
-        numeric_patterns = [
-            r"([a-zA-Z_][a-zA-Z0-9_]*)\s*<=\s*([0-9\.]+)",
-            r"([a-zA-Z_][a-zA-Z0-9_]*)\s*>=\s*([0-9\.]+)",
-            r"([a-zA-Z_][a-zA-Z0-9_]*)\s*<\s*([0-9\.]+)",
-            r"([a-zA-Z_][a-zA-Z0-9_]*)\s*>\s*([0-9\.]+)",
-        ]
+        try:
+            # Late import to avoid circular dependencies
+            import os
+            from llm_utils import _compose_messages
+            import workflow_engine
+        except ImportError as exc:
+            logger.warning("LLM utilities not available for constraint extraction: %s", exc)
+            return variables, constraints
 
-        for pattern in numeric_patterns:
-            for name, value in re.findall(pattern, text):
-                var = Z3Variable(name=name, var_type=Z3ConstraintType.REAL)
-                constraints.append((var, Z3Constraint(f"({pattern_operator(pattern)} {name} {value})", Z3ConstraintType.REAL)))
+        api_key = (
+            os.getenv("OPENAI_API_KEY")
+            or os.getenv("OPENAI_KEY")
+            or os.getenv("OPENAI_API_TOKEN")
+        )
+        if not api_key:
+            logger.warning("Constraint extraction skipped: OPENAI_API_KEY not set")
+            return variables, constraints
 
-        # Handle "not exceed" phrasing
-        not_exceed = re.findall(r"([a-zA-Z_][a-zA-Z0-9_]*)\s+does not exceed\s+([0-9\.]+)", text, re.IGNORECASE)
-        for name, value in not_exceed:
-            var = Z3Variable(name=name, var_type=Z3ConstraintType.REAL)
-            constraints.append((var, Z3Constraint(f"(<= {name} {value})", Z3ConstraintType.REAL)))
+        base_url = (
+            os.getenv("OPENAI_API_BASE")
+            or os.getenv("OPENAI_BASE_URL")
+            or "https://api.openai.com/v1"
+        )
+        model = (
+            os.getenv("OPENAI_MODEL")
+            or os.getenv("OPENAI_MODEL_ID")
+            or "gpt-4o-mini"
+        )
 
-        return constraints
+        system_prompt = (
+            "You extract SMT constraints from natural language. "
+            "Return ONLY a JSON object that matches the required schema."
+        )
+        user_prompt = (
+            "Extract variables and constraints from the text below.\n\n"
+            "Return JSON with this exact schema:\n"
+            "{\n"
+            "  \"variables\": [\n"
+            "    {\"name\": \"x\", \"type\": \"integer|real|boolean|string\", "
+            "\"bounds\": [\"min_or_null\", \"max_or_null\"], \"bit_width\": 32}\n"
+            "  ],\n"
+            "  \"constraints\": [\"SMT-LIB boolean expressions without (assert)\"]\n"
+            "}\n\n"
+            "Rules:\n"
+            "- Use lowercase type strings: integer, real, boolean, string.\n"
+            "- If bounds are unknown, use nulls.\n"
+            "- Constraints must be SMT-LIB boolean expressions (no (assert)).\n"
+            "- If nothing is found, return empty arrays.\n\n"
+            f"Text:\n{text}"
+        )
+
+        messages = _compose_messages(system_prompt, user_prompt)
+        try:
+            response = workflow_engine._request_openai_compatible_chat(
+                api_key=api_key,
+                base_url=base_url,
+                model=model,
+                messages=messages,
+                temperature=0.0,
+                top_p=1.0,
+                max_tokens=800,
+                response_format={"type": "json_object"}
+            )
+        except Exception as exc:
+            logger.warning("Constraint extraction LLM call failed: %s", exc)
+            return variables, constraints
+
+        if not response:
+            return variables, constraints
+
+        # Parse JSON response
+        raw = response.strip()
+        if raw.startswith("```"):
+            parts = raw.split("```")
+            if len(parts) >= 2:
+                raw = parts[1].strip()
+            if raw.startswith("json"):
+                raw = raw[4:].strip()
+
+        start = raw.find("{")
+        end = raw.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            raw = raw[start:end + 1]
+
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            logger.warning("Constraint extraction JSON parse failed: %s", exc)
+            return variables, constraints
+
+        if not isinstance(parsed, dict):
+            return variables, constraints
+
+        type_map = {
+            "integer": Z3ConstraintType.INTEGER,
+            "int": Z3ConstraintType.INTEGER,
+            "real": Z3ConstraintType.REAL,
+            "float": Z3ConstraintType.REAL,
+            "boolean": Z3ConstraintType.BOOLEAN,
+            "bool": Z3ConstraintType.BOOLEAN,
+            "string": Z3ConstraintType.STRING,
+            "str": Z3ConstraintType.STRING
+        }
+
+        # Process variables
+        seen_names = set()
+        for entry in parsed.get("variables") or []:
+            if not isinstance(entry, dict):
+                continue
+            name = str(entry.get("name", "")).strip()
+            if not name or name in seen_names:
+                continue
+            
+            var_type_str = str(entry.get("type", "integer")).strip().lower()
+            var_type = type_map.get(var_type_str, Z3ConstraintType.INTEGER)
+            
+            bounds = entry.get("bounds")
+            bit_width = entry.get("bit_width")
+            
+            if isinstance(bounds, list) and len(bounds) == 2:
+                min_val = None if bounds[0] in (None, "null") else bounds[0]
+                max_val = None if bounds[1] in (None, "null") else bounds[1]
+                bounds_tuple = (min_val, max_val)
+            else:
+                bounds_tuple = None
+                
+            if isinstance(bit_width, (int, float)):
+                bit_width = int(bit_width)
+            else:
+                bit_width = None
+
+            variables.append(Z3Variable(
+                name=name,
+                var_type=var_type,
+                bounds=bounds_tuple,
+                bit_width=bit_width
+            ))
+            seen_names.add(name)
+
+        # Process constraints
+        for constraint_expr in parsed.get("constraints") or []:
+            if not isinstance(constraint_expr, str):
+                continue
+            text_constraint = constraint_expr.strip()
+            if not text_constraint:
+                continue
+            
+            constraints.append(Z3Constraint(
+                expression=text_constraint,
+                constraint_type=Z3ConstraintType.BOOLEAN
+            ))
+
+        return variables, constraints
 
 
 def pattern_operator(pattern: str) -> str:
