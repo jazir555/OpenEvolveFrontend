@@ -758,7 +758,7 @@ class Z3LeanAideOpenEvolveIntegration:
 
         try:
             import workflow_engine
-            from llm_utils import _compose_messages
+            from llm_utils import _compose_messages, _request_openai_compatible_chat
         except Exception as exc:
             logger.warning("Constraint extraction unavailable (LLM import failure): %s", exc)
             return variables, constraints
@@ -807,7 +807,7 @@ class Z3LeanAideOpenEvolveIntegration:
 
         messages = _compose_messages(system_prompt, user_prompt)
         try:
-            response = workflow_engine._request_openai_compatible_chat(
+            response = _request_openai_compatible_chat(
                 api_key=api_key,
                 base_url=base_url,
                 model=model,

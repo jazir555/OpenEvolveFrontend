@@ -456,6 +456,8 @@ class Z3SolverEngine:
             return z3.Real(var.name)
         elif var.var_type == Z3ConstraintType.BIT_VECTOR:
             return z3.BitVec(var.name, var.bit_width or 32)
+        elif var.var_type == Z3ConstraintType.STRING:
+            return z3.String(var.name)
         else:
             return z3.Int(var.name)  # Default to Int
     
@@ -1107,8 +1109,7 @@ class DigitalTwinSandbox:
         try:
             # Late import to avoid circular dependencies
             import os
-            from llm_utils import _compose_messages
-            import workflow_engine
+            from llm_utils import _compose_messages, _request_openai_compatible_chat
         except ImportError as exc:
             logger.warning("LLM utilities not available for constraint extraction: %s", exc)
             return variables, constraints
@@ -1157,7 +1158,7 @@ class DigitalTwinSandbox:
 
         messages = _compose_messages(system_prompt, user_prompt)
         try:
-            response = workflow_engine._request_openai_compatible_chat(
+            response = _request_openai_compatible_chat(
                 api_key=api_key,
                 base_url=base_url,
                 model=model,
