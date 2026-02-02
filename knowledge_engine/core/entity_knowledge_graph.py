@@ -71,7 +71,7 @@ class EntityKnowledgeGraph:
         self._relationships: List[Relationship] = []
         self._entity_types: Dict[str, Set[str]] = {}  # entity_type -> set of entity names
         self._lock = Lock()
-        self._async_lock = asyncio.Lock()
+        self._async_lock: Optional[asyncio.Lock] = None  # Lazy initialization
 
         # Correlation ID for structured logging
         self._correlation_id = correlation_id or str(uuid.uuid4())
@@ -81,6 +81,12 @@ class EntityKnowledgeGraph:
             "correlation_id": self._correlation_id,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
+
+    def _get_async_lock(self) -> asyncio.Lock:
+        """Get or create async lock (lazy initialization for proper event loop binding)."""
+        if self._async_lock is None:
+            self._async_lock = asyncio.Lock()
+        return self._async_lock
 
     def _log(self, level: str, message: str, **kwargs):
         """
@@ -193,7 +199,7 @@ class EntityKnowledgeGraph:
 
             attributes = attributes or {}
 
-            async with self._async_lock:
+            async with self._get_async_lock():
                 # Check if entity exists
                 if name in self._entities:
                     # Merge attributes (idempotent update)
@@ -314,7 +320,7 @@ class EntityKnowledgeGraph:
 
             attributes = attributes or {}
 
-            async with self._async_lock:
+            async with self._get_async_lock():
                 # Ensure entities exist (create empty ones if not)
                 if source not in self._entities:
                     await self.add_entity_async(source, "unknown")
@@ -369,7 +375,7 @@ class EntityKnowledgeGraph:
         Returns:
             Entity dictionary or None if not found
         """
-        async with self._async_lock:
+        async with self._get_async_lock():
             entity = self._entities.get(name)
             return entity.to_dict() if entity else None
 
@@ -425,7 +431,7 @@ class EntityKnowledgeGraph:
         Returns:
             List of matching entity dictionaries
         """
-        async with self._async_lock:
+        async with self._get_async_lock():
             results = []
 
             for entity in self._entities.values():
@@ -490,7 +496,7 @@ class EntityKnowledgeGraph:
         Returns:
             List of matching entity dictionaries
         """
-        async with self._async_lock:
+        async with self._get_async_lock():
             results = []
             query_lower = query.lower()
 
@@ -540,7 +546,7 @@ class EntityKnowledgeGraph:
         Returns:
             List of relationship dictionaries
         """
-        async with self._async_lock:
+        async with self._get_async_lock():
             results = []
 
             for rel in self._relationships:
@@ -577,7 +583,7 @@ class EntityKnowledgeGraph:
         Returns:
             JSON string representation
         """
-        async with self._async_lock:
+        async with self._get_async_lock():
             data = {
                 "entities": [e.to_dict() for e in self._entities.values()],
                 "relationships": [r.to_dict() for r in self._relationships],
@@ -652,7 +658,7 @@ class EntityKnowledgeGraph:
         try:
             data = json.loads(json_str)
 
-            async with self._async_lock:
+            async with self._get_async_lock():
                 # Clear existing data
                 self._entities.clear()
                 self._relationships.clear()
@@ -709,7 +715,7 @@ class EntityKnowledgeGraph:
         Returns:
             Dictionary with graph metrics
         """
-        async with self._async_lock:
+        async with self._get_async_lock():
             return {
                 "entity_count": len(self._entities),
                 "relationship_count": len(self._relationships),
@@ -732,7 +738,7 @@ class EntityKnowledgeGraph:
 
     async def clear_async(self):
         """Clear all entities and relationships (asynchronous)."""
-        async with self._async_lock:
+        async with self._get_async_lock():
             self._entities.clear()
             self._relationships.clear()
             self._entity_types.clear()

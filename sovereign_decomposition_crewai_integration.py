@@ -28,6 +28,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
 
+from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
+
 # Import CrewAI zero-error workflow (replaces Hephaestus)
 from crewai_zero_error_workflow import (
     CrewAIZeroErrorWorkflow,
@@ -136,20 +138,18 @@ class SovereignDecompositionCrewAIIntegration:
         logger.info("Sovereign Decomposition - CrewAI Integration initialized (MIT-licensed)")
 
     @staticmethod
-    def _normalize_entanglement_matrix(matrix: Optional[Dict[str, Any]]) -> Dict[str, List[str]]:
-        if not matrix:
-            return {}
-        normalized: Dict[str, List[str]] = {}
-        for key, value in matrix.items():
-            if isinstance(value, set):
-                normalized[key] = sorted(value)
-            elif isinstance(value, list):
-                normalized[key] = list(value)
-            elif isinstance(value, tuple):
-                normalized[key] = list(value)
-            else:
-                normalized[key] = []
-        return normalized
+    def _normalize_entanglement_matrix(
+        matrix: Optional[Dict[str, Any]],
+        allowed_ids: Optional[List[str]] = None,
+        strict: bool = False,
+    ) -> Dict[str, List[str]]:
+        normalized = normalize_entanglement_matrix(
+            matrix,
+            allowed_ids=allowed_ids,
+            enforce_symmetry=True,
+            strict=strict,
+        )
+        return serialize_entanglement_matrix(normalized)
 
     def _get_entanglement_matrix(self, workflow_state: OpenEvolveWorkflowState) -> Dict[str, List[str]]:
         matrix = getattr(workflow_state, "entanglement_matrix", None)
@@ -157,7 +157,16 @@ class SovereignDecompositionCrewAIIntegration:
             plan_metadata = getattr(workflow_state.decomposition_plan, "metadata", None) or {}
             analyzed_context = getattr(workflow_state.decomposition_plan, "analyzed_context", None) or {}
             matrix = plan_metadata.get("entanglement_matrix") or analyzed_context.get("entanglement_matrix")
-        return self._normalize_entanglement_matrix(matrix)
+        allowed_ids = (
+            [sp.id for sp in workflow_state.decomposition_plan.sub_problems]
+            if workflow_state.decomposition_plan
+            else None
+        )
+        return self._normalize_entanglement_matrix(
+            matrix,
+            allowed_ids=allowed_ids,
+            strict=bool(getattr(workflow_state, "entanglement_strict_mode", False)),
+        )
 
     # ========================================================================
     # WORKFLOW INITIALIZATION

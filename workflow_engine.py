@@ -38,6 +38,7 @@ from resource_manager import ResourceManager
 from mdap_engine import MDAPConfig, MDAPTask, MDAPStep, MDAPOrchestrator, RedFlagRules
 from maker_engine import MakerConfig, MakerEngine, MakerStep, FileCheckpointStore
 from dependency_analyzer import DependencyAnalyzer
+from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
 
 # Import new MAKER v2 integration (complete arXiv:2511.09030 implementation)
 from maker_workflow_integration import (
@@ -94,27 +95,41 @@ def _update_entanglement_matrix(workflow_state: WorkflowState) -> None:
         return
 
     sub_problems = workflow_state.decomposition_plan.sub_problems or []
+    allowed_ids = [sp.id for sp in sub_problems]
     if not sub_problems:
         workflow_state.entanglement_matrix = {}
         if workflow_state.decomposition_plan.analyzed_context is not None:
             workflow_state.decomposition_plan.analyzed_context["entanglement_matrix"] = {}
         return
 
+    strict_mode = bool(getattr(workflow_state, "entanglement_strict_mode", False))
     try:
         analyzer = DependencyAnalyzer()
         matrix = analyzer.build_entanglement_matrix(sub_problems)
+        matrix = normalize_entanglement_matrix(
+            matrix,
+            allowed_ids=allowed_ids,
+            enforce_symmetry=True,
+            strict=strict_mode,
+        )
     except Exception as exc:
         logger.warning("Failed to build entanglement matrix: %s", exc)
-        workflow_state.entanglement_matrix = {}
-        if workflow_state.decomposition_plan.analyzed_context is not None:
-            workflow_state.decomposition_plan.analyzed_context.pop("entanglement_matrix", None)
-        return
-
+        if strict_mode:
+            raise
+        matrix = normalize_entanglement_matrix({}, allowed_ids=allowed_ids, enforce_symmetry=True)
     workflow_state.entanglement_matrix = matrix
     if workflow_state.decomposition_plan.analyzed_context is not None:
-        workflow_state.decomposition_plan.analyzed_context["entanglement_matrix"] = {
-            key: sorted(list(value)) for key, value in matrix.items()
-        }
+        workflow_state.decomposition_plan.analyzed_context["entanglement_matrix"] = (
+            serialize_entanglement_matrix(matrix)
+        )
+
+    for sp in sub_problems:
+        entangled_with = sorted(matrix.get(sp.id, set()))
+        sp.metadata["entangled_with"] = entangled_with
+        if entangled_with and "entanglement_source" not in sp.metadata:
+            sp.metadata["entanglement_source"] = "symbolic_overlap"
+
+    status = getattr(workflow_state, "status", None)
     if status == "completed":
         add_metric(
             "workflows_completed_total",

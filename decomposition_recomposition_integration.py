@@ -83,6 +83,9 @@ class PipelineConfig:
     collect_detailed_analytics: bool = True
     save_intermediate_results: bool = True
 
+    # Entanglement
+    entanglement_strict_mode: bool = False
+
 
 @dataclass
 class PipelineStage:

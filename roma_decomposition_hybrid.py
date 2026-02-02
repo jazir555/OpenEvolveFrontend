@@ -22,10 +22,13 @@ Key Benefits:
 - Decomposition Workflow's gauntlet validation
 """
 
+import json
 import logging
 import re
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
+
+from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
 
 logger = logging.getLogger(__name__)
 
@@ -112,6 +115,7 @@ class HybridConfig:
     # Hybrid orchestration
     auto_aggregate: bool = True  # Use ROMA's aggregation
     parallel_stages: bool = False  # Run critique/verify in parallel
+    entanglement_strict_mode: bool = False
 
 
 # =============================================================================
@@ -175,17 +179,15 @@ class ROMADecompositionHybrid:
         return [tok for tok in tokens if tok not in stopwords]
 
     def _build_entanglement_matrix(self, plan_payload: Any) -> Dict[str, List[str]]:
-        sub_problems: List[Dict[str, Any]] = []
-        if isinstance(plan_payload, dict):
-            if isinstance(plan_payload.get("sub_problems"), list):
-                sub_problems = [sp for sp in plan_payload["sub_problems"] if isinstance(sp, dict)]
-            elif isinstance(plan_payload.get("components"), list):
-                sub_problems = [sp for sp in plan_payload["components"] if isinstance(sp, dict)]
-        elif isinstance(plan_payload, list):
-            sub_problems = [sp for sp in plan_payload if isinstance(sp, dict)]
-
+        sub_problems = self._normalize_roma_plan(plan_payload)
         if not sub_problems:
             return {}
+
+        try:
+            from utils.symbolic_analyzer import SymbolicAnalyzer
+            analyzer = SymbolicAnalyzer()
+        except (ImportError, RuntimeError, ValueError):
+            analyzer = None
 
         symbol_map: Dict[str, set] = {}
         ids: List[str] = []
@@ -193,8 +195,12 @@ class ROMADecompositionHybrid:
             sp_id = sp.get("id") or sp.get("sub_problem_id") or f"sp_{idx}"
             ids.append(sp_id)
             text = f"{sp.get('title', '')} {sp.get('description', '')}"
-            for token in self._tokenize_symbols(text):
-                symbol_map.setdefault(token, set()).add(sp_id)
+            if analyzer:
+                symbols = analyzer.analyze(text).symbols
+            else:
+                symbols = set(self._tokenize_symbols(text))
+            for sym in symbols:
+                symbol_map.setdefault(sym, set()).add(sp_id)
 
         matrix: Dict[str, set] = {sp_id: set() for sp_id in ids}
         for _, components in symbol_map.items():
@@ -203,7 +209,57 @@ class ROMADecompositionHybrid:
             for comp in components:
                 matrix[comp].update({c for c in components if c != comp})
 
-        return {key: sorted(value) for key, value in matrix.items()}
+        normalized = normalize_entanglement_matrix(
+            matrix,
+            allowed_ids=ids,
+            enforce_symmetry=True,
+            strict=bool(getattr(self.config, "entanglement_strict_mode", False)),
+        )
+        return serialize_entanglement_matrix(normalized)
+
+    def _normalize_roma_plan(self, plan_payload: Any) -> List[Dict[str, Any]]:
+        if plan_payload is None:
+            return []
+        if isinstance(plan_payload, dict):
+            if isinstance(plan_payload.get("sub_problems"), list):
+                return [sp for sp in plan_payload["sub_problems"] if isinstance(sp, dict)]
+            if isinstance(plan_payload.get("components"), list):
+                return [sp for sp in plan_payload["components"] if isinstance(sp, dict)]
+            if "plan" in plan_payload:
+                return self._normalize_roma_plan(plan_payload.get("plan"))
+            if {"id", "description"} <= plan_payload.keys():
+                return [plan_payload]
+        if isinstance(plan_payload, list):
+            return [sp for sp in plan_payload if isinstance(sp, dict)]
+        if isinstance(plan_payload, str):
+            parsed = self._parse_plan_string(plan_payload)
+            return parsed
+        return []
+
+    def _parse_plan_string(self, plan_text: str) -> List[Dict[str, Any]]:
+        try:
+            parsed = json.loads(plan_text)
+            return self._normalize_roma_plan(parsed)
+        except (json.JSONDecodeError, TypeError):
+            pass
+
+        lines = [line.strip() for line in plan_text.splitlines() if line.strip()]
+        items = []
+        for line in lines:
+            if re.match(r"^[-*]\\s+", line) or re.match(r"^\\d+\\.", line):
+                cleaned = re.sub(r"^[-*]\\s+|^\\d+\\.", "", line).strip()
+                if cleaned:
+                    items.append(cleaned)
+
+        sub_problems = []
+        for idx, item in enumerate(items, start=1):
+            sub_problems.append({
+                "id": f"sp_{idx}",
+                "title": item[:80],
+                "description": item,
+                "dependencies": []
+            })
+        return sub_problems
 
         # Initialize gauntlet manager if available
         self.gauntlet_manager = None
@@ -286,7 +342,11 @@ class ROMADecompositionHybrid:
             plan_result = solve_with_roma(
                 task=f"Create a decomposition plan for this problem:\n\n{problem_statement}\n\n"
                      f"Break it down into a hierarchical structure of sub-problems. "
-                     f"Identify dependencies and complexity scores.",
+                     f"Identify dependencies and complexity scores.\n\n"
+                     f"Return STRICT JSON with the shape:\n"
+                     f"{{\"sub_problems\": [{{\"id\": \"sp_1\", \"title\": \"...\", "
+                     f"\"description\": \"...\", \"dependencies\": [\"sp_0\"], "
+                     f"\"complexity\": 0.5}}]}}",
                 max_depth=self.config.roma_max_depth_analysis,
                 execution_mode=self.config.roma_execution_mode,
                 provider=self.config.roma_provider,

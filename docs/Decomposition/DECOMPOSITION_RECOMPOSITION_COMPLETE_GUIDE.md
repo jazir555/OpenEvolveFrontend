@@ -29,6 +29,33 @@ This system implements a **production-ready, domain-agnostic decomposition and r
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
+## Fractal Entanglement Matrix (FEM)
+
+The system maintains a **fractal entanglement matrix** that captures cross-cutting coupling
+between sub-problems based on shared interface symbols and semantic overlap. This is distinct
+from the dependency graph: dependencies encode ordering, while entanglement encodes shared
+surfaces that must remain consistent during solving and recomposition.
+
+The matrix is refreshed whenever a plan is created or modified (initial AI decomposition,
+manual review approval, and top-down repairs). It is used to:
+
+- Propagate invalidations across entangled sub-solutions
+- Prioritize consistency checks during recomposition
+- Provide entanglement-aware context to solvers and orchestrators
+- Align ROMA stage-2 planning with downstream decomposition
+
+**Representation**
+
+- In-memory: `Dict[str, Set[str]]` (sub_problem_id -> entangled sub_problem_ids)
+- Serialized: `Dict[str, List[str]]` (JSON-safe form for storage/transport)
+
+**Storage**
+
+- `WorkflowState.entanglement_matrix`
+- `DecompositionPlan.metadata["entanglement_matrix"]` (serialized)
+- `DecompositionPlan.analyzed_context["entanglement_matrix"]` when present in runtime plans
+- `SubProblem.metadata["entangled_with"]` + `SubProblem.metadata["entanglement_source"]`
+
 ## Files Overview
 
 | File | Purpose | Lines |
@@ -204,6 +231,15 @@ class DecompositionPlan:
     quality_score: float
 ```
 
+### Operational Entanglement Metadata
+
+The canonical data models remain stable, but runtime orchestration attaches entanglement
+metadata for downstream systems:
+
+- `DecompositionPlan.metadata["entanglement_matrix"]` (JSON-safe)
+- `SubProblem.metadata["entangled_with"]` (list of coupled sub-problems)
+- `SubProblem.metadata["entanglement_source"]` (e.g., symbolic analyzer, token overlap, ROMA plan)
+
 ## Conflict Detection & Resolution
 
 ### Conflict Types
@@ -227,6 +263,9 @@ resolver.resolve_conflicts(conflicts, solutions, strategy="merge")
 # LLM-mediated (if available)
 resolver.resolve_conflicts(conflicts, solutions, strategy="llm")
 ```
+
+Entanglement-aware recomposition propagates invalidations across coupled solutions
+to prevent drift between shared interfaces.
 
 ## Quality Metrics
 
@@ -310,6 +349,28 @@ class CustomAssembly(AssemblyStrategyBase):
 engine = UniversalRecompositionEngine()
 engine.STRATEGIES[AssemblyStrategy.CUSTOM] = CustomAssembly
 ```
+
+### Entanglement-Aware Solving Context
+
+If you provide custom solvers, include entanglement context so downstream orchestration
+and recomposition can keep coupled sub-problems synchronized:
+
+```python
+context = {
+    "entanglement_matrix": plan.metadata.get("entanglement_matrix", {}),
+    "entangled_with": sub_problem.metadata.get("entangled_with", [])
+}
+solution = custom_solver.solve(sub_problem, parent_problem, context=context)
+```
+
+## Orchestration Integration (OpenEvolve, CrewAI, ROMA)
+
+- **OpenEvolve**: Evolution prompts include entanglement context, and solution metadata
+  carries entanglement signals to recomposition.
+- **CrewAI**: Workflow metadata stores the entanglement matrix, and each task receives
+  an `entangled_with` list to coordinate cross-task consistency.
+- **ROMA**: Stage-2 planning outputs structured plans; entanglement is derived from plan
+  content and fed back into the decomposition/recomposition workflow.
 
 ## Testing
 
@@ -480,5 +541,5 @@ For issues or questions:
 ---
 
 **Version**: 1.0.0  
-**Last Updated**: 2026-01-27  
+**Last Updated**: 2026-02-02  
 **Status**: Production Ready

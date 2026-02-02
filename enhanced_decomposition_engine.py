@@ -46,6 +46,8 @@ import heapq
 import threading
 from contextlib import contextmanager
 
+from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -741,9 +743,9 @@ class EnhancedDecompositionEngine:
         plan.metadata["entanglement_matrix"] = entanglement_matrix
         for sp in sub_problems:
             entangled_with = entanglement_matrix.get(sp.id, [])
-            if entangled_with:
-                sp.metadata.setdefault("entangled_with", entangled_with)
-                sp.metadata.setdefault("entanglement_source", "semantic_overlap")
+            sp.metadata["entangled_with"] = entangled_with
+            if entangled_with and "entanglement_source" not in sp.metadata:
+                sp.metadata["entanglement_source"] = "semantic_overlap"
         
         # Cache result
         if self.enable_cache:
@@ -786,7 +788,13 @@ class EnhancedDecompositionEngine:
             for comp in components:
                 matrix[comp].update({c for c in components if c != comp})
 
-        return {key: sorted(value) for key, value in matrix.items()}
+        normalized = normalize_entanglement_matrix(
+            matrix,
+            allowed_ids=[sp.id for sp in sub_problems],
+            enforce_symmetry=True,
+            strict=bool(self.config.get("entanglement_strict_mode", False)),
+        )
+        return serialize_entanglement_matrix(normalized)
 
     def _extract_symbol_tokens(self, sub_problem: SubProblem) -> Set[str]:
         """Extract semantic tokens for entanglement detection."""
@@ -798,7 +806,12 @@ class EnhancedDecompositionEngine:
 
         if not tokens:
             raw = f"{sub_problem.title or ''} {sub_problem.description or ''}"
-            tokens.update(self._tokenize_symbols(raw))
+            try:
+                from utils.symbolic_analyzer import SymbolicAnalyzer
+                analyzer = SymbolicAnalyzer()
+                tokens.update(analyzer.analyze(raw).symbols)
+            except (ImportError, RuntimeError, ValueError):
+                tokens.update(self._tokenize_symbols(raw))
 
         return {t for t in tokens if t}
 

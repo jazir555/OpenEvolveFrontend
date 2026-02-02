@@ -1437,6 +1437,7 @@ class WorkflowState:
     auto_refine_enabled: bool = False
     # Fractal entanglement matrix for dependency propagation
     entanglement_matrix: Dict[str, Set[str]] = dataclasses.field(default_factory=dict)
+    entanglement_strict_mode: bool = False
     
     # Store the specific teams and gauntlets used for THIS workflow run.
     # This ensures consistency even if global definitions in TeamManager/GauntletManager change later.

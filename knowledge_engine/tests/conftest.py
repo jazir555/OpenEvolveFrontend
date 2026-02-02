@@ -216,13 +216,14 @@ async def populated_graph(
     return knowledge_graph
 
 
-# Async event loop fixture
-@pytest.fixture
-def event_loop() -> Generator:
-    """Create an event loop for async tests."""
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
+# Async event loop fixture - use pytest-asyncio's default
+# Removing custom fixture to avoid event loop conflicts with lazy async locks
+# @pytest.fixture
+# def event_loop() -> Generator:
+#     """Create an event loop for async tests."""
+#     loop = asyncio.new_event_loop()
+#     yield loop
+#     loop.close()
 
 
 # Mock service fixtures

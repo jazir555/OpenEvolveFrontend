@@ -16,6 +16,8 @@ from datetime import datetime
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 
+from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
+
 logger = logging.getLogger(__name__)
 
 
@@ -58,21 +60,17 @@ class CrewAIIntegrationManager:
 
     def _normalize_entanglement_matrix(
         self,
-        matrix: Optional[Dict[str, Any]]
+        matrix: Optional[Dict[str, Any]],
+        allowed_ids: Optional[List[str]] = None,
+        strict: bool = False,
     ) -> Dict[str, List[str]]:
-        if not matrix:
-            return {}
-        normalized: Dict[str, List[str]] = {}
-        for key, value in matrix.items():
-            if isinstance(value, set):
-                normalized[key] = sorted(value)
-            elif isinstance(value, list):
-                normalized[key] = list(value)
-            elif isinstance(value, tuple):
-                normalized[key] = list(value)
-            else:
-                normalized[key] = []
-        return normalized
+        normalized = normalize_entanglement_matrix(
+            matrix,
+            allowed_ids=allowed_ids,
+            enforce_symmetry=True,
+            strict=strict,
+        )
+        return serialize_entanglement_matrix(normalized)
 
     def initialize_workflow_sync(self, workflow_state: Any) -> bool:
         """Initialize a CrewAI workflow mirror and attach entanglement metadata."""
@@ -90,7 +88,12 @@ class CrewAIIntegrationManager:
             plan_ctx = getattr(workflow_state.decomposition_plan, "analyzed_context", {}) or {}
             entanglement = plan_ctx.get("entanglement_matrix", {})
 
-        entanglement = self._normalize_entanglement_matrix(entanglement)
+        allowed_ids = [sp.id for sp in workflow_state.decomposition_plan.sub_problems]
+        entanglement = self._normalize_entanglement_matrix(
+            entanglement,
+            allowed_ids=allowed_ids,
+            strict=bool(getattr(workflow_state, "entanglement_strict_mode", False)),
+        )
 
         workflow_record = {
             "workflow_id": workflow_id,

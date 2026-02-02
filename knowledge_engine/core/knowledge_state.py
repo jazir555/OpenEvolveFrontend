@@ -743,6 +743,37 @@ class KnowledgeState:
         data = json.loads(json_str)
         return await cls.from_dict_async(data)
 
+    # Property getters for read-only access to private attributes
+    @property
+    def facts(self) -> List[str]:
+        """Get list of facts (read-only copy)."""
+        with self._lock:
+            return self._facts.copy()
+
+    @property
+    def uncertainties(self) -> List[str]:
+        """Get list of uncertainties (read-only copy)."""
+        with self._lock:
+            return self._uncertainties.copy()
+
+    @property
+    def triples(self) -> List[KnowledgeTriple]:
+        """Get list of knowledge triples (read-only copy)."""
+        with self._lock:
+            return self._triples.copy()
+
+    @property
+    def snapshots(self) -> List[StateSnapshot]:
+        """Get list of state snapshots (read-only copy)."""
+        with self._lock:
+            return self._snapshots.copy()
+
+    @property
+    def version(self) -> int:
+        """Get current state version."""
+        with self._lock:
+            return self._version
+
     def clear(self):
         """Clear all state (synchronous)."""
         with self._lock:

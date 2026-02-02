@@ -374,22 +374,13 @@ class CrewAIDecompositionBridge:
         solutions = {}
         
         for sub_problem in formation:
-            # Create mini-problem for evolution
-            mini_problem = create_problem_definition(
-                title=sub_problem.title,
-                description=sub_problem.description,
-                complexity=sub_problem.complexity_score.overall_complexity
-            )
-            
-            # Evolve solution
-            result = pipeline.execute(mini_problem)
-            
-            if result.sub_solutions:
-                # Use first solution
-                solution = list(result.sub_solutions.values())[0]
+            try:
+                solution = pipeline.solver.solve(sub_problem)
                 solutions[sub_problem.id] = solution
-            else:
-                # Fallback
+            except (RuntimeError, ValueError, TypeError, ConnectionError) as exc:
+                self.logger.warning(
+                    f"OpenEvolve solve failed for {sub_problem.id}: {exc}. Using fallback."
+                )
                 solutions[sub_problem.id] = self.solver.solve(sub_problem)
         
         return solutions

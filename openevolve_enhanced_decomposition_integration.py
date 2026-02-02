@@ -43,6 +43,7 @@ from enhanced_decomposition_engine import (
     ComplexityScore,
     create_problem_definition
 )
+from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
 
 from enhanced_recomposition_engine import (
     EnhancedRecompositionEngine,
@@ -493,6 +494,9 @@ This solution depends on:
     def _fallback_solution(self, sub_problem: SubProblem) -> SubProblemSolution:
         """Create fallback solution when evolution fails."""
         content = self._generate_solution_content(sub_problem)
+        entangled_with = []
+        if isinstance(sub_problem.metadata, dict):
+            entangled_with = sub_problem.metadata.get("entangled_with", []) or []
         
         return SubProblemSolution(
             sub_problem_id=sub_problem.id,
@@ -502,7 +506,7 @@ This solution depends on:
             completeness=0.6,
             correctness=0.6,
             clarity=0.7,
-            metadata={'fallback': True}
+            metadata={'fallback': True, 'entangled_with': entangled_with}
         )
 
 
@@ -680,10 +684,18 @@ class OpenEvolveIntegratedPipeline:
         decomposition_plan = self.decomposition_engine.decompose(problem)
         decomp_time = time.time() - decomp_start
 
-        entanglement_matrix = (decomposition_plan.metadata or {}).get("entanglement_matrix", {})
-        if entanglement_matrix:
+        raw_entanglement = (decomposition_plan.metadata or {}).get("entanglement_matrix", {}) or {}
+        if raw_entanglement or decomposition_plan.sub_problems:
+            normalized = normalize_entanglement_matrix(
+                raw_entanglement,
+                allowed_ids=[sp.id for sp in decomposition_plan.sub_problems],
+                enforce_symmetry=True,
+                strict=bool(getattr(self.pipeline_config, "entanglement_strict_mode", False)),
+            )
+            entanglement_matrix = serialize_entanglement_matrix(normalized)
             for sp in decomposition_plan.sub_problems:
-                sp.metadata.setdefault("entangled_with", entanglement_matrix.get(sp.id, []))
+                sp.metadata["entangled_with"] = entanglement_matrix.get(sp.id, [])
+            decomposition_plan.metadata["entanglement_matrix"] = entanglement_matrix
         
         self.logger.info(
             f"Decomposition complete: {len(decomposition_plan.sub_problems)} sub-problems, "

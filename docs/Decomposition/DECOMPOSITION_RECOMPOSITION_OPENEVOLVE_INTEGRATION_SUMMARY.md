@@ -2,7 +2,9 @@
 
 ## Project Overview
 
-This enhancement adds sovereign-grade decomposition and recomposition capabilities to the OpenEvolve ecosystem, creating a complete end-to-end problem-solving pipeline.
+This enhancement adds sovereign-grade decomposition and recomposition capabilities to the OpenEvolve ecosystem,
+creating a complete end-to-end problem-solving pipeline. It now includes a **fractal entanglement matrix**
+that keeps ROMA, OpenEvolve, and CrewAI orchestration aligned across coupled sub-problems.
 
 ## New Files Created
 
@@ -54,6 +56,21 @@ This enhancement adds sovereign-grade decomposition and recomposition capabiliti
 - Automatic strategy selection
 - Result caching
 
+### Fractal Entanglement Matrix
+
+**Purpose:**
+- Capture semantic coupling between sub-problems (shared interfaces and symbols)
+- Propagate invalidations during recomposition
+- Provide entanglement-aware context for OpenEvolve evolution and CrewAI tasks
+
+**Representation:**
+- Canonical: `Dict[str, Set[str]]`
+- Serialized: `Dict[str, List[str]]` for metadata and transport
+
+**Storage:**
+- Workflow state and plan metadata (`entanglement_matrix`)
+- Sub-problem metadata (`entangled_with`, `entanglement_source`)
+
 ### Recomposition Engine
 
 **Conflict Detection (12+ types):**
@@ -83,6 +100,7 @@ This enhancement adds sovereign-grade decomposition and recomposition capabiliti
 - Automatic fallback when OpenEvolve unavailable
 - Comprehensive metrics collection
 - Backward compatibility with existing API
+- Entanglement-aware evolution prompts and solution metadata
 
 ## Usage Quick Start
 
@@ -148,7 +166,10 @@ Problem Input
 └─────────────────────┘
     │
     ▼
-Sub-Problems (3-10)
+Entanglement Analysis
+    │
+    ▼
+Sub-Problems + Entanglement
     │
     ▼
 ┌─────────────────────┐
@@ -216,10 +237,11 @@ python demo_openevolve_integration.py
 
 ### With Other Systems
 
-- **CrewAI**: Compatible with CrewAI bridge for agent delegation
+- **CrewAI**: Workflow metadata includes entanglement matrix; tasks carry `entangled_with`
 - **Hephaestus**: Works with Hephaestus workflow management
 - **BubbleLabs**: Integrates with BubbleLabs plugin system
 - **LeanAide**: Compatible with LeanAide autoformalization
+- **ROMA**: Stage-2 plans yield structured sub-problems; entanglement is derived and persisted
 
 ## Performance Characteristics
 

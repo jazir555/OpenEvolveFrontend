@@ -38,6 +38,7 @@ except ImportError:
 from problem_decomposition import ProblemDecomposer, DecompositionStrategy, Component
 from dependency_analyzer import DependencyAnalyzer
 from problem_recomposition import SolutionAssembler
+from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
 from decomposition_mcp_tools import (
     list_available_teams,
     list_available_gauntlets,
@@ -139,6 +140,7 @@ class FractalPipelineConfig:
     enable_gauntlet_final: bool = True
 
     enable_fallback_judge: bool = True
+    entanglement_strict_mode: bool = False
 
     use_CrewAI_mirroring: bool = True
     crewai_api_base: Optional[str] = None
@@ -308,12 +310,23 @@ class FractalPipelineCoordinator:
 
         # Build symbolic entanglement matrix
         try:
-            self.entanglement_matrix = self.dependency_analyzer.build_entanglement_matrix(plan.sub_problems)
-            plan.metadata["entanglement_matrix"] = {
-                k: list(v) for k, v in self.entanglement_matrix.items()
-            }
+            raw_matrix = self.dependency_analyzer.build_entanglement_matrix(plan.sub_problems)
+            self.entanglement_matrix = normalize_entanglement_matrix(
+                raw_matrix,
+                allowed_ids=[sp.id for sp in plan.sub_problems],
+                enforce_symmetry=True,
+                strict=self.config.entanglement_strict_mode,
+            )
+            plan.metadata["entanglement_matrix"] = serialize_entanglement_matrix(self.entanglement_matrix)
+            for sp in plan.sub_problems:
+                entangled_with = sorted(self.entanglement_matrix.get(sp.id, set()))
+                sp.metadata["entangled_with"] = entangled_with
+                if entangled_with and "entanglement_source" not in sp.metadata:
+                    sp.metadata["entanglement_source"] = "symbolic_overlap"
         except (ValueError, AttributeError) as exc:
             logger.warning("Failed to build entanglement matrix: %s", exc)
+            if self.config.entanglement_strict_mode:
+                raise
 
         if self.config.enable_mdap_maker_decomposition:
             if self.config.enable_roma_decomposition:
@@ -373,13 +386,23 @@ class FractalPipelineCoordinator:
                 partner_component = component_map.get(partner_id)
                 if partner_component:
                     merged_description = self._merge_component_context(component, partner_component)
+                    entangled_with = sorted(
+                        set(self.entanglement_matrix.get(sub_problem.id, set()))
+                        | set(self.entanglement_matrix.get(partner_id, set()))
+                    )
                     attempt = execute_mdap_step(
                         sub_problem_id=f"{sub_problem.id}+{partner_id}",
                         sub_problem_description=merged_description,
                         team_name=team_name,
                         requirements=requirements,
                         config=self.config,
-                        context={"super_node": [sub_problem.id, partner_id]},
+                        context={
+                            "super_node": [sub_problem.id, partner_id],
+                            "entanglement_matrix": {
+                                key: list(value) for key, value in self.entanglement_matrix.items()
+                            },
+                            "entangled_with": entangled_with,
+                        },
                         red_gauntlet=red_gauntlet,
                         gold_gauntlet=gold_gauntlet,
                     )
@@ -408,6 +431,7 @@ class FractalPipelineCoordinator:
                 gold_gauntlet=gold_gauntlet,
                 depth=0,
                 parent_task_id=plan.metadata.get("CrewAI_tasks", {}).get(sub_problem.id),
+                entanglement_matrix=self.entanglement_matrix,
             )
             sub_solutions[sub_problem.id] = attempt
             solved_ids.add(sub_problem.id)
@@ -477,12 +501,23 @@ class FractalPipelineCoordinator:
         gold_gauntlet: Optional[str],
         depth: int,
         parent_task_id: Optional[str],
+        entanglement_matrix: Optional[Dict[str, set]] = None,
     ) -> SolutionAttempt:
+        raw_active = entanglement_matrix or self.entanglement_matrix
+        active_entanglement = normalize_entanglement_matrix(
+            raw_active,
+            allowed_ids=list(raw_active.keys()) if raw_active else None,
+            enforce_symmetry=True,
+            strict=self.config.entanglement_strict_mode,
+        )
+        entangled_with = sorted(active_entanglement.get(component.id, set()))
         context = {
             "problem": component.metadata.get("problem_statement"),
             "component_id": component.id,
             "dependencies": component.dependencies,
             "depth": depth,
+            "entanglement_matrix": {key: list(value) for key, value in active_entanglement.items()},
+            "entangled_with": entangled_with,
         }
 
         is_atomic = bool(component.metadata.get("roma_is_atomic", False))
@@ -504,12 +539,23 @@ class FractalPipelineCoordinator:
                 nested_map = {comp.id: comp for comp in nested.components}
                 nested_entanglement: Dict[str, set] = {}
                 try:
-                    nested_entanglement = self.dependency_analyzer.build_entanglement_matrix(nested_plan.sub_problems)
-                    nested_plan.metadata["entanglement_matrix"] = {
-                        key: list(value) for key, value in nested_entanglement.items()
-                    }
+                    raw_nested = self.dependency_analyzer.build_entanglement_matrix(nested_plan.sub_problems)
+                    nested_entanglement = normalize_entanglement_matrix(
+                        raw_nested,
+                        allowed_ids=[sp.id for sp in nested_plan.sub_problems],
+                        enforce_symmetry=True,
+                        strict=self.config.entanglement_strict_mode,
+                    )
+                    nested_plan.metadata["entanglement_matrix"] = serialize_entanglement_matrix(nested_entanglement)
+                    for sp in nested_plan.sub_problems:
+                        entangled_with = sorted(nested_entanglement.get(sp.id, set()))
+                        sp.metadata["entangled_with"] = entangled_with
+                        if entangled_with and "entanglement_source" not in sp.metadata:
+                            sp.metadata["entanglement_source"] = "symbolic_overlap"
                 except (ValueError, AttributeError) as exc:
                     logger.warning("Failed to build nested entanglement matrix: %s", exc)
+                    if self.config.entanglement_strict_mode:
+                        raise
 
                 nested_solutions = {}
                 for nested_component in nested.components:
@@ -530,6 +576,7 @@ class FractalPipelineCoordinator:
                         gold_gauntlet=gold_gauntlet,
                         depth=depth + 1,
                         parent_task_id=task_id,
+                        entanglement_matrix=nested_entanglement,
                     )
                     nested_solutions[nested_component.id] = attempt
                     if task_id:
