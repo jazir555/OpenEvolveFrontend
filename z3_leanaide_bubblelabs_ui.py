@@ -433,9 +433,10 @@ class Z3BubbleLabsUIManager:
         """Parse variable definitions."""
         z3_vars = []
         for v in variables:
+            var_type_str = v.get('type', 'INTEGER').upper()
             var = Z3Variable(
                 name=v['name'],
-                var_type=Z3ConstraintType[v.get('type', 'INTEGER').upper()],
+                var_type=Z3ConstraintType[var_type_str],
                 bounds=v.get('bounds'),
                 bit_width=v.get('bit_width')
             )

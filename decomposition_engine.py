@@ -1162,6 +1162,15 @@ class DecompositionEngine:
         except ImportError:
             self.logger.warning("TaskComplexityClassifier not available, using standard complexity metrics.")
             self.complexity_classifier = None
+        
+        # Integrate Z3 Decomposition Validator
+        self._z3_validator = None
+        try:
+            from decomposition_z3_validator import get_z3_decomposition_validator
+            self._z3_validator = get_z3_decomposition_validator()
+            self.logger.info("Integrated Z3 Decomposition Validator")
+        except ImportError:
+            self.logger.debug("Z3 Decomposition Validator not available")
     
     def decompose(self, problem: ProblemDefinition, strategy: Optional[str] = None) -> DecompositionPlan:
         """
@@ -1211,6 +1220,66 @@ class DecompositionEngine:
         
         self.logger.info(f"Decomposition complete: {len(sub_problems)} sub-problems created")
         return plan
+
+    def validate_with_z3(
+        self,
+        problem: ProblemDefinition,
+        plan: DecompositionPlan,
+        properties: Optional[List[str]] = None
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Validate decomposition using Z3 formal verification.
+        
+        Args:
+            problem: Original problem definition
+            plan: Decomposition plan to validate
+            properties: List of properties to verify (default: all)
+            
+        Returns:
+            Validation result dict or None if Z3 not available
+        """
+        if not self._z3_validator:
+            self.logger.debug("Z3 validator not available")
+            return None
+        
+        try:
+            from decomposition_z3_validator import (
+                SubProblemModel, EntanglementSpecification
+            )
+            
+            # Convert sub-problems to Z3 models
+            subproblem_models = []
+            for sp in plan.sub_problems:
+                model = SubProblemModel(
+                    subproblem_id=sp.id,
+                    complexity_score=getattr(sp, 'complexity_score', 1.0)
+                )
+                subproblem_models.append(model)
+            
+            # Extract entanglements from dependency graph
+            entanglements = []
+            if plan.dependency_graph:
+                for edge in plan.dependency_graph.get('edges', []):
+                    ent = EntanglementSpecification(
+                        entanglement_id=f"ent_{edge.get('source')}_{edge.get('target')}",
+                        source_subproblem=edge.get('source', ''),
+                        target_subproblem=edge.get('target', ''),
+                        strength=edge.get('type', 'weak')
+                    )
+                    entanglements.append(ent)
+            
+            # Run validation
+            result = self._z3_validator.validate_decomposition(
+                problem.description,
+                subproblem_models,
+                entanglements,
+                properties=properties
+            )
+            
+            return result.to_dict() if hasattr(result, 'to_dict') else result
+        except Exception as e:
+            self.logger.error(f"Z3 validation failed: {e}")
+            return None
 
     def top_down_repair(
         self,

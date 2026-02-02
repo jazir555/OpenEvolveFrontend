@@ -205,11 +205,11 @@ class Z3ReliabilityChecker:
     """
     
     def __init__(self, config: Optional[Z3Config] = None):
-        self.config = config or Z3Config(timeout=60.0, proof_generation=True)
+        self.config = config or (Z3Config(timeout=60.0, proof_generation=True) if Z3_AVAILABLE else None)
         self.solver = None
         self.prover = None
         
-        if Z3_AVAILABLE:
+        if Z3_AVAILABLE and self.config:
             self.solver = Z3SolverEngine(self.config)
             self.prover = Z3TheoremProver(self.config)
         
@@ -760,21 +760,58 @@ class Z3ReliabilityChecker:
         self,
         components: List[ComponentReliabilityModel]
     ) -> List[Z3Constraint]:
-        """Build constraints for composite system availability."""
+        """Build constraints for composite system availability using standard reliability models."""
         constraints = []
         
-        # For series system: availability_system = product(availability_i)
-        # For parallel system: availability_system = 1 - product(1 - availability_i)
+        if not components:
+            return constraints
+
+        # Series system: A_sys = product(A_i)
+        # Parallel system: A_sys = 1 - product(1 - A_i)
         
-        # Simplified: system availability is average of components
-        if len(components) > 1:
-            avail_sum = "(+ " + " ".join([
-                f"availability_{c.component_id}" for c in components
-            ]) + ")"
+        # SMT-LIB doesn't have a product operator for variables easily,
+        # but for small systems we can expand it.
+        # Here we add variables for different composition types.
+        
+        avail_vars = [f"availability_{c.component_id}" for c in components]
+        
+        # Series Model
+        if len(avail_vars) == 1:
             constraints.append(Z3Constraint(
-                f"(= system_availability (/ {avail_sum} {len(components)}))",
+                f"(= system_availability_series {avail_vars[0]})",
                 Z3ConstraintType.REAL
             ))
+        else:
+            series_expr = avail_vars[0]
+            for v in avail_vars[1:]:
+                series_expr = f"(* {series_expr} {v})"
+            constraints.append(Z3Constraint(
+                f"(= system_availability_series {series_expr})",
+                Z3ConstraintType.REAL
+            ))
+            
+        # Parallel Model (assuming independent failures)
+        if len(avail_vars) == 1:
+            constraints.append(Z3Constraint(
+                f"(= system_availability_parallel {avail_vars[0]})",
+                Z3ConstraintType.REAL
+            ))
+        else:
+            # 1 - (1-a1)*(1-a2)*...
+            product_unavail = f"(- 1.0 {avail_vars[0]})"
+            for v in avail_vars[1:]:
+                product_unavail = f"(* {product_unavail} (- 1.0 {v}))"
+            
+            constraints.append(Z3Constraint(
+                f"(= system_availability_parallel (- 1.0 {product_unavail}))",
+                Z3ConstraintType.REAL
+            ))
+            
+        # Default to series for 'system_availability' as it's the conservative lower bound
+        constraints.append(Z3Constraint(
+            "(= system_availability system_availability_series)",
+            Z3ConstraintType.REAL
+        ))
         
         return constraints
     

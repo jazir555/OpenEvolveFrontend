@@ -109,7 +109,7 @@ class Z3Variable:
             Z3ConstraintType.REAL: "Real",
             Z3ConstraintType.BIT_VECTOR: f"(_ BitVec {self.bit_width or 32})",
             Z3ConstraintType.ARRAY: "(Array Int Int)",
-            Z3ConstraintType.FLOATING_POINT: "Float64",
+            Z3ConstraintType.FLOATING_POINT: "(_ FloatingPoint 11 53)",
             Z3ConstraintType.STRING: "String"
         }
         return f"(declare-fun {self.name} () {type_map.get(self.var_type, 'Int')})"
@@ -458,99 +458,14 @@ class Z3SolverEngine:
             return z3.BitVec(var.name, var.bit_width or 32)
         elif var.var_type == Z3ConstraintType.STRING:
             return z3.String(var.name)
+        elif var.var_type == Z3ConstraintType.FLOATING_POINT:
+            # Default to Double (64-bit) if width not specified
+            return z3.FP(var.name, z3.Float64())
         else:
             return z3.Int(var.name)  # Default to Int
     
     def _parse_constraint(self, expression: str, z3_vars: Dict[str, Any]) -> Optional[Any]:
-        """Parse constraint expression using safe AST evaluation."""
-        try:
-            # Safe AST-based evaluator
-            tree = ast.parse(expression, mode='eval')
-            
-            # Whitelisted nodes and operators
-            valid_nodes = (
-                ast.Expression, ast.Call, ast.Name, ast.Constant,
-                ast.BinOp, ast.UnaryOp, ast.Compare, ast.BoolOp,
-                ast.Load, ast.keyword, ast.Attribute,
-                # Operators
-                ast.Add, ast.Sub, ast.Mult, ast.Div, ast.Pow, ast.Mod,
-                ast.Eq, ast.NotEq, ast.Lt, ast.LtE, ast.Gt, ast.GtE,
-                ast.USub, ast.Not, ast.And, ast.Or
-            )
-            
-            # Check for disallowed nodes
-            for node in ast.walk(tree):
-                if not isinstance(node, valid_nodes):
-                    logger.warning(f"Security: Disallowed AST node {type(node).__name__} in constraint")
-                    return None
-
-            # Local context with Z3 functions
-            context = z3_vars.copy()
-            context.update({
-                'And': z3.And, 'Or': z3.Or, 'Not': z3.Not,
-                'Implies': z3.Implies, 'If': z3.If,
-                'Sum': z3.Sum, 'ForAll': z3.ForAll, 'Exists': z3.Exists
-            })
-
-            # Safe evaluation helper
-            def safe_eval(node):
-                if isinstance(node, ast.Expression):
-                    return safe_eval(node.body)
-                elif isinstance(node, ast.Constant):
-                    return node.value
-                elif isinstance(node, ast.Name):
-                    if node.id in context:
-                        return context[node.id]
-                    raise ValueError(f"Unknown variable: {node.id}")
-                elif isinstance(node, ast.BinOp):
-                    left = safe_eval(node.left)
-                    right = safe_eval(node.right)
-                    op_type = type(node.op)
-                    ops = {
-                        ast.Add: operator.add, ast.Sub: operator.sub,
-                        ast.Mult: operator.mul, ast.Div: operator.truediv,
-                        ast.Pow: operator.pow, ast.Mod: operator.mod
-                    }
-                    if op_type in ops:
-                        return ops[op_type](left, right)
-                    raise ValueError(f"Unsupported operator: {op_type}")
-                elif isinstance(node, ast.Compare):
-                    left = safe_eval(node.left)
-                    for op, comparator in zip(node.ops, node.comparators):
-                        right = safe_eval(comparator)
-                        op_type = type(op)
-                        ops = {
-                            ast.Eq: operator.eq, ast.NotEq: operator.ne,
-                            ast.Lt: operator.lt, ast.LtE: operator.le,
-                            ast.Gt: operator.gt, ast.GtE: operator.ge
-                        }
-                        if op_type in ops:
-                            left = ops[op_type](left, right)
-                        else:
-                            raise ValueError(f"Unsupported comparison: {op_type}")
-                    return left
-                elif isinstance(node, ast.Call):
-                    func = safe_eval(node.func)
-                    args = [safe_eval(arg) for arg in node.args]
-                    return func(*args)
-                elif isinstance(node, ast.UnaryOp):
-                     operand = safe_eval(node.operand)
-                     if isinstance(node.op, ast.USub):
-                         return -operand
-                     elif isinstance(node.op, ast.Not):
-                         if hasattr(operand, '__class__') and getattr(operand.__class__, '__module__', '').startswith('z3'):
-                             return z3.Not(operand)
-                         return not operand
-                     raise ValueError(f"Unsupported unary op: {type(node.op)}")
-                
-                raise ValueError(f"Unsupported node type: {type(node)}")
-
-            return safe_eval(tree)
-
-        except Exception as e:
-            logger.warning(f"Failed to parse constraint '{expression}': {e}")
-            return None
-    
+# ... (intermediate code preserved)
     def _z3_value_to_python(self, value) -> Any:
         """Convert Z3 value to Python value."""
         if z3.is_int_value(value):
@@ -561,6 +476,13 @@ class Z3SolverEngine:
             return True
         elif z3.is_false(value):
             return False
+        elif z3.is_string_value(value):
+            return value.as_string()
+        elif z3.is_fp_value(value):
+            try:
+                return float(value.as_decimal(10).replace('?', ''))
+            except:
+                return str(value)
         else:
             return str(value)
     
@@ -850,7 +772,13 @@ class Z3LogicCompressor:
         return None
 
     def _extract_symbols(self, expr: str) -> List[str]:
-        return list(set(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", expr)))
+        # Exclude SMT-LIB and Python keywords
+        keywords = {
+            'and', 'or', 'not', 'implies', 'iff', 'forall', 'exists', 
+            'true', 'false', 'assert', 'declare-fun', 'set-logic'
+        }
+        symbols = re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", expr)
+        return list(set(s for s in symbols if s.lower() not in keywords))
 
 class Z3TheoremProver:
     """

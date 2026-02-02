@@ -15,11 +15,17 @@ Created: 2026-02-02
 
 import json
 import logging
-import requests
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
+
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
+    logger.warning("requests library not available - n8n Z3 nodes will not function")
 
 
 @dataclass
@@ -38,6 +44,9 @@ class Z3n8nNodeBase:
     
     def _make_api_call(self, endpoint: str, payload: Dict) -> Dict:
         """Make API call to Z3 server."""
+        if not REQUESTS_AVAILABLE:
+            return {"success": False, "error": "requests library not available"}
+        
         url = f"{self.config.api_endpoint}{endpoint}"
         headers = {"Content-Type": "application/json"}
         

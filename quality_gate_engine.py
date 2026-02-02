@@ -443,6 +443,15 @@ class QualityGateEngine:
         
         # ICR: Prediction cache
         self._prediction_cache: Dict[str, Dict] = {}
+        
+        # Z3 Formal Verification Integration
+        self._z3_verifier = None
+        try:
+            from quality_gate_z3_verifier import get_z3_quality_gate_verifier
+            self._z3_verifier = get_z3_quality_gate_verifier()
+            logger.info("Z3 Quality Gate Verifier integrated")
+        except ImportError:
+            logger.debug("Z3 Quality Gate Verifier not available")
 
     def evaluate(
         self,
@@ -535,6 +544,50 @@ class QualityGateEngine:
 
         logger.info(f"Quality gate evaluation complete: {decision.value} (score: {report.overall_score:.2f})")
         return report
+
+    def verify_with_z3(
+        self,
+        verification_type: str,
+        config: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Run formal verification using Z3.
+        
+        Args:
+            verification_type: Type of verification ("sop_safety", "performance", "security")
+            config: Verification configuration
+            
+        Returns:
+            Verification result dict or None if Z3 not available
+        """
+        if not self._z3_verifier:
+            logger.warning("Z3 verifier not available")
+            return None
+        
+        try:
+            if verification_type == "sop_safety":
+                result = self._z3_verifier.verify_sop_safety(
+                    config.get("steps", []),
+                    config.get("invariants", [])
+                )
+            elif verification_type == "performance":
+                result = self._z3_verifier.verify_performance_guarantee(
+                    config.get("specs", []),
+                    config.get("system_model")
+                )
+            elif verification_type == "security":
+                result = self._z3_verifier.verify_security_property(
+                    config.get("property", {}),
+                    config.get("threat_model")
+                )
+            else:
+                logger.warning(f"Unknown verification type: {verification_type}")
+                return None
+            
+            return result.to_dict() if hasattr(result, 'to_dict') else result
+        except Exception as e:
+            logger.error(f"Z3 verification failed: {e}")
+            return None
 
     def _aggregate_scores(self, assessments: List[EvaluatorAssessment]) -> Dict[str, float]:
         """Aggregate scores from multiple assessments"""

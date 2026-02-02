@@ -353,7 +353,11 @@ async def solve_constraints(request: SolveRequest):
         else:
             # Parse variables
             variables = [
-                Z3Variable(v['name'], Z3ConstraintType[v.get('type', 'INTEGER')])
+                Z3Variable(
+                    v['name'], 
+                    Z3ConstraintType[v.get('type', 'INTEGER').upper()],
+                    bit_width=v.get('bit_width')
+                )
                 for v in (request.variables or [])
             ]
             
@@ -394,7 +398,11 @@ async def optimize_problem(request: OptimizeRequest):
         solver = get_z3_advanced_solver()
         
         variables = [
-            Z3Variable(v['name'], Z3ConstraintType[v.get('type', 'INTEGER')])
+            Z3Variable(
+                v['name'], 
+                Z3ConstraintType[v.get('type', 'INTEGER').upper()],
+                bit_width=v.get('bit_width')
+            )
             for v in request.variables
         ]
         

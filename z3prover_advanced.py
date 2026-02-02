@@ -293,21 +293,22 @@ class Z3AdvancedSolver(Z3SolverEngine):
         if not Z3_PYTHON_AVAILABLE:
             return self._optimize_via_cli(variables, constraints, objectives)
         
-        try:
-            if len(objectives) == 1:
-                return self._single_objective_optimize(
-                    variables, constraints, objectives[0]
+        with self._solver_lock:
+            try:
+                if len(objectives) == 1:
+                    return self._single_objective_optimize(
+                        variables, constraints, objectives[0]
+                    )
+                else:
+                    return self._multi_objective_optimize(
+                        variables, constraints, objectives, multi_objective_strategy
+                    )
+            except Exception as e:
+                logger.error(f"Optimization failed: {e}")
+                return OptimizationResult(
+                    success=False,
+                    execution_time=time.time() - start_time
                 )
-            else:
-                return self._multi_objective_optimize(
-                    variables, constraints, objectives, multi_objective_strategy
-                )
-        except Exception as e:
-            logger.error(f"Optimization failed: {e}")
-            return OptimizationResult(
-                success=False,
-                execution_time=time.time() - start_time
-            )
     
     def _single_objective_optimize(
         self,
@@ -601,65 +602,79 @@ class Z3AdvancedSolver(Z3SolverEngine):
             
             return self.solve_smtlib("\n".join(smtlib_parts))
         
-        # Use Python API
-        solver = z3.Solver()
-        solver.set("timeout", int(self.config.timeout * 1000))
-        
-        # Create scalar variables
-        z3_vars = {}
-        for var in scalar_vars:
-            z3_vars[var.name] = self._create_z3_variable(var)
-        
-        # Create arrays
-        for arr in array_constraints:
-            if arr.index_type == Z3ConstraintType.INTEGER:
-                idx_sort = z3.IntSort()
-            else:
-                idx_sort = z3.IntSort()
+        with self._solver_lock:
+            # Use Python API
+            solver = z3.Solver()
+            solver.set("timeout", int(self.config.timeout * 1000))
             
-            if arr.value_type == Z3ConstraintType.INTEGER:
-                val_sort = z3.IntSort()
-            elif arr.value_type == Z3ConstraintType.REAL:
-                val_sort = z3.RealSort()
-            else:
-                val_sort = z3.IntSort()
+            # Create scalar variables
+            z3_vars = {}
+            for var in scalar_vars:
+                z3_vars[var.name] = self._create_z3_variable(var)
             
-            z3_arr = z3.Array(arr.array_name, idx_sort, val_sort)
-            z3_vars[arr.array_name] = z3_arr
+                    # Create arrays
+                    for arr in array_constraints:
+                        if arr.index_type == Z3ConstraintType.INTEGER:
+                            idx_sort = z3.IntSort()
+                        elif arr.index_type == Z3ConstraintType.REAL:
+                            idx_sort = z3.RealSort()
+                        elif arr.index_type == Z3ConstraintType.BOOLEAN:
+                            idx_sort = z3.BoolSort()
+                        elif arr.index_type == Z3ConstraintType.BIT_VECTOR:
+                            idx_sort = z3.BitVecSort(32) # Default width
+                        elif arr.index_type == Z3ConstraintType.STRING:
+                            idx_sort = z3.StringSort()
+                        else:
+                            idx_sort = z3.IntSort()
+                        
+                        if arr.value_type == Z3ConstraintType.INTEGER:
+                            val_sort = z3.IntSort()
+                        elif arr.value_type == Z3ConstraintType.REAL:
+                            val_sort = z3.RealSort()
+                        elif arr.value_type == Z3ConstraintType.BOOLEAN:
+                            val_sort = z3.BoolSort()
+                        elif arr.value_type == Z3ConstraintType.BIT_VECTOR:
+                            val_sort = z3.BitVecSort(32)
+                        elif arr.value_type == Z3ConstraintType.STRING:
+                            val_sort = z3.StringSort()
+                        else:
+                            val_sort = z3.IntSort()
+                        
+                        z3_arr = z3.Array(arr.array_name, idx_sort, val_sort)                z3_vars[arr.array_name] = z3_arr
+                
+                # Add array constraints
+                for constraint in arr.constraints:
+                    z3_expr = self._parse_constraint(constraint, z3_vars)
+                    if z3_expr is not None:
+                        solver.add(z3_expr)
             
-            # Add array constraints
-            for constraint in arr.constraints:
-                z3_expr = self._parse_constraint(constraint, z3_vars)
+            # Add scalar constraints
+            for constraint in scalar_constraints:
+                z3_expr = self._parse_constraint(constraint.expression, z3_vars)
                 if z3_expr is not None:
                     solver.add(z3_expr)
-        
-        # Add scalar constraints
-        for constraint in scalar_constraints:
-            z3_expr = self._parse_constraint(constraint.expression, z3_vars)
-            if z3_expr is not None:
-                solver.add(z3_expr)
-        
-        # Solve
-        result = solver.check()
-        
-        if result == z3.sat:
-            model = solver.model()
-            assignments = {}
             
-            for var in scalar_vars:
-                z3_var = z3_vars.get(var.name)
-                if z3_var is not None:
-                    value = model.eval(z3_var, model_completion=True)
-                    assignments[var.name] = self._z3_value_to_python(value)
+            # Solve
+            result = solver.check()
             
-            return Z3SolverResult(
-                status=Z3ResultStatus.SAT,
-                model=Z3Model(assignments=assignments)
-            )
-        elif result == z3.unsat:
-            return Z3SolverResult(status=Z3ResultStatus.UNSAT)
-        else:
-            return Z3SolverResult(status=Z3ResultStatus.UNKNOWN)
+            if result == z3.sat:
+                model = solver.model()
+                assignments = {}
+                
+                for var in scalar_vars:
+                    z3_var = z3_vars.get(var.name)
+                    if z3_var is not None:
+                        value = model.eval(z3_var, model_completion=True)
+                        assignments[var.name] = self._z3_value_to_python(value)
+                
+                return Z3SolverResult(
+                    status=Z3ResultStatus.SAT,
+                    model=Z3Model(assignments=assignments)
+                )
+            elif result == z3.unsat:
+                return Z3SolverResult(status=Z3ResultStatus.UNSAT)
+            else:
+                return Z3SolverResult(status=Z3ResultStatus.UNKNOWN)
     
     # =====================================================================
     # Bit-Vector Operations
@@ -685,44 +700,45 @@ class Z3AdvancedSolver(Z3SolverEngine):
             
             return self.solve_smtlib("\n".join(smtlib_parts))
         
-        solver = z3.Solver()
-        solver.set("timeout", int(self.config.timeout * 1000))
-        
-        # Create bit-vector variables
-        z3_vars = {}
-        for bv in bv_constraints:
-            if bv.signed:
-                z3_var = z3.BitVec(bv.var_name, bv.width)
-            else:
-                z3_var = z3.BitVec(bv.var_name, bv.width)
-            z3_vars[bv.var_name] = z3_var
+        with self._solver_lock:
+            solver = z3.Solver()
+            solver.set("timeout", int(self.config.timeout * 1000))
             
-            # Add constraints
-            for constraint in bv.constraints:
-                z3_expr = self._parse_constraint(constraint, z3_vars)
-                if z3_expr is not None:
-                    solver.add(z3_expr)
-        
-        result = solver.check()
-        
-        if result == z3.sat:
-            model = solver.model()
-            assignments = {}
-            
+            # Create bit-vector variables
+            z3_vars = {}
             for bv in bv_constraints:
-                z3_var = z3_vars.get(bv.var_name)
-                if z3_var is not None:
-                    value = model.eval(z3_var, model_completion=True)
-                    assignments[bv.var_name] = int(value.as_long())
+                if bv.signed:
+                    z3_var = z3.BitVec(bv.var_name, bv.width)
+                else:
+                    z3_var = z3.BitVec(bv.var_name, bv.width)
+                z3_vars[bv.var_name] = z3_var
+                
+                # Add constraints
+                for constraint in bv.constraints:
+                    z3_expr = self._parse_constraint(constraint, z3_vars)
+                    if z3_expr is not None:
+                        solver.add(z3_expr)
             
-            return Z3SolverResult(
-                status=Z3ResultStatus.SAT,
-                model=Z3Model(assignments=assignments)
-            )
-        elif result == z3.unsat:
-            return Z3SolverResult(status=Z3ResultStatus.UNSAT)
-        else:
-            return Z3SolverResult(status=Z3ResultStatus.UNKNOWN)
+            result = solver.check()
+            
+            if result == z3.sat:
+                model = solver.model()
+                assignments = {}
+                
+                for bv in bv_constraints:
+                    z3_var = z3_vars.get(bv.var_name)
+                    if z3_var is not None:
+                        value = model.eval(z3_var, model_completion=True)
+                        assignments[bv.var_name] = int(value.as_long())
+                
+                return Z3SolverResult(
+                    status=Z3ResultStatus.SAT,
+                    model=Z3Model(assignments=assignments)
+                )
+            elif result == z3.unsat:
+                return Z3SolverResult(status=Z3ResultStatus.UNSAT)
+            else:
+                return Z3SolverResult(status=Z3ResultStatus.UNKNOWN)
     
     # =====================================================================
     # Portfolio Solving
@@ -812,10 +828,16 @@ class Z3AdvancedSolver(Z3SolverEngine):
         )
     
     def _try_strategy(self, smtlib_problem: str, strategy: str) -> Z3SolverResult:
-        """Try a single strategy."""
+        """Try a single strategy with proper SMT-LIB option placement."""
         try:
-            # Add tactic to SMT-LIB
-            modified_smt = f"(set-option :tactic.default_tactic {strategy})\n{smtlib_problem}"
+            # SMT-LIB options must come before set-logic and assertions
+            option_line = f"(set-option :tactic.default_tactic {strategy})"
+            
+            # Remove any existing tactic option to avoid conflicts
+            cleaned_smt = re.sub(r'\(set-option\s+:tactic\.default_tactic\s+\w+\)', '', smtlib_problem)
+            
+            # Prepend option
+            modified_smt = f"{option_line}\n{cleaned_smt}"
             return self.solve_smtlib(modified_smt)
         except Exception as e:
             logger.warning(f"Strategy {strategy} failed: {e}")
@@ -963,43 +985,44 @@ class Z3AdvancedSolver(Z3SolverEngine):
         if not Z3_PYTHON_AVAILABLE:
             return self._extract_proof_via_cli(smtlib_problem, proof_format)
         
-        try:
-            # Enable proof generation
-            z3.set_option(proof=True)
-            
-            solver = z3.Solver()
-            solver.set("timeout", int(self.config.timeout * 1000))
-            
-            # Parse SMT-LIB
-            # Note: This is simplified - full implementation would parse properly
-            solver.from_string(smtlib_problem)
-            
-            result = solver.check()
-            
-            if result == z3.unsat:
-                proof = solver.proof()
+        with self._solver_lock:
+            try:
+                # Enable proof generation
+                z3.set_option(proof=True)
                 
-                # Convert proof to steps
-                steps = self._parse_z3_proof(proof)
+                solver = z3.Solver()
+                solver.set("timeout", int(self.config.timeout * 1000))
                 
-                return ExtractedProof(
-                    success=True,
-                    proof_steps=steps,
-                    raw_proof=str(proof),
-                    proof_format=proof_format,
-                    verification_status="verified"
-                )
-            else:
+                # Parse SMT-LIB
+                # Note: This is simplified - full implementation would parse properly
+                solver.from_string(smtlib_problem)
+                
+                result = solver.check()
+                
+                if result == z3.unsat:
+                    proof = solver.proof()
+                    
+                    # Convert proof to steps
+                    steps = self._parse_z3_proof(proof)
+                    
+                    return ExtractedProof(
+                        success=True,
+                        proof_steps=steps,
+                        raw_proof=str(proof),
+                        proof_format=proof_format,
+                        verification_status="verified"
+                    )
+                else:
+                    return ExtractedProof(
+                        success=False,
+                        verification_status="not_unsat"
+                    )
+            except Exception as e:
+                logger.error(f"Proof extraction failed: {e}")
                 return ExtractedProof(
                     success=False,
-                    verification_status="not_unsat"
+                    errors=[str(e)]
                 )
-        except Exception as e:
-            logger.error(f"Proof extraction failed: {e}")
-            return ExtractedProof(
-                success=False,
-                errors=[str(e)]
-            )
     
     def _parse_z3_proof(self, proof) -> List[ProofStep]:
         """Parse Z3 proof object into steps."""

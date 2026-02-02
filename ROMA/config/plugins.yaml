@@ -1,0 +1,199 @@
+# ROMA Plugins Configuration
+# 
+# This file defines which plugins should be loaded by ROMA.
+# Plugins follow the Air Gap principle - they don't directly import ROMA internals.
+#
+# Plugin Structure:
+#   - name: Unique identifier for the plugin
+#   - enabled: Whether to load the plugin (true/false)
+#   - module_path: Optional path to plugin module (if not in Python path)
+#   - config: Plugin-specific configuration
+#   - priority: Load order (higher priority loads first)
+
+plugins:
+  # ROMA Knowledge Graph Plugin
+  - name: knowledge_graph
+    enabled: true
+    module_path: null  # Uses import from installed package
+    config:
+      # Knowledge Graph Engine Configuration
+      kg_engine:
+        type: "networkx"  # Options: networkx, neo4j, custom
+        storage_path: "data/knowledge_graph"
+        
+      # Visualization Configuration
+      visualization:
+        max_nodes: 100
+        max_edges: 200
+        show_labels: true
+        layout: "spring"  # Options: spring, circular, hierarchical
+        
+      # Analytics Configuration
+      analytics:
+        enable_metrics: true
+        enable_tracing: true
+        cache_size: 1000
+        
+      # Panel Configuration
+      panels:
+        knowledge_graph:
+          enabled: true
+          refresh_interval: 5
+        analytics_dashboard:
+          enabled: true
+          refresh_interval: 10
+    priority: 10
+
+  # ROMA BubbleLab Plugin (Frontend Integration)
+  - name: bubblelab
+    enabled: true
+    module_path: null  # Uses import from installed package
+    config:
+      # BubbleLab Integration Configuration
+      api:
+        base_url: "http://localhost:3000"
+        timeout: 30
+        
+      # WebSocket Configuration
+      websocket:
+        enabled: true
+        reconnect_interval: 5
+        max_reconnect_attempts: 10
+        
+      # State Synchronization
+      sync:
+        enabled: true
+        sync_interval: 1
+        batch_size: 100
+        
+      # Execution Configuration
+      execution:
+        auto_start: false
+        max_concurrent_tasks: 5
+        cache_enabled: true
+        cache_ttl: 3600
+    priority: 5
+
+  # ROMA MDAP-MAKER Plugin (Multi-Agent Debate Protocol)
+  - name: mdap_maker
+    enabled: true
+    module_path: null  # Uses import from installed package
+    config:
+      # ROMA Configuration
+      roma:
+        max_depth_analysis: 3
+        max_depth_solving: 2
+        execution_mode: "recursive"
+        enable_checkpoints: false
+        enable_logging: true
+        
+      # MDAP Configuration
+      mdap:
+        enabled: true
+        k_ahead: 3
+        max_samples: 100
+        enable_red_flagging: true
+        max_token_length: 750
+        min_confidence: 0.2
+        
+      # MAKER Configuration
+      maker:
+        apply_to_atomic: true
+        apply_to_planning: true
+        aggregate_results: true
+        enable_hierarchical_voting: true
+        enable_adaptive_k: true
+        
+      # Caching Configuration
+      cache:
+        enabled: true
+        ttl_seconds: 3600
+        max_size: 10000
+        
+      # Fault Tolerance
+      fault_tolerance:
+        max_retries: 3
+        timeout_seconds: 300
+        fallback_policy: "escalate_then_best_effort"
+    priority: 15
+
+  # ROMA Associative Integration Plugin
+  - name: associative_integration
+    enabled: true
+    module_path: null  # Uses import from installed package
+    config:
+      # Associative Recomposition Configuration
+      associative:
+        enabled: true
+        max_retries: 3
+        use_agentjson: true
+        
+      # Ground Truth Configuration
+      ground_truth:
+        enabled: true
+        storage_path: "roma_mdap_maker_ground_truth.json"
+        
+      # Integration Configuration
+      integration:
+        apply_mdap_to_recomposed: true
+        enable_hierarchical_validation: true
+        
+      # Evaluator Team Configuration
+      evaluator:
+        enabled: true
+        threshold: "standard_approval"  # Options: minimal_acceptance, standard_approval, high_quality
+        num_members: 3
+        
+      # Gauntlet System Configuration
+      gauntlet:
+        enabled: true
+        difficulty: "adaptive"  # Options: easy, medium, hard, adaptive
+        
+      # Recursive Refinement Configuration
+      refinement:
+        max_attempts: 3
+        min_acceptance_score: 75.0
+    priority: 12
+
+  # ROMA MCP Toolkit Plugin (Model Context Protocol)
+  - name: mcp_toolkit
+    enabled: false  # Disabled by default
+    module_path: null
+    config:
+      # MCP Server Configuration
+      servers:
+        - name: "filesystem"
+          enabled: true
+          config:
+            base_path: "./data"
+            
+        - name: "database"
+          enabled: false
+          config:
+            connection_string: "sqlite:///roma.db"
+            
+      # Tool Registration
+      tools:
+        auto_discover: true
+        timeout: 30
+    priority: 3
+
+# Plugin Loader Configuration
+loader:
+  # Auto-discovery settings
+  auto_discover:
+    enabled: true
+    paths:
+      - "./plugins"
+      - "./roma_*_plugin"
+      
+  # Error handling
+  error_handling:
+    continue_on_error: true
+    log_errors: true
+    max_errors: 10
+    
+  # Performance settings
+  performance:
+    parallel_loading: false
+    timeout_seconds: 60

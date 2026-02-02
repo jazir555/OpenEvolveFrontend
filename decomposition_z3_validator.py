@@ -175,12 +175,12 @@ class Z3DecompositionValidator:
     """
     
     def __init__(self, config: Optional[Z3Config] = None):
-        self.config = config or Z3Config(timeout=120.0, proof_generation=True)
+        self.config = config or (Z3Config(timeout=120.0, proof_generation=True) if Z3_AVAILABLE else None)
         self.solver = None
         self.prover = None
-        self.detector = Z3ProblemDetector()
+        self.detector = Z3ProblemDetector() if Z3_AVAILABLE else None
         
-        if Z3_AVAILABLE:
+        if Z3_AVAILABLE and self.config:
             self.solver = Z3SolverEngine(self.config)
             self.prover = Z3TheoremProver(self.config)
         

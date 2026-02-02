@@ -25,6 +25,14 @@ from .signatures import (
     SubTask,
     TaskNode,
 )
+from .plugin_loader import (
+    PluginLoader,
+    PluginStatus,
+    PluginMetadata,
+    PluginConfig,
+    LoadedPlugin,
+    create_plugin_loader,
+)
 
 # Import the wrapper lazily after engine to avoid circular import
 from .modules.recursive_solver import RecursiveSolverModule
@@ -50,4 +58,10 @@ __all__ = [
     "SubTask",
     "TaskNode",
     "RecursiveSolverModule",
+    "PluginLoader",
+    "PluginStatus",
+    "PluginMetadata",
+    "PluginConfig",
+    "LoadedPlugin",
+    "create_plugin_loader",
 ]

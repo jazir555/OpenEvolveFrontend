@@ -81,13 +81,15 @@ class Z3WorkflowStage:
     
     def __init__(self, config: Z3StageConfig):
         self.config = config
-        self.z3_config = Z3Config(
-            timeout=config.timeout_seconds,
-            proof_generation=config.proof_generation
-        )
-        self.solver = Z3SolverEngine(self.z3_config) if Z3_AVAILABLE else None
-        self.prover = Z3TheoremProver(self.z3_config) if Z3_AVAILABLE else None
-        self.advanced = Z3AdvancedSolver(self.z3_config) if Z3_ADVANCED_AVAILABLE else None
+        self.z3_config = None
+        if Z3_AVAILABLE:
+            self.z3_config = Z3Config(
+                timeout=config.timeout_seconds,
+                proof_generation=config.proof_generation
+            )
+        self.solver = Z3SolverEngine(self.z3_config) if Z3_AVAILABLE and self.z3_config else None
+        self.prover = Z3TheoremProver(self.z3_config) if Z3_AVAILABLE and self.z3_config else None
+        self.advanced = Z3AdvancedSolver(self.z3_config) if Z3_ADVANCED_AVAILABLE and self.z3_config else None
     
     def execute(self, context: Dict[str, Any]) -> Z3StageResult:
         """Execute the Z3 workflow stage."""
@@ -110,6 +112,8 @@ class Z3WorkflowStage:
                 return self._execute_prove(context)
             elif self.config.stage_type == Z3StageType.VERIFY:
                 return self._execute_verify(context)
+            elif self.config.stage_type == Z3StageType.TRANSLATE:
+                return self._execute_translate(context)
             else:
                 return Z3StageResult(
                     success=False,
@@ -200,16 +204,86 @@ class Z3WorkflowStage:
         )
     
     def _execute_verify(self, context: Dict[str, Any]) -> Z3StageResult:
-        """Execute verification stage."""
+        """Execute verification stage - verifies a specification against a model."""
         start_time = time.time()
         
-        # Placeholder for verification logic
-        return Z3StageResult(
-            success=True,
-            stage_type=Z3StageType.VERIFY,
-            status="verified",
-            execution_time_ms=(time.time() - start_time) * 1000
-        )
+        if not Z3_AVAILABLE:
+            return Z3StageResult(
+                success=False,
+                stage_type=Z3StageType.VERIFY,
+                status="z3_unavailable",
+                execution_time_ms=(time.time() - start_time) * 1000
+            )
+        
+        try:
+            # Get specification to verify
+            spec = self.config.smtlib_input or context.get("specification", "")
+            assumptions = context.get("assumptions", [])
+            
+            # Verify using prover
+            result = self.prover.prove_theorem(spec, assumptions)
+            
+            return Z3StageResult(
+                success=True,
+                stage_type=Z3StageType.VERIFY,
+                status="verified" if result.proven else "not_verified",
+                proof=result.proof,
+                execution_time_ms=(time.time() - start_time) * 1000
+            )
+        except Exception as e:
+            logger.error(f"Verify stage failed: {e}")
+            return Z3StageResult(
+                success=False,
+                stage_type=Z3StageType.VERIFY,
+                status="error",
+                execution_time_ms=(time.time() - start_time) * 1000
+            )
+    
+    def _execute_translate(self, context: Dict[str, Any]) -> Z3StageResult:
+        """Execute translation stage - translates between SMT-LIB and other formats."""
+        start_time = time.time()
+        
+        try:
+            direction = context.get("direction", "smt_to_lean")
+            content = self.config.smtlib_input or context.get("content", "")
+            
+            # Try to use Z3-LeanAIDE bridge if available
+            try:
+                from z3_leanaide_bridge import get_z3_leanaide_bridge_sync
+                bridge = get_z3_leanaide_bridge_sync()
+                
+                if direction == "smt_to_lean":
+                    import asyncio
+                    result = asyncio.run(bridge.translate_smt_to_lean(content))
+                    translated = result.translation if result.success else ""
+                else:
+                    import asyncio
+                    result = asyncio.run(bridge.translate_lean_to_smt(content))
+                    translated = result.translation if result.success else ""
+                
+                return Z3StageResult(
+                    success=result.success,
+                    stage_type=Z3StageType.TRANSLATE,
+                    status="translated" if result.success else "failed",
+                    model={"translation": translated, "direction": direction},
+                    execution_time_ms=(time.time() - start_time) * 1000
+                )
+            except ImportError:
+                # Bridge not available - return placeholder
+                return Z3StageResult(
+                    success=False,
+                    stage_type=Z3StageType.TRANSLATE,
+                    status="bridge_unavailable",
+                    execution_time_ms=(time.time() - start_time) * 1000
+                )
+        except Exception as e:
+            logger.error(f"Translate stage failed: {e}")
+            return Z3StageResult(
+                success=False,
+                stage_type=Z3StageType.TRANSLATE,
+                status="error",
+                execution_time_ms=(time.time() - start_time) * 1000
+            )
     
     def _build_variables(self, var_specs: List[Dict[str, Any]]) -> List[Any]:
         """Build Z3 variables from specifications."""

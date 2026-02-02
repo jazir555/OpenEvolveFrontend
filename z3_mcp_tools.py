@@ -141,7 +141,7 @@ class MCPTool:
                 "type": "object",
                 "properties": {
                     "name": {"type": "string"},
-                    "type": {"type": "string", "enum": ["BOOLEAN", "INTEGER", "REAL", "BIT_VECTOR"]},
+                    "type": {"type": "string", "enum": ["BOOLEAN", "INTEGER", "REAL", "BIT_VECTOR", "STRING", "FLOATING_POINT"]},
                     "bit_width": {"type": "integer", "optional": True}
                 }
             }
@@ -192,7 +192,7 @@ async def z3_solve_constraints(
         # Parse variables
         z3_vars = []
         for v in variables:
-            var_type = Z3ConstraintType[v.get('type', 'INTEGER')]
+            var_type = Z3ConstraintType[v.get('type', 'INTEGER').upper()]
             z3_var = Z3Variable(
                 name=v['name'],
                 var_type=var_type,
@@ -280,8 +280,12 @@ async def z3_optimize(
         # Parse variables
         z3_vars = []
         for v in variables:
-            var_type = Z3ConstraintType[v.get('type', 'INTEGER')]
-            z3_vars.append(Z3Variable(v['name'], var_type))
+            var_type = Z3ConstraintType[v.get('type', 'INTEGER').upper()]
+            z3_vars.append(Z3Variable(
+                name=v['name'], 
+                var_type=var_type,
+                bit_width=v.get('bit_width')
+            ))
         
         # Parse constraints
         z3_constraints = [
@@ -483,7 +487,11 @@ async def z3_solve_incremental(
         
         if operation == "create":
             z3_vars = [
-                Z3Variable(v['name'], Z3ConstraintType[v.get('type', 'INTEGER')])
+                Z3Variable(
+                    name=v['name'], 
+                    var_type=Z3ConstraintType[v.get('type', 'INTEGER').upper()],
+                    bit_width=v.get('bit_width')
+                )
                 for v in (variables or [])
             ]
             z3_constraints = [

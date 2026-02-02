@@ -219,7 +219,7 @@ class Z3SolverAgent(Z3BaseAgent):
                 constraints = task.parameters.get('constraints', [])
                 
                 z3_vars = [
-                    Z3Variable(v['name'], Z3ConstraintType[v.get('type', 'INTEGER')])
+                    Z3Variable(v['name'], Z3ConstraintType[v.get('type', 'INTEGER').upper()])
                     for v in variables
                 ]
                 z3_constraints = [
@@ -281,7 +281,7 @@ class Z3OptimizerAgent(Z3BaseAgent):
         
         try:
             variables = [
-                Z3Variable(v['name'], Z3ConstraintType[v.get('type', 'INTEGER')])
+                Z3Variable(v['name'], Z3ConstraintType[v.get('type', 'INTEGER').upper()])
                 for v in task.parameters.get('variables', [])
             ]
             

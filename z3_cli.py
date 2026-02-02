@@ -107,7 +107,7 @@ if CLICK_AVAILABLE:
             constraints_list = json.loads(constraints) if constraints else []
             
             z3_vars = [
-                Z3Variable(v['name'], Z3ConstraintType[v.get('type', 'INTEGER')])
+                Z3Variable(v['name'], Z3ConstraintType[v.get('type', 'INTEGER').upper()])
                 for v in vars_list
             ]
             
@@ -170,7 +170,7 @@ if CLICK_AVAILABLE:
             vars_list = json.loads(variables)
             constraints_list = json.loads(constraints)
             
-            z3_vars = [Z3Variable(v['name'], Z3ConstraintType[v.get('type', 'INTEGER')]) for v in vars_list]
+            z3_vars = [Z3Variable(v['name'], Z3ConstraintType[v.get('type', 'INTEGER').upper()]) for v in vars_list]
             z3_constraints = [Z3Constraint(c, Z3ConstraintType.INTEGER) for c in constraints_list]
             
             obj_type = OptimizationObjective.MINIMIZE if direction == 'minimize' else OptimizationObjective.MAXIMIZE

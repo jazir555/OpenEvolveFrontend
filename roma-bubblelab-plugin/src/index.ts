@@ -5,6 +5,7 @@ export * from './types/plugin-types';
 export * from './utils/createRomaPlugin';
 export * from './components/RomaConfigPanel';
 export * from './components/RomaExecutionPanel';
+export * from './hooks/useRomaPlugin';
 export * from './hooks/useRomaConfig';
 export * from './hooks/useRomaState';
 export * from './hooks/useRomaExecution';

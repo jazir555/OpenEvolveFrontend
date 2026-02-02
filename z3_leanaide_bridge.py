@@ -29,9 +29,11 @@ import json
 import logging
 import re
 import time
+import ast
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 from enum import Enum
+from collections import defaultdict
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -193,6 +195,11 @@ class SMTtoLeanTranslator:
             "(Array Int Real)": "Array Int Real",
         }
     
+    def _is_smtlib(self, text: str) -> bool:
+        """Check if text is in SMT-LIB format."""
+        smt_keywords = ['(assert', '(declare-fun', '(check-sat)', '(set-logic']
+        return any(kw in text for kw in smt_keywords)
+
     def translate(self, smtlib_content: str) -> TranslationResult:
         """
         Translate SMT-LIB content to Lean 4.
@@ -335,55 +342,91 @@ class SMTtoLeanTranslator:
         return "\n".join(lines)
     
     def _translate_expr(self, expr: str) -> str:
-        """Translate SMT expression to Lean."""
-        # Replace SMT operators with Lean equivalents
-        replacements = [
-            # Comparison operators
-            (r'\(=\s+([^)]+)\)', r'\1 = \2'),
-            (r'\(<=\s+([^)]+)\)', r'\1 ≤ \2'),
-            (r'\(<\s+([^)]+)\)', r'\1 < \2'),
-            (r'\(>=\s+([^)]+)\)', r'\1 ≥ \2'),
-            (r'\(>\s+([^)]+)\)', r'\1 > \2'),
+        """Translate SMT expression to Lean using recursive parsing."""
+        expr = expr.strip()
+        if not expr.startswith('('):
+            return expr
+        
+        # Simple stack-based tokenizer for S-expressions
+        def tokenize(s):
+            return s.replace('(', ' ( ').replace(')', ' ) ').split()
+        
+        def parse(tokens):
+            if not tokens:
+                return None
+            token = tokens.pop(0)
+            if token == '(':
+                lst = []
+                while tokens[0] != ')':
+                    lst.append(parse(tokens))
+                tokens.pop(0) # pop ')'
+                return lst
+            else:
+                return token
+
+        try:
+            tree = parse(tokenize(expr))
+            return self._tree_to_lean(tree)
+        except Exception:
+            return expr # Fallback
+
+    def _tree_to_lean(self, tree) -> str:
+        if not isinstance(tree, list):
+            return str(tree)
+        
+        if not tree:
+            return ""
+        
+        op = tree[0]
+        args = tree[1:]
+        
+        # Binary operators (prefix to infix)
+        binary_ops = {
+            '=': '=', '<=': '≤', '<': '<', '>=': '≥', '>': '>',
+            '+': '+', '-': '-', '*': '*', '/': '/',
+            'and': '∧', 'or': '∨', 'xor': '⊕', '=>': '→', 'implies': '→',
+            'iff': '↔', 'distinct': '≠'
+        }
+        
+        if op in binary_ops and len(args) == 2:
+            return f"({self._tree_to_lean(args[0])} {binary_ops[op]} {self._tree_to_lean(args[1])})"
+        
+        # N-ary operators
+        if op in ['+', 'and', 'or'] and len(args) > 2:
+            lean_op = binary_ops.get(op, op)
+            return "(" + f" {lean_op} ".join([self._tree_to_lean(a) for a in args]) + ")"
             
-            # Arithmetic operators
-            (r'\(\+\s+([^)]+)\)', r'\1 + \2'),
-            (r'\(-\s+([^)]+)\)', r'\1 - \2'),
-            (r'\(\*\s+([^)]+)\)', r'\1 * \2'),
-            (r'\(/\s+([^)]+)\)', r'\1 / \2'),
+        # Unary operators
+        if (op == 'not' or op == '-') and len(args) == 1:
+            symbol = '¬' if op == 'not' else '-'
+            return f"({symbol} {self._tree_to_lean(args[0])})"
             
-            # Logical operators
-            (r'\(and\s+([^)]+)\)', r'\1 ∧ \2'),
-            (r'\(or\s+([^)]+)\)', r'\1 ∨ \2'),
-            (r'\(not\s+([^)]+)\)', r'¬\1'),
-            (r'\(=>\s+([^)]+)\)', r'\1 → \2'),
-            (r'\(implies\s+([^)]+)\)', r'\1 → \2'),
+        # Quantifiers
+        if op in ['forall', 'exists'] and len(args) == 2:
+            symbol = '∀' if op == 'forall' else '∃'
+            vars_list = args[0]
+            body = args[1]
             
-            # Quantifiers
-            (r'\(forall\s+\(([^)]+)\)\s+([^)]+)\)', r'∀ \1, \2'),
-            (r'\(exists\s+\(([^)]+)\)\s+([^)]+)\)', r'∃ \1, \2'),
-        ]
-        
-        result = expr
-        for pattern, replacement in replacements:
-            # For simple patterns, use direct replacement
-            if pattern.startswith('(='):
-                result = result.replace('(= ', '(')
-            elif pattern.startswith('(and'):
-                result = result.replace('(and ', 'And ')
-            elif pattern.startswith('(or'):
-                result = result.replace('(or ', 'Or ')
-            elif pattern.startswith('(not'):
-                result = result.replace('(not ', 'Not ')
-        
-        # Clean up parentheses
-        result = result.replace('(', ' ').replace(')', ' ')
-        
-        # Final clean up
-        result = result.strip()
-        if not result:
-            result = "True"
-        
-        return result
+            # Format vars_list: [[name, type], ...] -> (name1 name2 : type)
+            if isinstance(vars_list, list):
+                # Group by type for Lean (name1 name2 : type)
+                type_groups = defaultdict(list)
+                for v in vars_list:
+                    if isinstance(v, list) and len(v) == 2:
+                        name, v_type = v
+                        type_groups[v_type].append(name)
+                
+                lean_vars = []
+                for v_type, names in type_groups.items():
+                    lean_vars.append(f"({' '.join(names)} : {v_type})")
+                vars_str = " ".join(lean_vars)
+            else:
+                vars_str = str(vars_list)
+                
+            return f"({symbol} {vars_str}, {self._tree_to_lean(body)})"
+            
+        # Function calls
+        return f"{op}(" + ", ".join([self._tree_to_lean(a) for a in args]) + ")"
 
 
 # =============================================================================
@@ -462,27 +505,25 @@ class LeantoSMTTranslator:
         }
         
         # Extract theorem name and parameters
-        theorem_pattern = r'theorem\s+(\w+)\s*(?:\{[^}]*\})?\s*(\([^)]*\))?'
-        match = re.search(theorem_pattern, lean_code)
+        theorem_pattern = r'theorem\s+(\w+)\s*(?:\{[^}]*\})?\s*(.*):'
+        match = re.search(theorem_pattern, lean_code, re.DOTALL)
         if match:
             info["name"] = match.group(1)
-            if match.group(2):
-                params_str = match.group(2)[1:-1]  # Remove parentheses
-                # Parse parameters
-                for param in params_str.split(')'):
-                    if ':' in param:
-                        param = param.strip()
-                        if param.startswith('('):
-                            param = param[1:]
-                        parts = param.split(':', 1)
-                        if len(parts) == 2:
-                            param_names = parts[0].strip().split()
-                            param_type = parts[1].strip()
-                            for name in param_names:
-                                info["parameters"].append({
-                                    "name": name,
-                                    "type": self.type_mapping.get(param_type, param_type)
-                                })
+            params_block = match.group(2).strip()
+            
+            # Extract parameters from blocks like (x y : Int) (z : Real)
+            param_matches = re.findall(r'\(([^)]+)\)', params_block)
+            for param_group in param_matches:
+                if ':' in param_group:
+                    parts = param_group.split(':', 1)
+                    names = parts[0].strip().split()
+                    type_str = parts[1].strip()
+                    mapped_type = self.type_mapping.get(type_str, type_str)
+                    for name in names:
+                        info["parameters"].append({
+                            "name": name,
+                            "type": mapped_type
+                        })
         
         # Extract statement (between : and :=)
         statement_pattern = r':\s*([^:=]+)\s*:='
@@ -521,24 +562,67 @@ class LeantoSMTTranslator:
         return "\n".join(lines)
     
     def _translate_statement(self, statement: str) -> str:
-        """Translate Lean statement to SMT."""
-        # Replace Lean operators with SMT equivalents
-        smt = statement
+        """Translate Lean statement to SMT using AST parsing for infix-to-prefix."""
+        # Pre-process Lean symbols to python-compatible ones for ast.parse
+        py_stmt = statement
+        replacements = [
+            ('∧', ' and '), ('∨', ' or '), ('¬', ' not '), 
+            ('→', ' <= '), ('∀', ' forall '), ('∃', ' exists '),
+            ('≤', ' <= '), ('≥', ' >= '), ('≠', ' != ')
+        ]
+        for lean, py in replacements:
+            py_stmt = py_stmt.replace(lean, py)
         
-        # Logical operators
-        smt = smt.replace('∧', 'and').replace('/\\', 'and')
-        smt = smt.replace('∨', 'or').replace('\\/', 'or')
-        smt = smt.replace('¬', 'not').replace('~', 'not')
-        smt = smt.replace('→', '=>')
-        smt = smt.replace('∀', 'forall')
-        smt = smt.replace('∃', 'exists')
-        
-        # Comparison operators
-        smt = smt.replace('≤', '<=').replace('≤', '<=')
-        smt = smt.replace('≥', '>=').replace('≥', '>=')
-        smt = smt.replace('≠', 'distinct')
-        
-        return smt
+        try:
+            tree = ast.parse(py_stmt, mode='eval')
+            return self._ast_to_smt(tree.body)
+        except Exception:
+            # Fallback to simple replacement if AST fails
+            smt = statement
+            for lean, py in replacements:
+                smt = smt.replace(lean, py.strip())
+            return smt
+
+    def _ast_to_smt(self, node) -> str:
+        """Recursively convert AST node to SMT-LIB prefix notation."""
+        if isinstance(node, ast.BoolOp):
+            op = "and" if isinstance(node.op, ast.And) else "or"
+            values = [self._ast_to_smt(v) for v in node.values]
+            return f"({op} {' '.join(values)})"
+        elif isinstance(node, ast.BinOp):
+            ops = {ast.Add: '+', ast.Sub: '-', ast.Mult: '*', ast.Div: '/'}
+            op = ops.get(type(node.op), 'unknown')
+            return f"({op} {self._ast_to_smt(node.left)} {self._ast_to_smt(node.right)})"
+        elif isinstance(node, ast.Compare):
+            left = self._ast_to_smt(node.left)
+            # SMT comparisons are typically binary, but we need to nest them if multiple
+            res = left
+            for op, right_node in zip(node.ops, node.comparators):
+                right = self._ast_to_smt(right_node)
+                op_str = {
+                    ast.Eq: '=', ast.NotEq: 'distinct', 
+                    ast.Lt: '<', ast.LtE: '<=', 
+                    ast.Gt: '>', ast.GtE: '>='
+                }.get(type(op), '=')
+                res = f"({op_str} {res} {right})"
+            return res
+        elif isinstance(node, ast.UnaryOp):
+            if isinstance(node.op, ast.Not):
+                return f"(not {self._ast_to_smt(node.operand)})"
+            if isinstance(node.op, ast.USub):
+                return f"(- {self._ast_to_smt(node.operand)})"
+        elif isinstance(node, ast.Name):
+            return node.id
+        elif isinstance(node, ast.Constant):
+            if isinstance(node.value, bool):
+                return "true" if node.value else "false"
+            return str(node.value)
+        elif isinstance(node, ast.Call):
+            func_name = node.func.id if isinstance(node.func, ast.Name) else "unknown"
+            args = [self._ast_to_smt(a) for a in node.args]
+            return f"({func_name} {' '.join(args)})"
+            
+        return str(node)
 
 
 # =============================================================================

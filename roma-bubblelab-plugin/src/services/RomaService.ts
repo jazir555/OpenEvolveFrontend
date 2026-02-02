@@ -219,37 +219,131 @@ export class RomaService implements RomaService {
   }
 
   /**
-   * Get execution plan (stub - would be implemented with actual ROMA API)
-   * @param executionId Execution ID
+   * Get execution plan
+   * Retrieves the detailed execution plan for a specific execution from ROMA API.
+   * Includes subtasks, dependencies graph, and execution metadata.
+   *
+   * @param executionId - Execution ID to retrieve plan for
+   * @returns Execution plan with subtasks and dependencies
+   * @throws Error if execution not found or API call fails
    */
   public async getExecutionPlan(executionId: string): Promise<any> {
-    // This would be implemented with actual ROMA API endpoints
-    console.log(`Getting execution plan for ${executionId}`);
-    return {
-      executionId,
-      originalGoal: 'Sample goal',
-      subtasks: [],
-      dependenciesGraph: {},
-      createdAt: Date.now(),
-      status: 'completed' as const
-    };
+    try {
+      console.log(`Getting execution plan for ${executionId}`);
+      
+      // Get execution details from ROMA API
+      const execution = await this.client.getExecution(executionId);
+      
+      if (!execution) {
+        throw new Error(`Execution ${executionId} not found`);
+      }
+
+      // Build execution plan from execution data
+      // In a real implementation, this would call ROMA's /executions/{id}/plan endpoint
+      // For now, we construct a plan from available execution data
+      
+      const plan = {
+        executionId,
+        originalGoal: execution.goal,
+        subtasks: execution.statistics?.subtasksCreated || [],
+        dependenciesGraph: execution.result?.dependenciesGraph || {},
+        createdAt: execution.timestamp,
+        status: execution.status,
+        modules: execution.statistics?.modulesUsed || [],
+        tools: execution.statistics?.toolsUsed || []
+      };
+
+      console.log('Execution plan retrieved:', plan);
+      return plan;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error retrieving execution plan';
+      console.error('Failed to get execution plan:', error);
+      throw new Error(errorMessage);
+    }
   }
 
   /**
-   * Analyze execution performance (stub - would be implemented with actual metrics)
-   * @param executionId Execution ID
+   * Analyze execution performance
+   * Provides detailed performance analysis for a specific execution.
+   * Includes timing metrics, tool usage, module efficiency, and overall score.
+   *
+   * @param executionId - Execution ID to analyze
+   * @returns Performance metrics including timing, usage, and efficiency score
+   * @throws Error if execution not found or API call fails
    */
   public async analyzeExecutionPerformance(executionId: string): Promise<Record<string, any>> {
-    // This would be implemented with actual performance analysis
-    console.log(`Analyzing performance for execution ${executionId}`);
-    return {
-      executionId,
-      totalTime: 1000,
-      averageSubtaskTime: 200,
-      toolUsage: {},
-      moduleUsage: {},
-      efficiencyScore: 0.95
-    };
+    try {
+      console.log(`Analyzing performance for execution ${executionId}`);
+      
+      // Get execution details from ROMA API
+      const execution = await this.client.getExecution(executionId);
+      
+      if (!execution) {
+        throw new Error(`Execution ${executionId} not found`);
+      }
+
+      const stats = execution.statistics;
+      if (!stats) {
+        throw new Error(`No statistics available for execution ${executionId}`);
+      }
+
+      // Calculate performance metrics
+      const totalTime = stats.executionTime || 0;
+      const subtasksCreated = stats.subtasksCreated || 0;
+      const subtasksCompleted = stats.subtasksCompleted || 0;
+      const toolsUsed = stats.toolsUsed || [];
+      const modulesUsed = stats.modulesUsed || [];
+
+      // Calculate average subtask time
+      const averageSubtaskTime = subtasksCompleted > 0
+        ? totalTime / subtasksCompleted
+        : 0;
+
+      // Calculate completion rate
+      const completionRate = subtasksCreated > 0
+        ? (subtasksCompleted / subtasksCreated) * 100
+        : 100;
+
+      // Calculate tool usage frequency
+      const toolUsage: Record<string, number> = {};
+      toolsUsed.forEach(tool => {
+        toolUsage[tool] = (toolUsage[tool] || 0) + 1;
+      });
+
+      // Calculate module usage frequency
+      const moduleUsage: Record<string, number> = {};
+      modulesUsed.forEach(module => {
+        moduleUsage[module] = (moduleUsage[module] || 0) + 1;
+      });
+
+      // Calculate efficiency score based on completion rate and time
+      // Higher completion rate and lower time = better efficiency
+      const efficiencyScore = completionRate > 0
+        ? Math.min(1, (completionRate / 100) * (1 - (totalTime / 60000))) // Normalize time (60s = 1.0)
+        : 0;
+
+      const performance = {
+        executionId,
+        totalTime,
+        averageSubtaskTime,
+        subtasksCreated,
+        subtasksCompleted,
+        completionRate: `${completionRate.toFixed(1)}%`,
+        toolUsage,
+        moduleUsage,
+        efficiencyScore: efficiencyScore.toFixed(3),
+        toolsUsed: toolsUsed.length,
+        modulesUsed: modulesUsed.length,
+        timestamp: Date.now()
+      };
+
+      console.log('Performance analysis completed:', performance);
+      return performance;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error analyzing performance';
+      console.error('Failed to analyze performance:', error);
+      throw new Error(errorMessage);
+    }
   }
 
   /**

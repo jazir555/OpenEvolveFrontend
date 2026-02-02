@@ -3894,3 +3894,153 @@ def get_maker_evolution_capabilities() -> Dict[str, Any]:
         capabilities["integration_status"] = f"unavailable: {str(e)}"
     
     return capabilities
+
+
+# =============================================================================
+# Z3 Fitness Evaluation Integration
+# =============================================================================
+
+def evaluate_fitness_with_z3(
+    individual: Dict[str, Any],
+    constraints: List[Dict[str, Any]],
+    objectives: Optional[List[str]] = None
+) -> Optional[Dict[str, Any]]:
+    """
+    Evaluate individual fitness using Z3 formal verification.
+    
+    Args:
+        individual: The evolved individual to evaluate
+        constraints: List of fitness constraints
+        objectives: Optional list of objective expressions
+        
+    Returns:
+        Fitness result dict or None if Z3 not available
+    """
+    try:
+        from evolution_z3_fitness import get_z3_fitness_evaluator, FitnessConstraint
+        
+        evaluator = get_z3_fitness_evaluator()
+        
+        # Convert constraints
+        fitness_constraints = [
+            FitnessConstraint(
+                constraint_id=c.get("id", f"c{i}"),
+                expression=c["expression"],
+                weight=c.get("weight", 1.0),
+                is_hard=c.get("is_hard", True)
+            )
+            for i, c in enumerate(constraints)
+        ]
+        
+        # Evaluate
+        result = evaluator.evaluate_fitness(individual, fitness_constraints, objectives)
+        
+        return {
+            "fitness_score": result.fitness_score,
+            "constraints_satisfied": result.constraints_satisfied,
+            "violated_constraints": result.violated_constraints,
+            "is_feasible": result.is_feasible
+        }
+    except ImportError:
+        logging.getLogger(__name__).debug("Z3 fitness evaluator not available")
+        return None
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Z3 fitness evaluation failed: {e}")
+        return None
+
+
+def validate_mutation_with_z3(
+    original: Dict[str, Any],
+    mutated: Dict[str, Any],
+    constraints: List[Dict[str, Any]]
+) -> bool:
+    """
+    Validate that a mutation produces a valid individual using Z3.
+    
+    Args:
+        original: Original individual
+        mutated: Mutated individual
+        constraints: Constraints that must be satisfied
+        
+    Returns:
+        True if mutation is valid
+    """
+    try:
+        from evolution_z3_fitness import get_z3_fitness_evaluator, FitnessConstraint
+        
+        evaluator = get_z3_fitness_evaluator()
+        
+        fitness_constraints = [
+            FitnessConstraint(
+                constraint_id=c.get("id", f"c{i}"),
+                expression=c["expression"],
+                is_hard=c.get("is_hard", True)
+            )
+            for i, c in enumerate(constraints)
+        ]
+        
+        return evaluator.validate_mutation(original, mutated, fitness_constraints)
+    except ImportError:
+        return True  # Assume valid if Z3 not available
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Z3 mutation validation failed: {e}")
+        return True
+
+
+def calculate_pareto_frontier_with_z3(
+    population: List[Dict[str, Any]],
+    objectives: List[str]
+) -> Optional[List[Dict[str, Any]]]:
+    """
+    Calculate Pareto frontier using Z3 multi-objective optimization.
+    
+    Args:
+        population: Population of individuals
+        objectives: List of objective expressions
+        
+    Returns:
+        Pareto-optimal individuals or None if Z3 not available
+    """
+    try:
+        from evolution_z3_fitness import get_z3_fitness_evaluator
+        
+        evaluator = get_z3_fitness_evaluator()
+        return evaluator.calculate_pareto_frontier(population, objectives)
+    except ImportError:
+        return None
+    except Exception as e:
+        logging.getLogger(__name__).error(f"Z3 Pareto frontier calculation failed: {e}")
+        return None
+
+
+def get_z3_evolution_capabilities() -> Dict[str, Any]:
+    """
+    Get capabilities of Z3-enhanced evolution.
+    
+    Returns:
+        Dict describing Z3 evolution capabilities
+    """
+    capabilities = {
+        "z3_fitness_enabled": False,
+        "z3_mutation_validation": False,
+        "z3_pareto_optimization": False,
+        "integration_status": "unknown"
+    }
+    
+    try:
+        from evolution_z3_fitness import (
+            get_z3_fitness_evaluator,
+            Z3_ADVANCED_AVAILABLE
+        )
+        
+        evaluator = get_z3_fitness_evaluator()
+        
+        capabilities["z3_fitness_enabled"] = True
+        capabilities["z3_mutation_validation"] = True
+        capabilities["z3_pareto_optimization"] = Z3_ADVANCED_AVAILABLE
+        capabilities["integration_status"] = "available"
+        
+    except ImportError as e:
+        capabilities["integration_status"] = f"unavailable: {str(e)}"
+    
+    return capabilities

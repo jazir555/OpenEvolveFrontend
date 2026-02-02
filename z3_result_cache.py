@@ -16,7 +16,6 @@ Created: 2026-01-31
 import hashlib
 import json
 import logging
-import pickle
 import sqlite3
 import threading
 import time
@@ -149,6 +148,7 @@ class Z3ResultCache:
         self._cache: OrderedDict[str, CacheEntry] = OrderedDict()
         self._lock = threading.RLock()
         self._stats = CacheStats()
+        self._db_conn = None
         
         # Initialize persistent storage
         if self.config.persistent_storage:
@@ -157,8 +157,10 @@ class Z3ResultCache:
     def _init_db(self):
         """Initialize SQLite database for persistent cache."""
         self._db_path = Path(self.config.db_path)
-        conn = sqlite3.connect(str(self._db_path))
-        cursor = conn.cursor()
+        self._db_path.parent.mkdir(parents=True, exist_ok=True)
+        
+        self._db_conn = sqlite3.connect(str(self._db_path), check_same_thread=False)
+        cursor = self._db_conn.cursor()
         
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS cache_entries (
@@ -182,20 +184,18 @@ class Z3ResultCache:
             CREATE INDEX IF NOT EXISTS idx_tags ON cache_entries(tags)
         ''')
         
-        conn.commit()
-        conn.close()
+        self._db_conn.commit()
         
         # Load existing entries
         self._load_from_db()
     
     def _load_from_db(self):
         """Load cache entries from database."""
-        if not self.config.persistent_storage:
+        if not self._db_conn:
             return
         
         try:
-            conn = sqlite3.connect(str(self._db_path))
-            cursor = conn.cursor()
+            cursor = self._db_conn.cursor()
             
             cursor.execute('''
                 SELECT key, value, created_at, expires_at, access_count, 
@@ -205,10 +205,10 @@ class Z3ResultCache:
             ''', (time.time(),))
             
             for row in cursor.fetchall():
-                key, value_blob = row[0], row[1]
+                key, value_json = row[0], row[1]
                 
                 try:
-                    value = pickle.loads(value_blob)
+                    value = json.loads(value_json)
                     
                     entry = CacheEntry(
                         key=key,
@@ -229,9 +229,7 @@ class Z3ResultCache:
                 except Exception as e:
                     logger.warning(f"Failed to load cache entry {key}: {e}")
             
-            conn.close()
             self._stats.entry_count = len(self._cache)
-            
             logger.info(f"Loaded {self._stats.entry_count} cache entries from database")
         
         except Exception as e:
@@ -239,14 +237,13 @@ class Z3ResultCache:
     
     def _save_to_db(self, entry: CacheEntry):
         """Save entry to database."""
-        if not self.config.persistent_storage:
+        if not self._db_conn:
             return
         
         try:
-            conn = sqlite3.connect(str(self._db_path))
-            cursor = conn.cursor()
+            cursor = self._db_conn.cursor()
             
-            value_blob = pickle.dumps(entry.value)
+            value_json = json.dumps(entry.value)
             
             cursor.execute('''
                 INSERT OR REPLACE INTO cache_entries
@@ -255,7 +252,7 @@ class Z3ResultCache:
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (
                 entry.key,
-                value_blob,
+                value_json,
                 entry.created_at,
                 entry.expires_at,
                 entry.access_count,
@@ -265,8 +262,7 @@ class Z3ResultCache:
                 entry.version
             ))
             
-            conn.commit()
-            conn.close()
+            self._db_conn.commit()
         
         except Exception as e:
             logger.error(f"Failed to save cache entry to database: {e}")
@@ -342,9 +338,18 @@ class Z3ResultCache:
         """
         key = self._generate_key(operation, params)
         
+        # Convert dataclasses to dict if needed
+        import dataclasses
+        if hasattr(value, 'to_dict'):
+            serializable_value = value.to_dict()
+        elif dataclasses.is_dataclass(value):
+            serializable_value = dataclasses.asdict(value)
+        else:
+            serializable_value = value
+
         # Calculate size
         try:
-            size = len(pickle.dumps(value))
+            size = len(json.dumps(serializable_value))
         except:
             size = 0
         
@@ -356,7 +361,7 @@ class Z3ResultCache:
         
         entry = CacheEntry(
             key=key,
-            value=value,
+            value=serializable_value,
             expires_at=expires_at,
             size_bytes=size,
             tags=tags or []
@@ -432,19 +437,11 @@ class Z3ResultCache:
         
         elif self.config.policy == CachePolicy.LFU:
             # Evict least frequently used
-            min_access = min(e.access_count for e in self._cache.values())
-            key_to_evict = next(
-                k for k, e in self._cache.items()
-                if e.access_count == min_access
-            )
+            key_to_evict = min(self._cache.keys(), key=lambda k: self._cache[k].access_count)
         
         elif self.config.policy == CachePolicy.FIFO:
             # Evict oldest
-            oldest = min(e.created_at for e in self._cache.values())
-            key_to_evict = next(
-                k for k, e in self._cache.items()
-                if e.created_at == oldest
-            )
+            key_to_evict = min(self._cache.keys(), key=lambda k: self._cache[k].created_at)
         
         else:  # TTL
             # Evict soonest to expire
@@ -471,16 +468,14 @@ class Z3ResultCache:
             self._stats.entry_count = len(self._cache)
             
             # Remove from database
-            if self.config.persistent_storage:
+            if self._db_conn:
                 try:
-                    conn = sqlite3.connect(str(self._db_path))
-                    cursor = conn.cursor()
+                    cursor = self._db_conn.cursor()
                     cursor.execute(
                         "DELETE FROM cache_entries WHERE key = ?",
                         (key,)
                     )
-                    conn.commit()
-                    conn.close()
+                    self._db_conn.commit()
                 except Exception as e:
                     logger.error(f"Failed to remove from database: {e}")
     
@@ -503,15 +498,21 @@ class Z3ResultCache:
             self._cache.clear()
             self._stats = CacheStats()
             
-            if self.config.persistent_storage:
+            if self._db_conn:
                 try:
-                    conn = sqlite3.connect(str(self._db_path))
-                    cursor = conn.cursor()
+                    cursor = self._db_conn.cursor()
                     cursor.execute("DELETE FROM cache_entries")
-                    conn.commit()
-                    conn.close()
+                    self._db_conn.commit()
                 except Exception as e:
                     logger.error(f"Failed to clear database: {e}")
+
+    def __del__(self):
+        """Close database connection."""
+        if hasattr(self, '_db_conn') and self._db_conn:
+            try:
+                self._db_conn.close()
+            except:
+                pass
     
     def get_cache_info(self) -> Dict[str, Any]:
         """Get detailed cache information."""
