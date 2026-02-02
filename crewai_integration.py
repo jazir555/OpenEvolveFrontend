@@ -11,6 +11,8 @@ Key Features:
 """
 
 import logging
+import uuid
+from datetime import datetime
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 
@@ -34,11 +36,142 @@ class CrewAIIntegrationManager:
     within the OpenEvolve ecosystem.
     """
 
-    def __init__(self, config: Optional[CrewAIConfig] = None):
+    def __init__(
+        self,
+        config: Optional[CrewAIConfig] = None,
+        api_base: Optional[str] = None,
+        api_key: Optional[str] = None,
+        project_id: Optional[str] = None,
+    ):
         """Initialize CrewAI integration manager"""
+        if isinstance(config, str):
+            api_base, api_key, project_id = config, api_base, api_key
+            config = None
         self.config = config or CrewAIConfig()
+        self.api_base = api_base
+        self.api_key = api_key
+        self.project_id = project_id
         self.active_teams: Dict[str, Any] = {}
+        self.active_workflows: Dict[str, Dict[str, Any]] = {}
+        self.active_tasks: Dict[str, Dict[str, Any]] = {}
         logger.info("CrewAI Integration Manager initialized")
+
+    def _normalize_entanglement_matrix(
+        self,
+        matrix: Optional[Dict[str, Any]]
+    ) -> Dict[str, List[str]]:
+        if not matrix:
+            return {}
+        normalized: Dict[str, List[str]] = {}
+        for key, value in matrix.items():
+            if isinstance(value, set):
+                normalized[key] = sorted(value)
+            elif isinstance(value, list):
+                normalized[key] = list(value)
+            elif isinstance(value, tuple):
+                normalized[key] = list(value)
+            else:
+                normalized[key] = []
+        return normalized
+
+    def initialize_workflow_sync(self, workflow_state: Any) -> bool:
+        """Initialize a CrewAI workflow mirror and attach entanglement metadata."""
+        if not workflow_state or not getattr(workflow_state, "decomposition_plan", None):
+            logger.warning("CrewAI init skipped: missing decomposition plan")
+            return False
+
+        workflow_id = getattr(workflow_state, "crewai_workflow_id", None)
+        if not workflow_id:
+            workflow_id = f"crewai_{uuid.uuid4().hex[:10]}"
+            workflow_state.crewai_workflow_id = workflow_id
+
+        entanglement = getattr(workflow_state, "entanglement_matrix", None)
+        if not entanglement:
+            plan_ctx = getattr(workflow_state.decomposition_plan, "analyzed_context", {}) or {}
+            entanglement = plan_ctx.get("entanglement_matrix", {})
+
+        entanglement = self._normalize_entanglement_matrix(entanglement)
+
+        workflow_record = {
+            "workflow_id": workflow_id,
+            "created_at": datetime.utcnow().isoformat(),
+            "entanglement_matrix": entanglement,
+            "tasks": [],
+        }
+
+        for sub_problem in workflow_state.decomposition_plan.sub_problems:
+            task_id = f"{workflow_id}:{sub_problem.id}"
+            entangled_with = entanglement.get(sub_problem.id, [])
+            task_record = {
+                "task_id": task_id,
+                "workflow_id": workflow_id,
+                "sub_problem_id": sub_problem.id,
+                "description": sub_problem.description,
+                "dependencies": list(sub_problem.dependencies or []),
+                "entangled_with": entangled_with,
+                "status": "pending",
+                "metadata": {
+                    "entangled_with": entangled_with,
+                    "entanglement_source": "decomposition_system",
+                },
+            }
+            self.active_tasks[task_id] = task_record
+            workflow_record["tasks"].append(task_id)
+            workflow_state.id_to_ticket_id_map[sub_problem.id] = task_id
+            workflow_state.ticket_id_to_subproblem_id_map[task_id] = sub_problem.id
+
+        self.active_workflows[workflow_id] = workflow_record
+        logger.info("CrewAI workflow mirror initialized: %s", workflow_id)
+        return True
+
+    def update_subproblem_status(
+        self,
+        workflow_state: Any,
+        sub_problem_id: str,
+        new_status: str,
+        solution_content: Optional[str] = None,
+    ) -> bool:
+        task_id = workflow_state.id_to_ticket_id_map.get(sub_problem_id) if workflow_state else None
+        if not task_id or task_id not in self.active_tasks:
+            logger.warning("CrewAI status sync skipped: task missing for %s", sub_problem_id)
+            return False
+        task = self.active_tasks[task_id]
+        task["status"] = new_status
+        if solution_content:
+            task.setdefault("metadata", {})["solution_content"] = solution_content
+        task["updated_at"] = datetime.utcnow().isoformat()
+        return True
+
+    def sync_solution_to_ticket(self, workflow_state: Any, sub_problem_id: str, solution: Any) -> bool:
+        task_id = workflow_state.id_to_ticket_id_map.get(sub_problem_id) if workflow_state else None
+        if not task_id or task_id not in self.active_tasks:
+            logger.warning("CrewAI solution sync skipped: task missing for %s", sub_problem_id)
+            return False
+        task = self.active_tasks[task_id]
+        solution_content = getattr(solution, "solution_content", None) or getattr(solution, "content", None)
+        task.setdefault("metadata", {})["solution"] = solution_content
+        task["updated_at"] = datetime.utcnow().isoformat()
+        return True
+
+    def sync_critique_to_ticket(self, workflow_state: Any, sub_problem_id: str, critique: Any) -> bool:
+        task_id = workflow_state.id_to_ticket_id_map.get(sub_problem_id) if workflow_state else None
+        if not task_id or task_id not in self.active_tasks:
+            logger.warning("CrewAI critique sync skipped: task missing for %s", sub_problem_id)
+            return False
+        task = self.active_tasks[task_id]
+        task.setdefault("metadata", {})["critique"] = getattr(critique, "summary", None) or str(critique)
+        task["updated_at"] = datetime.utcnow().isoformat()
+        return True
+
+    def sync_verification_to_ticket(self, workflow_state: Any, sub_problem_id: str, verification: Any) -> bool:
+        task_id = workflow_state.id_to_ticket_id_map.get(sub_problem_id) if workflow_state else None
+        if not task_id or task_id not in self.active_tasks:
+            logger.warning("CrewAI verification sync skipped: task missing for %s", sub_problem_id)
+            return False
+        task = self.active_tasks[task_id]
+        task.setdefault("metadata", {})["verification"] = getattr(verification, "summary", None) or str(verification)
+        task["updated_at"] = datetime.utcnow().isoformat()
+        return True
 
     def execute_task(
         self,

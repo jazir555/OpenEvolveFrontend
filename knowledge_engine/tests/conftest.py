@@ -37,21 +37,10 @@ DOCUMENT_LOADER_AVAILABLE = False
 EXTRACTOR_AVAILABLE = False
 
 try:
-    # Import directly from the file, not through __init__.py
-    import importlib.util
-    spec = importlib.util.spec_from_file_location(
-        "core",
-        project_root / "knowledge_engine" / "core.py"
-    )
-    if spec and spec.loader:
-        core_module = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(core_module)
-        KnowledgeState = core_module.KnowledgeState
-        EntityKnowledgeGraph = core_module.EntityKnowledgeGraph
-        CORE_AVAILABLE = True
-        logger.info("Successfully imported core module directly")
-    else:
-        logger.warning("Could not load core module directly")
+    # Import from the knowledge_engine.core package (uses __init__.py)
+    from knowledge_engine.core import KnowledgeState, EntityKnowledgeGraph
+    CORE_AVAILABLE = True
+    logger.info("Successfully imported core module from package")
 except Exception as e:
     logger.warning(f"Could not import knowledge_engine.core: {e}")
     logger.warning("Tests requiring core will be skipped")

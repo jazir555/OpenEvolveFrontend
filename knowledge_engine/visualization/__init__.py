@@ -14,8 +14,21 @@ import json
 import os
 from pathlib import Path
 
+# Import temporal visualization components
+from .temporal_viz import TemporalVisualizer, TimeRange, TemporalVisualizationOptions
 
 logger = logging.getLogger(__name__)
+
+__all__ = [
+    'VisualizationOptions',
+    'VisualizationResult',
+    'ExportHandler',
+    'GraphExplorer',
+    'TemporalVisualizer',
+    'TimeRange',
+    'TemporalVisualizationOptions',
+    'CommunityVisualizer',
+]
 
 
 

@@ -37,6 +37,7 @@ from monitoring_system import add_metric, trace_operation, MetricType
 from resource_manager import ResourceManager
 from mdap_engine import MDAPConfig, MDAPTask, MDAPStep, MDAPOrchestrator, RedFlagRules
 from maker_engine import MakerConfig, MakerEngine, MakerStep, FileCheckpointStore
+from dependency_analyzer import DependencyAnalyzer
 
 # Import new MAKER v2 integration (complete arXiv:2511.09030 implementation)
 from maker_workflow_integration import (
@@ -82,6 +83,38 @@ def _record_workflow_completion(
         MetricType.HISTOGRAM,
         {"workflow_id": workflow_state.workflow_id, "status": status}
     )
+
+
+def _update_entanglement_matrix(workflow_state: WorkflowState) -> None:
+    """Populate the fractal entanglement matrix for dependency propagation."""
+    if not workflow_state:
+        return
+    if not workflow_state.decomposition_plan:
+        workflow_state.entanglement_matrix = {}
+        return
+
+    sub_problems = workflow_state.decomposition_plan.sub_problems or []
+    if not sub_problems:
+        workflow_state.entanglement_matrix = {}
+        if workflow_state.decomposition_plan.analyzed_context is not None:
+            workflow_state.decomposition_plan.analyzed_context["entanglement_matrix"] = {}
+        return
+
+    try:
+        analyzer = DependencyAnalyzer()
+        matrix = analyzer.build_entanglement_matrix(sub_problems)
+    except Exception as exc:
+        logger.warning("Failed to build entanglement matrix: %s", exc)
+        workflow_state.entanglement_matrix = {}
+        if workflow_state.decomposition_plan.analyzed_context is not None:
+            workflow_state.decomposition_plan.analyzed_context.pop("entanglement_matrix", None)
+        return
+
+    workflow_state.entanglement_matrix = matrix
+    if workflow_state.decomposition_plan.analyzed_context is not None:
+        workflow_state.decomposition_plan.analyzed_context["entanglement_matrix"] = {
+            key: sorted(list(value)) for key, value in matrix.items()
+        }
     if status == "completed":
         add_metric(
             "workflows_completed_total",
@@ -132,6 +165,7 @@ def _apply_top_down_repair(
             },
             "disambiguation_constraints": disambiguation_constraints,
         }
+        _update_entanglement_matrix(workflow_state)
     except Exception as e:
         logger.error(f"Top-down repair failed: {e}")
 
@@ -1333,6 +1367,7 @@ async def run_sovereign_workflow(
             planner_team
         )
         workflow_state.decomposition_plan.sub_problems = decomposition_plan.sub_problems
+        _update_entanglement_matrix(workflow_state)
         st.success(f"[{workflow_state.current_stage}] Decomposition plan generated.")
         workflow_state.current_stage = "Manual Review & Override" # Transition to human-in-the-loop stage.
         workflow_state.progress = 0.4 # Update overall progress.
@@ -1351,6 +1386,7 @@ async def run_sovereign_workflow(
 
         if review_status == "approved":
             workflow_state.decomposition_plan = approved_plan
+            _update_entanglement_matrix(workflow_state)
             st.success("[Manual Review & Override] Decomposition plan approved by user.")
             workflow_state.current_stage = "Delegate to crewai" # Transition to delegation stage.
             workflow_state.status = "running" # Resume workflow execution.

@@ -341,6 +341,7 @@ class FractalPipelineCoordinator:
                     task_description=f"Subproblem {comp.id}: {comp.title}",
                     done_definition=f"Solve subproblem {comp.id}",
                     parent_task_id=parent_task_id,
+                    sub_problem_id=comp.id,
                 )
                 if task_id:
                     plan.metadata.setdefault("CrewAI_tasks", {})[comp.id] = task_id
@@ -501,6 +502,14 @@ class FractalPipelineCoordinator:
                 nested_plan = self._build_plan_from_components(nested.components, nested.dependency_graph)
                 nested_plan.metadata["problem_statement"] = component.content
                 nested_map = {comp.id: comp for comp in nested.components}
+                nested_entanglement: Dict[str, set] = {}
+                try:
+                    nested_entanglement = self.dependency_analyzer.build_entanglement_matrix(nested_plan.sub_problems)
+                    nested_plan.metadata["entanglement_matrix"] = {
+                        key: list(value) for key, value in nested_entanglement.items()
+                    }
+                except (ValueError, AttributeError) as exc:
+                    logger.warning("Failed to build nested entanglement matrix: %s", exc)
 
                 nested_solutions = {}
                 for nested_component in nested.components:
@@ -510,6 +519,8 @@ class FractalPipelineCoordinator:
                             task_description=f"Nested subproblem {nested_component.id}: {nested_component.title}",
                             done_definition=f"Solve nested subproblem {nested_component.id}",
                             parent_task_id=parent_task_id,
+                            sub_problem_id=nested_component.id,
+                            entangled_with=sorted(nested_entanglement.get(nested_component.id, set())),
                         )
                     attempt = self._solve_component_recursive(
                         component=nested_component,
@@ -785,6 +796,8 @@ class FractalPipelineCoordinator:
         task_description: str,
         done_definition: str,
         parent_task_id: Optional[str] = None,
+        sub_problem_id: Optional[str] = None,
+        entangled_with: Optional[List[str]] = None,
     ) -> Optional[str]:
         if not (self.config.use_CrewAI_mirroring and REQUESTS_AVAILABLE):
             return None
@@ -794,6 +807,16 @@ class FractalPipelineCoordinator:
         workflow_id = self._CrewAI_workflow_id()
         if not workflow_id:
             return None
+
+        if entangled_with is None:
+            entangled_with = []
+            if sub_problem_id:
+                entangled_with = sorted(self.entanglement_matrix.get(sub_problem_id, set()))
+        if entangled_with:
+            task_description = (
+                f"{task_description}\n\n"
+                f"Entangled With: {', '.join(entangled_with)}"
+            )
 
         payload = {
             "task_description": task_description,

@@ -60,7 +60,8 @@ class KarateClubBackend(KnowledgeGraphBackend):
             # Try importing KarateClub to verify installation
             try:
                 import karateclub
-                logger.info(f"KarateClub version: {karateclub.__version__}")
+                version = getattr(karateclub, '__version__', 'unknown')
+                logger.info(f"KarateClub version: {version}")
             except ImportError:
                 logger.warning("karateclub package not fully installed. Install with: pip install karateclub")
                 # Still allow connection for basic graph operations

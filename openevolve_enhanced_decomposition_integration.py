@@ -236,6 +236,9 @@ class OpenEvolveSolutionSolver(SolutionSolver):
             elapsed = time.time() - start_time
             
             # Create solution
+            entangled_with = []
+            if isinstance(sub_problem.metadata, dict):
+                entangled_with = sub_problem.metadata.get("entangled_with", []) or []
             solution = SubProblemSolution(
                 sub_problem_id=sub_problem.id,
                 solution_content=evolution_result.solution_content,
@@ -248,7 +251,8 @@ class OpenEvolveSolutionSolver(SolutionSolver):
                     'evolution_time': elapsed,
                     'iterations': evolution_result.iterations,
                     'evolution_success': evolution_result.success,
-                    'fitness_score': evolution_result.fitness_score
+                    'fitness_score': evolution_result.fitness_score,
+                    'entangled_with': entangled_with,
                 }
             )
             
@@ -294,7 +298,19 @@ class OpenEvolveSolutionSolver(SolutionSolver):
 - Estimated effort: {sub_problem.estimated_effort_hours} hours
 - Complexity level: {sub_problem.complexity_score.overall_complexity}/10
 - Priority: {sub_problem.priority}/10
+"""
 
+        entangled_with = []
+        if isinstance(sub_problem.metadata, dict):
+            entangled_with = sub_problem.metadata.get("entangled_with", []) or []
+        if entangled_with:
+            prompt += f"""
+## Entanglement Context
+This sub-problem is entangled with: {', '.join(entangled_with)}
+Ensure consistency and interface alignment with those components.
+"""
+
+        prompt += """
 ## Instructions
 Provide a comprehensive, production-ready solution that:
 1. Fully addresses all success criteria
@@ -663,6 +679,11 @@ class OpenEvolveIntegratedPipeline:
         decomp_start = time.time()
         decomposition_plan = self.decomposition_engine.decompose(problem)
         decomp_time = time.time() - decomp_start
+
+        entanglement_matrix = (decomposition_plan.metadata or {}).get("entanglement_matrix", {})
+        if entanglement_matrix:
+            for sp in decomposition_plan.sub_problems:
+                sp.metadata.setdefault("entangled_with", entanglement_matrix.get(sp.id, []))
         
         self.logger.info(
             f"Decomposition complete: {len(decomposition_plan.sub_problems)} sub-problems, "

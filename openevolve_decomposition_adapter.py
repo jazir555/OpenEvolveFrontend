@@ -146,6 +146,11 @@ class OpenEvolveDecompositionAdapter:
             'decomposition': {
                 'plan_id': result.decomposition_plan.id if result.decomposition_plan else None,
                 'strategy': result.decomposition_plan.strategy_used.value if result.decomposition_plan else None,
+                'entanglement_matrix': (
+                    result.decomposition_plan.metadata.get("entanglement_matrix", {})
+                    if result.decomposition_plan and result.decomposition_plan.metadata
+                    else {}
+                ),
                 'sub_problems': [
                     {
                         'id': sp.id,

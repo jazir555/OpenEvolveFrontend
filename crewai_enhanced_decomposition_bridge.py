@@ -97,6 +97,7 @@ class CrewAssignment:
     sub_problem_id: str
     agent_id: str
     status: str  # pending, in_progress, completed, failed
+    entangled_with: List[str] = field(default_factory=list)
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     result: Optional[SubProblemSolution] = None
@@ -190,11 +191,15 @@ class AgentPool:
         agent_id: str
     ) -> CrewAssignment:
         """Create new assignment."""
+        entangled_with = []
+        if isinstance(sub_problem.metadata, dict):
+            entangled_with = sub_problem.metadata.get("entangled_with", []) or []
         assignment = CrewAssignment(
             assignment_id=f"assign_{uuid.uuid4().hex[:8]}",
             sub_problem_id=sub_problem.id,
             agent_id=agent_id,
-            status="pending"
+            status="pending",
+            entangled_with=entangled_with
         )
         
         self.assignments[assignment.assignment_id] = assignment
@@ -332,6 +337,7 @@ class CrewAIDecompositionBridge:
             'success': True,
             'problem_id': problem.id,
             'decomposition_plan': plan,
+            'entanglement_matrix': plan.metadata.get("entanglement_matrix", {}),
             'assignments': assignments,
             'crew_formations': len(crew_formations),
             'solutions': solutions,

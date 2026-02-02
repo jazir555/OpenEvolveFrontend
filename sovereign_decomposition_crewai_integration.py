@@ -135,6 +135,30 @@ class SovereignDecompositionCrewAIIntegration:
 
         logger.info("Sovereign Decomposition - CrewAI Integration initialized (MIT-licensed)")
 
+    @staticmethod
+    def _normalize_entanglement_matrix(matrix: Optional[Dict[str, Any]]) -> Dict[str, List[str]]:
+        if not matrix:
+            return {}
+        normalized: Dict[str, List[str]] = {}
+        for key, value in matrix.items():
+            if isinstance(value, set):
+                normalized[key] = sorted(value)
+            elif isinstance(value, list):
+                normalized[key] = list(value)
+            elif isinstance(value, tuple):
+                normalized[key] = list(value)
+            else:
+                normalized[key] = []
+        return normalized
+
+    def _get_entanglement_matrix(self, workflow_state: OpenEvolveWorkflowState) -> Dict[str, List[str]]:
+        matrix = getattr(workflow_state, "entanglement_matrix", None)
+        if not matrix and workflow_state.decomposition_plan:
+            plan_metadata = getattr(workflow_state.decomposition_plan, "metadata", None) or {}
+            analyzed_context = getattr(workflow_state.decomposition_plan, "analyzed_context", None) or {}
+            matrix = plan_metadata.get("entanglement_matrix") or analyzed_context.get("entanglement_matrix")
+        return self._normalize_entanglement_matrix(matrix)
+
     # ========================================================================
     # WORKFLOW INITIALIZATION
     # ========================================================================
@@ -156,10 +180,12 @@ class SovereignDecompositionCrewAIIntegration:
             True if initialization successful, False otherwise
         """
         try:
+            entanglement_matrix = self._get_entanglement_matrix(workflow_state)
             # Create CrewAI workflow
             crewai_workflow_id = self._create_crewai_workflow(
                 problem_statement=workflow_state.problem_statement,
                 workflow_type="sovereign_decomposition",
+                metadata={"entanglement_matrix": entanglement_matrix},
             )
 
             # Ensure all mappings are properly set
@@ -190,6 +216,7 @@ class SovereignDecompositionCrewAIIntegration:
         self,
         problem_statement: str,
         workflow_type: str = "sovereign_decomposition",
+        metadata: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Create a CrewAI workflow for tracking"""
         self.workflow_counter += 1
@@ -203,6 +230,8 @@ class SovereignDecompositionCrewAIIntegration:
             phase=1,
             status="pending",
         )
+        if metadata:
+            crewai_workflow_state.metadata.update(metadata)
 
         # Save state
         self.state_manager.save_state(workflow_id, crewai_workflow_state)
@@ -227,12 +256,14 @@ class SovereignDecompositionCrewAIIntegration:
             CrewAI task ID or None if failed
         """
         try:
+            entangled_with = self._get_entanglement_matrix(workflow_state).get(sub_problem.id, [])
             # Build task description
             task_description = f"""
 Sovereign-Grade Decomposition Sub-Problem
 
 Problem ID: {sub_problem.id}
 Dependencies: {', '.join(sub_problem.dependencies) or 'None'}
+Entangled With: {', '.join(entangled_with) or 'None'}
 AI Suggested Complexity: {sub_problem.ai_suggested_complexity_score}/10
 AI Suggested Evolution Mode: {sub_problem.ai_suggested_evolution_mode}
 AI Suggested Evaluation Prompt: {sub_problem.ai_suggested_evaluation_prompt}
@@ -264,6 +295,8 @@ This task represents one sub-problem in a sovereign-grade decomposition workflow
                     "subproblem_id": sub_problem.id,
                     "complexity": sub_problem.ai_suggested_complexity_score,
                     "evolution_mode": sub_problem.ai_suggested_evolution_mode,
+                    "entangled_with": entangled_with,
+                    "entanglement_source": "decomposition_system",
                 },
             )
 

@@ -139,6 +139,7 @@ async def qdrant_backend() -> QdrantBackend:
 async def postgresql_backend() -> PostgreSQLBackend:
     """Create PostgreSQL backend instance if available (PostgreSQL License)."""
     config = {
+        'uri': 'postgresql://postgres:postgres@localhost:5432/test_knowledge_graph',
         'host': 'localhost',
         'port': 5432,
         'database': 'test_knowledge_graph',
@@ -643,8 +644,8 @@ class TestErrorHandling:
 
     @pytest.mark.asyncio
     async def test_invalid_config_memgraph(self):
-        """Test Memgraph with invalid config."""
-        with pytest.raises((ValueError, ImportError)):
+        """Test Memgraph with invalid config or no server."""
+        with pytest.raises((ValueError, ImportError, ConnectionError)):
             backend = MemgraphBackend(config={})
             await backend.connect()
 

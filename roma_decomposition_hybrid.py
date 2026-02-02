@@ -23,6 +23,7 @@ Key Benefits:
 """
 
 import logging
+import re
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 
@@ -160,6 +161,50 @@ class ROMADecompositionHybrid:
             except (RuntimeError, ImportError, ValueError) as e:
                 logger.error(f"Failed to initialize ROMA solver: {e}")
 
+    @staticmethod
+    def _tokenize_symbols(text: str) -> List[str]:
+        stopwords = {
+            "the", "and", "for", "with", "from", "that", "this", "into", "your",
+            "their", "they", "them", "then", "than", "when", "where", "which",
+            "while", "will", "would", "could", "should", "must", "shall", "have",
+            "has", "had", "been", "being", "are", "was", "were", "not", "but",
+            "use", "using", "used", "also", "more", "most", "some", "such",
+            "task", "problem", "solution", "system", "component", "sub", "subproblem"
+        }
+        tokens = re.findall(r"[A-Za-z][A-Za-z0-9_\\-]{2,}", text.lower())
+        return [tok for tok in tokens if tok not in stopwords]
+
+    def _build_entanglement_matrix(self, plan_payload: Any) -> Dict[str, List[str]]:
+        sub_problems: List[Dict[str, Any]] = []
+        if isinstance(plan_payload, dict):
+            if isinstance(plan_payload.get("sub_problems"), list):
+                sub_problems = [sp for sp in plan_payload["sub_problems"] if isinstance(sp, dict)]
+            elif isinstance(plan_payload.get("components"), list):
+                sub_problems = [sp for sp in plan_payload["components"] if isinstance(sp, dict)]
+        elif isinstance(plan_payload, list):
+            sub_problems = [sp for sp in plan_payload if isinstance(sp, dict)]
+
+        if not sub_problems:
+            return {}
+
+        symbol_map: Dict[str, set] = {}
+        ids: List[str] = []
+        for idx, sp in enumerate(sub_problems, start=1):
+            sp_id = sp.get("id") or sp.get("sub_problem_id") or f"sp_{idx}"
+            ids.append(sp_id)
+            text = f"{sp.get('title', '')} {sp.get('description', '')}"
+            for token in self._tokenize_symbols(text):
+                symbol_map.setdefault(token, set()).add(sp_id)
+
+        matrix: Dict[str, set] = {sp_id: set() for sp_id in ids}
+        for _, components in symbol_map.items():
+            if len(components) < 2:
+                continue
+            for comp in components:
+                matrix[comp].update({c for c in components if c != comp})
+
+        return {key: sorted(value) for key, value in matrix.items()}
+
         # Initialize gauntlet manager if available
         self.gauntlet_manager = None
         if self.decomposition_available and self.config.enable_gauntlets:
@@ -258,6 +303,10 @@ class ROMADecompositionHybrid:
                 "dag_info": plan_result.get("dag_info", {}),
                 "token_usage": plan_result.get("token_usage", {}),
             }
+
+            entanglement_matrix = self._build_entanglement_matrix(plan_result.get("result"))
+            if entanglement_matrix:
+                results["stages"]["stage_2_planning"]["entanglement_matrix"] = entanglement_matrix
 
             logger.info("Stage 2 complete: Hierarchical plan created")
 

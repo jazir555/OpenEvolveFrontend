@@ -735,6 +735,15 @@ class EnhancedDecompositionEngine:
             coherence_score=coherence_score,
             overall_quality=overall_quality
         )
+
+        # Build entanglement matrix for decomposition/recomposition workflows
+        entanglement_matrix = self._build_entanglement_matrix(sub_problems)
+        plan.metadata["entanglement_matrix"] = entanglement_matrix
+        for sp in sub_problems:
+            entangled_with = entanglement_matrix.get(sp.id, [])
+            if entangled_with:
+                sp.metadata.setdefault("entangled_with", entangled_with)
+                sp.metadata.setdefault("entanglement_source", "semantic_overlap")
         
         # Cache result
         if self.enable_cache:
@@ -758,6 +767,54 @@ class EnhancedDecompositionEngine:
         self.logger.info(f"Decomposition completed: {len(sub_problems)} sub-problems, quality={overall_quality:.2f}")
         
         return plan
+
+    def _build_entanglement_matrix(self, sub_problems: List[SubProblem]) -> Dict[str, List[str]]:
+        """Build entanglement matrix using shared semantic symbols."""
+        matrix: Dict[str, Set[str]] = {sp.id: set() for sp in sub_problems}
+        symbol_map: Dict[str, Set[str]] = {}
+
+        for sp in sub_problems:
+            symbols = self._extract_symbol_tokens(sp)
+            if not symbols:
+                continue
+            for sym in symbols:
+                symbol_map.setdefault(sym, set()).add(sp.id)
+
+        for _, components in symbol_map.items():
+            if len(components) < 2:
+                continue
+            for comp in components:
+                matrix[comp].update({c for c in components if c != comp})
+
+        return {key: sorted(value) for key, value in matrix.items()}
+
+    def _extract_symbol_tokens(self, sub_problem: SubProblem) -> Set[str]:
+        """Extract semantic tokens for entanglement detection."""
+        tokens: Set[str] = set()
+        if sub_problem.semantic_metadata.keywords:
+            tokens.update(t.lower() for t in sub_problem.semantic_metadata.keywords if t)
+        if sub_problem.semantic_metadata.concepts:
+            tokens.update(t.lower() for t in sub_problem.semantic_metadata.concepts if t)
+
+        if not tokens:
+            raw = f"{sub_problem.title or ''} {sub_problem.description or ''}"
+            tokens.update(self._tokenize_symbols(raw))
+
+        return {t for t in tokens if t}
+
+    @staticmethod
+    def _tokenize_symbols(text: str) -> Set[str]:
+        """Tokenize text into normalized symbols."""
+        stopwords = {
+            "the", "and", "for", "with", "from", "that", "this", "into", "your",
+            "their", "they", "them", "then", "than", "when", "where", "which",
+            "while", "will", "would", "could", "should", "must", "shall", "have",
+            "has", "had", "been", "being", "are", "was", "were", "not", "but",
+            "use", "using", "used", "also", "more", "most", "some", "such",
+            "task", "problem", "solution", "system", "component", "sub", "subproblem"
+        }
+        raw_tokens = re.findall(r"[A-Za-z][A-Za-z0-9_\\-]{2,}", text.lower())
+        return {tok for tok in raw_tokens if tok not in stopwords}
     
     def _select_strategy(self, problem: ProblemDefinition) -> DecompositionStrategy:
         """Select best strategy for problem."""
