@@ -43,8 +43,7 @@ from pathlib import Path
 
 # Import CrewAI zero-error workflow (replaces Hephaestus)
 from crewai_zero_error_workflow import (
-    CrewAIZeroErrorWorkflow,
-    ZeroErrorConfig,
+    ZeroErrorWorkflow,
     create_zero_error_workflow,
     create_zero_error_config,
 )

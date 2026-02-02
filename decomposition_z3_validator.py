@@ -48,11 +48,16 @@ except ImportError:
 
 # Import decomposition components
 try:
-    from problem_decomposition import DecompositionResult, SubProblem
+    from problem_decomposition import DecompositionResult
+    from sovereign_data_models import SubProblem
     DECOMPOSITION_AVAILABLE = True
 except ImportError:
-    DECOMPOSITION_AVAILABLE = False
-    logger.warning("Decomposition components not available")
+    try:
+        from problem_decomposition import DecompositionResult, SubProblem
+        DECOMPOSITION_AVAILABLE = True
+    except ImportError:
+        DECOMPOSITION_AVAILABLE = False
+        logger.warning("Decomposition components not available")
 
 try:
     from decomposition_engine import DecompositionEngine

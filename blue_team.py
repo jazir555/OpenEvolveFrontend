@@ -18,6 +18,9 @@ import copy
 import difflib
 import logging
 
+# Configure logging first
+logger = logging.getLogger(__name__)
+
 from llm_utils import _request_openai_compatible_chat, _compose_messages
 from content_analyzer import ContentAnalyzer
 
@@ -36,9 +39,6 @@ from prompt_engineering import PromptEngineeringSystem
 from model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTeam
 from quality_assessment import QualityAssessmentEngine, SeverityLevel
 from red_team import RedTeam, RedTeamAssessment, IssueFinding, IssueCategory
-
-# Configure logging
-logger = logging.getLogger(__name__)
 
 class FixPriority(Enum):
     """Priority levels for fixes"""

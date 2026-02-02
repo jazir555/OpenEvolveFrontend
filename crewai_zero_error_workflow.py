@@ -1687,6 +1687,166 @@ async def example_usage():
     return result
 
 
+# =============================================================================
+# HELPER FUNCTIONS FOR LEANAIDE INTEGRATION
+# =============================================================================
+
+def create_zero_error_config(
+    enable_auto_correction: bool = True,
+    strict_mode: bool = False,
+    log_all_steps: bool = True,
+    max_retries: int = 3,
+    timeout_seconds: int = 300
+) -> Dict[str, Any]:
+    """
+    Create a configuration dictionary for ZeroErrorWorkflow.
+    
+    Args:
+        enable_auto_correction: Whether to enable automatic error correction
+        strict_mode: Whether to use strict mode (fail on any error)
+        log_all_steps: Whether to log all workflow steps
+        max_retries: Maximum number of retries for failed steps
+        timeout_seconds: Default timeout for workflow execution
+        
+    Returns:
+        Configuration dictionary
+    """
+    return {
+        "enable_auto_correction": enable_auto_correction,
+        "strict_mode": strict_mode,
+        "log_all_steps": log_all_steps,
+        "max_retries": max_retries,
+        "timeout_seconds": timeout_seconds
+    }
+
+
+def create_zero_error_workflow(
+    config: Optional[Dict[str, Any]] = None,
+    workflow_id: Optional[str] = None,
+    crewai_state_manager=None
+) -> 'ZeroErrorWorkflowAdapter':
+    """
+    Create a ZeroErrorWorkflow instance with the given configuration.
+    
+    Args:
+        config: Configuration dictionary from create_zero_error_config()
+        workflow_id: Unique identifier for this workflow
+        crewai_state_manager: Optional CrewAI state manager
+        
+    Returns:
+        ZeroErrorWorkflowAdapter instance
+    """
+    if config is None:
+        config = create_zero_error_config()
+    
+    # Create a default workflow definition
+    workflow_def = create_workflow_definition(
+        name=f"workflow_{workflow_id or 'default'}",
+        description="Zero-error workflow for LeanAide integration",
+        steps=[
+            {
+                "name": "process",
+                "action": "data_processing",
+                "operation": "transform",
+                "source": "input"
+            },
+            {
+                "name": "validate",
+                "action": "validation",
+                "validations": ["check_complete"]
+            }
+        ],
+        input_schema={
+            "type": "object",
+            "properties": {
+                "problem_statement": {"type": "string"}
+            }
+        },
+        timeout_seconds=config.get("timeout_seconds", 300),
+        max_retries=config.get("max_retries", 3)
+    )
+    
+    # Create the workflow orchestrator
+    workflow = ZeroErrorWorkflow(
+        definition=workflow_def,
+        crewai_state_manager=crewai_state_manager,
+        enable_auto_correction=config.get("enable_auto_correction", True),
+        strict_mode=config.get("strict_mode", False),
+        log_all_steps=config.get("log_all_steps", True)
+    )
+    
+    return ZeroErrorWorkflowAdapter(workflow, workflow_id)
+
+
+class ZeroErrorWorkflowAdapter:
+    """
+    Adapter class to provide a consistent interface for LeanAide integration.
+    Wraps ZeroErrorWorkflow and provides the execute_workflow method.
+    """
+    
+    def __init__(self, workflow: ZeroErrorWorkflow, workflow_id: Optional[str] = None):
+        """
+        Initialize the adapter.
+        
+        Args:
+            workflow: The ZeroErrorWorkflow instance to wrap
+            workflow_id: Optional workflow identifier
+        """
+        self.workflow = workflow
+        self.workflow_id = workflow_id
+        self.status = "pending"
+        self.final_solution = None
+        
+    async def execute_workflow(self, problem_statement: str, **kwargs) -> 'WorkflowExecutionResult':
+        """
+        Execute the workflow with the given problem statement.
+        
+        Args:
+            problem_statement: The problem to process
+            **kwargs: Additional arguments
+            
+        Returns:
+            WorkflowExecutionResult with status and final_solution
+        """
+        try:
+            result = await self.workflow.execute(
+                inputs={"problem_statement": problem_statement},
+                timeout_override=kwargs.get("timeout", 300)
+            )
+            
+            self.status = "completed" if result.status == WorkflowStatus.COMPLETED else "failed"
+            
+            # Extract solution from result
+            if result.outputs and "problem_statement" in result.outputs:
+                self.final_solution = result.outputs["problem_statement"]
+            else:
+                self.final_solution = problem_statement
+                
+            return WorkflowExecutionResult(
+                status=self.status,
+                final_solution=self.final_solution,
+                result=result
+            )
+            
+        except Exception as e:
+            logger.error(f"Workflow execution failed: {e}")
+            self.status = "failed"
+            return WorkflowExecutionResult(
+                status="failed",
+                final_solution=None,
+                error=str(e)
+            )
+
+
+@dataclass
+class WorkflowExecutionResult:
+    """Result of workflow execution."""
+    status: str
+    final_solution: Optional[str]
+    result: Optional[WorkflowResult] = None
+    error: Optional[str] = None
+
+
 if __name__ == "__main__":
     print("CrewAI Zero-Error Workflow Orchestrator")
     print("=" * 50)

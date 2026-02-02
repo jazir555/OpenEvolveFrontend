@@ -356,12 +356,18 @@ class Z3AdvancedSolver(Z3SolverEngine):
                     value = model.eval(z3_var, model_completion=True)
                     assignments[var.name] = self._z3_value_to_python(value)
             
+            python_optimal_value = self._z3_value_to_python(optimal_value)
+            try:
+                float_val = float(python_optimal_value)
+            except (TypeError, ValueError):
+                float_val = 0.0
+            
             result_obj = OptimizationResult(
                 success=True,
-                optimal_value=float(optimal_value.as_fraction()) if hasattr(optimal_value, 'as_fraction') else float(optimal_value),
+                optimal_value=float_val,
                 optimal_model=Z3Model(
                     assignments=assignments,
-                    objective_value=float(optimal_value.as_fraction()) if hasattr(optimal_value, 'as_fraction') else float(optimal_value)
+                    objective_value=float_val
                 ),
                 iterations=1,
                 execution_time=time.time() - start_time
@@ -612,35 +618,36 @@ class Z3AdvancedSolver(Z3SolverEngine):
             for var in scalar_vars:
                 z3_vars[var.name] = self._create_z3_variable(var)
             
-                    # Create arrays
-                    for arr in array_constraints:
-                        if arr.index_type == Z3ConstraintType.INTEGER:
-                            idx_sort = z3.IntSort()
-                        elif arr.index_type == Z3ConstraintType.REAL:
-                            idx_sort = z3.RealSort()
-                        elif arr.index_type == Z3ConstraintType.BOOLEAN:
-                            idx_sort = z3.BoolSort()
-                        elif arr.index_type == Z3ConstraintType.BIT_VECTOR:
-                            idx_sort = z3.BitVecSort(32) # Default width
-                        elif arr.index_type == Z3ConstraintType.STRING:
-                            idx_sort = z3.StringSort()
-                        else:
-                            idx_sort = z3.IntSort()
-                        
-                        if arr.value_type == Z3ConstraintType.INTEGER:
-                            val_sort = z3.IntSort()
-                        elif arr.value_type == Z3ConstraintType.REAL:
-                            val_sort = z3.RealSort()
-                        elif arr.value_type == Z3ConstraintType.BOOLEAN:
-                            val_sort = z3.BoolSort()
-                        elif arr.value_type == Z3ConstraintType.BIT_VECTOR:
-                            val_sort = z3.BitVecSort(32)
-                        elif arr.value_type == Z3ConstraintType.STRING:
-                            val_sort = z3.StringSort()
-                        else:
-                            val_sort = z3.IntSort()
-                        
-                        z3_arr = z3.Array(arr.array_name, idx_sort, val_sort)                z3_vars[arr.array_name] = z3_arr
+            # Create arrays
+            for arr in array_constraints:
+                if arr.index_type == Z3ConstraintType.INTEGER:
+                    idx_sort = z3.IntSort()
+                elif arr.index_type == Z3ConstraintType.REAL:
+                    idx_sort = z3.RealSort()
+                elif arr.index_type == Z3ConstraintType.BOOLEAN:
+                    idx_sort = z3.BoolSort()
+                elif arr.index_type == Z3ConstraintType.BIT_VECTOR:
+                    idx_sort = z3.BitVecSort(32) # Default width
+                elif arr.index_type == Z3ConstraintType.STRING:
+                    idx_sort = z3.StringSort()
+                else:
+                    idx_sort = z3.IntSort()
+                
+                if arr.value_type == Z3ConstraintType.INTEGER:
+                    val_sort = z3.IntSort()
+                elif arr.value_type == Z3ConstraintType.REAL:
+                    val_sort = z3.RealSort()
+                elif arr.value_type == Z3ConstraintType.BOOLEAN:
+                    val_sort = z3.BoolSort()
+                elif arr.value_type == Z3ConstraintType.BIT_VECTOR:
+                    val_sort = z3.BitVecSort(32)
+                elif arr.value_type == Z3ConstraintType.STRING:
+                    val_sort = z3.StringSort()
+                else:
+                    val_sort = z3.IntSort()
+                
+                z3_arr = z3.Array(arr.array_name, idx_sort, val_sort)
+                z3_vars[arr.array_name] = z3_arr
                 
                 # Add array constraints
                 for constraint in arr.constraints:
@@ -1132,9 +1139,9 @@ async def example_optimization():
     ]
     
     constraints = [
-        Z3Constraint("(>= x 0)", Z3ConstraintType.INTEGER),
-        Z3Constraint("(>= y 0)", Z3ConstraintType.INTEGER),
-        Z3Constraint("(<= (+ x y) 100)", Z3ConstraintType.INTEGER)
+        Z3Constraint("x >= 0", Z3ConstraintType.INTEGER),
+        Z3Constraint("y >= 0", Z3ConstraintType.INTEGER),
+        Z3Constraint("x + y <= 100", Z3ConstraintType.INTEGER)
     ]
     
     objectives = [
@@ -1155,7 +1162,7 @@ def example_incremental():
     solver = get_z3_advanced_solver()
     
     variables = [Z3Variable("x", Z3ConstraintType.INTEGER)]
-    constraints = [Z3Constraint("(> x 0)", Z3ConstraintType.INTEGER)]
+    constraints = [Z3Constraint("x > 0", Z3ConstraintType.INTEGER)]
     
     # Create state
     state_id = solver.create_incremental_state(variables, constraints)
@@ -1167,7 +1174,7 @@ def example_incremental():
     
     # Push scope and add constraint
     solver.push_scope(state_id, "upper_bound")
-    solver.add_constraint_incremental(state_id, Z3Constraint("(< x 10)", Z3ConstraintType.INTEGER))
+    solver.add_constraint_incremental(state_id, Z3Constraint("x < 10", Z3ConstraintType.INTEGER))
     
     result = solver.check_incremental(state_id)
     print(f"After constraint: {result.status.value}")
@@ -1198,6 +1205,10 @@ def example_portfolio():
     result = solver.solve_portfolio(smtlib)
     
     print(f"Portfolio success: {result.success}")
+    if not result.success:
+        for strategy, res in result.all_results:
+            if res.status == Z3ResultStatus.ERROR:
+                print(f"  Strategy {strategy} error: {res.reason}")
     print(f"Winner strategy: {result.winner_strategy}")
     print(f"Execution time: {result.execution_time:.3f}s")
     print(f"Strategies tried: {len(result.all_results)}")

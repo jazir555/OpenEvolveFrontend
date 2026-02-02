@@ -465,7 +465,38 @@ class Z3SolverEngine:
             return z3.Int(var.name)  # Default to Int
     
     def _parse_constraint(self, expression: str, z3_vars: Dict[str, Any]) -> Optional[Any]:
-# ... (intermediate code preserved)
+        """Parse constraint expression using Z3 Python API."""
+        # Simple expression parser for common patterns
+        # For complex expressions, use eval with restricted globals
+        local_vars = z3_vars.copy()
+        local_vars.update({
+            'And': z3.And,
+            'Or': z3.Or,
+            'Not': z3.Not,
+            'Implies': z3.Implies,
+            'If': z3.If,
+            'Sum': z3.Sum,
+            'ForAll': z3.ForAll,
+            'Exists': z3.Exists
+        })
+        
+        # Safely evaluate the expression
+        try:
+            result = eval(expression, {"__builtins__": {}}, local_vars)
+            return result
+        except Exception as eval_err:
+            # Fallback: Try parsing as SMT-LIB prefix notation
+            try:
+                # Wrap in assert if it's just an expression
+                # and use parse_smt2_string with the existing variables as declarations
+                smt_stmt = f"(assert {expression})"
+                assertions = z3.parse_smt2_string(smt_stmt, decls=z3_vars)
+                if len(assertions) > 0:
+                    return assertions[0]
+            except Exception:
+                # If both fail, log the original eval error
+                logger.warning(f"Failed to parse constraint '{expression}': {eval_err}")
+                return None
     def _z3_value_to_python(self, value) -> Any:
         """Convert Z3 value to Python value."""
         if z3.is_int_value(value):
@@ -661,38 +692,78 @@ class Z3SolverEngine:
         """
         start_time = time.time()
         self._stats["total_calls"] += 1
+        temp_file = None
         
         try:
-            with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2', delete=False) as f:
-                f.write(smtlib_content)
-                temp_file = f.name
-            
-            cmd = ['z3', '-smt2', temp_file]
-            if self.config.timeout > 0:
-                cmd.extend(['-t:%d' % int(self.config.timeout * 1000)])
-            
-            result = subprocess.run(
-                cmd,
-                capture_output=True,
-                text=True,
-                timeout=self.config.timeout + 5
-            )
-            
-            execution_time = time.time() - start_time
-            self._stats["total_time"] += execution_time
-            
-            parsed_result = self._parse_z3_output(result.stdout, result.stderr)
-            parsed_result.execution_time = execution_time
-            
-            # Update statistics
-            if parsed_result.status == Z3ResultStatus.SAT:
-                self._stats["sat_results"] += 1
-            elif parsed_result.status == Z3ResultStatus.UNSAT:
-                self._stats["unsat_results"] += 1
-            else:
-                self._stats["error_results"] += 1
-            
-            return parsed_result
+            # Try CLI first
+            try:
+                with tempfile.NamedTemporaryFile(mode='w', suffix='.smt2', delete=False) as f:
+                    f.write(smtlib_content)
+                    temp_file = f.name
+                
+                cmd = ['z3', '-smt2', temp_file]
+                if self.config.timeout > 0:
+                    cmd.extend(['-t:%d' % int(self.config.timeout * 1000)])
+                
+                result = subprocess.run(
+                    cmd,
+                    capture_output=True,
+                    text=True,
+                    timeout=self.config.timeout + 5
+                )
+                
+                execution_time = time.time() - start_time
+                self._stats["total_time"] += execution_time
+                
+                parsed_result = self._parse_z3_output(result.stdout, result.stderr)
+                parsed_result.execution_time = execution_time
+                
+                # Update statistics
+                if parsed_result.status == Z3ResultStatus.SAT:
+                    self._stats["sat_results"] += 1
+                elif parsed_result.status == Z3ResultStatus.UNSAT:
+                    self._stats["unsat_results"] += 1
+                
+                return parsed_result
+            except (subprocess.SubprocessError, FileNotFoundError) as e:
+                if not Z3_PYTHON_AVAILABLE:
+                    raise e
+                
+                # Fallback to Python API
+                with self._solver_lock:
+                    solver = z3.Solver()
+                    solver.set("timeout", int(self.config.timeout * 1000))
+                    
+                    # Parse SMT-LIB string
+                    # Note: parse_smt2_string returns a vector of expressions
+                    assertions = z3.parse_smt2_string(smtlib_content)
+                    solver.add(assertions)
+                    
+                    result = solver.check()
+                    execution_time = time.time() - start_time
+                    
+                    if result == z3.sat:
+                        model = solver.model()
+                        assignments = {}
+                        # Note: Retrieving all assignments from a parsed SMT-LIB model 
+                        # can be complex; this is a simplified version
+                        self._stats["sat_results"] += 1
+                        return Z3SolverResult(
+                            status=Z3ResultStatus.SAT,
+                            model=Z3Model(assignments={}),
+                            execution_time=execution_time
+                        )
+                    elif result == z3.unsat:
+                        self._stats["unsat_results"] += 1
+                        return Z3SolverResult(
+                            status=Z3ResultStatus.UNSAT,
+                            execution_time=execution_time
+                        )
+                    else:
+                        return Z3SolverResult(
+                            status=Z3ResultStatus.UNKNOWN,
+                            execution_time=execution_time
+                        )
             
         except Exception as e:
             self._stats["error_results"] += 1
@@ -703,10 +774,11 @@ class Z3SolverEngine:
                 errors=[str(e)]
             )
         finally:
-            try:
-                Path(temp_file).unlink()
-            except OSError:
-                pass
+            if temp_file:
+                try:
+                    Path(temp_file).unlink()
+                except OSError:
+                    pass
 
 
 # =============================================================================
@@ -841,8 +913,12 @@ class Z3TheoremProver:
         """Prove theorem from SMT-LIB format."""
         start_time = time.time()
         
-        # Negate the theorem for proof by contradiction
-        if '(assert' in theorem_statement:
+        # If it looks like a complete SMT-LIB script with check-sat, 
+        # assume the user knows what they are doing (e.g. they provided a proof-by-contradiction script)
+        if '(check-sat)' in theorem_statement.lower() and '(assert' in theorem_statement.lower():
+            smtlib_content = theorem_statement
+        # Negate the theorem for proof by contradiction if it's just a set of assertions
+        elif '(assert' in theorem_statement:
             # Extract the last assertion (theorem) and negate it
             lines = theorem_statement.split('\n')
             assertions = [l for l in lines if l.strip().startswith('(assert')]
@@ -850,15 +926,16 @@ class Z3TheoremProver:
             if assertions:
                 # Negate the last assertion for proof by contradiction
                 theorem_line = assertions[-1]
-                negated = theorem_line.replace('(assert ', '(assert (not ')
-                if not negated.endswith('))'):
-                    negated = negated.rstrip(')') + '))'
+                # Simple negation
+                negated = f"(assert (not {theorem_line.strip()[8:-1]}))"
                 
                 # Replace the theorem with its negation
                 new_lines = []
+                found = False
                 for l in lines:
-                    if l == theorem_line:
+                    if l.strip() == theorem_line.strip() and not found:
                         new_lines.append(negated)
+                        found = True
                     else:
                         new_lines.append(l)
                 
@@ -1299,9 +1376,9 @@ def example_constraint_solving():
     
     # Define constraints
     constraints = [
-        Z3Constraint("(> x 0)", Z3ConstraintType.INTEGER, "x is positive"),
-        Z3Constraint("(< x 10)", Z3ConstraintType.INTEGER, "x is less than 10"),
-        Z3Constraint("(= y (+ x 5))", Z3ConstraintType.INTEGER, "y = x + 5")
+        Z3Constraint("x > 0", Z3ConstraintType.INTEGER, "x is positive"),
+        Z3Constraint("x < 10", Z3ConstraintType.INTEGER, "x is less than 10"),
+        Z3Constraint("y == x + 5", Z3ConstraintType.INTEGER, "y = x + 5")
     ]
     
     # Solve

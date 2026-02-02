@@ -116,10 +116,21 @@ if CLICK_AVAILABLE:
                 for c in constraints_list
             ]
             
+            # If problem is provided and not empty, add it as a constraint 
+            # or treat as SMT-LIB
+            is_smtlib = any(kw in problem for kw in ['(assert', '(declare-fun', '(check-sat)'])
+            
             # Solve
             import time
             start = time.time()
-            result = solver.solve_constraints(z3_vars, z3_constraints)
+            
+            if is_smtlib:
+                result = solver.solve_smtlib(problem)
+            else:
+                if problem and problem.strip():
+                    z3_constraints.append(Z3Constraint(problem, Z3ConstraintType.INTEGER))
+                result = solver.solve_constraints(z3_vars, z3_constraints)
+            
             elapsed = (time.time() - start) * 1000
             
             # Format output

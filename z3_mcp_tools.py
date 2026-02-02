@@ -174,9 +174,9 @@ async def z3_solve_constraints(
             {"name": "y", "type": "INTEGER"}
         ],
         "constraints": [
-            "(> x 0)",
-            "(< x 10)",
-            "(= y (+ x 5))"
+            "x > 0",
+            "x < 10",
+            "y == x + 5"
         ]
     }
     """
@@ -264,7 +264,7 @@ async def z3_optimize(
     Example:
     {
         "variables": [{"name": "x", "type": "INTEGER"}],
-        "constraints": ["(>= x 0)", "(<= x 100)"],
+        "constraints": ["x >= 0", "x <= 100"],
         "objective": {"expression": "x", "direction": "maximize"}
     }
     """
@@ -472,7 +472,7 @@ async def z3_solve_incremental(
     Example workflow:
     1. {"operation": "create", "variables": [...], "constraints": [...]}
     2. {"operation": "push", "state_id": "..."}
-    3. {"operation": "add", "state_id": "...", "constraint": "(< x 10)"}
+    3. {"operation": "add", "state_id": "...", "constraint": "x < 10"}
     4. {"operation": "check", "state_id": "..."}
     5. {"operation": "pop", "state_id": "..."}
     """
@@ -811,9 +811,9 @@ def example_mcp_usage():
             {"name": "y", "type": "INTEGER"}
         ],
         "constraints": [
-            "(> x 0)",
-            "(< x 10)",
-            "(= y (+ x 5))"
+            "x > 0",
+            "x < 10",
+            "y == x + 5"
         ]
     })
     

@@ -18,6 +18,9 @@ import random
 import statistics
 import logging
 
+# Configure logging first
+logger = logging.getLogger(__name__)
+
 from llm_utils import _request_openai_compatible_chat, _compose_messages
 from content_analyzer import ContentAnalyzer
 
@@ -35,9 +38,6 @@ from model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTe
 from quality_assessment import QualityAssessmentEngine, SeverityLevel
 from workflow_structures import Team, GauntletDefinition, CritiqueReport, SolutionAttempt, ModelConfig
 from workflow_structures import Team, GauntletDefinition, CritiqueReport
-
-# Configure logging
-logger = logging.getLogger(__name__)
 
 class IssueCategory(Enum):
     """Categories of issues the red team can identify"""

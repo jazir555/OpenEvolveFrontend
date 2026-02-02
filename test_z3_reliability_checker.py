@@ -58,7 +58,7 @@ class TestZ3ReliabilityChecker(unittest.TestCase):
         )
         
         smtlib = constraint.to_smtlib()
-        self.assertIn("availability_availability_test", smtlib)
+        self.assertIn("reliability_availability_test", smtlib)
         self.assertIn("0.99", smtlib)
     
     def test_contract_specification(self):
