@@ -12,7 +12,7 @@ import random
 import time
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional, Set
 from collections import deque
 
 import grpc
@@ -500,7 +500,7 @@ class ServiceMesh:
     
     async def execute_with_resilience(
         self,
-        operation: Callable[[Endpoint], any],
+        operation: Callable[[Endpoint], Any],
         max_retries: int = 3,
         retry_delay_ms: float = 1000
     ) -> any:

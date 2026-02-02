@@ -1521,7 +1521,7 @@ async def _analyze_heatmap_composite(data_url: Optional[str]) -> Optional[str]:
 
 @app.post("/icr/events/refinement-needed")
 def icr_emit_refinement_needed(event: IcrRefinementEvent):
-    payload = event.dict()
+    payload = event.model_dump()
     payload["timestamp"] = datetime.utcnow().isoformat()
     ICR_REFINEMENT_EVENTS.append(payload)
     return {"queued": True}
@@ -1537,7 +1537,7 @@ def icr_get_refinement_needed(limit: int = 5):
 
 @app.post("/icr/reward-calibration/request")
 def icr_queue_reward_calibration(request: IcrRewardCalibrationRequest):
-    payload = request.dict()
+    payload = request.model_dump()
     if not payload.get("request_id"):
         payload["request_id"] = str(uuid.uuid4())
     payload["timestamp"] = datetime.utcnow().isoformat()
@@ -1555,7 +1555,7 @@ def icr_next_reward_calibration():
 @app.post("/icr/reward-calibration/respond")
 def icr_reward_calibration_respond(response: IcrRewardCalibrationResponse):
     request_id = response.request_id or str(uuid.uuid4())
-    payload = response.dict()
+    payload = response.model_dump()
     payload["request_id"] = request_id
     payload["timestamp"] = datetime.utcnow().isoformat()
     ICR_REWARD_CALIBRATION_RESPONSES[request_id] = payload
@@ -1569,7 +1569,21 @@ def icr_reward_calibration_response(request_id: str):
 
 @app.post("/icr/heatmap/snapshot")
 async def icr_heatmap_snapshot(snapshot: IcrHeatmapSnapshot):
-    payload = snapshot.dict()
+    """
+    Store heatmap snapshot for ICR pattern analysis.
+    
+    Accepts heatmap snapshot data from GenerativeUI and stores it for:
+    - Pattern analysis and learning
+    - Multimodal healing prompt generation
+    - Vision-language model analysis of UI interactions
+    
+    Args:
+        snapshot: Heatmap snapshot containing screen HTML, heatmap data, and interaction points
+        
+    Returns:
+        Success response with snapshot_id and optional analysis results
+    """
+    payload = snapshot.model_dump()
     if not payload.get("snapshot_id"):
         payload["snapshot_id"] = str(uuid.uuid4())
     if not payload.get("timestamp"):
@@ -1580,6 +1594,7 @@ async def icr_heatmap_snapshot(snapshot: IcrHeatmapSnapshot):
     analysis = None
     vision_summary = None
 
+    # Generate multimodal healing prompt if analytics_manager is available
     try:
         from analytics_manager import analytics_manager
         heatmap_payload = {
@@ -1594,6 +1609,7 @@ async def icr_heatmap_snapshot(snapshot: IcrHeatmapSnapshot):
     except Exception as exc:
         logger.warning("Failed to generate multimodal healing prompt: %s", exc)
 
+    # Run VLM analysis if enabled and composite data is available
     try:
         vision_summary = await _analyze_heatmap_composite(payload.get("composite_data_url"))
         if vision_summary and analysis is not None:

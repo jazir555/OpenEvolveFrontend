@@ -8,6 +8,7 @@ for all OpenEvolve components being integrated into BubbleLabs.
 from abc import ABC, abstractmethod
 from typing import Dict, Any, List, Optional
 from datetime import datetime
+from collections import deque
 import traceback
 import logging
 import sys
@@ -64,6 +65,19 @@ class BubbleLabsNode(ABC):
         self.status = "initialized"
         self.execution_id: Optional[str] = None
         self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
+
+        # ICR Integration: Pattern storage and learning
+        self.enable_icr = self.config.get('enable_icr', True)
+        self.icr_pattern_store = {
+            'execution_patterns': {},      # operation_type -> pattern list
+            'verification_patterns': {},   # verification_type -> pattern list
+            'routing_patterns': {},        # routing_type -> pattern list
+            'research_patterns': {},       # research_type -> pattern list
+            'operation_history': deque(maxlen=500)  # Full operation history
+        }
+
+        # ICR: Adaptive threshold adjustments
+        self._adaptive_thresholds: Dict[str, float] = {}
 
         # Apply default configuration
         self._apply_defaults()
@@ -396,11 +410,276 @@ class BubbleLabsNode(ABC):
             return True
         except Exception:
             return False
-
-    def __repr__(self) -> str:
-        return (
-            f"{self.__class__.__name__}("
-            f"name='{self.get_display_name()}', "
-            f"version='{self.get_version()}', "
-            f"status='{self.status}')"
-        )
+    
+        # ==================== ICR Integration Methods ====================
+    
+        def store_icr_pattern(
+            self,
+            operation_type: str,
+            success: bool,
+            execution_time: float,
+            metadata: Optional[Dict[str, Any]] = None,
+            sub_key: Optional[str] = None
+        ) -> None:
+            """
+            Store execution pattern for ICR learning.
+    
+            Args:
+                operation_type: Type of operation performed (e.g., 'assembly', 'gauntlet')
+                success: Whether the operation succeeded
+                execution_time: Time taken to execute the operation
+                metadata: Additional metadata about the operation
+                sub_key: Optional sub-key for categorizing patterns (e.g., 'weighted', 'voting')
+            """
+            if not self.enable_icr:
+                return
+    
+            self.logger.info(f"Storing ICR pattern for {operation_type}")
+    
+            # Create pattern record
+            pattern = {
+                'timestamp': datetime.now().isoformat(),
+                'operation_type': operation_type,
+                'success': success,
+                'execution_time': execution_time,
+                'node_type': self.__class__.__name__,
+                'metadata': metadata or {}
+            }
+    
+            # Determine the store key based on operation type
+            store_key_map = {
+                'assembly': 'execution_patterns',
+                'gauntlet': 'verification_patterns',
+                'routing': 'routing_patterns',
+                'research': 'research_patterns'
+            }
+            store_key = store_key_map.get(operation_type, 'execution_patterns')
+    
+            # Use sub_key if provided, otherwise use operation_type
+            key = sub_key or operation_type
+    
+            # Store in pattern store
+            if key not in self.icr_pattern_store[store_key]:
+                self.icr_pattern_store[store_key][key] = []
+    
+            # Keep only last 100 patterns per sub-key
+            patterns = self.icr_pattern_store[store_key][key]
+            patterns.append(pattern)
+            if len(patterns) > 100:
+                patterns.pop(0)  # Remove oldest
+    
+            # Store in operation history
+            self.icr_pattern_store['operation_history'].append(pattern)
+    
+            # Calculate success rate for this pattern
+            all_patterns = self.icr_pattern_store[store_key].get(key, [])
+            succeeded = sum(1 for p in all_patterns if p.get('success', False))
+            pattern['success_rate'] = succeeded / len(all_patterns) if all_patterns else 0.0
+    
+            self.logger.info(f"ICR pattern stored: success_rate={pattern['success_rate']:.2%}")
+    
+        def predict_pass_fail(
+            self,
+            operation_type: str,
+            metadata: Optional[Dict[str, Any]] = None,
+            sub_key: Optional[str] = None
+        ) -> Dict[str, Any]:
+            """
+            Predict whether an operation will pass based on historical patterns.
+    
+            Args:
+                operation_type: Type of operation to predict
+                metadata: Additional metadata for prediction context
+                sub_key: Optional sub-key for specific pattern category
+    
+            Returns:
+                Dictionary with prediction results including:
+                    - predicted_success: bool
+                    - confidence: float (0-1)
+                    - historical_success_rate: float
+                    - sample_size: int
+            """
+            if not self.enable_icr:
+                return {
+                    'predicted_success': True,
+                    'confidence': 0.5,
+                    'historical_success_rate': 0.5,
+                    'sample_size': 0,
+                    'icr_enabled': False
+                }
+    
+            # Determine the store key
+            store_key_map = {
+                'assembly': 'execution_patterns',
+                'gauntlet': 'verification_patterns',
+                'routing': 'routing_patterns',
+                'research': 'research_patterns'
+            }
+            store_key = store_key_map.get(operation_type, 'execution_patterns')
+            key = sub_key or operation_type
+    
+            # Get historical patterns
+            historical_patterns = self.icr_pattern_store[store_key].get(key, [])
+    
+            if not historical_patterns:
+                return {
+                    'predicted_success': True,
+                    'confidence': 0.5,
+                    'historical_success_rate': 0.5,
+                    'sample_size': 0,
+                    'icr_enabled': True
+                }
+    
+            # Calculate success rate
+            succeeded = sum(1 for p in historical_patterns if p.get('success', False))
+            success_rate = succeeded / len(historical_patterns)
+    
+            # Calculate confidence based on sample size (more samples = higher confidence)
+            sample_size = len(historical_patterns)
+            confidence = min(1.0, sample_size / 50.0)  # Max confidence at 50 samples
+    
+            # Predict success based on historical rate
+            predicted_success = success_rate > 0.5
+    
+            self.logger.info(
+                f"ICR prediction for {operation_type}: "
+                f"success={predicted_success}, rate={success_rate:.2%}, "
+                f"confidence={confidence:.2%}, samples={sample_size}"
+            )
+    
+            return {
+                'predicted_success': predicted_success,
+                'confidence': confidence,
+                'historical_success_rate': success_rate,
+                'sample_size': sample_size,
+                'icr_enabled': True
+            }
+    
+        def get_threshold_adjustment(
+            self,
+            operation_type: str,
+            sub_key: Optional[str] = None
+        ) -> float:
+            """
+            Get recommended threshold adjustment based on ICR patterns.
+    
+            Args:
+                operation_type: Type of operation
+                sub_key: Optional sub-key for specific pattern category
+    
+            Returns:
+                Float representing the recommended adjustment (positive = raise, negative = lower)
+            """
+            if not self.enable_icr:
+                return 0.0
+    
+            store_key_map = {
+                'assembly': 'execution_patterns',
+                'gauntlet': 'verification_patterns',
+                'routing': 'routing_patterns',
+                'research': 'research_patterns'
+            }
+            store_key = store_key_map.get(operation_type, 'execution_patterns')
+            key = sub_key or operation_type
+    
+            # Check if we have enough data to recommend adjustment
+            patterns = self.icr_pattern_store[store_key].get(key, [])
+    
+            if len(patterns) < 10:
+                return 0.0  # Not enough data
+    
+            # Calculate success rate
+            succeeded = sum(1 for p in patterns if p.get('success', False))
+            success_rate = succeeded / len(patterns)
+    
+            # Recommend adjustment based on success rate
+            if success_rate > 0.8:
+                return -2.0  # High success rate - can be more lenient
+            elif success_rate < 0.3:
+                return 2.0  # Low success rate - need to be stricter
+    
+            return 0.0
+    
+        def get_icr_statistics(self) -> Dict[str, Any]:
+            """
+            Get ICR-related statistics.
+    
+            Returns:
+                Dictionary containing ICR statistics including:
+                    - icr_enabled: bool
+                    - total_patterns: int
+                    - overall_success_rate: float
+                    - patterns_by_type: dict
+                    - operation_history_size: int
+            """
+            if not self.enable_icr:
+                return {'icr_enabled': False}
+    
+            total_patterns = sum(
+                len(patterns)
+                for patterns in self.icr_pattern_store['execution_patterns'].values()
+            ) + sum(
+                len(patterns)
+                for patterns in self.icr_pattern_store['verification_patterns'].values()
+            ) + sum(
+                len(patterns)
+                for patterns in self.icr_pattern_store['routing_patterns'].values()
+            ) + sum(
+                len(patterns)
+                for patterns in self.icr_pattern_store['research_patterns'].values()
+            )
+    
+            # Calculate overall success rate
+            all_patterns = list(self.icr_pattern_store['operation_history'])
+            succeeded = sum(1 for p in all_patterns if p.get('success', False))
+            overall_success_rate = succeeded / len(all_patterns) if all_patterns else 0.0
+    
+            return {
+                'icr_enabled': True,
+                'total_patterns': total_patterns,
+                'overall_success_rate': overall_success_rate,
+                'operation_history_size': len(self.icr_pattern_store['operation_history']),
+                'patterns_by_type': {
+                    'execution': {
+                        key: len(patterns)
+                        for key, patterns in self.icr_pattern_store['execution_patterns'].items()
+                    },
+                    'verification': {
+                        key: len(patterns)
+                        for key, patterns in self.icr_pattern_store['verification_patterns'].items()
+                    },
+                    'routing': {
+                        key: len(patterns)
+                        for key, patterns in self.icr_pattern_store['routing_patterns'].items()
+                    },
+                    'research': {
+                        key: len(patterns)
+                        for key, patterns in self.icr_pattern_store['research_patterns'].items()
+                    }
+                },
+                'adaptive_thresholds': self._adaptive_thresholds.copy()
+            }
+    
+        def clear_icr_patterns(self) -> None:
+            """Clear all stored ICR patterns."""
+            if not self.enable_icr:
+                return
+    
+            self.logger.info("Clearing all ICR patterns")
+    
+            self.icr_pattern_store = {
+                'execution_patterns': {},
+                'verification_patterns': {},
+                'routing_patterns': {},
+                'research_patterns': {},
+                'operation_history': deque(maxlen=500)
+            }
+            self._adaptive_thresholds.clear()
+    
+        def __repr__(self) -> str:
+            return (
+                f"{self.__class__.__name__}("
+                f"name='{self.get_display_name()}', "
+                f"version='{self.get_version()}', "
+                f"status='{self.status}')"
+            )

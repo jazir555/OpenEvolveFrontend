@@ -4,6 +4,7 @@ package openevolve.grpc;
 
 import "common.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 
 // Knowledge document types
 enum DocumentType {
@@ -29,8 +30,8 @@ message KnowledgeDocument {
   string author = 8;
   google.protobuf.Timestamp created_at = 9;
   google.protobuf.Timestamp updated_at = 10;
-  float relevance_score = 11;
-  repeated float embedding = 12;
+  double relevance_score = 11;
+  repeated double embedding = 12;
 }
 
 // Knowledge query
@@ -38,7 +39,7 @@ message KnowledgeQuery {
   string query_text = 1;
   repeated string filters = 2;
   int32 limit = 3;
-  float min_relevance = 4;
+  double min_relevance = 4;
   string search_type = 5;  // "semantic", "keyword", "hybrid"
   map<string, google.protobuf.Value> parameters = 6;
 }
@@ -47,7 +48,7 @@ message KnowledgeQuery {
 message KnowledgeQueryResult {
   repeated KnowledgeDocument documents = 1;
   int32 total_count = 2;
-  float query_time_ms = 3;
+  double query_time_ms = 3;
   map<string, google.protobuf.Value> facets = 4;
 }
 
@@ -77,7 +78,7 @@ message ExtractedEntity {
   string entity_type = 3;
   repeated string aliases = 4;
   map<string, google.protobuf.Value> attributes = 5;
-  float confidence = 6;
+  double confidence = 6;
   repeated string source_locations = 7;
 }
 
@@ -88,13 +89,18 @@ message ExtractedRelation {
   string target_entity_id = 3;
   string relation_type = 4;
   map<string, google.protobuf.Value> attributes = 5;
-  float confidence = 6;
+  double confidence = 6;
+}
+
+// String list for use in maps
+message StringList {
+  repeated string values = 1;
 }
 
 // Extracted hierarchy
 message ExtractedHierarchy {
   string root_id = 1;
-  map<string, repeated string> parent_child_map = 2;
+  map<string, StringList> parent_child_map = 2;
   int32 max_depth = 3;
 }
 
@@ -123,7 +129,7 @@ message ReasoningStep {
   string premise = 3;
   string conclusion = 4;
   string rule_applied = 5;
-  float confidence = 6;
+  double confidence = 6;
 }
 
 // Knowledge federation request
@@ -165,7 +171,7 @@ message KnowledgeGraphEdge {
   string target_id = 3;
   string relation_type = 4;
   map<string, google.protobuf.Value> properties = 5;
-  float weight = 6;
+  double weight = 6;
 }
 
 // Knowledge graph

@@ -72,6 +72,9 @@ class RobustnessConfig:
     enable_web_research: bool = True
     enable_router: bool = True
     enable_chronicle: bool = True
+    
+    # ICR Integration
+    enable_icr: bool = True
 
 
 class RobustnessCoordinator:
@@ -84,6 +87,12 @@ class RobustnessCoordinator:
     - Web research
     - Intelligent routing
     - Memory management
+    
+    ICR Integration:
+    - Stores robustness patterns for learning
+    - Predicts operation success/failure probability
+    - Adapts thresholds based on historical outcomes
+    - Learns from execution and verification results
     """
     
     def __init__(self, config: RobustnessConfig = None):
@@ -97,6 +106,22 @@ class RobustnessCoordinator:
         self.chronicle: Optional[ChronicleMemory] = None
         
         self._initialized = False
+        
+        # ICR Integration: Pattern storage and learning
+        self.enable_icr = self.config.enable_icr
+        self.icr_pattern_store = {
+            'execution_patterns': {},  # operation_type -> pattern list
+            'verification_patterns': {},  # verification_type -> pattern list
+            'routing_patterns': {},  # complexity_level -> pattern list
+            'research_patterns': {},  # error_type -> pattern list
+            'operation_history': [],  # Complete operation outcomes
+        }
+        
+        # ICR: Adaptive threshold adjustments
+        self._adaptive_thresholds: Dict[str, float] = {}
+        
+        # ICR: Prediction cache
+        self._prediction_cache: Dict[str, Dict] = {}
     
     async def initialize(self):
         """Initialize all enabled components"""
@@ -211,7 +236,7 @@ class RobustnessCoordinator:
                     duration_ms=result.execution_time_ms
                 )
             
-            return {
+            execution_result = {
                 "success": result.status.value == "success",
                 "stdout": result.stdout,
                 "stderr": result.stderr,
@@ -220,6 +245,15 @@ class RobustnessCoordinator:
                 "execution_id": result.execution_id,
                 "sandbox_id": result.sandbox_id
             }
+            
+            # ICR: Store execution pattern
+            self.store_icr_pattern(
+                'code_execution',
+                execution_result,
+                {'language': language, 'code_length': len(code), 'agent_id': agent_id}
+            )
+            
+            return execution_result
             
         except Exception as e:
             if self.chronicle and agent_id:
@@ -283,13 +317,22 @@ class RobustnessCoordinator:
                     result={"verified": success, "analysis_id": analysis.analysis_id}
                 )
             
-            return {
+            verification_result = {
                 "verified": success,
                 "summary": analysis.summary,
                 "issues": analysis.issues,
                 "analysis_id": analysis.analysis_id,
                 "confidence": analysis.confidence
             }
+            
+            # ICR: Store verification pattern
+            self.store_icr_pattern(
+                'ui_verification',
+                verification_result,
+                {'url': url, 'description': description, 'agent_id': agent_id}
+            )
+            
+            return verification_result
             
         except Exception as e:
             if self.chronicle and agent_id:
@@ -381,7 +424,7 @@ class RobustnessCoordinator:
                         }
                     )
                 
-                return {
+                research_result = {
                     "found": True,
                     "query": result.query,
                     "summary": result.summary,
@@ -389,14 +432,32 @@ class RobustnessCoordinator:
                     "key_findings": result.key_findings,
                     "execution_time": result.execution_time_seconds
                 }
+                
+                # ICR: Store research pattern
+                self.store_icr_pattern(
+                    'error_research',
+                    research_result,
+                    {'error': error_message[:100], 'agent_id': agent_id}
+                )
+                
+                return research_result
             else:
+                research_result = {"found": False, "reason": "No research results"}
+                
+                # ICR: Store research pattern (failed case)
+                self.store_icr_pattern(
+                    'error_research',
+                    research_result,
+                    {'error': error_message[:100], 'agent_id': agent_id}
+                )
+                
                 if self.chronicle and agent_id:
                     await self.chronicle.complete_action(
                         outcome=Outcome.FAILURE,
                         result={"error": "No results found"}
                     )
                 
-                return {"found": False, "reason": "No research results"}
+                return research_result
                 
         except Exception as e:
             if self.chronicle and agent_id:
@@ -470,7 +531,7 @@ class RobustnessCoordinator:
         # Route and execute
         response, result = await self.router.execute_routed(request, context)
         
-        return {
+        routing_result = {
             "response": response,
             "routing": {
                 "complexity": result.decision.complexity.value,
@@ -482,6 +543,15 @@ class RobustnessCoordinator:
                 "reasoning": result.decision.reasoning
             }
         }
+        
+        # ICR: Store routing pattern
+        self.store_icr_pattern(
+            'routing',
+            routing_result,
+            {'complexity': result.decision.complexity.value, 'request_length': len(request)}
+        )
+        
+        return routing_result
     
     def get_complexity(self, request: str) -> str:
         """Quick complexity classification"""
@@ -663,6 +733,13 @@ class RobustnessCoordinator:
             lesson=f"Fix '{fix_description}' executed with status {results['status']}"
         )
         
+        # ICR: Store blue team fix pattern
+        self.store_icr_pattern(
+            'blue_team_fix',
+            results,
+            {'description': fix_description, 'agent_id': agent_id}
+        )
+        
         return results
     
     async def blue_team_research_fix(
@@ -700,10 +777,331 @@ class RobustnessCoordinator:
         # Research
         research = await self.research_error_solution(error_message, agent_id=agent_id)
         
-        return {
+        blue_team_research_result = {
             "status": "researched",
             "results": research
         }
+        
+        # ICR: Store blue team research pattern
+        self.store_icr_pattern(
+            'blue_team_research',
+            blue_team_research_result,
+            {'error': error_message[:100], 'agent_id': agent_id}
+        )
+        
+        return blue_team_research_result
+    
+    # =================================================================
+    # ICR INTEGRATION METHODS
+    # =================================================================
+    
+    def store_icr_pattern(
+        self,
+        operation_type: str,
+        result: Dict[str, Any],
+        operation_context: Optional[Dict[str, Any]] = None
+    ) -> None:
+        """
+        Store operation pattern for ICR learning.
+        
+        Args:
+            operation_type: Type of operation (e.g., 'code_execution', 'ui_verification', 'routing')
+            result: Result of the operation
+            operation_context: Optional context about the operation
+        """
+        if not self.enable_icr:
+            return
+        
+        logger.info(f"Storing ICR pattern for {operation_type}")
+        
+        # Create pattern record
+        pattern = {
+            'timestamp': datetime.now().isoformat(),
+            'operation_type': operation_type,
+            'success': result.get('success', result.get('verified', False)),
+            'result': result,
+            'context': operation_context or {}
+        }
+        
+        # Determine which pattern store to use
+        if operation_type == 'code_execution':
+            store_key = 'execution_patterns'
+        elif operation_type == 'ui_verification':
+            store_key = 'verification_patterns'
+        elif operation_type == 'routing':
+            store_key = 'routing_patterns'
+        elif operation_type == 'error_research':
+            store_key = 'research_patterns'
+        elif operation_type == 'blue_team_fix':
+            store_key = 'execution_patterns'
+        elif operation_type == 'blue_team_research':
+            store_key = 'research_patterns'
+        else:
+            store_key = 'execution_patterns'
+        
+        # Create sub-key based on operation details
+        if operation_type == 'code_execution':
+            sub_key = result.get('language', 'python')
+        elif operation_type == 'ui_verification':
+            sub_key = operation_context.get('url', 'default')
+        elif operation_type == 'routing':
+            sub_key = result.get('routing', {}).get('complexity', 'medium')
+        elif operation_type == 'error_research':
+            sub_key = operation_context.get('error', 'unknown')[:50]
+        elif operation_type == 'blue_team_fix':
+            sub_key = operation_context.get('description', 'default')[:50]
+        elif operation_type == 'blue_team_research':
+            sub_key = operation_context.get('error', 'unknown')[:50]
+        else:
+            sub_key = 'default'
+        
+        # Store in pattern store
+        if sub_key not in self.icr_pattern_store[store_key]:
+            self.icr_pattern_store[store_key][sub_key] = []
+        
+        # Keep only last 100 patterns per sub-key
+        patterns = self.icr_pattern_store[store_key][sub_key]
+        patterns.append(pattern)
+        if len(patterns) > 100:
+            patterns.pop(0)  # Remove oldest
+        
+        # Store in operation history
+        self.icr_pattern_store['operation_history'].append(pattern)
+        if len(self.icr_pattern_store['operation_history']) > 500:
+            self.icr_pattern_store['operation_history'].pop(0)
+        
+        # Calculate success rate for this pattern
+        all_patterns = self.icr_pattern_store[store_key].get(sub_key, [])
+        succeeded = sum(1 for p in all_patterns if p.get('success', False))
+        pattern['success_rate'] = succeeded / len(all_patterns) if all_patterns else 0.5
+        
+        logger.info(f"ICR pattern stored: success_rate={pattern['success_rate']:.2%}")
+    
+    def predict_pass_fail(
+        self,
+        operation_type: str,
+        operation_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Predict pass/fail probability for an operation using ICR patterns.
+        
+        Args:
+            operation_type: Type of operation (e.g., 'code_execution', 'ui_verification', 'routing')
+            operation_context: Optional context about the operation
+            
+        Returns:
+            Dictionary with prediction details
+        """
+        if not self.enable_icr:
+            return {
+                'prediction': 'unknown',
+                'confidence': 0.0,
+                'reason': 'ICR disabled'
+            }
+        
+        logger.info(f"Predicting pass/fail for {operation_type}")
+        
+        # Determine which pattern store to use
+        if operation_type == 'code_execution':
+            store_key = 'execution_patterns'
+            sub_key = operation_context.get('language', 'python') if operation_context else 'python'
+        elif operation_type == 'ui_verification':
+            store_key = 'verification_patterns'
+            sub_key = operation_context.get('url', 'default') if operation_context else 'default'
+        elif operation_type == 'routing':
+            store_key = 'routing_patterns'
+            sub_key = operation_context.get('complexity', 'medium') if operation_context else 'medium'
+        elif operation_type == 'error_research':
+            store_key = 'research_patterns'
+            sub_key = operation_context.get('error', 'unknown')[:50] if operation_context else 'unknown'
+        elif operation_type == 'blue_team_fix':
+            store_key = 'execution_patterns'
+            sub_key = operation_context.get('description', 'default')[:50] if operation_context else 'default'
+        elif operation_type == 'blue_team_research':
+            store_key = 'research_patterns'
+            sub_key = operation_context.get('error', 'unknown')[:50] if operation_context else 'unknown'
+        else:
+            store_key = 'execution_patterns'
+            sub_key = 'default'
+        
+        # Get historical patterns
+        historical_patterns = self.icr_pattern_store[store_key].get(sub_key, [])
+        
+        # Calculate predicted success probability
+        if historical_patterns:
+            succeeded = sum(1 for p in historical_patterns if p.get('success', False))
+            predicted_success_prob = succeeded / len(historical_patterns)
+        else:
+            # Fallback: use default probability
+            predicted_success_prob = 0.5
+        
+        # Determine confidence based on amount of historical data
+        pattern_count = len(historical_patterns)
+        if pattern_count >= 20:
+            confidence = 0.9
+        elif pattern_count >= 10:
+            confidence = 0.75
+        elif pattern_count >= 5:
+            confidence = 0.5
+        else:
+            confidence = 0.25
+        
+        # Predict likely decision
+        if predicted_success_prob >= 0.8:
+            predicted_decision = 'pass'
+        elif predicted_success_prob >= 0.5:
+            predicted_decision = 'conditional_pass'
+        elif predicted_success_prob >= 0.2:
+            predicted_decision = 'conditional_fail'
+        else:
+            predicted_decision = 'fail'
+        
+        return {
+            'prediction': predicted_decision,
+            'success_probability': predicted_success_prob,
+            'confidence': confidence,
+            'pattern_count': pattern_count,
+            'recommended_threshold_adj': self._get_threshold_adjustment(operation_type, sub_key)
+        }
+    
+    def _get_threshold_adjustment(
+        self,
+        operation_type: str,
+        sub_key: str
+    ) -> float:
+        """Get recommended threshold adjustment based on ICR patterns"""
+        if not self.enable_icr:
+            return 0.0
+        
+        # Determine which pattern store to use
+        if operation_type == 'code_execution':
+            store_key = 'execution_patterns'
+        elif operation_type == 'ui_verification':
+            store_key = 'verification_patterns'
+        elif operation_type == 'routing':
+            store_key = 'routing_patterns'
+        elif operation_type == 'error_research':
+            store_key = 'research_patterns'
+        elif operation_type == 'blue_team_fix':
+            store_key = 'execution_patterns'
+        elif operation_type == 'blue_team_research':
+            store_key = 'research_patterns'
+        else:
+            return 0.0
+        
+        # Check if we have enough data to recommend adjustment
+        patterns = self.icr_pattern_store[store_key].get(sub_key, [])
+        
+        if len(patterns) < 5:
+            return 0.0
+        
+        # Calculate success rate
+        succeeded = sum(1 for p in patterns if p.get('success', False))
+        success_rate = succeeded / len(patterns)
+        
+        # If success rate is very high, we could be more lenient
+        # If success rate is very low, we might need to adjust expectations
+        adaptive_key = f"{operation_type}_{sub_key}"
+        current_adj = self._adaptive_thresholds.get(adaptive_key, 0.0)
+        
+        if success_rate > 0.8:
+            # High success rate - could be more lenient
+            return min(2.0, current_adj + 0.1)
+        elif success_rate < 0.3:
+            # Low success rate - might need to adjust expectations
+            return max(-2.0, current_adj - 0.1)
+        
+        return current_adj
+    
+    def get_icr_statistics(self) -> Dict[str, Any]:
+        """Get ICR-related statistics"""
+        if not self.enable_icr:
+            return {'icr_enabled': False}
+        
+        total_patterns = sum(
+            len(patterns)
+            for patterns in self.icr_pattern_store['execution_patterns'].values()
+        ) + sum(
+            len(patterns)
+            for patterns in self.icr_pattern_store['verification_patterns'].values()
+        ) + sum(
+            len(patterns)
+            for patterns in self.icr_pattern_store['routing_patterns'].values()
+        ) + sum(
+            len(patterns)
+            for patterns in self.icr_pattern_store['research_patterns'].values()
+        )
+        
+        # Calculate overall success rate
+        all_patterns = self.icr_pattern_store['operation_history']
+        succeeded = sum(1 for p in all_patterns if p.get('success', False))
+        overall_success_rate = succeeded / len(all_patterns) if all_patterns else 0.0
+        
+        # Calculate success rates by operation type
+        execution_success = self._calculate_store_success_rate('execution_patterns')
+        verification_success = self._calculate_store_success_rate('verification_patterns')
+        routing_success = self._calculate_store_success_rate('routing_patterns')
+        research_success = self._calculate_store_success_rate('research_patterns')
+        
+        return {
+            'icr_enabled': True,
+            'total_patterns': total_patterns,
+            'overall_success_rate': overall_success_rate,
+            'success_rates_by_type': {
+                'execution': execution_success,
+                'verification': verification_success,
+                'routing': routing_success,
+                'research': research_success
+            },
+            'patterns_by_operation_type': {
+                'execution': {
+                    key: len(patterns)
+                    for key, patterns in self.icr_pattern_store['execution_patterns'].items()
+                },
+                'verification': {
+                    key: len(patterns)
+                    for key, patterns in self.icr_pattern_store['verification_patterns'].items()
+                },
+                'routing': {
+                    key: len(patterns)
+                    for key, patterns in self.icr_pattern_store['routing_patterns'].items()
+                },
+                'research': {
+                    key: len(patterns)
+                    for key, patterns in self.icr_pattern_store['research_patterns'].items()
+                }
+            },
+            'adaptive_thresholds': self._adaptive_thresholds.copy()
+        }
+    
+    def _calculate_store_success_rate(self, store_key: str) -> float:
+        """Calculate success rate for a pattern store"""
+        all_patterns = []
+        for patterns in self.icr_pattern_store[store_key].values():
+            all_patterns.extend(patterns)
+        
+        if not all_patterns:
+            return 0.0
+        
+        succeeded = sum(1 for p in all_patterns if p.get('success', False))
+        return succeeded / len(all_patterns)
+    
+    def clear_icr_patterns(self) -> None:
+        """Clear all stored ICR patterns"""
+        if not self.enable_icr:
+            return
+        
+        logger.info("Clearing all ICR patterns")
+        
+        self.icr_pattern_store = {
+            'execution_patterns': {},
+            'verification_patterns': {},
+            'routing_patterns': {},
+            'research_patterns': {},
+            'operation_history': [],
+        }
+        self._adaptive_thresholds.clear()
+        self._prediction_cache.clear()
     
     # =================================================================
     # Statistics and Monitoring
@@ -728,6 +1126,10 @@ class RobustnessCoordinator:
             stats["components"]["sandbox"] = {
                 "executions": len(self.sandbox.get_execution_history())
             }
+        
+        # ICR: Include ICR statistics
+        if self.enable_icr:
+            stats["icr"] = self.get_icr_statistics()
         
         return stats
 

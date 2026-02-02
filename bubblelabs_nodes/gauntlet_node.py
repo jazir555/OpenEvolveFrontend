@@ -5,6 +5,7 @@ Implements multi-stage quality control with Red/Blue/Gold team testing.
 """
 
 from typing import Dict, Any, List, Optional
+from time import time
 from .base_node import BubbleLabsNode, NodeExecutionError
 
 
@@ -113,7 +114,9 @@ class GauntletNode(BubbleLabsNode):
                 - round_results: List of results from each round
                 - feedback: List of feedback items
                 - improvements_needed: List of required improvements
+                - icr_statistics: ICR-related statistics (if enabled)
         """
+        start_time = time()
         if not self.manager:
             return self._run_gauntlet_simple(inputs, context)
 
@@ -195,9 +198,47 @@ class GauntletNode(BubbleLabsNode):
                 f"{len(result['improvements_needed'])} improvements needed"
             )
 
+            # ICR: Store gauntlet pattern
+            execution_time = time() - start_time
+            self.store_icr_pattern(
+                operation_type='gauntlet',
+                success=result['passed'],
+                execution_time=execution_time,
+                metadata={
+                    'gauntlet_type': gauntlet_type,
+                    'rounds': rounds,
+                    'difficulty': difficulty,
+                    'score': result['score'],
+                    'passed': result['passed'],
+                    'rounds_completed': len(result['round_results']),
+                    'improvements_needed': len(result['improvements_needed']),
+                    'evaluation_criteria': evaluation_criteria
+                },
+                sub_key=gauntlet_type
+            )
+
+            # Include ICR statistics in result
+            if self.enable_icr:
+                result['icr_statistics'] = self.get_icr_statistics()
+
             return result
 
         except Exception as e:
+            execution_time = time() - start_time
+            # ICR: Store failed gauntlet pattern
+            self.store_icr_pattern(
+                operation_type='gauntlet',
+                success=False,
+                execution_time=execution_time,
+                metadata={
+                    'gauntlet_type': gauntlet_type,
+                    'rounds': rounds,
+                    'difficulty': difficulty,
+                    'error': str(e),
+                    'exception_type': type(e).__name__
+                },
+                sub_key=gauntlet_type
+            )
             self.logger.error(f"Gauntlet execution failed: {str(e)}", exc_info=True)
             raise NodeExecutionError(
                 node_name=self.get_display_name(),
@@ -219,8 +260,7 @@ class GauntletNode(BubbleLabsNode):
 
         context.update_progress(10, "Using simple gauntlet (manager not available)")
 
-        import time
-        start_time = time.time()
+        start_time = time()
 
         context.update_progress(30, "Running basic evaluations")
 
@@ -275,6 +315,26 @@ class GauntletNode(BubbleLabsNode):
         }
 
         context.update_progress(100, f"Simple gauntlet complete in {execution_time:.2f}s")
+
+        # ICR: Store simple gauntlet pattern
+        self.store_icr_pattern(
+            operation_type='gauntlet',
+            success=passed,
+            execution_time=execution_time,
+            metadata={
+                'gauntlet_type': gauntlet_type,
+                'rounds': rounds,
+                'score': overall_score,
+                'passed': passed,
+                'is_simple_gauntlet': True
+            },
+            sub_key=gauntlet_type
+        )
+
+        # Include ICR statistics in result
+        if self.enable_icr:
+            result['icr_statistics'] = self.get_icr_statistics()
+
         return result
 
     def _format_round_results(self, rounds: List) -> List[Dict[str, Any]]:

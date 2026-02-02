@@ -47,7 +47,6 @@ if not hasattr(sovereign_data_models, 'Feedback'):
 # Import Engines
 from comprehensive_decomposition_engine import ComprehensiveDecompositionEngine
 from formal_gauntlet_system import GauntletSystem
-from blue_team_solver_engine import BlueTeamSolverEngine
 
 # Import Adapters (Verification of physical presence and importability)
 try:

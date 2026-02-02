@@ -22,7 +22,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 import uvicorn
 
 # Import the gRPC client
-from client import OpenEvolveGRPCClient, ExecutionRequest
+from client import OpenEvolveGRPCClient, ExecutionRequest, ExecutionResult
 
 logger = logging.getLogger(__name__)
 
@@ -130,7 +130,7 @@ class RESTToGRPCBridge:
                 body = await request.json()
                 
                 execution_request = ExecutionRequest(
-                    nodeType=node_type,
+                    node_type=node_type,
                     inputs=body.get("inputs", {}),
                     config=body.get("config", {}),
                     options=body.get("options", {})
@@ -215,11 +215,12 @@ class RESTToGRPCBridge:
         # Check gRPC health
         try:
             grpc_health = await self.grpc_client.check_health()
+            status = grpc_health.get("status", "UNKNOWN")
             health["services"]["grpc"] = {
-                "status": grpc_health.status.lower(),
-                "response_time_ms": grpc_health.responseTimeMs
+                "status": status.lower(),
+                "response_time_ms": grpc_health.get("response_time_ms", 0)
             }
-            if grpc_health.status != "HEALTHY":
+            if status != "SERVING":
                 health["status"] = "degraded"
         except Exception as e:
             health["services"]["grpc"] = {
@@ -267,31 +268,32 @@ class RESTToGRPCBridge:
     
     def _map_node_to_rest(self, node) -> Dict:
         """Map gRPC NodeInfo to REST format"""
+        caps = node.capabilities or {}
         return {
-            "node_id": node.nodeId,
-            "node_type": node.nodeType,
-            "display_name": node.displayName,
+            "node_id": node.node_id,
+            "node_type": node.node_type,
+            "display_name": node.display_name,
             "description": node.description,
             "icon": node.icon,
             "category": node.category,
             "version": node.version,
-            "tags": node.tags,
+            "tags": node.tags or [],
             "capabilities": {
-                "supports_streaming": node.capabilities.supportsStreaming,
-                "supports_cancellation": node.capabilities.supportsCancellation,
-                "supports_progress": node.capabilities.supportsProgress,
-                "supports_checkpointing": node.capabilities.supportsCheckpointing,
-                "max_timeout_seconds": node.capabilities.maxTimeoutSeconds,
-                "required_resources": node.capabilities.requiredResources
+                "supports_streaming": caps.get('supports_streaming', False),
+                "supports_cancellation": caps.get('supports_cancellation', False),
+                "supports_progress": caps.get('supports_progress', False),
+                "supports_checkpointing": caps.get('supports_checkpointing', False),
+                "max_timeout_seconds": caps.get('max_timeout_seconds', 300),
+                "required_resources": caps.get('required_resources', [])
             },
-            "parameter_schema": node.parameterSchema
+            "parameter_schema": node.parameter_schema
         }
     
     def _map_execution_result_to_rest(self, result) -> Dict:
         """Map gRPC ExecutionResult to REST format"""
         response = {
-            "execution_id": result.executionId,
-            "status": result.state.toLowerCase(),
+            "execution_id": result.execution_id,
+            "status": result.state.lower() if result.state else 'unknown',
         }
         
         if result.result:

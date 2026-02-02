@@ -5,6 +5,7 @@ Implements solution merging and assembly from multiple sources.
 """
 
 from typing import Dict, Any, List, Optional
+from time import time
 from .base_node import BubbleLabsNode, NodeExecutionError
 
 
@@ -112,7 +113,9 @@ class AssemblyNode(BubbleLabsNode):
                 - quality_score: Overall quality score (0-1)
                 - merge_report: Detailed merge report
                 - discarded_elements: List of discarded solution elements
+                - icr_statistics: ICR-related statistics (if enabled)
         """
+        start_time = time()
         if not self.assembler:
             return self._assemble_simple(inputs, context)
 
@@ -183,9 +186,45 @@ class AssemblyNode(BubbleLabsNode):
                 f"conflicts resolved, quality: {result['quality_score']:.2f}"
             )
 
+            # ICR: Store assembly pattern
+            execution_time = time() - start_time
+            self.store_icr_pattern(
+                operation_type='assembly',
+                success=True,
+                execution_time=execution_time,
+                metadata={
+                    'merge_strategy': merge_strategy,
+                    'conflict_resolution': conflict_resolution,
+                    'solutions_count': len(solutions),
+                    'conflicts_resolved': result['conflicts_resolved'],
+                    'conflicts_detected': result['conflicts_detected'],
+                    'quality_score': result['quality_score']
+                },
+                sub_key=merge_strategy
+            )
+
+            # Include ICR statistics in result
+            if self.enable_icr:
+                result['icr_statistics'] = self.get_icr_statistics()
+
             return result
 
         except Exception as e:
+            execution_time = time() - start_time
+            # ICR: Store failed assembly pattern
+            self.store_icr_pattern(
+                operation_type='assembly',
+                success=False,
+                execution_time=execution_time,
+                metadata={
+                    'merge_strategy': merge_strategy,
+                    'conflict_resolution': conflict_resolution,
+                    'solutions_count': len(solutions),
+                    'error': str(e),
+                    'exception_type': type(e).__name__
+                },
+                sub_key=merge_strategy
+            )
             self.logger.error(f"Solution assembly failed: {str(e)}", exc_info=True)
             raise NodeExecutionError(
                 node_name=self.get_display_name(),
@@ -200,6 +239,7 @@ class AssemblyNode(BubbleLabsNode):
 
     def _assemble_simple(self, inputs: Dict, context) -> Dict[str, Any]:
         """Simple assembly fallback when assembler not available"""
+        start_time = time()
         solutions = inputs['solutions']
         merge_strategy = inputs.get('merge_strategy', 'weighted')
 
@@ -246,6 +286,27 @@ class AssemblyNode(BubbleLabsNode):
         }
 
         context.update_progress(100, "Simple assembly complete")
+
+        # ICR: Store simple assembly pattern
+        execution_time = time() - start_time
+        self.store_icr_pattern(
+            operation_type='assembly',
+            success=True,
+            execution_time=execution_time,
+            metadata={
+                'merge_strategy': merge_strategy,
+                'solutions_count': len(solutions),
+                'conflicts_detected': len(conflicts),
+                'quality_score': 0.5,
+                'is_simple_assembly': True
+            },
+            sub_key=merge_strategy
+        )
+
+        # Include ICR statistics in result
+        if self.enable_icr:
+            result['icr_statistics'] = self.get_icr_statistics()
+
         return result
 
     def get_parameter_schema(self) -> Dict[str, Any]:

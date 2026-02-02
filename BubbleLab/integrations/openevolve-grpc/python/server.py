@@ -271,6 +271,25 @@ class OpenEvolveServicer:
         json_format.ParseDict(data, struct)
         return struct
     
+    def _run_async(self, coro):
+        """
+        Run an async coroutine from a synchronous context.
+        
+        This handles the case where we may or may not already be in an event loop.
+        """
+        try:
+            # Try to get the current event loop
+            loop = asyncio.get_running_loop()
+            # If we're already in an event loop, we can't use asyncio.run()
+            # Instead, create a new thread to run the coroutine
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(asyncio.run, coro)
+                return future.result()
+        except RuntimeError:
+            # No event loop running, we can use asyncio.run()
+            return asyncio.run(coro)
+    
     # =========================================================================
     # Node Registry Service Methods
     # =========================================================================
@@ -368,8 +387,8 @@ class OpenEvolveServicer:
         execution_id = request.metadata.request_id
         
         try:
-            # Create execution context
-            exec_ctx = asyncio.run(
+            # Create execution context (sync wrapper for async method)
+            exec_ctx = self._run_async(
                 self.execution_manager.create_execution(
                     execution_id, 
                     request.node_type
@@ -380,8 +399,8 @@ class OpenEvolveServicer:
             inputs = self._struct_to_dict(request.inputs) if request.inputs else {}
             config = self._struct_to_dict(request.config) if request.config else {}
             
-            # Execute
-            result = asyncio.run(
+            # Execute (sync wrapper for async method)
+            result = self._run_async(
                 self.node_adapter.execute_node(
                     request.node_type,
                     inputs,
@@ -390,8 +409,8 @@ class OpenEvolveServicer:
                 )
             )
             
-            # Complete execution
-            asyncio.run(self.execution_manager.complete_execution(execution_id))
+            # Complete execution (sync wrapper for async method)
+            self._run_async(self.execution_manager.complete_execution(execution_id))
             
             processing_time = int((time.time() - start_time) * 1000)
             
@@ -406,12 +425,12 @@ class OpenEvolveServicer:
             }
             
         except asyncio.CancelledError:
-            asyncio.run(self.execution_manager.complete_execution(execution_id))
+            self._run_async(self.execution_manager.complete_execution(execution_id))
             context.set_code(grpc.StatusCode.CANCELLED)
             context.set_details("Execution was cancelled")
             raise
         except Exception as e:
-            asyncio.run(self.execution_manager.complete_execution(execution_id))
+            self._run_async(self.execution_manager.complete_execution(execution_id))
             logger.error(f"ExecuteNode failed: {e}")
             context.set_code(grpc.StatusCode.INTERNAL)
             context.set_details(str(e))
@@ -455,7 +474,7 @@ class OpenEvolveServicer:
                 
                 def execute():
                     try:
-                        result = asyncio.run(
+                        result = self._run_async(
                             self.node_adapter.execute_node(
                                 request.node_type,
                                 inputs,
@@ -543,7 +562,7 @@ class OpenEvolveServicer:
         """Get status of an execution"""
         execution_id = request.execution_id
         
-        exec_ctx = asyncio.run(self.execution_manager.get_execution(execution_id))
+        exec_ctx = self._run_async(self.execution_manager.get_execution(execution_id))
         
         if not exec_ctx:
             context.set_code(grpc.StatusCode.NOT_FOUND)
@@ -563,7 +582,7 @@ class OpenEvolveServicer:
         """Cancel a running execution"""
         execution_id = request.execution_id
         
-        success = asyncio.run(self.execution_manager.cancel_execution(execution_id))
+        success = self._run_async(self.execution_manager.cancel_execution(execution_id))
         
         return {
             "metadata": self._create_metadata(request.metadata.request_id),

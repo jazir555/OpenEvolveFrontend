@@ -311,7 +311,7 @@ Sub-problems: {len(plan.sub_problems)}
         """Generate human-readable refinement report."""
         report = f"""
 REFINEMENT REPORT
-================
+=================
 
 Initial Quality: {result.cycles[0].improvement_score if result.cycles else 0:.2f}
 Final Quality: {result.final_quality_score:.2f}

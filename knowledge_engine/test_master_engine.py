@@ -10,6 +10,7 @@ Tests all capabilities:
 - Knowledge processing
 """
 
+import pytest
 import asyncio
 import sys
 import os
@@ -20,17 +21,19 @@ from knowledge_engine.master_engine import (
     create_master_engine, KnowledgeRequest
 )
 
-
-def test_initialization():
-    """Test engine initialization"""
-    print("\n[Test] Engine Initialization")
-    print("-" * 50)
-    
-    engine = create_master_engine(
+@pytest.fixture
+def engine():
+    """Fixture for MasterKnowledgeEngine"""
+    return create_master_engine(
         storage_path=None,  # In-memory for testing
         enable_learning=True,
         enable_healing=True
     )
+
+def test_initialization(engine):
+    """Test engine initialization"""
+    print("\n[Test] Engine Initialization")
+    print("-" * 50)
     
     stats = engine.get_statistics()
     
@@ -42,9 +45,6 @@ def test_initialization():
     print(f"✓ Learning: {stats['learning_enabled']}")
     print(f"✓ Healing: {stats['healing_enabled']}")
     print("✓ Initialization test passed")
-    
-    return engine
-
 
 def test_component_registry(engine):
     """Test component registry"""
@@ -66,7 +66,6 @@ def test_component_registry(engine):
         print(f"✓ {comp}")
     
     print(f"✓ All {len(components)} components accessible")
-
 
 def test_capabilities(engine):
     """Test capability mapping"""
@@ -95,7 +94,6 @@ def test_capabilities(engine):
     print(f"✓ Found capabilities: {found_count}/{len(expected_caps)}")
     print(f"✓ Total capabilities: {len(capabilities)}")
 
-
 def test_substitution_matrix(engine):
     """Test component substitution"""
     print("\n[Test] Component Substitution")
@@ -116,7 +114,7 @@ def test_substitution_matrix(engine):
     
     print("✓ Substitution matrix accessible")
 
-
+@pytest.mark.asyncio
 async def test_knowledge_processing(engine):
     """Test knowledge processing"""
     print("\n[Test] Knowledge Processing")
@@ -139,10 +137,8 @@ async def test_knowledge_processing(engine):
     print(f"✓ Components used: {response.components_used}")
     print(f"✓ Quality score: {response.quality_score:.2f}")
     print(f"✓ Confidence: {response.confidence:.2f}")
-    
-    return response
 
-
+@pytest.mark.asyncio
 async def test_domain_specific_processing(engine):
     """Test domain-specific processing"""
     print("\n[Test] Domain-Specific Processing")
@@ -163,7 +159,7 @@ async def test_domain_specific_processing(engine):
         print(f"✓ {domain.value}: {len(response.components_used)} components")
         print(f"  Components: {response.components_used}")
 
-
+@pytest.mark.asyncio
 async def test_learning(engine):
     """Test self-learning functionality"""
     print("\n[Test] Self-Learning")
@@ -193,7 +189,7 @@ async def test_learning(engine):
         print(f"✓ Generated recommendations")
         print(f"  Learning summary available: {bool(recommendations.get('learning_summary'))}")
 
-
+@pytest.mark.asyncio
 async def test_healing(engine):
     """Test self-healing functionality"""
     print("\n[Test] Self-Healing")
@@ -214,7 +210,6 @@ async def test_healing(engine):
     substitutes = engine.component_registry.get_substitutes('kggen')
     print(f"✓ Substitution available: kggen -> {substitutes}")
 
-
 def test_statistics(engine):
     """Test statistics gathering"""
     print("\n[Test] Statistics")
@@ -230,55 +225,3 @@ def test_statistics(engine):
     print(f"✓ Components: {stats['components']}")
     print(f"✓ Available components: {stats['available_components']}")
     print(f"✓ Capabilities: {stats['capabilities']}")
-
-
-async def run_all_tests():
-    """Run all tests"""
-    print("=" * 60)
-    print("MASTER KNOWLEDGE ENGINE - COMPREHENSIVE TEST SUITE")
-    print("=" * 60)
-    
-    try:
-        # Initialize
-        engine = test_initialization()
-        
-        # Component tests
-        test_component_registry(engine)
-        test_capabilities(engine)
-        test_substitution_matrix(engine)
-        
-        # Processing tests
-        await test_knowledge_processing(engine)
-        await test_domain_specific_processing(engine)
-        
-        # Learning and healing
-        await test_learning(engine)
-        await test_healing(engine)
-        
-        # Statistics
-        test_statistics(engine)
-        
-        # Final stats
-        final_stats = engine.get_statistics()
-        
-        print("\n" + "=" * 60)
-        print("TEST SUMMARY")
-        print("=" * 60)
-        print(f"✓ Total tests passed: All component and processing tests")
-        print(f"✓ Components integrated: {final_stats['components']}")
-        print(f"✓ Total executions: {final_stats['executions']}")
-        print(f"✓ Overall success rate: {final_stats['success_rate']:.2%}")
-        print("\n🎉 ALL TESTS PASSED")
-        
-        return True
-        
-    except Exception as e:
-        print(f"\n[FAIL] Test failed: {e}")
-        import traceback
-        traceback.print_exc()
-        return False
-
-
-if __name__ == "__main__":
-    success = asyncio.run(run_all_tests())
-    sys.exit(0 if success else 1)

@@ -92,7 +92,7 @@ message ChallengeResult {
   bool passed = 3;
   double score = 4;  // 0.0 - 1.0
   repeated Finding findings = 5;
-  string execution_time_ms = 6;
+  int32 execution_time_ms = 6;
   google.protobuf.Struct details = 7;
 }
 

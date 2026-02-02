@@ -5,6 +5,7 @@ Implements solution verification using Lean4, automated testing, and statistical
 """
 
 from typing import Dict, Any, List, Optional
+from time import time
 from .base_node import BubbleLabsNode, NodeExecutionError
 
 
@@ -108,7 +109,9 @@ class VerificationNode(BubbleLabsNode):
                 - verification_reports: List of verification reports
                 - issues_found: List of issues discovered
                 - certification_level: Certification level achieved
+                - icr_statistics: ICR-related statistics (if enabled)
         """
+        start_time = time()
         if not self.engine:
             return self._verify_simple(inputs, context)
 
@@ -189,9 +192,45 @@ class VerificationNode(BubbleLabsNode):
                 f"certification={certification_level}"
             )
 
+            # ICR: Store verification pattern
+            execution_time = time() - start_time
+            self.store_icr_pattern(
+                operation_type='verification',
+                success=result['verified'],
+                execution_time=execution_time,
+                metadata={
+                    'verification_methods': verification_methods,
+                    'strictness': strictness,
+                    'confidence': result['confidence'],
+                    'verified': result['verified'],
+                    'certification_level': certification_level,
+                    'total_issues': result['summary']['total_issues'],
+                    'critical_issues': result['summary']['critical_issues']
+                },
+                sub_key=','.join(verification_methods)
+            )
+
+            # Include ICR statistics in result
+            if self.enable_icr:
+                result['icr_statistics'] = self.get_icr_statistics()
+
             return result
 
         except Exception as e:
+            execution_time = time() - start_time
+            # ICR: Store failed verification pattern
+            self.store_icr_pattern(
+                operation_type='verification',
+                success=False,
+                execution_time=execution_time,
+                metadata={
+                    'verification_methods': verification_methods,
+                    'strictness': strictness,
+                    'error': str(e),
+                    'exception_type': type(e).__name__
+                },
+                sub_key=','.join(verification_methods)
+            )
             self.logger.error(f"Verification failed: {str(e)}", exc_info=True)
             raise NodeExecutionError(
                 node_name=self.get_display_name(),
@@ -212,8 +251,7 @@ class VerificationNode(BubbleLabsNode):
 
         context.update_progress(10, "Using simple verification (engine not available)")
 
-        import time
-        start_time = time.time()
+        start_time = time()
 
         context.update_progress(30, "Performing basic checks")
 
@@ -274,6 +312,28 @@ class VerificationNode(BubbleLabsNode):
         }
 
         context.update_progress(100, f"Simple verification complete in {verification_time:.2f}s")
+
+        # ICR: Store simple verification pattern
+        self.store_icr_pattern(
+            operation_type='verification',
+            success=result['verified'],
+            execution_time=verification_time,
+            metadata={
+                'verification_methods': verification_methods,
+                'strictness': strictness,
+                'confidence': result['confidence'],
+                'verified': result['verified'],
+                'certification_level': result['certification_level'],
+                'total_issues': len(issues),
+                'is_simple_verification': True
+            },
+            sub_key=','.join(verification_methods)
+        )
+
+        # Include ICR statistics in result
+        if self.enable_icr:
+            result['icr_statistics'] = self.get_icr_statistics()
+
         return result
 
     def _determine_certification(self, confidence: float, issues: List, strictness: str) -> str:

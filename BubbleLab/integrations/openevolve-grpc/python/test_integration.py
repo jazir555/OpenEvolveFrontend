@@ -37,7 +37,7 @@ class TestGRPCServer:
         yield server
         
         # Cleanup
-        await server.stop()
+        server.stop()
     
     async def test_server_creation(self, server):
         """Test server can be created"""

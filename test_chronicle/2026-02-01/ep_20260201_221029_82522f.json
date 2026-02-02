@@ -1,0 +1,16 @@
+{
+  "episode_id": "ep_20260201_221029_82522f",
+  "episode_type": "failure",
+  "timestamp": "2026-02-01T22:10:29.311608+00:00",
+  "agent": "BlueTeam",
+  "action": "Attempted Z3 timeout fix",
+  "context": {},
+  "outcome": "Still timing out",
+  "lesson_learned": "Need to increase solver timeout",
+  "related_episodes": [],
+  "tags": [
+    "z3",
+    "timeout"
+  ],
+  "session_id": "session_001"
+}

@@ -8,7 +8,7 @@
 import * as grpc from '@grpc/grpc-js';
 import * as protoLoader from '@grpc/proto-loader';
 import { EventEmitter } from 'events';
-import { promisify } from 'util';
+
 import * as path from 'path';
 
 // ============================================================================
@@ -216,11 +216,16 @@ export class OpenEvolveGRPCClient extends EventEmitter {
     }
     
     // Load health check proto
+    const healthProtoPath = path.join(protoDir, 'health.proto');
     const healthProto = grpc.loadPackageDefinition(
-      protoLoader.loadSync(
-        require.resolve('grpc-health-proto/health.proto'),
-        { keepCase: true, longs: String, enums: String, defaults: true }
-      )
+      protoLoader.loadSync(healthProtoPath, {
+        keepCase: true,
+        longs: String,
+        enums: String,
+        defaults: true,
+        oneofs: true,
+        includeDirs: [protoDir],
+      })
     );
     
     if ((healthProto as any).grpc?.health?.v1?.Health) {
@@ -452,7 +457,7 @@ export class OpenEvolveGRPCClient extends EventEmitter {
         options: this.mapExecutionOptions(request.options),
       };
 
-      const channel = this.getChannel();
+      const channel = this.getChannel() as any;
       const call = channel.ExecuteNodeStreaming(grpcRequest);
       
       const executionId = grpcRequest.metadata.request_id;
@@ -550,7 +555,6 @@ export class OpenEvolveGRPCClient extends EventEmitter {
       throw new Error('Health client not available');
     }
 
-    const channel = this.getChannel();
     const health = new this.healthClient(
       `${this.config.host}:${this.config.port}`,
       this.config.secure ? grpc.credentials.createSsl() : grpc.credentials.createInsecure()
@@ -576,6 +580,13 @@ export class OpenEvolveGRPCClient extends EventEmitter {
         });
       });
     });
+  }
+
+  /**
+   * Get the result of the last health check
+   */
+  public getLastHealthCheck(): ServiceHealth | undefined {
+    return this.lastHealthCheck;
   }
 
   // =========================================================================
@@ -770,7 +781,7 @@ export class OpenEvolveGRPCClient extends EventEmitter {
         ? new Date(Date.now() + timeoutMs) 
         : undefined;
 
-      channel[method](request, { deadline }, (err: grpc.ServiceError | null, response: any) => {
+      (channel as any)[method](request, { deadline }, (err: grpc.ServiceError | null, response: any) => {
         if (err) {
           reject(this.mapGRPCError(err));
         } else {
