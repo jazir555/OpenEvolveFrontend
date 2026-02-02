@@ -88,6 +88,42 @@
   - Configuration reference
   - Tool reference table
 
+### Tests ✓
+- **tests/conftest.py**: Shared test fixtures
+  - Sample Arbor nodes/edges/graphs
+  - Mock Knowledge Engine
+  - Mock Arbor client
+  - Pytest markers
+
+- **tests/test_client.py**: Client unit tests
+  - Connection/disconnection
+  - Query operations
+  - Error handling
+  - Config validation
+
+- **tests/test_schema_mapping.py**: Schema mapping tests
+  - Node/edge conversion
+  - Kind mapping validation
+  - ID namespacing
+  - Language detection
+
+- **tests/test_graph_adapter.py**: Graph adapter tests
+  - Full graph import
+  - Incremental sync
+  - Delta application
+  - Change event handling
+
+- **tests/test_mcp_bridge.py**: MCP bridge tests
+  - All 7 tool tests
+  - Tool execution
+  - Error handling
+  - Result formatting
+
+- **tests/test_integration.py**: Integration tests
+  - End-to-end workflows
+  - Real server tests (optional)
+  - Reconnection tests
+
 ## File Structure
 
 ```
@@ -103,14 +139,18 @@ knowledge_engine/integrations/arbor/
 ├── README.md                # Documentation
 ├── IMPLEMENTATION_SUMMARY.md # This file
 ├── examples/
-│   └── mcp_demo.py          # Comprehensive demo
+│   ├── basic_usage.py       # Basic usage example
+│   └── mcp_demo.py          # Comprehensive MCP demo
 ├── prompts/
 │   └── impact_analysis.json # Impact analysis prompt
 └── tests/
-    ├── test_client.py       # Client tests
-    ├── test_graph_adapter.py # Adapter tests
-    ├── test_integration.py  # Integration tests
-    └── conftest.py          # Test fixtures
+    ├── __init__.py          # Test module
+    ├── conftest.py          # Shared fixtures
+    ├── test_client.py       # Client unit tests
+    ├── test_schema_mapping.py # Schema mapping tests
+    ├── test_graph_adapter.py # Graph adapter tests
+    ├── test_mcp_bridge.py   # MCP bridge tests
+    └── test_integration.py  # Integration tests
 ```
 
 ## Usage Example
@@ -144,15 +184,40 @@ async def main():
 ## Testing
 
 ```bash
-# Unit tests
+# Run all tests
 pytest knowledge_engine/integrations/arbor/tests/ -v
 
-# Integration tests (requires Arbor server)
+# Run specific test modules
+pytest knowledge_engine/integrations/arbor/tests/test_client.py -v
+pytest knowledge_engine/integrations/arbor/tests/test_schema_mapping.py -v
+pytest knowledge_engine/integrations/arbor/tests/test_graph_adapter.py -v
+pytest knowledge_engine/integrations/arbor/tests/test_mcp_bridge.py -v
+
+# Run integration tests (requires Arbor server)
+set RUN_ARBOR_INTEGRATION_TESTS=1
 pytest knowledge_engine/integrations/arbor/tests/test_integration.py -v
 
-# Demo
+# Run examples
+python -m knowledge_engine.integrations.arbor.examples.basic_usage
 python -m knowledge_engine.integrations.arbor.examples.mcp_demo
 ```
+
+### Test Coverage
+
+| Component | Tests | Status |
+|-----------|-------|--------|
+| Client | 15+ | ✓ Complete |
+| Schema Mapping | 20+ | ✓ Complete |
+| Graph Adapter | 20+ | ✓ Complete |
+| MCP Bridge | 25+ | ✓ Complete |
+| Integration | 10+ | ✓ Complete |
+
+## Fixes Applied
+
+### Import Fixes
+- **examples/basic_usage.py**: Fixed `EntityKnowledgeGraph` import path
+- **examples/basic_usage.py**: Fixed config initialization (use nested `ArborConnectionConfig`)
+- **examples/mcp_demo.py**: Fixed `ArborClient` initialization (pass full config, not just connection)
 
 ## Next Steps
 

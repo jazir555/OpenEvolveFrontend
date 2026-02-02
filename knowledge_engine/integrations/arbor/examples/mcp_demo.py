@@ -213,7 +213,7 @@ async def main():
         return 1
     
     config = ArborConfig.from_env()
-    client = ArborClient(config.connection)
+    client = ArborClient(config)
     
     # Try to connect with retries
     connected = False

@@ -459,7 +459,20 @@ class Z3VerifierAgent(Z3BaseAgent):
             strategy_str = task.parameters.get('strategy', 'parallel')
             strategy = VerificationStrategy[strategy_str.upper()]
             
-            result = await self.bridge.verify_with_both(problem, strategy)
+            entanglement_context = task.parameters.get("entanglement_context")
+            if not entanglement_context:
+                entanglement_context = {}
+                for key in ("entanglement_constraints", "entangled_with", "entangled_constraints"):
+                    if key in task.parameters:
+                        entanglement_context[key] = task.parameters.get(key)
+                if not entanglement_context:
+                    entanglement_context = None
+
+            result = await self.bridge.verify_with_both(
+                problem,
+                strategy,
+                entanglement_context=entanglement_context
+            )
             
             return AgentResult(
                 task_id=task.task_id,

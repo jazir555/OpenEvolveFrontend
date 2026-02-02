@@ -531,7 +531,8 @@ class Z3BubbleLabsUIManager:
         self,
         problem_text: str,
         strategy: str = "adaptive",
-        node_id: Optional[str] = None
+        node_id: Optional[str] = None,
+        entanglement_context: Optional[Dict[str, Any]] = None
     ) -> CrossVerificationNodeState:
         """Create and execute a cross-verification node."""
         node_id = node_id or f"cross_verify_{int(time.time())}"
@@ -560,7 +561,11 @@ class Z3BubbleLabsUIManager:
                 pass
             
             # Execute cross-verification
-            result = await self.z3_bridge.verify_with_both(problem_text, strategy_enum)
+            result = await self.z3_bridge.verify_with_both(
+                problem_text,
+                strategy_enum,
+                entanglement_context=entanglement_context
+            )
             
             state.execution_time = time.time() - start_time
             state.agreement = result.agreement

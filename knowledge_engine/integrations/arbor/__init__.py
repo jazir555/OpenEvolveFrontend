@@ -51,7 +51,13 @@ from .config import (
     ArborIndexingConfig,
     ArborMCPConfig
 )
-from .client import ArborClient
+from .client import (
+    ArborClient,
+    QueryResult,
+    IndexingResult,
+    CodePath,
+    ImpactAnalysis
+)
 from .health import ArborHealthChecker, HealthStatus
 from .exceptions import (
     ArborError,
@@ -97,6 +103,10 @@ __all__ = [
     
     # Client
     "ArborClient",
+    "QueryResult",
+    "IndexingResult",
+    "CodePath",
+    "ImpactAnalysis",
     
     # Graph Adapter (Phase 2)
     "ArborSchemaMapper",

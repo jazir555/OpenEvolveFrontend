@@ -55,7 +55,7 @@ from knowledge_engine.integrations.arbor import (
 async def main():
     # Connect to Arbor
     config = ArborConfig.from_env()
-    client = ArborClient(config.connection)
+    client = ArborClient(config)
     await client.connect()
     
     # Use MCP tools for AI agents
@@ -135,12 +135,12 @@ from knowledge_engine.integrations.arbor import (
 
 # Connect and query
 config = ArborConfig.from_env()
-client = ArborClient(config.connection)
+client = ArborClient(config)
 await client.connect()
 
 # Get full graph
-graph = await client.get_graph()
-print(f"Graph has {len(graph.nodes)} nodes, {len(graph.edges)} edges")
+graph = await client.export_graph()
+print(f"Graph has {len(graph['nodes'])} nodes, {len(graph['edges'])} edges")
 
 # Import to Knowledge Graph
 adapter = ArborGraphAdapter(knowledge_graph)

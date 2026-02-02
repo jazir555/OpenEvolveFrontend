@@ -657,10 +657,28 @@ class Z3LeanAideBridge:
         problem: str,
         entanglement_context: Optional[Dict[str, Any]]
     ) -> str:
+        problem_text = self._normalize_problem_input(problem)
         constraints = self._resolve_entangled_constraints(entanglement_context)
         if not constraints:
+            return problem_text
+        return self._merge_smtlib_constraints(problem_text, constraints)
+
+    @staticmethod
+    def _normalize_problem_input(problem: Any) -> str:
+        """Normalize problem input to a string."""
+        if isinstance(problem, str):
             return problem
-        return self._merge_smtlib_constraints(problem, constraints)
+        if isinstance(problem, bytes):
+            try:
+                return problem.decode("utf-8")
+            except UnicodeDecodeError:
+                return problem.decode("utf-8", errors="replace")
+        if isinstance(problem, dict):
+            for key in ("smtlib", "problem", "statement", "content"):
+                value = problem.get(key)
+                if isinstance(value, str):
+                    return value
+        return str(problem)
     
     async def translate_smt_to_lean(self, smtlib_content: str) -> TranslationResult:
         """Translate SMT-LIB to Lean 4."""
@@ -688,25 +706,43 @@ class Z3LeanAideBridge:
         """
         start_time = time.time()
         strategy = strategy or self.config.default_strategy
-        
+
+        problem = self._normalize_problem_input(problem)
+
         # Detect problem type
-        is_smt = self.smt_to_lean._is_smtlib(problem) if hasattr(self.smt_to_lean, '_is_smtlib') else '(assert' in problem
+        is_smt = (
+            self.smt_to_lean._is_smtlib(problem)
+            if hasattr(self.smt_to_lean, '_is_smtlib')
+            else '(assert' in problem
+        )
+        if not is_smt:
+            lower = problem.lower()
+            is_smt = any(
+                token in lower
+                for token in ("(declare", "(set-logic", "(check-sat", "(push", "(pop", "(assert")
+            )
+
+        entangled_constraints = self._resolve_entangled_constraints(entanglement_context)
+        if entanglement_context and entanglement_context.get("force_smt"):
+            is_smt = True
+        elif entangled_constraints and any(token in problem.lower() for token in ("(declare", "(set-logic", "(check-sat", "(assert")):
+            is_smt = True
         
         if strategy == VerificationStrategy.ADAPTIVE:
             strategy = self._select_strategy(problem, is_smt)
 
         if is_smt:
             problem = self._apply_entanglement_to_smt(problem, entanglement_context)
-        
+
         # Execute based on strategy
         if strategy == VerificationStrategy.Z3_FIRST:
             return await self._verify_z3_first(problem, is_smt)
         elif strategy == VerificationStrategy.LEAN_FIRST:
             return await self._verify_lean_first(problem, is_smt)
         elif strategy == VerificationStrategy.PARALLEL:
-            return await self._verify_parallel(problem, is_smt)
+            return await self._verify_parallel(problem, is_smt, entanglement_context=entanglement_context)
         elif strategy == VerificationStrategy.CONSENSUS:
-            return await self._verify_consensus(problem, is_smt)
+            return await self._verify_consensus(problem, is_smt, entanglement_context=entanglement_context)
         else:
             return CombinedVerificationResult(
                 success=False,
@@ -816,13 +852,14 @@ class Z3LeanAideBridge:
     async def _verify_parallel(
         self,
         problem: str,
-        is_smt: bool
+        is_smt: bool,
+        entanglement_context: Optional[Dict[str, Any]] = None
     ) -> CombinedVerificationResult:
         """Verify with both Z3 and LeanAIDE in parallel."""
         start_time = time.time()
         
         # Run both verifications concurrently
-        z3_task = self._verify_z3_async(problem, is_smt)
+        z3_task = self._verify_z3_async(problem, is_smt, entanglement_context=entanglement_context)
         lean_task = self._verify_lean_async(problem)
         
         results = await asyncio.gather(z3_task, lean_task, return_exceptions=True)
@@ -876,10 +913,11 @@ class Z3LeanAideBridge:
     async def _verify_consensus(
         self,
         problem: str,
-        is_smt: bool
+        is_smt: bool,
+        entanglement_context: Optional[Dict[str, Any]] = None
     ) -> CombinedVerificationResult:
         """Verify with both - both must agree for success."""
-        result = await self._verify_parallel(problem, is_smt)
+        result = await self._verify_parallel(problem, is_smt, entanglement_context=entanglement_context)
         
         # Override success to require consensus
         if not result.agreement:
@@ -888,7 +926,12 @@ class Z3LeanAideBridge:
         
         return result
     
-    async def _verify_z3_async(self, problem: str, is_smt: bool) -> Optional[Z3SolverResult]:
+    async def _verify_z3_async(
+        self,
+        problem: str,
+        is_smt: bool,
+        entanglement_context: Optional[Dict[str, Any]] = None
+    ) -> Optional[Z3SolverResult]:
         """Async wrapper for Z3 verification."""
         if not self.z3_solver:
             return None

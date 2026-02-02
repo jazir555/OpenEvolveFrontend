@@ -841,10 +841,28 @@ class Z3LeanAideOpenEvolveIntegration:
         problem: str,
         entanglement_context: Optional[Dict[str, Any]]
     ) -> str:
+        problem_text = self._normalize_problem_input(problem)
         constraints = self._resolve_entangled_constraints(entanglement_context)
         if not constraints:
+            return problem_text
+        return self._merge_smtlib_constraints(problem_text, constraints)
+
+    @staticmethod
+    def _normalize_problem_input(problem: Any) -> str:
+        """Normalize problem input to a string."""
+        if isinstance(problem, str):
             return problem
-        return self._merge_smtlib_constraints(problem, constraints)
+        if isinstance(problem, bytes):
+            try:
+                return problem.decode("utf-8")
+            except UnicodeDecodeError:
+                return problem.decode("utf-8", errors="replace")
+        if isinstance(problem, dict):
+            for key in ("smtlib", "problem", "statement", "content"):
+                value = problem.get(key)
+                if isinstance(value, str):
+                    return value
+        return str(problem)
     
     # =========================================================================
     # BubbleLabs Integration

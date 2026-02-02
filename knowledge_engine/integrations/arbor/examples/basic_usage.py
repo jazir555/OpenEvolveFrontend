@@ -29,7 +29,7 @@ from knowledge_engine.integrations.arbor import (
     ArborGraphAdapter,
     ArborSchemaMapper
 )
-from knowledge_engine.core import EntityKnowledgeGraph
+from knowledge_engine.core.entity_knowledge_graph import EntityKnowledgeGraph
 
 
 async def example_1_basic_connection():
@@ -39,12 +39,16 @@ async def example_1_basic_connection():
     print("=" * 60)
     
     # Create configuration
+    from knowledge_engine.integrations.arbor import ArborConnectionConfig
+    
     config = ArborConfig(
-        connection__ws_url="ws://localhost:7433",
-        connection__connection_timeout=10.0
+        connection=ArborConnectionConfig(
+            ws_url="ws://localhost:7433",
+            connection_timeout=10.0
+        )
     )
     
-    # Create client
+    # Create client (pass full config, not just connection)
     client = ArborClient(config)
     
     try:
