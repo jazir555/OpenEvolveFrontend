@@ -30,6 +30,7 @@ import logging
 import re
 import time
 import ast
+import threading
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 from enum import Enum
@@ -278,15 +279,30 @@ class SMTtoLeanTranslator:
         return variables
     
     def _extract_assertions(self, smtlib: str) -> List[str]:
-        """Extract assertions from SMT-LIB."""
+        """Extract assertions from SMT-LIB using parenthesis tracking."""
         assertions = []
         
-        # Pattern: (assert expr)
-        pattern = r'\(assert\s+(.+?)\)(?=\s*\(|\s*$)'
-        matches = re.findall(pattern, smtlib, re.DOTALL)
+        # Find all occurrences of "(assert"
+        start_indices = [m.start() for m in re.finditer(r'\(assert\s', smtlib)]
         
-        for match in matches:
-            assertions.append(match.strip())
+        for start_idx in start_indices:
+            # Track parenthesis depth to find the matching closing parenthesis
+            depth = 0
+            end_idx = -1
+            for i in range(start_idx, len(smtlib)):
+                if smtlib[i] == '(':
+                    depth += 1
+                elif smtlib[i] == ')':
+                    depth -= 1
+                    if depth == 0:
+                        end_idx = i
+                        break
+            
+            if end_idx != -1:
+                # Extract the content inside (assert ...)
+                # "(assert " is 8 characters
+                content = smtlib[start_idx+8 : end_idx].strip()
+                assertions.append(content)
         
         return assertions
     
@@ -909,6 +925,7 @@ class Z3LeanAideBridge:
     ) -> CombinedVerificationResult:
         """Verify with Z3 first, fall back to LeanAIDE."""
         start_time = time.time()
+        z3_result = None
         
         # Try Z3
         if self.z3_solver:
@@ -918,7 +935,10 @@ class Z3LeanAideBridge:
                 z3_result = self.z3_prover.prove_theorem(problem)
             
             # If Z3 succeeds confidently, return result
-            if z3_result.status == Z3ResultStatus.SAT or (hasattr(z3_result, 'proven') and z3_result.proven):
+            is_sat = z3_result and z3_result.status == Z3ResultStatus.SAT
+            is_proven = z3_result and hasattr(z3_result, 'proven') and z3_result.proven
+            
+            if is_sat or is_proven:
                 return CombinedVerificationResult(
                     success=True,
                     z3_result=z3_result,
@@ -1180,6 +1200,7 @@ class Z3LeanAideBridge:
 
 _z3_leanaide_bridge: Optional[Z3LeanAideBridge] = None
 _bridge_lock = asyncio.Lock()
+_sync_bridge_lock = threading.Lock()
 
 
 async def get_z3_leanaide_bridge(config: Optional[Z3LeanAideConfig] = None) -> Z3LeanAideBridge:
@@ -1196,7 +1217,9 @@ def get_z3_leanaide_bridge_sync(config: Optional[Z3LeanAideConfig] = None) -> Z3
     """Get global Z3-LeanAIDE bridge instance (synchronous)."""
     global _z3_leanaide_bridge
     if _z3_leanaide_bridge is None:
-        _z3_leanaide_bridge = Z3LeanAideBridge(config)
+        with _sync_bridge_lock:
+            if _z3_leanaide_bridge is None:
+                _z3_leanaide_bridge = Z3LeanAideBridge(config)
     return _z3_leanaide_bridge
 
 

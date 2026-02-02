@@ -78,7 +78,8 @@ class ChronicleMemoryZ3Integration:
     - Case-based problem solving
     """
     
-    def __init__(self):
+    def __init__(self, chronicle: Optional['ChronicleMemory'] = None):
+        self.chronicle = chronicle
         self.entries: Dict[str, Z3MemoryEntry] = {}
         self.problem_index: Dict[str, List[str]] = defaultdict(list)  # hash -> entry_ids
         self.tag_index: Dict[str, List[str]] = defaultdict(list)  # tag -> entry_ids
@@ -135,13 +136,47 @@ class ChronicleMemoryZ3Integration:
             tags=tags or []
         )
         
-        # Store entry
+        # Store entry locally
         self.entries[entry_id] = entry
         self.problem_index[problem_hash].append(entry_id)
         
         # Index tags
         for tag in (tags or []):
             self.tag_index[tag].append(entry_id)
+            
+        # Record in chronicle if available
+        if self.chronicle and CHRONICLE_AVAILABLE:
+            from chronicle_memory import EventType, Outcome
+            
+            # Since record_event is likely async in a real system but 
+            # might be called from sync code, we handle both if needed.
+            # For now, we'll try to use it.
+            try:
+                import asyncio
+                
+                outcome = Outcome.SUCCESS if result_status in ["sat", "proven"] else Outcome.FAILURE
+                if result_status == "unknown":
+                    outcome = Outcome.UNKNOWN
+                
+                async def record():
+                    await self.chronicle.record_event(
+                        event_type=EventType.VERIFICATION_DONE,
+                        action=f"z3_{problem_type}",
+                        parameters=entry.to_dict(),
+                        outcome=outcome,
+                        narrative=f"Z3 {problem_type} completed with status {result_status}"
+                    )
+                
+                try:
+                    loop = asyncio.get_event_loop()
+                    if loop.is_running():
+                        loop.create_task(record())
+                    else:
+                        loop.run_until_complete(record())
+                except RuntimeError:
+                    asyncio.run(record())
+            except Exception as e:
+                logger.warning(f"Failed to record Z3 event in chronicle: {e}")
         
         return entry
     
