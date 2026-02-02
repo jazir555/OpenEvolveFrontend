@@ -19,7 +19,10 @@ Created: 2025-12-30
 
 import asyncio
 import logging
+import os
 import re
+import shutil
+import tempfile
 import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
@@ -90,6 +93,11 @@ class LeanAideWorkflowConfig:
     confidence_threshold: float = 0.7
     require_formal_proof: bool = False
     store_proofs: bool = True
+    use_subprocess: bool = True
+    lean_binary: str = "lean"
+    lake_binary: str = "lake"
+    project_dir: Optional[str] = None
+    lean_timeout: float = 120.0
 
     # Mathematical detection patterns
     math_keywords: List[str] = field(default_factory=lambda: [
@@ -185,10 +193,14 @@ class LeanAideWorkflowIntegrator:
         self.config = config or LeanAideWorkflowConfig()
         self.detector = MathematicalProblemDetector(self.config)
         self.client: Optional[LeanAideClient] = None
+        self._lean_subprocess_available = False
+        self._lean_subprocess_command: Optional[List[str]] = None
 
-        if not LEANAIDE_AVAILABLE:
+        if not LEANAIDE_AVAILABLE and not self.config.use_subprocess:
             logger.warning("LeanAide client not available. Formal verification will be disabled.")
             self.config.enabled = False
+        elif not LEANAIDE_AVAILABLE:
+            logger.warning("LeanAide client not available. Falling back to Lean subprocess if configured.")
 
     async def initialize(self) -> bool:
         """
@@ -197,30 +209,105 @@ class LeanAideWorkflowIntegrator:
         Returns:
             True if initialization successful, False otherwise
         """
-        if not self.config.enabled or not LEANAIDE_AVAILABLE:
+        if not self.config.enabled:
             return False
 
+        ready = False
+
+        if LEANAIDE_AVAILABLE:
+            try:
+                client_config = LeanAideConfig(
+                    host=self.config.host,
+                    port=self.config.port,
+                    timeout=self.config.timeout,
+                    max_retries=self.config.max_retries
+                )
+                self.client = LeanAideClient(config=client_config)
+
+                # Health check
+                is_healthy = await self.client.health_check()
+                if not is_healthy:
+                    logger.warning(f"LeanAide server at {self.config.host}:{self.config.port} is not responding")
+                    self.client = None
+                else:
+                    logger.info(f"LeanAide client initialized successfully at {self.config.host}:{self.config.port}")
+                    ready = True
+
+            except Exception as e:
+                logger.error(f"Failed to initialize LeanAide client: {e}")
+                self.client = None
+
+        if self.config.use_subprocess:
+            self._lean_subprocess_command = self._detect_lean_subprocess_command()
+            if self._lean_subprocess_command:
+                self._lean_subprocess_available = True
+                ready = True
+                logger.info("Lean subprocess available via: %s", " ".join(self._lean_subprocess_command))
+            else:
+                logger.warning("Lean subprocess not available (missing lake/lean binary)")
+
+        return ready
+
+    def _detect_lean_subprocess_command(self) -> Optional[List[str]]:
+        """Detect a usable Lean subprocess command."""
+        if not self.config.use_subprocess:
+            return None
+
+        lake_path = shutil.which(self.config.lake_binary) if self.config.lake_binary else None
+        if lake_path:
+            return [lake_path, "env", "lean"]
+
+        lean_path = shutil.which(self.config.lean_binary) if self.config.lean_binary else None
+        if lean_path:
+            return [lean_path]
+
+        return None
+
+    @staticmethod
+    def _looks_like_lean(text: str) -> bool:
+        if not text:
+            return False
+        lowered = text.lower()
+        return any(token in lowered for token in ("theorem", "lemma", "def ", "import ", "example", "axiom", "structure"))
+
+    async def _run_lean_subprocess(self, lean_code: str) -> Tuple[bool, str, str]:
+        """Run Lean/Lake subprocess to elaborate Lean code."""
+        if not self._lean_subprocess_available or not self._lean_subprocess_command:
+            raise RuntimeError("Lean subprocess not available")
+
+        timeout = self.config.lean_timeout or self.config.timeout
+        tmp_path = None
         try:
-            client_config = LeanAideConfig(
-                host=self.config.host,
-                port=self.config.port,
-                timeout=self.config.timeout,
-                max_retries=self.config.max_retries
+            with tempfile.NamedTemporaryFile(mode="w", suffix=".lean", delete=False, encoding="utf-8") as tmp_file:
+                tmp_file.write(lean_code)
+                tmp_path = tmp_file.name
+
+            proc = await asyncio.create_subprocess_exec(
+                *self._lean_subprocess_command,
+                tmp_path,
+                cwd=self.config.project_dir or None,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE
             )
-            self.client = LeanAideClient(config=client_config)
 
-            # Health check
-            is_healthy = await self.client.health_check()
-            if not is_healthy:
-                logger.warning(f"LeanAide server at {self.config.host}:{self.config.port} is not responding")
-                return False
+            try:
+                stdout, stderr = await asyncio.wait_for(proc.communicate(), timeout=timeout)
+            except asyncio.TimeoutError:
+                proc.kill()
+                stdout, stderr = await proc.communicate()
+                return False, stdout.decode("utf-8", errors="replace"), "Lean subprocess timed out"
 
-            logger.info(f"LeanAide client initialized successfully at {self.config.base_url}")
-            return True
-
-        except Exception as e:
-            logger.error(f"Failed to initialize LeanAide client: {e}")
-            return False
+            return (
+                proc.returncode == 0,
+                stdout.decode("utf-8", errors="replace"),
+                stderr.decode("utf-8", errors="replace")
+            )
+        finally:
+            if tmp_path and os.path.exists(tmp_path):
+                try:
+                    os.remove(tmp_path)
+                except OSError:
+                    pass
 
     async def verify_sub_problem_solution(
         self,
@@ -407,29 +494,47 @@ class LeanAideWorkflowIntegrator:
         Returns:
             LeanAideVerificationResult with detailed verification outcome
         """
-        if not self.client:
-            raise RuntimeError("LeanAide client not initialized")
+        translation_result = None
+        lean_code = ""
 
-        # Step 1: Translate the problem/solution to Lean
-        translation_result = await self.client.translate_thm_detailed(
-            theorem_text=problem_statement + "\n\n" + solution_content,
-            theorem_name=f"theorem_{int(time.time())}"
-        )
-
-        if not translation_result.success:
-            return LeanAideVerificationResult(
-                success=False,
-                is_mathematical=True,
-                confidence_score=0.0,
-                verification_method="leanaide_formal",
-                errors=["Translation failed: " + (translation_result.error or "Unknown error")]
+        if self.client:
+            # Step 1: Translate the problem/solution to Lean
+            translation_result = await self.client.translate_thm_detailed(
+                theorem_text=problem_statement + "\n\n" + solution_content,
+                theorem_name=f"theorem_{int(time.time())}"
             )
 
-        lean_code = translation_result.data.get("result", "") if translation_result.data else ""
+            if not translation_result.success:
+                return LeanAideVerificationResult(
+                    success=False,
+                    is_mathematical=True,
+                    confidence_score=0.0,
+                    verification_method="leanaide_formal",
+                    errors=["Translation failed: " + (translation_result.error or "Unknown error")]
+                )
+
+            lean_code = translation_result.data.get("result", "") if translation_result.data else ""
+
+        elif self._lean_subprocess_available:
+            # Use existing Lean code if provided
+            if self._looks_like_lean(solution_content):
+                lean_code = solution_content
+            elif self._looks_like_lean(problem_statement):
+                lean_code = problem_statement
+            else:
+                return LeanAideVerificationResult(
+                    success=False,
+                    is_mathematical=True,
+                    confidence_score=0.0,
+                    verification_method="leanaide_formal",
+                    errors=["No Lean code available for subprocess verification"]
+                )
+        else:
+            raise RuntimeError("LeanAide client not initialized and Lean subprocess unavailable")
 
         # Step 2: Generate a proof (if required)
         formal_proof = None
-        if self.config.require_formal_proof:
+        if self.config.require_formal_proof and self.client and translation_result:
             theorem_code = translation_result.data.get("type", "") if translation_result.data else ""
 
             proof_result = await self.client.prove_for_formalization(
@@ -442,30 +547,51 @@ class LeanAideWorkflowIntegrator:
                 formal_proof = proof_result.data.get("result", "") if proof_result.data else None
 
         # Step 3: Elaborate the Lean code to check for errors
-        elaboration_result = await self.client.elaborate(document_code=lean_code)
-
-        success = elaboration_result.success
         errors = []
         warnings = []
+        unsolved_goals: List[str] = []
+        elaboration_backend = "leanaide_api"
+        subprocess_stdout = ""
+        subprocess_stderr = ""
 
-        if elaboration_result.success:
-            elaboration_data = elaboration_result.data or {}
-            unsolved_goals = elaboration_data.get("unsolved_goals", [])
-            logs = elaboration_data.get("logs", "")
+        if self.config.use_subprocess and self._lean_subprocess_available:
+            elaboration_backend = "lean_subprocess"
+            success, stdout, stderr = await self._run_lean_subprocess(lean_code)
+            subprocess_stdout = stdout
+            subprocess_stderr = stderr
+            logs = "\n".join([line for line in (stdout, stderr) if line])
 
-            if unsolved_goals:
-                warnings.append(f"{len(unsolved_goals)} unsolved goals remain")
+            if not success:
+                errors.append("Lean subprocess elaboration failed")
 
             if "error" in logs.lower():
-                success = False
                 errors.append("Elaboration contained errors")
 
-            # Calculate confidence based on elaboration result
-            confidence_score = 0.9 if not unsolved_goals else max(0.5, 0.9 - len(unsolved_goals) * 0.1)
-
+            confidence_score = 0.9 if success else 0.0
         else:
-            errors.append("Elaboration failed: " + (elaboration_result.error or "Unknown error"))
-            confidence_score = 0.0
+            if not self.client:
+                raise RuntimeError("LeanAide client not initialized")
+
+            elaboration_result = await self.client.elaborate(document_code=lean_code)
+            success = elaboration_result.success
+
+            if elaboration_result.success:
+                elaboration_data = elaboration_result.data or {}
+                unsolved_goals = elaboration_data.get("unsolved_goals", [])
+                logs = elaboration_data.get("logs", "")
+
+                if unsolved_goals:
+                    warnings.append(f"{len(unsolved_goals)} unsolved goals remain")
+
+                if "error" in logs.lower():
+                    success = False
+                    errors.append("Elaboration contained errors")
+
+                confidence_score = 0.9 if not unsolved_goals else max(0.5, 0.9 - len(unsolved_goals) * 0.1)
+
+            else:
+                errors.append("Elaboration failed: " + (elaboration_result.error or "Unknown error"))
+                confidence_score = 0.0
 
         return LeanAideVerificationResult(
             success=success and confidence_score >= self.config.confidence_threshold,
@@ -477,9 +603,12 @@ class LeanAideWorkflowIntegrator:
             errors=errors,
             warnings=warnings,
             metadata={
-                "translation_success": translation_result.success,
-                "elaboration_success": elaboration_result.success,
-                "unsolved_goals": elaboration_result.data.get("unsolved_goals", []) if elaboration_result.data else []
+                "translation_success": translation_result.success if translation_result else False,
+                "elaboration_success": success,
+                "unsolved_goals": unsolved_goals,
+                "elaboration_backend": elaboration_backend,
+                "subprocess_stdout": subprocess_stdout[:1000] if subprocess_stdout else "",
+                "subprocess_stderr": subprocess_stderr[:1000] if subprocess_stderr else ""
             }
         )
 
@@ -496,8 +625,8 @@ class LeanAideWorkflowIntegrator:
         Returns:
             Dictionary mapping sub-problem IDs to verification results
         """
-        if not self.client:
-            logger.warning("LeanAide client not initialized")
+        if not self.client and not self._lean_subprocess_available:
+            logger.warning("LeanAide client not initialized and Lean subprocess unavailable")
             return {}
 
         verification_tasks = []
@@ -579,7 +708,9 @@ async def verify_with_leanaide(
 
 def is_leanaide_configured() -> bool:
     """Check if LeanAide is available and configured."""
-    return LEANAIDE_AVAILABLE
+    if LEANAIDE_AVAILABLE:
+        return True
+    return bool(shutil.which("lean") or shutil.which("lake"))
 
 
 def create_standard_leanaide_config(

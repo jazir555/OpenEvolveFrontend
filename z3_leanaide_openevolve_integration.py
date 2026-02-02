@@ -36,6 +36,7 @@ Created: 2026-01-31
 import asyncio
 import json
 import logging
+import os
 import threading
 import time
 import uuid
@@ -749,73 +750,243 @@ class Z3LeanAideOpenEvolveIntegration:
         text: str
     ) -> Tuple[List[Z3Variable], List[Z3Constraint]]:
         """Extract Z3 constraints from natural language text."""
-        # This is a simplified implementation
-        # In practice, this would use more sophisticated NLP
-        
-        variables = []
-        constraints = []
-        
-        # Look for variable declarations
-        var_pattern = r'(\w+)\s*(?:is|be)\s*(?:an?\s+)?(integer|real|boolean)'
-        for match in re.finditer(var_pattern, text, re.IGNORECASE):
-            var_name = match.group(1)
-            var_type_str = match.group(2).lower()
-            
-            type_map = {
-                'integer': Z3ConstraintType.INTEGER,
-                'real': Z3ConstraintType.REAL,
-                'boolean': Z3ConstraintType.BOOLEAN
-            }
-            
+        variables: List[Z3Variable] = []
+        constraints: List[Z3Constraint] = []
+
+        if not text or not text.strip():
+            return variables, constraints
+
+        try:
+            import workflow_engine
+            from llm_utils import _compose_messages
+        except Exception as exc:
+            logger.warning("Constraint extraction unavailable (LLM import failure): %s", exc)
+            return variables, constraints
+
+        api_key = (
+            os.getenv("OPENAI_API_KEY")
+            or os.getenv("OPENAI_KEY")
+            or os.getenv("OPENAI_API_TOKEN")
+        )
+        if not api_key:
+            logger.warning("Constraint extraction skipped: OPENAI_API_KEY not set")
+            return variables, constraints
+
+        base_url = (
+            os.getenv("OPENAI_API_BASE")
+            or os.getenv("OPENAI_BASE_URL")
+            or "https://api.openai.com/v1"
+        )
+        model = (
+            os.getenv("OPENAI_MODEL")
+            or os.getenv("OPENAI_MODEL_ID")
+            or "gpt-4o-mini"
+        )
+
+        system_prompt = (
+            "You extract SMT constraints from natural language. "
+            "Return ONLY a JSON object that matches the required schema."
+        )
+        user_prompt = (
+            "Extract variables and constraints from the text below.\n\n"
+            "Return JSON with this exact schema:\n"
+            "{\n"
+            "  \"variables\": [\n"
+            "    {\"name\": \"x\", \"type\": \"integer|real|boolean\", "
+            "\"bounds\": [\"min_or_null\", \"max_or_null\"], \"bit_width\": 32}\n"
+            "  ],\n"
+            "  \"constraints\": [\"SMT-LIB boolean expressions without (assert)\"]\n"
+            "}\n\n"
+            "Rules:\n"
+            "- Use lowercase type strings: integer, real, boolean.\n"
+            "- If bounds are unknown, use nulls.\n"
+            "- Constraints must be SMT-LIB boolean expressions (no (assert)).\n"
+            "- If nothing is found, return empty arrays.\n\n"
+            f"Text:\n{text}"
+        )
+
+        messages = _compose_messages(system_prompt, user_prompt)
+        try:
+            response = workflow_engine._request_openai_compatible_chat(
+                api_key=api_key,
+                base_url=base_url,
+                model=model,
+                messages=messages,
+                temperature=0.0,
+                top_p=1.0,
+                max_tokens=800,
+                response_format={"type": "json_object"}
+            )
+        except Exception as exc:
+            logger.warning("Constraint extraction failed: %s", exc)
+            return variables, constraints
+
+        if not response:
+            return variables, constraints
+
+        raw = response.strip()
+        if raw.startswith("```"):
+            parts = raw.split("```")
+            if len(parts) >= 2:
+                raw = parts[1].strip()
+            if raw.startswith("json"):
+                raw = raw[4:].strip()
+
+        start = raw.find("{")
+        end = raw.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            raw = raw[start:end + 1]
+
+        try:
+            parsed = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            logger.warning("Constraint extraction JSON parse failed: %s", exc)
+            return variables, constraints
+
+        if not isinstance(parsed, dict):
+            return variables, constraints
+
+        type_map = {
+            "integer": Z3ConstraintType.INTEGER,
+            "int": Z3ConstraintType.INTEGER,
+            "real": Z3ConstraintType.REAL,
+            "float": Z3ConstraintType.REAL,
+            "boolean": Z3ConstraintType.BOOLEAN,
+            "bool": Z3ConstraintType.BOOLEAN
+        }
+
+        seen_names = set()
+        for entry in parsed.get("variables") or []:
+            if not isinstance(entry, dict):
+                continue
+            name = str(entry.get("name", "")).strip()
+            if not name or name in seen_names:
+                continue
+            var_type_str = str(entry.get("type", "integer")).strip().lower()
+            var_type = type_map.get(var_type_str, Z3ConstraintType.INTEGER)
+            bounds = entry.get("bounds")
+            bit_width = entry.get("bit_width")
+            if isinstance(bounds, list) and len(bounds) == 2:
+                min_val = None if bounds[0] in (None, "null") else bounds[0]
+                max_val = None if bounds[1] in (None, "null") else bounds[1]
+                bounds_tuple = (min_val, max_val)
+            else:
+                bounds_tuple = None
+            if isinstance(bit_width, (int, float)):
+                bit_width = int(bit_width)
+            else:
+                bit_width = None
+
             variables.append(Z3Variable(
-                name=var_name,
-                var_type=type_map.get(var_type_str, Z3ConstraintType.INTEGER)
+                name=name,
+                var_type=var_type,
+                bounds=bounds_tuple,
+                bit_width=bit_width
             ))
-        
-        # If no variables found, create default ones
-        if not variables:
-            # Look for x, y, z patterns
-            for var_match in re.finditer(r'\b([xyz])\b', text):
-                var_name = var_match.group(1)
-                if not any(v.name == var_name for v in variables):
-                    variables.append(Z3Variable(
-                        name=var_name,
-                        var_type=Z3ConstraintType.INTEGER
-                    ))
-        
+            seen_names.add(name)
+
+        for constraint in parsed.get("constraints") or []:
+            if not isinstance(constraint, str):
+                continue
+            text_constraint = constraint.strip()
+            if not text_constraint:
+                continue
+            constraints.append(Z3Constraint(
+                expression=text_constraint,
+                constraint_type=Z3ConstraintType.BOOLEAN
+            ))
+
         return variables, constraints
 
     @staticmethod
     def _merge_smtlib_constraints(smtlib: str, constraints: List[str]) -> str:
-        """Inject constraints into SMT-LIB text as assert statements."""
+        """Inject constraints into SMT-LIB text using Z3 parsing."""
         if not constraints:
             return smtlib
 
         smtlib = smtlib or ""
-        assert_lines = []
+        cleaned = []
         for constraint in constraints:
             if constraint is None:
                 continue
             text = str(constraint).strip()
-            if not text:
-                continue
-            if text.startswith("(assert"):
-                assert_lines.append(text)
-            else:
-                assert_lines.append(f"(assert {text})")
-
-        if not assert_lines:
+            if text:
+                cleaned.append(text)
+        if not cleaned:
             return smtlib
 
-        insertion = "\n".join(assert_lines) + "\n"
-        lower = smtlib.lower()
-        idx = lower.rfind("(check-sat")
-        if idx != -1:
-            return smtlib[:idx] + insertion + smtlib[idx:]
+        def _fallback_merge() -> str:
+            assert_lines = []
+            for text in cleaned:
+                if text.startswith("(assert"):
+                    assert_lines.append(text)
+                else:
+                    assert_lines.append(f"(assert {text})")
+            if not assert_lines:
+                return smtlib
+            insertion = "\n".join(assert_lines) + "\n"
+            lower = smtlib.lower()
+            idx = lower.rfind("(check-sat")
+            if idx != -1:
+                return smtlib[:idx] + insertion + smtlib[idx:]
+            if smtlib and not smtlib.endswith("\n"):
+                return smtlib + "\n" + insertion
+            return smtlib + insertion
 
-        if smtlib and not smtlib.endswith("\n"):
-            smtlib += "\n"
-        return smtlib + insertion
+        try:
+            from z3 import Solver, parse_smt2_string, Z3Exception
+            from z3.z3util import get_vars
+        except Exception as exc:
+            logger.warning("Z3 not available for SMT merge: %s", exc)
+            return _fallback_merge()
+
+        try:
+            solver = Solver()
+            if smtlib.strip():
+                solver.from_string(smtlib)
+
+            decls: Dict[str, Any] = {}
+            try:
+                for assertion in solver.assertions():
+                    for var in get_vars(assertion):
+                        decls.setdefault(var.decl().name(), var)
+            except Exception:
+                decls = {}
+
+            for text in cleaned:
+                if "(declare" in text or "(define" in text or "(set-logic" in text:
+                    solver.from_string(text)
+                    continue
+
+                candidate = text
+                if not candidate.startswith("(assert"):
+                    candidate = f"(assert {candidate})"
+
+                try:
+                    parsed = parse_smt2_string(candidate, decls=decls)
+                    if parsed:
+                        solver.add(*parsed)
+                        for expr in parsed:
+                            for var in get_vars(expr):
+                                decls.setdefault(var.decl().name(), var)
+                except Z3Exception:
+                    try:
+                        parsed = parse_smt2_string(text, decls=decls)
+                        if parsed:
+                            solver.add(*parsed)
+                            for expr in parsed:
+                                for var in get_vars(expr):
+                                    decls.setdefault(var.decl().name(), var)
+                        else:
+                            solver.from_string(text)
+                    except Z3Exception as exc:
+                        logger.warning("SMT merge failed for constraint '%s': %s", text, exc)
+                        return _fallback_merge()
+
+            return solver.to_smt2()
+        except Exception as exc:
+            logger.warning("Failed to merge SMT-LIB via Z3: %s", exc)
+            return _fallback_merge()
 
     @staticmethod
     def _resolve_entangled_constraints(entanglement_context: Optional[Dict[str, Any]]) -> List[str]:

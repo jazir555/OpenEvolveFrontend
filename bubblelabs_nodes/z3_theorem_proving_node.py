@@ -131,35 +131,93 @@ class Z3TheoremProvingNode(BubbleLabsNode):
 
     @staticmethod
     def _merge_smtlib_constraints(smtlib: str, constraints: List[str]) -> str:
-        """Inject constraints into SMT-LIB text as assert statements."""
+        """Inject constraints into SMT-LIB text using Z3 parsing."""
         if not constraints:
             return smtlib
 
         smtlib = smtlib or ""
-        assert_lines = []
+        cleaned = []
         for constraint in constraints:
             if constraint is None:
                 continue
             text = str(constraint).strip()
-            if not text:
-                continue
-            if text.startswith("(assert"):
-                assert_lines.append(text)
-            else:
-                assert_lines.append(f"(assert {text})")
-
-        if not assert_lines:
+            if text:
+                cleaned.append(text)
+        if not cleaned:
             return smtlib
 
-        insertion = "\n".join(assert_lines) + "\n"
-        lower = smtlib.lower()
-        idx = lower.rfind("(check-sat")
-        if idx != -1:
-            return smtlib[:idx] + insertion + smtlib[idx:]
+        def _fallback_merge() -> str:
+            assert_lines = []
+            for text in cleaned:
+                if text.startswith("(assert"):
+                    assert_lines.append(text)
+                else:
+                    assert_lines.append(f"(assert {text})")
+            if not assert_lines:
+                return smtlib
+            insertion = "\n".join(assert_lines) + "\n"
+            lower = smtlib.lower()
+            idx = lower.rfind("(check-sat")
+            if idx != -1:
+                return smtlib[:idx] + insertion + smtlib[idx:]
+            if smtlib and not smtlib.endswith("\n"):
+                return smtlib + "\n" + insertion
+            return smtlib + insertion
 
-        if smtlib and not smtlib.endswith("\n"):
-            smtlib += "\n"
-        return smtlib + insertion
+        try:
+            from z3 import Solver, parse_smt2_string, Z3Exception
+            from z3.z3util import get_vars
+        except Exception as exc:
+            logger.warning("Z3 not available for SMT merge: %s", exc)
+            return _fallback_merge()
+
+        try:
+            solver = Solver()
+            if smtlib.strip():
+                solver.from_string(smtlib)
+
+            decls: Dict[str, Any] = {}
+            try:
+                for assertion in solver.assertions():
+                    for var in get_vars(assertion):
+                        decls.setdefault(var.decl().name(), var)
+            except Exception:
+                decls = {}
+
+            for text in cleaned:
+                if "(declare" in text or "(define" in text or "(set-logic" in text:
+                    solver.from_string(text)
+                    continue
+
+                candidate = text
+                if not candidate.startswith("(assert"):
+                    candidate = f"(assert {candidate})"
+
+                try:
+                    parsed = parse_smt2_string(candidate, decls=decls)
+                    if parsed:
+                        solver.add(*parsed)
+                        for expr in parsed:
+                            for var in get_vars(expr):
+                                decls.setdefault(var.decl().name(), var)
+                except Z3Exception:
+                    try:
+                        parsed = parse_smt2_string(text, decls=decls)
+                        if parsed:
+                            solver.add(*parsed)
+                            for expr in parsed:
+                                for var in get_vars(expr):
+                                    decls.setdefault(var.decl().name(), var)
+                        else:
+                            solver.from_string(text)
+                    except Z3Exception as exc:
+                        logger.warning("SMT merge failed for constraint '%s': %s", text, exc)
+                        return _fallback_merge()
+
+            return solver.to_smt2()
+        except Exception as exc:
+            logger.warning("Failed to merge SMT-LIB via Z3: %s", exc)
+            return _fallback_merge()
     
     def validate_inputs(self, inputs: Dict) -> List[str]:
         """Validate node inputs."""
