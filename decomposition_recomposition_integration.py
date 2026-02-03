@@ -52,6 +52,15 @@ from enhanced_recomposition_engine import (
     ConflictSeverity
 )
 
+# Optional ROMA integration
+try:
+    from roma_openevolve_integration import create_roma_adapter, ROMAOpenEvolveConfig
+    ROMA_INTEGRATION_AVAILABLE = True
+except ImportError:
+    ROMA_INTEGRATION_AVAILABLE = False
+    create_roma_adapter = None  # type: ignore
+    ROMAOpenEvolveConfig = None  # type: ignore
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -101,6 +110,11 @@ class PipelineConfig:
 
     # Entanglement
     entanglement_strict_mode: bool = False
+
+    # ROMA integration
+    enable_roma: bool = False
+    use_roma_mdap_maker: bool = False
+    roma_config: Optional[Dict[str, Any]] = None
 
 
 @dataclass
@@ -406,6 +420,22 @@ class DecompositionRecompositionPipeline:
         self.recomposition_engine = recomposition_engine or EnhancedRecompositionEngine()
         self.solution_solver = solution_solver or SimpleSolutionSolver()
         self.config = config or PipelineConfig()
+
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+        # Optional ROMA adapter
+        self.roma_adapter = None
+        if self.config.enable_roma:
+            if ROMA_INTEGRATION_AVAILABLE and create_roma_adapter is not None:
+                roma_kwargs = dict(self.config.roma_config or {})
+                self.roma_adapter = create_roma_adapter(
+                    enable_roma=True,
+                    use_mdap_maker=self.config.use_roma_mdap_maker,
+                    **roma_kwargs,
+                )
+                self.logger.info("ROMA adapter initialized for decomposition pipeline")
+            else:
+                self.logger.warning("ROMA integration requested but not available")
         
         # Analytics
         self.analytics = PipelineAnalytics()
@@ -413,7 +443,6 @@ class DecompositionRecompositionPipeline:
         # History
         self.execution_history: List[PipelineResult] = []
         
-        self.logger = logging.getLogger(self.__class__.__name__)
         self.logger.info("DecompositionRecompositionPipeline initialized")
     
     def execute(
@@ -562,7 +591,19 @@ class DecompositionRecompositionPipeline:
     ) -> DecompositionPlan:
         """Execute decomposition stage."""
         self.logger.info("Executing decomposition")
-        
+
+        if self.roma_adapter and self.roma_adapter.is_decomposition_available():
+            roma_result = self.roma_adapter.setup_and_decompose_problem(
+                problem_statement=problem.description,
+                problem_type=problem.metadata.get("problem_type") if isinstance(problem.metadata, dict) else None,
+                domain=problem.domain.value if hasattr(problem.domain, "value") else str(problem.domain),
+            )
+            roma_plan = roma_result.get("openevolve_plan")
+            if isinstance(roma_plan, DecompositionPlan):
+                roma_plan.original_problem = problem
+                roma_plan.metadata.setdefault("roma_result", roma_result)
+                return roma_plan
+
         plan = self.decomposition_engine.decompose(
             problem=problem,
             strategy=self.config.decomposition_strategy,
@@ -570,7 +611,7 @@ class DecompositionRecompositionPipeline:
             max_subproblems=self.config.max_subproblems,
             max_depth=self.config.max_depth
         )
-        
+
         return plan
     
     def _generate_solutions(

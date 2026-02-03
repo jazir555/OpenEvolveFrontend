@@ -168,7 +168,7 @@ class OrchestratorConfig:
             ComponentType.KARATE_CLUB: ComponentConfig(enabled=True, required=False),
             ComponentType.PAMI: ComponentConfig(enabled=True, required=False),
             ComponentType.NEURALKG: ComponentConfig(enabled=True, required=False),
-            ComponentType.CAUSAL_LEARN: ComponentConfig(enabled=False, required=False),  # Disabled by default
+            ComponentType.CAUSAL_LEARN: ComponentConfig(enabled=True, required=False),  # Enabled for causal discovery
             ComponentType.LAGRANGE_MAPPER: ComponentConfig(enabled=True, required=False),
             ComponentType.GLOBAL_CHEM: ComponentConfig(enabled=True, required=False),
             ComponentType.NEUROMANCER: ComponentConfig(enabled=False, required=False),  # Disabled by default
@@ -212,6 +212,13 @@ class OrchestratorConfig:
                 enabled=True,
                 depends_on=["generate_embeddings"],
                 condition="len(get(context, 'embeddings', [])) > 10"
+            ),
+            PipelineStage(
+                name="discover_causal_structure",
+                component=ComponentType.CAUSAL_LEARN,
+                enabled=True,
+                depends_on=["build_graph"],
+                condition="len(get(context, 'graph_nodes', [])) > 2"
             ),
         ]
     

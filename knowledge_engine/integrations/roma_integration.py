@@ -108,9 +108,14 @@ class ROMAIntegration:
         Initialize the ROMA integration.
 
         Args:
-            config: Configuration for ROMA components
+            config: Configuration for ROMA components (merged with defaults)
         """
-        self.config = config or self._get_default_config()
+        # Deep merge config with defaults
+        default_config = self._get_default_config()
+        if config:
+            self.config = self._deep_merge_config(default_config, config)
+        else:
+            self.config = default_config
 
         # Initialize ROMA components
         self.decomposer = None
@@ -141,6 +146,25 @@ class ROMAIntegration:
             "config": self.config,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
+
+    def _deep_merge_config(self, base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Deep merge override config into base config.
+
+        Args:
+            base: Base configuration dictionary
+            override: Override configuration dictionary
+
+        Returns:
+            Merged configuration dictionary
+        """
+        result = base.copy()
+        for key, value in override.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = self._deep_merge_config(result[key], value)
+            else:
+                result[key] = value
+        return result
 
     def _get_default_config(self) -> Dict[str, Any]:
         """Get default configuration for ROMA integration."""
@@ -209,75 +233,90 @@ class ROMAIntegration:
         """
         Initialize ROMA components based on configuration.
 
-        NOTE: This follows the Air Gap principle - we do not import directly
-        from core-projects/ROMA/. Instead, we'll use adapter calls in production.
+        Tries to use ROMA core if available, falls back to mock mode for graceful degradation.
 
         Components are initialized with graceful degradation if ROMA is unavailable.
         """
         try:
-            # TODO: Replace with adapter calls when ROMA adapter is implemented
-            # Example: from glue.adapters.roma import ROMAAdapter
-            # self.roma_adapter = ROMAAdapter(self.config)
+            # Try to import ROMA core directly
+            # Add ROMA to path if needed
+            import sys
+            from pathlib import Path
+            roma_path = Path(__file__).parent.parent.parent / 'core-projects' / 'ROMA' / 'src'
+            if str(roma_path) not in sys.path:
+                sys.path.insert(0, str(roma_path))
 
-            # For now, initialize mock components that will fail gracefully
+            # Try importing ROMA core components
+            from roma_dspy import Atomizer, Planner, Executor, Aggregator, Verifier
+            from roma_dspy.core.engine.solve import RecursiveSolver
+
+            # Success! ROMA core is available
+            self.decomposer = Atomizer
+            self.solver = Executor
+            self.verifier = Verifier
+            self.reassembler = Aggregator
+            self._recursive_solver = RecursiveSolver
+            self._roma_available = True
+
+            logger.info({
+                "msg": "ROMA core components initialized successfully",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+
+        except Exception as e:
+            # ROMA core not available, use mock implementation
             logger.warning({
-                "msg": "ROMA not available - integration will use mock implementation",
-                "install": "ROMA core system should be accessed via adapter",
+                "msg": f"ROMA core not available ({e}), using mock implementation",
+                "install": "ROMA core system should be accessible or use adapter",
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
 
             # Create failing mock implementations for production safety
-            from ..optional_imports import create_failing_mock
+            try:
+                from ..optional_imports import create_failing_mock
 
-            MockDecomposer = create_failing_mock(
-                package_name='ROMA',
-                feature_name='ROMA decomposer - hierarchical problem decomposition',
-                install_command='Access ROMA via adapter layer (glue/adapters/roma/)'
-            )
+                MockDecomposer = create_failing_mock(
+                    package_name='ROMA',
+                    feature_name='ROMA decomposer - hierarchical problem decomposition',
+                    install_command='Ensure ROMA core is accessible'
+                )
 
-            MockSolver = create_failing_mock(
-                package_name='ROMA',
-                feature_name='ROMA solver - atomic problem solving',
-                install_command='Access ROMA via adapter layer (glue/adapters/roma/)'
-            )
+                MockSolver = create_failing_mock(
+                    package_name='ROMA',
+                    feature_name='ROMA solver - atomic problem solving',
+                    install_command='Ensure ROMA core is accessible'
+                )
 
-            MockVerifier = create_failing_mock(
-                package_name='ROMA',
-                feature_name='ROMA verifier - solution validation',
-                install_command='Access ROMA via adapter layer (glue/adapters/roma/)'
-            )
+                MockVerifier = create_failing_mock(
+                    package_name='ROMA',
+                    feature_name='ROMA verifier - solution validation',
+                    install_command='Ensure ROMA core is accessible'
+                )
 
-            MockReassembler = create_failing_mock(
-                package_name='ROMA',
-                feature_name='ROMA reassembler - solution synthesis',
-                install_command='Access ROMA via adapter layer (glue/adapters/roma/)'
-            )
+                MockReassembler = create_failing_mock(
+                    package_name='ROMA',
+                    feature_name='ROMA reassembler - solution synthesis',
+                    install_command='Ensure ROMA core is accessible'
+                )
+
+                self._mock_decomposer_class = MockDecomposer
+                self._mock_solver_class = MockSolver
+                self._mock_verifier_class = MockVerifier
+                self._mock_reassembler_class = MockReassembler
+            except Exception:
+                pass
 
             # Store mock classes for later use
             self.decomposer = None
             self.solver = None
             self.verifier = None
             self.reassembler = None
-            self._mock_decomposer_class = MockDecomposer
-            self._mock_solver_class = MockSolver
-            self._mock_verifier_class = MockVerifier
-            self._mock_reassembler_class = MockReassembler
+            self._roma_available = False
 
             logger.info({
                 "msg": "ROMA components initialized in mock mode",
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
-
-        except Exception as e:
-            logger.warning({
-                "msg": f"Failed to initialize ROMA components: {e}, using mock implementation",
-                "timestamp": datetime.now(timezone.utc).isoformat()
-            })
-            # Initialize with mock components
-            self.decomposer = None
-            self.solver = None
-            self.verifier = None
-            self.reassembler = None
 
     async def decompose_problem(
         self,

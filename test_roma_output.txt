@@ -1,0 +1,31 @@
+[32m2026-02-03 15:35:20.694[0m | [1mINFO    [0m | [36mroma_dspy.core.predictors.code_act_patch[0m:[36mapply_code_act_patch[0m:[36m96[0m - [1mApplied CodeAct patch to inject typing imports into interpreter[0m
+2026-02-03 15:35:20,724 - knowledge_engine.integrations.z3_knowledge_integration - WARNING - Knowledge engine storage not available
+2026-02-03 15:35:20,742 - z3prover_integration - INFO - Z3 Python bindings available
+2026-02-03 15:35:20,744 - z3prover_integration - WARNING - Z3 binary not detected - some features may be unavailable
+2026-02-03 15:35:20,747 - dspy_integration - INFO - DSPy successfully imported - enhanced programmatic prompting available
+2026-02-03 15:35:20,750 - z3prover_integration - INFO - DSPy available through global integration for enhanced programmatic prompting
+2026-02-03 15:35:21,896 - knowledge_engine.integrations.z3_api - ERROR - Z3 knowledge integration not available
+2026-02-03 15:35:21,905 - leanaide_mcp_tools - INFO - Registered LeanAide MCP tool: leanaide_translate_theorem
+2026-02-03 15:35:21,905 - leanaide_mcp_tools - INFO - Registered LeanAide MCP tool: leanaide_translate_definition
+2026-02-03 15:35:21,905 - leanaide_mcp_tools - INFO - Registered LeanAide MCP tool: leanaide_generate_proof
+2026-02-03 15:35:21,905 - leanaide_mcp_tools - INFO - Registered LeanAide MCP tool: leanaide_verify_solution
+2026-02-03 15:35:21,905 - leanaide_mcp_tools - INFO - Registered LeanAide MCP tool: leanaide_math_query
+2026-02-03 15:35:21,905 - leanaide_mcp_tools - INFO - Registered LeanAide MCP tool: leanaide_generate_documentation
+2026-02-03 15:35:21,906 - leanaide_mcp_tools - INFO - Registered LeanAide MCP tool: leanaide_elaborate_code
+2026-02-03 15:35:21,906 - leanaide_mcp_tools - INFO - Registered LeanAide MCP tool: get_leanaide_status
+2026-02-03 15:35:21,906 - leanaide_mcp_tools - INFO - Initializing LeanAide MCP tools...
+2026-02-03 15:35:21,906 - leanaide_mcp_tools - INFO - Registered 8 LeanAide MCP tools
+2026-02-03 15:35:21,906 - leanaide_mcp_tools - INFO -   - leanaide_translate_theorem
+2026-02-03 15:35:21,906 - leanaide_mcp_tools - INFO -   - leanaide_translate_definition
+2026-02-03 15:35:21,906 - leanaide_mcp_tools - INFO -   - leanaide_generate_proof
+2026-02-03 15:35:21,906 - leanaide_mcp_tools - INFO -   - leanaide_verify_solution
+2026-02-03 15:35:21,906 - leanaide_mcp_tools - INFO -   - leanaide_math_query
+2026-02-03 15:35:21,906 - leanaide_mcp_tools - INFO -   - leanaide_generate_documentation
+2026-02-03 15:35:21,906 - leanaide_mcp_tools - INFO -   - leanaide_elaborate_code
+2026-02-03 15:35:21,906 - leanaide_mcp_tools - INFO -   - get_leanaide_status
+2026-02-03 15:35:21,907 - z3_leanaide_bridge - INFO - DSPy available through global integration for enhanced Z3-LeanAIDE bridging
+Testing ROMA availability with path setup...
+
+[OK] Direct ROMA import works
+[OK] ROMA_INTEGRATION_AVAILABLE: False
+[FAIL] ROMA still not available through integration

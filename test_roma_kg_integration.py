@@ -52,9 +52,9 @@ async def test_knowledge_integration():
 
     print("\n1. Testing configuration...")
     kg_config = roma.config.get("knowledge_integration", {})
-    print(f"   ✓ Knowledge integration enabled: {kg_config.get('enabled', False)}")
-    print(f"   ✓ Auto-extract entities: {kg_config.get('auto_extract_entities', False)}")
-    print(f"   ✓ Auto-store solutions: {kg_config.get('auto_store_solutions', False)}")
+    print(f"   [OK] Knowledge integration enabled: {kg_config.get('enabled', False)}")
+    print(f"   [OK] Auto-extract entities: {kg_config.get('auto_extract_entities', False)}")
+    print(f"   [OK] Auto-store solutions: {kg_config.get('auto_store_solutions', False)}")
 
     print("\n2. Testing decompose_problem with entity extraction...")
     result = await roma.decompose_problem(
@@ -63,27 +63,27 @@ async def test_knowledge_integration():
         extract_entities=True
     )
 
-    print(f"   ✓ Decomposition success: {result.success}")
-    print(f"   ✓ Sub-problem count: {result.metadata.get('sub_problem_count', 0)}")
-    print(f"   ✓ Entities extracted: {result.metadata.get('entities_extracted', 0)}")
+    print(f"   [OK] Decomposition success: {result.success}")
+    print(f"   [OK] Sub-problem count: {result.metadata.get('sub_problem_count', 0)}")
+    print(f"   [OK] Entities extracted: {result.metadata.get('entities_extracted', 0)}")
 
     if result.metadata.get("entities"):
         entities = result.metadata["entities"]
-        print(f"   ✓ Sample entity types: {[e['type'] for e in entities[:3]]}")
+        print(f"   [OK] Sample entity types: {[e['type'] for e in entities[:3]]}")
 
     print("\n3. Testing extract_knowledge_entities method...")
     if result.success:
         entities = await roma.extract_knowledge_entities(result)
-        print(f"   ✓ Extracted {len(entities)} entities")
+        print(f"   [OK] Extracted {len(entities)} entities")
         if entities:
-            print(f"   ✓ Sample entity: {entities[0]['type']} - {entities[0]['name'][:50]}...")
+            print(f"   [OK] Sample entity: {entities[0]['type']} - {entities[0]['name'][:50]}...")
 
     print("\n4. Testing solve_atomic...")
     if result.decomposition and result.decomposition.sub_problems:
         atomic = result.decomposition.sub_problems[0]
         solve_result = await roma.solve_atomic(atomic)
-        print(f"   ✓ Solve success: {solve_result.success}")
-        print(f"   ✓ Solution confidence: {solve_result.metadata.get('confidence', 0.0):.2f}")
+        print(f"   [OK] Solve success: {solve_result.success}")
+        print(f"   [OK] Solution confidence: {solve_result.metadata.get('confidence', 0.0):.2f}")
 
     print("\n5. Testing reassemble_solution with knowledge storage...")
     # Create mock solutions
@@ -111,34 +111,34 @@ async def test_knowledge_integration():
         store_as_knowledge=True
     )
 
-    print(f"   ✓ Reassembly success: {reassemble_result.success}")
-    print(f"   ✓ Aggregate confidence: {reassemble_result.metadata.get('aggregate_confidence', 0.0):.2f}")
-    print(f"   ✓ Artifact ID: {reassemble_result.metadata.get('knowledge_artifact_id', 'None')}")
+    print(f"   [OK] Reassembly success: {reassemble_result.success}")
+    print(f"   [OK] Aggregate confidence: {reassemble_result.metadata.get('aggregate_confidence', 0.0):.2f}")
+    print(f"   [OK] Artifact ID: {reassemble_result.metadata.get('knowledge_artifact_id', 'None')}")
 
     print("\n6. Testing store_solution_as_knowledge method...")
     if reassemble_result.success:
         artifact_id = await roma.store_solution_as_knowledge(reassemble_result)
-        print(f"   ✓ Stored artifact: {artifact_id}")
+        print(f"   [OK] Stored artifact: {artifact_id}")
 
     print("\n7. Testing statistics...")
     stats = roma.get_statistics()
-    print(f"   ✓ Decompositions performed: {stats['decompositions_performed']}")
-    print(f"   ✓ Problems solved: {stats['problems_solved']}")
-    print(f"   ✓ Reassemblies performed: {stats['reassemblies_performed']}")
-    print(f"   ✓ Entities extracted: {stats['entities_extracted']}")
-    print(f"   ✓ Solutions stored: {stats['solutions_stored']}")
-    print(f"   ✓ Knowledge integration info:")
+    print(f"   [OK] Decompositions performed: {stats['decompositions_performed']}")
+    print(f"   [OK] Problems solved: {stats['problems_solved']}")
+    print(f"   [OK] Reassemblies performed: {stats['reassemblies_performed']}")
+    print(f"   [OK] Entities extracted: {stats['entities_extracted']}")
+    print(f"   [OK] Solutions stored: {stats['solutions_stored']}")
+    print(f"   [OK] Knowledge integration info:")
     print(f"      - Enabled: {stats['knowledge_integration']['enabled']}")
     print(f"      - Cached artifacts: {stats['knowledge_integration']['cached_artifacts']}")
 
     print("\n8. Testing health check...")
     health = roma.health_check()
-    print(f"   ✓ Health status: {health['status']}")
-    print(f"   ✓ Components available: {sum(1 for v in health['components'].values() if v == 'available')}")
+    print(f"   [OK] Health status: {health['status']}")
+    print(f"   [OK] Components available: {sum(1 for v in health['components'].values() if v == 'available')}")
 
     print("\n9. Cleanup...")
     await roma.close()
-    print("   ✓ ROMA integration closed")
+    print("   [OK] ROMA integration closed")
 
     print("\n" + "=" * 80)
     print("All tests completed successfully!")
@@ -163,8 +163,8 @@ async def test_backward_compatibility():
         max_depth=1
     )
 
-    print(f"   ✓ Decomposition success: {result.success}")
-    print(f"   ✓ Entities extracted: {result.metadata.get('entities_extracted', 0)}")
+    print(f"   [OK] Decomposition success: {result.success}")
+    print(f"   [OK] Entities extracted: {result.metadata.get('entities_extracted', 0)}")
 
     print("\n2. Testing reassemble_solution (no knowledge storage)...")
     solutions = [
@@ -179,8 +179,8 @@ async def test_backward_compatibility():
     ]
 
     reassemble_result = await roma.reassemble_solution(solutions)
-    print(f"   ✓ Reassembly success: {reassemble_result.success}")
-    print(f"   ✓ Knowledge artifact: {reassemble_result.metadata.get('knowledge_artifact_id', 'None')}")
+    print(f"   [OK] Reassembly success: {reassemble_result.success}")
+    print(f"   [OK] Knowledge artifact: {reassemble_result.metadata.get('knowledge_artifact_id', 'None')}")
 
     print("\n" + "=" * 80)
     print("Backward compatibility maintained!")
@@ -196,10 +196,10 @@ if __name__ == "__main__":
         asyncio.run(test_knowledge_integration())
         asyncio.run(test_backward_compatibility())
 
-        print("\n✓ All tests passed!")
+        print("\n[OK] All tests passed!")
 
     except Exception as e:
-        print(f"\n✗ Test failed: {e}")
+        print(f"\n[FAIL] Test failed: {e}")
         import traceback
         traceback.print_exc()
         sys.exit(1)

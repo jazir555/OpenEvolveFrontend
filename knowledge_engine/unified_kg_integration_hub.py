@@ -441,8 +441,12 @@ class IntegrationRegistry:
         return GraphitiIntegration()
     
     async def _init_causal_learn(self):
-        from .integrations.causal_learn_integration import CausalLearnIntegration
-        return CausalLearnIntegration()
+        try:
+            from .integrations.causal_learn_integration import CausalLearnIntegration
+            return CausalLearnIntegration()
+        except ImportError:
+            logger.warning("Causal-learn integration not available")
+            return None
     
     async def _init_openevolve(self):
         from .integrations.openevolve_integration import OpenEvolveIntegration

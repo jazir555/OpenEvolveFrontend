@@ -1599,6 +1599,7 @@ async def solution_reuse_workflow():
         doc_id = await integration.index_solution(result)
         print(f"Indexed new solution: {doc_id}")
 ```
+"""
 
 
 # =============================================================================

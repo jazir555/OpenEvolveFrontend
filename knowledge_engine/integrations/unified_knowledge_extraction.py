@@ -216,7 +216,7 @@ class UnifiedKnowledgeExtractor:
             ExtractionResult with analysis results
         """
         config = config or {}
-        analysis_types = analysis_types or ['community', 'embeddings', 'patterns']
+        analysis_types = analysis_types or ['community', 'embeddings', 'patterns', 'causal']
         
         results = {
             'graph_summary': self._summarize_graph(graph_data),
@@ -272,6 +272,42 @@ class UnifiedKnowledgeExtractor:
                 results['analyses']['topology'] = result
             except Exception as e:
                 errors.append(f'Topological analysis failed: {e}')
+        
+        # Causal Discovery Analysis (Causal-Learn)
+        if 'causal' in analysis_types and 'causal_learn' in self.modules:
+            try:
+                causal_engine = self.modules['causal_learn']
+                # Convert graph edges to adjacency matrix representation for causal analysis
+                nodes = graph_data.get('nodes', [])
+                edges = graph_data.get('edges', [])
+                
+                if len(nodes) > 2 and len(edges) > 1:
+                    # Generate synthetic data from graph structure for causal discovery
+                    n_nodes = len(nodes)
+                    node_names = [n.get('name', n.get('id', f'X{i}')) for i, n in enumerate(nodes)]
+                    
+                    # Create adjacency matrix from graph structure
+                    adj_matrix = np.zeros((n_nodes, n_nodes))
+                    for edge in edges:
+                        source_idx = next((i for i, n in enumerate(nodes) 
+                                         if n.get('id') == edge.get('source') or n.get('name') == edge.get('source')), None)
+                        target_idx = next((i for i, n in enumerate(nodes) 
+                                         if n.get('id') == edge.get('target') or n.get('name') == edge.get('target')), None)
+                        if source_idx is not None and target_idx is not None:
+                            adj_matrix[source_idx, target_idx] = 1
+                    
+                    # Run causal structure analysis on the graph structure
+                    causal_result = causal_engine.analyze_causal_graph({
+                        'nodes': node_names,
+                        'edges': edges,
+                        'adjacency_matrix': adj_matrix
+                    })
+                    
+                    results['analyses']['causal_discovery'] = causal_result
+                else:
+                    results['analyses']['causal_discovery'] = {'status': 'skipped', 'reason': 'Insufficient nodes/edges'}
+            except Exception as e:
+                errors.append(f'Causal analysis failed: {e}')
         
         status = 'success' if not errors or results['analyses'] else 'partial'
         

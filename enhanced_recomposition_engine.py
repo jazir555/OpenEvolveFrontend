@@ -576,7 +576,7 @@ class ConflictDetector:
         
         # Contradiction patterns
         contradiction_patterns = [
-            (r'\b(must|should|will|shall)\s+(\w+)', r'\b(must not|should not|will not|shall not)\s+\2'),
+            (r'\b(must|should|will|shall)\s+(\w+)', r'\b(must not|should not|will not|shall not)\s+(\w+)'),
             (r'\benable\b', r'\bdisable\b'),
             (r'\bincrease\b', r'\bdecrease\b'),
             (r'\badd\b', r'\bremove\b'),
@@ -597,20 +597,28 @@ class ConflictDetector:
                 for pattern1, pattern2 in contradiction_patterns:
                     matches1 = set(re.findall(pattern1, content1))
                     matches2 = set(re.findall(pattern2, content2))
-                    
-                    if matches1 and matches2:
-                        conflict = Conflict(
-                            conflict_id=self._generate_id("conf"),
-                            conflict_type=ConflictType.CONTRADICTION,
-                            severity=ConflictSeverity.CRITICAL,
-                            involved_solutions=[id1, id2],
-                            description=f"Contradiction detected: {matches1} vs {matches2}",
-                            suggested_resolution="Review and reconcile conflicting statements",
-                            auto_resolvable=False,
-                            metadata={"entangled_pair": frozenset([id1, id2]) in entangled_pairs}
-                        )
-                        conflicts.append(conflict)
-                        break
+                    if not matches1 or not matches2:
+                        continue
+
+                    # If we captured tuples, match on the action token (second element)
+                    if isinstance(next(iter(matches1)), tuple):
+                        targets1 = {m[1] for m in matches1 if len(m) > 1}
+                        targets2 = {m[1] for m in matches2 if len(m) > 1}
+                        if not (targets1 & targets2):
+                            continue
+
+                    conflict = Conflict(
+                        conflict_id=self._generate_id("conf"),
+                        conflict_type=ConflictType.CONTRADICTION,
+                        severity=ConflictSeverity.CRITICAL,
+                        involved_solutions=[id1, id2],
+                        description=f"Contradiction detected: {matches1} vs {matches2}",
+                        suggested_resolution="Review and reconcile conflicting statements",
+                        auto_resolvable=False,
+                        metadata={"entangled_pair": frozenset([id1, id2]) in entangled_pairs}
+                    )
+                    conflicts.append(conflict)
+                    break
         
         return conflicts
     

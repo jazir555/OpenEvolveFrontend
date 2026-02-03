@@ -22,10 +22,48 @@ Version: 2.0 - Full Decomposition/Recomposition Support
 """
 
 import logging
+from collections import defaultdict, deque
 from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
+
+try:
+    from utils.entanglement_utils import (
+        build_symbolic_entanglement_matrix,
+        normalize_entanglement_matrix,
+        serialize_entanglement_matrix,
+    )
+    ENTANGLEMENT_AVAILABLE = True
+except ImportError:
+    ENTANGLEMENT_AVAILABLE = False
+    build_symbolic_entanglement_matrix = None  # type: ignore
+    normalize_entanglement_matrix = None  # type: ignore
+    serialize_entanglement_matrix = None  # type: ignore
+
+try:
+    from enhanced_decomposition_engine import (
+        ProblemDefinition as EnhancedProblemDefinition,
+        DecompositionPlan as EnhancedDecompositionPlan,
+        SubProblem as EnhancedSubProblem,
+        SubProblemType,
+        ComplexityScore,
+        DecompositionStrategy,
+        ProblemDomain,
+        SuccessCriterion,
+    )
+    ENHANCED_STRUCTURES_AVAILABLE = True
+except ImportError:
+    ENHANCED_STRUCTURES_AVAILABLE = False
+
+try:
+    from enhanced_recomposition_engine import (
+        EnhancedRecompositionEngine,
+        SubProblemSolution as EnhancedSubProblemSolution,
+    )
+    ENHANCED_RECOMPOSITION_AVAILABLE = True
+except ImportError:
+    ENHANCED_RECOMPOSITION_AVAILABLE = False
 
 
 # =============================================================================
@@ -64,6 +102,9 @@ class ROMAOpenEvolveConfig:
 
     # Fallback behavior when ROMA unavailable
     fallback_to_standard: bool = True
+
+    # Entanglement settings
+    entanglement_strict_mode: bool = False
 
     def __post_init__(self):
         """Validate configuration after initialization."""
@@ -194,6 +235,220 @@ class ROMAOpenEvolveAdapter:
             return self._roma_mdap_maker_available
         return self._decomposition_available
 
+    def _normalize_sub_problems(self, payload: Any) -> List[Dict[str, Any]]:
+        """Normalize ROMA decomposition outputs into a list of dict sub-problems."""
+        if payload is None:
+            return []
+        if isinstance(payload, dict):
+            if isinstance(payload.get("sub_problems"), list):
+                return [sp for sp in payload["sub_problems"] if isinstance(sp, dict)]
+            if isinstance(payload.get("components"), list):
+                return [sp for sp in payload["components"] if isinstance(sp, dict)]
+            if "analysis" in payload and isinstance(payload["analysis"], dict):
+                return self._normalize_sub_problems(payload["analysis"])
+            if "decomposition_plan" in payload:
+                return self._normalize_sub_problems(payload["decomposition_plan"])
+        if isinstance(payload, list):
+            return [sp for sp in payload if isinstance(sp, dict)]
+        # ROMA CrewAI objects may expose sub_problems attribute
+        if hasattr(payload, "sub_problems"):
+            try:
+                return [
+                    {
+                        "id": sp.id,
+                        "title": sp.title,
+                        "description": sp.description,
+                        "dependencies": list(sp.dependencies or []),
+                        "complexity_score": getattr(sp, "complexity_score", None),
+                    }
+                    for sp in payload.sub_problems
+                ]
+            except Exception:
+                return []
+        return []
+
+    def _attach_entanglement(self, sub_problems: List[Dict[str, Any]]) -> Dict[str, List[str]]:
+        """Build and attach entanglement metadata to sub-problems."""
+        if not ENTANGLEMENT_AVAILABLE or not sub_problems:
+            return {}
+
+        matrix, symbols_by_id = build_symbolic_entanglement_matrix(
+            sub_problems,
+            enforce_symmetry=True,
+            strict=self.config.entanglement_strict_mode,
+        )
+        serialized = serialize_entanglement_matrix(matrix)
+        for sp in sub_problems:
+            sp_id = sp.get("id")
+            if not sp_id:
+                continue
+            entangled_with = serialized.get(sp_id, [])
+            sp.setdefault("metadata", {})
+            sp["entangled_with"] = entangled_with
+            sp["entanglement_source"] = "symbolic_overlap"
+            if sp_id in symbols_by_id:
+                sp["entanglement_symbols"] = sorted(list(symbols_by_id[sp_id]))
+        return serialized
+
+    @staticmethod
+    def _infer_subproblem_type(title: str, description: str) -> SubProblemType:
+        """Infer sub-problem type from content."""
+        text = f"{title} {description}".lower()
+        if any(k in text for k in ("design", "architecture", "schema", "interface")):
+            return SubProblemType.DESIGN
+        if any(k in text for k in ("test", "qa", "validation", "verify")):
+            return SubProblemType.TESTING
+        if any(k in text for k in ("research", "investigate", "explore", "survey")):
+            return SubProblemType.RESEARCH
+        if any(k in text for k in ("analysis", "analyze", "assessment")):
+            return SubProblemType.ANALYSIS
+        if any(k in text for k in ("document", "docs", "guide", "manual")):
+            return SubProblemType.DOCUMENTATION
+        if any(k in text for k in ("integrate", "integration", "connect")):
+            return SubProblemType.INTEGRATION
+        return SubProblemType.IMPLEMENTATION
+
+    @staticmethod
+    def _normalize_complexity(value: Any) -> float:
+        try:
+            return max(0.0, min(10.0, float(value)))
+        except (TypeError, ValueError):
+            return 5.0
+
+    def to_decomposition_plan(
+        self,
+        problem: "EnhancedProblemDefinition",
+        roma_result: Dict[str, Any],
+    ) -> Optional["EnhancedDecompositionPlan"]:
+        """Convert ROMA decomposition result to Enhanced DecompositionPlan."""
+        if not ENHANCED_STRUCTURES_AVAILABLE:
+            return None
+
+        sub_problems_payload = self._normalize_sub_problems(roma_result)
+        if not sub_problems_payload:
+            return None
+
+        sub_problems: List[EnhancedSubProblem] = []
+        for sp in sub_problems_payload:
+            sp_id = sp.get("id") or f"roma_{len(sub_problems) + 1}"
+            title = sp.get("title") or sp_id
+            description = sp.get("description") or title
+            deps = list(sp.get("dependencies") or [])
+            complexity_raw = sp.get("complexity_score") or sp.get("complexity") or 5.0
+            complexity = self._normalize_complexity(complexity_raw)
+
+            complexity_score = ComplexityScore(
+                cognitive_complexity=complexity,
+                computational_complexity=complexity,
+                domain_complexity=complexity,
+                integration_complexity=min(10.0, complexity + 0.5),
+                coordination_complexity=min(10.0, complexity + 0.5),
+                technical_complexity=complexity,
+                overall_complexity=complexity,
+                explanation="ROMA-derived complexity",
+            )
+
+            sp_type = self._infer_subproblem_type(title, description)
+            metadata = sp.get("metadata", {}) if isinstance(sp.get("metadata"), dict) else {}
+            for key in ("entangled_with", "entanglement_symbols", "entanglement_source"):
+                if key in sp:
+                    metadata[key] = sp.get(key)
+
+            sub_problems.append(
+                EnhancedSubProblem(
+                    id=sp_id,
+                    parent_id=problem.id,
+                    title=title,
+                    description=description,
+                    type=sp_type,
+                    complexity_score=complexity_score,
+                    dependencies=deps,
+                    success_criteria=[
+                        SuccessCriterion(
+                            id=f"roma_sc_{sp_id}",
+                            description=f"Complete {title}",
+                            metric="completion",
+                            threshold=0.9,
+                        )
+                    ],
+                    estimated_effort_hours=max(1.0, complexity * 3),
+                    metadata=metadata,
+                )
+            )
+
+        dependency_graph = {sp.id: list(sp.dependencies) for sp in sub_problems}
+        execution_order = self._calculate_execution_order(sub_problems, dependency_graph)
+        parallel_groups = self._identify_parallel_groups(sub_problems, dependency_graph)
+
+        plan = EnhancedDecompositionPlan(
+            id=f"roma_plan_{problem.id}",
+            original_problem=problem,
+            sub_problems=sub_problems,
+            strategy_used=DecompositionStrategy.SEMANTIC,
+            dependency_graph=dependency_graph,
+            execution_order=execution_order,
+            parallel_groups=parallel_groups,
+            coverage_score=0.6,
+            balance_score=0.6,
+            coherence_score=0.6,
+            overall_quality=0.6,
+            metadata={
+                "roma_used": roma_result.get("roma_used", True),
+                "roma_type": roma_result.get("roma_type", "roma"),
+                "source": "roma",
+            },
+        )
+
+        entanglement_matrix = self._attach_entanglement(sub_problems_payload)
+        if entanglement_matrix:
+            plan.metadata["entanglement_matrix"] = entanglement_matrix
+            for sp in plan.sub_problems:
+                entangled_with = entanglement_matrix.get(sp.id, [])
+                if entangled_with:
+                    sp.metadata.setdefault("entangled_with", entangled_with)
+                    sp.metadata.setdefault("entanglement_source", "symbolic_overlap")
+        return plan
+
+    @staticmethod
+    def _calculate_execution_order(
+        sub_problems: List["EnhancedSubProblem"],
+        dependency_graph: Dict[str, List[str]],
+    ) -> List[str]:
+        """Topological execution order for sub-problems."""
+        in_degree = {sp.id: len(sp.dependencies) for sp in sub_problems}
+        dependents: Dict[str, List[str]] = {sp.id: [] for sp in sub_problems}
+        for node, deps in dependency_graph.items():
+            for dep in deps:
+                if dep in dependents:
+                    dependents[dep].append(node)
+
+        queue = deque([sp_id for sp_id, degree in in_degree.items() if degree == 0])
+        order: List[str] = []
+        while queue:
+            current = queue.popleft()
+            order.append(current)
+            for dep in dependents.get(current, []):
+                in_degree[dep] -= 1
+                if in_degree[dep] == 0:
+                    queue.append(dep)
+
+        # Append remaining nodes (cycle-safe)
+        for sp in sub_problems:
+            if sp.id not in order:
+                order.append(sp.id)
+
+        return order
+
+    @staticmethod
+    def _identify_parallel_groups(
+        sub_problems: List["EnhancedSubProblem"],
+        dependency_graph: Dict[str, List[str]],
+    ) -> List[List[str]]:
+        dependency_sets = defaultdict(list)
+        for sp in sub_problems:
+            dependency_sets[frozenset(sp.dependencies)].append(sp.id)
+        return list(dependency_sets.values())
+
     # =========================================================================
     # PHASE 1: PROBLEM SETUP & DECOMPOSITION
     # =========================================================================
@@ -244,7 +499,9 @@ class ROMAOpenEvolveAdapter:
                 )
                 result["roma_used"] = True
                 result["roma_type"] = "roma_mdap_maker"
-                return result
+                return self._augment_decomposition_result(
+                    result, problem_statement, domain=domain
+                )
             else:
                 logger.info("Using standard ROMA for Phase 1 setup and decomposition")
                 result = self.execute_phase_1_setup(
@@ -258,12 +515,18 @@ class ROMAOpenEvolveAdapter:
                 )
                 result["roma_used"] = True
                 result["roma_type"] = "roma"
-                return result
+                return self._augment_decomposition_result(
+                    result, problem_statement, domain=domain
+                )
 
         except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"ROMA Phase 1 failed: {e}")
             if self.config.fallback_to_standard:
-                return self._fallback_decompose(problem_statement, error=str(e))
+                return self._augment_decomposition_result(
+                    self._fallback_decompose(problem_statement, error=str(e)),
+                    problem_statement,
+                    domain=domain,
+                )
             else:
                 return {
                     "status": "error",
@@ -271,6 +534,65 @@ class ROMAOpenEvolveAdapter:
                     "message": f"ROMA Phase 1 failed: {str(e)}",
                     "error": str(e)
                 }
+
+    def _augment_decomposition_result(
+        self,
+        result: Dict[str, Any],
+        problem_statement: str,
+        domain: Optional[str] = None,
+    ) -> Dict[str, Any]:
+        """Attach entanglement matrix and optional OpenEvolve plan to ROMA results."""
+        sub_problems = self._normalize_sub_problems(result)
+        if not sub_problems and isinstance(result.get("analysis"), dict):
+            sub_problems = self._normalize_sub_problems(result["analysis"])
+
+        if sub_problems:
+            result["sub_problems"] = sub_problems
+            entanglement_matrix = self._attach_entanglement(sub_problems)
+            if entanglement_matrix:
+                result["entanglement_matrix"] = entanglement_matrix
+
+        if ENHANCED_STRUCTURES_AVAILABLE:
+            problem_def = self._build_problem_definition(problem_statement, domain)
+            plan = self.to_decomposition_plan(problem_def, result)
+            if plan:
+                result["openevolve_plan"] = plan
+
+        return result
+
+    @staticmethod
+    def _build_problem_definition(
+        problem_statement: str,
+        domain: Optional[str] = None,
+    ) -> "EnhancedProblemDefinition":
+        """Build minimal Enhanced ProblemDefinition for conversion."""
+        domain_value = (domain or "generic").lower()
+        domain_enum = ProblemDomain.GENERIC
+        for candidate in ProblemDomain:
+            if candidate.value == domain_value:
+                domain_enum = candidate
+                break
+
+        complexity = ComplexityScore(
+            cognitive_complexity=5.0,
+            computational_complexity=5.0,
+            domain_complexity=5.0,
+            integration_complexity=5.0,
+            coordination_complexity=5.0,
+            technical_complexity=5.0,
+            overall_complexity=5.0,
+            explanation="ROMA adapter default complexity",
+        )
+
+        return EnhancedProblemDefinition(
+            id=f"roma_problem_{hash(problem_statement) & 0xFFFFF}",
+            title=problem_statement[:80] if problem_statement else "ROMA Problem",
+            description=problem_statement,
+            domain=domain_enum,
+            complexity_score=complexity,
+            constraints=[],
+            success_criteria=[],
+        )
 
     # =========================================================================
     # PHASE 2: SOLUTION GENERATION
@@ -812,6 +1134,21 @@ class ROMAOpenEvolveAdapter:
         error: Optional[str] = None
     ) -> Dict[str, Any]:
         """Fallback for reassembly when ROMA unavailable."""
+        if ENHANCED_RECOMPOSITION_AVAILABLE:
+            try:
+                recomposed = self._reassemble_with_enhanced_engine(
+                    solutions=solutions,
+                    problem_statement=problem_statement,
+                )
+                recomposed["message"] = "Fallback reassembly completed via enhanced recomposition"
+                if error:
+                    recomposed["message"] += f" (ROMA error: {error})"
+                recomposed["fallback_used"] = True
+                recomposed["roma_used"] = False
+                return recomposed
+            except (RuntimeError, ValueError, TypeError) as exc:
+                logger.warning("Enhanced recomposition fallback failed: %s", exc)
+
         aggregated = "\n\n".join([
             f"## {sol.get('id', 'Solution')}\n\n{sol.get('solution', '')}"
             for sol in solutions
@@ -819,9 +1156,67 @@ class ROMAOpenEvolveAdapter:
         return {
             "status": "completed",
             "roma_used": False,
+            "reassembly_method": "simple_concatenation",
             "final_solution": f"# Solution for: {problem_statement}\n\n{aggregated}",
             "message": "Fallback reassembly completed" + (f" (ROMA error: {error})" if error else ""),
             "fallback_used": True
+        }
+
+    def _reassemble_with_enhanced_engine(
+        self,
+        solutions: List[Dict[str, Any]],
+        problem_statement: str,
+    ) -> Dict[str, Any]:
+        """Use EnhancedRecompositionEngine to assemble fallback solution."""
+        engine = EnhancedRecompositionEngine()
+        sub_solutions: Dict[str, EnhancedSubProblemSolution] = {}
+        dependency_graph: Dict[str, List[str]] = {}
+
+        for sol in solutions:
+            sol_id = sol.get("id") or sol.get("sub_problem_id") or sol.get("title") or f"roma_sol_{len(sub_solutions)+1}"
+            content = sol.get("solution") or sol.get("solution_content") or ""
+            quality = sol.get("quality_score") or sol.get("confidence") or 0.7
+            metadata = sol.get("metadata", {}) if isinstance(sol.get("metadata"), dict) else {}
+            for key in ("entangled_with", "entanglement_symbols", "entanglement_source"):
+                if key in sol:
+                    metadata[key] = sol.get(key)
+            sub_solutions[sol_id] = EnhancedSubProblemSolution(
+                sub_problem_id=sol_id,
+                solution_content=content,
+                quality_score=float(quality),
+                metadata=metadata,
+            )
+            deps = sol.get("dependencies") or sol.get("depends_on") or []
+            if isinstance(deps, str):
+                deps = [deps]
+            dependency_graph[sol_id] = list(deps) if isinstance(deps, list) else []
+
+        entanglement_matrix: Dict[str, List[str]] = {}
+        if ENTANGLEMENT_AVAILABLE:
+            entanglement_matrix = self._attach_entanglement([
+                {
+                    "id": sol_id,
+                    "title": sol_id,
+                    "description": sub_solutions[sol_id].solution_content[:200],
+                    "metadata": sub_solutions[sol_id].metadata,
+                }
+                for sol_id in sub_solutions
+            ])
+
+        integrated = engine.assemble(
+            sub_solutions=sub_solutions,
+            problem_id=f"roma_problem_{hash(problem_statement) & 0xFFFFF}",
+            decomposition_plan_id=f"roma_reassembly_{hash(problem_statement) & 0xFFFFF}",
+            dependency_graph=dependency_graph,
+            entanglement_matrix=entanglement_matrix or None,
+        )
+
+        return {
+            "status": "completed",
+            "reassembly_method": "enhanced_recomposition",
+            "final_solution": integrated.assembled_content,
+            "entanglement_matrix": entanglement_matrix,
+            "integrated_solution": integrated,
         }
 
     def _fallback_final_validation(

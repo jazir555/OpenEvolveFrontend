@@ -131,6 +131,18 @@ try:
 except ImportError:
     ROMA_EKG_INTEGRATION_AVAILABLE = False
 
+# Causal-Learn Integration (Optional)
+try:
+    from .causal_learn_integration import (
+        CausalLearnIntegration,
+        CausalDiscoveryEngine
+    )
+    CAUSAL_LEARN_AVAILABLE = True
+except ImportError:
+    CAUSAL_LEARN_AVAILABLE = False
+    CausalLearnIntegration = None
+    CausalDiscoveryEngine = None
+
 
 __all__ = [
     # Z3 Knowledge Integration
@@ -214,4 +226,9 @@ __all__ = [
     "UNIFIED_BRIDGE_AVAILABLE",
     "ROMA_INTEGRATION_AVAILABLE",
     "ROMA_EKG_INTEGRATION_AVAILABLE",
+    
+    # Causal-Learn Integration
+    "CausalLearnIntegration",
+    "CausalDiscoveryEngine",
+    "CAUSAL_LEARN_AVAILABLE",
 ]

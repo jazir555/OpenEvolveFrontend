@@ -1,5 +1,7 @@
 """Verifier module for result validation."""
 
+from __future__ import annotations
+
 # **ACTUAL INTEGRATION**: Adaptive MDAP for Verifier
 try:
     from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
@@ -10,9 +12,6 @@ except ImportError:
     TaskComplexityClassifier = None
     AdaptiveMDAPAllocator = None
     SubProblem = None
-
-
-from __future__ import annotations
 
 import dspy
 from typing import Union, Any, Optional, Dict, Mapping, Sequence, Mapping as TMapping

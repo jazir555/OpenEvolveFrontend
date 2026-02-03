@@ -36,7 +36,7 @@ Usage:
 
 import logging
 import json
-from typing import Dict, List, Any, Optional, Callable, Union
+from typing import Dict, List, Any, Optional, Callable, Union, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
@@ -65,6 +65,27 @@ from universal_recomposition_engine import (
     SubProblemSolution,
     QualityMetrics
 )
+
+# Optional Blue Team + Enhanced Recomposition wiring
+try:
+    from blue_team_solver_engine import SubProblemSolver as BlueTeamSubProblemSolver
+    BLUE_TEAM_AVAILABLE = True
+except ImportError:
+    BLUE_TEAM_AVAILABLE = False
+    BlueTeamSubProblemSolver = None  # type: ignore
+
+try:
+    from enhanced_recomposition_engine import (
+        EnhancedRecompositionEngine,
+        SubProblemSolution as EnhancedSubProblemSolution,
+        IntegratedSolution as EnhancedIntegratedSolution,
+    )
+    ENHANCED_RECOMPOSITION_AVAILABLE = True
+except ImportError:
+    ENHANCED_RECOMPOSITION_AVAILABLE = False
+    EnhancedRecompositionEngine = None  # type: ignore
+    EnhancedSubProblemSolution = None  # type: ignore
+    EnhancedIntegratedSolution = None  # type: ignore
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -101,11 +122,11 @@ class SolverResult:
     decomposition_plan: DecompositionPlan
     
     # Solving results
-    sub_problem_solutions: Dict[str, SubProblemSolution]
+    sub_problem_solutions: Dict[str, Any]
     solving_steps: List[SolutionStep]
     
     # Reassembly results
-    final_solution: IntegratedSolution
+    final_solution: Any
     
     # Overall metrics
     quality_score: float
@@ -119,6 +140,10 @@ class SolverResult:
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary"""
+        assembly_strategy = getattr(self.final_solution, "assembly_strategy", None)
+        if hasattr(assembly_strategy, "value"):
+            assembly_strategy = assembly_strategy.value
+
         return {
             'problem_id': self.problem_id,
             'problem_title': self.problem_title,
@@ -129,19 +154,23 @@ class SolverResult:
             'conflicts_resolved': self.conflicts_resolved,
             'num_sub_problems': len(self.decomposition_plan.sub_problems),
             'num_solutions': len(self.sub_problem_solutions),
-            'assembly_strategy': self.final_solution.assembly_strategy,
+            'assembly_strategy': assembly_strategy,
             'created_at': self.created_at.isoformat()
         }
     
     def summary(self) -> str:
         """Get human-readable summary"""
+        assembly_strategy = getattr(self.final_solution, "assembly_strategy", "unknown")
+        if hasattr(assembly_strategy, "value"):
+            assembly_strategy = assembly_strategy.value
+
         lines = [
             f"Problem: {self.problem_title}",
             f"Domain: {self.domain}",
             f"",
             f"Decomposition: {len(self.decomposition_plan.sub_problems)} sub-problems",
             f"Solutions Generated: {len(self.sub_problem_solutions)}",
-            f"Assembly Strategy: {self.final_solution.assembly_strategy}",
+            f"Assembly Strategy: {assembly_strategy}",
             f"",
             f"Quality Score: {self.quality_score:.2f}/1.0",
             f"Conflicts: {self.conflicts_resolved} resolved, {self.conflicts_detected} remaining",
@@ -485,16 +514,24 @@ class UniversalProblemSolver:
         self,
         llm_client: Optional[Any] = None,
         decomposition_strategy: DecompositionStrategy = DecompositionStrategy.HYBRID,
-        assembly_strategy: AssemblyStrategy = AssemblyStrategy.ADAPTIVE
+        assembly_strategy: AssemblyStrategy = AssemblyStrategy.ADAPTIVE,
+        blue_team_config: Optional[Dict[str, Any]] = None
     ):
         self.llm_client = llm_client
         self.decomposition_strategy = decomposition_strategy
         self.assembly_strategy = assembly_strategy
+        self.blue_team_config = blue_team_config or {}
         
         # Initialize components
         self.decomposition_engine = UniversalDecompositionEngine(llm_client)
         self.recomposition_engine = UniversalRecompositionEngine(llm_client)
         self.sub_problem_solver = SubProblemSolver(llm_client)
+        self.blue_team_solver = None
+        if BLUE_TEAM_AVAILABLE:
+            try:
+                self.blue_team_solver = BlueTeamSubProblemSolver(self.blue_team_config)
+            except Exception:
+                self.blue_team_solver = None
         
         self.logger = logging.getLogger(self.__class__.__name__)
         self.solution_history: List[SolverResult] = []
@@ -509,7 +546,8 @@ class UniversalProblemSolver:
         max_subproblems: int = 15,
         solve_subproblems: bool = True,
         detect_conflicts: bool = True,
-        resolve_conflicts: bool = True
+        resolve_conflicts: bool = True,
+        use_blue_team_solver: bool = False
     ) -> SolverResult:
         """
         Solve a problem end-to-end.
@@ -524,6 +562,7 @@ class UniversalProblemSolver:
             solve_subproblems: Whether to solve sub-problems (vs just decompose)
             detect_conflicts: Whether to detect conflicts during assembly
             resolve_conflicts: Whether to attempt conflict resolution
+            use_blue_team_solver: Use Blue Team solver (Z3/Lean) with enhanced recomposition
             
         Returns:
             SolverResult with complete solution and metadata
@@ -533,6 +572,10 @@ class UniversalProblemSolver:
         steps: List[SolutionStep] = []
         
         self.logger.info(f"Starting problem solving: {title or problem_statement[:50]}...")
+
+        if use_blue_team_solver and not self.blue_team_solver:
+            self.logger.warning("Blue Team solver unavailable; falling back to standard solver")
+            use_blue_team_solver = False
         
         # ============================================================================
         # STEP 1: Domain Detection (if not specified)
@@ -589,28 +632,35 @@ class UniversalProblemSolver:
         
         if solve_subproblems:
             step_solving = SolutionStep("subproblem_solving", datetime.now())
-            
-            for sp in plan.sub_problems:
-                self.logger.info(f"Solving: {sp.title}")
-                entanglement_matrix = {}
-                if hasattr(plan, "metadata") and isinstance(plan.metadata, dict):
-                    entanglement_matrix = plan.metadata.get("entanglement_matrix", {}) or {}
-                entangled_with = []
-                entanglement_symbols = []
-                if hasattr(sp, "metadata") and isinstance(sp.metadata, dict):
-                    entangled_with = sp.metadata.get("entangled_with", []) or []
-                    entanglement_symbols = sp.metadata.get("entanglement_symbols", []) or []
-                context = {
-                    "entanglement_matrix": entanglement_matrix,
-                    "entangled_with": entangled_with,
-                    "entanglement_symbols": entanglement_symbols,
-                }
-                solution = self.sub_problem_solver.solve(
-                    sub_problem=sp,
-                    parent_problem=plan.original_problem,
-                    context=context
+
+            entanglement_matrix = {}
+            if hasattr(plan, "metadata") and isinstance(plan.metadata, dict):
+                entanglement_matrix = plan.metadata.get("entanglement_matrix", {}) or {}
+
+            if use_blue_team_solver and self.blue_team_solver:
+                sub_solutions = self._solve_with_blue_team(
+                    plan=plan,
+                    entanglement_matrix=entanglement_matrix,
                 )
-                sub_solutions[sp.id] = solution
+            else:
+                for sp in plan.sub_problems:
+                    self.logger.info(f"Solving: {sp.title}")
+                    entangled_with = []
+                    entanglement_symbols = []
+                    if hasattr(sp, "metadata") and isinstance(sp.metadata, dict):
+                        entangled_with = sp.metadata.get("entangled_with", []) or []
+                        entanglement_symbols = sp.metadata.get("entanglement_symbols", []) or []
+                    context = {
+                        "entanglement_matrix": entanglement_matrix,
+                        "entangled_with": entangled_with,
+                        "entanglement_symbols": entanglement_symbols,
+                    }
+                    solution = self.sub_problem_solver.solve(
+                        sub_problem=sp,
+                        parent_problem=plan.original_problem,
+                        context=context
+                    )
+                    sub_solutions[sp.id] = solution
             
             step_solving.end_time = datetime.now()
             step_solving.status = "completed"
@@ -627,13 +677,20 @@ class UniversalProblemSolver:
         step_assembly = SolutionStep("reassembly", datetime.now())
         
         if sub_solutions:
-            final_solution = self.recomposition_engine.assemble(
-                plan=plan,
-                sub_solutions=sub_solutions,
-                strategy=self.assembly_strategy,
-                detect_conflicts=detect_conflicts,
-                resolve_conflicts=resolve_conflicts
-            )
+            if use_blue_team_solver and ENHANCED_RECOMPOSITION_AVAILABLE:
+                final_solution = self._recompose_with_enhanced_engine(
+                    plan=plan,
+                    sub_solutions=sub_solutions,
+                    entanglement_matrix=entanglement_matrix,
+                )
+            else:
+                final_solution = self.recomposition_engine.assemble(
+                    plan=plan,
+                    sub_solutions=sub_solutions,
+                    strategy=self.assembly_strategy,
+                    detect_conflicts=detect_conflicts,
+                    resolve_conflicts=resolve_conflicts
+                )
         else:
             # Create empty solution
             from universal_recomposition_engine import IntegratedSolution, QualityMetrics
@@ -651,11 +708,14 @@ class UniversalProblemSolver:
         
         step_assembly.end_time = datetime.now()
         step_assembly.status = "completed"
+        assembly_strategy = getattr(final_solution, "assembly_strategy", None)
+        if hasattr(assembly_strategy, "value"):
+            assembly_strategy = assembly_strategy.value
         step_assembly.details = {
-            'assembly_strategy': final_solution.assembly_strategy,
-            'quality_score': final_solution.quality_metrics.overall_score,
-            'conflicts_detected': len(final_solution.conflicts_detected),
-            'conflicts_resolved': len(final_solution.conflicts_resolved)
+            'assembly_strategy': assembly_strategy,
+            'quality_score': self._extract_quality_score(final_solution),
+            'conflicts_detected': self._extract_conflict_counts(final_solution)[0],
+            'conflicts_resolved': self._extract_conflict_counts(final_solution)[1]
         }
         steps.append(step_assembly)
         execution_log.append(f"Assembled solution with strategy: {final_solution.assembly_strategy}")
@@ -674,10 +734,10 @@ class UniversalProblemSolver:
             sub_problem_solutions=sub_solutions,
             solving_steps=steps,
             final_solution=final_solution,
-            quality_score=final_solution.quality_metrics.overall_score,
+            quality_score=self._extract_quality_score(final_solution),
             total_duration_seconds=total_duration,
-            conflicts_detected=len(final_solution.conflicts_detected),
-            conflicts_resolved=len(final_solution.conflicts_resolved),
+            conflicts_detected=self._extract_conflict_counts(final_solution)[0],
+            conflicts_resolved=self._extract_conflict_counts(final_solution)[1],
             execution_log=execution_log
         )
         
@@ -686,6 +746,102 @@ class UniversalProblemSolver:
         self.logger.info(f"Problem solving complete: quality={result.quality_score:.2f}, time={total_duration:.2f}s")
         
         return result
+
+    def _solve_with_blue_team(
+        self,
+        plan: DecompositionPlan,
+        entanglement_matrix: Dict[str, List[str]],
+    ) -> Dict[str, Any]:
+        """Solve sub-problems using Blue Team solver and map to enhanced solution objects."""
+        if not self.blue_team_solver:
+            return {}
+        solutions: Dict[str, Any] = {}
+        for sp in plan.sub_problems:
+            entangled_with = []
+            entanglement_symbols = []
+            if hasattr(sp, "metadata") and isinstance(sp.metadata, dict):
+                entangled_with = sp.metadata.get("entangled_with", []) or []
+                entanglement_symbols = sp.metadata.get("entanglement_symbols", []) or []
+
+            result = self.blue_team_solver.solve_sub_problem(
+                sub_problem_id=sp.id,
+                description=f"{sp.title}\n\n{sp.description}",
+                dependencies=list(sp.dependencies or []),
+                complexity_score=int(round(sp.complexity_score.overall_complexity)),
+                priority=getattr(sp, "priority", 5),
+                context={
+                    "entanglement_matrix": entanglement_matrix,
+                    "entangled_with": entangled_with,
+                    "entanglement_symbols": entanglement_symbols,
+                    "domain": plan.original_problem.domain.value,
+                },
+                requirements=[],
+                constraints=[c.description for c in plan.original_problem.constraints],
+                success_criteria=[sc.description for sc in sp.success_criteria],
+                metadata={
+                    "entangled_with": entangled_with,
+                    "entanglement_symbols": entanglement_symbols,
+                    "entanglement_source": sp.metadata.get("entanglement_source")
+                    if isinstance(sp.metadata, dict)
+                    else None,
+                },
+            )
+
+            if ENHANCED_RECOMPOSITION_AVAILABLE:
+                quality_score = result.quality_metrics.overall_score
+                metadata = dict(result.metadata or {})
+                metadata.update({
+                    "solver_status": result.status.value if hasattr(result.status, "value") else str(result.status),
+                    "strategy_used": result.strategy_used.value if hasattr(result.strategy_used, "value") else str(result.strategy_used),
+                    "entangled_with": entangled_with,
+                    "entanglement_symbols": entanglement_symbols,
+                })
+                solutions[sp.id] = EnhancedSubProblemSolution(
+                    sub_problem_id=sp.id,
+                    solution_content=result.solution,
+                    quality_score=quality_score,
+                    metadata=metadata,
+                )
+            else:
+                solutions[sp.id] = SubProblemSolution(
+                    sub_problem_id=sp.id,
+                    solution_content=result.solution,
+                    quality_score=result.quality_metrics.overall_score,
+                    metadata=result.metadata or {},
+                )
+
+        return solutions
+
+    def _recompose_with_enhanced_engine(
+        self,
+        plan: DecompositionPlan,
+        sub_solutions: Dict[str, Any],
+        entanglement_matrix: Dict[str, List[str]],
+    ) -> Any:
+        """Recompose using EnhancedRecompositionEngine with entanglement context."""
+        engine = EnhancedRecompositionEngine()
+        dependency_graph = plan.dependency_graph
+        return engine.assemble(
+            sub_solutions=sub_solutions,
+            problem_id=plan.original_problem.id,
+            decomposition_plan_id=plan.id,
+            dependency_graph=dependency_graph,
+            entanglement_matrix=entanglement_matrix or None,
+        )
+
+    @staticmethod
+    def _extract_quality_score(final_solution: Any) -> float:
+        if hasattr(final_solution, "quality_metrics") and hasattr(final_solution.quality_metrics, "overall_score"):
+            return final_solution.quality_metrics.overall_score
+        if isinstance(getattr(final_solution, "quality_metrics", None), dict):
+            return final_solution.quality_metrics.get("overall_score", 0.0)
+        return 0.0
+
+    @staticmethod
+    def _extract_conflict_counts(final_solution: Any) -> Tuple[int, int]:
+        detected = getattr(final_solution, "conflicts_detected", []) or []
+        resolved = getattr(final_solution, "conflicts_resolved", []) or []
+        return len(detected), len(resolved)
     
     def _parse_domain(self, domain_str: str) -> ProblemDomain:
         """Parse domain from string"""

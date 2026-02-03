@@ -45,6 +45,14 @@ from datetime import datetime
 from enum import Enum, auto
 from collections import defaultdict, deque
 import hashlib
+try:
+    from pydantic import BaseModel, Field, ValidationError
+    PYDANTIC_AVAILABLE = True
+except ImportError:  # pragma: no cover - optional dependency
+    BaseModel = object  # type: ignore
+    Field = lambda *args, **kwargs: None  # type: ignore
+    ValidationError = Exception  # type: ignore
+    PYDANTIC_AVAILABLE = False
 from utils.entanglement_utils import (
     build_symbolic_entanglement_matrix,
     serialize_entanglement_matrix,
@@ -52,6 +60,14 @@ from utils.entanglement_utils import (
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# Optional DSPy integration for structured prompting
+try:
+    from dspy_integration import DSPY_AVAILABLE
+    import dspy
+except ImportError:  # pragma: no cover - optional dependency
+    DSPY_AVAILABLE = False
+    dspy = None
 
 # **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Universal Decomposition Engine
 try:
@@ -512,6 +528,19 @@ class DependencyDecomposition(DecompositionStrategyBase):
     Decomposes based on prerequisite relationships and dependencies.
     Creates a dependency graph that respects execution order.
     """
+
+    if PYDANTIC_AVAILABLE:
+        class DependencyEdge(BaseModel):
+            """Structured dependency edge output from LLM."""
+            source_id: str = Field(..., description="Sub-problem that depends on target_id")
+            target_id: str = Field(..., description="Prerequisite sub-problem")
+            reason: str = Field(default="", description="Short rationale for dependency")
+    else:  # pragma: no cover - fallback
+        class DependencyEdge:  # type: ignore
+            def __init__(self, source_id: str, target_id: str, reason: str = ""):
+                self.source_id = source_id
+                self.target_id = target_id
+                self.reason = reason
     
     def get_strategy_name(self) -> str:
         return "dependency"
@@ -541,11 +570,37 @@ class DependencyDecomposition(DecompositionStrategyBase):
     ) -> Optional[List[SubProblem]]:
         """Use LLM to analyze dependencies if available"""
         try:
+            if not PYDANTIC_AVAILABLE:
+                self.logger.warning("Pydantic unavailable; skipping structured dependency analysis.")
+                return self._apply_heuristic_dependencies(sub_problems, problem)
+
             # Build descriptions for LLM
             descriptions = []
             for i, sp in enumerate(sub_problems, 1):
-                descriptions.append(f"{i}. {sp.title}: {sp.description[:150]}...")
-            
+                descriptions.append(
+                    f"{i}. [{sp.id}] {sp.title}: {sp.description[:150]}..."
+                )
+
+            # Prefer DSPy structured prompting when available
+            dspy_text = None
+            if DSPY_AVAILABLE and dspy is not None:
+                try:
+                    class DependencySignature(dspy.Signature):
+                        problem_title = dspy.InputField(desc="Problem title")
+                        sub_problems_text = dspy.InputField(desc="Enumerated sub-problems with ids")
+                        dependencies_json = dspy.OutputField(
+                            desc="JSON list of dependency edges with source_id, target_id, reason"
+                        )
+
+                    predictor = dspy.Predict(DependencySignature)
+                    result = predictor(
+                        problem_title=problem.title,
+                        sub_problems_text="\n".join(descriptions),
+                    )
+                    dspy_text = getattr(result, "dependencies_json", None)
+                except Exception as exc:  # pragma: no cover - DSPy optional
+                    self.logger.debug("DSPy dependency analysis failed: %s", exc)
+
             prompt = f"""Analyze these sub-problems and identify TRUE prerequisite dependencies.
 
 Problem: {problem.title}
@@ -554,10 +609,16 @@ Sub-Problems:
 {chr(10).join(descriptions)}
 
 Identify which sub-problems MUST be completed before others.
-Format: "X depends on Y" (meaning X requires Y to be done first)
-List only necessary dependencies, not all possible ones.
+Return ONLY a JSON list of dependency edges (no prose, no Markdown).
+Each edge must be: {{"source_id": "<dependent_id>", "target_id": "<prerequisite_id>", "reason": "<short rationale>"}}
+Use the exact sub-problem ids shown above (inside brackets). List only necessary dependencies.
+Example:
+[
+  {{"source_id": "sp_api", "target_id": "sp_auth", "reason": "API needs auth contracts"}},
+  {{"source_id": "sp_ui", "target_id": "sp_api", "reason": "UI integrates API endpoints"}}
+]
 
-Dependencies:"""
+JSON:"""
             
             response = None
             if hasattr(self.llm_client, "generate"):
@@ -569,33 +630,124 @@ Dependencies:"""
             elif callable(self.llm_client):
                 response = self.llm_client(prompt)
 
-            if not response:
+            if not response and not dspy_text:
                 return self._apply_heuristic_dependencies(sub_problems, problem)
 
-            text = response.get("text") if isinstance(response, dict) else str(response)
+            text = dspy_text or (response.get("text") if isinstance(response, dict) else str(response))
+            edges_payload = self._extract_json_payload(text)
+            edges = self._parse_dependency_edges(edges_payload)
+            if not edges:
+                return self._apply_heuristic_dependencies(sub_problems, problem)
+
             id_map = {str(i + 1): sp.id for i, sp in enumerate(sub_problems)}
             id_map.update({sp.id: sp.id for sp in sub_problems})
+            subproblem_map = {sp.id: sp for sp in sub_problems}
+            valid_ids = set(subproblem_map.keys())
 
             for sp in sub_problems:
                 sp.dependencies = []
+                if not isinstance(sp.metadata, dict):
+                    sp.metadata = {}
+                sp.metadata.setdefault("dependency_reasons", {})
 
-            pattern = re.compile(r"(\w+)\s+depends on\s+(\w+)", re.IGNORECASE)
-            for line in text.splitlines():
-                match = pattern.search(line.strip())
-                if not match:
-                    continue
-                depender_raw, dep_raw = match.groups()
-                depender = id_map.get(depender_raw, depender_raw)
-                dependency = id_map.get(dep_raw, dep_raw)
-                for sp in sub_problems:
-                    if sp.id == depender and dependency != sp.id:
-                        if dependency not in sp.dependencies:
-                            sp.dependencies.append(dependency)
+            for edge in edges:
+                depender = id_map.get(str(edge.source_id), str(edge.source_id))
+                dependency = id_map.get(str(edge.target_id), str(edge.target_id))
+                if depender in valid_ids and dependency in valid_ids and dependency != depender:
+                    if dependency not in subproblem_map[depender].dependencies:
+                        subproblem_map[depender].dependencies.append(dependency)
+                    reason = (edge.reason or "").strip()
+                    if reason:
+                        subproblem_map[depender].metadata["dependency_reasons"][dependency] = reason
 
             return sub_problems
             
         except (RuntimeError, ValueError, ConnectionError) as e:
             self.logger.warning(f"LLM dependency analysis failed: {e}")
+            return None
+
+    def _parse_dependency_edges(self, payload: Any) -> List["DependencyDecomposition.DependencyEdge"]:
+        """Validate and normalize dependency edges from JSON payload."""
+        if not payload:
+            return []
+
+        if isinstance(payload, dict) and "edges" in payload:
+            payload = payload.get("edges")
+
+        if not isinstance(payload, list):
+            return []
+
+        edges: List[DependencyDecomposition.DependencyEdge] = []
+        for item in payload:
+            if not isinstance(item, dict):
+                continue
+            normalized = dict(item)
+            if "source_id" not in normalized:
+                for key in ("source", "from", "dependent", "depender", "src"):
+                    if key in normalized:
+                        normalized["source_id"] = normalized[key]
+                        break
+            if "target_id" not in normalized:
+                for key in ("target", "to", "prerequisite", "depends_on", "dependency", "dest"):
+                    if key in normalized:
+                        normalized["target_id"] = normalized[key]
+                        break
+            if "reason" not in normalized:
+                normalized["reason"] = ""
+
+            try:
+                if PYDANTIC_AVAILABLE and hasattr(self.DependencyEdge, "model_validate"):
+                    edge = self.DependencyEdge.model_validate(normalized)
+                elif PYDANTIC_AVAILABLE and hasattr(self.DependencyEdge, "parse_obj"):
+                    edge = self.DependencyEdge.parse_obj(normalized)  # type: ignore[attr-defined]
+                else:
+                    edge = self.DependencyEdge(
+                        source_id=str(normalized.get("source_id", "")),
+                        target_id=str(normalized.get("target_id", "")),
+                        reason=str(normalized.get("reason", "")),
+                    )
+                if edge.source_id and edge.target_id:
+                    edges.append(edge)
+            except ValidationError as exc:
+                self.logger.debug("Invalid dependency edge skipped: %s", exc)
+                continue
+
+        return edges
+
+    @staticmethod
+    def _extract_json_payload(text: str) -> Any:
+        """Extract JSON payload from LLM output."""
+        if not text:
+            return None
+
+        stripped = text.strip()
+        if stripped.startswith("```"):
+            # Remove code fences
+            fence_parts = stripped.split("```")
+            if len(fence_parts) >= 2:
+                stripped = fence_parts[1].strip()
+                if stripped.startswith("json"):
+                    stripped = stripped[4:].strip()
+
+        try:
+            return json.loads(stripped)
+        except json.JSONDecodeError:
+            pass
+
+        # Attempt to locate JSON substring
+        start_candidates = [stripped.find("["), stripped.find("{")]
+        start_candidates = [idx for idx in start_candidates if idx != -1]
+        if not start_candidates:
+            return None
+        start_idx = min(start_candidates)
+        end_char = "]" if stripped[start_idx] == "[" else "}"
+        end_idx = stripped.rfind(end_char)
+        if end_idx == -1:
+            return None
+        snippet = stripped[start_idx:end_idx + 1]
+        try:
+            return json.loads(snippet)
+        except json.JSONDecodeError:
             return None
     
     def _apply_heuristic_dependencies(
@@ -952,6 +1104,21 @@ class UniversalDecompositionEngine:
                 }
             )
 
+            # Apply domain-specific extensions (finance/legal/manufacturing)
+            plan = self._apply_domain_extensions(plan)
+            if plan.metadata.get("domain_extensions_applied"):
+                plan.dependency_graph = self._build_dependency_graph(plan.sub_problems)
+                plan.execution_order = self._calculate_execution_order(plan.sub_problems, plan.dependency_graph)
+                plan.parallel_groups = self._identify_parallel_groups(plan.sub_problems, plan.dependency_graph)
+                plan.quality_score = self._calculate_quality_score(
+                    problem, plan.sub_problems, plan.dependency_graph
+                )
+                sub_problems = plan.sub_problems
+                dependency_graph = plan.dependency_graph
+                execution_order = plan.execution_order
+                parallel_groups = plan.parallel_groups
+                quality_score = plan.quality_score
+
             # Build entanglement matrix for downstream coordination
             try:
                 matrix, symbols_by_id = build_symbolic_entanglement_matrix(
@@ -1054,6 +1221,8 @@ class UniversalDecompositionEngine:
             ProblemDomain.FINANCE: 6.0,
             ProblemDomain.SCIENTIFIC: 7.0,
             ProblemDomain.HEALTHCARE: 6.5,
+            ProblemDomain.MANUFACTURING: 6.0,
+            ProblemDomain.LEGAL: 6.0,
             ProblemDomain.GENERIC: 5.0
         }.get(domain, 5.0)
         
@@ -1201,6 +1370,31 @@ class UniversalDecompositionEngine:
         scores.append(dep_health)
         
         return sum(scores) / len(scores)
+
+    def _apply_domain_extensions(self, plan: DecompositionPlan) -> DecompositionPlan:
+        """Apply domain-specific extensions to the decomposition plan."""
+        applied: List[str] = []
+        domain = plan.original_problem.domain
+        statement = plan.original_problem.description
+
+        if domain == ProblemDomain.FINANCE or FinanceDomainExtension.is_finance_problem(statement):
+            plan = FinanceDomainExtension.enhance_decomposition(plan)
+            applied.append("finance")
+
+        if domain == ProblemDomain.LEGAL or LegalDomainExtension.is_legal_problem(statement):
+            plan = LegalDomainExtension.enhance_decomposition(plan)
+            applied.append("legal")
+
+        if domain == ProblemDomain.MANUFACTURING or ManufacturingDomainExtension.is_manufacturing_problem(statement):
+            plan = ManufacturingDomainExtension.enhance_decomposition(plan)
+            applied.append("manufacturing")
+
+        if applied:
+            plan.metadata.setdefault("domain_extensions_applied", [])
+            plan.metadata["domain_extensions_applied"].extend(applied)
+            plan.metadata["num_subproblems"] = len(plan.sub_problems)
+
+        return plan
     
     def _generate_id(self, prefix: str) -> str:
         """Generate unique ID"""
@@ -1420,6 +1614,229 @@ class FinanceDomainExtension:
         return plan
 
 
+class LegalDomainExtension:
+    """
+    Legal-specific extensions for decomposition.
+    
+    Provides specialized handling for legal/compliance problems:
+    - Jurisdiction validation
+    - Clause consistency review
+    - Regulatory alignment
+    """
+
+    TEMPLATES = {
+        'jurisdiction_check': {
+            'title': 'Jurisdiction & Applicability Check',
+            'description': 'Identify applicable jurisdictions, governing law, and required legal frameworks',
+            'type': SubProblemType.ANALYSIS,
+            'success_criteria': ['Jurisdiction identified', 'Applicable statutes listed', 'Scope confirmed']
+        },
+        'clause_consistency': {
+            'title': 'Clause Consistency Review',
+            'description': 'Ensure clauses are coherent, non-contradictory, and aligned with definitions',
+            'type': SubProblemType.VALIDATION,
+            'success_criteria': ['Cross-references validated', 'Definitions consistent', 'Conflicts resolved']
+        },
+        'regulatory_alignment': {
+            'title': 'Regulatory Alignment Review',
+            'description': 'Validate obligations against relevant regulations, standards, and policies',
+            'type': SubProblemType.VALIDATION,
+            'success_criteria': ['Regulation mapping complete', 'Gaps identified', 'Remediation plan']
+        }
+    }
+
+    LEGAL_KEYWORDS = [
+        'contract', 'agreement', 'clause', 'jurisdiction', 'governing law', 'statute',
+        'regulation', 'compliance', 'legal', 'litigation', 'policy', 'terms', 'liability'
+    ]
+
+    @classmethod
+    def is_legal_problem(cls, problem_statement: str) -> bool:
+        lower = problem_statement.lower()
+        return any(term in lower for term in cls.LEGAL_KEYWORDS)
+
+    @classmethod
+    def enhance_decomposition(cls, plan: DecompositionPlan) -> DecompositionPlan:
+        has_jurisdiction = any(
+            'jurisdiction' in sp.description.lower() or 'governing law' in sp.description.lower()
+            for sp in plan.sub_problems
+        )
+        has_clause_review = any(
+            'clause' in sp.description.lower() or 'definition' in sp.description.lower()
+            for sp in plan.sub_problems
+        )
+
+        if cls.is_legal_problem(plan.original_problem.description):
+            deps = [sp.id for sp in plan.sub_problems[:2]]
+            if not has_jurisdiction:
+                sp = SubProblem(
+                    id=f"legal_juris_{uuid.uuid4().hex[:8]}",
+                    parent_id=plan.original_problem.id,
+                    title=cls.TEMPLATES['jurisdiction_check']['title'],
+                    description=cls.TEMPLATES['jurisdiction_check']['description'],
+                    type=SubProblemType.ANALYSIS,
+                    complexity_score=ComplexityScore(
+                        cognitive_complexity=7.0,
+                        computational_complexity=4.0,
+                        domain_complexity=8.0,
+                        integration_complexity=5.0,
+                        overall_complexity=6.5,
+                        explanation="Jurisdictional complexity"
+                    ),
+                    dependencies=deps,
+                    estimated_effort_hours=24,
+                    metadata={"domain_extension": "legal"}
+                )
+                plan.sub_problems.append(sp)
+
+            if not has_clause_review:
+                sp = SubProblem(
+                    id=f"legal_clause_{uuid.uuid4().hex[:8]}",
+                    parent_id=plan.original_problem.id,
+                    title=cls.TEMPLATES['clause_consistency']['title'],
+                    description=cls.TEMPLATES['clause_consistency']['description'],
+                    type=SubProblemType.VALIDATION,
+                    complexity_score=ComplexityScore(
+                        cognitive_complexity=6.5,
+                        computational_complexity=3.5,
+                        domain_complexity=7.5,
+                        integration_complexity=5.5,
+                        overall_complexity=6.0,
+                        explanation="Clause consistency complexity"
+                    ),
+                    dependencies=deps,
+                    estimated_effort_hours=20,
+                    metadata={"domain_extension": "legal"}
+                )
+                plan.sub_problems.append(sp)
+
+        return plan
+
+
+class ManufacturingDomainExtension:
+    """
+    Manufacturing-specific extensions for decomposition.
+    
+    Provides specialized handling for manufacturing problems:
+    - Supply chain constraints
+    - Physical tolerances
+    - Quality control planning
+    """
+
+    TEMPLATES = {
+        'supply_chain': {
+            'title': 'Supply Chain Constraints',
+            'description': 'Model supplier dependencies, lead times, and inventory constraints',
+            'type': SubProblemType.ANALYSIS,
+            'success_criteria': ['Supplier mapping complete', 'Lead time risks identified', 'Inventory model built']
+        },
+        'tolerance_analysis': {
+            'title': 'Physical Tolerance Analysis',
+            'description': 'Define and validate mechanical/production tolerances and failure modes',
+            'type': SubProblemType.VALIDATION,
+            'success_criteria': ['Tolerance ranges defined', 'Failure modes analyzed', 'Mitigations documented']
+        },
+        'quality_control': {
+            'title': 'Quality Control Plan',
+            'description': 'Establish QC checkpoints, sampling strategy, and acceptance criteria',
+            'type': SubProblemType.TESTING,
+            'success_criteria': ['QC checkpoints defined', 'Sampling plan set', 'Acceptance criteria validated']
+        }
+    }
+
+    MANUFACTURING_KEYWORDS = [
+        'manufacturing', 'production', 'factory', 'assembly', 'tolerance',
+        'supply chain', 'inventory', 'materials', 'quality control', 'process'
+    ]
+
+    @classmethod
+    def is_manufacturing_problem(cls, problem_statement: str) -> bool:
+        lower = problem_statement.lower()
+        return any(term in lower for term in cls.MANUFACTURING_KEYWORDS)
+
+    @classmethod
+    def enhance_decomposition(cls, plan: DecompositionPlan) -> DecompositionPlan:
+        has_supply_chain = any(
+            'supply chain' in sp.description.lower() or 'supplier' in sp.description.lower()
+            for sp in plan.sub_problems
+        )
+        has_tolerance = any(
+            'tolerance' in sp.description.lower() or 'failure mode' in sp.description.lower()
+            for sp in plan.sub_problems
+        )
+        has_quality = any(
+            'quality control' in sp.description.lower() or 'qc' in sp.description.lower()
+            for sp in plan.sub_problems
+        )
+
+        if cls.is_manufacturing_problem(plan.original_problem.description):
+            deps = [sp.id for sp in plan.sub_problems[:2]]
+            if not has_supply_chain:
+                sp = SubProblem(
+                    id=f"mfg_supply_{uuid.uuid4().hex[:8]}",
+                    parent_id=plan.original_problem.id,
+                    title=cls.TEMPLATES['supply_chain']['title'],
+                    description=cls.TEMPLATES['supply_chain']['description'],
+                    type=SubProblemType.ANALYSIS,
+                    complexity_score=ComplexityScore(
+                        cognitive_complexity=6.0,
+                        computational_complexity=5.0,
+                        domain_complexity=6.5,
+                        integration_complexity=6.0,
+                        overall_complexity=6.0,
+                        explanation="Supply chain constraints complexity"
+                    ),
+                    dependencies=deps,
+                    estimated_effort_hours=28,
+                    metadata={"domain_extension": "manufacturing"}
+                )
+                plan.sub_problems.append(sp)
+
+            if not has_tolerance:
+                sp = SubProblem(
+                    id=f"mfg_tol_{uuid.uuid4().hex[:8]}",
+                    parent_id=plan.original_problem.id,
+                    title=cls.TEMPLATES['tolerance_analysis']['title'],
+                    description=cls.TEMPLATES['tolerance_analysis']['description'],
+                    type=SubProblemType.VALIDATION,
+                    complexity_score=ComplexityScore(
+                        cognitive_complexity=6.5,
+                        computational_complexity=4.5,
+                        domain_complexity=7.0,
+                        integration_complexity=5.5,
+                        overall_complexity=6.3,
+                        explanation="Tolerance analysis complexity"
+                    ),
+                    dependencies=deps,
+                    estimated_effort_hours=24,
+                    metadata={"domain_extension": "manufacturing"}
+                )
+                plan.sub_problems.append(sp)
+
+            if not has_quality:
+                sp = SubProblem(
+                    id=f"mfg_qc_{uuid.uuid4().hex[:8]}",
+                    parent_id=plan.original_problem.id,
+                    title=cls.TEMPLATES['quality_control']['title'],
+                    description=cls.TEMPLATES['quality_control']['description'],
+                    type=SubProblemType.TESTING,
+                    complexity_score=ComplexityScore(
+                        cognitive_complexity=5.5,
+                        computational_complexity=4.0,
+                        domain_complexity=6.0,
+                        integration_complexity=5.0,
+                        overall_complexity=5.6,
+                        explanation="Quality control complexity"
+                    ),
+                    dependencies=deps,
+                    estimated_effort_hours=18,
+                    metadata={"domain_extension": "manufacturing"}
+                )
+                plan.sub_problems.append(sp)
+
+        return plan
+
+
 # ============================================================================
 # EXPORTS
 # ============================================================================
@@ -1454,6 +1871,8 @@ __all__ = [
     
     # Extensions
     'FinanceDomainExtension',
+    'LegalDomainExtension',
+    'ManufacturingDomainExtension',
 ]
 
 

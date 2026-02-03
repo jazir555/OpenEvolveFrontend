@@ -1,5 +1,7 @@
 """Aggregator module for result synthesis."""
 
+from __future__ import annotations
+
 # **ACTUAL INTEGRATION**: Adaptive MDAP for Aggregator
 try:
     from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
@@ -10,9 +12,6 @@ except ImportError:
     TaskComplexityClassifier = None
     AdaptiveMDAPAllocator = None
     SubProblem = None
-
-
-from __future__ import annotations
 
 import dspy
 import time

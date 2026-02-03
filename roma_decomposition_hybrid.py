@@ -28,7 +28,11 @@ import re
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field
 
-from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
+from utils.entanglement_utils import (
+    build_symbolic_entanglement_matrix,
+    normalize_entanglement_matrix,
+    serialize_entanglement_matrix,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -182,40 +186,26 @@ class ROMADecompositionHybrid:
         sub_problems = self._normalize_roma_plan(plan_payload)
         if not sub_problems:
             return {}
-
-        try:
-            from utils.symbolic_analyzer import SymbolicAnalyzer
-            analyzer = SymbolicAnalyzer()
-        except (ImportError, RuntimeError, ValueError):
-            analyzer = None
-
-        symbol_map: Dict[str, set] = {}
-        ids: List[str] = []
-        for idx, sp in enumerate(sub_problems, start=1):
-            sp_id = sp.get("id") or sp.get("sub_problem_id") or f"sp_{idx}"
-            ids.append(sp_id)
-            text = f"{sp.get('title', '')} {sp.get('description', '')}"
-            if analyzer:
-                symbols = analyzer.analyze(text).symbols
-            else:
-                symbols = set(self._tokenize_symbols(text))
-            for sym in symbols:
-                symbol_map.setdefault(sym, set()).add(sp_id)
-
-        matrix: Dict[str, set] = {sp_id: set() for sp_id in ids}
-        for _, components in symbol_map.items():
-            if len(components) < 2:
-                continue
-            for comp in components:
-                matrix[comp].update({c for c in components if c != comp})
-
-        normalized = normalize_entanglement_matrix(
-            matrix,
+        ids = [
+            sp.get("id") or sp.get("sub_problem_id") or f"sp_{idx}"
+            for idx, sp in enumerate(sub_problems, start=1)
+        ]
+        matrix, symbols_by_id = build_symbolic_entanglement_matrix(
+            sub_problems,
             allowed_ids=ids,
             enforce_symmetry=True,
             strict=bool(getattr(self.config, "entanglement_strict_mode", False)),
         )
-        return serialize_entanglement_matrix(normalized)
+        serialized = serialize_entanglement_matrix(matrix)
+        for sp in sub_problems:
+            sp_id = sp.get("id") or sp.get("sub_problem_id")
+            if not sp_id:
+                continue
+            sp["entangled_with"] = serialized.get(sp_id, [])
+            sp["entanglement_source"] = "symbolic_overlap"
+            if sp_id in symbols_by_id:
+                sp["entanglement_symbols"] = sorted(list(symbols_by_id[sp_id]))
+        return serialized
 
     def _normalize_roma_plan(self, plan_payload: Any) -> List[Dict[str, Any]]:
         if plan_payload is None:
@@ -367,6 +357,9 @@ class ROMADecompositionHybrid:
             entanglement_matrix = self._build_entanglement_matrix(plan_result.get("result"))
             if entanglement_matrix:
                 results["stages"]["stage_2_planning"]["entanglement_matrix"] = entanglement_matrix
+                normalized_subs = self._normalize_roma_plan(plan_result.get("result"))
+                if normalized_subs:
+                    results["stages"]["stage_2_planning"]["sub_problems"] = normalized_subs
 
             logger.info("Stage 2 complete: Hierarchical plan created")
 

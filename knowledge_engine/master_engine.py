@@ -40,7 +40,12 @@ from knowledge_engine.integrations.openevolve_integration_library import OpenEvo
 from knowledge_engine.integrations.mcp_gateway_integration import MCPGatewayIntegration
 from knowledge_engine.integrations.pami_integration import PAMIIntegration
 from knowledge_engine.integrations.neuralkg_integration import NeuralKGIntegration
-from knowledge_engine.integrations.causal_learn_integration import CausalLearnIntegration
+try:
+    from knowledge_engine.integrations.causal_learn_integration import CausalLearnIntegration
+    CAUSAL_LEARN_AVAILABLE = True
+except ImportError:
+    CausalLearnIntegration = None
+    CAUSAL_LEARN_AVAILABLE = False
 from knowledge_engine.integrations.lagrange_mapper_integration import LagrangeMapperIntegration
 from knowledge_engine.integrations.karateclub_integration import KarateClubIntegration
 from knowledge_engine.integrations.global_chem_integration import GlobalChemIntegration
@@ -205,7 +210,7 @@ class ComponentRegistry:
         self.components['crewai'] = self._safe_init(CrewAIIntegration, 'crewai')
         self.components['pami'] = self._safe_init(PAMIIntegration, 'pami')
         self.components['neuralkg'] = self._safe_init(NeuralKGIntegration, 'neuralkg')
-        self.components['causal_learn'] = self._safe_init(CausalLearnIntegration, 'causal_learn')
+        self.components['causal_learn'] = self._safe_init(CausalLearnIntegration, 'causal_learn') if CAUSAL_LEARN_AVAILABLE else self._create_mock_component('causal_learn')
         self.components['karateclub'] = self._safe_init(KarateClubIntegration, 'karateclub')
         
         # Specialized Domains (12-15)
