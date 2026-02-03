@@ -23,6 +23,25 @@ import re
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Physics Knowledge Engine
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 
 # ============================================================================
 # Physics Domain Enumeration
@@ -803,21 +822,46 @@ class PhysicsFormalizer:
         Returns:
             Formalization result with Lean code
         """
-        # Extract structure from definition
-        structure = await self._extract_structure(definition)
+        import time
+        start_time = time.time()
+        success = False
+        def_id = f"phys_{hash(definition) % 10000:04d}"
 
-        # Map to Lean 4 types
-        lean_types = self._map_to_lean_types(structure, domain)
+        try:
+            # Extract structure from definition
+            structure = await self._extract_structure(definition)
 
-        # Generate Lean 4 code
-        lean_code = self._generate_lean_code(lean_types, definition)
+            # Map to Lean 4 types
+            lean_types = self._map_to_lean_types(structure, domain)
 
-        return {
-            "original": definition,
-            "structure": structure,
-            "lean_code": lean_code,
-            "domain": domain.value
-        }
+            # Generate Lean 4 code
+            lean_code = self._generate_lean_code(lean_types, definition)
+
+            result = {
+                "original": definition,
+                "structure": structure,
+                "lean_code": lean_code,
+                "domain": domain.value
+            }
+
+            success = True
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful formalization
+            self._extract_physics_knowledge("formalize_textbook_definition", def_id, domain, result)
+            self._track_physics_performance("formalize_textbook_definition", True, duration, domain.value)
+
+            return result
+
+        except Exception as e:
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_physics_alerts("formalize_textbook_definition", False, def_id, str(e))
+            self._track_physics_performance("formalize_textbook_definition", False, duration, domain.value)
+
+            logger.error(f"Physics formalization failed: {e}")
+            raise
 
     async def _extract_structure(self, definition: str) -> Dict[str, Any]:
         """Extract mathematical structure from definition"""
@@ -889,6 +933,118 @@ structure PhysicsStructure where
 """
 
         return code
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Physics Knowledge
+    # =========================================================================
+
+    def _trigger_physics_alerts(
+        self,
+        operation: str,
+        success: bool,
+        definition_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for physics knowledge failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Physics Knowledge Alert: {operation}",
+                    description=f"Physics Knowledge operation '{operation}' failed" +
+                                 (f" for definition '{definition_id}'" if definition_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="physics_knowledge_engine",
+                    component="physics_formalization",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Physics Knowledge alert: {e}")
+
+    def _extract_physics_knowledge(
+        self,
+        operation: str,
+        definition_id: str,
+        domain: 'PhysicsDomain',
+        result: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract physics knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"physics_{operation}_{definition_id}",
+                artifact_type="physics_formalization",
+                source_component="physics_knowledge_engine",
+                title=f"Physics: {operation} - {definition_id}",
+                content={
+                    "operation": operation,
+                    "definition_id": definition_id,
+                    "domain": domain.value if domain else "unknown",
+                    "structure_type": result.get("structure", {}).get("type") if result.get("structure") else None,
+                    "lean_code_length": len(result.get("lean_code", "")),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "original_definition": result.get("original", "")[:100]
+                },
+                tags=["physics", operation, domain.value if domain else "unknown", "lean4"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Physics knowledge for {definition_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Physics knowledge: {e}")
+            return False
+
+    def _track_physics_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        domain: str
+    ):
+        """**ACTUAL INTEGRATION**: Track physics knowledge performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"physics_{domain}_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "domain": domain
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Physics performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Physics performance: {e}")
 
 
 # ============================================================================

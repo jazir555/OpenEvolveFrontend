@@ -47,6 +47,25 @@ from abc import ABC, abstractmethod
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Universal Recomposition Engine
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 
 # ============================================================================
 # DATA CLASSES (Mirroring/Syncing with decomposition engine)
@@ -765,7 +784,7 @@ class UniversalRecompositionEngine:
     ) -> IntegratedSolution:
         """
         Assemble sub-solutions into integrated solution.
-        
+
         Args:
             plan: Decomposition plan
             sub_solutions: Dictionary mapping sub-problem IDs to solutions
@@ -773,80 +792,103 @@ class UniversalRecompositionEngine:
             detect_conflicts: Whether to detect conflicts
             resolve_conflicts: Whether to attempt conflict resolution
             min_quality_threshold: Minimum quality score for acceptance
-            
+
         Returns:
             IntegratedSolution with assembled content and metadata
         """
-        start_time = datetime.now()
-        self.logger.info(f"Starting assembly of {len(sub_solutions)} sub-solutions")
-        
-        # Filter to only include solutions for sub-problems in plan
-        valid_ids = {sp.id for sp in plan.sub_problems}
-        filtered_solutions = {
-            k: v for k, v in sub_solutions.items() 
-            if k in valid_ids
-        }
-        
-        # Detect conflicts
-        conflicts_detected = []
-        if detect_conflicts:
-            conflicts_detected = self.conflict_detector.detect_conflicts(
+        import time
+        start_time_total = time.time()
+        success = False
+        plan_id = plan.id
+
+        try:
+            start_time = datetime.now()
+            self.logger.info(f"Starting assembly of {len(sub_solutions)} sub-solutions")
+
+            # Filter to only include solutions for sub-problems in plan
+            valid_ids = {sp.id for sp in plan.sub_problems}
+            filtered_solutions = {
+                k: v for k, v in sub_solutions.items()
+                if k in valid_ids
+            }
+
+            # Detect conflicts
+            conflicts_detected = []
+            if detect_conflicts:
+                conflicts_detected = self.conflict_detector.detect_conflicts(
+                    filtered_solutions,
+                    plan.dependency_graph
+                )
+                self.logger.info(f"Detected {len(conflicts_detected)} conflicts")
+
+            # Resolve conflicts
+            conflicts_resolved = []
+            if resolve_conflicts and conflicts_detected:
+                filtered_solutions, unresolved = self.conflict_resolver.resolve_conflicts(
+                    conflicts_detected,
+                    filtered_solutions,
+                    strategy="priority"
+                )
+                conflicts_resolved = [c for c in conflicts_detected if c not in unresolved]
+                conflicts_detected = unresolved
+                self.logger.info(f"Resolved {len(conflicts_resolved)} conflicts, {len(conflicts_detected)} remain")
+
+            # Select and execute assembly strategy
+            strategy_class = self.STRATEGIES.get(strategy, AdaptiveAssembly)
+            strategy_instance = strategy_class()
+
+            assembled_content = strategy_instance.assemble(plan, filtered_solutions)
+
+            # Calculate quality metrics
+            quality_metrics = self._calculate_quality_metrics(
+                plan,
                 filtered_solutions,
-                plan.dependency_graph
+                assembled_content,
+                conflicts_detected
             )
-            self.logger.info(f"Detected {len(conflicts_detected)} conflicts")
-        
-        # Resolve conflicts
-        conflicts_resolved = []
-        if resolve_conflicts and conflicts_detected:
-            filtered_solutions, unresolved = self.conflict_resolver.resolve_conflicts(
-                conflicts_detected,
-                filtered_solutions,
-                strategy="priority"
+
+            # Create integrated solution
+            solution = IntegratedSolution(
+                solution_id=self._generate_id("sol"),
+                problem_id=plan.original_problem.id,
+                decomposition_plan_id=plan.id,
+                assembled_content=assembled_content,
+                assembly_strategy=strategy.value,
+                sub_solutions=filtered_solutions,
+                quality_metrics=quality_metrics,
+                conflicts_detected=conflicts_detected,
+                conflicts_resolved=conflicts_resolved,
+                assembly_log=[
+                    f"Strategy: {strategy.value}",
+                    f"Sub-solutions: {len(filtered_solutions)}",
+                    f"Conflicts detected: {len(conflicts_detected) + len(conflicts_resolved)}",
+                    f"Conflicts resolved: {len(conflicts_resolved)}",
+                    f"Quality score: {quality_metrics.overall_score:.2f}"
+                ]
             )
-            conflicts_resolved = [c for c in conflicts_detected if c not in unresolved]
-            conflicts_detected = unresolved
-            self.logger.info(f"Resolved {len(conflicts_resolved)} conflicts, {len(conflicts_detected)} remain")
-        
-        # Select and execute assembly strategy
-        strategy_class = self.STRATEGIES.get(strategy, AdaptiveAssembly)
-        strategy_instance = strategy_class()
-        
-        assembled_content = strategy_instance.assemble(plan, filtered_solutions)
-        
-        # Calculate quality metrics
-        quality_metrics = self._calculate_quality_metrics(
-            plan,
-            filtered_solutions,
-            assembled_content,
-            conflicts_detected
-        )
-        
-        # Create integrated solution
-        solution = IntegratedSolution(
-            solution_id=self._generate_id("sol"),
-            problem_id=plan.original_problem.id,
-            decomposition_plan_id=plan.id,
-            assembled_content=assembled_content,
-            assembly_strategy=strategy.value,
-            sub_solutions=filtered_solutions,
-            quality_metrics=quality_metrics,
-            conflicts_detected=conflicts_detected,
-            conflicts_resolved=conflicts_resolved,
-            assembly_log=[
-                f"Strategy: {strategy.value}",
-                f"Sub-solutions: {len(filtered_solutions)}",
-                f"Conflicts detected: {len(conflicts_detected) + len(conflicts_resolved)}",
-                f"Conflicts resolved: {len(conflicts_resolved)}",
-                f"Quality score: {quality_metrics.overall_score:.2f}"
-            ]
-        )
-        
-        self.assembly_history.append(solution)
-        
-        self.logger.info(f"Assembly complete: quality={quality_metrics.overall_score:.2f}")
-        
-        return solution
+
+            self.assembly_history.append(solution)
+
+            self.logger.info(f"Assembly complete: quality={quality_metrics.overall_score:.2f}")
+
+            success = True
+            duration = time.time() - start_time_total
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful assembly
+            self._extract_universal_recomp_knowledge("assemble", plan_id, strategy, solution)
+            self._track_universal_recomp_performance("assemble", True, duration, len(filtered_solutions))
+
+            return solution
+
+        except Exception as e:
+            duration = time.time() - start_time_total
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_universal_recomp_alerts("assemble", False, plan_id, str(e))
+            self._track_universal_recomp_performance("assemble", False, duration, 0)
+
+            self.logger.error(f"Assembly failed: {e}")
+            raise
     
     def _calculate_quality_metrics(
         self,
@@ -898,6 +940,123 @@ class UniversalRecompositionEngine:
     def get_assembly_history(self) -> List[IntegratedSolution]:
         """Get history of all assemblies"""
         return self.assembly_history.copy()
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Universal Recomposition
+    # =========================================================================
+
+    def _trigger_universal_recomp_alerts(
+        self,
+        operation: str,
+        success: bool,
+        plan_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for universal recomposition failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Universal Recomposition Alert: {operation}",
+                    description=f"Universal Recomposition operation '{operation}' failed" +
+                                 (f" for plan '{plan_id}'" if plan_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="universal_recomposition_engine",
+                    component="universal_recomposition",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            self.logger.error(f"Failed to trigger Universal Recomposition alert: {e}")
+
+    def _extract_universal_recomp_knowledge(
+        self,
+        operation: str,
+        plan_id: str,
+        strategy: 'AssemblyStrategy',
+        solution: 'IntegratedSolution'
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract universal recomposition knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"univ_recomp_{operation}_{plan_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="universal_recomposition_execution",
+                source_component="universal_recomposition_engine",
+                title=f"Universal Recomposition: {operation} - {plan_id}",
+                content={
+                    "operation": operation,
+                    "plan_id": plan_id,
+                    "assembly_strategy": strategy.value if strategy else "unknown",
+                    "num_sub_solutions": len(solution.sub_solutions),
+                    "quality_score": solution.quality_metrics.overall_score,
+                    "conflicts_detected": len(solution.conflicts_detected),
+                    "conflicts_resolved": len(solution.conflicts_resolved),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "solution_id": solution.solution_id,
+                    "completeness": solution.quality_metrics.completeness,
+                    "consistency": solution.quality_metrics.consistency,
+                    "coherence": solution.quality_metrics.coherence
+                },
+                tags=["universal_recomposition", operation, strategy.value if strategy else "unknown"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            self.logger.debug(f"Extracted Universal Recomposition knowledge for {plan_id}")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to extract Universal Recomposition knowledge: {e}")
+            return False
+
+    def _track_universal_recomp_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        num_sub_solutions: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track universal recomposition performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"univ_recomp_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "num_sub_solutions": num_sub_solutions
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                self.logger.debug(f"Tracked Universal Recomposition performance for {operation}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to track Universal Recomposition performance: {e}")
 
 
 # ============================================================================

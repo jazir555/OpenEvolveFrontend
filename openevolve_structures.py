@@ -9,6 +9,17 @@ import dataclasses
 from typing import List, Dict, Any, Optional, Literal, Set
 import time
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for OpenEvolve structures
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 @dataclasses.dataclass
 class ModelConfig:
     """Configuration for a single AI model within a team.

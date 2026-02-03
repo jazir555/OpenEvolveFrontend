@@ -20,6 +20,25 @@ from error_handler import (
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Evolution Engine
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 # Import team system components
 try:
     from red_team import RedTeam, RedTeamAssessment, IssueFinding, IssueCategory
@@ -534,6 +553,81 @@ try:
 except (ImportError, Exception):
     DTS_AVAILABLE = False
     logger.warning("DTS integration not available - using standard evolution strategies")
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Evolution Engine
+def _trigger_evolution_alerts(operation, success, evolution_id=None, error=None, metadata=None):
+    """Trigger alerts for evolution engine operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.HIGH if operation in ["run_evolution_loop", "run_comprehensive_evolution"] else AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"Evolution {operation} Failed",
+            message=f"Evolution operation '{operation}' failed: {error}",
+            severity=severity,
+            source="EvolutionEngine",
+            metadata=metadata or {"evolution_id": evolution_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger evolution alert: {e}")
+
+
+def _extract_evolution_knowledge(operation, evolution_id, config, result):
+    """Extract knowledge from evolution operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        artifact = KnowledgeArtifact(
+            artifact_id=f"evolution_{operation}_{evolution_id}",
+            artifact_type="evolution_execution",
+            source_component="EvolutionEngine",
+            content={
+                "operation": operation,
+                "evolution_id": evolution_id,
+                "evolution_mode": getattr(config, 'evolution_mode', 'unknown'),
+                "max_iterations": getattr(config, 'max_iterations', 0),
+                "population_size": getattr(config, 'population_size', 0),
+                "temperature": getattr(config, 'temperature', 0.0),
+                "best_score": result.get("best_score", 0.0) if result else 0.0,
+                "iterations_completed": result.get("iterations", 0) if result else 0,
+                "success": result.get("success", False) if result else False,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract evolution knowledge: {e}")
+
+
+def _track_evolution_performance(operation, success, duration_seconds, evolution_mode, iterations=0, score=0.0):
+    """Track performance of evolution operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name=f"evolution_{evolution_mode}",
+            component_name="EvolutionEngine",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "iterations": iterations,
+                "score": score,
+                "evolution_mode": evolution_mode
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track evolution performance: {e}")
 
 
 class ContentEvaluator:
@@ -1229,6 +1323,12 @@ def run_evolution_loop(
             )
             return adversarial_results.get("final_content", current_content)
 
+    # **ACTUAL INTEGRATION**: Add timing for evolution loop
+    import time
+    start_time_total = time.time()
+    success = False
+    evolution_id = f"evo_{hash(current_content) % 10000:04d}"
+
     try:
         # Prefer OpenEvolve when available - this is the main implementation now
         if OPENEVOLVE_AVAILABLE:
@@ -1384,15 +1484,15 @@ def run_evolution_loop(
                 final_content = result.get("best_code", current_content)
                 if not final_content:
                     final_content = current_content  # Fallback to original content if none returned
-                
+
                 # Update session state with thread safety
                 with st.session_state.thread_lock:
                     st.session_state.evolution_current_best = final_content
-                    
+
                     # Store comprehensive evolution metrics
                     if "evolution_metrics" not in st.session_state:
                         st.session_state.evolution_metrics = {}
-                    
+
                     st.session_state.evolution_metrics.update({
                         "best_score": result.get("best_score", 0.0),
                         "iterations_completed": result.get("iterations", 0),
@@ -1410,7 +1510,7 @@ def run_evolution_loop(
                             "transfer_learning": config.transfer_learning,
                         }
                     })
-                    
+
                 best_score = result.get("best_score", 0.0)
                 iterations = result.get("iterations", 0)
                 _update_evolution_log_and_status(
@@ -1422,6 +1522,12 @@ def run_evolution_loop(
                 _update_evolution_log_and_status(
                     f"🔧 Parameters utilized: {len([k for k, v in asdict(config).items() if v is not None])}/272"
                 )
+
+                # **ACTUAL INTEGRATION**: Extract knowledge and track performance on success
+                success = True
+                total_time = time.time() - start_time_total
+                _extract_evolution_knowledge("run_evolution_loop", evolution_id, config, result)
+                _track_evolution_performance("run_evolution_loop", True, total_time, config.evolution_mode, iterations, best_score)
                 
                 return final_content
             else:
@@ -1429,12 +1535,19 @@ def run_evolution_loop(
                 _update_evolution_log_and_status(
                     f"🤔 OpenEvolve {config.evolution_mode} evolution completed with no improvement: {error_msg}"
                 )
+                # **ACTUAL INTEGRATION**: Track failure but don't alert for no improvement (expected behavior)
+                total_time = time.time() - start_time_total
+                _track_evolution_performance("run_evolution_loop", False, total_time, config.evolution_mode, 0, 0.0)
                 return current_content
-                
+
         else:
             st.error("OpenEvolve not available. Please install and run the backend.")
             return current_content
     except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
+        total_time = time.time() - start_time_total
+        # **ACTUAL INTEGRATION**: Trigger alert and track failure
+        _trigger_evolution_alerts("run_evolution_loop", False, evolution_id, str(e), {"evolution_mode": getattr(config, 'evolution_mode', 'unknown')})
+        _track_evolution_performance("run_evolution_loop", False, total_time, getattr(config, 'evolution_mode', 'unknown'), 0, 0.0)
         _update_evolution_log_and_status(f"💥 Evolution loop failed: {e}")
         import traceback
         st.error(f"Full traceback: {traceback.format_exc()}")
@@ -2038,13 +2151,22 @@ def run_comprehensive_evolution(
         evolution_result["end_time"] = end_time
         evolution_result["total_duration"] = end_time - start_time
         evolution_result["success"] = True
-        
+
         # Log comprehensive results
         _update_evolution_log_and_status("✅ Comprehensive evolution completed successfully!")
         _update_evolution_log_and_status(f"⏱️ Total duration: {evolution_result['total_duration']:.2f}s")
         _update_evolution_log_and_status(f"🏆 Final fitness: {evolution_result['metrics']['final_fitness']:.4f}")
         _update_evolution_log_and_status(f"📈 Improvement: {evolution_result['metrics']['improvement_ratio']:.2%}")
-        
+
+        # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+        _extract_evolution_knowledge("run_comprehensive_evolution", operation_id, config, evolution_result)
+        _track_evolution_performance(
+            "run_comprehensive_evolution", True,
+            evolution_result["total_duration"], config.evolution_mode,
+            evolution_result["metrics"]["iterations_completed"],
+            evolution_result["metrics"]["final_fitness"]
+        )
+
         return evolution_result
         
     except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
@@ -2070,7 +2192,13 @@ def run_comprehensive_evolution(
         }
         evolution_result["end_time"] = time.time()
         evolution_result["total_duration"] = evolution_result["end_time"] - start_time
-        
+
+        # **ACTUAL INTEGRATION**: Trigger alert and track failure
+        _trigger_evolution_alerts("run_comprehensive_evolution", False, operation_id, error_info.message,
+                                  {"evolution_mode": config.evolution_mode, "content_type": content_type})
+        _track_evolution_performance("run_comprehensive_evolution", False, evolution_result["total_duration"],
+                                     config.evolution_mode, 0, 0.0)
+
         _update_evolution_log_and_status(f"💥 Comprehensive evolution failed: {error_info.message}")
         return evolution_result
 

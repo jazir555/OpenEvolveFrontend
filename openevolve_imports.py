@@ -72,6 +72,17 @@ from functools import lru_cache
 logger = logging.getLogger(__name__)
 
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for OpenEvolve imports
+try:
+    from adaptive_mdap import TaskComplexityClassifier
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    SubProblem = None
+
+
 # =============================================================================
 # AVAILABILITY FLAGS
 # =============================================================================

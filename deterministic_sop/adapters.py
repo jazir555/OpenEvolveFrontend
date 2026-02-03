@@ -33,11 +33,24 @@ try:
 except ImportError:
     Steerable = None
 
-# Layer 4: DSPy (Learning)
+# Layer 4: DSPy (Learning) - using global integration module for consistency
 try:
+    from dspy_integration import DSPY_AVAILABLE, get_global_dspy_instance, initialize_dspy
     import dspy
+    logger = logging.getLogger(__name__)
+    logger.info("DSPy available through global integration for enhanced programmatic prompting")
 except ImportError:
-    dspy = None
+    # Fallback to local import if global module not available
+    try:
+        import dspy
+        DSPY_AVAILABLE = True
+        logger = logging.getLogger(__name__)
+        logger.info("DSPy available for enhanced programmatic prompting")
+    except ImportError:
+        dspy = None
+        DSPY_AVAILABLE = False
+        logger = logging.getLogger(__name__)
+        logger.warning("DSPy not available - using standard prompting methods")
 
 # Layer 5: Knowledge Engine
 try:

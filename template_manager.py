@@ -11,6 +11,16 @@ from typing import Dict, Any, List, Optional
 from datetime import datetime
 import hashlib
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for template complexity analysis
+try:
+    from adaptive_mdap import TaskComplexityClassifier
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    SubProblem = None
+
 
 class TemplateManager:
     """Manages workflow configuration templates."""

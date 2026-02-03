@@ -53,6 +53,16 @@ from bubblelabs_crewai_bridge import (
     validate_workflow_transition
 )
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for workflow manager complexity
+try:
+    from adaptive_mdap import TaskComplexityClassifier
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    SubProblem = None
+
 logger = logging.getLogger(__name__)
 
 

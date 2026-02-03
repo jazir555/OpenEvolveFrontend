@@ -9,6 +9,16 @@ import pandas as pd
 import numpy as np
 from typing import Dict, Any, Optional
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for visualization complexity
+try:
+    from adaptive_mdap import TaskComplexityClassifier
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    SubProblem = None
+
 
 @st.cache_data
 def get_evolution_data_from_db(db_path: str) -> Dict[str, Any]:

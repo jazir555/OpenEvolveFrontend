@@ -20,6 +20,7 @@ import json
 import logging
 from typing import List, Dict, Any, Optional, Union
 from dataclasses import dataclass, asdict
+from datetime import datetime
 
 from session_utils import _hash_text
 # Import prompts with error handling
@@ -80,6 +81,25 @@ from evolution import EvolutionConfiguration
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Adversarial Testing System
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 @dataclass
 class AdversarialConfiguration:
@@ -259,6 +279,82 @@ except ImportError:
 
 MODEL_META_BY_ID: Dict[str, Dict[str, Any]] = {}
 MODEL_META_LOCK = threading.Lock()
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Adversarial Testing System
+def _trigger_adversarial_alerts(operation, success, test_id=None, error=None, metadata=None):
+    """Trigger alerts for adversarial testing operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.HIGH if operation in ["run_comprehensive_adversarial_testing", "run_ultimate_adversarial_testing"] else AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"Adversarial {operation} Failed",
+            message=f"Adversarial testing operation '{operation}' failed: {error}",
+            severity=severity,
+            source="AdversarialTesting",
+            metadata=metadata or {"test_id": test_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger adversarial alert: {e}")
+
+
+def _extract_adversarial_knowledge(operation, test_id, config, result):
+    """Extract knowledge from adversarial testing operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        artifact = KnowledgeArtifact(
+            artifact_id=f"adversarial_{operation}_{test_id}",
+            artifact_type="adversarial_testing_execution",
+            source_component="AdversarialTesting",
+            content={
+                "operation": operation,
+                "test_id": test_id,
+                "adversarial_rounds": getattr(config, 'adversarial_rounds', 0) if config else 0,
+                "attack_strength": getattr(config, 'attack_strength', 0.0) if config else 0.0,
+                "defense_strategy": getattr(config, 'defense_strategy', 'unknown') if config else 'unknown',
+                "red_team_sample_size": getattr(config, 'red_team_sample_size', 0) if config else 0,
+                "blue_team_sample_size": getattr(config, 'blue_team_sample_size', 0) if config else 0,
+                "final_robustness": result.get("final_robustness_score", 0.0) if result else 0.0,
+                "issues_found": result.get("total_issues_found", 0) if result else 0,
+                "success": result.get("success", False) if result else False,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract adversarial knowledge: {e}")
+
+
+def _track_adversarial_performance(operation, success, duration_seconds, defense_strategy, rounds_completed=0, robustness_score=0.0):
+    """Track performance of adversarial testing operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name=f"adversarial_{defense_strategy}",
+            component_name="AdversarialTesting",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "rounds_completed": rounds_completed,
+                "robustness_score": robustness_score,
+                "defense_strategy": defense_strategy
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track adversarial performance: {e}")
 
 
 def run_comprehensive_adversarial_testing(
@@ -585,21 +681,36 @@ def run_comprehensive_adversarial_testing(
         end_time = time.time()
         adversarial_result["end_time"] = end_time
         adversarial_result["total_duration"] = end_time - start_time
-        
+
         # Log comprehensive results
         _update_adv_log_and_status("✅ Comprehensive adversarial testing completed!")
         _update_adv_log_and_status(f"⏱️ Total duration: {adversarial_result['total_duration']:.2f}s")
         _update_adv_log_and_status(f"🛡️ Robustness score: {adversarial_result['metrics']['robustness_score']:.4f}")
         _update_adv_log_and_status(f"🔍 Vulnerabilities found: {adversarial_result['metrics']['vulnerability_count']}")
         _update_adv_log_and_status(f"🔧 Fixes applied: {adversarial_result['metrics']['fixes_applied']}")
-        
+
+        # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+        _extract_adversarial_knowledge("run_comprehensive_adversarial_testing", operation_id, config, adversarial_result)
+        _track_adversarial_performance(
+            "run_comprehensive_adversarial_testing", True,
+            adversarial_result["total_duration"], config.defense_strategy,
+            adversarial_result["metrics"]["total_rounds"],
+            adversarial_result["metrics"]["robustness_score"]
+        )
+
         return adversarial_result
         
     except (RuntimeError, ValueError, ConnectionError, TimeoutError) as e:
         adversarial_result["error"] = str(e)
         adversarial_result["end_time"] = time.time()
         adversarial_result["total_duration"] = adversarial_result["end_time"] - start_time
-        
+
+        # **ACTUAL INTEGRATION**: Trigger alert and track failure
+        _trigger_adversarial_alerts("run_comprehensive_adversarial_testing", False, operation_id, str(e),
+                                    {"content_type": content_type, "defense_strategy": getattr(config, 'defense_strategy', 'unknown')})
+        _track_adversarial_performance("run_comprehensive_adversarial_testing", False,
+                                       adversarial_result["total_duration"], getattr(config, 'defense_strategy', 'unknown'), 0, 0.0)
+
         _update_adv_log_and_status(f"💥 Comprehensive adversarial testing failed: {e}")
         logger.error(f"Adversarial testing error: {e}", exc_info=True)
         return adversarial_result

@@ -62,6 +62,20 @@ Z3_NODE_COLORS = {
     "entanglement_viz": "#E84393",
     "subproblem": "#81ECEC",
     "super_node": "#A29BFE",
+    # Additional bubbles
+    "adaptive_strategy": "#FD79A8",
+    "quality_assessment": "#00CEC9",
+    "knowledge_extraction": "#FAB1A0",
+    "metrics_analytics": "#74B9FF",
+    "cache": "#DFE6E9",
+    "agent_coordination": "#B2BEC3",
+    "error_handler": "#D63031",
+    "refinement": "#E17055",
+    "composition": "#00B894",
+    "validation": "#0984E3",
+    "parallelization": "#6C5CE7",
+    "convergence": "#FDCB6E",
+    "divergence": "#FF7675",
 }
 
 Z3_NODE_ICONS = {
@@ -76,6 +90,20 @@ Z3_NODE_ICONS = {
     "entanglement_viz": "🕸️",
     "subproblem": "📦",
     "super_node": "🔗",
+    # Additional bubbles
+    "adaptive_strategy": "🎯",
+    "quality_assessment": "📊",
+    "knowledge_extraction": "🧠",
+    "metrics_analytics": "📈",
+    "cache": "💾",
+    "agent_coordination": "🤝",
+    "error_handler": "🚨",
+    "refinement": "🔧",
+    "composition": "🧩",
+    "validation": "✅",
+    "parallelization": "⚡",
+    "convergence": "🎯",
+    "divergence": "⚠️",
 }
 
 
@@ -176,6 +204,123 @@ class SubProblemBubbleConfig:
     is_super_node: bool = False
     super_node_partner: Optional[str] = None
     
+
+@dataclass
+class AdaptiveStrategyBubbleConfig:
+    """Configuration for adaptive strategy selection bubble."""
+    problem_text: str
+    available_strategies: List[str] = field(default_factory=lambda: ["qd", "mo", "pes", "adversarial"])
+    selection_criteria: str = "auto"  # auto, performance, complexity, robustness
+    enable_fallback: bool = True
+    max_strategy_switches: int = 3
+
+
+@dataclass
+class QualityAssessmentBubbleConfig:
+    """Configuration for quality assessment bubble."""
+    problem_text: str
+    assessment_dimensions: List[str] = field(default_factory=lambda: ["correctness", "efficiency", "robustness", "elegance"])
+    threshold_mode: str = "adaptive"  # adaptive, strict, lenient
+    min_quality_score: float = 0.7
+
+
+@dataclass
+class KnowledgeExtractionBubbleConfig:
+    """Configuration for knowledge extraction bubble."""
+    solution_text: str
+    extraction_type: str = "patterns"  # patterns, constraints, heuristics, theorems
+    store_in_graph: bool = True
+    confidence_threshold: float = 0.8
+    max_patterns: int = 100
+
+
+@dataclass
+class MetricsAnalyticsBubbleConfig:
+    """Configuration for metrics and analytics bubble."""
+    metrics_types: List[str] = field(default_factory=lambda: ["time", "iterations", "quality", "diversity"])
+    track_historical: bool = True
+    aggregation_level: str = "detailed"  # minimal, standard, detailed
+    export_format: str = "json"  # json, csv, prometheus
+
+
+@dataclass
+class CacheBubbleConfig:
+    """Configuration for cache bubble."""
+    cache_key: str
+    cache_type: str = "memory"  # memory, disk, distributed
+    ttl_seconds: int = 3600
+    max_size_mb: int = 100
+    compression_enabled: bool = False
+
+
+@dataclass
+class AgentCoordinationBubbleConfig:
+    """Configuration for agent coordination bubble."""
+    agent_ids: List[str]
+    coordination_type: str = "hierarchical"  # hierarchical, peer, auction, consensus
+    task_distribution: str = "load_balanced"  # load_balanced, round_robin, priority
+    conflict_resolution: str = "voting"  # voting, arbitration, priority
+    sync_interval_ms: int = 100
+
+
+@dataclass
+class ErrorHandlerBubbleConfig:
+    """Configuration for error handler bubble."""
+    error_types: List[str] = field(default_factory=lambda: ["timeout", "validation", "resource"])
+    recovery_strategy: str = "retry"  # retry, fallback, skip, abort
+    max_retries: int = 3
+    escalation_threshold: int = 2
+    notify_on_escalation: bool = True
+
+
+@dataclass
+class RefinementBubbleConfig:
+    """Configuration for solution refinement bubble."""
+    solution_text: str
+    refinement_type: str = "iterative"  # iterative, adaptive, targeted
+    max_refinements: int = 5
+    convergence_check: bool = True
+    preserve_constraints: bool = True
+
+
+@dataclass
+class CompositionBubbleConfig:
+    """Configuration for solution composition bubble."""
+    sub_solutions: List[Dict[str, Any]]
+    composition_strategy: str = "merge"  # merge, override, weighted, voting
+    conflict_resolution: str = "consensus"  # consensus, priority, expert
+    validate_composition: bool = True
+
+
+@dataclass
+class ValidationBubbleConfig:
+    """Configuration for validation bubble."""
+    problem_text: str
+    solution_text: str
+    validation_type: str = "comprehensive"  # basic, comprehensive, formal
+    check_soundness: bool = True
+    check_completeness: bool = True
+    timeout_seconds: int = 60
+
+
+@dataclass
+class ParallelizationBubbleConfig:
+    """Configuration for parallelization bubble."""
+    tasks: List[Dict[str, Any]]
+    parallel_mode: str = "data"  # data, task, hybrid
+    max_workers: int = 4
+    load_balancing: bool = True
+    result_aggregation: str = "reduce"  # reduce, collect, scatter_gather
+
+
+@dataclass
+class ConvergenceDivergenceBubbleConfig:
+    """Configuration for convergence/divergence detection bubble."""
+    metric_history: List[Dict[str, Any]]
+    detection_type: str = "both"  # convergence, divergence, both
+    window_size: int = 10
+    threshold: float = 0.01
+    trend_analysis: bool = True
 
 # =============================================================================
 # Entanglement Matrix Utilities (compatible with utils/entanglement_utils)
@@ -742,6 +887,557 @@ def create_super_node_bubble(
     }
     
     logger.debug(f"Created super-node bubble: {bubble['id']}")
+    return bubble
+
+
+# =============================================================================
+# Additional Bubble Types
+# =============================================================================
+
+def create_adaptive_strategy_bubble(
+    config: AdaptiveStrategyBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create an adaptive strategy selection bubble.
+    
+    Automatically selects the best optimization strategy based on problem characteristics.
+    
+    Args:
+        config: AdaptiveStrategyBubbleConfig with strategy configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing an adaptive strategy bubble
+    """
+    position = position or {"x": 200, "y": 300}
+    icon = Z3_NODE_ICONS.get("adaptive_strategy", "🎯")
+    color = Z3_NODE_COLORS.get("adaptive_strategy", "#FD79A8")
+    label = label or f"{icon} Adaptive Strategy"
+    
+    bubble = {
+        "id": f"adaptive_strategy_{uuid.uuid4().hex[:8]}",
+        "type": "adaptive_strategy",
+        "position": position,
+        "data": {
+            "label": label,
+            "problem_text": config.problem_text,
+            "available_strategies": config.available_strategies,
+            "selection_criteria": config.selection_criteria,
+            "enable_fallback": config.enable_fallback,
+            "max_strategy_switches": config.max_strategy_switches,
+            "selected_strategy": None,
+            "strategy_history": [],
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created adaptive strategy bubble: {bubble['id']}")
+    return bubble
+
+
+def create_quality_assessment_bubble(
+    config: QualityAssessmentBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create a quality assessment bubble.
+    
+    Evaluates solution quality across multiple dimensions.
+    
+    Args:
+        config: QualityAssessmentBubbleConfig with assessment configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing a quality assessment bubble
+    """
+    position = position or {"x": 250, "y": 350}
+    icon = Z3_NODE_ICONS.get("quality_assessment", "📊")
+    color = Z3_NODE_COLORS.get("quality_assessment", "#00CEC9")
+    label = label or f"{icon} Quality Assessment"
+    
+    bubble = {
+        "id": f"quality_assessment_{uuid.uuid4().hex[:8]}",
+        "type": "quality_assessment",
+        "position": position,
+        "data": {
+            "label": label,
+            "problem_text": config.problem_text,
+            "assessment_dimensions": config.assessment_dimensions,
+            "threshold_mode": config.threshold_mode,
+            "min_quality_score": config.min_quality_score,
+            "scores": {},
+            "overall_score": 0.0,
+            "passed": False,
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created quality assessment bubble: {bubble['id']}")
+    return bubble
+
+
+def create_knowledge_extraction_bubble(
+    config: KnowledgeExtractionBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create a knowledge extraction bubble.
+    
+    Extracts patterns, constraints, and heuristics from solutions.
+    
+    Args:
+        config: KnowledgeExtractionBubbleConfig with extraction configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing a knowledge extraction bubble
+    """
+    position = position or {"x": 300, "y": 400}
+    icon = Z3_NODE_ICONS.get("knowledge_extraction", "🧠")
+    color = Z3_NODE_COLORS.get("knowledge_extraction", "#FAB1A0")
+    label = label or f"{icon} Knowledge Extraction"
+    
+    bubble = {
+        "id": f"knowledge_extraction_{uuid.uuid4().hex[:8]}",
+        "type": "knowledge_extraction",
+        "position": position,
+        "data": {
+            "label": label,
+            "solution_text": config.solution_text,
+            "extraction_type": config.extraction_type,
+            "store_in_graph": config.store_in_graph,
+            "confidence_threshold": config.confidence_threshold,
+            "max_patterns": config.max_patterns,
+            "extracted_patterns": [],
+            "extraction_count": 0,
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created knowledge extraction bubble: {bubble['id']}")
+    return bubble
+
+
+def create_metrics_analytics_bubble(
+    config: MetricsAnalyticsBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create a metrics and analytics bubble.
+    
+    Collects and aggregates workflow metrics.
+    
+    Args:
+        config: MetricsAnalyticsBubbleConfig with metrics configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing a metrics analytics bubble
+    """
+    position = position or {"x": 350, "y": 450}
+    icon = Z3_NODE_ICONS.get("metrics_analytics", "📈")
+    color = Z3_NODE_COLORS.get("metrics_analytics", "#74B9FF")
+    label = label or f"{icon} Metrics & Analytics"
+    
+    bubble = {
+        "id": f"metrics_analytics_{uuid.uuid4().hex[:8]}",
+        "type": "metrics_analytics",
+        "position": position,
+        "data": {
+            "label": label,
+            "metrics_types": config.metrics_types,
+            "track_historical": config.track_historical,
+            "aggregation_level": config.aggregation_level,
+            "export_format": config.export_format,
+            "metrics_data": {},
+            "historical_data": [],
+            "aggregates": {},
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created metrics analytics bubble: {bubble['id']}")
+    return bubble
+
+
+def create_cache_bubble(
+    config: CacheBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create a cache bubble.
+    
+    Manages caching of intermediate results.
+    
+    Args:
+        config: CacheBubbleConfig with cache configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing a cache bubble
+    """
+    position = position or {"x": 400, "y": 500}
+    icon = Z3_NODE_ICONS.get("cache", "💾")
+    color = Z3_NODE_COLORS.get("cache", "#DFE6E9")
+    label = label or f"{icon} Cache ({config.cache_type})"
+    
+    bubble = {
+        "id": f"cache_{uuid.uuid4().hex[:8]}",
+        "type": "cache",
+        "position": position,
+        "data": {
+            "label": label,
+            "cache_key": config.cache_key,
+            "cache_type": config.cache_type,
+            "ttl_seconds": config.ttl_seconds,
+            "max_size_mb": config.max_size_mb,
+            "compression_enabled": config.compression_enabled,
+            "hits": 0,
+            "misses": 0,
+            "cached_data": None,
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created cache bubble: {bubble['id']}")
+    return bubble
+
+
+def create_agent_coordination_bubble(
+    config: AgentCoordinationBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create an agent coordination bubble.
+    
+    Coordinates multiple agents in the workflow.
+    
+    Args:
+        config: AgentCoordinationBubbleConfig with coordination configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing an agent coordination bubble
+    """
+    position = position or {"x": 450, "y": 550}
+    icon = Z3_NODE_ICONS.get("agent_coordination", "🤝")
+    color = Z3_NODE_COLORS.get("agent_coordination", "#B2BEC3")
+    label = label or f"{icon} Agent Coordination"
+    
+    bubble = {
+        "id": f"agent_coordination_{uuid.uuid4().hex[:8]}",
+        "type": "agent_coordination",
+        "position": position,
+        "data": {
+            "label": label,
+            "agent_ids": config.agent_ids,
+            "coordination_type": config.coordination_type,
+            "task_distribution": config.task_distribution,
+            "conflict_resolution": config.conflict_resolution,
+            "sync_interval_ms": config.sync_interval_ms,
+            "agent_status": {},
+            "task_assignments": [],
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created agent coordination bubble: {bubble['id']}")
+    return bubble
+
+
+def create_error_handler_bubble(
+    config: ErrorHandlerBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create an error handler bubble.
+    
+    Handles and recovers from errors in the workflow.
+    
+    Args:
+        config: ErrorHandlerBubbleConfig with error handling configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing an error handler bubble
+    """
+    position = position or {"x": 500, "y": 600}
+    icon = Z3_NODE_ICONS.get("error_handler", "🚨")
+    color = Z3_NODE_COLORS.get("error_handler", "#D63031")
+    label = label or f"{icon} Error Handler"
+    
+    bubble = {
+        "id": f"error_handler_{uuid.uuid4().hex[:8]}",
+        "type": "error_handler",
+        "position": position,
+        "data": {
+            "label": label,
+            "error_types": config.error_types,
+            "recovery_strategy": config.recovery_strategy,
+            "max_retries": config.max_retries,
+            "escalation_threshold": config.escalation_threshold,
+            "notify_on_escalation": config.notify_on_escalation,
+            "error_count": 0,
+            "recovery_count": 0,
+            "escalation_count": 0,
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created error handler bubble: {bubble['id']}")
+    return bubble
+
+
+def create_refinement_bubble(
+    config: RefinementBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create a solution refinement bubble.
+    
+    Iteratively refines solutions to improve quality.
+    
+    Args:
+        config: RefinementBubbleConfig with refinement configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing a refinement bubble
+    """
+    position = position or {"x": 550, "y": 650}
+    icon = Z3_NODE_ICONS.get("refinement", "🔧")
+    color = Z3_NODE_COLORS.get("refinement", "#E17055")
+    label = label or f"{icon} Refinement"
+    
+    bubble = {
+        "id": f"refinement_{uuid.uuid4().hex[:8]}",
+        "type": "refinement",
+        "position": position,
+        "data": {
+            "label": label,
+            "solution_text": config.solution_text,
+            "refinement_type": config.refinement_type,
+            "max_refinements": config.max_refinements,
+            "convergence_check": config.convergence_check,
+            "preserve_constraints": config.preserve_constraints,
+            "current_refinement": 0,
+            "refined_solutions": [],
+            "converged": False,
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created refinement bubble: {bubble['id']}")
+    return bubble
+
+
+def create_composition_bubble(
+    config: CompositionBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create a solution composition bubble.
+    
+    Combines multiple sub-solutions into a complete solution.
+    
+    Args:
+        config: CompositionBubbleConfig with composition configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing a composition bubble
+    """
+    position = position or {"x": 600, "y": 700}
+    icon = Z3_NODE_ICONS.get("composition", "🧩")
+    color = Z3_NODE_COLORS.get("composition", "#00B894")
+    label = label or f"{icon} Composition"
+    
+    bubble = {
+        "id": f"composition_{uuid.uuid4().hex[:8]}",
+        "type": "composition",
+        "position": position,
+        "data": {
+            "label": label,
+            "sub_solutions": config.sub_solutions,
+            "composition_strategy": config.composition_strategy,
+            "conflict_resolution": config.conflict_resolution,
+            "validate_composition": config.validate_composition,
+            "composed_solution": None,
+            "conflicts": [],
+            "composition_valid": False,
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created composition bubble: {bubble['id']}")
+    return bubble
+
+
+def create_validation_bubble(
+    config: ValidationBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create a validation bubble.
+    
+    Validates solutions against problem requirements.
+    
+    Args:
+        config: ValidationBubbleConfig with validation configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing a validation bubble
+    """
+    position = position or {"x": 650, "y": 750}
+    icon = Z3_NODE_ICONS.get("validation", "✅")
+    color = Z3_NODE_COLORS.get("validation", "#0984E3")
+    label = label or f"{icon} Validation"
+    
+    bubble = {
+        "id": f"validation_{uuid.uuid4().hex[:8]}",
+        "type": "validation",
+        "position": position,
+        "data": {
+            "label": label,
+            "problem_text": config.problem_text,
+            "solution_text": config.solution_text,
+            "validation_type": config.validation_type,
+            "check_soundness": config.check_soundness,
+            "check_completeness": config.check_completeness,
+            "timeout_seconds": config.timeout_seconds,
+            "soundness_check": None,
+            "completeness_check": None,
+            "valid": False,
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created validation bubble: {bubble['id']}")
+    return bubble
+
+
+def create_parallelization_bubble(
+    config: ParallelizationBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create a parallelization bubble.
+    
+    Manages parallel execution of tasks.
+    
+    Args:
+        config: ParallelizationBubbleConfig with parallelization configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing a parallelization bubble
+    """
+    position = position or {"x": 700, "y": 800}
+    icon = Z3_NODE_ICONS.get("parallelization", "⚡")
+    color = Z3_NODE_COLORS.get("parallelization", "#6C5CE7")
+    label = label or f"{icon} Parallelization"
+    
+    bubble = {
+        "id": f"parallelization_{uuid.uuid4().hex[:8]}",
+        "type": "parallelization",
+        "position": position,
+        "data": {
+            "label": label,
+            "tasks": config.tasks,
+            "parallel_mode": config.parallel_mode,
+            "max_workers": config.max_workers,
+            "load_balancing": config.load_balancing,
+            "result_aggregation": config.result_aggregation,
+            "active_tasks": [],
+            "completed_tasks": [],
+            "results_aggregated": None,
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created parallelization bubble: {bubble['id']}")
+    return bubble
+
+
+def create_convergence_divergence_bubble(
+    config: ConvergenceDivergenceBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create a convergence/divergence detection bubble.
+    
+    Detects convergence (solutions improving) or divergence (solutions degrading).
+    
+    Args:
+        config: ConvergenceDivergenceBubbleConfig with detection configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing a convergence/divergence bubble
+    """
+    position = position or {"x": 750, "y": 850}
+    icon = Z3_NODE_ICONS.get("convergence", "🎯")
+    color = Z3_NODE_COLORS.get("convergence", "#FDCB6E")
+    label = label or f"{icon} Convergence/Divergence"
+    
+    bubble = {
+        "id": f"convergence_divergence_{uuid.uuid4().hex[:8]}",
+        "type": "convergence_divergence",
+        "position": position,
+        "data": {
+            "label": label,
+            "metric_history": config.metric_history,
+            "detection_type": config.detection_type,
+            "window_size": config.window_size,
+            "threshold": config.threshold,
+            "trend_analysis": config.trend_analysis,
+            "convergence_detected": False,
+            "divergence_detected": False,
+            "trend": None,
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created convergence/divergence bubble: {bubble['id']}")
     return bubble
 
 
@@ -1470,6 +2166,20 @@ __all__ = [
     'EntanglementVisualizationConfig',
     'SubProblemBubbleConfig',
     
+    # Additional config classes
+    'AdaptiveStrategyBubbleConfig',
+    'QualityAssessmentBubbleConfig',
+    'KnowledgeExtractionBubbleConfig',
+    'MetricsAnalyticsBubbleConfig',
+    'CacheBubbleConfig',
+    'AgentCoordinationBubbleConfig',
+    'ErrorHandlerBubbleConfig',
+    'RefinementBubbleConfig',
+    'CompositionBubbleConfig',
+    'ValidationBubbleConfig',
+    'ParallelizationBubbleConfig',
+    'ConvergenceDivergenceBubbleConfig',
+    
     # Builder definition classes
     'Z3BubbleDefinition',
     'Z3EdgeDefinition',
@@ -1479,17 +2189,33 @@ __all__ = [
     'serialize_entanglement_matrix_z3',
     'build_entanglement_from_subproblems',
     
-    # Bubble creation
+    # Core bubble creation
     'create_z3_solver_bubble',
     'create_z3_prover_bubble',
     'create_leanaide_proof_bubble',
     'create_cross_verification_bubble',
     'create_problem_classification_bubble',
     'create_z3_result_bubble',
+    
+    # Entanglement bubble creation
     'create_subproblem_loop_bubble',
     'create_entanglement_visualization_bubble',
     'create_subproblem_bubble',
     'create_super_node_bubble',
+    
+    # Additional bubble creation
+    'create_adaptive_strategy_bubble',
+    'create_quality_assessment_bubble',
+    'create_knowledge_extraction_bubble',
+    'create_metrics_analytics_bubble',
+    'create_cache_bubble',
+    'create_agent_coordination_bubble',
+    'create_error_handler_bubble',
+    'create_refinement_bubble',
+    'create_composition_bubble',
+    'create_validation_bubble',
+    'create_parallelization_bubble',
+    'create_convergence_divergence_bubble',
     
     # Edge creation
     'create_z3_edge',

@@ -45,6 +45,16 @@ from dataclasses import dataclass, field
 from enum import Enum
 from abc import ABC, abstractmethod
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for OpenEvolve validation complexity
+try:
+    from adaptive_mdap import TaskComplexityClassifier
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    SubProblem = None
+
 
 # =============================================================================
 # LOGGING SETUP

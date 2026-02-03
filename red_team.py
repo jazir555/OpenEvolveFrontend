@@ -42,19 +42,27 @@ except (ImportError, Exception):
     DTS_AVAILABLE = False
     logger.warning("DTS integration not available - using standard adversarial methods")
 
-# Import DSPy for enhanced prompting
+# Import DSPy through the global integration module for consistency
 try:
+    from dspy_integration import DSPY_AVAILABLE, get_global_dspy_instance, initialize_dspy
     import dspy
     from dspy.teleprompt import BootstrapFewShot
     from dspy.predict import Predict
-    DSPY_AVAILABLE = True
-    logger.info("DSPy available for enhanced programmatic prompting")
+    logger.info("DSPy available through global integration for enhanced programmatic prompting")
 except ImportError:
-    dspy = None
-    BootstrapFewShot = None
-    Predict = None
-    DSPY_AVAILABLE = False
-    logger.warning("DSPy not available - using standard prompting methods")
+    # Fallback to local import if global module not available
+    try:
+        import dspy
+        from dspy.teleprompt import BootstrapFewShot
+        from dspy.predict import Predict
+        DSPY_AVAILABLE = True
+        logger.info("DSPy available for enhanced programmatic prompting")
+    except ImportError:
+        dspy = None
+        BootstrapFewShot = None
+        Predict = None
+        DSPY_AVAILABLE = False
+        logger.warning("DSPy not available - using standard prompting methods")
 
 # Import Adaptive MDAP for intelligent resource allocation
 try:

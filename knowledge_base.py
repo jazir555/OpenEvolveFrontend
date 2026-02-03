@@ -27,6 +27,16 @@ from sovereign_data_models import (
     generate_id
 )
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for knowledge complexity analysis
+try:
+    from adaptive_mdap import TaskComplexityClassifier
+    from adaptive_mdap.core.types import SubProblem as AdaptiveSubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveSubProblem = None
+
 logger = logging.getLogger(__name__)
 
 

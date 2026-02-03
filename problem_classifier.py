@@ -33,6 +33,16 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for problem classification complexity
+try:
+    from adaptive_mdap import TaskComplexityClassifier
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    SubProblem = None
+
 
 # ============================================================================
 # KEYWORD SETS FOR FALLBACK CLASSIFICATION

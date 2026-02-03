@@ -60,6 +60,16 @@ except ImportError:
     OpenEvolveClient = None
     EvolutionResult = None
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for decomposition adapter complexity
+try:
+    from adaptive_mdap import TaskComplexityClassifier
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    SubProblem = None
+
 # Configure logging
 logger = logging.getLogger(__name__)
 

@@ -119,6 +119,25 @@ except ImportError as e:
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for STEER Context Engine
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 
 class SteerContextEngine:
     """
@@ -433,17 +452,25 @@ class SteerContextEngine:
     ) -> Dict[str, Any]:
         """
         Run multiple STEER verifications on agent output.
-        
+
         Args:
             output: The agent output to verify
             verifications: List of verification names to run
             **kwargs: Additional parameters for specific verifications
-            
+
         Returns:
             Dict with all verification results
         """
+        import time
+        start_time = time.time()
+        success = False
+        verification_id = f"steer_{int(time.time())}"
+
         with self._lock:
             if not STEER_AVAILABLE:
+                # **ACTUAL INTEGRATION**: Track degraded performance when STEER unavailable
+                self._track_steer_performance("run_all_verifications_steered_unavailable", True, time.time() - start_time, 0)
+
                 return {
                     "all_passed": True,
                     "results": [],
@@ -451,13 +478,33 @@ class SteerContextEngine:
                     "total_verifications": 0,
                     "passed_count": 0,
                 }
-            
+
             try:
                 # Call the MCP tool function
                 result = run_all_verifications(output, verifications, **kwargs)
-                
+
+                success = result.get("all_passed", False)
+                duration = time.time() - start_time
+                passed_count = result.get("passed_count", 0)
+
+                # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+                self._extract_steer_knowledge("run_all_verifications", verification_id, result)
+                self._track_steer_performance("run_all_verifications", success, duration, passed_count)
+
+                if not success:
+                    # **ACTUAL INTEGRATION**: Trigger alert for failed verifications
+                    failed_count = len(result.get("failed_verifications", []))
+                    self._trigger_steer_alerts("run_all_verifications", False, verification_id, f"{failed_count} verifications failed")
+
                 return result
+
             except Exception as e:
+                duration = time.time() - start_time
+
+                # **ACTUAL INTEGRATION**: Trigger alert and track failure
+                self._trigger_steer_alerts("run_all_verifications", False, verification_id, str(e))
+                self._track_steer_performance("run_all_verifications", False, duration, 0)
+
                 logger.error(f"All verifications failed: {e}")
                 return {
                     "all_passed": False,
@@ -588,6 +635,118 @@ class SteerContextEngine:
                 "function": verification_func
             }
             logger.info(f"Added custom rule: {rule_name}")
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for STEER Context
+    # =========================================================================
+
+    def _trigger_steer_alerts(
+        self,
+        operation: str,
+        success: bool,
+        verification_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for STEER verification failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                alert_manager.create_alert(
+                    title=f"STEER Context Alert: {operation}",
+                    description=f"STEER verification operation '{operation}' failed" +
+                                 (f" for verification '{verification_id}'" if verification_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="steer_context_engine",
+                    component="steer_verification",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger STEER Context alert: {e}")
+
+    def _extract_steer_knowledge(
+        self,
+        operation: str,
+        verification_id: str,
+        result: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract STEER verification knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"steer_{operation}_{verification_id}",
+                artifact_type="steer_verification",
+                source_component="steer_context_engine",
+                title=f"STEER Verification: {operation} - {verification_id}",
+                content={
+                    "operation": operation,
+                    "verification_id": verification_id,
+                    "all_passed": result.get("all_passed", False),
+                    "total_verifications": result.get("total_verifications", 0),
+                    "passed_count": result.get("passed_count", 0),
+                    "failed_verifications": len(result.get("failed_verifications", [])),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "steer_available": STEER_AVAILABLE
+                },
+                tags=["steer", operation, "verification", "reliability"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted STEER verification knowledge for {verification_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract STEER verification knowledge: {e}")
+            return False
+
+    def _track_steer_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        passed_count: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track STEER verification performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"steer_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "passed_count": passed_count
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked STEER verification performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track STEER verification performance: {e}")
 
 
 # Global instance for easy access
