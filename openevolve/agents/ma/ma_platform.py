@@ -18,6 +18,17 @@ try:
 except ImportError:
     LOONGFLOW_AVAILABLE = False
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based M&A diligence
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 from openevolve.agents.ma.schemas import (
     Deal,
     DealStage,
@@ -92,7 +103,189 @@ class MADealPlatform:
         self.integration = IntegrationPlanner(config=self.config.get("integration"))
         self.knowledge = DealKnowledgeManager(config=self.config.get("knowledge"))
 
-        logger.info(f"Initialized M&A Deal Platform (LoongFlow: {self.use_loongflow})")
+        # Initialize Adaptive MDAP components for complexity-based diligence
+        self._init_adaptive_mdap()
+
+        logger.info(f"Initialized M&A Deal Platform (LoongFlow: {self.use_loongflow}, "
+                    f"Adaptive MDAP: {ADAPTIVE_MDAP_AVAILABLE})")
+
+    def _init_adaptive_mdap(self) -> None:
+        """
+        Initialize Adaptive MDAP components for complexity-based resource allocation.
+        """
+        if ADAPTIVE_MDAP_AVAILABLE:
+            try:
+                self.complexity_classifier = TaskComplexityClassifier()
+                self.mdap_allocator = AdaptiveMDAPAllocator()
+                logger.info("Adaptive MDAP components initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Adaptive MDAP components: {e}")
+                self.complexity_classifier = None
+                self.mdap_allocator = None
+        else:
+            self.complexity_classifier = None
+            self.mdap_allocator = None
+            logger.debug("Adaptive MDAP not available - using standard diligence modes")
+
+    def classify_deal_complexity(self, deal_info: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Classify deal complexity using Adaptive MDAP TaskComplexityClassifier.
+
+        Args:
+            deal_info: Dictionary containing deal information such as:
+                - revenue: Target company revenue
+                - employees: Number of employees
+                - industry: Industry sector
+                - jurisdictions: Number of jurisdictions
+                - subsidiaries: Number of subsidiaries
+                - intellectual_property: IP portfolio complexity
+                - regulatory_exposure: Regulatory complexity level
+
+        Returns:
+            Dictionary with complexity classification results:
+                - overall_score: Numeric complexity score (0-1)
+                - level: Complexity level (low, medium, high)
+                - factors: Contributing complexity factors
+                - recommended_depth: Recommended diligence depth
+        """
+        if not ADAPTIVE_MDAP_AVAILABLE or self.complexity_classifier is None:
+            # Fallback to basic heuristic classification
+            return self._classify_complexity_heuristic(deal_info)
+
+        try:
+            # Create a SubProblem representation of the deal
+            deal_description = self._build_deal_description(deal_info)
+            subproblem = SubProblem(
+                id=f"deal_{deal_info.get('deal_id', 'unknown')}",
+                description=deal_description,
+                domain="ma_diligence",
+                depth=self._estimate_deal_depth(deal_info),
+                dependencies=[],
+                metadata=deal_info,
+            )
+
+            # Compute complexity using Adaptive MDAP
+            complexity_score = self.complexity_classifier.compute_complexity(subproblem)
+
+            # Map complexity score to diligence depth
+            complexity_level = self._map_score_to_level(complexity_score.overall_score)
+            recommended_depth = self._map_level_to_depth(complexity_level)
+
+            return {
+                "overall_score": complexity_score.overall_score,
+                "level": complexity_level,
+                "factors": complexity_score.factors if hasattr(complexity_score, 'factors') else {},
+                "recommended_depth": recommended_depth,
+                "confidence": getattr(complexity_score, 'confidence', 0.8),
+                "method": "adaptive_mdap",
+            }
+        except Exception as e:
+            logger.warning(f"Adaptive MDAP classification failed: {e}. Using fallback.")
+            return self._classify_complexity_heuristic(deal_info)
+
+    def _build_deal_description(self, deal_info: Dict[str, Any]) -> str:
+        """Build a descriptive string for the deal for complexity analysis."""
+        parts = []
+        if 'industry' in deal_info:
+            parts.append(f"Industry: {deal_info['industry']}")
+        if 'revenue' in deal_info:
+            parts.append(f"Revenue: ${deal_info['revenue']:,.0f}")
+        if 'employees' in deal_info:
+            parts.append(f"Employees: {deal_info['employees']}")
+        if 'subsidiaries' in deal_info:
+            parts.append(f"Subsidiaries: {deal_info['subsidiaries']}")
+        if 'jurisdictions' in deal_info:
+            parts.append(f"Jurisdictions: {deal_info['jurisdictions']}")
+        return "; ".join(parts) if parts else "M&A deal diligence"
+
+    def _estimate_deal_depth(self, deal_info: Dict[str, Any]) -> int:
+        """Estimate the depth/complexity of the deal on a scale of 1-5."""
+        depth = 1
+        if deal_info.get('revenue', 0) > 1_000_000_000:
+            depth += 2
+        elif deal_info.get('revenue', 0) > 100_000_000:
+            depth += 1
+        if deal_info.get('subsidiaries', 0) > 10:
+            depth += 1
+        if deal_info.get('jurisdictions', 0) > 3:
+            depth += 1
+        return min(depth, 5)
+
+    def _classify_complexity_heuristic(self, deal_info: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Fallback heuristic-based complexity classification.
+        Used when Adaptive MDAP is not available.
+        """
+        score = 0.0
+        factors = {}
+
+        # Revenue factor
+        revenue = deal_info.get('revenue', 0)
+        if revenue > 1_000_000_000:
+            score += 0.4
+            factors['revenue'] = 'high'
+        elif revenue > 100_000_000:
+            score += 0.2
+            factors['revenue'] = 'medium'
+        else:
+            factors['revenue'] = 'low'
+
+        # Subsidiaries factor
+        subsidiaries = deal_info.get('subsidiaries', 0)
+        if subsidiaries > 20:
+            score += 0.2
+            factors['subsidiaries'] = 'high'
+        elif subsidiaries > 5:
+            score += 0.1
+            factors['subsidiaries'] = 'medium'
+        else:
+            factors['subsidiaries'] = 'low'
+
+        # Jurisdictions factor
+        jurisdictions = deal_info.get('jurisdictions', 0)
+        if jurisdictions > 5:
+            score += 0.2
+            factors['jurisdictions'] = 'high'
+        elif jurisdictions > 2:
+            score += 0.1
+            factors['jurisdictions'] = 'medium'
+        else:
+            factors['jurisdictions'] = 'low'
+
+        # Regulatory exposure
+        if deal_info.get('regulatory_exposure') == 'high':
+            score += 0.2
+            factors['regulatory'] = 'high'
+        else:
+            factors['regulatory'] = 'low'
+
+        complexity_level = self._map_score_to_level(score)
+        return {
+            "overall_score": min(score, 1.0),
+            "level": complexity_level,
+            "factors": factors,
+            "recommended_depth": self._map_level_to_depth(complexity_level),
+            "confidence": 0.6,
+            "method": "heuristic_fallback",
+        }
+
+    def _map_score_to_level(self, score: float) -> str:
+        """Map a complexity score to a complexity level."""
+        if score < 0.33:
+            return "low"
+        elif score < 0.67:
+            return "medium"
+        else:
+            return "high"
+
+    def _map_level_to_depth(self, level: str) -> str:
+        """Map complexity level to diligence depth."""
+        depth_mapping = {
+            "low": "quick",
+            "medium": "standard",
+            "high": "comprehensive",
+        }
+        return depth_mapping.get(level, "standard")
 
     async def start_continuous_sourcing(self) -> None:
         """
@@ -142,17 +335,22 @@ class MADealPlatform:
     async def initiate_diligence(
         self,
         deal_id: str,
-        diligence_depth: str = "comprehensive",
+        diligence_depth: Optional[str] = None,
+        use_adaptive_classification: bool = True,
     ) -> DiligenceReport:
         """
-        Initiate due diligence phase for a deal
+        Initiate due diligence phase for a deal with adaptive resource allocation.
 
         Args:
             deal_id: Deal identifier
-            diligence_depth: Depth of diligence (quick, standard, comprehensive)
+            diligence_depth: Depth of diligence (quick, standard, comprehensive).
+                           If None and use_adaptive_classification is True,
+                           will be determined automatically based on deal complexity.
+            use_adaptive_classification: Whether to use Adaptive MDAP for
+                                        complexity-based depth selection
 
         Returns:
-            DiligenceReport: Generated diligence report
+            DiligenceReport: Generated diligence report with complexity metadata
         """
         if deal_id not in self.deals:
             raise ValueError(f"Deal {deal_id} not found")
@@ -162,7 +360,25 @@ class MADealPlatform:
         deal.updated_at = datetime.utcnow()
         self._update_pipeline(deal_id, DealStage.DILIGENCE)
 
-        logger.info(f"Initiating diligence for deal {deal_id}")
+        # Determine diligence depth using Adaptive MDAP if enabled and not explicitly set
+        complexity_info = None
+        if diligence_depth is None and use_adaptive_classification:
+            deal_info = self._extract_deal_info(deal)
+            complexity_info = self.classify_deal_complexity(deal_info)
+            diligence_depth = complexity_info["recommended_depth"]
+            logger.info(
+                f"Adaptive MDAP classified deal {deal_id} as {complexity_info['level']} "
+                f"complexity (score: {complexity_info['overall_score']:.2f}) - "
+                f"using {diligence_depth} diligence"
+            )
+        elif diligence_depth is None:
+            diligence_depth = "standard"  # Default fallback
+
+        # Store complexity info in deal metadata for later analysis
+        if complexity_info:
+            deal.metadata["complexity_classification"] = complexity_info
+
+        logger.info(f"Initiating {diligence_depth} diligence for deal {deal_id}")
 
         if self.use_loongflow:
             # Use LoongFlow to plan diligence approach
@@ -294,7 +510,38 @@ class MADealPlatform:
             structure=structure,
         )
 
+        # Enhance results with complexity classification if available
+        complexity_info = deal.metadata.get("complexity_classification")
+        if complexity_info:
+            valuation = self._enhance_with_complexity(valuation, complexity_info)
+            structure = self._enhance_with_complexity(structure, complexity_info)
+            integration_plan = self._enhance_with_complexity(integration_plan, complexity_info)
+
         return valuation, structure, integration_plan
+
+    def _extract_deal_info(self, deal) -> Dict[str, Any]:
+        """Extract deal information for complexity classification."""
+        target = deal.target_company
+        return {
+            "deal_id": deal.deal_id,
+            "industry": getattr(target, 'industry', 'unknown'),
+            "sector": getattr(target, 'sector', 'unknown'),
+            "revenue": getattr(target, 'revenue', 0),
+            "employees": getattr(target, 'employees', 0),
+            "subsidiaries": getattr(target, 'subsidiaries', 0),
+            "jurisdictions": getattr(target, 'jurisdictions', 1),
+            "regulatory_exposure": getattr(target, 'regulatory_exposure', 'low'),
+            "deal_size": deal.deal_size,
+            "priority": deal.priority.value if hasattr(deal.priority, 'value') else str(deal.priority),
+        }
+
+    def _enhance_with_complexity(self, result: Any, complexity_info: Dict[str, Any]) -> Any:
+        """Enhance a result object with complexity classification info."""
+        if hasattr(result, 'metadata'):
+            if result.metadata is None:
+                result.metadata = {}
+            result.metadata['deal_complexity'] = complexity_info
+        return result
 
     async def generate_recommendation(
         self,

@@ -25,6 +25,17 @@ from enum import Enum
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based gauntlet configuration
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 
 class GauntletRound(Enum):
     """Gauntlet round identifiers"""
@@ -333,6 +344,17 @@ class ThreeRoundGauntletOrchestrator:
         self.round2_evaluator = None
         self.round3_evaluator = None
 
+        # Initialize Adaptive MDAP components if available
+        self.complexity_classifier = None
+        self.mdap_allocator = None
+        if ADAPTIVE_MDAP_AVAILABLE:
+            try:
+                self.complexity_classifier = TaskComplexityClassifier()
+                self.mdap_allocator = AdaptiveMDAPAllocator()
+                logger.info("Adaptive MDAP components initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Adaptive MDAP components: {e}")
+
         self._initialize_evaluators()
 
     def _initialize_evaluators(self):
@@ -361,6 +383,69 @@ class ThreeRoundGauntletOrchestrator:
             logger.error(f"Failed to initialize evaluators: {e}", exc_info=True)
             raise
 
+    def classify_complexity(self, solution: str, problem: str, domain: str) -> float:
+        """
+        Classify solution complexity using Adaptive MDAP.
+
+        Args:
+            solution: Solution to evaluate
+            problem: Problem statement
+            domain: Problem domain
+
+        Returns:
+            Complexity score (0.0-1.0) where higher is more complex
+        """
+        if not ADAPTIVE_MDAP_AVAILABLE or self.complexity_classifier is None:
+            # Default: medium complexity
+            return 0.5
+
+        try:
+            # Create SubProblem-like object for classification
+            subproblem = {
+                'content': solution,
+                'problem': problem,
+                'domain': domain,
+                'metadata': {'source': 'gauntlet_evaluation'}
+            }
+            complexity_score = self.complexity_classifier.classify(subproblem)
+            logger.info(f"Classified complexity for domain={domain}: {complexity_score:.3f}")
+            return complexity_score
+        except Exception as e:
+            logger.warning(f"Complexity classification failed: {e}")
+            return 0.5
+
+    def get_adaptive_thresholds(self, complexity_score: float) -> Dict[str, float]:
+        """
+        Return thresholds based on complexity score.
+
+        Args:
+            complexity_score: Complexity score (0.0-1.0)
+
+        Returns:
+            Dictionary with round1_threshold, round2_threshold, round3_threshold
+        """
+        if complexity_score < 0.3:
+            # Low complexity: Lower thresholds (0.5, 0.6, 0.7)
+            return {
+                'round1_threshold': 0.5,
+                'round2_threshold': 0.6,
+                'round3_threshold': 0.7
+            }
+        elif complexity_score <= 0.7:
+            # Medium complexity: Standard thresholds (0.6, 0.7, 0.8)
+            return {
+                'round1_threshold': 0.6,
+                'round2_threshold': 0.7,
+                'round3_threshold': 0.8
+            }
+        else:
+            # High complexity: Higher thresholds (0.7, 0.8, 0.9)
+            return {
+                'round1_threshold': 0.7,
+                'round2_threshold': 0.8,
+                'round3_threshold': 0.9
+            }
+
     async def run_full_gauntlet(
         self,
         solution: str,
@@ -380,6 +465,26 @@ class ThreeRoundGauntletOrchestrator:
         """
         start_time = time.time()
         logger.info(f"Starting 3-round gauntlet for domain={domain}")
+
+        # Apply adaptive thresholds if Adaptive MDAP is available
+        if ADAPTIVE_MDAP_AVAILABLE and self.complexity_classifier is not None:
+            try:
+                complexity_score = self.classify_complexity(solution, problem, domain)
+                adaptive_thresholds = self.get_adaptive_thresholds(complexity_score)
+
+                # Update config with adaptive thresholds
+                self.config.round1_threshold = adaptive_thresholds['round1_threshold']
+                self.config.round2_threshold = adaptive_thresholds['round2_threshold']
+                self.config.round3_threshold = adaptive_thresholds['round3_threshold']
+
+                logger.info(
+                    f"Applied adaptive thresholds based on complexity={complexity_score:.3f}: "
+                    f"R1={self.config.round1_threshold}, "
+                    f"R2={self.config.round2_threshold}, "
+                    f"R3={self.config.round3_threshold}"
+                )
+            except Exception as e:
+                logger.warning(f"Failed to apply adaptive thresholds: {e}")
 
         # Initialize results
         round1_result = None

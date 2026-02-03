@@ -34,6 +34,17 @@ try:
 except ImportError:
     LLM_AVAILABLE = False
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for strategy recommendation v2
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 
 class EvolutionSystem(str, Enum):
     """Evolutionary systems"""
@@ -459,6 +470,17 @@ class StrategyRecommender:
         self.historical_runs: Dict[str, HistoricalRun] = {}
         self.recommendation_accuracy: List[float] = []
         self.domain_heuristics = self._init_domain_heuristics()
+        
+        # Initialize Adaptive MDAP components if available
+        self._complexity_classifier = None
+        self._mdap_allocator = None
+        if ADAPTIVE_MDAP_AVAILABLE:
+            try:
+                self._complexity_classifier = TaskComplexityClassifier()
+                self._mdap_allocator = AdaptiveMDAPAllocator()
+            except Exception:
+                # Fall back to None if initialization fails
+                pass
 
     def _init_domain_heuristics(self) -> Dict[str, Dict[str, Any]]:
         """Initialize domain-specific strategy heuristics"""
@@ -587,7 +609,29 @@ class StrategyRecommender:
         self.historical_runs[run_id] = historical
 
     def _assess_complexity(self, problem: str, constraints: Dict[str, Any]) -> str:
-        """Assess problem complexity"""
+        """Assess problem complexity using Adaptive MDAP when available, else fall back to keyword-based assessment."""
+        # Try Adaptive MDAP classifier first
+        if self._complexity_classifier is not None:
+            try:
+                # Create a subproblem-like structure for the classifier
+                subproblem_data = {
+                    "description": problem,
+                    "constraints": constraints.get("constraints", []),
+                    "objectives": constraints.get("objectives", []),
+                }
+                complexity_level = self._complexity_classifier.classify(subproblem_data)
+                # Map classifier output to ComplexityLevel
+                complexity_map = {
+                    "simple": ComplexityLevel.LOW,
+                    "moderate": ComplexityLevel.MEDIUM,
+                    "complex": ComplexityLevel.HIGH,
+                }
+                return complexity_map.get(complexity_level.lower(), ComplexityLevel.MEDIUM)
+            except Exception:
+                # Fall through to keyword-based assessment on error
+                pass
+        
+        # Fall back to keyword-based assessment
         high_complexity_keywords = [
             "optimize", "maximize", "minimize",
             "multi-objective", "tradeoff", "balance",

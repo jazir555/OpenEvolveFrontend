@@ -83,6 +83,17 @@ try:
 except ImportError:
     from integrations.mcp_gateway_integration import MCPGatewayIntegration
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based component routing
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 
 logger = logging.getLogger(__name__)
 
@@ -199,9 +210,13 @@ class KnowledgeEngineOrchestrator:
             'mcp_gateway': self.mcp_gateway
         }
         
+        # Initialize Adaptive MDAP components for complexity-based routing
+        self._init_adaptive_mdap()
+        
         logger.info({
             "msg": "KnowledgeEngineOrchestrator initialized",
             "components_count": len(self.components),
+            "adaptive_mdap_available": ADAPTIVE_MDAP_AVAILABLE,
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
     
@@ -278,6 +293,201 @@ class KnowledgeEngineOrchestrator:
             }
         }
     
+    def _init_adaptive_mdap(self):
+        """Initialize Adaptive MDAP components for complexity-based component routing."""
+        self.adaptive_mdap_available = ADAPTIVE_MDAP_AVAILABLE
+        self.complexity_classifier = None
+        self.adaptive_allocator = None
+        
+        if ADAPTIVE_MDAP_AVAILABLE:
+            try:
+                # Initialize Task Complexity Classifier
+                self.complexity_classifier = TaskComplexityClassifier()
+                
+                # Initialize Adaptive MDAP Allocator
+                self.adaptive_allocator = AdaptiveMDAPAllocator(
+                    config=self.config.get("adaptive_mdap", {})
+                )
+                
+                logger.info({
+                    "msg": "Adaptive MDAP components initialized successfully",
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+            except Exception as e:
+                logger.warning({
+                    "msg": "Failed to initialize Adaptive MDAP components",
+                    "error": str(e),
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+                self.adaptive_mdap_available = False
+    
+    def classify_query_complexity(
+        self,
+        query: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Classify query complexity using Adaptive MDAP TaskComplexityClassifier.
+        
+        Args:
+            query: The knowledge query to classify
+            context: Optional context information for classification
+            
+        Returns:
+            Dictionary with complexity score and classification details
+        """
+        if not self.adaptive_mdap_available or self.complexity_classifier is None:
+            # Fallback: classify based on simple heuristics
+            complexity_score = self._estimate_complexity_heuristic(query, context)
+            return {
+                "complexity_score": complexity_score,
+                "complexity_level": self._get_complexity_level(complexity_score),
+                "method": "heuristic_fallback",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        
+        try:
+            # Use Adaptive MDAP TaskComplexityClassifier
+            # Create a SubProblem-like structure for classification
+            subproblem = {
+                "description": query,
+                "context": context or {}
+            }
+            
+            classification_result = self.complexity_classifier.classify(subproblem)
+            
+            complexity_score = getattr(classification_result, 'complexity_score', 0.5)
+            
+            return {
+                "complexity_score": complexity_score,
+                "complexity_level": self._get_complexity_level(complexity_score),
+                "method": "adaptive_mdap",
+                "classification_details": classification_result,
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+        except Exception as e:
+            logger.warning({
+                "msg": "Adaptive MDAP classification failed, using fallback",
+                "error": str(e),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            })
+            complexity_score = self._estimate_complexity_heuristic(query, context)
+            return {
+                "complexity_score": complexity_score,
+                "complexity_level": self._get_complexity_level(complexity_score),
+                "method": "heuristic_fallback_after_error",
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+    
+    def _estimate_complexity_heuristic(
+        self,
+        query: str,
+        context: Optional[Dict[str, Any]] = None
+    ) -> float:
+        """
+        Estimate query complexity using heuristics when Adaptive MDAP is unavailable.
+        
+        Returns a complexity score between 0.0 and 1.0.
+        """
+        score = 0.0
+        
+        # Factor 1: Query length (longer queries tend to be more complex)
+        query_length = len(query)
+        if query_length > 1000:
+            score += 0.3
+        elif query_length > 500:
+            score += 0.2
+        elif query_length > 200:
+            score += 0.1
+        
+        # Factor 2: Presence of complex keywords
+        complex_keywords = [
+            "analyze", "compare", "synthesize", "evaluate", "critique",
+            "explain", "justify", "derive", "prove", "formalize",
+            "verify", "validate", "optimize", "architecture", "design",
+            "multi-step", "complex", "comprehensive", "detailed"
+        ]
+        query_lower = query.lower()
+        keyword_matches = sum(1 for kw in complex_keywords if kw in query_lower)
+        score += min(0.3, keyword_matches * 0.05)
+        
+        # Factor 3: Context complexity indicators
+        if context:
+            if context.get("requires_verification", False):
+                score += 0.15
+            if context.get("multi_domain", False):
+                score += 0.15
+            if context.get("temporal_analysis", False):
+                score += 0.1
+        
+        return min(1.0, max(0.0, score))
+    
+    def _get_complexity_level(self, score: float) -> str:
+        """Get complexity level string from score."""
+        if score < 0.3:
+            return "low"
+        elif score <= 0.7:
+            return "medium"
+        else:
+            return "high"
+    
+    def _select_components_by_complexity(
+        self,
+        complexity_score: float,
+        requested_components: Optional[List[str]] = None
+    ) -> List[str]:
+        """
+        Select components based on query complexity.
+        
+        Complexity-based component selection:
+        - Low (< 0.3): Use only fast components (ragbits, deepke)
+        - Medium (0.3-0.7): Use standard components (+ aikg, dspy)
+        - High (> 0.7): Use all available components
+        
+        Args:
+            complexity_score: The complexity score (0.0 to 1.0)
+            requested_components: Optional list of specifically requested components
+            
+        Returns:
+            List of component names to use
+        """
+        # If specific components were requested, use those
+        if requested_components is not None:
+            return [c for c in requested_components if c in self.components]
+        
+        # Define component groups by complexity level
+        low_complexity_components = ["ragbits", "deepke"]
+        medium_complexity_components = ["ragbits", "deepke", "aikg", "dspy", "oneke"]
+        high_complexity_components = list(self.components.keys())
+        
+        # Select components based on complexity score
+        if complexity_score < 0.3:
+            # Low complexity: fast components only
+            selected = [c for c in low_complexity_components if c in self.components]
+            logger.info({
+                "msg": "Selected low-complexity component set",
+                "complexity_score": complexity_score,
+                "components": selected
+            })
+        elif complexity_score <= 0.7:
+            # Medium complexity: standard components
+            selected = [c for c in medium_complexity_components if c in self.components]
+            logger.info({
+                "msg": "Selected medium-complexity component set",
+                "complexity_score": complexity_score,
+                "components": selected
+            })
+        else:
+            # High complexity: all components
+            selected = high_complexity_components
+            logger.info({
+                "msg": "Selected high-complexity component set (all components)",
+                "complexity_score": complexity_score,
+                "components": selected
+            })
+        
+        return selected
+    
     async def process_knowledge_request(
         self,
         query: str,
@@ -308,9 +518,21 @@ class KnowledgeEngineOrchestrator:
         })
         
         try:
-            # Use all components if none specified
+            # Classify query complexity using Adaptive MDAP
+            complexity_info = self.classify_query_complexity(query)
+            complexity_score = complexity_info["complexity_score"]
+            complexity_level = complexity_info["complexity_level"]
+            
+            # Select components based on complexity if none explicitly specified
             if components is None:
-                components = list(self.components.keys())
+                components = self._select_components_by_complexity(complexity_score)
+                logger.info({
+                    "msg": "Components selected based on query complexity",
+                    "complexity_score": complexity_score,
+                    "complexity_level": complexity_level,
+                    "selected_components": components,
+                    "correlation_id": correlation_id
+                })
             
             # Filter to only valid components
             valid_components = [c for c in components if c in self.components]
@@ -444,7 +666,7 @@ class KnowledgeEngineOrchestrator:
             
             processing_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             
-            # Create combined result
+            # Create combined result with complexity metadata
             combined_result = KnowledgeEngineResult(
                 success=success_count > 0,  # Success if at least one component succeeded
                 output=processed_results,
@@ -454,7 +676,12 @@ class KnowledgeEngineOrchestrator:
                     "components_invalid": invalid_components,
                     "successful_components": success_count,
                     "total_components": len(valid_components),
-                    "processing_time_ms": processing_time_ms
+                    "processing_time_ms": processing_time_ms,
+                    "complexity": {
+                        "score": complexity_score,
+                        "level": complexity_level,
+                        "classification_method": complexity_info.get("method", "unknown")
+                    }
                 },
                 processing_time_ms=processing_time_ms
             )

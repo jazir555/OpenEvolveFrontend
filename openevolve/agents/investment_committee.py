@@ -38,6 +38,17 @@ from openevolve.agents.investment.adversarial_tester import AdversarialTester
 from openevolve.agents.investment.math_verifier import MathVerifier
 from openevolve.agents.investment.knowledge_integrator import KnowledgeIntegrator
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based portfolio analysis
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 
 class PortfolioState:
     """Maintains the current state of the investment portfolio."""
@@ -188,6 +199,19 @@ class InvestmentCommitteeAgent:
         self.math_verifier = MathVerifier()
         self.knowledge_integrator = KnowledgeIntegrator(self.database_path)
 
+        # **ACTUAL INTEGRATION**: Initialize Adaptive MDAP components
+        self.adaptive_mdap_enabled = ADAPTIVE_MDAP_AVAILABLE
+        self.complexity_classifier: Optional[TaskComplexityClassifier] = None
+        self.resource_allocator: Optional[AdaptiveMDAPAllocator] = None
+        if self.adaptive_mdap_enabled:
+            try:
+                self.complexity_classifier = TaskComplexityClassifier()
+                self.resource_allocator = AdaptiveMDAPAllocator()
+                self.logger.info("Adaptive MDAP initialized successfully")
+            except Exception as e:
+                self.logger.warning(f"Failed to initialize Adaptive MDAP: {e}")
+                self.adaptive_mdap_enabled = False
+
         # Decision history
         self.decisions: List[InvestmentDecision] = []
         self.last_review = self.portfolio.last_rebalance
@@ -323,9 +347,172 @@ class InvestmentCommitteeAgent:
             "timestamp": datetime.utcnow().isoformat()
         }
 
+    def classify_position_complexity(
+        self,
+        position: Dict[str, Any],
+        market_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Classify the complexity of a portfolio position using Adaptive MDAP.
+
+        Args:
+            position: Position data with ticker, shares, value, etc.
+            market_context: Optional market context for the position
+
+        Returns:
+            Dictionary with complexity classification and resource allocation
+        """
+        if not self.adaptive_mdap_enabled or self.complexity_classifier is None:
+            # Fallback: use simple heuristic classification
+            return self._simple_complexity_classification(position, market_context)
+
+        try:
+            # Create SubProblem from position data
+            ticker = position.get("ticker", "unknown")
+            description = self._create_position_description(position, market_context)
+
+            subproblem = SubProblem(
+                id=f"position_{ticker}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+                description=description,
+                domain="finance",
+                depth=self._calculate_position_depth(position, market_context),
+                dependencies=[],
+                metadata={
+                    "ticker": ticker,
+                    "position_value": position.get("value", 0),
+                    "market_context": market_context or {}
+                }
+            )
+
+            # Compute complexity score
+            complexity = self.complexity_classifier.compute_complexity(subproblem)
+
+            # Allocate resources based on complexity
+            config = self.resource_allocator.allocate_resources(complexity.overall_score)
+
+            return {
+                "complexity_score": complexity.overall_score,
+                "complexity_tier": self._get_complexity_tier(complexity.overall_score),
+                "component_scores": {
+                    "text_length": complexity.text_length_score,
+                    "domain_rarity": complexity.domain_rarity_score,
+                    "depth": complexity.depth_score,
+                    "dependency": complexity.dependency_score,
+                },
+                "resource_allocation": {
+                    "strategy": config.strategy.value,
+                    "n_agents": config.n_agents,
+                    "k_ahead": config.k_ahead,
+                    "max_retries": config.max_retries,
+                },
+                "adaptive_enabled": True
+            }
+
+        except Exception as e:
+            self.logger.warning(f"Adaptive MDAP classification failed: {e}")
+            return self._simple_complexity_classification(position, market_context)
+
+    def _simple_complexity_classification(
+        self,
+        position: Dict[str, Any],
+        market_context: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """Simple heuristic-based complexity classification when Adaptive MDAP is unavailable."""
+        # Base complexity on position size and market volatility
+        position_value = position.get("value", 0)
+        portfolio_value = self.portfolio.total_value if self.portfolio.total_value > 0 else 1
+        allocation_pct = position_value / portfolio_value
+
+        # Higher allocation = higher complexity
+        if allocation_pct > 0.15:
+            complexity_score = 0.8
+            tier = "high"
+        elif allocation_pct > 0.08:
+            complexity_score = 0.5
+            tier = "medium"
+        else:
+            complexity_score = 0.3
+            tier = "low"
+
+        return {
+            "complexity_score": complexity_score,
+            "complexity_tier": tier,
+            "component_scores": {},
+            "resource_allocation": {
+                "strategy": "adaptive_fallback",
+                "n_agents": 3 if tier == "high" else (2 if tier == "medium" else 1),
+                "k_ahead": 1,
+                "max_retries": 2,
+            },
+            "adaptive_enabled": False
+        }
+
+    def _create_position_description(
+        self,
+        position: Dict[str, Any],
+        market_context: Optional[Dict[str, Any]] = None
+    ) -> str:
+        """Create a descriptive text for position complexity analysis."""
+        ticker = position.get("ticker", "unknown")
+        shares = position.get("shares", 0)
+        value = position.get("value", 0)
+
+        description = f"Analyze portfolio position in {ticker}: {shares} shares valued at ${value:,.2f}. "
+
+        if market_context:
+            volatility = market_context.get("volatility", 0)
+            sector = market_context.get("sector", "unknown")
+            description += f"Sector: {sector}. Volatility: {volatility:.2%}. "
+
+            # Add risk factors
+            risk_factors = market_context.get("risk_factors", [])
+            if risk_factors:
+                description += f"Risk factors: {', '.join(risk_factors)}. "
+
+        return description
+
+    def _calculate_position_depth(
+        self,
+        position: Dict[str, Any],
+        market_context: Optional[Dict[str, Any]] = None
+    ) -> int:
+        """Calculate the depth/complexity level for a position."""
+        depth = 1
+
+        if market_context:
+            # Increase depth for complex instruments
+            instrument_type = market_context.get("instrument_type", "stock")
+            if instrument_type in ["options", "futures", "derivatives"]:
+                depth += 2
+            elif instrument_type in ["bonds", "etfs"]:
+                depth += 1
+
+            # Increase for high volatility
+            if market_context.get("volatility", 0) > 0.3:
+                depth += 1
+
+            # Increase for multiple risk factors
+            risk_factors = market_context.get("risk_factors", [])
+            if len(risk_factors) > 2:
+                depth += 1
+
+        return min(depth, 5)  # Cap at 5
+
+    def _get_complexity_tier(self, score: float) -> str:
+        """Convert complexity score to tier label."""
+        if score >= 0.7:
+            return "high"
+        elif score >= 0.4:
+            return "medium"
+        return "low"
+
     async def _analysis_phase(self, review_data: Dict[str, Any]) -> Dict[str, Any]:
         """
         Analysis Phase: Apply multiple reasoning methods to analyze the situation.
+
+        Uses Adaptive MDAP for complexity-based resource scaling:
+        - Low complexity: Lighter analysis, fewer models
+        - High complexity: Deeper analysis, more models, extended verification
 
         Args:
             review_data: Data gathered from review phase
@@ -333,44 +520,76 @@ class InvestmentCommitteeAgent:
         Returns:
             Dictionary containing analysis results from all methods
         """
-        self.logger.info("Analysis Phase: Multi-method analysis")
+        self.logger.info("Analysis Phase: Multi-method analysis with Adaptive MDAP")
 
         results = {}
 
+        # **ACTUAL INTEGRATION**: Classify portfolio complexity for each position
+        position_complexities = {}
+        total_complexity_score = 0.0
+
+        for ticker, allocation in review_data["allocations"].items():
+            position_value = allocation * review_data["portfolio_value"] / 100
+            position = {"ticker": ticker, "value": position_value}
+            market_ctx = review_data.get("market_context", {}).get(ticker, {})
+
+            complexity_info = self.classify_position_complexity(position, market_ctx)
+            position_complexities[ticker] = complexity_info
+            total_complexity_score += complexity_info["complexity_score"]
+
+        # Calculate average portfolio complexity
+        avg_complexity = total_complexity_score / len(position_complexities) if position_complexities else 0.5
+        results["position_complexities"] = position_complexities
+        results["portfolio_complexity"] = {
+            "average_score": avg_complexity,
+            "tier": self._get_complexity_tier(avg_complexity),
+            "adaptive_enabled": self.adaptive_mdap_enabled
+        }
+
+        self.logger.info(f"  - Portfolio complexity: {avg_complexity:.2f} ({results['portfolio_complexity']['tier']})")
+
+        # Determine analysis depth based on complexity
+        analysis_depth = self._get_analysis_depth(avg_complexity)
+        results["analysis_config"] = analysis_depth
+
         # RLM Decomposition: Break down the problem
-        self.logger.info("  - RLM Decomposition")
+        self.logger.info(f"  - RLM Decomposition (depth: {analysis_depth['rlm_depth']})")
         results["rlm_decomposition"] = await self.rlm_decomposer.decompose(
             portfolio_state=review_data["allocations"],
             market_context=review_data["market_context"],
-            changes=review_data["changes"]
+            changes=review_data["changes"],
+            depth=analysis_depth["rlm_depth"]
         )
 
-        # ROMA Testing: Test investment hypotheses
-        self.logger.info("  - ROMA Hypothesis Testing")
+        # ROMA Testing: Test investment hypotheses with adaptive model count
+        self.logger.info(f"  - ROMA Hypothesis Testing (models: {analysis_depth['roma_models']})")
         results["roma_tests"] = await self.roma_tester.test_hypotheses(
             hypotheses=results["rlm_decomposition"]["hypotheses"],
             historical_data=await self.market_data.get_historical_data(
                 list(self.portfolio.holdings.keys()),
-                period="1y"
-            )
+                period=analysis_depth["historical_period"]
+            ),
+            max_models=analysis_depth["roma_models"]
         )
 
-        # Adversarial Challenge: Stress test the recommendations
-        self.logger.info("  - Adversarial Testing")
+        # Adversarial Challenge: Stress test with adaptive intensity
+        self.logger.info(f"  - Adversarial Testing (intensity: {analysis_depth['adversarial_intensity']})")
         results["adversarial_analysis"] = await self.adversarial_tester.challenge_recommendations(
             recommendations=results["roma_tests"]["recommendations"],
-            portfolio_state=review_data["allocations"]
+            portfolio_state=review_data["allocations"],
+            intensity=analysis_depth["adversarial_intensity"]
         )
 
-        # Mathematical Verification: Validate the math
-        self.logger.info("  - Mathematical Verification")
+        # Mathematical Verification: Validate with adaptive thoroughness
+        self.logger.info(f"  - Mathematical Verification (thoroughness: {analysis_depth['verification_level']})")
         results["math_verification"] = await self.math_verifier.verify_decision(
             recommendations=results["roma_tests"]["recommendations"],
             current_portfolio=review_data["allocations"],
             constraints={
                 "max_position_size": self.max_position_size,
                 "risk_tolerance": self.risk_tolerance
-            }
+            },
+            verification_level=analysis_depth["verification_level"]
         )
 
         # Use LoongFlow for advanced synthesis if enabled
@@ -379,6 +598,44 @@ class InvestmentCommitteeAgent:
             results["loongflow_synthesis"] = await self._loongflow_synthesis(results)
 
         return results
+
+    def _get_analysis_depth(self, complexity_score: float) -> Dict[str, Any]:
+        """
+        Determine analysis parameters based on portfolio complexity.
+
+        Low complexity: Lighter analysis, fewer models
+        High complexity: Deeper analysis, more models, extended verification
+        """
+        if complexity_score >= 0.7:
+            # High complexity: Deep analysis
+            return {
+                "rlm_depth": 5,
+                "roma_models": 5,
+                "historical_period": "3y",
+                "adversarial_intensity": "high",
+                "verification_level": "extended",
+                "description": "deep_analysis"
+            }
+        elif complexity_score >= 0.4:
+            # Medium complexity: Standard analysis
+            return {
+                "rlm_depth": 3,
+                "roma_models": 3,
+                "historical_period": "1y",
+                "adversarial_intensity": "medium",
+                "verification_level": "standard",
+                "description": "standard_analysis"
+            }
+        else:
+            # Low complexity: Light analysis
+            return {
+                "rlm_depth": 2,
+                "roma_models": 2,
+                "historical_period": "6m",
+                "adversarial_intensity": "low",
+                "verification_level": "basic",
+                "description": "light_analysis"
+            }
 
     async def _decision_phase(
         self,
@@ -404,7 +661,8 @@ class InvestmentCommitteeAgent:
         )
 
         if not needs_rebalance:
-            # Decision to hold
+            # Decision to hold - include complexity info
+            complexity_metadata = analysis_results.get("portfolio_complexity", {})
             return InvestmentDecision(
                 decision_id=f"decision_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
                 timestamp=datetime.utcnow(),
@@ -415,7 +673,10 @@ class InvestmentCommitteeAgent:
                 expected_outcome="Portfolio continues to track target allocations",
                 metadata={
                     "review_data": review_data,
-                    "analysis_summary": self._summarize_analysis(analysis_results)
+                    "analysis_summary": self._summarize_analysis(analysis_results),
+                    "complexity_analysis": complexity_metadata,
+                    "position_complexities": analysis_results.get("position_complexities", {}),
+                    "analysis_config": analysis_results.get("analysis_config", {})
                 }
             )
 
@@ -433,7 +694,8 @@ class InvestmentCommitteeAgent:
             reasoning = self._generate_reasoning(actions, analysis_results)
             confidence = self._calculate_confidence(actions, analysis_results)
 
-        # Create decision
+        # Create decision with complexity info
+        complexity_metadata = analysis_results.get("portfolio_complexity", {})
         decision = InvestmentDecision(
             decision_id=f"decision_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
             timestamp=datetime.utcnow(),
@@ -444,7 +706,10 @@ class InvestmentCommitteeAgent:
             expected_outcome=self._predict_outcome(actions, review_data),
             metadata={
                 "review_data": review_data,
-                "analysis_results": analysis_results
+                "analysis_results": analysis_results,
+                "complexity_analysis": complexity_metadata,
+                "position_complexities": analysis_results.get("position_complexities", {}),
+                "analysis_config": analysis_results.get("analysis_config", {})
             }
         )
 

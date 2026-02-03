@@ -34,6 +34,17 @@ try:
 except ImportError:
     LLM_AVAILABLE = False
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for strategy recommendation
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 
 class EvolutionSystem(str, Enum):
     """Evolutionary systems"""
@@ -464,6 +475,9 @@ class StrategyRecommender:
         self.historical_runs: Dict[str, HistoricalRun] = {}
         self.recommendation_accuracy: List[float] = []
         self.domain_heuristics = self._init_domain_heuristics()
+        
+        # Initialize Adaptive MDAP components if available
+        self._init_adaptive_mdap()
 
     def _init_domain_heuristics(self) -> Dict[str, Dict[str, Any]]:
         """Initialize domain-specific strategy heuristics"""
@@ -525,10 +539,65 @@ class StrategyRecommender:
         domain: str,
         constraints: Dict[str, Any]
     ) -> StrategyRecommendation:
-        """Basic strategy recommendation (override in subclass)"""
+        """
+        Basic strategy recommendation.
+        
+        Enhanced with Adaptive MDAP allocator for resource recommendations when available.
+        EnsembleStrategySelector provides the full ensemble implementation.
+        """
         # This is a minimal implementation
         # EnsembleStrategySelector provides the full implementation
         raise NotImplementedError("Use EnsembleStrategySelector for full functionality")
+    
+    def _get_adaptive_mdap_resource_recommendations(
+        self,
+        problem: str,
+        constraints: Dict[str, Any]
+    ) -> Optional[Dict[str, Any]]:
+        """
+        Get resource recommendations from Adaptive MDAP allocator.
+        
+        Returns allocation config with strategy, agent count, and quality estimates,
+        or None if Adaptive MDAP is not available.
+        """
+        if not ADAPTIVE_MDAP_AVAILABLE or self.adaptive_mdap_allocator is None:
+            return None
+        
+        try:
+            # Create SubProblem for resource allocation
+            subproblem = SubProblem(
+                id=f"resource_alloc_{hash(problem) & 0xFFFFFFFF}",
+                description=problem,
+                domain=constraints.get("domain", "general"),
+                depth=constraints.get("decomposition_depth", 0),
+                dependencies=constraints.get("dependencies", []),
+                metadata=constraints
+            )
+            
+            # Get complexity score first
+            if self.adaptive_mdap_classifier:
+                complexity = self.adaptive_mdap_classifier.compute_complexity(subproblem)
+                complexity_score = complexity.overall_score
+            else:
+                # Estimate from keyword assessment
+                complexity_level = self._assess_complexity_keyword_based(problem, constraints)
+                complexity_map = {ComplexityLevel.LOW: 0.25, ComplexityLevel.MEDIUM: 0.5, ComplexityLevel.HIGH: 0.75}
+                complexity_score = complexity_map.get(complexity_level, 0.5)
+            
+            # Allocate resources based on complexity (returns SolveConfig)
+            config = self.adaptive_mdap_allocator.allocate_resources(complexity_score)
+            
+            return {
+                "strategy": config.strategy.value if hasattr(config.strategy, 'value') else str(config.strategy),
+                "n_agents": config.n_agents,
+                "k_ahead": config.k_ahead,
+                "max_retries": config.max_retries,
+                "timeout_ms": config.timeout_ms,
+                "complexity_score": complexity_score
+            }
+        except Exception as e:
+            print(f"Adaptive MDAP resource recommendation failed: {e}")
+            return None
 
     async def analyze_problem_characteristics(
         self,
@@ -591,8 +660,74 @@ class StrategyRecommender:
 
         self.historical_runs[run_id] = historical
 
+    def _init_adaptive_mdap(self) -> None:
+        """Initialize Adaptive MDAP components if available."""
+        self.adaptive_mdap_classifier: Optional[Any] = None
+        self.adaptive_mdap_allocator: Optional[Any] = None
+        
+        if ADAPTIVE_MDAP_AVAILABLE:
+            try:
+                self.adaptive_mdap_classifier = TaskComplexityClassifier()
+                self.adaptive_mdap_allocator = AdaptiveMDAPAllocator()
+            except Exception as e:
+                # Log warning but don't fail initialization
+                print(f"Warning: Failed to initialize Adaptive MDAP components: {e}")
+                self.adaptive_mdap_classifier = None
+                self.adaptive_mdap_allocator = None
+    
     def _assess_complexity(self, problem: str, constraints: Dict[str, Any]) -> str:
-        """Assess problem complexity"""
+        """
+        Assess problem complexity.
+        
+        Uses Adaptive MDAP's TaskComplexityClassifier for more accurate complexity
+        assessment when available, falling back to keyword-based assessment otherwise.
+        """
+        # Try Adaptive MDAP first if available
+        if ADAPTIVE_MDAP_AVAILABLE and self.adaptive_mdap_classifier is not None:
+            try:
+                return self._assess_complexity_adaptive_mdap(problem, constraints)
+            except Exception as e:
+                # Fall back to keyword-based on any error
+                print(f"Adaptive MDAP complexity assessment failed: {e}, using fallback")
+        
+        # Fallback: keyword-based assessment
+        return self._assess_complexity_keyword_based(problem, constraints)
+    
+    def _assess_complexity_adaptive_mdap(self, problem: str, constraints: Dict[str, Any]) -> str:
+        """
+        Assess complexity using Adaptive MDAP's TaskComplexityClassifier.
+        
+        Returns complexity level that integrates with existing ComplexityLevel enum.
+        """
+        # Create a SubProblem for Adaptive MDAP
+        subproblem = SubProblem(
+            id=f"complexity_assessment_{hash(problem) & 0xFFFFFFFF}",
+            description=problem,
+            domain=constraints.get("domain", "general"),
+            depth=constraints.get("decomposition_depth", 0),
+            dependencies=constraints.get("dependencies", []),
+            metadata={
+                "constraints": constraints.get("constraints", []),
+                "objectives": constraints.get("objectives", []),
+                "success_criteria": constraints.get("success_criteria", [])
+            }
+        )
+        
+        # Compute complexity using Adaptive MDAP
+        complexity_score = self.adaptive_mdap_classifier.compute_complexity(subproblem)
+        overall_score = complexity_score.overall_score
+        
+        # Map Adaptive MDAP score (0.0-1.0) to ComplexityLevel enum
+        # Score thresholds: 0.0-0.33 = LOW, 0.33-0.66 = MEDIUM, 0.66-1.0 = HIGH
+        if overall_score < 0.33:
+            return ComplexityLevel.LOW
+        elif overall_score < 0.66:
+            return ComplexityLevel.MEDIUM
+        else:
+            return ComplexityLevel.HIGH
+    
+    def _assess_complexity_keyword_based(self, problem: str, constraints: Dict[str, Any]) -> str:
+        """Original keyword-based complexity assessment (fallback)."""
         high_complexity_keywords = [
             "optimize", "maximize", "minimize",
             "multi-objective", "tradeoff", "balance",

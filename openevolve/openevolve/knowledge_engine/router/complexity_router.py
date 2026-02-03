@@ -35,6 +35,17 @@ import re
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based model routing
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 
 class ModelTier(Enum):
     """Model tiers from fastest/cheapest to most capable"""
@@ -62,6 +73,35 @@ class ModelTier(Enum):
             'deep': 0.1
         }
         return costs.get(self.value, 0.1)
+
+
+def _map_adaptive_mdap_score_to_level(score: float) -> 'ComplexityLevel':
+    """
+    Map Adaptive MDAP complexity score (0-1) to ComplexityLevel enum.
+    
+    Mapping:
+    - score < 0.15: TRIVIAL
+    - score < 0.35: SIMPLE
+    - score < 0.60: MODERATE
+    - score < 0.85: COMPLEX
+    - score >= 0.85: DEEP
+    
+    Args:
+        score: Adaptive MDAP complexity score (0-1)
+        
+    Returns:
+        ComplexityLevel enum value
+    """
+    if score < 0.15:
+        return ComplexityLevel.TRIVIAL
+    elif score < 0.35:
+        return ComplexityLevel.SIMPLE
+    elif score < 0.60:
+        return ComplexityLevel.MODERATE
+    elif score < 0.85:
+        return ComplexityLevel.COMPLEX
+    else:
+        return ComplexityLevel.DEEP
 
 
 class ComplexityLevel(Enum):
@@ -107,6 +147,9 @@ class ComplexityAnalyzer:
     - Keyword indicators
     - Domain complexity
     - Required reasoning steps
+    
+    **ACTUAL INTEGRATION**: Uses Adaptive MDAP TaskComplexityClassifier when available,
+    with fallback to keyword-based analysis.
     """
     
     # Keywords indicating complexity
@@ -146,7 +189,54 @@ class ComplexityAnalyzer:
         'general': 1.0
     }
     
+    def __init__(self):
+        """
+        Initialize ComplexityAnalyzer.
+        
+        **ACTUAL INTEGRATION**: Uses TaskComplexityClassifier from Adaptive MDAP
+        when available for more accurate complexity computation.
+        """
+        self._adaptive_classifier: Optional[Any] = None
+        
+        if ADAPTIVE_MDAP_AVAILABLE and TaskComplexityClassifier is not None:
+            try:
+                self._adaptive_classifier = TaskComplexityClassifier()
+                logger.info("Adaptive MDAP TaskComplexityClassifier initialized")
+            except Exception as e:
+                logger.warning(f"Failed to initialize TaskComplexityClassifier: {e}")
+                self._adaptive_classifier = None
+    
     def analyze(self, query: str, domain: str = 'general') -> Tuple[float, ComplexityLevel]:
+        """
+        Analyze query complexity.
+        
+        **ACTUAL INTEGRATION**: Uses Adaptive MDAP TaskComplexityClassifier.compute_complexity()
+        when available, with fallback to keyword-based analysis.
+        
+        Args:
+            query: The query to analyze
+            domain: Domain context
+            
+        Returns:
+            Tuple of (complexity_score 0-1, complexity_level)
+        """
+        # **ACTUAL INTEGRATION**: Use Adaptive MDAP if available
+        if self._adaptive_classifier is not None:
+            try:
+                complexity_score = self._adaptive_classifier.compute_complexity(query)
+                complexity_level = _map_adaptive_mdap_score_to_level(complexity_score)
+                logger.debug({
+                    'msg': 'Used Adaptive MDAP for complexity analysis',
+                    'query': query[:50] + '...' if len(query) > 50 else query,
+                    'score': complexity_score,
+                    'level': complexity_level.name
+                })
+                return complexity_score, complexity_level
+            except Exception as e:
+                logger.warning(f"Adaptive MDAP analysis failed, falling back: {e}")
+                # Fall through to keyword-based analysis
+        
+        # Fallback: Keyword-based analysis
         """
         Analyze query complexity.
         
@@ -181,6 +271,25 @@ class ComplexityAnalyzer:
         complexity_level = self._score_to_level(complexity_score)
         
         return complexity_score, complexity_level
+    
+    def get_classifier_info(self) -> Dict[str, Any]:
+        """
+        Get information about the classifier being used.
+        
+        Returns:
+            Dictionary with classifier information
+        """
+        if self._adaptive_classifier is not None:
+            return {
+                'type': 'adaptive_mdap',
+                'available': True,
+                'classifier': 'TaskComplexityClassifier'
+            }
+        return {
+            'type': 'keyword_based',
+            'available': True,
+            'classifier': 'ComplexityAnalyzer (fallback)'
+        }
     
     def _analyze_keywords(self, query: str) -> float:
         """Analyze complexity based on keywords"""

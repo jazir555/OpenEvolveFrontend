@@ -29,6 +29,17 @@ from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based parallel evaluation
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 
 class RoundStatus(Enum):
     """Status of a gauntlet round"""
@@ -349,7 +360,26 @@ class MultiRoundGauntletOrchestrator:
         self._round2_evaluator = None
         self._round3_evaluator = None
 
+        # Initialize Adaptive MDAP components if available
+        self._adaptive_classifier: Optional[Any] = None
+        self._adaptive_allocator: Optional[Any] = None
+        self._init_adaptive_mdap()
+
         logger.info(f"MultiRoundGauntletOrchestrator initialized with config: {config.to_dict()}")
+
+    def _init_adaptive_mdap(self) -> None:
+        """Initialize Adaptive MDAP components for complexity-based parallel evaluation."""
+        if ADAPTIVE_MDAP_AVAILABLE:
+            try:
+                self._adaptive_classifier = TaskComplexityClassifier()
+                self._adaptive_allocator = AdaptiveMDAPAllocator()
+                logger.info("Adaptive MDAP components initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize Adaptive MDAP components: {e}")
+                self._adaptive_classifier = None
+                self._adaptive_allocator = None
+        else:
+            logger.debug("Adaptive MDAP not available - skipping initialization")
 
     async def initialize_gauntlet(
         self,
@@ -1303,6 +1333,105 @@ Last Round: {state.current_round}
 
         return metrics
 
+    def classify_complexity(
+        self,
+        solution: str,
+        problem: str,
+        domain: str
+    ) -> float:
+        """
+        Classify solution complexity using Adaptive MDAP.
+
+        Args:
+            solution: The solution to evaluate
+            problem: The problem statement
+            domain: The problem domain
+
+        Returns:
+            Complexity score (0.0 to 1.0), or 0.5 if Adaptive MDAP unavailable
+        """
+        if not ADAPTIVE_MDAP_AVAILABLE or self._adaptive_classifier is None:
+            logger.debug("Adaptive MDAP not available - returning default complexity")
+            return 0.5
+
+        try:
+            # Create a SubProblem for complexity classification
+            subproblem = SubProblem(
+                id=f"gauntlet-{domain}-{hash(solution) % 10000:04d}",
+                description=f"Problem: {problem}\nSolution: {solution[:500]}",
+                domain=domain,
+                depth=1,
+                dependencies=[],
+                metadata={"problem": problem, "solution_length": len(solution)}
+            )
+
+            # Compute complexity
+            complexity_score = self._adaptive_classifier.compute_complexity(subproblem)
+            overall_score = complexity_score.overall_score
+
+            logger.info(f"Classified complexity for {domain}: {overall_score:.3f}")
+            return overall_score
+
+        except Exception as e:
+            logger.warning(f"Complexity classification failed: {e}")
+            return 0.5
+
+    def get_adaptive_parallel_config(
+        self,
+        complexity_score: float
+    ) -> Dict[str, Any]:
+        """
+        Get parallel execution configuration based on complexity score.
+
+        Adjusts parallelism and timeouts based on complexity:
+        - Low complexity (< 0.3): Higher parallelism (8-10), shorter timeouts
+        - Medium complexity (0.3-0.7): Standard parallelism (5-7), standard timeouts
+        - High complexity (> 0.7): Lower parallelism (3-5), longer timeouts
+
+        Args:
+            complexity_score: Complexity score (0.0 to 1.0)
+
+        Returns:
+            Dictionary with parallel configuration
+        """
+        base_timeout = self.config.timeout_per_round
+        base_parallel = self.config.max_parallel_evaluations
+
+        if complexity_score < 0.3:
+            # Low complexity: higher parallelism, shorter timeouts
+            config = {
+                "parallelism": min(10, max(8, base_parallel + 3)),
+                "timeout": int(base_timeout * 0.7),  # 30% shorter
+                "complexity_tier": "low",
+                "complexity_score": complexity_score,
+                "strategy": "aggressive_parallel"
+            }
+        elif complexity_score < 0.7:
+            # Medium complexity: standard parallelism, standard timeouts
+            config = {
+                "parallelism": min(7, max(5, base_parallel)),
+                "timeout": base_timeout,
+                "complexity_tier": "medium",
+                "complexity_score": complexity_score,
+                "strategy": "standard_parallel"
+            }
+        else:
+            # High complexity: lower parallelism, longer timeouts
+            config = {
+                "parallelism": max(3, base_parallel - 2),
+                "timeout": int(base_timeout * 1.5),  # 50% longer
+                "complexity_tier": "high",
+                "complexity_score": complexity_score,
+                "strategy": "conservative_parallel"
+            }
+
+        logger.info(
+            f"Adaptive parallel config for complexity {complexity_score:.3f}: "
+            f"parallelism={config['parallelism']}, timeout={config['timeout']}s, "
+            f"strategy={config['strategy']}"
+        )
+        return config
+
     async def execute_round_parallel(
         self,
         round_num: int,
@@ -1312,7 +1441,8 @@ Last Round: {state.current_round}
         Execute a round with parallel evaluation where possible.
 
         This is most useful for Round 3 (Gold Team) where multiple judges
-        can evaluate independently in parallel.
+        can evaluate independently in parallel. Uses Adaptive MDAP for
+        complexity-based parallel configuration when available.
 
         Args:
             round_num: Round number
@@ -1324,6 +1454,31 @@ Last Round: {state.current_round}
         if not self.config.enable_parallel_execution:
             return await self.execute_round(round_num, state)
 
+        # Get adaptive parallel configuration if available
+        parallel_config = None
+        if ADAPTIVE_MDAP_AVAILABLE and self._adaptive_allocator is not None:
+            try:
+                complexity_score = self.classify_complexity(
+                    state.solution,
+                    state.problem,
+                    state.domain
+                )
+                parallel_config = self.get_adaptive_parallel_config(complexity_score)
+            except Exception as e:
+                logger.warning(f"Failed to get adaptive config: {e}")
+
+        # Use adaptive config or fall back to defaults
+        if parallel_config:
+            max_parallel = parallel_config["parallelism"]
+            timeout = parallel_config["timeout"]
+            logger.info(
+                f"Using Adaptive MDAP config: parallelism={max_parallel}, "
+                f"timeout={timeout}s (tier={parallel_config['complexity_tier']})"
+            )
+        else:
+            max_parallel = self.config.max_parallel_evaluations
+            timeout = self.config.timeout_per_round
+
         if round_num == 3 and self._round3_evaluator:
             # Gold Team can run multiple models in parallel
             logger.info("Executing Round 3 with parallel evaluation")
@@ -1332,18 +1487,25 @@ Last Round: {state.current_round}
                 # Get judge models from evaluator
                 judge_models = getattr(self._round3_evaluator, 'judge_models', ['default'])
 
-                # Create evaluation tasks
+                # Create evaluation tasks with adaptive parallelism
                 tasks = [
                     self._evaluate_with_single_judge(model, state)
-                    for model in judge_models[:self.config.max_parallel_evaluations]
+                    for model in judge_models[:max_parallel]
                 ]
 
-                # Execute in parallel
-                results = await asyncio.gather(*tasks, return_exceptions=True)
+                # Execute in parallel with adaptive timeout
+                results = await asyncio.wait_for(
+                    asyncio.gather(*tasks, return_exceptions=True),
+                    timeout=timeout
+                )
 
                 # Aggregate results
                 state = self._aggregate_gold_team_results(state, results)
 
+            except asyncio.TimeoutError:
+                logger.error(f"Parallel execution timed out after {timeout}s")
+                # Fall back to sequential execution
+                return await self.execute_round(round_num, state)
             except Exception as e:
                 logger.error(f"Parallel execution failed: {e}")
                 # Fall back to sequential execution

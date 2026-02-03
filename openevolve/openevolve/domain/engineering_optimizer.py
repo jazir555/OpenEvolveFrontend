@@ -32,6 +32,17 @@ from typing import Dict, Any, Optional, List
 from ..unified.config import UnifiedEvolutionConfig, EvolutionMode, DomainType, PESConfig, AdversarialConfig, LLMConfig, EvaluatorConfig, DatabaseConfig
 from .base import DomainOptimizer
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based simulation allocation
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 
 class EngineeringOptimizer(DomainOptimizer):
     """
@@ -53,12 +64,13 @@ class EngineeringOptimizer(DomainOptimizer):
 
     domain_name = "engineering"
 
-    def __init__(self, sub_domain: str = "general"):
+    def __init__(self, sub_domain: str = "general", use_adaptive_mdap: bool = True):
         """
         Initialize engineering optimizer
 
         Args:
             sub_domain: One of 'general', 'structural', 'circuit', 'control'
+            use_adaptive_mdap: Whether to use Adaptive MDAP for complexity-based allocation
         """
         super().__init__(sub_domain)
 
@@ -75,6 +87,15 @@ class EngineeringOptimizer(DomainOptimizer):
             sub_domain,
             self._general_config()
         )
+
+        # Initialize Adaptive MDAP if available
+        self.use_adaptive_mdap = use_adaptive_mdap and ADAPTIVE_MDAP_AVAILABLE
+        if self.use_adaptive_mdap:
+            self.complexity_classifier = TaskComplexityClassifier()
+            self.resource_allocator = AdaptiveMDAPAllocator(enable_learning=True)
+        else:
+            self.complexity_classifier = None
+            self.resource_allocator = None
 
     def get_recommended_system(self) -> str:
         """Hybrid: LoongFlow PES + Adversarial"""
@@ -97,9 +118,171 @@ class EngineeringOptimizer(DomainOptimizer):
             "thermal_performance"
         ]
 
+    def classify_complexity(self, problem: str, constraints: Optional[Dict[str, Any]] = None) -> Optional[Any]:
+        """
+        Classify problem complexity using Adaptive MDAP
+
+        Args:
+            problem: Problem description
+            constraints: Additional constraints
+
+        Returns:
+            Complexity result with overall_score (0-1) or None if Adaptive MDAP unavailable
+        """
+        if not self.use_adaptive_mdap:
+            return None
+
+        subproblem = SubProblem(
+            id=f"engineering_{hash(problem) % 10000}",
+            description=problem,
+            domain="engineering",
+            depth=0,
+            dependencies=[],
+            metadata={"constraints": constraints or {}, "sub_domain": self.sub_domain}
+        )
+        return self.complexity_classifier.compute_complexity(subproblem)
+
+    def get_adaptive_config(
+        self,
+        problem: str,
+        base_config: UnifiedEvolutionConfig,
+        constraints: Optional[Dict[str, Any]] = None
+    ) -> UnifiedEvolutionConfig:
+        """
+        Get configuration adjusted for problem complexity
+
+        Args:
+            problem: Problem description
+            base_config: Base configuration to adjust
+            constraints: Additional constraints
+
+        Returns:
+            Adjusted configuration
+        """
+        if not self.use_adaptive_mdap:
+            return base_config
+
+        # Classify complexity
+        complexity = self.classify_complexity(problem, constraints)
+        if complexity is None:
+            return base_config
+
+        # Get allocation based on complexity
+        allocation = self.resource_allocator.allocate_resources(complexity.overall_score)
+
+        # Create adjusted config
+        config = base_config.copy() if hasattr(base_config, 'copy') else base_config
+
+        # Adjust based on complexity score
+        score = complexity.overall_score
+
+        # Get sub-domain base iterations
+        base_iterations = {
+            "general": 100,
+            "circuit": 150,
+            "control": 200
+        }.get(self.sub_domain, 100)
+
+        # Adjust iterations and adversarial rounds based on complexity and strategy
+        if allocation.strategy == "DIRECT":
+            # Simple problems: fewer iterations, lighter adversarial testing
+            config.max_iterations = max(50, int(base_iterations * 0.5))
+            config.adversarial.adversarial_rounds = max(3, int(config.adversarial.adversarial_rounds * 0.5))
+            config.adversarial.robustness_threshold = 0.85  # Slightly lower threshold for simple problems
+        elif allocation.strategy == "MDAP_LIGHT":
+            # Light: moderate iterations, reduced adversarial rounds
+            config.max_iterations = max(75, int(base_iterations * 0.75))
+            config.adversarial.adversarial_rounds = max(5, int(config.adversarial.adversarial_rounds * 0.7))
+        elif allocation.strategy == "MDAP_MEDIUM":
+            # Medium: standard config (no change to iterations)
+            pass
+        elif allocation.strategy == "MAKER_FULL":
+            # Full: more iterations, thorough adversarial testing
+            config.max_iterations = max(base_iterations, int(base_iterations * 1.25))
+            config.adversarial.adversarial_rounds = int(config.adversarial.adversarial_rounds * 1.3)
+            config.adversarial.robustness_threshold = min(0.95, config.adversarial.robustness_threshold + 0.02)
+        elif allocation.strategy == "MAKER_ULTRA":
+            # Ultra: maximum iterations, extensive adversarial testing
+            config.max_iterations = int(base_iterations * 1.5)
+            config.adversarial.adversarial_rounds = int(config.adversarial.adversarial_rounds * 1.5)
+            config.adversarial.robustness_threshold = min(0.98, config.adversarial.robustness_threshold + 0.05)
+
+        # Adjust evaluation timeout based on complexity
+        if score > 0.7:
+            # High complexity: longer timeouts for thorough simulations
+            config.evaluator.timeout = min(1200, int(config.evaluator.timeout * 1.5))
+        elif score < 0.3:
+            # Low complexity: shorter timeouts for faster simulations
+            config.evaluator.timeout = max(120, int(config.evaluator.timeout * 0.7))
+
+        return config
+
     def get_default_config(self) -> UnifiedEvolutionConfig:
         """Get default engineering configuration"""
         return self._general_config()
+
+    async def optimize(
+        self,
+        problem: str,
+        constraints: Optional[Dict[str, Any]] = None,
+        use_adaptive: bool = True,
+        **kwargs
+    ) -> Dict[str, Any]:
+        """
+        Run optimization with Adaptive MDAP complexity-based configuration
+
+        Args:
+            problem: Problem description
+            constraints: Additional constraints
+            use_adaptive: Whether to use adaptive configuration (default: True)
+            **kwargs: Additional parameters
+
+        Returns:
+            Optimization result with domain-specific metrics and complexity info
+        """
+        # Get adaptive config if enabled
+        if use_adaptive and self.use_adaptive_mdap:
+            config = self.get_adaptive_config(problem, self.config, constraints)
+            complexity = self.classify_complexity(problem, constraints)
+        else:
+            config = self.config
+            complexity = None
+
+        # Import here to avoid circular dependency
+        from ..unified.api import evolve
+
+        # Run evolution with (possibly adaptive) config
+        result = await evolve(
+            problem_statement=problem,
+            config=config,
+            constraints=constraints,
+            **kwargs
+        )
+
+        # Add domain-specific evaluation
+        if result.get('best_solution'):
+            domain_metrics = self.evaluate_solution(
+                result['best_solution'],
+                problem,
+                constraints
+            )
+            result['domain_metrics'] = domain_metrics
+
+        # Add metadata
+        result['domain'] = self.domain_name
+        result['sub_domain'] = self.sub_domain
+        result['recommended_system'] = self.get_recommended_system()
+        result['recommended_mode'] = self.get_recommended_mode()
+
+        # Add complexity info if available
+        if complexity:
+            result['complexity'] = {
+                'overall_score': complexity.overall_score,
+                'features': complexity.features if hasattr(complexity, 'features') else {},
+                'adaptive_config_applied': use_adaptive and self.use_adaptive_mdap
+            }
+
+        return result
 
     # ========================================================================
     # SUB-DOMAIN CONFIGURATIONS
@@ -136,7 +319,7 @@ class EngineeringOptimizer(DomainOptimizer):
             ),
 
             # LLM configuration
-            llm=LlmConfig(
+            llm=LLMConfig(
                 temperature=0.6,
                 timeout=300,
                 retries=2

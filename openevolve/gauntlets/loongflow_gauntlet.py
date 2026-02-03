@@ -34,6 +34,17 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based PES evaluation
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 
 class LoongFlowGauntletConfig(BaseModel):
     """
@@ -260,6 +271,22 @@ class LoongFlowGauntletEvaluator:
             self.loongflow_adapter = None
             logger.warning("⚠️  LoongFlow adapter not available, using mock evaluation mode")
 
+        # Initialize Adaptive MDAP components if available
+        self.adaptive_mdap_available = ADAPTIVE_MDAP_AVAILABLE
+        self.task_classifier = None
+        self.mdap_allocator = None
+
+        if self.adaptive_mdap_available and TaskComplexityClassifier is not None:
+            try:
+                self.task_classifier = TaskComplexityClassifier()
+                self.mdap_allocator = AdaptiveMDAPAllocator()
+                logger.info("✅ Adaptive MDAP components initialized successfully")
+            except Exception as e:
+                logger.warning(f"⚠️  Adaptive MDAP initialization failed: {e}")
+                self.adaptive_mdap_available = False
+        else:
+            logger.info("ℹ️  Adaptive MDAP not available (optional dependency)")
+
     async def evaluate_solution(
         self,
         solution: str,
@@ -294,14 +321,27 @@ class LoongFlowGauntletEvaluator:
         start_time = time.time()
 
         try:
-            # Step 1: Quick PES assessment
-            logger.info(f"Starting LoongFlow evaluation for domain={domain}")
+            # Step 1: Classify complexity and get adaptive configuration
+            complexity_score = self.classify_complexity(solution, problem, domain)
+            adaptive_config = self.get_adaptive_evaluation_config(complexity_score)
+
+            logger.info(
+                f"Starting LoongFlow evaluation for domain={domain} "
+                f"(complexity={complexity_score:.2f}, {adaptive_config['description']})"
+            )
+
+            # Use adaptive configuration if available, otherwise use defaults
+            max_evaluations = adaptive_config["max_evaluations"] if self.adaptive_mdap_available else self.config.max_evaluations
+            evaluation_timeout = adaptive_config["evaluation_timeout"] if self.adaptive_mdap_available else self.config.evaluation_timeout
+            max_iterations = adaptive_config["max_iterations"] if self.adaptive_mdap_available else 10
 
             pes_result = await self.loongflow_adapter.evolve(
                 problem=problem,
                 domain=domain,
                 initial_code=solution,
-                max_iterations=10,  # Quick assessment
+                max_iterations=max_iterations,
+                timeout=evaluation_timeout,
+                max_evaluations=max_evaluations,
                 **kwargs
             )
 
@@ -383,6 +423,149 @@ class LoongFlowGauntletEvaluator:
                 timestamp=datetime.now(UTC),
                 artifacts={"error": str(e)}
             )
+
+    def classify_complexity(
+        self,
+        solution: str,
+        problem: str,
+        domain: str = "general"
+    ) -> float:
+        """
+        Classify solution complexity using Adaptive MDAP.
+
+        Analyzes the solution and problem to determine complexity score
+        (0.0 to 1.0). Higher scores indicate more complex problems.
+
+        Args:
+            solution: The solution code/program to evaluate
+            problem: Problem description/statement
+            domain: Problem domain (math, code, general, etc.)
+
+        Returns:
+            Complexity score between 0.0 and 1.0
+
+        Example:
+            >>> complexity = evaluator.classify_complexity(
+            ...     solution="def solve(): return optimal_solution",
+            ...     problem="Optimize the packing problem",
+            ...     domain="math"
+            ... )
+            >>> print(f"Complexity: {complexity:.2f}")
+        """
+        if not self.adaptive_mdap_available or self.task_classifier is None:
+            # Fallback: estimate complexity based on solution characteristics
+            return self._estimate_complexity_fallback(solution, problem, domain)
+
+        try:
+            # Create SubProblem-like object for complexity classification
+            subproblem = {
+                "id": f"gauntlet_{domain}_{hash(solution) & 0xFFFFFFFF}",
+                "name": f"Gauntlet Evaluation - {domain}",
+                "description": problem,
+                "domain": domain,
+                "solution_code": solution,
+            }
+
+            # Classify complexity
+            complexity_score = self.task_classifier.classify(subproblem)
+            logger.debug(f"Adaptive MDAP complexity score: {complexity_score:.3f}")
+            return complexity_score
+
+        except Exception as e:
+            logger.warning(f"Complexity classification failed: {e}. Using fallback.")
+            return self._estimate_complexity_fallback(solution, problem, domain)
+
+    def _estimate_complexity_fallback(
+        self,
+        solution: str,
+        problem: str,
+        domain: str = "general"
+    ) -> float:
+        """
+        Fallback complexity estimation when Adaptive MDAP unavailable.
+
+        Uses simple heuristics:
+        - Solution length (longer = more complex)
+        - Number of functions/classes
+        - Domain complexity
+        - Problem description length
+        """
+        complexity = 0.5  # Base complexity
+
+        # Adjust based on solution length
+        solution_lines = solution.splitlines()
+        if len(solution_lines) > 100:
+            complexity += 0.2
+        elif len(solution_lines) > 50:
+            complexity += 0.1
+        elif len(solution_lines) < 10:
+            complexity -= 0.2
+
+        # Count functions and classes
+        func_count = solution.count("def ")
+        class_count = solution.count("class ")
+        complexity += min(0.15, func_count * 0.03)
+        complexity += min(0.1, class_count * 0.05)
+
+        # Domain-based adjustments
+        domain_complexity = {
+            "math": 0.1,
+            "algorithm": 0.15,
+            "ml": 0.15,
+            "optimization": 0.1,
+            "code": 0.05,
+            "general": 0.0,
+        }
+        complexity += domain_complexity.get(domain.lower(), 0.0)
+
+        return max(0.0, min(1.0, complexity))
+
+    def get_adaptive_evaluation_config(
+        self,
+        complexity_score: float
+    ) -> Dict[str, Any]:
+        """
+        Get PES evaluation configuration based on complexity score.
+
+        Adjusts evaluation parameters based on complexity:
+        - Low complexity (< 0.3): Fewer evaluations (10-20), shorter timeout (15s)
+        - Medium complexity (0.3-0.7): Standard evaluations (50), standard timeout (30s)
+        - High complexity (> 0.7): More evaluations (75-100), longer timeout (45-60s)
+
+        Args:
+            complexity_score: Complexity score from 0.0 to 1.0
+
+        Returns:
+            Dictionary with adaptive configuration parameters
+
+        Example:
+            >>> config = evaluator.get_adaptive_evaluation_config(0.8)
+            >>> print(f"Max evals: {config['max_evaluations']}")
+        """
+        if complexity_score < 0.3:
+            # Low complexity: quick evaluation
+            return {
+                "max_evaluations": 20,
+                "evaluation_timeout": 15,
+                "max_iterations": 10,
+                "description": "Low complexity - quick evaluation",
+            }
+        elif complexity_score < 0.7:
+            # Medium complexity: standard evaluation
+            return {
+                "max_evaluations": 50,
+                "evaluation_timeout": 30,
+                "max_iterations": 25,
+                "description": "Medium complexity - standard evaluation",
+            }
+        else:
+            # High complexity: thorough evaluation
+            return {
+                "max_evaluations": 100,
+                "evaluation_timeout": 60,
+                "max_iterations": 40,
+                "description": "High complexity - thorough evaluation",
+            }
 
     async def evaluate_batch(
         self,

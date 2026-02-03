@@ -36,6 +36,17 @@ except ImportError:
 # Import unified evolution API
 from ..unified.unified_evolution_api import evolve
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based compliance monitoring
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 
 class CompliancePhase(Enum):
     """Compliance monitoring phases"""
@@ -123,7 +134,8 @@ class ComplianceMonitor:
         regulatory_sources: Optional[List[str]] = None,
         alert_threshold: AlertSeverity = AlertSeverity.MEDIUM,
         use_formal_verification: bool = True,
-        log_level: str = "INFO"
+        log_level: str = "INFO",
+        enable_adaptive_monitoring: bool = True
     ):
         """
         Initialize compliance monitor
@@ -135,6 +147,7 @@ class ComplianceMonitor:
             alert_threshold: Minimum severity for alerts
             use_formal_verification: Enable formal verification
             log_level: Logging level
+            enable_adaptive_monitoring: Enable Adaptive MDAP complexity-based monitoring
         """
         self.checkpoint_dir = Path(checkpoint_dir) if checkpoint_dir else Path("./checkpoints/compliance")
         self.checkpoint_dir.mkdir(parents=True, exist_ok=True)
@@ -143,9 +156,21 @@ class ComplianceMonitor:
         self.regulatory_sources = regulatory_sources or self._get_default_sources()
         self.alert_threshold = alert_threshold
         self.use_formal_verification = use_formal_verification
+        self.enable_adaptive_monitoring = enable_adaptive_monitoring and ADAPTIVE_MDAP_AVAILABLE
 
         # Setup logging
         self.logger = self._setup_logging(log_level)
+
+        # Initialize Adaptive MDAP components
+        if self.enable_adaptive_monitoring and TaskComplexityClassifier and AdaptiveMDAPAllocator:
+            self.complexity_classifier = TaskComplexityClassifier()
+            self.mdap_allocator = AdaptiveMDAPAllocator()
+            self.logger.info("Adaptive MDAP integration enabled for complexity-based compliance monitoring")
+        else:
+            self.complexity_classifier = None
+            self.mdap_allocator = None
+            if enable_adaptive_monitoring and not ADAPTIVE_MDAP_AVAILABLE:
+                self.logger.warning("Adaptive MDAP requested but not available. Install adaptive_mdap package.")
 
         # Initialize state management
         if LONG_HORIZON_AVAILABLE and StateManager:
@@ -181,6 +206,29 @@ class ComplianceMonitor:
         self.state = ComplianceState()
         self._running = False
         self._current_phase = CompliancePhase.MONITOR
+
+        # Adaptive monitoring state
+        self._current_complexity = None
+        self._adaptive_config = {
+            'low_complexity': {
+                'scan_interval_factor': 1.0,
+                'verification_depth': 'light',
+                'rule_evolution_depth': 'standard',
+                'edge_case_limit': 10
+            },
+            'medium_complexity': {
+                'scan_interval_factor': 0.75,
+                'verification_depth': 'standard',
+                'rule_evolution_depth': 'enhanced',
+                'edge_case_limit': 25
+            },
+            'high_complexity': {
+                'scan_interval_factor': 0.5,
+                'verification_depth': 'deep',
+                'rule_evolution_depth': 'extended',
+                'edge_case_limit': 50
+            }
+        }
 
         # Load previous state if available
         self._load_state()
@@ -308,6 +356,13 @@ class ComplianceMonitor:
         # Scan regulatory sources
         regulatory_changes = await self.ingestor.scan_sources()
 
+        # Classify complexity of regulatory changes for adaptive monitoring
+        if regulatory_changes and self.enable_adaptive_monitoring:
+            for change in regulatory_changes:
+                complexity = self.classify_regulatory_complexity(change)
+                change['complexity'] = complexity
+                self.logger.info(f"Regulatory change '{change.get('id', 'unknown')}' classified as {complexity}")
+
         # Scan internal systems for violations
         internal_violations = await self._scan_internal_systems()
 
@@ -394,29 +449,37 @@ class ComplianceMonitor:
             return {}
 
     async def _evolve_phase(self):
-        """Evolve rule sets using LoongFlow PES"""
+        """Evolve rule sets using LoongFlow PES with adaptive resource allocation"""
         self._current_phase = CompliancePhase.EVOLVE
         self.logger.info("Phase 3: Evolving rule sets")
 
         # Get current rules and required changes
         changes = await self.ingestor.get_changes()
 
-        # Evolve rules using PES
+        # Determine adaptive configuration based on complexity
+        adaptive_config = self._get_adaptive_config()
+
+        # Evolve rules using PES with adaptive depth
         evolved_rules = await self.evolver.evolve_rules(
             current_rules=self.state.current_rules,
-            regulatory_changes=changes
+            regulatory_changes=changes,
+            evolution_depth=adaptive_config.get('rule_evolution_depth', 'standard')
         )
 
-        # Discover edge cases
+        # Discover edge cases with adaptive limits
         edge_cases = await self.edge_discovery.discover_cases(
-            rules=evolved_rules
+            rules=evolved_rules,
+            max_cases=adaptive_config.get('edge_case_limit', 25)
         )
 
         self.state.edge_cases_found.extend(edge_cases)
 
-        # Verify rules
+        # Verify rules with adaptive depth
         if self.use_formal_verification:
-            verification_result = await self.verifier.verify_rules(evolved_rules)
+            verification_result = await self.verifier.verify_rules(
+                evolved_rules,
+                verification_depth=adaptive_config.get('verification_depth', 'standard')
+            )
             self.logger.info(f"Verification result: {verification_result}")
 
         # Update state
@@ -500,17 +563,19 @@ class ComplianceMonitor:
             'rule_versions': len(self.state.rule_history),
             'last_phase': self._current_phase.value,
             'uptime_hours': (datetime.utcnow() - self.state.last_scan_time).total_seconds() / 3600
-            if self.state.last_scan_time else 0
+            if self.state.last_scan_time else 0,
+            'adaptive_monitoring_enabled': self.enable_adaptive_monitoring,
+            'current_complexity': self._current_complexity
         })
 
     async def get_compliance_report(self) -> Dict[str, Any]:
         """
-        Generate comprehensive compliance report
+        Generate comprehensive compliance report with complexity information
 
         Returns:
-            Compliance report with metrics, alerts, and recommendations
+            Compliance report with metrics, alerts, complexity info, and recommendations
         """
-        return {
+        report = {
             'timestamp': datetime.utcnow().isoformat(),
             'regulatory_version': self.state.regulatory_version,
             'last_scan': self.state.last_scan_time.isoformat() if self.state.last_scan_time else None,
@@ -521,6 +586,20 @@ class ComplianceMonitor:
             'current_rules': self.state.current_rules,
             'recommendations': await self._generate_recommendations()
         }
+
+        # Add Adaptive MDAP complexity information
+        if self.enable_adaptive_monitoring:
+            report['complexity_analysis'] = {
+                'adaptive_monitoring_enabled': True,
+                'current_complexity': self._current_complexity,
+                'adaptive_configuration': self._get_adaptive_config() if self._current_complexity else None
+            }
+        else:
+            report['complexity_analysis'] = {
+                'adaptive_monitoring_enabled': False
+            }
+
+        return report
 
     async def _generate_recommendations(self) -> List[str]:
         """Generate compliance recommendations"""
@@ -574,8 +653,177 @@ class ComplianceMonitor:
         await self._alert_phase()
         self._save_state()
 
+    def classify_regulatory_complexity(self, regulatory_change: Dict[str, Any]) -> str:
+        """
+        Classify the complexity of a regulatory change using TaskComplexityClassifier
+
+        Args:
+            regulatory_change: Dictionary containing regulatory change details
+
+        Returns:
+            Complexity level: 'low', 'medium', or 'high'
+        """
+        if not self.enable_adaptive_monitoring or not self.complexity_classifier:
+            # Fallback to simple heuristics
+            return self._classify_complexity_heuristic(regulatory_change)
+
+        try:
+            # Convert regulatory change to SubProblem for classification
+            subproblem = self._regulatory_change_to_subproblem(regulatory_change)
+
+            # Use TaskComplexityClassifier to determine complexity
+            complexity_result = self.complexity_classifier.classify(subproblem)
+
+            # Map to standardized complexity levels
+            if complexity_result.complexity_score <= 0.33:
+                complexity = 'low'
+            elif complexity_result.complexity_score <= 0.66:
+                complexity = 'medium'
+            else:
+                complexity = 'high'
+
+            # Update current complexity tracking
+            self._current_complexity = complexity
+
+            return complexity
+
+        except Exception as e:
+            self.logger.warning(f"Adaptive complexity classification failed: {e}. Using heuristics.")
+            return self._classify_complexity_heuristic(regulatory_change)
+
+    def _regulatory_change_to_subproblem(self, regulatory_change: Dict[str, Any]) -> Any:
+        """
+        Convert a regulatory change to a SubProblem for Adaptive MDAP
+
+        Args:
+            regulatory_change: Regulatory change dictionary
+
+        Returns:
+            SubProblem instance
+        """
+        if SubProblem is None:
+            return None
+
+        # Extract features from regulatory change
+        description = regulatory_change.get('description', '')
+        scope = regulatory_change.get('scope', 'unknown')
+        affected_systems = regulatory_change.get('affected_systems', [])
+        rule_count = len(regulatory_change.get('rules', []))
+
+        # Calculate estimated difficulty based on scope and affected systems
+        difficulty = self._estimate_difficulty(scope, len(affected_systems), rule_count)
+
+        return SubProblem(
+            id=regulatory_change.get('id', 'unknown'),
+            description=description,
+            difficulty=difficulty,
+            estimated_effort=self._estimate_effort(description),
+            dependencies=affected_systems,
+            domain='compliance'
+        )
+
+    def _estimate_difficulty(self, scope: str, affected_count: int, rule_count: int) -> float:
+        """Estimate difficulty score for regulatory change"""
+        base_difficulty = 0.5
+
+        # Scope impact
+        scope_weights = {
+            'global': 0.3,
+            'federal': 0.25,
+            'state': 0.15,
+            'local': 0.1,
+            'internal': 0.05,
+            'unknown': 0.2
+        }
+
+        difficulty += scope_weights.get(scope.lower(), 0.15)
+        difficulty += min(affected_count * 0.05, 0.3)  # Cap at 0.3
+        difficulty += min(rule_count * 0.02, 0.2)  # Cap at 0.2
+
+        return min(difficulty, 1.0)
+
+    def _estimate_effort(self, description: str) -> int:
+        """Estimate effort in hours based on description complexity"""
+        # Simple heuristic: longer descriptions with technical terms suggest higher effort
+        word_count = len(description.split())
+        technical_terms = ['algorithm', 'computation', 'verification', 'cryptographic',
+                          'cross-border', 'multi-jurisdictional', 'derivatives', 'clearing']
+
+        effort = max(4, word_count // 20)  # Base: 4 hours minimum
+
+        for term in technical_terms:
+            if term.lower() in description.lower():
+                effort += 4
+
+        return min(effort, 80)  # Cap at 80 hours
+
+    def _classify_complexity_heuristic(self, regulatory_change: Dict[str, Any]) -> str:
+        """
+        Fallback heuristic-based complexity classification
+
+        Args:
+            regulatory_change: Regulatory change dictionary
+
+        Returns:
+            Complexity level: 'low', 'medium', or 'high'
+        """
+        score = 0
+
+        # Factor 1: Number of affected systems
+        affected = regulatory_change.get('affected_systems', [])
+        if len(affected) > 5:
+            score += 2
+        elif len(affected) > 2:
+            score += 1
+
+        # Factor 2: Rule complexity indicators
+        rules = regulatory_change.get('rules', [])
+        if len(rules) > 10:
+            score += 2
+        elif len(rules) > 5:
+            score += 1
+
+        # Factor 3: Scope
+        scope = regulatory_change.get('scope', '').lower()
+        if scope in ['global', 'federal']:
+            score += 2
+        elif scope in ['multi-state', 'cross-border']:
+            score += 1
+
+        # Factor 4: Technical complexity indicators in description
+        description = regulatory_change.get('description', '').lower()
+        complex_terms = ['algorithmic', 'automated', 'real-time', 'cross-reference',
+                        'multi-factor', 'conditional']
+        for term in complex_terms:
+            if term in description:
+                score += 1
+                break
+
+        # Map score to complexity
+        if score <= 2:
+            complexity = 'low'
+        elif score <= 4:
+            complexity = 'medium'
+        else:
+            complexity = 'high'
+
+        self._current_complexity = complexity
+        return complexity
+
+    def _get_adaptive_config(self) -> Dict[str, Any]:
+        """
+        Get adaptive configuration based on current complexity level
+
+        Returns:
+            Configuration dictionary for current complexity level
+        """
+        if not self._current_complexity:
+            return self._adaptive_config['medium_complexity']
+        return self._adaptive_config.get(f'{self._current_complexity}_complexity',
+                                         self._adaptive_config['medium_complexity'])
+
     def get_status(self) -> Dict[str, Any]:
-        """Get current monitor status"""
+        """Get current monitor status with complexity information"""
         return {
             'running': self._running,
             'current_phase': self._current_phase.value,
@@ -583,7 +831,12 @@ class ComplianceMonitor:
             'last_scan': self.state.last_scan_time.isoformat() if self.state.last_scan_time else None,
             'last_update': self.state.last_update_time.isoformat() if self.state.last_update_time else None,
             'active_alerts': len(self.state.active_alerts),
-            'metrics': self.state.metrics
+            'metrics': self.state.metrics,
+            'adaptive_monitoring': {
+                'enabled': self.enable_adaptive_monitoring,
+                'current_complexity': self._current_complexity,
+                'adaptive_config': self._get_adaptive_config() if self._current_complexity else None
+            }
         }
 
 
