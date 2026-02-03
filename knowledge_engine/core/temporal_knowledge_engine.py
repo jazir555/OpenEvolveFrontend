@@ -673,7 +673,10 @@ async def _check_contradiction(
     artifact2: KnowledgeArtifact,
 ) -> Optional[Dict[str, Any]]:
     """
-    Check if two artifacts contradict each other.
+    Check if two artifacts contradict each other using semantic analysis.
+
+    Uses embedding-based similarity and contradiction detection patterns
+    to identify genuine contradictions vs. related but non-contradictory statements.
 
     Args:
         artifact1: First artifact
@@ -686,29 +689,164 @@ async def _check_contradiction(
     if not _temporal_overlap(artifact1, artifact2):
         return None
 
-    # Simple heuristic: if artifacts have opposite keywords
     content1 = artifact1.content.lower()
     content2 = artifact2.content.lower()
 
-    # Check for negation patterns
+    # Semantic similarity check using embeddings
+    try:
+        from ..embedding_service import get_default_embedding_service
+        embedding_service = get_default_embedding_service()
+        
+        emb1 = embedding_service.embed_text(content1)
+        emb2 = embedding_service.embed_text(content2)
+        similarity = embedding_service.compute_similarity(emb1, emb2)
+        
+        # If not semantically related, can't contradict
+        if similarity < 0.5:
+            return None
+    except Exception:
+        # Fall back to basic check if embeddings unavailable
+        pass
+
+    # Advanced contradiction detection patterns
     contradiction_patterns = [
+        # Direct negation
         ("not ", ""),
         ("never ", "always "),
         ("cannot ", "can "),
         ("won't ", "will "),
         ("false", "true"),
+        ("doesn't ", "does "),
+        ("didn't ", "did "),
+        ("isn't ", "is "),
+        ("aren't ", "are "),
+        # Quantifier contradictions
+        ("none ", "all "),
+        ("no ", "every "),
+        ("zero ", "non-zero "),
+        # Temporal contradictions
+        ("before ", "after "),
+        ("earlier ", "later "),
+        # State contradictions
+        ("inactive", "active"),
+        ("disabled", "enabled"),
+        ("offline", "online"),
+        ("closed", "open"),
     ]
 
+    # Check for direct contradiction patterns
     for pattern1, pattern2 in contradiction_patterns:
-        if pattern1 in content1 and pattern2 in content2:
+        if (pattern1 in content1 and pattern2 in content2) or \
+           (pattern2 in content1 and pattern1 in content2):
             return {
-                "type": "temporal_contradiction",
+                "type": "semantic_contradiction",
                 "artifact1_id": artifact1.id,
                 "artifact2_id": artifact2.id,
-                "reason": f"Found contradictory patterns: '{pattern1}' vs '{pattern2}'",
-                "severity": "medium",
+                "reason": f"Contradictory patterns detected: '{pattern1}' vs '{pattern2}'",
+                "severity": "high",
+                "detection_method": "pattern_matching"
             }
 
+    # Check for numeric contradictions
+    numeric_contradiction = _detect_numeric_contradiction(content1, content2)
+    if numeric_contradiction:
+        return {
+            "type": "numeric_contradiction",
+            "artifact1_id": artifact1.id,
+            "artifact2_id": artifact2.id,
+            "reason": numeric_contradiction["reason"],
+            "severity": "high",
+            "detection_method": "numeric_analysis"
+        }
+
+    # Check for fact-based contradictions using entity overlap
+    entity_contradiction = await _detect_entity_contradiction(artifact1, artifact2)
+    if entity_contradiction:
+        return {
+            "type": "entity_contradiction",
+            "artifact1_id": artifact1.id,
+            "artifact2_id": artifact2.id,
+            "reason": entity_contradiction["reason"],
+            "severity": "medium",
+            "detection_method": "entity_analysis"
+        }
+
+    return None
+
+
+def _detect_numeric_contradiction(content1: str, content2: str) -> Optional[Dict[str, Any]]:
+    """
+    Detect contradictions in numeric values.
+    
+    Example: "temperature is 20C" vs "temperature is 30C"
+    """
+    import re
+    
+    # Extract numeric values with units
+    numeric_pattern = r'(\d+(?:\.\d+)?)\s*(c|celsius|f|fahrenheit|k|kelvin|kg|g|mg|lb|m|km|cm|mm|ft|in|ml|l|%|percent)'
+    
+    matches1 = re.findall(numeric_pattern, content1)
+    matches2 = re.findall(numeric_pattern, content2)
+    
+    if matches1 and matches2:
+        # Check for same unit, different values
+        for val1, unit1 in matches1:
+            for val2, unit2 in matches2:
+                if unit1.lower() == unit2.lower() and float(val1) != float(val2):
+                    return {
+                        "reason": f"Conflicting values: {val1}{unit1} vs {val2}{unit2}"
+                    }
+    
+    return None
+
+
+async def _detect_entity_contradiction(
+    artifact1: KnowledgeArtifact,
+    artifact2: KnowledgeArtifact
+) -> Optional[Dict[str, Any]]:
+    """
+    Detect contradictions based on entity relationships.
+    
+    Checks if the same entities have conflicting relationships or properties.
+    """
+    # Extract entities from both artifacts
+    entities1 = set(artifact1.metadata.get("entities", []))
+    entities2 = set(artifact2.metadata.get("entities", []))
+    
+    # Check for overlapping entities with different relationships
+    common_entities = entities1 & entities2
+    
+    if common_entities:
+        rel1 = artifact1.metadata.get("relationships", [])
+        rel2 = artifact2.metadata.get("relationships", [])
+        
+        # Check for conflicting relationships
+        for entity in common_entities:
+            entity_rels1 = [r for r in rel1 if entity in str(r)]
+            entity_rels2 = [r for r in rel2 if entity in str(r)]
+            
+            if entity_rels1 and entity_rels2:
+                # Simple check: if relationship types are different
+                types1 = set(str(r.get("type", "")).lower() for r in entity_rels1)
+                types2 = set(str(r.get("type", "")).lower() for r in entity_rels2)
+                
+                # Check for opposite relationship types
+                opposite_pairs = [
+                    ("parent", "child"),
+                    ("before", "after"),
+                    ("causes", "prevents"),
+                    ("enables", "disables"),
+                ]
+                
+                for type1 in types1:
+                    for type2 in types2:
+                        for opp1, opp2 in opposite_pairs:
+                            if (opp1 in type1 and opp2 in type2) or \
+                               (opp2 in type1 and opp1 in type2):
+                                return {
+                                    "reason": f"Entity '{entity}' has conflicting relationships: {type1} vs {type2}"
+                                }
+    
     return None
 
 

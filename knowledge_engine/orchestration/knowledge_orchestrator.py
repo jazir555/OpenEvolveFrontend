@@ -695,8 +695,79 @@ class KnowledgeOrchestrator:
         executed_names = {s['name'] for s in executed_stages}
         return all(dep in executed_names for dep in stage.depends_on)
     
-    def _execute_stage(self, stage: PipelineStage, context: Dict[str, Any]) -> Any:
-        """Execute a single pipeline stage"""
+    async def _execute_stage_with_timeout_and_retry(
+        self,
+        stage: PipelineStage,
+        context: Dict[str, Any]
+    ) -> Any:
+        """
+        Execute a pipeline stage with timeout and retry logic.
+        
+        Enforces:
+        - timeout_seconds from ComponentConfig
+        - retry_count from ComponentConfig
+        - fallback_enabled from ComponentConfig
+        """
+        config = stage.config
+        timeout = config.timeout_seconds
+        max_retries = config.retry_count
+        
+        last_error = None
+        
+        for attempt in range(max_retries):
+            try:
+                # Execute with timeout
+                return await asyncio.wait_for(
+                    self._execute_stage_internal(stage, context),
+                    timeout=timeout
+                )
+            except asyncio.TimeoutError:
+                last_error = f"Timeout after {timeout}s"
+                logger.warning({
+                    "msg": f"Stage {stage.name} timeout (attempt {attempt + 1}/{max_retries})",
+                    "stage": stage.name,
+                    "attempt": attempt + 1,
+                    "max_retries": max_retries,
+                    "timeout": timeout
+                })
+            except Exception as e:
+                last_error = str(e)
+                logger.warning({
+                    "msg": f"Stage {stage.name} error (attempt {attempt + 1}/{max_retries})",
+                    "stage": stage.name,
+                    "attempt": attempt + 1,
+                    "error": str(e)
+                })
+            
+            # Wait before retry (exponential backoff)
+            if attempt < max_retries - 1:
+                wait_time = min(2 ** attempt, 30)  # Max 30s wait
+                await asyncio.sleep(wait_time)
+        
+        # All retries exhausted
+        if config.fallback_enabled:
+            logger.info({
+                "msg": f"Using fallback for stage {stage.name}",
+                "stage": stage.name
+            })
+            return await self._execute_fallback(stage, context)
+        
+        raise RuntimeError(
+            f"Stage {stage.name} failed after {max_retries} attempts. "
+            f"Last error: {last_error}"
+        )
+    
+    async def _execute_fallback(self, stage: PipelineStage, context: Dict[str, Any]) -> Any:
+        """Execute fallback behavior for a failed stage."""
+        return {
+            'status': 'fallback',
+            'stage': stage.name,
+            'reason': 'max_retries_exceeded',
+            'timestamp': datetime.now(timezone.utc).isoformat()
+        }
+    
+    async def _execute_stage_internal(self, stage: PipelineStage, context: Dict[str, Any]) -> Any:
+        """Internal method to execute a single pipeline stage"""
         component = self.components.get(stage.component)
         
         if component is None:
@@ -720,18 +791,34 @@ class KnowledgeOrchestrator:
         
         handler = handlers.get(stage.component)
         if handler:
-            return handler(component, input_data, context, stage.config)
+            return await handler(component, input_data, context, stage.config)
         
         raise NotImplementedError(f"No handler for component {stage.component.value}")
     
-    def _handle_deepke(self, component, input_data, context, config):
+    def _execute_stage(self, stage: PipelineStage, context: Dict[str, Any]) -> Any:
+        """Synchronous wrapper for _execute_stage_with_timeout_and_retry"""
+        # This method is kept for backward compatibility
+        # It should be called from async context
+        import asyncio
+        try:
+            loop = asyncio.get_event_loop()
+            return loop.run_until_complete(
+                self._execute_stage_with_timeout_and_retry(stage, context)
+            )
+        except RuntimeError:
+            # No event loop, create one
+            return asyncio.run(
+                self._execute_stage_with_timeout_and_retry(stage, context)
+            )
+    
+    async def _handle_deepke(self, component, input_data, context, config):
         """Handle DeepKE extraction"""
         text = input_data.get('text', '')
         if not text:
             return {'status': 'skipped', 'reason': 'no_text_input'}
         return component.extract_with_deepke(text, config.config_override)
     
-    def _handle_karate_club(self, component, input_data, context, config):
+    async def _handle_karate_club(self, component, input_data, context, config):
         """Handle Karate Club graph analysis"""
         graph_data = context['results'].get('build_graph', {}).get('graph')
         if not graph_data:
@@ -740,7 +827,7 @@ class KnowledgeOrchestrator:
             return {'status': 'skipped', 'reason': 'no_graph_data'}
         return component.analyze_graph(graph_data, config.config_override)
     
-    def _handle_kg_gen(self, component, input_data, context, config):
+    async def _handle_kg_gen(self, component, input_data, context, config):
         """Handle KG-Gen graph generation"""
         artifacts = context['results'].get('extract_knowledge', {}).get('artifacts', [])
         if not artifacts:
@@ -748,7 +835,7 @@ class KnowledgeOrchestrator:
             artifacts = [{'content': input_data.get('text', '')}]
         return component.generate_and_store_knowledge_graph(artifacts, config.config_override)
     
-    def _handle_pami(self, component, input_data, context, config):
+    async def _handle_pami(self, component, input_data, context, config):
         """Handle PAMI pattern mining"""
         if component is None:
             return {'status': 'skipped', 'reason': 'component_not_available'}
@@ -760,7 +847,7 @@ class KnowledgeOrchestrator:
             min_support=config.config_override.get('min_support', 0.1)
         )
     
-    def _handle_neuralkg(self, component, input_data, context, config):
+    async def _handle_neuralkg(self, component, input_data, context, config):
         """Handle NeuralKG embeddings"""
         if component is None:
             return {'status': 'skipped', 'reason': 'component_not_available'}
@@ -780,7 +867,7 @@ class KnowledgeOrchestrator:
             embedding_dim=config.config_override.get('embedding_dim', 100)
         )
     
-    def _handle_causal_learn(self, component, input_data, context, config):
+    async def _handle_causal_learn(self, component, input_data, context, config):
         """Handle Causal-Learn discovery"""
         if component is None:
             return {'status': 'skipped', 'reason': 'component_not_available'}
@@ -798,7 +885,7 @@ class KnowledgeOrchestrator:
             alpha=config.config_override.get('alpha', 0.05)
         )
     
-    def _handle_lagrange_mapper(self, component, input_data, context, config):
+    async def _handle_lagrange_mapper(self, component, input_data, context, config):
         """Handle Lagrange-Mapper analysis"""
         if component is None:
             return {'status': 'skipped', 'reason': 'component_not_available'}
@@ -820,7 +907,7 @@ class KnowledgeOrchestrator:
             n_clusters=config.config_override.get('n_clusters', 8)
         )
     
-    def _handle_global_chem(self, component, input_data, context, config):
+    async def _handle_global_chem(self, component, input_data, context, config):
         """Handle GlobalChem chemical analysis"""
         if component is None:
             return {'status': 'skipped', 'reason': 'component_not_available'}
@@ -836,7 +923,7 @@ class KnowledgeOrchestrator:
             'count': len(entities)
         }
     
-    def _handle_neuromancer(self, component, input_data, context, config):
+    async def _handle_neuromancer(self, component, input_data, context, config):
         """Handle Neuromancer dynamics modeling"""
         if component is None:
             return {'status': 'skipped', 'reason': 'component_not_available'}
