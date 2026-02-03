@@ -28,6 +28,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 from enum import Enum
 import json
+import uuid
 
 # Import LeanAide client
 try:
@@ -501,7 +502,7 @@ class LeanAideWorkflowIntegrator:
             # Step 1: Translate the problem/solution to Lean
             translation_result = await self.client.translate_thm_detailed(
                 theorem_text=problem_statement + "\n\n" + solution_content,
-                theorem_name=f"theorem_{int(time.time())}"
+                theorem_name=f"theorem_{uuid.uuid4()}"
             )
 
             if not translation_result.success:

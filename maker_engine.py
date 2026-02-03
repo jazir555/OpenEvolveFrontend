@@ -136,36 +136,61 @@ class MakerEngine:
         checkpoint_store: Optional[CheckpointStore] = None,
         stop_condition: Optional[Callable[[MakerState], bool]] = None
     ) -> MakerRunResult:
+        import time
+        start_time = time.time()
         state = MakerState(current_state=initial_state)
         terminated_reason = "max_steps_reached"
+        success = False
 
-        for _ in range(self.config.max_steps):
-            step = step_builder(state.current_state, state.history)
-            action = self._maker_step(step, state.current_state, state.history)
-            if action is None:
-                terminated_reason = "no_action_selected"
-                break
+        try:
+            for _ in range(self.config.max_steps):
+                step = step_builder(state.current_state, state.history)
+                action = self._maker_step(step, state.current_state, state.history)
+                if action is None:
+                    terminated_reason = "no_action_selected"
+                    break
 
-            try:
-                next_state = apply_action(state.current_state, action)
-            except Exception as exc:
-                self.metrics["errors"] += 1
-                terminated_reason = f"apply_action_failed:{exc}"
-                break
+                try:
+                    next_state = apply_action(state.current_state, action)
+                except Exception as exc:
+                    self.metrics["errors"] += 1
+                    terminated_reason = f"apply_action_failed:{exc}"
+                    break
 
-            state.history.append({"action": action, "state": next_state})
-            state.last_action = action
-            state.step_index += 1
-            self.metrics["steps"] += 1
-            state.current_state = next_state
+                state.history.append({"action": action, "state": next_state})
+                state.last_action = action
+                state.step_index += 1
+                self.metrics["steps"] += 1
+                state.current_state = next_state
 
-            if checkpoint_store and state.step_index % self.config.checkpoint_interval == 0:
-                checkpoint_store.save(state)
-            if stop_condition and stop_condition(state):
-                terminated_reason = "stop_condition_met"
-                break
+                if checkpoint_store and state.step_index % self.config.checkpoint_interval == 0:
+                    checkpoint_store.save(state)
+                if stop_condition and stop_condition(state):
+                    terminated_reason = "stop_condition_met"
+                    success = True
+                    break
 
-        return MakerRunResult(state=state, metrics=self.metrics.copy(), terminated_reason=terminated_reason)
+            duration = time.time() - start_time
+            result = MakerRunResult(state=state, metrics=self.metrics.copy(), terminated_reason=terminated_reason)
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful solve
+            if success or "steps" in result.metrics and result.metrics["steps"] > 0:
+                self._extract_maker_knowledge("solve", state, result)
+                self._track_maker_performance("solve", True, duration, result.metrics["steps"])
+            else:
+                self._track_maker_performance("solve", False, duration, 0)
+
+            return result
+
+        except Exception as e:
+            logger.error(f"Error in maker engine solve: {e}", exc_info=True)
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_maker_alerts("solve", False, str(e))
+            self._track_maker_performance("solve", False, duration, 0)
+
+            raise
 
     def _maker_step(self, step: MakerStep, current_state: Any,
                     history: List[Dict[str, Any]]) -> Optional[Any]:

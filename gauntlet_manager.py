@@ -25,6 +25,38 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# **BUBBLELABS INTEGRATION**: BubbleLab workflow visualization for gauntlets
+try:
+    from bubblelabs_gauntlet_bubbles import (
+        create_gauntlet_execution_bubble,
+        create_gauntlet_round_bubble,
+        create_gauntlet_result_bubble,
+        create_red_team_bubble,
+        create_blue_team_bubble,
+        create_gold_team_bubble,
+        create_loongeval_bubble,
+        create_bubble_edge,
+        create_3_round_gauntlet_workflow,
+        update_bubble_status,
+        add_bubble_result,
+        GauntletBubbleConfig,
+    )
+    BUBBLELABS_AVAILABLE = True
+except ImportError:
+    BUBBLELABS_AVAILABLE = False
+    create_gauntlet_execution_bubble = None
+    create_gauntlet_round_bubble = None
+    create_gauntlet_result_bubble = None
+    create_red_team_bubble = None
+    create_blue_team_bubble = None
+    create_gold_team_bubble = None
+    create_loongeval_bubble = None
+    create_bubble_edge = None
+    create_3_round_gauntlet_workflow = None
+    update_bubble_status = None
+    add_bubble_result = None
+    GauntletBubbleConfig = None
+
 GAUNTLETS_FILE = "gauntlets.json" # Name of the file used for persisting gauntlet data.
 logger = logging.getLogger(__name__)
 
@@ -32,6 +64,7 @@ class GauntletManager:
     """
     Manages the creation, retrieval, updating, and deletion of GauntletDefinition objects.
     Persists gauntlet data to a JSON file.
+    Also manages BubbleLab workflow visualization for gauntlets.
     """
     def __init__(self, gauntlets_file: str = GAUNTLETS_FILE):
         """Initializes the GauntletManager.
@@ -41,6 +74,11 @@ class GauntletManager:
         """
         self.gauntlets_file = gauntlets_file
         self.gauntlets: Dict[str, GauntletDefinition] = self._load_gauntlets()
+        
+        # **BUBBLELABS INTEGRATION**: Storage for BubbleLab workflow visualizations
+        self.bubble_workflows: Dict[str, Dict[str, Any]] = {}
+        self.bubble_nodes: Dict[str, Dict[str, Any]] = {}
+        self.execution_to_bubble_map: Dict[str, str] = {}  # Maps execution_id to bubble_id
 
     def _load_gauntlets(self) -> Dict[str, GauntletDefinition]:
         """Loads gauntlets from the JSON file and deserializes them into GauntletDefinition objects.
@@ -398,7 +436,303 @@ Suggest improvements to make the gauntlet more effective. Return JSON with sugge
         self._extract_gauntlet_knowledge(gauntlet.name, result)
         self._track_gauntlet_performance("execute_gauntlet", result["passed"], duration, gauntlet.name, result["score"])
 
+        # **BUBBLELABS INTEGRATION**: Update bubble nodes with execution results
+        if BUBBLELABS_AVAILABLE:
+            try:
+                # Find and update result bubble
+                workflows = self.get_bubble_workflows_for_gauntlet(gauntlet.name)
+                for workflow in workflows:
+                    for node in workflow.get("nodes", []):
+                        if node.get("type") == "gauntlet_result":
+                            status = "passed" if result["passed"] else "failed"
+                            self.update_bubble_node_status(node["id"], status, {
+                                "score": result.get("score", 0.0),
+                                "feedback": result.get("feedback", []),
+                                "execution_id": execution_id
+                            })
+                            break
+            except Exception as e:
+                logger.error(f"Failed to update bubble status: {e}")
+
         if not result["passed"]:
             self._trigger_gauntlet_alerts(gauntlet.name, False, "Gauntlet execution failed")
 
         return result
+    
+    # =========================================================================
+    # BUBBLELABS INTEGRATION METHODS - BubbleLab workflow visualization
+    # =========================================================================
+    
+    def create_bubble_workflow_from_gauntlet(
+        self,
+        gauntlet: GauntletDefinition,
+        problem_statement: str = ""
+    ) -> Optional[Dict[str, Any]]:
+        """**BUBBLELABS INTEGRATION**: Create a BubbleLab workflow from a gauntlet definition.
+        
+        Args:
+            gauntlet: The GauntletDefinition to create workflow for
+            problem_statement: Optional problem context
+            
+        Returns:
+            Dict with workflow nodes and edges, or None if BubbleLabs unavailable
+        """
+        if not BUBBLELABS_AVAILABLE or not create_3_round_gauntlet_workflow:
+            logger.warning("BubbleLabs integration not available")
+            return None
+        
+        try:
+            # Determine team names from gauntlet configuration
+            team_config = {
+                "red_team": getattr(gauntlet, 'red_team_name', "Red Team"),
+                "blue_team": getattr(gauntlet, 'blue_team_name', "Blue Team"),
+                "gold_team": gauntlet.team_name or "Gold Team"
+            }
+            
+            # Create the 3-round gauntlet workflow
+            workflow = create_3_round_gauntlet_workflow(
+                problem_statement=problem_statement or f"Gauntlet: {gauntlet.name}",
+                gauntlet_name=gauntlet.name,
+                team_config=team_config
+            )
+            
+            # Store the workflow
+            workflow_id = workflow["id"]
+            self.bubble_workflows[workflow_id] = workflow
+            
+            # Store individual nodes for tracking
+            for node in workflow["nodes"]:
+                self.bubble_nodes[node["id"]] = {
+                    "node": node,
+                    "workflow_id": workflow_id,
+                    "gauntlet_name": gauntlet.name,
+                    "status": "pending"
+                }
+            
+            logger.info(f"Created BubbleLab workflow {workflow_id} for gauntlet {gauntlet.name}")
+            return workflow
+            
+        except Exception as e:
+            logger.error(f"Failed to create bubble workflow for gauntlet {gauntlet.name}: {e}")
+            return None
+    
+    def get_bubble_workflow(self, workflow_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve a BubbleLab workflow by ID.
+        
+        Args:
+            workflow_id: The workflow ID
+            
+        Returns:
+            Workflow dict or None
+        """
+        return self.bubble_workflows.get(workflow_id)
+    
+    def get_bubble_workflows_for_gauntlet(self, gauntlet_name: str) -> List[Dict[str, Any]]:
+        """Get all BubbleLab workflows for a gauntlet.
+        
+        Args:
+            gauntlet_name: Name of the gauntlet
+            
+        Returns:
+            List of workflow dicts
+        """
+        workflows = []
+        for workflow in self.bubble_workflows.values():
+            if workflow.get("metadata", {}).get("gauntlet_name") == gauntlet_name:
+                workflows.append(workflow)
+        return workflows
+    
+    def update_bubble_node_status(
+        self,
+        node_id: str,
+        status: str,
+        additional_data: Dict[str, Any] = None
+    ) -> bool:
+        """**BUBBLELABS INTEGRATION**: Update the status of a bubble node.
+        
+        Args:
+            node_id: ID of the node to update
+            status: New status (pending, running, passed, failed, partial)
+            additional_data: Optional additional data to merge
+            
+        Returns:
+            True if update successful
+        """
+        if node_id not in self.bubble_nodes:
+            return False
+        
+        node_info = self.bubble_nodes[node_id]
+        bubble = node_info["node"]
+        
+        if update_bubble_status:
+            updated_bubble = update_bubble_status(bubble, status, additional_data)
+            node_info["node"] = updated_bubble
+            node_info["status"] = status
+            
+            # Update in workflow
+            workflow_id = node_info["workflow_id"]
+            if workflow_id in self.bubble_workflows:
+                workflow = self.bubble_workflows[workflow_id]
+                for i, node in enumerate(workflow["nodes"]):
+                    if node["id"] == node_id:
+                        workflow["nodes"][i] = updated_bubble
+                        break
+            
+            return True
+        
+        return False
+    
+    def add_result_to_bubble(
+        self,
+        node_id: str,
+        score: float,
+        feedback: str,
+        improvements: List[str] = None
+    ) -> bool:
+        """**BUBBLELABS INTEGRATION**: Add execution result to a bubble node.
+        
+        Args:
+            node_id: ID of the node to update
+            score: Execution score (0.0 to 1.0)
+            feedback: Feedback message
+            improvements: List of improvement suggestions
+            
+        Returns:
+            True if update successful
+        """
+        if node_id not in self.bubble_nodes:
+            return False
+        
+        node_info = self.bubble_nodes[node_id]
+        bubble = node_info["node"]
+        
+        if add_bubble_result:
+            updated_bubble = add_bubble_result(bubble, score, feedback, improvements)
+            node_info["node"] = updated_bubble
+            node_info["status"] = "passed" if score >= 0.7 else "failed"
+            
+            # Update in workflow
+            workflow_id = node_info["workflow_id"]
+            if workflow_id in self.bubble_workflows:
+                workflow = self.bubble_workflows[workflow_id]
+                for i, node in enumerate(workflow["nodes"]):
+                    if node["id"] == node_id:
+                        workflow["nodes"][i] = updated_bubble
+                        break
+            
+            return True
+        
+        return False
+    
+    def map_execution_to_bubble(
+        self,
+        execution_id: str,
+        bubble_id: str
+    ) -> None:
+        """Map a gauntlet execution ID to a bubble node ID for tracking.
+        
+        Args:
+            execution_id: The gauntlet execution ID
+            bubble_id: The bubble node ID
+        """
+        self.execution_to_bubble_map[execution_id] = bubble_id
+    
+    def get_bubble_for_execution(self, execution_id: str) -> Optional[str]:
+        """Get the bubble node ID for a gauntlet execution.
+        
+        Args:
+            execution_id: The gauntlet execution ID
+            
+        Returns:
+            Bubble node ID or None
+        """
+        return self.execution_to_bubble_map.get(execution_id)
+    
+    def execute_gauntlet_with_bubbles(
+        self,
+        gauntlet: GauntletDefinition,
+        solution_content: str,
+        context: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Execute gauntlet with full BubbleLab visualization integration.
+        
+        Args:
+            gauntlet: The gauntlet to execute
+            solution_content: The solution to evaluate
+            context: Execution context
+            
+        Returns:
+            Execution result with bubble updates
+        """
+        # Create bubble workflow if not exists
+        workflow_id = None
+        problem_statement = context.get("problem_statement", "")
+        
+        if BUBBLELABS_AVAILABLE:
+            existing_workflows = self.get_bubble_workflows_for_gauntlet(gauntlet.name)
+            if not existing_workflows:
+                workflow = self.create_bubble_workflow_from_gauntlet(gauntlet, problem_statement)
+                if workflow:
+                    workflow_id = workflow["id"]
+            else:
+                workflow_id = existing_workflows[0]["id"]
+        
+        # Update input node status
+        if workflow_id and BUBBLELABS_AVAILABLE:
+            workflow = self.get_bubble_workflow(workflow_id)
+            if workflow:
+                for node in workflow["nodes"]:
+                    if node["data"].get("label", "").startswith("📥"):
+                        self.update_bubble_node_status(node["id"], "running", {
+                            "problem_statement": problem_statement
+                        })
+                        break
+        
+        # Execute the gauntlet
+        result = self.execute_gauntlet(gauntlet, solution_content, context)
+        
+        # Update bubbles with results
+        if workflow_id and BUBBLELABS_AVAILABLE:
+            workflow = self.get_bubble_workflow(workflow_id)
+            if workflow:
+                execution_id = result.get("execution_id")
+                
+                # Find and update the result bubble
+                for node in workflow["nodes"]:
+                    if node["type"] == "gauntlet_result":
+                        status = "passed" if result.get("passed") else "failed"
+                        self.update_bubble_node_status(node["id"], status, {
+                            "score": result.get("score", 0.0),
+                            "feedback": result.get("feedback", []),
+                            "execution_id": execution_id
+                        })
+                        self.map_execution_to_bubble(execution_id, node["id"])
+                        break
+        
+        return result
+    
+    def get_bubble_status_summary(self) -> Dict[str, Any]:
+        """Get a summary of all bubble statuses.
+        
+        Returns:
+            Dict with workflow and node status counts
+        """
+        status_counts = {
+            "pending": 0,
+            "running": 0,
+            "passed": 0,
+            "failed": 0,
+            "partial": 0
+        }
+        
+        for node_info in self.bubble_nodes.values():
+            status = node_info.get("status", "pending")
+            if status in status_counts:
+                status_counts[status] += 1
+        
+        return {
+            "total_workflows": len(self.bubble_workflows),
+            "total_nodes": len(self.bubble_nodes),
+            "status_counts": status_counts,
+            "bubblelabs_available": BUBBLELABS_AVAILABLE
+        }

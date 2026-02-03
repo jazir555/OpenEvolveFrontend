@@ -19,6 +19,7 @@ import asyncio
 import logging
 import random
 import time
+import uuid
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -300,7 +301,7 @@ class MCTSThenEvolution(HybridStrategy):
 
             engine = LeanProofEvolutionEngineMCTS(
                 theorem=theorem,
-                theorem_name=f"theorem_{hash(theorem)}",
+                theorem_name=f"theorem_{uuid.uuid4()}",
                 population_size=self.population_size,
                 max_generations=evo_gens,
                 mcts_simulations=self.mcts_simulations
@@ -351,7 +352,7 @@ class MCTSThenEvolution(HybridStrategy):
             tactics.append(tactic)
 
         proof = LeanProof(
-            theorem_name=f"theorem_{hash(theorem)}",
+            theorem_name=f"theorem_{uuid.uuid4()}",
             theorem_statement=theorem,
             tactics=tactics
         )
@@ -458,7 +459,7 @@ class EvolutionWithMCTS(HybridStrategy):
             # Create MCTS-enhanced evolutionary engine
             engine = LeanProofEvolutionEngineMCTS(
                 theorem=theorem,
-                theorem_name=f"theorem_{hash(theorem)}",
+                theorem_name=f"theorem_{uuid.uuid4()}",
                 population_size=20,
                 max_generations=generations,
                 mcts_simulations=100
@@ -647,7 +648,7 @@ class MCTSAdversarial(HybridStrategy):
             tactics.append(tactic)
 
         return LeanProof(
-            theorem_name=f"theorem_{hash(theorem)}",
+            theorem_name=f"theorem_{uuid.uuid4()}",
             theorem_statement=theorem,
             tactics=tactics
         )
@@ -985,7 +986,7 @@ class AdaptiveHybrid(HybridStrategy):
         # Convert to EvolutionResult
         tactics = [Tactic(name=action.tactic.name) for action in best_sequence]
         proof = LeanProof(
-            theorem_name=f"theorem_{hash(theorem)}",
+            theorem_name=f"theorem_{uuid.uuid4()}",
             theorem_statement=theorem,
             tactics=tactics
         )

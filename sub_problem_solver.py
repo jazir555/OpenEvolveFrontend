@@ -143,7 +143,7 @@ class SubProblemSolver:
             status="solved" if result.success else "failed",
         )
 
-    def _map_to_adaptive_type(self, sub_problem: SubProblem) -> AdaptiveSubProblem:
+    def _map_to_adaptive_type(self, sub_problem: SubProblem):
         """Maps sovereign_data_models.SubProblem to adaptive_mdap.core.types.SubProblem."""
         # Calculate depth (if not explicitly stored, estimate from parent_id depth)
         depth = 0

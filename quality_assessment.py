@@ -188,34 +188,56 @@ class QualityAssessmentEngine:
             'harmonic_mean': self._harmonic_mean_aggregation,
         }
     
-    def assess_quality(self, content: str, content_type: str = "general", 
+    def assess_quality(self, content: str, content_type: str = "general",
                       custom_requirements: Optional[Dict[str, Any]] = None,
                       api_key: Optional[str] = None,
                       model_name: str = "gpt-4o") -> QualityAssessmentResult:
         """
         Assess the quality of content across multiple dimensions,
         using OpenEvolve backend when available
-        
+
         Args:
             content: The content to assess
             content_type: Type of content (code, document, etc.)
             custom_requirements: Custom requirements to check
             api_key: API key for OpenEvolve backend (required when using OpenEvolve)
             model_name: Model to use when using OpenEvolve
-            
+
         Returns:
             QualityAssessmentResult with detailed quality metrics
         """
-        # Prioritize OpenEvolve backend when available
-        if OPENEVOLVE_AVAILABLE and api_key:
-            return self._assess_quality_with_openevolve_backend(
-                content, content_type, custom_requirements, api_key, model_name
-            )
-        
-        # Fallback to custom implementation
-        return self._assess_quality_with_custom_implementation(
-            content, content_type, custom_requirements
-        )
+        import time
+        start_time = time.time()
+
+        try:
+            # Prioritize OpenEvolve backend when available
+            if OPENEVOLVE_AVAILABLE and api_key:
+                result = self._assess_quality_with_openevolve_backend(
+                    content, content_type, custom_requirements, api_key, model_name
+                )
+            else:
+                # Fallback to custom implementation
+                result = self._assess_quality_with_custom_implementation(
+                    content, content_type, custom_requirements
+                )
+
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful assessment
+            self._extract_quality_knowledge("assess_quality", content_type, result)
+            self._track_quality_performance("assess_quality", True, duration, content_type, result.composite_score)
+
+            return result
+
+        except (RuntimeError, ValueError, TypeError) as e:
+            logger.error(f"Error in quality assessment: {e}", exc_info=True)
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_quality_alerts("assess_quality", False, content_type, str(e))
+            self._track_quality_performance("assess_quality", False, duration, content_type, 0.0)
+
+            raise
     
     def _assess_quality_with_openevolve_backend(self, content: str, content_type: str, 
                                               custom_requirements: Optional[Dict[str, Any]], 
@@ -1764,6 +1786,120 @@ class QualityAssessmentEngine:
             report.append(f"  ... and {len(assessment_result.recommendations) - 5} more recommendations")
         
         return "\n".join(report)
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Quality Assessment
+    # =========================================================================
+
+    def _trigger_quality_alerts(
+        self,
+        operation: str,
+        success: bool,
+        content_type: str,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for quality assessment failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Quality Assessment Alert: {operation}",
+                    description=f"Quality assessment operation '{operation}' failed for content type '{content_type}'. " +
+                                 (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.MEDIUM.value,
+                    source="quality_assessment",
+                    component="quality_evaluation",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger quality assessment alert: {e}")
+
+    def _extract_quality_knowledge(
+        self,
+        operation: str,
+        content_type: str,
+        assessment_result: QualityAssessmentResult
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract quality assessment knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"quality_{operation}_{content_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="quality_assessment",
+                source_component="quality_assessment",
+                title=f"Quality Assessment: {operation} - {content_type}",
+                content={
+                    "operation": operation,
+                    "content_type": content_type,
+                    "composite_score": assessment_result.composite_score,
+                    "dimension_scores": {dim.value: score for dim, score in assessment_result.scores.items()},
+                    "issues_count": len(assessment_result.issues),
+                    "recommendations_count": len(assessment_result.recommendations),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "assessment_metadata": assessment_result.assessment_metadata
+                },
+                tags=["quality_assessment", operation, content_type]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted quality assessment knowledge for {content_type}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract quality assessment knowledge: {e}")
+            return False
+
+    def _track_quality_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        content_type: str,
+        composite_score: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track quality assessment performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = composite_score / 100.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"quality_assessment_{operation}_{content_type}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "content_type": content_type,
+                    "composite_score": composite_score
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked quality assessment performance for {content_type}")
+
+        except Exception as e:
+            logger.error(f"Failed to track quality assessment performance: {e}")
 
 # Example usage and testing
 def test_quality_assessment_engine():
