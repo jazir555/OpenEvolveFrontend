@@ -23,6 +23,25 @@ from sovereign_data_models import (
 from openevolve_structures import Team
 from team_manager import TeamManager
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for team assignment
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -580,6 +599,17 @@ class TeamAssignmentEngine:
                 f"Team assignment complete. Usage: {dict(team_usage)}"
             )
 
+            # **ACTUAL INTEGRATION**: Extract assignment knowledge
+            assignments = [
+                sp.ai_suggested_team_assignment
+                for sp in decomposition_plan.sub_problems
+                if hasattr(sp, 'ai_suggested_team_assignment') and sp.ai_suggested_team_assignment
+            ]
+            self._extract_assignment_knowledge(decomposition_plan.id, assignments)
+
+            # **ACTUAL INTEGRATION**: Track performance
+            self._track_assignment_performance(decomposition_plan.id, len(assignments), True)
+
             return decomposition_plan
 
         except (AttributeError, TypeError, ValueError) as e:
@@ -587,6 +617,14 @@ class TeamAssignmentEngine:
                 f"Error assigning teams to plan: {e}",
                 exc_info=True
             )
+
+            # **ACTUAL INTEGRATION**: Trigger alert on failure
+            self._trigger_assignment_alerts(
+                getattr(decomposition_plan, 'id', 'unknown'),
+                False,
+                str(e)
+            )
+
             return decomposition_plan
 
     def calculate_assignment_confidence(
@@ -1073,6 +1111,114 @@ class TeamPerformanceTracker:
         except (KeyError, TypeError, AttributeError) as e:
             self.logger.error(f"Error getting team ranking: {e}", exc_info=True)
             return []
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for team assignment
+    # =========================================================================
+
+    def _trigger_assignment_alerts(
+        self,
+        plan_id: str,
+        success: bool,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for assignment failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Team Assignment Failed: {plan_id}",
+                    description=f"Team assignment failed for plan '{plan_id}'. " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="team_assignment_engine",
+                    component="assignment",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            self.logger.error(f"Failed to trigger assignment alert: {e}")
+
+    def _extract_assignment_knowledge(
+        self,
+        plan_id: str,
+        assignments: List['SubProblemTeamAssignment']
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract assignment knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            # Create knowledge artifact from assignments
+            artifact = KnowledgeArtifact(
+                artifact_id=f"assignment_{plan_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="team_assignment",
+                source_component="team_assignment_engine",
+                title=f"Team Assignment: {plan_id}",
+                content={
+                    "plan_id": plan_id,
+                    "num_assignments": len(assignments),
+                    "assignments": [
+                        {
+                            "sub_problem_id": a.sub_problem_id,
+                            "team_id": a.team_id,
+                            "confidence": a.confidence_score
+                        }
+                        for a in assignments[:10]  # Limit to first 10
+                    ],
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "total_assignments": len(assignments)
+                },
+                tags=["assignment", "team", "coordination"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            self.logger.debug(f"Extracted assignment knowledge for {plan_id}")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to extract assignment knowledge: {e}")
+            return False
+
+    def _track_assignment_performance(
+        self,
+        plan_id: str,
+        num_assignments: int,
+        success: bool
+    ):
+        """**ACTUAL INTEGRATION**: Track assignment performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"team_assignment",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"plan_id": plan_id, "num_assignments": num_assignments}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                self.logger.debug(f"Tracked assignment performance: {plan_id}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to track assignment performance: {e}")
 
     def get_performance_summary(self) -> Dict[str, Any]:
         """

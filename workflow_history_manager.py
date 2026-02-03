@@ -1,8 +1,31 @@
 import json
 import os
+import logging
 from typing import Dict, List, Any, Optional
+from datetime import datetime
 from workflow_structures import WorkflowState, DecompositionPlan, SubProblem, SolutionAttempt, CritiqueReport, VerificationReport, ModelConfig, Team, GauntletDefinition, GauntletRoundRule
 import dataclasses
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Workflow History Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+logger = logging.getLogger(__name__)
 
 class EnhancedJSONEncoder(json.JSONEncoder):
     """
@@ -109,8 +132,20 @@ class WorkflowHistoryManager:
         """
         Adds a completed, failed, or cancelled workflow to the history.
         """
-        self.history[workflow_state.workflow_id] = workflow_state
-        self._save_history()
+        try:
+            self.history[workflow_state.workflow_id] = workflow_state
+            self._save_history()
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            self._extract_history_knowledge(workflow_state, "add_to_history")
+            self._track_history_performance("add_to_history", True)
+
+        except Exception as e:
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_history_alerts("add_to_history", False, workflow_state.workflow_id, str(e))
+            self._track_history_performance("add_to_history", False)
+            logger.error(f"Failed to add workflow to history: {e}")
+            raise
 
     def get_all_historical_workflows(self) -> List[WorkflowState]:
         """
@@ -351,5 +386,111 @@ class WorkflowHistoryManager:
             
             if meets_criteria:
                 matching_workflows.append(workflow)
-        
+
         return matching_workflows
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for History Manager
+    # =========================================================================
+
+    def _trigger_history_alerts(
+        self,
+        operation: str,
+        success: bool,
+        workflow_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for history operation failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Workflow History Operation Failed: {operation}",
+                    description=f"History operation '{operation}' failed" +
+                                 (f" for workflow '{workflow_id}'" if workflow_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="workflow_history_manager",
+                    component="history_tracking",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger History alert: {e}")
+
+    def _extract_history_knowledge(
+        self,
+        workflow_state: WorkflowState,
+        operation: str = "add_to_history"
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract workflow history knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"history_{workflow_state.workflow_id}_{operation}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="workflow_history_entry",
+                source_component="workflow_history_manager",
+                title=f"Workflow History: {workflow_state.workflow_id} ({operation})",
+                content={
+                    "workflow_id": workflow_state.workflow_id,
+                    "operation": operation,
+                    "status": workflow_state.status,
+                    "current_stage": workflow_state.current_stage,
+                    "total_progress": workflow_state.total_progress,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "num_sub_problems": len(workflow_state.sub_problem_solutions) if workflow_state.sub_problem_solutions else 0,
+                    "has_final_solution": workflow_state.final_solution is not None,
+                    "has_decomposition_plan": workflow_state.decomposition_plan is not None
+                },
+                tags=["workflow", "history", operation, "archival"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted History knowledge for {workflow_state.workflow_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract History knowledge: {e}")
+            return False
+
+    def _track_history_performance(
+        self,
+        operation: str,
+        success: bool
+    ):
+        """**ACTUAL INTEGRATION**: Track history operation performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"history_manager_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"operation": operation}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked History performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track History performance: {e}")

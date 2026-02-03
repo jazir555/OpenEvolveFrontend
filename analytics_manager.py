@@ -11,6 +11,7 @@ import json
 import urllib.request
 import urllib.error
 from typing import Dict, Any, List, Optional
+from datetime import datetime
 from session_utils import (
     calculate_protocol_complexity,
     extract_protocol_structure,
@@ -18,6 +19,25 @@ from session_utils import (
 )
 import time
 import numpy as np
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Analytics Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 
 class AnalyticsManager:
@@ -101,6 +121,15 @@ class AnalyticsManager:
                     "weaknesses": weaknesses,
                 },
             )
+
+        # **ACTUAL INTEGRATION**: Extract knowledge, track performance, and trigger alerts for low scores
+        self._extract_analytics_knowledge("generate_ai_insights", insights, protocol_text)
+        self._track_analytics_performance("generate_ai_insights", True, 0.0, insights["overall_score"])
+
+        if insights["overall_score"] < 0.5:
+            self._trigger_analytics_alerts("generate_ai_insights", True, insights["overall_score"],
+                                           "Overall score below threshold: {:.2f}".format(insights["overall_score"]))
+
         return insights
 
     def register_event_callback(self, event_type: str, callback) -> None:
@@ -1003,6 +1032,114 @@ class AnalyticsManager:
             }
 
         return enhanced_metrics
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Analytics Manager
+    # =========================================================================
+
+    def _trigger_analytics_alerts(
+        self,
+        operation: str,
+        success: bool,
+        score: Optional[float] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for analytics issues (low scores, failures)."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on low scores or failures
+            if not success or (score is not None and score < 0.5):
+                severity = AlertSeverity.MEDIUM if score and score >= 0.3 else AlertSeverity.HIGH
+
+                alert_manager.create_alert(
+                    title=f"Analytics Alert: {operation}",
+                    description=f"Analytics operation '{operation}' " +
+                                 ("failed" if not success else f"has low score: {score}") +
+                                 (f". Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="analytics_manager",
+                    component="analytics_insights",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logging.error(f"Failed to trigger Analytics alert: {e}")
+
+    def _extract_analytics_knowledge(
+        self,
+        operation: str,
+        insights: Dict[str, Any],
+        protocol_text: Optional[str] = None
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract analytics knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"analytics_{operation}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="analytics_insights",
+                source_component="analytics_manager",
+                title=f"Analytics Insights: {operation}",
+                content={
+                    "operation": operation,
+                    "insights": insights,
+                    "protocol_length": len(protocol_text) if protocol_text else 0,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "overall_score": insights.get("overall_score"),
+                    "readability_score": insights.get("readability_score"),
+                    "compliance_risk": insights.get("compliance_risk")
+                },
+                tags=["analytics", "insights", operation, "protocol_analysis"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logging.debug(f"Extracted Analytics knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logging.error(f"Failed to extract Analytics knowledge: {e}")
+            return False
+
+    def _track_analytics_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration: float,
+        score: Optional[float] = None
+    ):
+        """**ACTUAL INTEGRATION**: Track analytics operation performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"analytics_manager_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=score if score is not None else (1.0 if success else 0.0),
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"operation": operation, "duration": duration}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logging.debug(f"Tracked Analytics performance for {operation}")
+
+        except Exception as e:
+            logging.error(f"Failed to track Analytics performance: {e}")
 
 
 # Initialize analytics manager on import

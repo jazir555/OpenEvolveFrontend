@@ -26,6 +26,25 @@ from sovereign_data_models import (
 )
 from workflow_persistence import WorkflowPersistence, generate_workflow_id, generate_state_id
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Workflow State Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -122,10 +141,17 @@ class WorkflowStateManager:
             audit_trail.add_event(event)
             self.persistence.save_audit_trail(audit_trail)
 
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            self._extract_state_knowledge(workflow_id, "save_state", state, checkpoint_id)
+            self._track_state_performance("save_state", True, 0.0)
+
             logger.info(f"Saved checkpoint {checkpoint_id} for workflow {workflow_id}")
             return checkpoint_id
 
         except (OSError, IOError, TypeError, AttributeError) as e:
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_state_alerts(workflow_id, "save_state", False, str(e))
+            self._track_state_performance("save_state", False, 0.0)
             logger.error(f"Failed to save state: {e}", exc_info=True)
             raise
 
@@ -590,3 +616,115 @@ class WorkflowStateManager:
         except (OSError, IOError, TypeError) as e:
             logger.error(f"Failed to delete workflow: {e}", exc_info=True)
             raise
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Workflow State Manager
+    # =========================================================================
+
+    def _trigger_state_alerts(
+        self,
+        workflow_id: str,
+        operation: str,
+        success: bool,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for workflow state operation failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.HIGH
+
+                alert_manager.create_alert(
+                    title=f"Workflow State Operation Failed: {workflow_id}",
+                    description=f"Workflow state operation '{operation}' failed for workflow '{workflow_id}'. " +
+                                 (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="workflow_state_manager",
+                    component="state_persistence",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger State alert: {e}")
+
+    def _extract_state_knowledge(
+        self,
+        workflow_id: str,
+        operation: str,
+        state: Optional[WorkflowState] = None,
+        checkpoint_id: Optional[str] = None
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract workflow state knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            content = {
+                "workflow_id": workflow_id,
+                "operation": operation,
+                "checkpoint_id": checkpoint_id,
+                "timestamp": datetime.now().isoformat()
+            }
+
+            if state:
+                content["state_info"] = {
+                    "current_stage": state.current_stage,
+                    "status": state.status,
+                    "stage_progress": state.stage_progress,
+                    "total_progress": state.total_progress
+                }
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"state_{workflow_id}_{operation}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="workflow_state_operation",
+                source_component="workflow_state_manager",
+                title=f"Workflow State: {workflow_id} ({operation})",
+                content=content,
+                metadata={"checkpoint_id": checkpoint_id} if checkpoint_id else {},
+                tags=["workflow", "state", operation, "persistence"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted State knowledge for {workflow_id} ({operation})")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract State knowledge: {e}")
+            return False
+
+    def _track_state_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration: float
+    ):
+        """**ACTUAL INTEGRATION**: Track state operation performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"state_manager_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"operation": operation, "duration": duration}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked State performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track State performance: {e}")

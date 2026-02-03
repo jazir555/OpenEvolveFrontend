@@ -42,6 +42,25 @@ from chronicle_memory import ChronicleMemory
 from knowledge_manager import KnowledgeManager
 from z3prover_integration import Z3LogicCompressor
 from utils.doc_manager import DocstringManager
+
+# **ACTUAL INTEGRATION**: Alerting, knowledge, adaptive for Blue Team solver
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 # Import ROMA-MDAP-MAKER (Robust Execution)
 try:
     from roma_mdap_maker_associative_integration import (
@@ -1823,6 +1842,20 @@ class SubProblemSolver:
             **kwargs
         )
 
+        result = self.workflow.solve(
+            sub_problem=sub_problem,
+            strategy=solving_strategy,
+            **kwargs
+        )
+
+        # **ACTUAL INTEGRATION**: Track performance and extract knowledge
+        self._track_solver_performance(sub_problem_id, result)
+        self._extract_solver_knowledge(sub_problem_id, sub_problem, result)
+
+        # **ACTUAL INTEGRATION**: Alert if solution failed
+        if result.quality_metrics.overall_score < 0.5:
+            self._trigger_solver_alerts(sub_problem_id, False, f"Low quality: {result.quality_metrics.overall_score:.2f}")
+
         return result
 
     def solve_from_dict(self, sub_problem_dict: Dict[str, Any]) -> SolutionResult:
@@ -1838,6 +1871,108 @@ class SubProblemSolver:
             SolutionResult with solution and quality metrics
         """
         return self.solve_sub_problem(**sub_problem_dict)
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for solver
+    # =========================================================================
+
+    def _trigger_solver_alerts(
+        self,
+        sub_problem_id: str,
+        success: bool,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for solver failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.HIGH
+
+                alert_manager.create_alert(
+                    title=f"Blue Team Solver Failed: {sub_problem_id}",
+                    description=f"Sub-problem solving failed for '{sub_problem_id}'. " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="blue_team_solver_engine",
+                    component="solver",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger solver alert: {e}")
+
+    def _extract_solver_knowledge(
+        self,
+        sub_problem_id: str,
+        sub_problem: 'SubProblemInput',
+        result: 'SolutionResult'
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract solver knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"solver_{sub_problem_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="solver_solution",
+                source_component="blue_team_solver_engine",
+                title=f"Solver Solution: {sub_problem_id}",
+                content={
+                    "sub_problem_id": sub_problem_id,
+                    "description": sub_problem.description,
+                    "solution": result.solution[:500] if result.solution else None,
+                    "quality_score": result.quality_metrics.overall_score,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "complexity": sub_problem.complexity_score,
+                    "strategy": str(result.strategy_used)
+                },
+                tags=["solver", "solution", "blue_team"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted solver knowledge for {sub_problem_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract solver knowledge: {e}")
+            return False
+
+    def _track_solver_performance(
+        self,
+        sub_problem_id: str,
+        result: 'SolutionResult'
+    ):
+        """**ACTUAL INTEGRATION**: Track solver performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"blue_team_solver_{result.strategy_used}",
+                success_count=1 if result.quality_metrics.overall_score >= 0.7 else 0,
+                failure_count=0 if result.quality_metrics.overall_score >= 0.7 else 1,
+                average_quality=result.quality_metrics.overall_score,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"sub_problem_id": sub_problem_id}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked solver performance: {sub_problem_id}")
+
+        except Exception as e:
+            logger.error(f"Failed to track solver performance: {e}")
 
     def get_stats(self) -> Dict[str, Any]:
         """Get solver performance statistics"""

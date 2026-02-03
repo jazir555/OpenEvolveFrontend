@@ -1240,290 +1240,89 @@ def run_evolution_loop(
                     "presence_penalty": config.presence_penalty
                 })
             
-            # Run evolution using the unified function with ALL 272 parameters
-            result = run_unified_evolution(
+            # Prepare parameters for run_unified_evolution with only supported parameters
+            unified_params = {
                 # Core content and configuration
-                content=current_content,
-                content_type=content_type,
-                evolution_mode=config.evolution_mode,
-                model_configs=model_configs,
+                "content": current_content,
+                "content_type": content_type,
+                "evolution_mode": config.evolution_mode,
+                "model_configs": model_configs,
                 
                 # API Configuration
-                api_key=config.api_key,
-                api_base=config.api_base,
-                api_timeout=config.timeout,
-                api_retries=config.max_retries,
-                api_retry_delay=config.retry_delay,
+                "api_key": config.api_key,
+                "api_base": config.api_base,
+                "api_timeout": config.timeout,
+                "api_retries": config.max_retries,
+                "api_retry_delay": config.retry_delay,
                 
                 # Core Evolution Parameters
-                max_iterations=config.max_iterations,
-                population_size=config.population_size,
-                temperature=config.temperature,
-                max_tokens=config.max_tokens,
-                random_seed=config.seed,
-                early_stopping_patience=config.early_stopping_patience if config.early_stopping else None,
-                convergence_threshold=config.convergence_threshold,
+                "max_iterations": config.max_iterations,
+                "population_size": config.population_size,
+                "temperature": config.temperature,
+                "max_tokens": config.max_tokens,
+                "random_seed": config.seed,
+                "early_stopping_patience": config.early_stopping_patience if config.early_stopping else None,
+                "convergence_threshold": config.convergence_threshold,
                 
-                # Prompt Configuration
-                system_message=config.system_prompt,
-                evaluator_system_message=config.evaluator_system_message,
-                prompt_template=config.prompt_template,
-                context_length=config.context_length,
-                prompt_optimization=config.prompt_optimization,
-                template_stochasticity=config.template_stochasticity,
-                meta_prompting=config.meta_prompting,
-                few_shot_examples=config.few_shot_examples,
-                chain_of_thought=config.chain_of_thought,
-                self_consistency=config.self_consistency,
-                prompt_ensembling=config.prompt_ensembling,
-                dynamic_prompting=config.dynamic_prompting,
-                prompt_compression=config.prompt_compression,
+                # Basic Prompt Configuration (only supported parameters)
+                "system_message": config.system_prompt,
+                "evaluator_system_message": config.evaluator_system_message,
                 
                 # Quality Diversity Parameters
-                feature_dimensions=config.feature_dimensions,
-                feature_bins=config.feature_bins,
-                archive_size=config.archive_size,
-                novelty_threshold=config.novelty_threshold,
-                quality_threshold=config.quality_threshold,
-                diversity_weight=config.diversity_weight,
-                behavior_space=config.behavior_space,
-                distance_metric=config.distance_metric,
-                archive_update_freq=config.archive_update_freq,
-                exploration_bonus=config.exploration_bonus,
-                crowding_distance=config.crowding_distance,
-                pareto_layers=config.pareto_layers,
-                behavior_dimensions=config.behavior_dimensions,
-                diversity_metric=config.diversity_metric,
-                diversity_reference_size=config.diversity_reference_size,
-                adaptive_feature_dimensions=config.adaptive_feature_dimensions,
-                double_selection=config.double_selection,
-                qd_algorithm=config.qd_algorithm,
-                behavior_descriptor_type=config.behavior_descriptor_type,
-                archive_learning_rate=config.archive_learning_rate,
+                "feature_dimensions": config.feature_dimensions,
+                "feature_bins": config.feature_bins,
+                "archive_size": config.archive_size,
+                "novelty_threshold": config.novelty_threshold,
                 
                 # Multi-Objective Parameters
-                objectives=config.objectives,
-                objective_weights=config.objective_weights,
-                pareto_front_size=config.pareto_front_size,
-                dominance_metric=config.dominance_metric,
-                constraint_handling=config.constraint_handling,
-                reference_point=config.reference_point,
-                epsilon_dominance=config.epsilon_dominance,
-                decomposition_method=config.decomposition_method,
-                scalarization_function=config.scalarization_function,
-                dominance_type=config.dominance_type,
-                epsilon_values=config.epsilon_values,
-                scalarization=config.scalarization,
-                constraint_tolerance=config.constraint_tolerance,
-                hypervolume_ref=config.hypervolume_ref,
+                "objectives": config.objectives,
                 
                 # Adversarial Parameters
-                adversarial_rounds=config.adversarial_rounds,
-                attack_strength=config.attack_strength,
-                defense_strategy=config.defense_strategy,
-                coevolutionary_approach=config.coevolutionary_approach,
-                red_team_models=config.red_team_models,
-                blue_team_models=config.blue_team_models,
-                red_team_sample_size=config.red_team_sample_size,
-                blue_team_sample_size=config.blue_team_sample_size,
-                adversarial_temperature=config.adversarial_temperature,
-                attack_diversity=config.attack_diversity,
-                defense_strength=config.defense_strength,
-                adversarial_budget=config.adversarial_budget,
-                attack_types=config.attack_types,
-                defense_strategies=config.defense_strategies,
-                robustness_metric=config.robustness_metric,
-                perturbation_bound=config.perturbation_bound,
-                gradient_masking=config.gradient_masking,
-                ensemble_defense=config.ensemble_defense,
-                attack_model_config=config.attack_model_config,
-                defense_model_config=config.defense_model_config,
+                "attack_model_config": config.attack_model_config,
+                "defense_model_config": config.defense_model_config,
                 
                 # Island Model Parameters
-                num_islands=config.num_islands,
-                migration_interval=config.migration_interval,
-                migration_rate=config.migration_rate,
-                migration_topology=config.migration_topology,
-                ring_topology=config.ring_topology,
-                controlled_gene_flow=config.controlled_gene_flow,
-                island_diversity_metric=config.island_diversity_metric,
-                migration_selection=config.migration_selection,
-                island_initialization=config.island_initialization,
-                island_specialization=config.island_specialization,
-                migration_size=config.migration_size,
-                migration_policy=config.migration_policy,
-                replacement_policy=config.replacement_policy,
-                island_sizes=config.island_sizes,
-                heterogeneous_islands=config.heterogeneous_islands,
-                synchronous_migration=config.synchronous_migration,
-                adaptive_migration=config.adaptive_migration,
+                "num_islands": config.num_islands,
+                "migration_interval": config.migration_interval,
+                "migration_rate": config.migration_rate,
                 
                 # Selection & Reproduction Parameters
-                elite_ratio=config.elite_ratio,
-                exploration_ratio=config.exploration_ratio,
-                exploitation_ratio=config.exploitation_ratio,
-                multi_strategy_sampling=config.multi_strategy_sampling,
-                tournament_size=config.tournament_size,
-                elitism_count=config.elitism_count,
-                selection_method=config.selection_method,
-                reproduction_method=config.reproduction_method,
-                parent_selection=config.parent_selection,
-                random_ratio=config.random_ratio,
-                survivor_selection=config.survivor_selection,
-                replacement_rate=config.replacement_rate,
-                selection_pressure_decay=config.selection_pressure_decay,
-                diversity_selection=config.diversity_selection,
-                age_based_selection=config.age_based_selection,
+                "elite_ratio": config.elite_ratio,
+                "exploration_ratio": config.exploration_ratio,
+                "exploitation_ratio": config.exploitation_ratio,
                 
                 # Evaluation Parameters
-                cascade_evaluation=config.cascade_evaluation,
-                cascade_thresholds=config.cascade_thresholds,
-                parallel_evaluations=config.parallel_evaluations,
-                evaluator_timeout=config.evaluator_timeout,
-                max_retries_eval=config.max_retries_eval,
-                use_llm_feedback=config.use_llm_feedback,
-                llm_feedback_weight=config.llm_feedback_weight,
-                evaluator_models=config.evaluator_models,
-                ensemble_size=config.ensemble_size,
-                consensus_threshold=config.consensus_threshold,
-                evaluation_criteria=config.evaluation_criteria,
-                custom_evaluator=evaluator.evaluate if evaluator else config.custom_evaluator,
-                evaluation_batch_size=config.evaluation_batch_size,
-                cache_evaluations=config.cache_evaluations,
-                cache_size=config.cache_size,
-                evaluation_noise=config.evaluation_noise,
-                fitness_scaling=config.fitness_scaling,
-                normalization=config.normalization,
-                multi_criteria_eval=config.multi_criteria_eval,
-                evaluation_budget=config.evaluation_budget,
-                incremental_eval=config.incremental_eval,
-                surrogate_model=config.surrogate_model,
-                active_learning=config.active_learning,
-                uncertainty_sampling=config.uncertainty_sampling,
+                "cascade_evaluation": config.cascade_evaluation,
+                "parallel_evaluations": config.parallel_evaluations,
+                "evaluator_timeout": config.evaluator_timeout,
+                "max_retries_eval": config.max_retries_eval,
+                "use_llm_feedback": config.use_llm_feedback,
+                "llm_feedback_weight": config.llm_feedback_weight,
+                "evaluator_models": config.evaluator_models,
                 
                 # Artifact Management Parameters
-                enable_artifacts=config.enable_artifacts,
-                artifact_types=config.artifact_types,
-                max_artifact_size=config.max_artifact_size,
-                artifact_validation=config.artifact_validation,
-                artifact_compression=config.artifact_compression,
-                artifact_versioning=config.artifact_versioning,
-                artifact_metadata=config.artifact_metadata,
-                artifact_cleanup=config.artifact_cleanup,
-                artifact_storage=config.artifact_storage,
-                artifact_encryption=config.artifact_encryption,
+                "enable_artifacts": config.enable_artifacts,
                 
                 # Resource Management Parameters
-                memory_limit_mb=config.memory_limit_mb,
-                cpu_limit=config.cpu_limit,
-                max_time=config.max_time,
-                disk_limit_mb=config.disk_limit_mb,
-                network_limit_mbps=config.network_limit_mbps,
-                api_call_limit=config.api_call_limit,
-                token_limit=config.token_limit,
-                cost_limit_usd=config.cost_limit_usd,
-                resource_monitoring=config.resource_monitoring,
-                auto_scaling=config.auto_scaling,
-                checkpoint_interval=config.checkpoint_interval,
+                "memory_limit_mb": config.memory_limit_mb,
+                "cpu_limit": config.cpu_limit,
+                "checkpoint_interval": config.checkpoint_interval,
                 
                 # Database & Storage Parameters
-                db_path=config.db_path,
-                db_type=config.db_type,
-                connection_string=config.connection_string,
-                max_connections=config.max_connections,
-                connection_timeout=config.connection_timeout,
-                query_timeout=config.query_timeout,
-                batch_size=config.batch_size,
-                compression=config.compression,
-                encryption=config.encryption,
-                backup_enabled=config.backup_enabled,
+                "db_path": config.db_path,
                 
-                # Evolution Tracing Parameters
-                trace_enabled=config.trace_enabled,
-                trace_level=config.trace_level,
-                trace_format=config.trace_format,
-                trace_file=config.trace_file,
-                trace_compression=config.trace_compression,
-                trace_rotation=config.trace_rotation,
-                max_trace_size_mb=config.max_trace_size_mb,
-                trace_buffer_size=config.trace_buffer_size,
-                real_time_tracing=config.real_time_tracing,
-                trace_sampling=config.trace_sampling,
-                include_population=config.include_population,
-                include_fitness=config.include_fitness,
-                
-                # Early Stopping Parameters
-                min_improvement=config.min_improvement,
-                improvement_window=config.improvement_window,
-                plateau_threshold=config.plateau_threshold,
-                convergence_check=config.convergence_check,
-                diversity_threshold=config.diversity_threshold,
-                stagnation_limit=config.stagnation_limit,
-                adaptive_stopping=config.adaptive_stopping,
-                
-                # Distributed Processing Parameters
-                distributed=config.distributed,
-                num_workers=config.num_workers,
-                worker_timeout=config.worker_timeout,
-                load_balancing=config.load_balancing,
-                fault_tolerance=config.fault_tolerance,
-                worker_restart=config.worker_restart,
-                communication_backend=config.communication_backend,
-                message_compression=config.message_compression,
-                heartbeat_interval=config.heartbeat_interval,
-                cluster_scaling=config.cluster_scaling,
-                
-                # Advanced Research Parameters
-                novelty_search=config.novelty_search,
-                curiosity_driven=config.curiosity_driven,
-                meta_learning=config.meta_learning,
-                transfer_learning=config.transfer_learning,
-                continual_learning=config.continual_learning,
-                few_shot_adaptation=config.few_shot_adaptation,
-                zero_shot_transfer=config.zero_shot_transfer,
-                domain_adaptation=config.domain_adaptation,
-                multi_task_learning=config.multi_task_learning,
-                lifelong_learning=config.lifelong_learning,
-                neural_architecture_search=config.neural_architecture_search,
-                hyperparameter_optimization=config.hyperparameter_optimization,
-                automated_ml=config.automated_ml,
-                explainable_ai=config.explainable_ai,
-                federated_learning=config.federated_learning,
-                differential_privacy=config.differential_privacy,
-                quantum_computing=config.quantum_computing,
-                neuromorphic_computing=config.neuromorphic_computing,
-                edge_computing=config.edge_computing,
-                green_ai=config.green_ai,
-                
-                # Custom Requirements Parameters
-                custom_fitness=config.custom_fitness,
-                custom_operators=config.custom_operators,
-                custom_constraints=config.custom_constraints,
-                domain_knowledge=config.domain_knowledge,
-                expert_rules=config.expert_rules,
-                business_logic=config.business_logic,
-                regulatory_compliance=config.regulatory_compliance,
-                ethical_guidelines=config.ethical_guidelines,
-                
-                # UI & Visualization Parameters
-                enable_visualization=config.enable_visualization,
-                plot_frequency=config.plot_frequency,
-                plot_types=config.plot_types,
-                interactive_plots=config.interactive_plots,
-                real_time_updates=config.real_time_updates,
-                export_plots=config.export_plots,
-                plot_format=config.plot_format,
-                dashboard_enabled=config.dashboard_enabled,
-                
-                # Experimental Parameters
-                experimental_features=config.experimental_features,
-                beta_algorithms=config.beta_algorithms,
-                research_mode=config.research_mode,
-                debug_mode=config.debug_mode,
-                profiling_enabled=config.profiling_enabled,
-                memory_profiling=config.memory_profiling,
-                experimental_logging=config.experimental_logging,
-            )
+                # Advanced parameters that run_unified_evolution supports
+                "double_selection": config.double_selection,
+                "adaptive_feature_dimensions": config.adaptive_feature_dimensions,
+                "distributed": config.distributed,
+                "multi_strategy_sampling": getattr(config, 'multi_strategy_sampling', True),
+                "ring_topology": getattr(config, 'ring_topology', True),
+                "controlled_gene_flow": getattr(config, 'controlled_gene_flow', True),
+                "coevolutionary_approach": getattr(config, 'coevolutionary_approach', False),
+            }
+            
+            # Run evolution using the unified function with only supported parameters
+            result = run_unified_evolution(**unified_params)
 
             # Process the results with comprehensive logging
             if result and result.get("success", False):
@@ -3879,7 +3678,11 @@ def run_evolution_with_dts_strategy_exploration(
         )
         
         # Extract strategies from DTS result
-        strategies = strategy_result.get("strategies", [])
+        strategies = []
+        if isinstance(strategy_result, list):
+            strategies = strategy_result
+        elif isinstance(strategy_result, dict) and "strategies" in strategy_result:
+            strategies = strategy_result["strategies"]
         result["dts_strategies"] = strategies
         
         # Select best strategy based on scores
@@ -3991,7 +3794,33 @@ def run_evolution_with_dts_strategy_exploration(
         elif evolution_mode == "multi_objective":
             evolution_result = run_multi_objective_evolution(content, content_type, **evolution_func_params)
         else:
-            evolution_result = run_comprehensive_evolution(content, content_type, **evolution_func_params)
+            # Further strip parameters not supported by the specific evolution functions
+            final_evolution_params = {}
+            for k, v in evolution_func_params.items():
+                if k not in ["prompt_template", "template_stochasticity", "meta_prompting", "few_shot_examples",
+                             "chain_of_thought", "self_consistency", "prompt_ensembling", "dynamic_prompting",
+                             "prompt_compression", "feature_dimensions", "feature_bins", "archive_size",
+                             "novelty_threshold", "num_islands", "migration_interval", "migration_rate",
+                             "elite_ratio", "exploration_ratio", "exploitation_ratio", "checkpoint_interval",
+                             "cascade_evaluation", "use_llm_feedback", "llm_feedback_weight",
+                             "evolution_trace_enabled", "diff_based_evolution", "diversity_metric",
+                             "parallel_evaluations", "distributed", "template_dir", "num_top_programs",
+                             "num_diverse_programs", "use_template_stochasticity", "template_variations",
+                             "use_meta_prompting", "meta_prompt_weight", "include_artifacts",
+                             "max_artifact_bytes", "artifact_security_filter", "memory_limit_mb",
+                             "cpu_limit", "db_path", "in_memory", "log_level", "log_dir",
+                             "artifact_size_threshold", "cleanup_old_artifacts", "artifact_retention_days",
+                             "diversity_reference_size", "max_retries_eval", "evaluator_timeout",
+                             "evaluator_models", "load_from_checkpoint", "custom_requirements", "objectives",
+                             "attack_model_config", "defense_model_config", "evaluation_function",
+                             "data_points", "variables", "operators", "double_selection",
+                             "adaptive_feature_dimensions", "test_time_compute", "optillm_integration",
+                             "plugin_system", "hardware_optimization", "multi_strategy_sampling",
+                             "ring_topology", "controlled_gene_flow", "auto_diff", "symbolic_execution",
+                             "coevolutionary_approach"]:
+                    final_evolution_params[k] = v
+    
+            evolution_result = run_comprehensive_evolution(content, content_type, **final_evolution_params)
         
         # Update result with evolution outcome
         result["best_content"] = evolution_result.get("best_content", content)
@@ -4029,7 +3858,33 @@ def run_evolution_with_dts_strategy_exploration(
         elif evolution_mode == "multi_objective":
             evolution_result = run_multi_objective_evolution(content, content_type, **evolution_func_params)
         else:
-            evolution_result = run_comprehensive_evolution(content, content_type, **evolution_func_params)
+            # Further strip parameters not supported by the specific evolution functions
+            final_evolution_params = {}
+            for k, v in evolution_func_params.items():
+                if k not in ["prompt_template", "template_stochasticity", "meta_prompting", "few_shot_examples",
+                             "chain_of_thought", "self_consistency", "prompt_ensembling", "dynamic_prompting",
+                             "prompt_compression", "feature_dimensions", "feature_bins", "archive_size",
+                             "novelty_threshold", "num_islands", "migration_interval", "migration_rate",
+                             "elite_ratio", "exploration_ratio", "exploitation_ratio", "checkpoint_interval",
+                             "cascade_evaluation", "use_llm_feedback", "llm_feedback_weight",
+                             "evolution_trace_enabled", "diff_based_evolution", "diversity_metric",
+                             "parallel_evaluations", "distributed", "template_dir", "num_top_programs",
+                             "num_diverse_programs", "use_template_stochasticity", "template_variations",
+                             "use_meta_prompting", "meta_prompt_weight", "include_artifacts",
+                             "max_artifact_bytes", "artifact_security_filter", "memory_limit_mb",
+                             "cpu_limit", "db_path", "in_memory", "log_level", "log_dir",
+                             "artifact_size_threshold", "cleanup_old_artifacts", "artifact_retention_days",
+                             "diversity_reference_size", "max_retries_eval", "evaluator_timeout",
+                             "evaluator_models", "load_from_checkpoint", "custom_requirements", "objectives",
+                             "attack_model_config", "defense_model_config", "evaluation_function",
+                             "data_points", "variables", "operators", "double_selection",
+                             "adaptive_feature_dimensions", "test_time_compute", "optillm_integration",
+                             "plugin_system", "hardware_optimization", "multi_strategy_sampling",
+                             "ring_topology", "controlled_gene_flow", "auto_diff", "symbolic_execution",
+                             "coevolutionary_approach"]:
+                    final_evolution_params[k] = v
+    
+            evolution_result = run_comprehensive_evolution(content, content_type, **final_evolution_params)
         
         result["best_content"] = evolution_result.get("best_content", content)
         result["evolution_metrics"] = evolution_result.get("metrics", {})

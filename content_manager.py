@@ -7,6 +7,7 @@ File size: ~1200 lines (under the 2000 line limit)
 import streamlit as st # Import streamlit to use st.cache_data
 from datetime import datetime
 import re
+import logging
 from typing import Dict, List, Optional
 from session_utils import (
     calculate_protocol_complexity,
@@ -15,6 +16,25 @@ from session_utils import (
     VALIDATION_RULES,
     REPORT_TEMPLATES,
 )
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Content Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 
 class ContentManagement:
@@ -63,14 +83,28 @@ class ContentManagement:
         Returns:
             Dict: Template data
         """
-        return {
-            "name": template_name,
-            "content": protocol_text,
-            "created_at": datetime.now().isoformat(),
-            "complexity_metrics": calculate_protocol_complexity(protocol_text),
-            "structure_analysis": extract_protocol_structure(protocol_text),
-            "tags": [],
-        }
+        try:
+            template_data = {
+                "name": template_name,
+                "content": protocol_text,
+                "created_at": datetime.now().isoformat(),
+                "complexity_metrics": calculate_protocol_complexity(protocol_text),
+                "structure_analysis": extract_protocol_structure(protocol_text),
+                "tags": [],
+            }
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            self._extract_content_knowledge("export_template", template_name, template_data)
+            self._track_content_performance("export_template", True)
+
+            return template_data
+
+        except Exception as e:
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_content_alerts("export_template", False, template_name, str(e))
+            self._track_content_performance("export_template", False)
+            st.error(f"Error exporting protocol as template: {e}")
+            raise
 
     @st.cache_data(ttl=300) # Cache for 5 minutes
     def validate_protocol(
@@ -401,6 +435,111 @@ class ContentManagement:
             "has_postconditions": structure_analysis["has_postconditions"],
             "has_error_handling": structure_analysis["has_error_handling"],
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Content Manager
+    # =========================================================================
+
+    def _trigger_content_alerts(
+        self,
+        operation: str,
+        success: bool,
+        template_name: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for content operation failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Content Operation Failed: {operation}",
+                    description=f"Content operation '{operation}' failed" +
+                                 (f" for template '{template_name}'" if template_name else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="content_manager",
+                    component="content_management",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logging.error(f"Failed to trigger Content alert: {e}")
+
+    def _extract_content_knowledge(
+        self,
+        operation: str,
+        template_name: str,
+        template_data: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract content knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"content_{operation}_{template_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="content_template",
+                source_component="content_manager",
+                title=f"Content Template: {template_name} ({operation})",
+                content={
+                    "operation": operation,
+                    "template_name": template_name,
+                    "complexity_metrics": template_data.get("complexity_metrics", {}),
+                    "structure_analysis": template_data.get("structure_analysis", {}),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "content_length": len(template_data.get("content", "")),
+                    "tags": template_data.get("tags", [])
+                },
+                tags=["content", "template", operation, "protocol"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logging.debug(f"Extracted Content knowledge for {template_name}")
+            return True
+
+        except Exception as e:
+            logging.error(f"Failed to extract Content knowledge: {e}")
+            return False
+
+    def _track_content_performance(
+        self,
+        operation: str,
+        success: bool
+    ):
+        """**ACTUAL INTEGRATION**: Track content operation performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"content_manager_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"operation": operation}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logging.debug(f"Tracked Content performance for {operation}")
+
+        except Exception as e:
+            logging.error(f"Failed to track Content performance: {e}")
 
 
 # Initialize content management on import

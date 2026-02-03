@@ -6,11 +6,33 @@ decomposition workflow, including API call limits, token usage, and cost trackin
 """
 
 import time
+import logging
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
 import os
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Resource Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -124,43 +146,47 @@ class ResourceManager:
     def check_limits(self) -> tuple[bool, List[str]]:
         """
         Check if current usage exceeds any limits.
-        
+
         Returns:
             Tuple of (within_limits, violations)
         """
         violations = []
-        
+
         # Check API calls
         if self.limits.max_api_calls and self.usage.api_calls >= self.limits.max_api_calls:
             violations.append(
                 f"API call limit exceeded: {self.usage.api_calls}/{self.limits.max_api_calls}"
             )
-        
+
         # Check tokens
         if self.limits.max_tokens and self.usage.tokens_used >= self.limits.max_tokens:
             violations.append(
                 f"Token limit exceeded: {self.usage.tokens_used}/{self.limits.max_tokens}"
             )
-        
+
         # Check cost
         if self.limits.max_cost and self.usage.estimated_cost >= self.limits.max_cost:
             violations.append(
                 f"Cost limit exceeded: ${self.usage.estimated_cost:.2f}/${self.limits.max_cost:.2f}"
             )
-        
+
         # Check execution time
         elapsed_time = time.time() - self.start_time
         if self.limits.max_execution_time_seconds and elapsed_time >= self.limits.max_execution_time_seconds:
             violations.append(
                 f"Time limit exceeded: {elapsed_time:.1f}s/{self.limits.max_execution_time_seconds:.1f}s"
             )
-        
+
         # Check memory (if available)
         if self.limits.max_memory_mb and self.usage.memory_usage_mb >= self.limits.max_memory_mb:
             violations.append(
                 f"Memory limit exceeded: {self.usage.memory_usage_mb:.1f}MB/{self.limits.max_memory_mb:.1f}MB"
             )
-        
+
+        # **ACTUAL INTEGRATION**: Trigger alerts if limits are exceeded
+        if violations:
+            self._trigger_resource_alerts(violations, {"elapsed_time": elapsed_time, "total_cost": self.usage.estimated_cost})
+
         return len(violations) == 0, violations
     
     def get_usage_summary(self) -> Dict[str, Any]:
@@ -242,7 +268,10 @@ class ResourceManager:
             'limits': self.limits.to_dict(),
             'within_limits': self.check_limits()[0]
         }
-        
+
+        # **ACTUAL INTEGRATION**: Extract resource usage knowledge
+        self._extract_resource_knowledge(f"export_{filepath}")
+
         with open(filepath, 'w') as f:
             json.dump(report, f, indent=2)
     
@@ -371,6 +400,104 @@ class ResourceManager:
             'limits': self.limits.to_dict(),
             'remaining': self.get_remaining_resources()
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Resource Manager
+    # =========================================================================
+
+    def _trigger_resource_alerts(
+        self,
+        limit_violations: List[str],
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts when resource limits are exceeded."""
+        if not ALERTING_AVAILABLE or not limit_violations:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            alert_manager.create_alert(
+                title="Resource Limits Exceeded",
+                description=f"Resource limit violations detected:\n" + "\n".join(f"- {v}" for v in limit_violations),
+                severity=AlertSeverity.HIGH.value,
+                source="resource_manager",
+                component="resource_tracking",
+                metadata=metadata or {}
+            )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Resource alert: {e}")
+
+    def _extract_resource_knowledge(
+        self,
+        operation_id: Optional[str] = None
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract resource usage knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"resource_usage_{operation_id or 'summary'}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="resource_usage_report",
+                source_component="resource_manager",
+                title=f"Resource Usage Report: {operation_id or 'summary'}",
+                content={
+                    "usage_summary": self.get_usage_summary(),
+                    "limits": self.limits.to_dict(),
+                    "within_limits": self.check_limits()[0],
+                    "operation_id": operation_id,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "api_calls": self.usage.api_calls,
+                    "tokens_used": self.usage.tokens_used,
+                    "estimated_cost": self.usage.estimated_cost,
+                    "execution_time_seconds": time.time() - self.start_time
+                },
+                tags=["resource", "usage", "tracking", "cost"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Resource knowledge for {operation_id or 'summary'}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Resource knowledge: {e}")
+            return False
+
+    def _track_resource_performance(
+        self,
+        operation_type: str,
+        success: bool,
+        duration: float
+    ):
+        """**ACTUAL INTEGRATION**: Track resource management performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"resource_manager_{operation_type}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"duration": duration, "total_cost": self.usage.estimated_cost}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Resource performance for {operation_type}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Resource performance: {e}")
 
 
 class ResourceLimitExceeded(Exception):

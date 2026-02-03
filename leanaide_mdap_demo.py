@@ -41,19 +41,16 @@ except ImportError as e:
 
 def main():
     """Run demonstration"""
-    print('
-' + '=' * 80)
+    print('\n' + '=' * 80)
     print('LeanAide MDAP Integration Demonstration')
     print('=' * 80)
     
     if not LEAN_MDAP_AVAILABLE:
-        print('
-ERROR: Lean MDAP not available. Please check imports.')
+        print('\nERROR: Lean MDAP not available. Please check imports.')
         return
     
     # System status
-    print('
-' + '-' * 80)
+    print('\n' + '-' * 80)
     print('1. System Status')
     print('-' * 80)
     status = get_lean_mdap_status()
@@ -62,8 +59,7 @@ ERROR: Lean MDAP not available. Please check imports.')
     print(f'Available Domains: {status["available_domains"]}')
     
     # Create configuration
-    print('
-' + '-' * 80)
+    print('\n' + '-' * 80)
     print('2. Configuration')
     print('-' * 80)
     config = create_lean_mdap_config(
@@ -77,8 +73,7 @@ ERROR: Lean MDAP not available. Please check imports.')
     print(f'K-ahead threshold: {config.k_ahead_threshold}')
     
     # Create task
-    print('
-' + '-' * 80)
+    print('\n' + '-' * 80)
     print('3. Task Creation')
     print('-' * 80)
     task = LeanMDAPTask(
@@ -95,8 +90,7 @@ ERROR: Lean MDAP not available. Please check imports.')
     print(f'Steps: {len(task.get_execution_plan())}')
     
     # Initialize orchestrator
-    print('
-' + '-' * 80)
+    print('\n' + '-' * 80)
     print('4. Orchestrator Initialization')
     print('-' * 80)
     orchestrator = LeanMDAPOrchestrator(config=config)
@@ -104,12 +98,10 @@ ERROR: Lean MDAP not available. Please check imports.')
     for agent_id in orchestrator.agent_selector.agents:
         print(f'  - {agent_id}')
     
-    print('
-' + '=' * 80)
+    print('\n' + '=' * 80)
     print('Demonstration Complete!')
     print('=' * 80)
-    print('
-To execute proof generation:')
+    print('\nTo execute proof generation:')
     print('  1. Set OPENAI_API_KEY environment variable')
     print('  2. Run: result = orchestrator.orchestrate_proof_generation(task)')
     print('  3. Access: result.best_proof, result.voting_statistics')

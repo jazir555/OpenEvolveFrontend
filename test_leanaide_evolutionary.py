@@ -91,7 +91,7 @@ try:
         AdversarialResult,
         Counterexample,
         ProofCritique,
-        Coevolution Dynamics,
+        CoevolutionDynamics,
         evolve_adversarially
     )
     ADVERSARIAL_AVAILABLE = True
@@ -1900,7 +1900,8 @@ class TestEvolutionPerformance:
 class TestEdgeCases:
     """Test edge cases and error handling."""
 
-    def test_empty_theorem(self):
+    @pytest.mark.asyncio
+    async def test_empty_theorem(self):
         """Test handling of empty theorem."""
         if not EVOLUTION_AVAILABLE:
             pytest.skip("Evolution module not available")

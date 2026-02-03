@@ -16,13 +16,32 @@ from datetime import datetime
 from enum import Enum
 
 from openevolve_structures import (
-    WorkflowState, 
-    DecompositionPlan, 
-    SubProblem, 
+    WorkflowState,
+    DecompositionPlan,
+    SubProblem,
     SolutionAttempt,
     CritiqueReport,
     VerificationReport
 )
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for SGD workflow orchestration
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -199,17 +218,38 @@ class SGDWorkflowOrchestrator:
                 workflow_state.end_time = time.time()
                 workflow_state.progress = 1.0
                 logger.info(f"Workflow {workflow_id} completed successfully")
+
+                # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful workflow
+                duration = (workflow_state.end_time - workflow_state.start_time) if workflow_state.start_time else 0
+                num_sub_problems = len(workflow_state.decomposition_plan.sub_problems) if workflow_state.decomposition_plan else 0
+                self._extract_sgd_knowledge(workflow_id, workflow_state, True)
+                self._track_sgd_performance(workflow_id, True, duration, num_sub_problems)
             else:
                 workflow_state.status = "failed_final_verification"
                 workflow_state.current_stage = SGDWorkflowStatus.FAILED.value
                 workflow_state.end_time = time.time()
                 logger.warning(f"Workflow {workflow_id} failed final verification")
-                
+
+                # **ACTUAL INTEGRATION**: Trigger alert, extract knowledge, and track performance
+                duration = (workflow_state.end_time - workflow_state.start_time) if workflow_state.start_time else 0
+                num_sub_problems = len(workflow_state.decomposition_plan.sub_problems) if workflow_state.decomposition_plan else 0
+                self._trigger_sgd_alerts(workflow_id, False, "final_verification", "Failed final verification", {"duration": duration})
+                self._extract_sgd_knowledge(workflow_id, workflow_state, False)
+                self._track_sgd_performance(workflow_id, False, duration, num_sub_problems)
+
         except Exception as e:
             logger.error(f"Error running workflow {workflow_id}: {e}")
             workflow_state.status = "error"
             workflow_state.current_stage = SGDWorkflowStatus.FAILED.value
             workflow_state.end_time = time.time()
+
+            # **ACTUAL INTEGRATION**: Trigger alert, extract knowledge, and track performance
+            duration = (workflow_state.end_time - workflow_state.start_time) if workflow_state.start_time else 0
+            num_sub_problems = len(workflow_state.decomposition_plan.sub_problems) if workflow_state.decomposition_plan else 0
+            self._trigger_sgd_alerts(workflow_id, False, workflow_state.current_stage, str(e), {"duration": duration})
+            self._extract_sgd_knowledge(workflow_id, workflow_state, False)
+            self._track_sgd_performance(workflow_id, False, duration, num_sub_problems)
+
             return False
 
         return True
@@ -1047,6 +1087,121 @@ Reassembled from {len(workflow_state.sub_problem_solutions)} sub-problem solutio
                     pattern['calculated_success_rate'] = success_rate
         
         logger.info(f"Learned from {len(self.completed_workflows)} completed workflows")
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for SGD Orchestrator
+    # =========================================================================
+
+    def _trigger_sgd_alerts(
+        self,
+        workflow_id: str,
+        success: bool,
+        stage: str,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for SGD workflow failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.HIGH
+
+                alert_manager.create_alert(
+                    title=f"SGD Workflow Failed: {workflow_id}",
+                    description=f"SGD workflow '{workflow_id}' failed at stage '{stage}'. " +
+                                 (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="sgd_workflow_orchestrator",
+                    component="sgd_orchestrator",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger SGD alert: {e}")
+
+    def _extract_sgd_knowledge(
+        self,
+        workflow_id: str,
+        workflow_state: 'WorkflowState',
+        success: bool
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract SGD workflow knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"sgd_{workflow_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="sgd_workflow_execution",
+                source_component="sgd_workflow_orchestrator",
+                title=f"SGD Workflow: {workflow_id}",
+                content={
+                    "workflow_id": workflow_id,
+                    "problem_statement": workflow_state.problem_statement,
+                    "status": workflow_state.status,
+                    "current_stage": workflow_state.current_stage,
+                    "success": success,
+                    "num_sub_problems": len(workflow_state.decomposition_plan.sub_problems) if workflow_state.decomposition_plan else 0,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "start_time": workflow_state.start_time,
+                    "end_time": workflow_state.end_time,
+                    "duration": (workflow_state.end_time - workflow_state.start_time) if workflow_state.start_time and workflow_state.end_time else None,
+                    "teams": {
+                        "content_analyzer": workflow_state.content_analyzer_team_name,
+                        "planner": workflow_state.planner_team_name,
+                        "solver": workflow_state.solver_team_name,
+                        "assembler": workflow_state.assembler_team_name
+                    }
+                },
+                tags=["sgd", "workflow", "sovereign_grade", "success" if success else "failure"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted SGD knowledge for {workflow_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract SGD knowledge: {e}")
+            return False
+
+    def _track_sgd_performance(
+        self,
+        workflow_id: str,
+        success: bool,
+        duration: float,
+        num_sub_problems: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track SGD workflow performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name="sgd_workflow_orchestrator",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"workflow_id": workflow_id, "duration": duration, "num_sub_problems": num_sub_problems}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked SGD performance: {workflow_id}")
+
+        except Exception as e:
+            logger.error(f"Failed to track SGD performance: {e}")
 
 
 # Example usage function

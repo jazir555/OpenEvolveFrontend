@@ -815,7 +815,7 @@ class Z3LogicCompressor:
         updated = False
         chain_count = 0
         for idx, line in enumerate(lines):
-            match = re.match(r"^(\\s*)(if|elif)\\s+(.*):\\s*$", line)
+            match = re.match(r"^(\s*)(if|elif)\s+(.*):\s*$", line)
             if not match:
                 chain_count = 0
                 continue
@@ -826,7 +826,7 @@ class Z3LogicCompressor:
                 if simplified and simplified != condition:
                     lines[idx] = f"{indent}{keyword} {simplified}:"
                     updated = True
-        return "\\n".join(lines) if updated else code
+        return "\n".join(lines) if updated else code
 
     def _to_smtlib(self, condition: str) -> Optional[str]:
         """Attempt to convert simple python boolean expressions to SMT-LIB."""
@@ -1411,6 +1411,246 @@ def example_theorem_proving():
         print(f"Proof: {result.proof[:100]}...")
     
     return result
+
+
+# =============================================================================
+# DSPY-ENHANCED Z3 INTEGRATION
+# =============================================================================
+
+# Import DSPy for enhanced prompting
+try:
+    import dspy
+    from dspy.teleprompt import BootstrapFewShot
+    from dspy.predict import Predict
+    DSPY_AVAILABLE = True
+    logger.info("DSPy available for enhanced programmatic prompting")
+except ImportError:
+    dspy = None
+    BootstrapFewShot = None
+    Predict = None
+    DSPY_AVAILABLE = False
+    logger.warning("DSPy not available - using standard prompting methods")
+
+
+class Z3DSPyIntegration:
+    """
+    Enhanced Z3 integration with DSPy for improved constraint formulation and theorem proving.
+
+    This class provides DSPy-enhanced capabilities for:
+    - Natural language to SMT-LIB constraint translation
+    - Enhanced theorem formulation from natural language
+    - Improved constraint optimization
+    - Structured problem analysis
+    """
+
+    def __init__(self):
+        self.dspy_available = DSPY_AVAILABLE
+        self.solver_engine = Z3SolverEngine()  # Use existing solver engine
+        self.theorem_prover = Z3TheoremProver()  # Use existing prover
+
+    def natural_language_to_constraint_with_dspy(self, natural_language: str,
+                                               constraint_type: str = "general") -> Optional[str]:
+        """
+        Convert natural language description to SMT-LIB constraint using DSPy for enhanced parsing.
+
+        Args:
+            natural_language: Natural language description of the constraint
+            constraint_type: Type of constraint (arithmetic, boolean, etc.)
+
+        Returns:
+            SMT-LIB formatted constraint string or None if failed
+        """
+        if not self.dspy_available:
+            logger.info("DSPy not available, falling back to basic constraint formulation")
+            # Basic fallback - this would need more sophisticated implementation
+            return self._basic_natural_language_to_constraint(natural_language, constraint_type)
+
+        try:
+            # Define a DSPy signature for constraint translation
+            class ConstraintTranslationSignature(dspy.Signature):
+                """Translate natural language to SMT-LIB constraint."""
+                natural_language_description = dspy.InputField(desc="Natural language description of the constraint")
+                constraint_type = dspy.InputField(desc="Type of constraint (arithmetic, boolean, string, etc.)")
+
+                smt_lib_constraint = dspy.OutputField(desc="SMT-LIB2 formatted constraint")
+                variable_definitions = dspy.OutputField(desc="Variable declarations needed for the constraint")
+                comments = dspy.OutputField(desc="Brief explanation of the translation")
+
+            # Create a predictor using the signature
+            translate_constraint = dspy.Predict(ConstraintTranslationSignature)
+
+            # Run the translation
+            result = translate_constraint(
+                natural_language_description=natural_language,
+                constraint_type=constraint_type
+            )
+
+            # Construct the full SMT-LIB constraint
+            smt_constraint = f"; Generated from: {natural_language}\n"
+            smt_constraint += f"; Type: {constraint_type}\n"
+            smt_constraint += f"{result.variable_definitions}\n"
+            smt_constraint += f"{result.smt_lib_constraint}\n"
+
+            return smt_constraint
+
+        except Exception as e:
+            logger.warning(f"DSPy constraint translation failed, falling back to basic method: {e}")
+            return self._basic_natural_language_to_constraint(natural_language, constraint_type)
+
+    def _basic_natural_language_to_constraint(self, natural_language: str,
+                                            constraint_type: str = "general") -> Optional[str]:
+        """Basic fallback for natural language to constraint conversion."""
+        # This is a very basic implementation - in practice would be more sophisticated
+        if "greater than" in natural_language.lower():
+            # Example: "x is greater than 5" -> (assert (> x 5))
+            import re
+            matches = re.findall(r'"([^"]+)"', natural_language)
+            if matches:
+                var_name = matches[0] if matches else "x"
+            else:
+                var_name = "x"
+
+            numbers = re.findall(r'\d+', natural_language)
+            if numbers:
+                value = numbers[0]
+                return f"(declare-const {var_name} Int)\n(assert (> {var_name} {value}))"
+
+        return f"; Basic translation for: {natural_language}\n; Type: {constraint_type}"
+
+    def formulate_theorem_with_dspy(self, natural_language_theorem: str) -> Optional[str]:
+        """
+        Formulate a theorem in SMT-LIB format from natural language using DSPy.
+
+        Args:
+            natural_language_theorem: Natural language description of the theorem
+
+        Returns:
+            SMT-LIB formatted theorem or None if failed
+        """
+        if not self.dspy_available:
+            logger.info("DSPy not available, falling back to basic theorem formulation")
+            return self._basic_formulate_theorem(natural_language_theorem)
+
+        try:
+            # Define a DSPy signature for theorem formulation
+            class TheoremFormulationSignature(dspy.Signature):
+                """Formulate a theorem in SMT-LIB format from natural language."""
+                natural_language_theorem = dspy.InputField(desc="Natural language description of the theorem to prove")
+
+                smt_lib_theorem = dspy.OutputField(desc="SMT-LIB2 formatted theorem for proving")
+                variable_declarations = dspy.OutputField(desc="Variable declarations needed for the theorem")
+                logic_declaration = dspy.OutputField(desc="Appropriate logic declaration (e.g., QF_LIA, LIA)")
+                proof_strategy = dspy.OutputField(desc="Suggested proof strategy")
+
+            # Create a predictor using the signature
+            formulate_theorem = dspy.Predict(TheoremFormulationSignature)
+
+            # Run the theorem formulation
+            result = formulate_theorem(
+                natural_language_theorem=natural_language_theorem
+            )
+
+            # Construct the full SMT-LIB theorem
+            smt_theorem = f"; Theorem: {natural_language_theorem}\n"
+            smt_theorem += f"(set-logic {result.logic_declaration})\n"
+            smt_theorem += f"{result.variable_declarations}\n"
+            smt_theorem += f"{result.smt_lib_theorem}\n"
+            smt_theorem += "; Check satisfiability to prove the theorem\n(check-sat)\n"
+
+            return smt_theorem
+
+        except Exception as e:
+            logger.warning(f"DSPy theorem formulation failed, falling back to basic method: {e}")
+            return self._basic_formulate_theorem(natural_language_theorem)
+
+    def _basic_formulate_theorem(self, natural_language_theorem: str) -> Optional[str]:
+        """Basic fallback for theorem formulation."""
+        # Basic implementation - would be more sophisticated in practice
+        return f"; Basic theorem formulation for: {natural_language_theorem}\n(set-logic LIA)\n; TODO: Implement proper translation"
+
+    def solve_problem_with_dspy_guidance(self, problem_description: str,
+                                       constraint_type: str = "general") -> Dict[str, Any]:
+        """
+        Solve a constraint satisfaction problem using DSPy for enhanced problem understanding
+        and Z3 for solving.
+
+        Args:
+            problem_description: Natural language description of the problem
+            constraint_type: Type of constraints involved
+
+        Returns:
+            Dictionary with solution results
+        """
+        try:
+            # First, use DSPy to understand and structure the problem
+            if self.dspy_available:
+                # Define a DSPy signature for problem analysis
+                class ProblemAnalysisSignature(dspy.Signature):
+                    """Analyze a constraint satisfaction problem."""
+                    problem_description = dspy.InputField(desc="Natural language description of the problem to solve")
+                    constraint_type = dspy.InputField(desc="Type of constraints involved (arithmetic, boolean, etc.)")
+
+                    key_variables = dspy.OutputField(desc="List of key variables in the problem")
+                    constraints = dspy.OutputField(desc="List of constraints that need to be satisfied")
+                    objective = dspy.OutputField(desc="Objective if this is an optimization problem")
+                    solution_approach = dspy.OutputField(desc="Recommended approach to solve the problem")
+
+                # Create a predictor using the signature
+                analyze_problem = dspy.Predict(ProblemAnalysisSignature)
+
+                # Run the problem analysis
+                result = analyze_problem(
+                    problem_description=problem_description,
+                    constraint_type=constraint_type
+                )
+
+                # Convert the analysis to SMT-LIB constraints
+                smt_constraints = self.natural_language_to_constraint_with_dspy(
+                    f"Variables: {result.key_variables}. Constraints: {result.constraints}. Objective: {result.objective}",
+                    constraint_type
+                )
+
+                # Now solve with Z3
+                solver_result = self.solver_engine.solve_constraints(smt_constraints)
+
+                return {
+                    "status": "success",
+                    "dspy_analysis": {
+                        "key_variables": result.key_variables,
+                        "constraints": result.constraints,
+                        "objective": result.objective,
+                        "solution_approach": result.solution_approach
+                    },
+                    "solver_result": solver_result,
+                    "problem_description": problem_description,
+                    "constraint_type": constraint_type,
+                    "dspy_enhanced": True
+                }
+            else:
+                # Fallback to basic approach
+                smt_constraints = self._basic_natural_language_to_constraint(
+                    problem_description, constraint_type
+                )
+
+                solver_result = self.solver_engine.solve_constraints(smt_constraints)
+
+                return {
+                    "status": "success",
+                    "solver_result": solver_result,
+                    "problem_description": problem_description,
+                    "constraint_type": constraint_type,
+                    "dspy_enhanced": False,
+                    "message": "DSPy not available, using basic constraint solving"
+                }
+
+        except Exception as e:
+            logger.error(f"Error in DSPy-guided problem solving: {e}")
+            return {
+                "status": "error",
+                "error": str(e),
+                "problem_description": problem_description,
+                "dspy_enhanced": self.dspy_available
+            }
 
 
 if __name__ == "__main__":

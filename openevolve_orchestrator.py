@@ -15,12 +15,32 @@ from enum import Enum
 import requests # Added this line
 import logging # Added this line
 import asyncio
+from datetime import datetime
 from ui_components import render_team_manager, render_gauntlet_designer # NEW IMPORT
 from team_manager import TeamManager # NEW IMPORT
 from gauntlet_manager import GauntletManager # NEW IMPORT
 from template_manager import TemplateManager  # NEW IMPORT
 from workflow_engine import run_sovereign_workflow, WorkflowState as SovereignWorkflowState # NEW IMPORT
 from workflow_history_manager import WorkflowHistoryManager # NEW IMPORT
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for OpenEvolve orchestration
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 
 @dataclass
@@ -573,7 +593,12 @@ class OpenEvolveOrchestrator:
                     workflow.results["report"] = report
                 except (ValueError, TypeError, AttributeError, RuntimeError) as e:
                     print(f"Warning: Could not generate report: {e}")
-            
+
+                # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful workflow
+                duration = (time.time() - workflow.start_time) if workflow.start_time else 0
+                self._extract_orchestrator_knowledge(workflow_id, workflow.workflow_type.value, workflow, True)
+                self._track_orchestrator_performance(workflow_id, workflow.workflow_type.value, True, duration)
+
             workflow.current_stage = WorkflowStage.COMPLETION
             workflow.end_time = time.time()
             self._notify_callbacks(workflow_id, "stage_changed", workflow.current_stage)
@@ -592,7 +617,13 @@ class OpenEvolveOrchestrator:
             workflow.end_time = time.time()
             workflow.results["error"] = str(e)
             self._notify_callbacks(workflow_id, "workflow_failed", str(e))
-            
+
+            # **ACTUAL INTEGRATION**: Trigger alert, extract knowledge, and track performance for failed workflow
+            duration = (workflow.end_time - workflow.start_time) if workflow.start_time else 0
+            self._trigger_orchestrator_alerts(workflow_id, workflow.workflow_type.value, False, str(e), {"duration": duration})
+            self._extract_orchestrator_knowledge(workflow_id, workflow.workflow_type.value, workflow, False)
+            self._track_orchestrator_performance(workflow_id, workflow.workflow_type.value, False, duration)
+
             # Add to history manager
             self.history_manager.add_workflow_to_history(workflow)
 
@@ -661,6 +692,116 @@ class OpenEvolveOrchestrator:
                     callback(event, data)
                 except (ValueError, TypeError, RuntimeError, AttributeError) as e:
                     print(f"Error in workflow callback: {e}")
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Orchestrator
+    # =========================================================================
+
+    def _trigger_orchestrator_alerts(
+        self,
+        workflow_id: str,
+        workflow_type: str,
+        success: bool,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for Orchestrator workflow failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.HIGH
+
+                alert_manager.create_alert(
+                    title=f"Orchestrator Workflow Failed: {workflow_id}",
+                    description=f"Orchestrator workflow '{workflow_id}' (type: {workflow_type}) failed. " +
+                                 (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="openevolve_orchestrator",
+                    component="orchestrator",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logging.error(f"Failed to trigger Orchestrator alert: {e}")
+
+    def _extract_orchestrator_knowledge(
+        self,
+        workflow_id: str,
+        workflow_type: str,
+        workflow: 'WorkflowState',
+        success: bool
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract Orchestrator workflow knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"orchestrator_{workflow_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="orchestrator_workflow_execution",
+                source_component="openevolve_orchestrator",
+                title=f"Orchestrator Workflow: {workflow_id} ({workflow_type})",
+                content={
+                    "workflow_id": workflow_id,
+                    "workflow_type": workflow_type,
+                    "parameters": workflow.parameters,
+                    "metrics": workflow.metrics,
+                    "status": workflow.status,
+                    "success": success,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "start_time": workflow.start_time,
+                    "end_time": workflow.end_time,
+                    "duration": (workflow.end_time or time.time()) - workflow.start_time if workflow.start_time else None
+                },
+                tags=["orchestrator", "workflow", workflow_type, "success" if success else "failure"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logging.debug(f"Extracted Orchestrator knowledge for {workflow_id}")
+            return True
+
+        except Exception as e:
+            logging.error(f"Failed to extract Orchestrator knowledge: {e}")
+            return False
+
+    def _track_orchestrator_performance(
+        self,
+        workflow_id: str,
+        workflow_type: str,
+        success: bool,
+        duration: float
+    ):
+        """**ACTUAL INTEGRATION**: Track Orchestrator workflow performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"orchestrator_{workflow_type}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"workflow_id": workflow_id, "duration": duration}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logging.debug(f"Tracked Orchestrator performance: {workflow_id}")
+
+        except Exception as e:
+            logging.error(f"Failed to track Orchestrator performance: {e}")
 
 
 def render_openevolve_orchestrator_ui():

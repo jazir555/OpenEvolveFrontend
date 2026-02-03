@@ -2212,6 +2212,266 @@ async def get_pygraphistry_visualization(request: PyGraphistryVisualizationReque
 
 
 # =============================================================================
+# DSPY ENHANCED ASSESSMENT ENDPOINT
+# =============================================================================
+
+class DSPyAssessmentRequest(BaseModel):
+    """Request model for DSPy-enhanced assessment."""
+    content: str = Field(..., description="Content to assess")
+    content_type: str = Field("general", description="Type of content (code, document, legal, etc.)")
+    assessment_type: str = Field("comprehensive", description="Type of assessment (comprehensive, security, performance, logic)")
+
+
+class DSPyAssessmentResponse(BaseModel):
+    """Response model for DSPy-enhanced assessment."""
+    status: str
+    assessment_result: Optional[Dict[str, Any]] = None
+    confidence_score: Optional[float] = None
+    issues_found: Optional[int] = None
+    recommendations: Optional[List[str]] = None
+    message: Optional[str] = None
+
+
+@app.post("/api/openevolve/assess/dspy", dependencies=[Depends(verify_api_key)], response_model=DSPyAssessmentResponse)
+async def assess_content_with_dspy(request: DSPyAssessmentRequest, user: AuthUser = Depends(verify_api_key)):
+    """
+    Assess content using DSPy for enhanced programmatic prompting and structured analysis.
+
+    Args:
+        request: Assessment request containing content and parameters
+        user: Authenticated user information
+
+    Returns:
+        Assessment results from DSPy-enhanced analysis
+    """
+    try:
+        from dspy_integration import DSPY_AVAILABLE
+
+        if not DSPY_AVAILABLE:
+            # Fallback to standard assessment if DSPy not available
+            from quality_assessment import QualityAssessmentEngine
+
+            engine = QualityAssessmentEngine()
+            result = engine.assess_quality(request.content, request.content_type)
+
+            record_audit_event(
+                user=user,
+                operation="ASSESS_CONTENT_DSPY_FALLBACK",
+                resource="assessment",
+                resource_id="dspy_fallback",
+                success=True,
+                details={"content_type": request.content_type, "assessment_type": request.assessment_type}
+            )
+
+            return {
+                "status": "success",
+                "assessment_result": {
+                    "scores": {dim.value: score for dim, score in result.scores.items()},
+                    "composite_score": result.composite_score,
+                    "issues_count": len(result.issues),
+                    "recommendations_count": len(result.recommendations)
+                },
+                "confidence_score": result.confidence,
+                "issues_found": len(result.issues),
+                "recommendations": result.recommendations[:5],  # First 5 recommendations
+                "message": "DSPy not available, using standard assessment"
+            }
+
+        # Use DSPy-enhanced assessment
+        from quality_assessment import QualityAssessmentEngine
+
+        engine = QualityAssessmentEngine()
+        result = engine.assess_quality_with_dspy(request.content, request.content_type)
+
+        record_audit_event(
+            user=user,
+            operation="ASSESS_CONTENT_DSPY",
+            resource="assessment",
+            resource_id="dspy_enhanced",
+            success=True,
+            details={"content_type": request.content_type, "assessment_type": request.assessment_type}
+        )
+
+        return {
+            "status": "success",
+            "assessment_result": {
+                "scores": {dim.value: score for dim, score in result.scores.items()},
+                "composite_score": result.composite_score,
+                "issues_count": len(result.issues),
+                "recommendations_count": len(result.recommendations),
+                "assessment_method": result.assessment_method
+            },
+            "confidence_score": result.confidence,
+            "issues_found": len(result.issues),
+            "recommendations": result.recommendations[:5],  # First 5 recommendations
+            "message": "DSPy-enhanced assessment completed"
+        }
+
+    except ImportError as e:
+        logger.error(f"DSPy assessment import error: {e}")
+        return {
+            "status": "error",
+            "message": "DSPy assessment not available"
+        }
+    except Exception as e:
+        logger.error(f"Error in DSPy assessment endpoint: {e}")
+        record_audit_event(
+            user=user,
+            operation="ASSESS_CONTENT_DSPY_ERROR",
+            resource="assessment",
+            resource_id="dspy_error",
+            success=False,
+            details={"error": str(e)}
+        )
+        return {
+            "status": "error",
+            "message": f"Error performing DSPy assessment: {str(e)}"
+        }
+
+
+# =============================================================================
+# DSPY ENHANCED FIX GENERATION ENDPOINT
+# =============================================================================
+
+class DSPyFixGenerationRequest(BaseModel):
+    """Request model for DSPy-enhanced fix generation."""
+    content: str = Field(..., description="Content to fix")
+    content_type: str = Field("general", description="Type of content (code, document, legal, etc.)")
+    issues: Optional[List[Dict[str, Any]]] = Field(None, description="List of issues to address")
+
+
+class DSPyFixGenerationResponse(BaseModel):
+    """Response model for DSPy-enhanced fix generation."""
+    status: str
+    fixed_content: Optional[str] = None
+    suggested_fixes: Optional[List[Dict[str, Any]]] = None
+    confidence_score: Optional[float] = None
+    fixes_applied: Optional[int] = None
+    message: Optional[str] = None
+
+
+@app.post("/api/openevolve/fix/dspy", dependencies=[Depends(verify_api_key)], response_model=DSPyFixGenerationResponse)
+async def generate_fixes_with_dspy(request: DSPyFixGenerationRequest, user: AuthUser = Depends(verify_api_key)):
+    """
+    Generate fixes using DSPy for enhanced programmatic prompting and structured analysis.
+
+    Args:
+        request: Fix generation request containing content and issues
+        user: Authenticated user information
+
+    Returns:
+        Fix generation results from DSPy-enhanced analysis
+    """
+    try:
+        from dspy_integration import DSPY_AVAILABLE
+        from blue_team import BlueTeam, IssueFinding
+        from quality_assessment import SeverityLevel
+        from red_team import IssueCategory
+
+        if not DSPY_AVAILABLE:
+            # Fallback to standard fix generation if DSPy not available
+            blue_team = BlueTeam()
+
+            # Convert issues to IssueFinding objects if provided
+            issues = []
+            if request.issues:
+                for issue in request.issues:
+                    issue_finding = IssueFinding(
+                        title=issue.get("title", "Issue"),
+                        description=issue.get("description", ""),
+                        severity=SeverityLevel.MEDIUM,
+                        category=IssueCategory.LOGICAL_ERROR,
+                        confidence=issue.get("confidence", 0.5),
+                        suggested_fix=issue.get("suggested_fix", ""),
+                        location=issue.get("location", "")
+                    )
+                    issues.append(issue_finding)
+
+            result = blue_team.apply_fixes(request.content, issues, content_type=request.content_type)
+
+            record_audit_event(
+                user=user,
+                operation="GENERATE_FIXES_DSPY_FALLBACK",
+                resource="fix_generation",
+                resource_id="dspy_fallback",
+                success=True,
+                details={"content_type": request.content_type, "issues_count": len(issues)}
+            )
+
+            return {
+                "status": "success",
+                "fixed_content": result.fixed_content,
+                "suggested_fixes": [fix.fix_description for fix in result.fix_suggestions],
+                "confidence_score": result.confidence_score,
+                "fixes_applied": len(result.applied_fixes),
+                "message": "DSPy not available, using standard fix generation"
+            }
+
+        # Use DSPy-enhanced fix generation
+        blue_team = BlueTeam()
+
+        # Convert issues to IssueFinding objects if provided
+        issues = []
+        if request.issues:
+            for issue in request.issues:
+                issue_finding = IssueFinding(
+                    title=issue.get("title", "Issue"),
+                    description=issue.get("description", ""),
+                    severity=SeverityLevel.MEDIUM,
+                    category=IssueCategory.LOGICAL_ERROR,
+                    confidence=issue.get("confidence", 0.5),
+                    suggested_fix=issue.get("suggested_fix", ""),
+                    location=issue.get("location", "")
+                )
+                issues.append(issue_finding)
+
+        result = blue_team.generate_fixes_with_dspy(
+            content=request.content,
+            content_type=request.content_type,
+            issues=issues
+        )
+
+        record_audit_event(
+            user=user,
+            operation="GENERATE_FIXES_DSPY",
+            resource="fix_generation",
+            resource_id="dspy_enhanced",
+            success=True,
+            details={"content_type": request.content_type, "issues_count": len(issues)}
+        )
+
+        return {
+            "status": "success",
+            "fixed_content": result.get("fixed_content", request.content),
+            "suggested_fixes": result.get("suggested_fixes", []),
+            "confidence_score": result.get("confidence_score", 0.0),
+            "fixes_applied": result.get("fix_count", 0),
+            "message": "DSPy-enhanced fix generation completed"
+        }
+
+    except ImportError as e:
+        logger.error(f"DSPy fix generation import error: {e}")
+        return {
+            "status": "error",
+            "message": "DSPy fix generation not available"
+        }
+    except Exception as e:
+        logger.error(f"Error in DSPy fix generation endpoint: {e}")
+        record_audit_event(
+            user=user,
+            operation="GENERATE_FIXES_DSPY_ERROR",
+            resource="fix_generation",
+            resource_id="dspy_error",
+            success=False,
+            details={"error": str(e)}
+        )
+        return {
+            "status": "error",
+            "message": f"Error performing DSPy fix generation: {str(e)}"
+        }
+
+
+# =============================================================================
 # RAGBITS INTEGRATION ENDPOINTS
 # =============================================================================
 
