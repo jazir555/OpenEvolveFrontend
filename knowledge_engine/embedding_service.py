@@ -58,6 +58,7 @@ class EmbeddingService:
     def __init__(self, config: Optional[EmbeddingConfig] = None):
         self.config = config or EmbeddingConfig()
         self._model = None
+        self._vectorizer = None
         self._cache: Dict[str, np.ndarray] = {}
         self._cache_hits = 0
         self._cache_misses = 0

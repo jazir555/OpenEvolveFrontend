@@ -4903,9 +4903,17 @@ def generate_bridging_solution(
         return f"""
 # Bridging solution for missing connection between {gap.get('from')} and {gap.get('to')}
 
-def bridge_{gap.get('from')}_to_{gap.get('to')}():
+def bridge_{gap.get('from')}_to_{gap.get('to')}(payload, mapping=None):
     \"\"\"Bridge function to connect {gap.get('from')} output to {gap.get('to')} input\"\"\"
-    pass
+    if payload is None:
+        return None
+    if isinstance(payload, dict):
+        if mapping:
+            return {{dest: payload.get(src) for src, dest in mapping.items()}}
+        if "data" in payload:
+            return payload.get("data")
+        return payload
+    return payload
 """
     elif gap_type == "error_handling":
         return f"""
@@ -4922,7 +4930,7 @@ def with_error_handling(func):
     return wrapper
 """
     else:
-        return f"# Placeholder for gap of type {gap_type}"
+        return f"# Bridging note: review gap type '{gap_type}' and align interfaces accordingly."
 
 
 def perform_integration_quality_assurance(

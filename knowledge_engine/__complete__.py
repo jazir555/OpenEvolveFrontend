@@ -25,39 +25,81 @@ Usage:
 from __future__ import annotations
 
 import logging
+import sys
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-# Import the new completion modules
-from .embedding_service import (
-    EmbeddingService,
-    EmbeddingConfig,
-    create_embedding_service,
-    get_default_embedding_service
-)
+# Ensure parent directory is in path for imports
+_parent_dir = str(Path(__file__).parent)
+if _parent_dir not in sys.path:
+    sys.path.insert(0, _parent_dir)
 
-from .cloud_storage_backends import (
-    S3BackupStorage,
-    GCSBackupStorage,
-    AzureBackupStorage,
-    S3Credentials,
-    GCSCredentials,
-    AzureCredentials,
-    create_cloud_storage
-)
+# Import the new completion modules with fallback
+try:
+    from embedding_service import (
+        EmbeddingService,
+        EmbeddingConfig,
+        create_embedding_service,
+        get_default_embedding_service
+    )
+except ImportError:
+    from .embedding_service import (
+        EmbeddingService,
+        EmbeddingConfig,
+        create_embedding_service,
+        get_default_embedding_service
+    )
 
-from .core.backends.full_featured_backends import (
-    FullFeaturedInMemoryBackend,
-    FullFeaturedPostgreSQLBackend,
-    FullFeaturedQdrantBackend,
-    create_full_featured_backend
-)
+try:
+    from cloud_storage_backends import (
+        S3BackupStorage,
+        GCSBackupStorage,
+        AzureBackupStorage,
+        S3Credentials,
+        GCSCredentials,
+        AzureCredentials,
+        create_cloud_storage
+    )
+except ImportError:
+    from .cloud_storage_backends import (
+        S3BackupStorage,
+        GCSBackupStorage,
+        AzureBackupStorage,
+        S3Credentials,
+        GCSCredentials,
+        AzureCredentials,
+        create_cloud_storage
+    )
 
-from .confidence_scorer import (
-    ConfidenceScorer,
-    ConfidenceFactors,
-    calculate_confidence,
-    get_confidence_scorer
-)
+try:
+    from core.backends.full_featured_backends import (
+        FullFeaturedInMemoryBackend,
+        FullFeaturedPostgreSQLBackend,
+        FullFeaturedQdrantBackend,
+        create_full_featured_backend
+    )
+except ImportError:
+    from .core.backends.full_featured_backends import (
+        FullFeaturedInMemoryBackend,
+        FullFeaturedPostgreSQLBackend,
+        FullFeaturedQdrantBackend,
+        create_full_featured_backend
+    )
+
+try:
+    from confidence_scorer import (
+        ConfidenceScorer,
+        ConfidenceFactors,
+        calculate_confidence,
+        get_confidence_scorer
+    )
+except ImportError:
+    from .confidence_scorer import (
+        ConfidenceScorer,
+        ConfidenceFactors,
+        calculate_confidence,
+        get_confidence_scorer
+    )
 
 from .core.strategy_recommender_complete import (
     StrategyRecommendation,
@@ -72,7 +114,7 @@ from .core.strategy_recommender_complete import (
 
 # Import existing components
 from .master_engine import MasterKnowledgeEngine, KnowledgeDomain
-from .unified_knowledge_platform import CompleteKnowledgePlatform
+from .unified_knowledge_platform import UnifiedKnowledgePlatform
 
 logger = logging.getLogger(__name__)
 
@@ -239,7 +281,10 @@ class CompletedKnowledgeEngine:
             Embedding vector as list of floats
         """
         embedding = self.embedding_service.embed_text(text)
-        return embedding.tolist()
+        # Handle both numpy arrays and lists
+        if hasattr(embedding, 'tolist'):
+            return embedding.tolist()
+        return list(embedding)
     
     def recommend_strategy(
         self,

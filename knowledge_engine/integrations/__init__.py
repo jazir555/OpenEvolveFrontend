@@ -103,6 +103,34 @@ try:
 except ImportError:
     UNIFIED_BRIDGE_AVAILABLE = False
 
+# ROMA Integration
+try:
+    from .roma_integration import (
+        ROMAIntegration,
+        ROMAMetaAgent
+    )
+    ROMA_INTEGRATION_AVAILABLE = True
+except ImportError:
+    ROMA_INTEGRATION_AVAILABLE = False
+
+# ROMA-Entity Knowledge Graph Integration
+try:
+    from .roma_entity_kg_integration import (
+        ROMAEntityType,
+        ROMARelationshipType,
+        ROMAEntity,
+        ROMARelationship,
+        ROMAKnowledgeResult,
+        SimilarDecomposition,
+        ROMAEntityExtractor,
+        ROMAKnowledgeWriter,
+        ROMAKnowledgeReader,
+        create_roma_ekg_integration
+    )
+    ROMA_EKG_INTEGRATION_AVAILABLE = True
+except ImportError:
+    ROMA_EKG_INTEGRATION_AVAILABLE = False
+
 
 __all__ = [
     # Z3 Knowledge Integration
@@ -158,7 +186,23 @@ __all__ = [
     "UnifiedKnowledgePattern",
     "ProblemClassifier",
     "CrossSystemKnowledgeTransfer",
-    
+
+    # ROMA Integration
+    "ROMAIntegration",
+    "ROMAMetaAgent",
+
+    # ROMA-EKG Integration
+    "ROMAEntityType",
+    "ROMARelationshipType",
+    "ROMAEntity",
+    "ROMARelationship",
+    "ROMAKnowledgeResult",
+    "SimilarDecomposition",
+    "ROMAEntityExtractor",
+    "ROMAKnowledgeWriter",
+    "ROMAKnowledgeReader",
+    "create_roma_ekg_integration",
+
     # Availability flags
     "Z3_INTEGRATION_AVAILABLE",
     "Z3_ENHANCED_AVAILABLE",
@@ -168,4 +212,6 @@ __all__ = [
     "LEANAIDE_KE_AVAILABLE",
     "LEANAIDE_PROOF_AVAILABLE",
     "UNIFIED_BRIDGE_AVAILABLE",
+    "ROMA_INTEGRATION_AVAILABLE",
+    "ROMA_EKG_INTEGRATION_AVAILABLE",
 ]

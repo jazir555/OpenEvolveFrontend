@@ -556,17 +556,17 @@ class DecompositionStrategyBase(ABC):
     @abstractmethod
     def get_strategy_name(self) -> str:
         """Get strategy name."""
-        pass
+        raise NotImplementedError("DecompositionStrategyBase.get_strategy_name must be implemented")
     
     @abstractmethod
     def can_handle(self, problem: ProblemDefinition) -> Tuple[bool, float]:
         """Check if strategy can handle problem. Returns (can_handle, confidence)."""
-        pass
+        raise NotImplementedError("DecompositionStrategyBase.can_handle must be implemented")
     
     @abstractmethod
     def decompose(self, problem: ProblemDefinition) -> List[SubProblem]:
         """Decompose problem into sub-problems."""
-        pass
+        raise NotImplementedError("DecompositionStrategyBase.decompose must be implemented")
     
     def estimate_complexity(self, problem: ProblemDefinition) -> ComplexityScore:
         """Estimate complexity for decomposition."""
@@ -739,6 +739,12 @@ class EnhancedDecompositionEngine:
         )
 
         # Build entanglement matrix for decomposition/recomposition workflows
+        symbols_by_id: Dict[str, Set[str]] = {}
+        for sp in sub_problems:
+            symbols_by_id[sp.id] = self._extract_symbol_tokens(sp)
+            if symbols_by_id[sp.id]:
+                sp.metadata["entanglement_symbols"] = sorted(symbols_by_id[sp.id])
+
         entanglement_matrix = self._build_entanglement_matrix(sub_problems)
         plan.metadata["entanglement_matrix"] = entanglement_matrix
         for sp in sub_problems:

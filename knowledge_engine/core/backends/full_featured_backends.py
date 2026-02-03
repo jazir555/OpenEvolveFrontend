@@ -46,22 +46,20 @@ class FullFeaturedInMemoryBackend(InMemoryBackend):
         Returns:
             True if deleted, False if not found
         """
-        async with self._lock:
-            if entry_id in self._storage:
-                entry = self._storage[entry_id]
-                del self._storage[entry_id]
-                
-                # Also remove from embeddings index
-                if entry_id in self._embeddings:
-                    del self._embeddings[entry_id]
-                
-                logger.debug({
-                    "msg": "Knowledge entry deleted",
-                    "entry_id": entry_id
-                })
-                return True
+        if entry_id in self.knowledge_store:
+            del self.knowledge_store[entry_id]
             
-            return False
+            # Also remove from entities if present
+            if entry_id in self.entities:
+                del self.entities[entry_id]
+            
+            logger.debug({
+                "msg": "Knowledge entry deleted",
+                "entry_id": entry_id
+            })
+            return True
+        
+        return False
     
     async def update_knowledge(
         self,
@@ -78,30 +76,23 @@ class FullFeaturedInMemoryBackend(InMemoryBackend):
         Returns:
             True if updated, False if not found
         """
-        async with self._lock:
-            if entry_id not in self._storage:
-                return False
-            
-            entry = self._storage[entry_id]
-            
-            # Update allowed fields
-            allowed_fields = {'content', 'metadata', 'embedding', 'source'}
-            
-            for field, value in updates.items():
-                if field in allowed_fields:
-                    setattr(entry, field, value)
-            
-            # Update embedding index if embedding changed
-            if 'embedding' in updates and updates['embedding'] is not None:
-                self._embeddings[entry_id] = updates['embedding']
-            
-            logger.debug({
-                "msg": "Knowledge entry updated",
-                "entry_id": entry_id,
-                "updated_fields": list(updates.keys())
-            })
-            
-            return True
+        if entry_id not in self.knowledge_store:
+            return False
+        
+        entry = self.knowledge_store[entry_id]
+        
+        # Update fields
+        for field, value in updates.items():
+            if field in entry:
+                entry[field] = value
+        
+        logger.debug({
+            "msg": "Knowledge entry updated",
+            "entry_id": entry_id,
+            "updated_fields": list(updates.keys())
+        })
+        
+        return True
     
     async def clear_all(self) -> int:
         """
@@ -112,18 +103,18 @@ class FullFeaturedInMemoryBackend(InMemoryBackend):
         Returns:
             Number of entries cleared
         """
-        async with self._lock:
-            count = len(self._storage)
-            
-            self._storage.clear()
-            self._embeddings.clear()
-            
-            logger.warning({
-                "msg": "All knowledge cleared from in-memory backend",
-                "entries_cleared": count
-            })
-            
-            return count
+        count = len(self.knowledge_store)
+        
+        self.knowledge_store.clear()
+        self.entities.clear()
+        self.relationships.clear()
+        
+        logger.warning({
+            "msg": "All knowledge cleared from in-memory backend",
+            "entries_cleared": count
+        })
+        
+        return count
 
 
 class FullFeaturedPostgreSQLBackend(PostgreSQLBackend):

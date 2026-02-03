@@ -8,12 +8,18 @@ from universal_recomposition_engine import (
     UniversalRecompositionEngine,
     DecompositionPlan,
     ProblemDefinition,
-    SubProblem,
+    SubProblem as UniversalSubProblem,
     ComplexityScore,
     SuccessCriterion,
     Constraint,
     SubProblemSolution,
 )
+from enhanced_decomposition_engine import (
+    SubProblem as EnhancedSubProblem,
+    SubProblemType,
+    ComplexityScore as EnhancedComplexityScore,
+)
+from decomposition_recomposition_integration import SimpleSolutionSolver
 
 
 @dataclass
@@ -50,7 +56,7 @@ def test_entanglement_invalidation_propagates():
         constraints=[Constraint(id="c1", description="none", type="general", severity="soft")],
         success_criteria=[SuccessCriterion(id="s1", description="ok", metric="done", threshold=1.0)],
     )
-    sp1 = SubProblem(
+    sp1 = UniversalSubProblem(
         id="sp1",
         parent_id="prob1",
         title="Component A",
@@ -60,7 +66,7 @@ def test_entanglement_invalidation_propagates():
         dependencies=[],
         success_criteria=[],
     )
-    sp2 = SubProblem(
+    sp2 = UniversalSubProblem(
         id="sp2",
         parent_id="prob1",
         title="Component B",
@@ -110,3 +116,31 @@ def test_entanglement_invalidation_propagates():
     assert sp2_meta.get("needs_consistency_refinement") is True
     assert "entanglement_invalidation" in sp1_meta
     assert "entanglement_invalidation" in sp2_meta
+
+
+def test_simple_solver_propagates_entanglement_metadata():
+    sub_problem = EnhancedSubProblem(
+        id="sp-alpha",
+        parent_id="prob1",
+        title="Auth API",
+        description="Expose authentication interface for client integrations.",
+        type=SubProblemType.IMPLEMENTATION,
+        complexity_score=ComplexityScore(1, 1, 1, 1, 1),
+        dependencies=["sp-beta"],
+        success_criteria=[],
+        metadata={
+            "entangled_with": ["sp-beta"],
+            "entanglement_symbols": ["auth", "token"],
+            "entanglement_source": "symbolic_overlap",
+            "input_contracts": ["User credentials"],
+            "output_contracts": ["Access token"],
+        },
+    )
+
+    solver = SimpleSolutionSolver()
+    solution = solver.solve(sub_problem)
+
+    assert solution.metadata.get("entangled_with") == ["sp-beta"]
+    assert solution.metadata.get("entanglement_symbols") == ["auth", "token"]
+    assert solution.metadata.get("entanglement_source") == "symbolic_overlap"
+    assert "inputs" in solution.metadata and "outputs" in solution.metadata

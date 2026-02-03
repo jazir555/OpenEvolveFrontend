@@ -239,7 +239,7 @@ class SolutionSolver(ABC):
         Returns:
             Solution for the sub-problem
         """
-        pass
+        raise NotImplementedError("SolutionSolver.solve must be implemented")
     
     @abstractmethod
     def can_solve(self, sub_problem: SubProblem) -> Tuple[bool, float]:
@@ -249,46 +249,125 @@ class SolutionSolver(ABC):
         Returns:
             Tuple of (can_solve, confidence)
         """
-        pass
+        raise NotImplementedError("SolutionSolver.can_solve must be implemented")
 
 
 class SimpleSolutionSolver(SolutionSolver):
-    """Simple placeholder solution solver."""
-    
+    """Deterministic solver with structured, entanglement-aware output."""
+
     def solve(self, sub_problem: SubProblem) -> SubProblemSolution:
-        """Generate a placeholder solution."""
-        content = f"""
-# Solution: {sub_problem.title}
+        metadata = sub_problem.metadata or {}
+        entangled_with = metadata.get("entangled_with", []) or []
+        entanglement_symbols = metadata.get("entanglement_symbols", []) or []
 
-## Overview
-This is a solution for the sub-problem: {sub_problem.description}
+        dependency_list = ", ".join(sub_problem.dependencies) if sub_problem.dependencies else "None"
+        acceptance = sub_problem.acceptance_criteria or []
+        success_criteria = [sc.description for sc in sub_problem.success_criteria] if sub_problem.success_criteria else []
+        constraints = metadata.get("constraints", []) or []
+        if hasattr(sub_problem, "specific_constraints"):
+            constraints = list(set(constraints + list(sub_problem.specific_constraints or [])))
 
-## Approach
-1. Analyze requirements
-2. Design solution
-3. Implement components
-4. Validate results
+        deliverable_map = {
+            "implementation": "Implement the required component with interfaces and tests.",
+            "design": "Produce design artifacts, interfaces, and rationale.",
+            "analysis": "Deliver analysis results with risks and recommendations.",
+            "research": "Deliver research findings with sources and implications.",
+            "validation": "Deliver validation report and test results.",
+            "integration": "Deliver integration plan and compatibility notes.",
+            "testing": "Deliver test plan, coverage, and outcomes.",
+            "documentation": "Deliver documentation and usage guidance.",
+        }
+        type_key = sub_problem.type.value if hasattr(sub_problem.type, "value") else str(sub_problem.type)
+        deliverable = deliverable_map.get(type_key.lower(), "Deliver a complete solution artifact.")
 
-## Implementation
-[Implementation details would go here based on the specific sub-problem type]
+        entanglement_note = ""
+        if entangled_with:
+            symbols_text = ", ".join(entanglement_symbols) if entanglement_symbols else "n/a"
+            entanglement_note = (
+                "\n## Entanglement Coordination\n"
+                f"- Entangled with: {', '.join(entangled_with)}\n"
+                f"- Shared symbols: {symbols_text}\n"
+                "- Keep interfaces consistent across entangled components.\n"
+            )
 
-## Verification
-- Success criteria: {len(sub_problem.success_criteria)} criteria defined
-- Estimated effort: {sub_problem.estimated_effort_hours} hours
+        input_contracts = metadata.get("input_contracts", []) or []
+        output_contracts = metadata.get("output_contracts", []) or []
+        if not input_contracts and sub_problem.dependencies:
+            input_contracts = [f"Output from {dep}" for dep in sub_problem.dependencies]
+        if not output_contracts:
+            output_contracts = [f"Deliverable for {sub_problem.id}"]
 
-## Result
-Solution completed successfully.
-"""
-        
+        content = (
+            f"# Solution: {sub_problem.title}\n\n"
+            f"## Scope\n{sub_problem.description}\n\n"
+            f"## Dependencies\n{dependency_list}\n\n"
+            f"## Inputs\n"
+            + ("\n".join(f"- {c}" for c in input_contracts) if input_contracts else "- None")
+            + "\n\n"
+            f"## Outputs\n"
+            + ("\n".join(f"- {c}" for c in output_contracts) if output_contracts else "- None")
+            + "\n\n"
+            f"## Deliverable\n{deliverable}\n\n"
+            f"## Implementation Plan\n"
+            f"1. Clarify inputs/outputs and interface boundaries.\n"
+            f"2. Draft the core logic and edge-case handling.\n"
+            f"3. Integrate dependency outputs and validate assumptions.\n"
+            f"4. Produce tests/validation steps aligned with criteria.\n\n"
+            f"## Constraints\n"
+            + ("\n".join(f"- {c}" for c in constraints) if constraints else "- None specified")
+            + "\n\n"
+            f"## Acceptance Criteria\n"
+            + ("\n".join(f"- {c}" for c in acceptance) if acceptance else "- None specified")
+            + "\n\n"
+            f"## Success Criteria\n"
+            + ("\n".join(f"- {c}" for c in success_criteria) if success_criteria else "- None specified")
+            + entanglement_note
+        )
+
+        base_quality = 0.7
+        if acceptance:
+            base_quality += 0.05
+        if success_criteria:
+            base_quality += 0.05
+        if entangled_with:
+            base_quality += 0.05
+        base_quality += min(0.1, sub_problem.priority / 100)
+        quality_score = min(0.95, base_quality)
+
+        solution_metadata = dict(metadata)
+        if entangled_with:
+            solution_metadata["entangled_with"] = entangled_with
+            if entanglement_symbols:
+                solution_metadata["entanglement_symbols"] = entanglement_symbols
+            entanglement_source = metadata.get("entanglement_source")
+            if entanglement_source:
+                solution_metadata.setdefault("entanglement_source", entanglement_source)
+        solution_metadata["dependencies"] = list(sub_problem.dependencies or [])
+        solution_metadata["inputs"] = list(input_contracts or [])
+        solution_metadata["outputs"] = list(output_contracts or [])
+        solution_metadata["acceptance_criteria"] = list(acceptance or [])
+        solution_metadata["success_criteria"] = list(success_criteria or [])
+        solution_metadata["deliverable_type"] = type_key.lower()
+        solution_metadata["deliverable_summary"] = deliverable
+        solution_metadata["entanglement_context"] = bool(entangled_with)
+
         return create_subproblem_solution(
             sub_problem_id=sub_problem.id,
-            content=content,
-            quality_score=0.75 + (sub_problem.priority / 100)
+            content=content.strip(),
+            quality_score=quality_score,
+            metadata=solution_metadata,
         )
-    
+
     def can_solve(self, sub_problem: SubProblem) -> Tuple[bool, float]:
-        """Can solve any sub-problem."""
-        return True, 0.7
+        description_ok = bool(sub_problem.description and sub_problem.description.strip())
+        confidence = 0.6
+        if description_ok:
+            confidence += 0.2
+        if sub_problem.success_criteria:
+            confidence += 0.1
+        if sub_problem.acceptance_criteria:
+            confidence += 0.1
+        return description_ok, min(1.0, confidence)
 
 
 # ============================================================================
@@ -394,9 +473,11 @@ class DecompositionRecompositionPipeline:
             )
             result.stages.append(solution_stage)
             
+            entanglement_matrix = (decomposition_plan.metadata or {}).get("entanglement_matrix", {}) or {}
             sub_solutions = self._generate_solutions(
                 decomposition_plan.sub_problems,
-                solver
+                solver,
+                entanglement_matrix=entanglement_matrix
             )
             result.sub_solutions = sub_solutions
             
@@ -495,14 +576,21 @@ class DecompositionRecompositionPipeline:
     def _generate_solutions(
         self,
         sub_problems: List[SubProblem],
-        solver: SolutionSolver
+        solver: SolutionSolver,
+        entanglement_matrix: Optional[Dict[str, List[str]]] = None
     ) -> Dict[str, SubProblemSolution]:
         """Generate solutions for all sub-problems."""
         self.logger.info(f"Generating solutions for {len(sub_problems)} sub-problems")
         
         solutions = {}
+        entanglement_matrix = entanglement_matrix or {}
         
         for sub_problem in sub_problems:
+            if entanglement_matrix and isinstance(sub_problem.metadata, dict):
+                entangled_with = entanglement_matrix.get(sub_problem.id, [])
+                if entangled_with:
+                    sub_problem.metadata.setdefault("entangled_with", entangled_with)
+                    sub_problem.metadata.setdefault("entanglement_source", "symbolic_overlap")
             can_solve, confidence = solver.can_solve(sub_problem)
             
             if can_solve:
@@ -522,12 +610,14 @@ class DecompositionRecompositionPipeline:
         """Execute recomposition stage."""
         self.logger.info("Executing recomposition")
         
+        entanglement_matrix = (decomposition_plan.metadata or {}).get("entanglement_matrix", {}) or {}
         solution = self.recomposition_engine.assemble(
             sub_solutions=sub_solutions,
             problem_id=decomposition_plan.original_problem.id,
             decomposition_plan_id=decomposition_plan.id,
             dependency_graph=decomposition_plan.dependency_graph,
-            strategy=self.config.assembly_strategy
+            strategy=self.config.assembly_strategy,
+            entanglement_matrix=entanglement_matrix
         )
         
         return solution
@@ -585,6 +675,7 @@ class DecompositionRecompositionPipeline:
         
         # Check if improved
         if refined_solution.quality_metrics.overall_score > current_result.solution_quality:
+            improvement = refined_solution.quality_metrics.overall_score - current_result.solution_quality
             current_result.integrated_solution = refined_solution
             current_result.sub_solutions = refined_solutions
             current_result.solution_quality = refined_solution.quality_metrics.overall_score
@@ -594,7 +685,7 @@ class DecompositionRecompositionPipeline:
             current_result.feedback_log.append({
                 'iteration': current_result.refinement_iterations,
                 'action': 're-solved problematic sub-problems',
-                'improvement': refined_solution.quality_metrics.overall_score - current_result.solution_quality
+                'improvement': improvement
             })
             
             return current_result
@@ -618,6 +709,9 @@ class DecompositionRecompositionPipeline:
         for sol_id, solution in result.sub_solutions.items():
             if solution.quality_score < 0.6:
                 issues.append(sol_id)
+            if isinstance(solution.metadata, dict):
+                if solution.metadata.get("needs_consistency_refinement"):
+                    issues.append(sol_id)
         
         return list(set(issues))
     

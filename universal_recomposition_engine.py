@@ -621,12 +621,48 @@ class ConflictResolver:
     ) -> Optional[Dict[str, SubProblemSolution]]:
         """Resolve using LLM mediation"""
         if not self.llm_client:
-            return None
-        
-        # This is a placeholder for actual LLM-based resolution
-        # In practice, would construct a prompt and call the LLM
-        self.logger.info(f"LLM resolution requested for conflict {conflict.conflict_id}")
-        return None
+            if conflict.conflict_type == "overlap":
+                return self._resolve_by_merge(conflict, sub_solutions)
+            return self._resolve_by_priority(conflict, sub_solutions)
+
+        prompt = (
+            "Resolve the following conflict between sub-solutions. "
+            "Return either 'merge' or the id of the solution to keep.\n\n"
+            f"Conflict: {conflict.conflict_type}\n"
+            f"Description: {conflict.description}\n"
+            f"Involved: {', '.join(conflict.involved_solutions)}\n"
+        )
+        for sid in conflict.involved_solutions:
+            if sid in sub_solutions:
+                prompt += f"\nSolution {sid}:\n{sub_solutions[sid].solution_content[:800]}\n"
+
+        response = None
+        if hasattr(self.llm_client, "generate"):
+            response = self.llm_client.generate(prompt)
+        elif hasattr(self.llm_client, "complete"):
+            response = self.llm_client.complete(prompt)
+        elif hasattr(self.llm_client, "chat"):
+            response = self.llm_client.chat(prompt)
+        elif callable(self.llm_client):
+            response = self.llm_client(prompt)
+
+        if not response:
+            return self._resolve_by_merge(conflict, sub_solutions)
+
+        text = response.get("text") if isinstance(response, dict) else str(response)
+        text_lower = text.lower()
+        if "merge" in text_lower:
+            return self._resolve_by_merge(conflict, sub_solutions)
+
+        for sid in conflict.involved_solutions:
+            if sid in text:
+                best_id = sid
+                for other in conflict.involved_solutions:
+                    if other != best_id and other in sub_solutions:
+                        sub_solutions[other].metadata['superseded_by'] = best_id
+                return sub_solutions
+
+        return self._resolve_by_priority(conflict, sub_solutions)
 
 
 # ============================================================================
@@ -643,7 +679,7 @@ class AssemblyStrategyBase(ABC):
         sub_solutions: Dict[str, SubProblemSolution]
     ) -> str:
         """Assemble sub-solutions into integrated solution"""
-        pass
+        raise NotImplementedError("AssemblyStrategyBase.assemble must be implemented")
 
 
 class HierarchicalAssembly(AssemblyStrategyBase):

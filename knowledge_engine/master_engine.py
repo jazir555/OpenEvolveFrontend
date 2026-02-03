@@ -45,6 +45,7 @@ from knowledge_engine.integrations.lagrange_mapper_integration import LagrangeMa
 from knowledge_engine.integrations.karateclub_integration import KarateClubIntegration
 from knowledge_engine.integrations.global_chem_integration import GlobalChemIntegration
 from knowledge_engine.integrations.neuromancer_integration import NeuromancerIntegration
+from knowledge_engine.integrations.roma_integration import ROMAIntegration, ROMA_INTEGRATION_AVAILABLE
 
 # Import orchestration components
 from knowledge_engine.orchestration.self_healing_orchestrator import (
@@ -167,7 +168,8 @@ class ComponentRegistry:
             'agentjson': ['structured_output', 'json_generation', 'schema_validation'],
             'dspy': ['prompt_optimization', 'program_of_thought', 'demonstration_selection'],
             'openevolve_lib': ['system_integration', 'bubblelabs', 'workflow_orchestration'],
-            'mcp_gateway': ['tool_orchestration', 'api_gateway', 'service_coordination']
+            'mcp_gateway': ['tool_orchestration', 'api_gateway', 'service_coordination'],
+            'roma': ['meta_agent', 'decomposition', 'execution', 'verification', 'recomposition', 'hierarchical_planning']
         }
         
         # Define substitution matrix (which components can cover for others)
@@ -219,6 +221,35 @@ class ComponentRegistry:
         self.components['dspy'] = self._safe_init(DSPyIntegration, 'dspy')
         self.components['openevolve_lib'] = self._safe_init(OpenEvolveIntegrationLibrary, 'openevolve_lib')
         self.components['mcp_gateway'] = self._safe_init(MCPGatewayIntegration, 'mcp_gateway')
+
+        # ROMA Meta-Agent (22) - Hierarchical problem decomposition and execution
+        if ROMA_INTEGRATION_AVAILABLE:
+            try:
+                import os
+                roma_config = {
+                    'max_depth_analysis': 3,
+                    'max_depth_solving': 2,
+                    'execution_mode': 'recursive'
+                }
+                self.components['roma'] = ROMAIntegration(config=roma_config)
+                logger.info({
+                    'msg': 'ROMA integration initialized successfully',
+                    'component': 'roma',
+                    'capabilities': self.capabilities.get('roma', [])
+                })
+            except Exception as e:
+                logger.warning({
+                    'msg': 'ROMA integration initialization failed',
+                    'component': 'roma',
+                    'error': str(e)
+                })
+                self.components['roma'] = self._create_mock_component('roma')
+        else:
+            logger.info({
+                'msg': 'ROMA integration not available (optional dependency)',
+                'component': 'roma'
+            })
+            self.components['roma'] = self._create_mock_component('roma')
     
     def _safe_init(self, init_func, name: str):
         """Safely initialize a component with error handling"""
@@ -771,6 +802,7 @@ class MasterKnowledgeEngine:
                 'dspy': self._execute_dspy,
                 'openevolve_lib': self._execute_openevolve_lib,
                 'mcp_gateway': self._execute_mcp_gateway,
+                'roma': self._execute_roma,
             }
             
             handler = handlers.get(name)
@@ -928,7 +960,95 @@ class MasterKnowledgeEngine:
             result = comp.call_tool(query, params=ctx.get('params'))
             return {'tool_result': result, 'component': 'mcp_gateway'}
         return {'query': query, 'component': 'mcp_gateway'}
-    
+
+    async def _execute_roma(self, comp, query: str, ctx: Dict) -> Dict:
+        """
+        Execute ROMA meta-agent for hierarchical problem solving.
+
+        ROMA provides automatic recursive decomposition and execution:
+        - Decompose: Break down complex problems into sub-problems
+        - Execute: Solve sub-problems recursively
+        - Aggregate: Combine sub-solutions into final result
+        - Verify: Validate solution meets requirements
+        """
+        try:
+            # Check component availability
+            if hasattr(comp, 'is_available') and not comp.is_available():
+                return {
+                    'query': query,
+                    'component': 'roma',
+                    'status': 'unavailable',
+                    'message': 'ROMA integration not available'
+                }
+
+            # Determine execution mode from context
+            execution_mode = ctx.get('roma_execution_mode', 'recursive')
+            max_depth = ctx.get('roma_max_depth', 3)
+
+            # Check if we should decompose or execute
+            operation = ctx.get('roma_operation', 'execute')
+
+            if operation == 'decompose':
+                # Decompose problem into sub-problems
+                result = comp.decompose(query, max_depth=max_depth)
+                return {
+                    'decomposition': result,
+                    'component': 'roma',
+                    'operation': 'decompose',
+                    'sub_problems_count': result.get('sub_problems_count', 0)
+                }
+
+            elif operation == 'verify':
+                # Verify a solution
+                solution = ctx.get('solution', {})
+                requirements = ctx.get('requirements', [])
+                result = comp.verify(solution, requirements)
+                return {
+                    'verification': result,
+                    'component': 'roma',
+                    'operation': 'verify',
+                    'verified': result.get('verified', False)
+                }
+
+            elif operation == 'aggregate':
+                # Aggregate sub-solutions
+                sub_solutions = ctx.get('sub_solutions', [])
+                result = comp.aggregate(sub_solutions)
+                return {
+                    'aggregation': result,
+                    'component': 'roma',
+                    'operation': 'aggregate',
+                    'sub_solutions_count': len(sub_solutions)
+                }
+
+            else:
+                # Default: execute full ROMA pipeline
+                result = comp.execute(query, execution_mode=execution_mode)
+
+                # Extract relevant information
+                return {
+                    'solution': result.get('solution'),
+                    'execution_id': result.get('execution_id'),
+                    'status': result.get('status'),
+                    'component': 'roma',
+                    'operation': 'execute',
+                    'execution_mode': execution_mode
+                }
+
+        except Exception as e:
+            logger.error({
+                'msg': 'ROMA execution failed',
+                'component': 'roma',
+                'error': str(e),
+                'query': query[:100] if query else None
+            })
+            return {
+                'query': query,
+                'component': 'roma',
+                'status': 'error',
+                'error': str(e)
+            }
+
     async def _heal_failure(self, failed_component: str, 
                            query: str, context: Optional[Dict]) -> Optional[Dict[str, Any]]:
         """Attempt to heal from a component failure"""

@@ -194,6 +194,19 @@ try:
 except ImportError:
     pass
 
+# Import ROMA integration
+try:
+    from .integrations.roma_integration import (
+        ROMAIntegration,
+        ROMA_INTEGRATION_AVAILABLE,
+    )
+    __all__.extend([
+        'ROMAIntegration',
+        'ROMA_INTEGRATION_AVAILABLE',
+    ])
+except ImportError:
+    pass
+
 # Import from core for backward compatibility
 try:
     from .core import (
@@ -415,6 +428,25 @@ try:
     ])
 except ImportError as e:
     logging.getLogger(__name__).debug(f"Completion modules not available: {e}")
+
+# Import health monitoring (NEW - PRODUCTION)
+try:
+    from .health_monitor import (
+        HealthMonitor,
+        HealthStatus,
+        SystemHealth,
+        get_health_monitor,
+        quick_health_check,
+    )
+    __all__.extend([
+        'HealthMonitor',
+        'HealthStatus',
+        'SystemHealth',
+        'get_health_monitor',
+        'quick_health_check',
+    ])
+except ImportError as e:
+    logging.getLogger(__name__).debug(f"Health monitoring not available: {e}")
 
 import asyncio
 import logging

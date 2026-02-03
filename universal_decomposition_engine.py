@@ -299,12 +299,12 @@ class DecompositionStrategyBase(ABC):
     @abstractmethod
     def get_strategy_name(self) -> str:
         """Return strategy name"""
-        pass
+        raise NotImplementedError("DecompositionStrategyBase.get_strategy_name must be implemented")
     
     @abstractmethod
     def decompose(self, problem: ProblemDefinition) -> List[SubProblem]:
         """Decompose problem into sub-problems"""
-        pass
+        raise NotImplementedError("DecompositionStrategyBase.decompose must be implemented")
     
     def generate_id(self, prefix: str = "sub") -> str:
         """Generate unique ID"""
@@ -559,9 +559,40 @@ List only necessary dependencies, not all possible ones.
 
 Dependencies:"""
             
-            # This is a placeholder for actual LLM call
-            # In real implementation, would call llm_client.generate(prompt)
-            return self._apply_heuristic_dependencies(sub_problems, problem)
+            response = None
+            if hasattr(self.llm_client, "generate"):
+                response = self.llm_client.generate(prompt)
+            elif hasattr(self.llm_client, "complete"):
+                response = self.llm_client.complete(prompt)
+            elif hasattr(self.llm_client, "chat"):
+                response = self.llm_client.chat(prompt)
+            elif callable(self.llm_client):
+                response = self.llm_client(prompt)
+
+            if not response:
+                return self._apply_heuristic_dependencies(sub_problems, problem)
+
+            text = response.get("text") if isinstance(response, dict) else str(response)
+            id_map = {str(i + 1): sp.id for i, sp in enumerate(sub_problems)}
+            id_map.update({sp.id: sp.id for sp in sub_problems})
+
+            for sp in sub_problems:
+                sp.dependencies = []
+
+            pattern = re.compile(r"(\w+)\s+depends on\s+(\w+)", re.IGNORECASE)
+            for line in text.splitlines():
+                match = pattern.search(line.strip())
+                if not match:
+                    continue
+                depender_raw, dep_raw = match.groups()
+                depender = id_map.get(depender_raw, depender_raw)
+                dependency = id_map.get(dep_raw, dep_raw)
+                for sp in sub_problems:
+                    if sp.id == depender and dependency != sp.id:
+                        if dependency not in sp.dependencies:
+                            sp.dependencies.append(dependency)
+
+            return sub_problems
             
         except (RuntimeError, ValueError, ConnectionError) as e:
             self.logger.warning(f"LLM dependency analysis failed: {e}")
@@ -1097,13 +1128,14 @@ class UniversalDecompositionEngine:
         dependency_graph: Dict[str, List[str]]
     ) -> List[str]:
         """Calculate topological execution order"""
-        # Topological sort
-        in_degree = {sp.id: 0 for sp in sub_problems}
-        for deps in dependency_graph.values():
+        # Topological sort (graph maps node -> dependencies)
+        in_degree = {sp.id: len(sp.dependencies) for sp in sub_problems}
+        dependents: Dict[str, List[str]] = {sp.id: [] for sp in sub_problems}
+        for node, deps in dependency_graph.items():
             for dep in deps:
-                if dep in in_degree:
-                    in_degree[dep] += 1
-        
+                if dep in dependents:
+                    dependents[dep].append(node)
+
         queue = [sp_id for sp_id, degree in in_degree.items() if degree == 0]
         order = []
         
@@ -1111,12 +1143,10 @@ class UniversalDecompositionEngine:
             current = queue.pop(0)
             order.append(current)
             
-            # Find all sub-problems that depend on current
-            for sp_id, deps in dependency_graph.items():
-                if current in deps:
-                    in_degree[sp_id] -= 1
-                    if in_degree[sp_id] == 0:
-                        queue.append(sp_id)
+            for sp_id in dependents.get(current, []):
+                in_degree[sp_id] -= 1
+                if in_degree[sp_id] == 0:
+                    queue.append(sp_id)
         
         return order
     
