@@ -6,8 +6,28 @@ File size: ~800 lines (under the 2000 line limit)
 
 import streamlit as st
 from datetime import datetime
+import logging
 from typing import Dict, List, Optional
 import json
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Export/Import Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 
 class ExportImportManager:
@@ -26,18 +46,33 @@ class ExportImportManager:
         Returns:
             Dict: Project data
         """
-        with st.session_state.thread_lock:
-            return {
-                "project_name": st.session_state.get(
-                    "project_name", "Untitled Project"
-                ),
-                "project_description": st.session_state.get("project_description", ""),
-                "versions": st.session_state.get("protocol_versions", []),
-                "comments": st.session_state.get("comments", []),
-                "collaborators": st.session_state.get("collaborators", []),
-                "tags": st.session_state.get("tags", []),
-                "export_timestamp": datetime.now().isoformat(),
-            }
+        try:
+            with st.session_state.thread_lock:
+                project_data = {
+                    "project_name": st.session_state.get(
+                        "project_name", "Untitled Project"
+                    ),
+                    "project_description": st.session_state.get("project_description", ""),
+                    "versions": st.session_state.get("protocol_versions", []),
+                    "comments": st.session_state.get("comments", []),
+                    "collaborators": st.session_state.get("collaborators", []),
+                    "tags": st.session_state.get("tags", []),
+                    "export_timestamp": datetime.now().isoformat(),
+                }
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            project_name = project_data["project_name"]
+            self._extract_export_import_knowledge("export", project_name, project_data)
+            self._track_export_import_performance("export", True)
+
+            return project_data
+
+        except Exception as e:
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_export_import_alerts("export", False, None, str(e))
+            self._track_export_import_performance("export", False)
+            st.error(f"Error exporting project: {e}")
+            raise
 
     def export_project_detailed(self) -> Dict:
         """
@@ -85,11 +120,10 @@ class ExportImportManager:
         Returns:
             bool: True if successful, False otherwise
         """
+        project_name = project_data.get("project_name", "Imported Project")
         try:
             with st.session_state.thread_lock:
-                st.session_state.project_name = project_data.get(
-                    "project_name", "Imported Project"
-                )
+                st.session_state.project_name = project_name
                 st.session_state.project_description = project_data.get(
                     "project_description", ""
                 )
@@ -103,8 +137,16 @@ class ExportImportManager:
                     latest_version = st.session_state.protocol_versions[-1]
                     st.session_state.protocol_text = latest_version["protocol_text"]
                     st.session_state.current_version_id = latest_version["id"]
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            self._extract_export_import_knowledge("import", project_name, project_data)
+            self._track_export_import_performance("import", True)
+
             return True
         except (KeyError, TypeError, AttributeError) as e:
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_export_import_alerts("import", False, project_name, str(e))
+            self._track_export_import_performance("import", False)
             st.error(f"Error importing project: {e}")
             return False
 
@@ -261,6 +303,112 @@ class ExportImportManager:
                         )
 
         return len(errors) == 0, errors
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Export/Import Manager
+    # =========================================================================
+
+    def _trigger_export_import_alerts(
+        self,
+        operation: str,
+        success: bool,
+        project_name: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for export/import failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Export/Import Operation Failed: {operation}",
+                    description=f"Export/Import operation '{operation}' failed" +
+                                 (f" for project '{project_name}'" if project_name else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="export_import_manager",
+                    component="project_serialization",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logging.error(f"Failed to trigger Export/Import alert: {e}")
+
+    def _extract_export_import_knowledge(
+        self,
+        operation: str,
+        project_name: str,
+        data: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract export/import knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"export_import_{operation}_{project_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="project_export_import",
+                source_component="export_import_manager",
+                title=f"Project {operation}: {project_name}",
+                content={
+                    "operation": operation,
+                    "project_name": project_name,
+                    "num_versions": len(data.get("versions", [])),
+                    "num_comments": len(data.get("comments", [])),
+                    "num_collaborators": len(data.get("collaborators", [])),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "has_analytics": "analytics" in data,
+                    "has_adversarial_results": "adversarial_results" in data
+                },
+                tags=["export_import", "project", operation, "serialization"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logging.debug(f"Extracted Export/Import knowledge for {project_name}")
+            return True
+
+        except Exception as e:
+            logging.error(f"Failed to extract Export/Import knowledge: {e}")
+            return False
+
+    def _track_export_import_performance(
+        self,
+        operation: str,
+        success: bool
+    ):
+        """**ACTUAL INTEGRATION**: Track export/import operation performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"export_import_manager_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"operation": operation}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logging.debug(f"Tracked Export/Import performance for {operation}")
+
+        except Exception as e:
+            logging.error(f"Failed to track Export/Import performance: {e}")
 
 
 # Initialize export/import manager on import

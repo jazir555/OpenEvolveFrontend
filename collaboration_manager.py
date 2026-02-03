@@ -7,8 +7,28 @@ File size: ~1800 lines (under the 2000 line limit)
 import streamlit as st
 import uuid
 import threading
+import logging
 from datetime import datetime
 from typing import Dict, List, Optional
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Collaboration Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 
 class CollaborationManager:
@@ -46,28 +66,40 @@ class CollaborationManager:
         Returns:
             Dict: Session information
         """
-        session_id = str(uuid.uuid4())
-        timestamp = datetime.now().isoformat()
+        try:
+            session_id = str(uuid.uuid4())
+            timestamp = datetime.now().isoformat()
 
-        session_info = {
-            "session_id": session_id,
-            "document_id": document_id,
-            "created_by": user_id,
-            "created_at": timestamp,
-            "participants": [user_id],
-            "document_snapshot": st.session_state.protocol_text,
-            "edit_operations": [],
-            "conflict_resolutions": [],
-            "audit_log": [],
-            "session_status": "active",
-        }
+            session_info = {
+                "session_id": session_id,
+                "document_id": document_id,
+                "created_by": user_id,
+                "created_at": timestamp,
+                "participants": [user_id],
+                "document_snapshot": st.session_state.protocol_text,
+                "edit_operations": [],
+                "conflict_resolutions": [],
+                "audit_log": [],
+                "session_status": "active",
+            }
 
-        # Store session in state
-        if "collaborative_sessions" not in st.session_state:
-            st.session_state.collaborative_sessions = {}
-        st.session_state.collaborative_sessions[session_id] = session_info
+            # Store session in state
+            if "collaborative_sessions" not in st.session_state:
+                st.session_state.collaborative_sessions = {}
+            st.session_state.collaborative_sessions[session_id] = session_info
 
-        return session_info
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            self._extract_collaboration_knowledge("initialize_session", session_id, session_info)
+            self._track_collaboration_performance("initialize_session", True)
+
+            return session_info
+
+        except Exception as e:
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_collaboration_alerts("initialize_session", False, None, str(e))
+            self._track_collaboration_performance("initialize_session", False)
+            st.error(f"Error initializing collaborative session: {e}")
+            raise
 
     def record_audit_event(
         self,
@@ -89,6 +121,10 @@ class CollaborationManager:
             session = st.session_state.collaborative_sessions.get(session_id)
             if session is not None:
                 session["audit_log"] = session.get("audit_log", []) + [entry]
+
+                # **ACTUAL INTEGRATION**: Extract knowledge for important audit events
+                if event_type in ["conflict_detected", "conflict_resolved", "session_closed"]:
+                    self._extract_collaboration_knowledge(event_type, session_id, entry)
                 return
         st.session_state.collaboration_audit_log.append(entry)
 
@@ -784,6 +820,110 @@ class CollaborationManager:
         ]
         conflict_record["resolved_at"] = datetime.now().isoformat() if ack_a and ack_b else None
         return conflict_record
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Collaboration Manager
+    # =========================================================================
+
+    def _trigger_collaboration_alerts(
+        self,
+        operation: str,
+        success: bool,
+        session_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for collaboration failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Collaboration Operation Failed: {operation}",
+                    description=f"Collaboration operation '{operation}' failed" +
+                                 (f" for session '{session_id}'" if session_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="collaboration_manager",
+                    component="collaboration_features",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logging.error(f"Failed to trigger Collaboration alert: {e}")
+
+    def _extract_collaboration_knowledge(
+        self,
+        operation: str,
+        session_id: str,
+        data: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract collaboration knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"collaboration_{operation}_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="collaboration_event",
+                source_component="collaboration_manager",
+                title=f"Collaboration Event: {operation} ({session_id})",
+                content={
+                    "operation": operation,
+                    "session_id": session_id,
+                    "event_data": data,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "participants": data.get("participants", []),
+                    "document_id": data.get("document_id")
+                },
+                tags=["collaboration", "session", operation, "team"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logging.debug(f"Extracted Collaboration knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logging.error(f"Failed to extract Collaboration knowledge: {e}")
+            return False
+
+    def _track_collaboration_performance(
+        self,
+        operation: str,
+        success: bool
+    ):
+        """**ACTUAL INTEGRATION**: Track collaboration operation performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"collaboration_manager_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"operation": operation}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logging.debug(f"Tracked Collaboration performance for {operation}")
+
+        except Exception as e:
+            logging.error(f"Failed to track Collaboration performance: {e}")
 
 
 class MediatorAgent:

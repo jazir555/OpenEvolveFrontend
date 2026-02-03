@@ -13,6 +13,19 @@ from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass
 import uuid
 
+# **ACTUAL INTEGRATION**: Alerting and adaptive for Knowledge Engine Orchestrator
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 try:
     from .integrations.graphiti_integration import GraphitiIntegration
 except ImportError:
@@ -467,7 +480,16 @@ class KnowledgeEngineOrchestrator:
                 "processing_time_ms": processing_time_ms,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
-            
+
+            # **ACTUAL INTEGRATION**: Track performance
+            self._track_knowledge_performance(
+                "process_knowledge_request",
+                combined_result.success,
+                processing_time_ms,
+                success_count,
+                len(valid_components)
+            )
+
             return combined_result
             
         except Exception as e:
@@ -480,7 +502,23 @@ class KnowledgeEngineOrchestrator:
                 "processing_time_ms": processing_time_ms,
                 "timestamp": datetime.now(timezone.utc).isoformat()
             })
-            
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track performance
+            self._trigger_knowledge_alerts(
+                "process_knowledge_request",
+                False,
+                correlation_id,
+                str(e),
+                {"processing_time_ms": processing_time_ms}
+            )
+            self._track_knowledge_performance(
+                "process_knowledge_request",
+                False,
+                processing_time_ms,
+                0,
+                len(components or list(self.components.keys()))
+            )
+
             return KnowledgeEngineResult(
                 success=False,
                 output={},
@@ -856,3 +894,79 @@ class KnowledgeEngineOrchestrator:
             "msg": "Knowledge Engine Orchestrator resources closed",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting and adaptive for Knowledge Engine Orchestrator
+    # =========================================================================
+
+    def _trigger_knowledge_alerts(
+        self,
+        operation: str,
+        success: bool,
+        correlation_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for knowledge engine failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.HIGH
+
+                alert_manager.create_alert(
+                    title=f"Knowledge Engine Operation Failed: {operation}",
+                    description=f"Knowledge engine operation '{operation}' failed" +
+                                 (f" for correlation '{correlation_id}'" if correlation_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="knowledge_engine_orchestrator",
+                    component="knowledge_processing",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Knowledge Engine alert: {e}")
+
+    def _track_knowledge_performance(
+        self,
+        operation: str,
+        success: bool,
+        processing_time_ms: float,
+        successful_components: int = 0,
+        total_components: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track knowledge engine performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Calculate quality based on success rate and performance
+            success_rate = successful_components / max(1, total_components)
+            quality = success_rate if processing_time_ms < 5000 else success_rate * 0.8
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"knowledge_engine_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(timezone.utc),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "processing_time_ms": processing_time_ms,
+                    "successful_components": successful_components,
+                    "total_components": total_components
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Knowledge Engine performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Knowledge Engine performance: {e}")

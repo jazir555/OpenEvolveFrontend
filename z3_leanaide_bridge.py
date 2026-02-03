@@ -917,7 +917,283 @@ class Z3LeanAideBridge:
                 return VerificationStrategy.LEAN_FIRST
         
         return VerificationStrategy.PARALLEL
-    
+
+    # Import DSPy for enhanced prompting
+    try:
+        import dspy
+        from dspy.teleprompt import BootstrapFewShot
+        from dspy.predict import Predict
+        DSPY_AVAILABLE = True
+        logger.info("DSPy available for enhanced Z3-LeanAIDE bridging")
+    except ImportError:
+        dspy = None
+        BootstrapFewShot = None
+        Predict = None
+        DSPY_AVAILABLE = False
+        logger.warning("DSPy not available - using standard Z3-LeanAIDE bridging")
+
+    def verify_with_dspy_guidance(
+        self,
+        problem: str,
+        strategy: Optional[VerificationStrategy] = None,
+        entanglement_context: Optional[Dict[str, Any]] = None
+    ) -> CombinedVerificationResult:
+        """
+        Verify problem using both Z3 and LeanAIDE with DSPy for enhanced problem understanding and strategy selection.
+
+        Args:
+            problem: Problem statement (SMT-LIB, Lean 4, or natural language)
+            strategy: Verification strategy to use
+            entanglement_context: Context for entangled constraints
+
+        Returns:
+            CombinedVerificationResult
+        """
+        start_time = time.time()
+
+        if not DSPY_AVAILABLE:
+            logger.info("DSPy not available, falling back to standard verification")
+            # Fall back to standard verification
+            import asyncio
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                result = loop.run_until_complete(self.verify_with_both(problem, strategy, entanglement_context))
+                return result
+            except Exception as e:
+                logger.error(f"Error in fallback verification: {e}")
+                return CombinedVerificationResult(
+                    success=False,
+                    errors=[f"Fallback verification failed: {str(e)}"],
+                    execution_time=time.time() - start_time
+                )
+            finally:
+                loop.close()
+
+        try:
+            # Define a DSPy signature for problem analysis and strategy selection
+            class ProblemAnalysisSignature(dspy.Signature):
+                """Analyze a mathematical problem and recommend verification strategy."""
+                problem_statement = dspy.InputField(desc="Mathematical problem to verify (in natural language, SMT-LIB, or Lean)")
+                problem_type = dspy.InputField(desc="Type of problem (constraint satisfaction, theorem proving, optimization, etc.)")
+
+                problem_classification = dspy.OutputField(desc="Classification of the problem (arithmetic, boolean, string, etc.)")
+                recommended_strategy = dspy.OutputField(desc="Recommended verification strategy (z3_first, lean_first, parallel, consensus)")
+                key_variables = dspy.OutputField(desc="List of key variables in the problem")
+                constraints_identified = dspy.OutputField(desc="List of constraints identified in the problem")
+                verification_approach = dspy.OutputField(desc="Recommended approach for verification")
+
+            # Create a predictor using the signature
+            analyze_problem = dspy.Predict(ProblemAnalysisSignature)
+
+            # Determine problem type
+            is_smt = (
+                self.smt_to_lean._is_smtlib(problem)
+                if hasattr(self.smt_to_lean, '_is_smtlib')
+                else '(assert' in problem
+            )
+            problem_type = "SMT-LIB constraint" if is_smt else "theorem proving"
+
+            # Run DSPy analysis
+            result = analyze_problem(
+                problem_statement=problem,
+                problem_type=problem_type
+            )
+
+            # Map DSPy recommendation to VerificationStrategy
+            strategy_mapping = {
+                "z3_first": VerificationStrategy.Z3_FIRST,
+                "lean_first": VerificationStrategy.LEAN_FIRST,
+                "parallel": VerificationStrategy.PARALLEL,
+                "consensus": VerificationStrategy.CONSENSUS
+            }
+
+            recommended_strategy = strategy_mapping.get(result.recommended_strategy.lower(), VerificationStrategy.ADAPTIVE)
+
+            # Use the recommended strategy
+            import asyncio
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                verification_result = loop.run_until_complete(
+                    self.verify_with_both(problem, recommended_strategy, entanglement_context)
+                )
+            except Exception as e:
+                logger.error(f"Error in verification with DSPy guidance: {e}")
+                # Fallback to standard verification
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                verification_result = loop.run_until_complete(
+                    self.verify_with_both(problem, strategy, entanglement_context)
+                )
+            finally:
+                loop.close()
+
+            # Enhance the result with DSPy analysis
+            verification_result.dspy_analysis = {
+                "problem_classification": result.problem_classification,
+                "key_variables": result.key_variables,
+                "constraints_identified": result.constraints_identified,
+                "verification_approach": result.verification_approach
+            }
+
+            verification_result.dspy_enhanced = True
+
+            return verification_result
+
+        except Exception as e:
+            logger.error(f"Error in DSPy-enhanced verification: {e}")
+            # Fall back to standard verification
+            import asyncio
+            try:
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                result = loop.run_until_complete(self.verify_with_both(problem, strategy, entanglement_context))
+                return result
+            except Exception as e2:
+                logger.error(f"Error in fallback verification after DSPy failure: {e2}")
+                return CombinedVerificationResult(
+                    success=False,
+                    errors=[f"DSPy verification failed: {str(e)}", f"Fallback also failed: {str(e2)}"],
+                    execution_time=time.time() - start_time
+                )
+            finally:
+                loop.close()
+
+    def translate_with_dspy_enhancement(
+        self,
+        source_content: str,
+        source_format: str = "auto",
+        target_format: str = "auto"
+    ) -> TranslationResult:
+        """
+        Translate between SMT-LIB and Lean 4 with DSPy for enhanced semantic understanding.
+
+        Args:
+            source_content: Content to translate
+            source_format: Format of source content ("smtlib", "lean", "auto")
+            target_format: Format to translate to ("smtlib", "lean", "auto")
+
+        Returns:
+            TranslationResult
+        """
+        start_time = time.time()
+
+        if not DSPY_AVAILABLE:
+            logger.info("DSPy not available, falling back to standard translation")
+            # Determine translation direction and use standard translators
+            if source_format == "auto":
+                # Try to detect format
+                if "(assert" in source_content or "(declare" in source_content:
+                    source_format = "smtlib"
+                else:
+                    source_format = "lean"
+
+            if target_format == "auto":
+                target_format = "lean" if source_format == "smtlib" else "smtlib"
+
+            if source_format == "smtlib" and target_format == "lean":
+                return self.smt_to_lean.translate(source_content)
+            elif source_format == "lean" and target_format == "smtlib":
+                return self.lean_to_smt.translate(source_content)
+            else:
+                return TranslationResult(
+                    success=False,
+                    source=source_format,
+                    target=target_format,
+                    direction=TranslationDirection.SMT_TO_LEAN if source_format == "smtlib" else TranslationDirection.LEAN_TO_SMT,
+                    translation="",
+                    errors=["Cannot perform translation: unsupported direction or format"],
+                    execution_time=time.time() - start_time
+                )
+
+        try:
+            # Define a DSPy signature for enhanced translation
+            class EnhancedTranslationSignature(dspy.Signature):
+                """Enhanced translation between SMT-LIB and Lean 4 with semantic understanding."""
+                source_content = dspy.InputField(desc="Source content to translate (SMT-LIB or Lean 4 code)")
+                source_format = dspy.InputField(desc="Format of source content (smtlib or lean)")
+                target_format = dspy.InputField(desc="Target format (smtlib or lean)")
+                semantic_context = dspy.InputField(desc="Semantic context to preserve during translation")
+
+                translated_content = dspy.OutputField(desc="Translated content in target format")
+                semantic_preservation_score = dspy.OutputField(desc="Score (0-100) indicating how well semantics were preserved")
+                translation_notes = dspy.OutputField(desc="Notes about the translation process")
+                potential_issues = dspy.OutputField(desc="Potential issues with the translation")
+
+            # Create a predictor using the signature
+            enhanced_translate = dspy.Predict(EnhancedTranslationSignature)
+
+            # Determine formats if auto
+            if source_format == "auto":
+                if "(assert" in source_content or "(declare" in source_content:
+                    source_format = "smtlib"
+                else:
+                    source_format = "lean"
+
+            if target_format == "auto":
+                target_format = "lean" if source_format == "smtlib" else "smtlib"
+
+            # Determine semantic context
+            semantic_context = f"Translating from {source_format} to {target_format} while preserving logical meaning and mathematical semantics."
+
+            # Run DSPy-enhanced translation
+            result = enhanced_translate(
+                source_content=source_content,
+                source_format=source_format,
+                target_format=target_format,
+                semantic_context=semantic_context
+            )
+
+            # Create translation result
+            direction = (
+                TranslationDirection.SMT_TO_LEAN
+                if source_format == "smtlib" and target_format == "lean"
+                else TranslationDirection.LEAN_TO_SMT
+            )
+
+            return TranslationResult(
+                success=True,
+                source=source_format,
+                target=target_format,
+                direction=direction,
+                translation=result.translated_content,
+                execution_time=time.time() - start_time,
+                metadata={
+                    "semantic_preservation_score": result.semantic_preservation_score,
+                    "translation_notes": result.translation_notes,
+                    "potential_issues": result.potential_issues,
+                    "dspy_enhanced": True
+                }
+            )
+
+        except Exception as e:
+            logger.error(f"Error in DSPy-enhanced translation: {e}")
+            # Fall back to standard translation
+            if source_format == "auto":
+                if "(assert" in source_content or "(declare" in source_content:
+                    source_format = "smtlib"
+                else:
+                    source_format = "lean"
+
+            if target_format == "auto":
+                target_format = "lean" if source_format == "smtlib" else "smtlib"
+
+            if source_format == "smtlib" and target_format == "lean":
+                return self.smt_to_lean.translate(source_content)
+            elif source_format == "lean" and target_format == "smtlib":
+                return self.lean_to_smt.translate(source_content)
+            else:
+                return TranslationResult(
+                    success=False,
+                    source=source_format,
+                    target=target_format,
+                    direction=TranslationDirection.SMT_TO_LEAN if source_format == "smtlib" else TranslationDirection.LEAN_TO_SMT,
+                    translation="",
+                    errors=[f"DSPy translation failed: {str(e)}"],
+                    execution_time=time.time() - start_time
+                )
+
     async def _verify_z3_first(
         self,
         problem: str,

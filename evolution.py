@@ -1272,7 +1272,8 @@ def run_evolution_loop(
                 "feature_dimensions": config.feature_dimensions,
                 "feature_bins": config.feature_bins,
                 "archive_size": config.archive_size,
-                "novelty_threshold": config.novelty_threshold,
+                # NOTE: novelty_threshold is not supported by run_unified_evolution
+                # "novelty_threshold": config.novelty_threshold,
                 
                 # Multi-Objective Parameters
                 "objectives": config.objectives,
