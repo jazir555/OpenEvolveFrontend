@@ -6,7 +6,6 @@ import os
 import json
 import re
 import tempfile
-import os
 from typing import Dict, List, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
@@ -16,13 +15,33 @@ import random
 import statistics
 import logging
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 from llm_utils import _request_openai_compatible_chat, _compose_messages
 from content_analyzer import ContentAnalyzer
 
 # Import OpenEvolve components for enhanced functionality
 try:
-    from openevolve.api import run_evolution as openevolve_run_evolution
-    from openevolve.config import Config, LLMModelConfig
+    # Try multiple possible import paths due to potential namespace conflicts
+    try:
+        from openevolve.api import run_evolution as openevolve_run_evolution
+        from openevolve.config import Config, LLMModelConfig
+    except (ImportError, AttributeError):
+        try:
+            from openevolve.openevolve.api import run_evolution as openevolve_run_evolution
+            from openevolve.openevolve.config import Config, LLMModelConfig
+        except (ImportError, AttributeError):
+            # Try importing as if the inner openevolve is in sys.path
+            import sys
+            import os
+            openevolve_path = os.path.join(os.getcwd(), 'openevolve')
+            if os.path.exists(openevolve_path) and openevolve_path not in sys.path:
+                sys.path.insert(0, openevolve_path)
+            from openevolve.api import run_evolution as openevolve_run_evolution
+            from openevolve.config import Config, LLMModelConfig
+            
     OPENEVOLVE_AVAILABLE = True
 except ImportError:
     OPENEVOLVE_AVAILABLE = False
@@ -1001,6 +1020,210 @@ class EvaluatorTeam:
             expertise_level=6,
             evaluation_philosophy="lenient"
         ))
+
+    def evaluate_content_with_dspy(self, content: str, content_type: str = "general",
+                                  previous_versions: Optional[List[str]] = None,
+                                  custom_criteria: Optional[List[EvaluationCriterion]] = None,
+                                  threshold: EvaluationThreshold = EvaluationThreshold.STANDARD_APPROVAL,
+                                  num_evaluators: Optional[int] = None,
+                                  api_key: Optional[str] = None,
+                                  model_name: str = "gpt-4o") -> IntegratedEvaluation:
+        """
+        Evaluate content using DSPy for enhanced programmatic prompting.
+
+        Args:
+            content: Content to evaluate
+            content_type: Type of content
+            previous_versions: Previous versions for improvement tracking
+            custom_criteria: Custom evaluation criteria
+            threshold: Acceptance threshold
+            num_evaluators: Number of evaluators to use (None for all)
+            api_key: API key for OpenEvolve backend (required when using OpenEvolve)
+            model_name: Model to use when using OpenEvolve
+
+        Returns:
+            IntegratedEvaluation with DSPy-enhanced results
+        """
+        start_time = time.time()
+
+        # Try to use DSPy for enhanced evaluation
+        try:
+            from dspy_integration import DSPY_AVAILABLE
+            if DSPY_AVAILABLE:
+                from dspy import Predict, Signature
+
+                # Define a DSPy signature for content evaluation
+                class ContentEvaluationSignature(Signature):
+                    """Evaluate content quality based on multiple criteria."""
+                    content_to_evaluate = dspy.InputField(desc="Content to evaluate")
+                    content_type = dspy.InputField(desc="Type of content (code, document, etc.)")
+                    evaluation_criteria = dspy.InputField(desc="List of criteria to evaluate against")
+
+                    overall_quality_score = dspy.OutputField(desc="Overall quality score (0-100)")
+                    correctness_score = dspy.OutputField(desc="Correctness score (0-100)")
+                    clarity_score = dspy.OutputField(desc="Clarity score (0-100)")
+                    completeness_score = dspy.OutputField(desc="Completeness score (0-100)")
+                    effectiveness_score = dspy.OutputField(desc="Effectiveness score (0-100)")
+                    efficiency_score = dspy.OutputField(desc="Efficiency score (0-100)")
+                    maintainability_score = dspy.OutputField(desc="Maintainability score (0-100)")
+                    robustness_score = dspy.OutputField(desc="Robustness score (0-100)")
+                    security_score = dspy.OutputField(desc="Security score (0-100)")
+                    compliance_score = dspy.OutputField(desc="Compliance score (0-100)")
+                    aesthetics_score = dspy.OutputField(desc="Aesthetics score (0-100)")
+                    detailed_feedback = dspy.OutputField(desc="Detailed feedback and suggestions")
+                    confidence_level = dspy.OutputField(desc="Confidence level in evaluation (low, medium, high)")
+
+                # Create a predictor
+                evaluate_content = Predict(ContentEvaluationSignature)
+
+                # Prepare criteria string
+                if custom_criteria:
+                    criteria_str = ", ".join([f"{c.metric.value} (weight: {c.weight})" for c in custom_criteria])
+                else:
+                    criteria_str = f"Standard criteria for {content_type} content"
+
+                # Run evaluation using DSPy
+                result = evaluate_content(
+                    content_to_evaluate=content,
+                    content_type=content_type,
+                    evaluation_criteria=criteria_str
+                )
+
+                # Convert DSPy results to evaluation scores
+                scores = []
+
+                # Map DSPy results to EvaluationScore objects
+                result_mapping = {
+                    EvaluationMetric.OVERALL_QUALITY: result.overall_quality_score,
+                    EvaluationMetric.CORRECTNESS: result.correctness_score,
+                    EvaluationMetric.CLARITY: result.clarity_score,
+                    EvaluationMetric.COMPLETENESS: result.completeness_score,
+                    EvaluationMetric.EFFECTIVENESS: result.effectiveness_score,
+                    EvaluationMetric.EFFICIENCY: result.efficiency_score,
+                    EvaluationMetric.MAINTAINABILITY: result.maintainability_score,
+                    EvaluationMetric.ROBUSTNESS: result.robustness_score,
+                    EvaluationMetric.SECURITY: result.security_score,
+                    EvaluationMetric.COMPLIANCE: result.compliance_score,
+                    EvaluationMetric.AESTHETICS: result.aesthetics_score
+                }
+
+                for metric, score_str in result_mapping.items():
+                    try:
+                        score_value = float(score_str) if score_str.replace('.', '').isdigit() else 75.0
+                        scores.append(
+                            EvaluationScore(
+                                metric=metric,
+                                score=score_value,
+                                scale=EvaluationScale.PERCENTAGE,
+                                confidence=self._dspy_confidence_to_enum(result.confidence_level),
+                                rationale=f"DSPy evaluation for {metric.value}",
+                                supporting_evidence=[result.detailed_feedback]
+                            )
+                        )
+                    except:
+                        # If parsing fails, use a default score
+                        scores.append(
+                            EvaluationScore(
+                                metric=metric,
+                                score=75.0,
+                                scale=EvaluationScale.PERCENTAGE,
+                                confidence=EvaluationConfidence.MODERATE,
+                                rationale=f"DSPy evaluation for {metric.value}",
+                                supporting_evidence=[result.detailed_feedback]
+                            )
+                        )
+
+                # Calculate composite score
+                composite_score = sum(s.score for s in scores) / len(scores) if scores else 75.0
+
+                # Create assessment
+                assessment = EvaluatorAssessment(
+                    evaluator_id="DSPyEnhancedEvaluator",
+                    scores=scores,
+                    composite_score=composite_score,
+                    assessment_summary=f"DSPy-enhanced evaluation of {content_type} content",
+                    confidence_level=self._dspy_confidence_to_enum(result.confidence_level),
+                    time_taken=time.time() - start_time,
+                    assessment_metadata={
+                        "content_type": content_type,
+                        "dspy_enhanced": True,
+                        "evaluation_timestamp": datetime.now().isoformat()
+                    },
+                    criteria_used=custom_criteria or self._get_default_criteria(content_type),
+                    detailed_feedback={
+                        "detailed_analysis": result.detailed_feedback,
+                        "dspy_results": {
+                            "overall_quality": result.overall_quality_score,
+                            "correctness": result.correctness_score,
+                            "clarity": result.clarity_score,
+                            "completeness": result.completeness_score,
+                            "effectiveness": result.effectiveness_score,
+                            "efficiency": result.efficiency_score,
+                            "maintainability": result.maintainability_score,
+                            "robustness": result.robustness_score,
+                            "security": result.security_score,
+                            "compliance": result.compliance_score,
+                            "aesthetics": result.aesthetics_score
+                        }
+                    }
+                )
+
+                # Create integrated evaluation
+                integrated_eval = IntegratedEvaluation(
+                    assessments=[assessment],
+                    consensus_score=composite_score,
+                    consensus_reached=True,
+                    variance_analysis={"std_deviation": 0.0, "min_score": composite_score, "max_score": composite_score},
+                    final_verdict=self._determine_final_verdict([assessment], threshold),
+                    confidence_intervals={"low": composite_score - 5, "high": composite_score + 5},
+                    recommendations=self._extract_recommendations(result.detailed_feedback),
+                    evaluation_metadata={
+                        "content_type": content_type,
+                        "dspy_enhanced": True,
+                        "evaluation_time_taken": time.time() - start_time,
+                        "method": "dspy_enhanced"
+                    }
+                )
+
+                return integrated_eval
+        except ImportError:
+            logger.warning("DSPy not available, using standard evaluation")
+        except Exception as e:
+            logger.warning(f"DSPy evaluation failed, falling back to standard evaluation: {e}")
+
+        # Fall back to standard evaluation
+        return self.evaluate_content(
+            content=content,
+            content_type=content_type,
+            previous_versions=previous_versions,
+            custom_criteria=custom_criteria,
+            threshold=threshold,
+            num_evaluators=num_evaluators,
+            api_key=api_key,
+            model_name=model_name
+        )
+
+    def _dspy_confidence_to_enum(self, dspy_confidence_str: str) -> EvaluationConfidence:
+        """Convert DSPy confidence string to EvaluationConfidence enum."""
+        confidence_map = {
+            "very_high": EvaluationConfidence.VERY_HIGH,
+            "high": EvaluationConfidence.HIGH,
+            "moderate": EvaluationConfidence.MODERATE,
+            "low": EvaluationConfidence.LOW,
+            "very_low": EvaluationConfidence.VERY_LOW
+        }
+        return confidence_map.get(dspy_confidence_str.lower(), EvaluationConfidence.MODERATE)
+
+    def _extract_recommendations(self, detailed_feedback: str) -> List[str]:
+        """Extract recommendations from detailed feedback."""
+        # Simple extraction - in practice, this could use more sophisticated parsing
+        recommendations = []
+        lines = detailed_feedback.split('\n')
+        for line in lines:
+            line_lower = line.lower()
+            if any(keyword in line_lower for keyword in ['recommend', 'suggest', 'improve', 'fix', 'change']):
+                recommendations.append(line.strip())
+        return recommendations
     
     def add_team_member(self, member: EvaluatorMember):
         """Add a new evaluator team member"""

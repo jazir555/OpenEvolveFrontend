@@ -5,6 +5,7 @@ Implements the Quality Assessment functionality described in the ultimate explan
 import re
 import tempfile
 import os
+import logging
 from typing import Dict, List, Any, Optional, Union, Callable, Tuple
 from dataclasses import dataclass
 from enum import Enum
@@ -12,6 +13,9 @@ import statistics
 import numpy as np
 from textstat import flesch_reading_ease, flesch_kincaid_grade
 from datetime import datetime
+
+# Configure logger
+logger = logging.getLogger(__name__)
 
 # Import OpenEvolve components for enhanced functionality
 try:
@@ -21,6 +25,29 @@ try:
 except ImportError:
     OPENEVOLVE_AVAILABLE = False
     print("OpenEvolve backend not available - using fallback implementation")
+
+# Import DTS integration for enhanced multi-judge scoring
+try:
+    from dts_integration import DTSIntegration, DTSIntegrationConfig
+    DTS_AVAILABLE = True
+    print("DTS integration available for enhanced multi-judge scoring")
+except (ImportError, Exception):
+    DTS_AVAILABLE = False
+    print("DTS integration not available - using standard scoring methods")
+
+# Import DSPy for enhanced prompting
+try:
+    import dspy
+    from dspy.teleprompt import BootstrapFewShot
+    from dspy.predict import Predict
+    DSPY_AVAILABLE = True
+    logger.info("DSPy available for enhanced programmatic prompting")
+except ImportError:
+    dspy = None
+    BootstrapFewShot = None
+    Predict = None
+    DSPY_AVAILABLE = False
+    logger.warning("DSPy not available - using standard prompting methods")
 
 class QualityDimension(Enum):
     """Enumeration of quality dimensions"""
@@ -1130,7 +1157,7 @@ class QualityAssessmentEngine:
         
         # Check for line length consistency
         line_lengths = [len(line) for line in lines if line.strip()]
-        if line_lengths and statistics.stdev(line_lengths) > 40:  # High variation in line lengths
+        if len(line_lengths) > 1 and statistics.stdev(line_lengths) > 40:  # High variation in line lengths
             issues.append(QualityIssue(
                 dimension=QualityDimension.AESTHETICS,
                 severity=SeverityLevel.LOW,
@@ -1349,6 +1376,345 @@ class QualityAssessmentEngine:
         # Convert back to 0-100 scale
         return harmonic_mean * 100
     
+    def assess_with_dts_multi_judge(self, content: str, content_type: str = "general",
+                                   dimensions: List[QualityDimension] = None,
+                                   use_comparative_scoring: bool = True,
+                                   judge_count: int = 3) -> Dict[str, Any]:
+        """
+        Assess quality using DTS multi-judge scoring for more robust evaluation.
+        
+        This method uses DTS's multi-judge scoring system to get multiple independent
+        evaluations and aggregate them for more reliable quality assessment.
+        
+        Args:
+            content: The content to assess
+            content_type: Type of content (code, document, protocol, etc.)
+            dimensions: Specific quality dimensions to assess (if None, assess all)
+            use_comparative_scoring: Whether to use comparative scoring (vs absolute)
+            judge_count: Number of judges to use for multi-judge scoring
+            
+        Returns:
+            Dictionary with results including:
+                - scores: Quality scores by dimension
+                - judge_scores: Individual judge scores for transparency
+                - consensus_score: Overall consensus score
+                - confidence: Confidence in the assessment
+                - dts_available: Whether DTS was actually used
+        """
+        if not DTS_AVAILABLE:
+            logger.warning("DTS not available, falling back to standard quality assessment")
+            # Fall back to standard assessment
+            result = self.assess_quality(content, content_type)
+            return {
+                "scores": result.scores,
+                "judge_scores": [],
+                "consensus_score": result.composite_score,
+                "confidence": 0.7,  # Default moderate confidence
+                "dts_available": False,
+                "fallback_used": True,
+                "assessment_result": result
+            }
+        
+        try:
+            # Initialize DTS integration
+            dts_config = DTSIntegrationConfig(
+                max_rounds=1,  # Single round for scoring
+                use_multi_judge=True,
+                judge_count=judge_count,
+                use_comparative_scoring=use_comparative_scoring
+            )
+            dts_integration = DTSIntegration(dts_config)
+            
+            # Prepare assessment prompt for DTS
+            dimension_list = dimensions or list(QualityDimension)
+            dimension_names = [dim.value for dim in dimension_list]
+            
+            assessment_context = {
+                "content": content,
+                "content_type": content_type,
+                "dimensions": dimension_names,
+                "scoring_mode": "comparative" if use_comparative_scoring else "absolute"
+            }
+            
+            # Run DTS multi-judge scoring
+            result = dts_integration.multi_judge_scoring(
+                content=content,
+                context=assessment_context,
+                scoring_criteria="quality assessment across multiple dimensions"
+            )
+            
+            # Extract scores from DTS result
+            scores = {}
+            judge_scores = result.get("judge_scores", [])
+            
+            if "dimension_scores" in result:
+                # DTS returned scores by dimension
+                for dim_name, score in result["dimension_scores"].items():
+                    try:
+                        dim = QualityDimension(dim_name)
+                        scores[dim] = float(score) * 100  # Convert to 0-100 scale
+                    except (ValueError, KeyError):
+                        # Skip invalid dimension names
+                        continue
+            
+            # If DTS didn't provide dimension scores, use judge scores to compute
+            if not scores and judge_scores:
+                # Average judge scores for each dimension
+                for dim in dimension_list:
+                    # Simple heuristic: distribute scores evenly
+                    avg_score = sum(judge_scores) / len(judge_scores) * 100
+                    scores[dim] = avg_score
+            
+            # If still no scores, use standard assessment as fallback
+            if not scores:
+                standard_result = self.assess_content(content, content_type)
+                scores = standard_result.scores
+                judge_scores = []
+            
+            # Calculate consensus score (average of dimension scores)
+            consensus_score = 0.0
+            if scores:
+                consensus_score = sum(scores.values()) / len(scores)
+            
+            # Calculate confidence based on judge agreement
+            confidence = 0.7  # Default
+            if judge_scores and len(judge_scores) > 1:
+                # Higher confidence when judges agree (low variance)
+                variance = statistics.variance(judge_scores) if len(judge_scores) > 1 else 0
+                confidence = max(0.3, 1.0 - variance)  # 1.0 - variance, but at least 0.3
+            
+            return {
+                "scores": scores,
+                "judge_scores": judge_scores,
+                "consensus_score": consensus_score,
+                "confidence": confidence,
+                "dts_available": True,
+                "fallback_used": False,
+                "dts_result": result
+            }
+            
+        except Exception as e:
+            logger.error(f"Error running DTS multi-judge assessment: {e}", exc_info=True)
+            # Fall back to standard assessment
+            result = self.assess_quality(content, content_type)
+            return {
+                "scores": result.scores,
+                "judge_scores": [],
+                "consensus_score": result.composite_score,
+                "confidence": 0.5,  # Lower confidence due to error
+                "dts_available": True,  # DTS was available but failed
+                "fallback_used": True,
+                "error": str(e),
+                "assessment_result": result
+            }
+
+    def assess_quality_with_dspy(self, content: str, content_type: str = "general",
+                                 custom_requirements: Optional[Dict[str, Any]] = None,
+                                 api_key: Optional[str] = None,
+                                 model_name: str = "gpt-4o") -> QualityAssessmentResult:
+        """
+        Assess the quality of content using DSPy for enhanced programmatic prompting.
+
+        Args:
+            content: The content to assess
+            content_type: Type of content (code, document, etc.)
+            custom_requirements: Custom requirements to check
+            api_key: API key for OpenEvolve backend (required when using OpenEvolve)
+            model_name: Model to use when using OpenEvolve
+
+        Returns:
+            QualityAssessmentResult with detailed quality metrics from DSPy-enhanced assessment
+        """
+        # Try to use DSPy for enhanced assessment
+        if not DSPY_AVAILABLE:
+            logger.info("DSPy not available, falling back to standard quality assessment")
+            return self.assess_quality(content, content_type, custom_requirements, api_key, model_name)
+
+        try:
+            # Define a DSPy signature for quality assessment
+            class QualityAssessmentSignature(dspy.Signature):
+                """Assess the quality of content across multiple dimensions."""
+                content_to_assess = dspy.InputField(desc="The content to assess for quality")
+                content_type = dspy.InputField(desc="Type of content (code, document, legal, etc.)")
+                quality_dimensions = dspy.InputField(desc="List of quality dimensions to assess")
+
+                correctness_score = dspy.OutputField(desc="Correctness score (0-100)")
+                completeness_score = dspy.OutputField(desc="Completeness score (0-100)")
+                clarity_score = dspy.OutputField(desc="Clarity score (0-100)")
+                effectiveness_score = dspy.OutputField(desc="Effectiveness score (0-100)")
+                efficiency_score = dspy.OutputField(desc="Efficiency score (0-100)")
+                maintainability_score = dspy.OutputField(desc="Maintainability score (0-100)")
+                scalability_score = dspy.OutputField(desc="Scalability score (0-100)")
+                robustness_score = dspy.OutputField(desc="Robustness score (0-100)")
+                aesthetics_score = dspy.OutputField(desc="Aesthetics score (0-100)")
+                compliance_score = dspy.OutputField(desc="Compliance score (0-100)")
+                security_score = dspy.OutputField(desc="Security score (0-100)")
+                detailed_feedback = dspy.OutputField(desc="Detailed feedback and specific issues found")
+                recommendations = dspy.OutputField(desc="Specific recommendations for improvement")
+
+            # Create a predictor using the signature
+            assess_quality = dspy.Predict(QualityAssessmentSignature)
+
+            # Define quality dimensions to assess
+            quality_dims = [dim.value for dim in QualityDimension]
+
+            # Run the DSPy assessment
+            result = assess_quality(
+                content_to_assess=content,
+                content_type=content_type,
+                quality_dimensions=", ".join(quality_dims)
+            )
+
+            # Parse DSPy results into scores dictionary
+            scores = {}
+            score_mapping = {
+                QualityDimension.CORRECTNESS: result.correctness_score,
+                QualityDimension.COMPLETENESS: result.completeness_score,
+                QualityDimension.CLARITY: result.clarity_score,
+                QualityDimension.EFFECTIVENESS: result.effectiveness_score,
+                QualityDimension.EFFICIENCY: result.efficiency_score,
+                QualityDimension.MAINTAINABILITY: result.maintainability_score,
+                QualityDimension.SCALABILITY: result.scalability_score,
+                QualityDimension.ROBUSTNESS: result.robustness_score,
+                QualityDimension.AESTHETICS: result.aesthetics_score,
+                QualityDimension.COMPLIANCE: result.compliance_score,
+                QualityDimension.SECURITY: result.security_score
+            }
+
+            parsed_scores = {}
+            for dimension, score_str in score_mapping.items():
+                try:
+                    score_value = float(score_str) if score_str.replace('.', '').isdigit() else 50.0
+                    parsed_scores[dimension] = max(0.0, min(100.0, score_value))  # Clamp to 0-100 range
+                except:
+                    # If parsing fails, use a default score
+                    parsed_scores[dimension] = 50.0
+
+            # Calculate composite score
+            composite_score = sum(parsed_scores.values()) / len(parsed_scores) if parsed_scores else 50.0
+
+            # Extract issues and recommendations from DSPy feedback
+            issues = []
+            recommendations = []
+
+            # Parse detailed feedback for issues
+            feedback_lines = result.detailed_feedback.split('\n')
+            for line in feedback_lines:
+                if line.strip():
+                    issues.append(QualityIssue(
+                        dimension=QualityDimension.CORRECTNESS,  # Default dimension
+                        description=line.strip(),
+                        severity=SeverityLevel.MEDIUM
+                    ))
+
+            # Parse recommendations
+            recommendation_lines = result.recommendations.split('\n')
+            for line in recommendation_lines:
+                if line.strip().startswith('- ') or line.strip().startswith('* '):
+                    recommendations.append(line.strip()[2:])  # Remove bullet prefix
+                elif line.strip():
+                    recommendations.append(line.strip())
+
+            # Create and return assessment result
+            return QualityAssessmentResult(
+                scores=parsed_scores,
+                composite_score=composite_score,
+                issues=issues,
+                recommendations=recommendations,
+                timestamp=datetime.now(),
+                content_type=content_type,
+                assessment_method="dspy_enhanced",
+                confidence=0.8  # High confidence in DSPy assessment
+            )
+        except Exception as e:
+            logger.warning(f"DSPy quality assessment failed, falling back to standard method: {e}")
+            return self.assess_quality(content, content_type, custom_requirements, api_key, model_name)
+
+    def compare_content_quality_with_dspy(self, content1: str, content2: str,
+                                         content_type: str = "general",
+                                         comparison_aspect: str = "overall") -> Dict[str, Any]:
+        """
+        Compare the quality of two content pieces using DSPy for enhanced comparative analysis.
+
+        Args:
+            content1: First content to compare
+            content2: Second content to compare
+            content_type: Type of content (code, document, etc.)
+            comparison_aspect: Aspect to focus on ('overall', 'correctness', 'clarity', 'effectiveness')
+
+        Returns:
+            Dictionary with comparative analysis results
+        """
+        if not DSPY_AVAILABLE:
+            logger.info("DSPy not available, falling back to basic comparison")
+            # Basic fallback comparison
+            return {
+                "comparison_aspect": comparison_aspect,
+                "content1_length": len(content1),
+                "content2_length": len(content2),
+                "dspy_enhanced": False,
+                "winner": "content1" if len(content1) > len(content2) else "content2",
+                "basic_analysis": "Comparison performed without DSPy enhancement"
+            }
+
+        try:
+            # Define a DSPy signature for comparative quality assessment
+            class ComparativeQualitySignature(dspy.Signature):
+                """Compare the quality of two content pieces."""
+                content1_to_compare = dspy.InputField(desc="First content to compare for quality")
+                content2_to_compare = dspy.InputField(desc="Second content to compare for quality")
+                content_type = dspy.InputField(desc="Type of content (code, document, etc.)")
+                comparison_aspect = dspy.InputField(desc="Aspect to focus on (overall, correctness, clarity, effectiveness)")
+
+                content1_analysis = dspy.OutputField(desc="Analysis of first content's quality")
+                content2_analysis = dspy.OutputField(desc="Analysis of second content's quality")
+                comparative_assessment = dspy.OutputField(desc="Direct comparison and assessment of which is better and why")
+                winner = dspy.OutputField(desc="Which content is better ('content1' or 'content2')")
+                confidence_difference = dspy.OutputField(desc="Confidence in the difference (0-100)")
+                improvement_suggestions = dspy.OutputField(desc="Suggestions for improving the lesser quality content")
+
+            # Create a predictor using the signature
+            compare_quality = dspy.Predict(ComparativeQualitySignature)
+
+            # Run the comparative assessment
+            result = compare_quality(
+                content1_to_compare=content1,
+                content2_to_compare=content2,
+                content_type=content_type,
+                comparison_aspect=comparison_aspect
+            )
+
+            # Calculate confidence in the difference
+            try:
+                confidence = float(result.confidence_difference) if result.confidence_difference.replace('.', '').isdigit() else 50.0
+            except:
+                confidence = 50.0
+
+            # Return comprehensive comparison
+            return {
+                "comparison_aspect": comparison_aspect,
+                "content1_analysis": result.content1_analysis,
+                "content2_analysis": result.content2_analysis,
+                "comparative_assessment": result.comparative_assessment,
+                "winner": result.winner,
+                "confidence_difference": confidence,
+                "improvement_suggestions": result.improvement_suggestions,
+                "dspy_enhanced": True,
+                "content1_length": len(content1),
+                "content2_length": len(content2)
+            }
+
+        except Exception as e:
+            logger.warning(f"DSPy comparative quality assessment failed: {e}")
+            return {
+                "comparison_aspect": comparison_aspect,
+                "content1_length": len(content1),
+                "content2_length": len(content2),
+                "dspy_enhanced": False,
+                "winner": "unknown",
+                "basic_analysis": f"Comparison failed: {str(e)}"
+            }
+
     def get_quality_report(self, assessment_result: QualityAssessmentResult) -> str:
         """Generate a quality report from assessment results"""
         report = []

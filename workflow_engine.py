@@ -7,8 +7,28 @@ import threading # Added for parallel execution in gauntlets
 import os # Added for path manipulation in OpenEvolve integration and env vars for crewai
 import re # Added for regex parsing in targeted feedback
 from typing import Any, Dict, List, Literal, Optional
+from datetime import datetime
 import asyncio
 import logging
+
+# **ACTUAL INTEGRATION**: Import systems that Workflow Engine talks to
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from bubblelabs_nodes.solution_cache import get_solution_cache
+    CACHE_AVAILABLE = True
+except ImportError:
+    CACHE_AVAILABLE = False
 
 import streamlit as st
 from ui_components import render_manual_review_panel # Import for Stage 2 UI
@@ -84,6 +104,18 @@ def _record_workflow_completion(
         MetricType.HISTOGRAM,
         {"workflow_id": workflow_state.workflow_id, "status": status}
     )
+
+    # **ACTUAL INTEGRATION**: Trigger alerts based on workflow status
+    success = status in ["completed", "succeeded"]
+    _trigger_workflow_alerts(workflow_state, success, workflow_state.current_stage)
+
+    # **ACTUAL INTEGRATION**: Cache workflow results
+    if success:
+        _cache_workflow_results(workflow_state, success)
+
+    # **ACTUAL INTEGRATION**: Extract knowledge to enterprise engine
+    if success:
+        _extract_to_enterprise_knowledge(workflow_state, success)
 
 
 def _update_entanglement_matrix(workflow_state: WorkflowState) -> None:
@@ -4272,6 +4304,179 @@ def _extract_workflow_knowledge(workflow_state: WorkflowState, km: 'KnowledgeMan
         artifacts.append(artifact)
     
     return artifacts
+
+
+# =============================================================================
+# ACTUAL INTEGRATION FUNCTIONS - Connect WorkflowEngine to other systems
+# =============================================================================
+
+def _trigger_workflow_alerts(
+    workflow_state: WorkflowState,
+    success: bool,
+    stage: str,
+    error: Optional[str] = None
+):
+    """
+    **ACTUAL INTEGRATION**: Trigger alerts for workflow failures.
+
+    Alerts on:
+    - Workflow failures
+    - Stage failures
+    - Quality issues
+    """
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_manager = get_alert_manager()
+
+        # Check for workflow failure
+        if not success:
+            severity = AlertSeverity.HIGH if workflow_state.status == "failed" else AlertSeverity.MEDIUM
+
+            alert_manager.create_alert(
+                title=f"Workflow Failed: {workflow_state.workflow_id}",
+                description=f"Workflow failed at stage '{stage}'. "
+                           f"Status: {workflow_state.status}. "
+                           f"{'Error: ' + error if error else 'Check workflow state for details'}",
+                severity=severity.value,
+                source="workflow_engine",
+                component="workflow",
+                metadata={
+                    "workflow_id": workflow_state.workflow_id,
+                    "stage": stage,
+                    "status": workflow_state.status,
+                    "error": error,
+                    "problem_statement": workflow_state.problem_statement[:200] if workflow_state.problem_statement else None
+                }
+            )
+            return
+
+        # Check for low quality final solution
+        if workflow_state.final_solution and workflow_state.final_solution.quality_metrics:
+            quality = workflow_state.final_solution.quality_metrics
+            overall_quality = quality.get("overall_score", 1.0)
+
+            if overall_quality < 0.5:
+                alert_manager.create_alert(
+                    title=f"Low Quality Workflow Result: {workflow_state.workflow_id}",
+                    description=f"Workflow completed but final solution quality is low: {overall_quality:.2f}",
+                    severity=AlertSeverity.MEDIUM.value,
+                    source="workflow_engine",
+                    component="workflow",
+                    metadata={
+                        "workflow_id": workflow_state.workflow_id,
+                        "quality_score": overall_quality,
+                        "refinement_loops": workflow_state.refinement_loop_count
+                    }
+                )
+
+    except Exception as e:
+        logging.error(f"Failed to trigger workflow alerts: {e}")
+
+
+def _cache_workflow_results(
+    workflow_state: WorkflowState,
+    success: bool
+) -> bool:
+    """
+    **ACTUAL INTEGRATION**: Cache workflow results for reuse.
+
+    Caches:
+    - Successful workflow patterns
+    - Problem → solution mappings
+    """
+    if not CACHE_AVAILABLE or not success:
+        return False
+
+    try:
+        cache = get_solution_cache()
+
+        # Create cache key from problem features
+        import hashlib
+        from workflow_structures import DecompositionPlan
+
+        # Use analyzed context for semantic key
+        if workflow_state.decomposition_plan and hasattr(workflow_state.decomposition_plan, 'analyzed_context'):
+            context = workflow_state.decomposition_plan.analyzed_context
+            key_data = f"{context.get('problem_type', 'unknown')}:{context.get('domain', 'general')}:{workflow_state.problem_statement[:100]}"
+        else:
+            key_data = f"workflow:{workflow_state.workflow_id}:{workflow_state.problem_statement[:100]}"
+
+        cache_key = f"workflow:{hashlib.sha256(key_data.encode()).hexdigest()[:16]}"
+
+        # Cache the workflow result
+        cache.set(
+            cache_key,
+            {
+                "workflow_id": workflow_state.workflow_id,
+                "problem_statement": workflow_state.problem_statement[:500],
+                "solved_sub_problems": len(workflow_state.solved_sub_problem_ids),
+                "total_sub_problems": len(workflow_state.decomposition_plan.sub_problems) if workflow_state.decomposition_plan else 0,
+                "refinement_loops": workflow_state.refinement_loop_count,
+                "final_solution_quality": workflow_state.final_solution.quality_metrics if workflow_state.final_solution else None,
+                "status": workflow_state.status,
+                "execution_time": (workflow_state.end_time - workflow_state.start_time) if workflow_state.end_time and workflow_state.start_time else 0
+            },
+            ttl=7200  # 2 hours
+        )
+
+        logging.debug(f"Cached workflow result: {cache_key}")
+        return True
+
+    except Exception as e:
+        logging.error(f"Failed to cache workflow result: {e}")
+        return False
+
+
+def _extract_to_enterprise_knowledge(
+    workflow_state: WorkflowState,
+    success: bool
+) -> bool:
+    """
+    **ACTUAL INTEGRATION**: Extract workflow artifacts to enterprise knowledge engine.
+
+    This is DIFFERENT from _extract_workflow_knowledge which uses KnowledgeManager.
+    This uses the enterprise_knowledge_engine for cross-component knowledge sharing.
+    """
+    if not KNOWLEDGE_AVAILABLE or not success:
+        return False
+
+    try:
+        knowledge_engine = get_knowledge_engine()
+
+        # Create artifact from workflow execution
+        artifact = KnowledgeArtifact(
+            artifact_id=f"workflow_{workflow_state.workflow_id}",
+            artifact_type="workflow_execution",
+            source_component="workflow_engine",
+            title=f"Workflow Execution: {workflow_state.workflow_id}",
+            content={
+                "workflow_id": workflow_state.workflow_id,
+                "problem_statement": workflow_state.problem_statement,
+                "status": workflow_state.status,
+                "solved_sub_problems": len(workflow_state.solved_sub_problem_ids),
+                "total_sub_problems": len(workflow_state.decomposition_plan.sub_problems) if workflow_state.decomposition_plan else 0,
+                "refinement_loops": workflow_state.refinement_loop_count,
+                "final_solution": workflow_state.final_solution.content if workflow_state.final_solution else None,
+                "analyzed_context": workflow_state.decomposition_plan.analyzed_context if workflow_state.decomposition_plan else None
+            },
+            metadata={
+                "success": success,
+                "execution_time": (workflow_state.end_time - workflow_state.start_time) if workflow_state.end_time and workflow_state.start_time else None,
+                "created_at": datetime.now().isoformat()
+            },
+            tags=["workflow", "execution", workflow_state.status]
+        )
+
+        # Store in enterprise knowledge engine
+        knowledge_engine.store_artifact(artifact)
+        logging.debug(f"Extracted workflow knowledge to enterprise engine: {artifact.artifact_id}")
+        return True
+
+    except Exception as e:
+        logging.error(f"Failed to extract workflow knowledge to enterprise engine: {e}")
+        return False
 
 
 # --- OpenEvolve Integration Functions ---

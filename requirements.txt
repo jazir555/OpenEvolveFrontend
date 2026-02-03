@@ -1,52 +1,137 @@
-# Z3-LeanAIDE-OpenEvolve-BubbleLabs Integration
-# Python Dependencies
+# OpenEvolve Dependencies
+# All dependencies use permissive licenses (Apache 2.0, MIT, BSD)
+# No GPL/AGPL dependencies allowed
 
-# Core Z3
-z3-solver>=4.12.0
+# =============================================================================
+# CORE FRAMEWORK (MIT/BSD)
+# =============================================================================
 
-# Web Framework
+# Web Framework - MIT License
 fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
+uvicorn[standard]>=0.24.0  # BSD License
 
-# Database
-sqlalchemy>=2.0.0
-alembic>=1.12.0
-
-# Configuration
-pyyaml>=6.0.1
-python-dotenv>=1.0.0
-
-# CLI
-click>=8.1.0
-rich>=13.0.0
-
-# Data Processing
-numpy>=1.24.0
-pandas>=2.0.0
-
-# WebSocket
+# WebSocket - BSD License
 websockets>=12.0
 
-# Caching (optional)
-redis>=5.0.0
-
-# Performance Monitoring
-psutil>=5.9.0
-
-# API Client
-httpx>=0.25.0
-requests>=2.31.0
-
-# Utilities
+# Data Validation - MIT License
 pydantic>=2.5.0
 python-multipart>=0.0.6
 
-# Development (optional)
+# =============================================================================
+# KNOWLEDGE & REASONING (MIT/Apache 2.0)
+# =============================================================================
+
+# Z3 Theorem Prover - MIT License
+z3-solver>=4.12.0
+
+# Database - MIT License
+sqlalchemy>=2.0.0
+alembic>=1.12.0  # MIT License
+
+# Data Processing - BSD License
+numpy>=1.24.0
+pandas>=2.0.0  # BSD License
+
+# =============================================================================
+# GRAPHQL API (MIT)
+# =============================================================================
+
+# Strawberry GraphQL - MIT License
+strawberry-graphql>=0.215.0
+strawberry-graphql[fastapi]>=0.215.0
+
+# Alternative: Graphene (MIT) - uncomment if needed
+# graphene>=3.3.0
+
+# =============================================================================
+# MCP (MODEL CONTEXT PROTOCOL) (MIT)
+# =============================================================================
+
+# MCP SDK - MIT License
+mcp>=1.0.0
+
+# =============================================================================
+# EVENT BUS & MESSAGING (Apache 2.0/MIT)
+# =============================================================================
+
+# Valkey Client - MIT License (Valkey server is Apache 2.0)
+# Use this instead of redis (BSD) for Apache 2.0 compatibility
+valkey-py>=6.0.0
+
+# =============================================================================
+# TELEMETRY & OBSERVABILITY (Apache 2.0)
+# =============================================================================
+
+# OpenTelemetry - Apache 2.0 License
+opentelemetry-api>=1.22.0
+opentelemetry-sdk>=1.22.0
+opentelemetry-instrumentation>=0.43b0
+opentelemetry-instrumentation-fastapi>=0.43b0
+opentelemetry-exporter-otlp>=1.22.0
+opentelemetry-instrumentation-logging>=0.43b0
+
+# =============================================================================
+# CONFIGURATION & UTILITIES (MIT/Apache 2.0)
+# =============================================================================
+
+# Configuration - MIT License
+pyyaml>=6.0.1
+python-dotenv>=1.0.0
+
+# CLI - MIT License
+click>=8.1.0
+rich>=13.0.0  # MIT License
+
+# HTTP Clients - Apache 2.0
+httpx>=0.25.0  # BSD License
+requests>=2.31.0  # Apache 2.0
+
+# Performance - BSD License
+psutil>=5.9.0
+
+# =============================================================================
+# STREAMLIT UI (Apache 2.0)
+# =============================================================================
+
+streamlit>=1.28.0  # Apache 2.0
+
+# =============================================================================
+# TESTING (MIT)
+# =============================================================================
+
 pytest>=7.4.0
 pytest-asyncio>=0.21.0
-black>=23.0.0
-mypy>=1.7.0
+pytest-cov>=4.1.0
+black>=23.0.0  # MIT
+mypy>=1.7.0  # MIT
 
-# Documentation
-mkdocs>=1.5.0
-mkdocs-material>=9.4.0
+# =============================================================================
+# DOCUMENTATION (BSD)
+# =============================================================================
+
+mkdocs>=1.5.0  # BSD
+mkdocs-material>=9.4.0  # MIT
+
+# =============================================================================
+# OPTIONAL: CACHING (BSD)
+# =============================================================================
+
+# Note: redis is BSD licensed, but we prefer valkey-py for Apache 2.0 alignment
+# redis>=5.0.0  # BSD License - commented out in favor of valkey-py
+
+# =============================================================================
+# LICENSE SUMMARY
+# =============================================================================
+# 
+# Apache 2.0:
+#   - opentelemetry-*, requests, sqlalchemy, streamlit
+#
+# MIT:
+#   - fastapi, pydantic, mcp, strawberry-graphql, z3-solver, valkey-py,
+#   - click, rich, pytest, black, mypy, python-dotenv, pyyaml
+#
+# BSD:
+#   - uvicorn, websockets, numpy, pandas, httpx, psutil, mkdocs, alembic
+#
+# NO GPL/AGPL DEPENDENCIES
+# =============================================================================

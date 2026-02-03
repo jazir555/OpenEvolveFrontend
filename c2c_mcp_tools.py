@@ -59,6 +59,23 @@ except ImportError as e:
     AutoTokenizer = None
     torch = None
 
+# Cache Manager Integration
+try:
+    from c2c_cache_manager import get_cache_manager, EnsembleCacheConfig
+    CACHE_MANAGER_AVAILABLE = True
+    # Initialize global cache manager
+    _cache_manager = None
+    def get_c2c_cache():
+        global _cache_manager
+        if _cache_manager is None:
+            config = EnsembleCacheConfig(max_size=500, default_ttl=1800)
+            _cache_manager = get_cache_manager(config)
+        return _cache_manager
+except ImportError:
+    CACHE_MANAGER_AVAILABLE = False
+    get_c2c_cache = None
+    logger.warning("C2C cache manager not available - caching disabled")
+
 # Logging configuration
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -268,17 +285,54 @@ def run_c2c_inference(
         }
 
     try:
+        # Check cache first
+        if CACHE_MANAGER_AVAILABLE and get_c2c_cache:
+            cache_key = {
+                'ensemble_id': ensemble_id,
+                'prompt': prompt,
+                'apply_c2c': apply_c2c,
+                'max_tokens': max_new_tokens
+            }
+            cached_result = get_c2c_cache().get_ensemble_result(
+                ensemble_id=ensemble_id,
+                input_data=cache_key
+            )
+            if cached_result is not None:
+                logger.info(f"Cache hit for ensemble {ensemble_id}")
+                return {
+                    "success": True,
+                    "ensemble_id": ensemble_id,
+                    "available": True,
+                    "generated_text": cached_result.get('text', ''),
+                    "c2c_applied": cached_result.get('c2c_applied', apply_c2c),
+                    "max_new_tokens": max_new_tokens,
+                    "cached": True,
+                    "message": "Result retrieved from cache",
+                }
+
         # NOTE: In production, the ensemble would be cached
         # For now, return a stub response
-        return {
+        stub_result = {
             "success": True,
             "ensemble_id": ensemble_id,
             "available": True,
             "generated_text": f"[C2C inference result for: {prompt[:50]}...]",
             "c2c_applied": apply_c2c,
             "max_new_tokens": max_new_tokens,
-            "message": "C2C inference requires pre-loaded ensemble (caching not implemented in stub)",
+            "cached": False,
+            "message": "C2C inference requires pre-loaded ensemble (using stub response)",
         }
+
+        # Cache the stub result
+        if CACHE_MANAGER_AVAILABLE and get_c2c_cache:
+            get_c2c_cache().cache_ensemble_result(
+                ensemble_id=ensemble_id,
+                input_data=cache_key,
+                result=stub_result,
+                ttl=1800  # 30 minutes
+            )
+
+        return stub_result
 
     except Exception as e:
         logger.error(f"Failed to run C2C inference: {e}")

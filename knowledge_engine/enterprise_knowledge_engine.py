@@ -28,6 +28,13 @@ from enum import Enum
 import threading
 import numpy as np
 
+# **ACTUAL INTEGRATION**: Alerting system for knowledge quality issues
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
 # Set up logging configuration
 class LogLevel(Enum):
     DEBUG = logging.DEBUG
@@ -334,7 +341,56 @@ class EnterpriseKnowledgeEngine:
                 'error': str(e),
                 'timestamp': datetime.now().isoformat()
             }
-    
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting for knowledge quality issues
+    # =========================================================================
+
+    def _trigger_knowledge_alerts(
+        self,
+        alert_type: str,
+        severity: str,
+        message: str,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """
+        **ACTUAL INTEGRATION**: Trigger alerts for knowledge quality issues.
+
+        Alerts on:
+        - Knowledge storage failures
+        - Knowledge quality issues
+        - Database connection problems
+        - Extraction failures
+        """
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Map severity to AlertSeverity enum
+            severity_map = {
+                "low": "INFO",
+                "medium": "MEDIUM",
+                "high": "HIGH",
+                "critical": "CRITICAL"
+            }
+            alert_severity = AlertSeverity[severity_map.get(severity.lower(), "MEDIUM")]
+
+            alert_manager.create_alert(
+                title=f"Knowledge Engine Alert: {alert_type}",
+                description=message,
+                severity=alert_severity.value,
+                source="knowledge_engine",
+                component="enterprise_knowledge_engine",
+                metadata=metadata or {}
+            )
+
+            self.logger.debug(f"Triggered knowledge alert: {alert_type}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to trigger knowledge alert: {e}")
+
     def process_workflow(self, workflow_data: Dict[str, Any],
                         generate_embeddings: bool = True) -> Dict[str, Any]:
         """
@@ -355,6 +411,15 @@ class EnterpriseKnowledgeEngine:
             error_msg = "Invalid workflow data - must be a non-empty dictionary"
             self.logger.error(error_msg)
             self.performance_monitor.record_operation(operation_type, False, 0)
+
+            # **ACTUAL INTEGRATION**: Trigger alert on input validation failure
+            self._trigger_knowledge_alerts(
+                alert_type="invalid_workflow_data",
+                severity="medium",
+                message=error_msg,
+                metadata={"error_code": "KE_INPUT_001"}
+            )
+
             return {
                 'status': 'error',
                 'error': error_msg,
@@ -434,11 +499,23 @@ class EnterpriseKnowledgeEngine:
         except Exception as e:
             self.logger.error(f"Workflow processing failed: {str(e)}")
             self.logger.error(traceback.format_exc())
-            
+
             # Record failed operation
             processing_time = time.time() - start_time
             self.performance_monitor.record_operation(operation_type, False, processing_time)
-            
+
+            # **ACTUAL INTEGRATION**: Trigger alert on workflow processing failure
+            self._trigger_knowledge_alerts(
+                alert_type="workflow_processing_failed",
+                severity="high",
+                message=f"Failed to process workflow {workflow_data.get('workflow_id', 'unknown')}: {str(e)}",
+                metadata={
+                    "workflow_id": workflow_data.get('workflow_id', 'unknown'),
+                    "error": str(e),
+                    "processing_time": processing_time
+                }
+            )
+
             return {
                 'status': 'error',
                 'error': str(e),

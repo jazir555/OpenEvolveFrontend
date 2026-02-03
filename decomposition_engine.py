@@ -31,6 +31,20 @@ from sovereign_reliability import with_error_handling, ErrorSeverity
 
 logger = logging.getLogger(__name__)
 
+# Public API exports
+__all__ = [
+    # Base Classes
+    'DecompositionStrategyBase',
+    # Strategies
+    'SemanticDecomposition',
+    'DependencyDecomposition',
+    'ComplexityDecomposition',
+    'HybridDecomposition',
+    'ResearchDecomposition',
+    # Main Engine
+    'DecompositionEngine',
+]
+
 # Import OpenEvolveClient and OPENEVOLVE_AVAILABLE at the top for global access and error handling
 try:
     from openevolve_client import OpenEvolveClient, OPENEVOLVE_AVAILABLE
@@ -38,6 +52,32 @@ except ImportError:
     logger.warning("OpenEvolveClient not found. LLM-powered features will be disabled.")
     OpenEvolveClient = None  # type: ignore
     OPENEVOLVE_AVAILABLE = False
+
+
+# **ACTUAL INTEGRATION**: Import systems that Decomposition Engine talks to
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from bubblelabs_nodes.solution_cache import get_solution_cache
+    CACHE_AVAILABLE = True
+except ImportError:
+    CACHE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 
 class DecompositionStrategyBase(ABC):
@@ -409,16 +449,17 @@ Begin decomposition:"""
         }
         return method_map.get(sp_type, "review")
     
-        def _extract_field(self, text: str, field_name: str) -> str:
-            """Extract field value from text."""
-            lines = text.split('\n')
-            for line in lines:
-                if line.strip().startswith(field_name):
-                    return line.split(':', 1)[1].strip()
-            logger.warning(f"Field '{field_name}' not found in LLM response section for SemanticDecomposition.")
-            return ""
-    
-        def _estimate_complexity_from_effort(self, effort: int, problem: ProblemDefinition) -> ComplexityScore:        """Estimate complexity score from effort estimate."""
+    def _extract_field(self, text: str, field_name: str) -> str:
+        """Extract field value from text."""
+        lines = text.split('\n')
+        for line in lines:
+            if line.strip().startswith(field_name):
+                return line.split(':', 1)[1].strip()
+        logger.warning(f"Field '{field_name}' not found in LLM response section for SemanticDecomposition.")
+        return ""
+
+    def _estimate_complexity_from_effort(self, effort: int, problem: ProblemDefinition) -> ComplexityScore:
+        """Estimate complexity score from effort estimate."""
         # Map effort to complexity (4-40 hours -> 1-10 complexity)
         base_complexity = min(10.0, max(1.0, effort / 4.0))
         
@@ -430,10 +471,19 @@ Begin decomposition:"""
             overall_complexity=base_complexity,
             explanation=f"Estimated from effort ({effort}h) and parent complexity"
         )
+
+
+class DependencyDecomposition(DecompositionStrategyBase):
+    """
+    Decomposes based on dependency relationships between components.
     
-
-
-
+    PRODUCTION IMPLEMENTATION:
+    - LLM-powered dependency analysis
+    - Prerequisite relationship identification
+    - Parallel execution opportunity detection
+    - Dependency graph optimization
+    """
+    
     def __init__(self, openevolve_client: Optional['OpenEvolveClient'] = None):
         """Initialize with optional OpenEvolve client."""
         global OpenEvolveClient, OPENEVOLVE_AVAILABLE
@@ -1175,36 +1225,68 @@ class DecompositionEngine:
     def decompose(self, problem: ProblemDefinition, strategy: Optional[str] = None) -> DecompositionPlan:
         """
         Decomposes problem using optimal strategy.
-        
+
         Args:
             problem: The problem to decompose
             strategy: Optional strategy name (auto-selected if not provided)
-            
+
         Returns:
             DecompositionPlan with sub-problems, dependencies, execution order
         """
+        import time
+        start_time = time.time()
+
         self.logger.info(f"Decomposing problem: {problem.id}")
-        
+
         # Select strategy if not provided
         if not strategy:
             strategy = self.select_strategy(problem)
-        
+
         self.logger.info(f"Using strategy: {strategy}")
-        
+
         # Get strategy instance
         strategy_instance = self.strategies.get(strategy)
         if not strategy_instance:
+            # **ACTUAL INTEGRATION**: Trigger alert for unknown strategy
+            self._trigger_decomposition_alerts(problem, None, strategy, False, f"Unknown strategy: {strategy}")
             raise ValueError(f"Unknown strategy: {strategy}")
-        
+
         # Generate sub-problems
-        sub_problems = strategy_instance.decompose(problem)
-        
+        try:
+            sub_problems = strategy_instance.decompose(problem)
+        except Exception as e:
+            # **ACTUAL INTEGRATION**: Trigger alert on decomposition error
+            execution_time = time.time() - start_time
+            self._trigger_decomposition_alerts(problem, None, strategy, False, str(e))
+            self._track_strategy_performance(problem, None, strategy, False, execution_time)
+            raise
+
+        # Check for decomposition failure
+        if not sub_problems or len(sub_problems) == 0:
+            execution_time = time.time() - start_time
+            # **ACTUAL INTEGRATION**: Trigger alert on failure
+            self._trigger_decomposition_alerts(problem, None, strategy, False, "No sub-problems generated")
+            # **ACTUAL INTEGRATION**: Track strategy performance
+            self._track_strategy_performance(problem, None, strategy, False, execution_time)
+            # Return empty plan instead of raising
+            return DecompositionPlan(
+                id=generate_id("plan"),
+                problem_id=problem.id,
+                strategy=DecompositionStrategy(strategy),
+                sub_problems=[],
+                dependency_graph={},
+                validation_checkpoints=[],
+                quality_scores=None,
+                confidence_level=0.0,
+                created_by="decomposition_engine"
+            )
+
         # Build dependency graph
         dependency_graph = self._build_dependency_graph(sub_problems)
-        
+
         # Create quality scores (initial assessment)
         quality_scores = self._assess_quality(problem, sub_problems)
-        
+
         # Create decomposition plan
         plan = DecompositionPlan(
             id=generate_id("plan"),
@@ -1217,8 +1299,25 @@ class DecompositionEngine:
             confidence_level=0.8,  # Initial confidence
             created_by="decomposition_engine"
         )
-        
-        self.logger.info(f"Decomposition complete: {len(sub_problems)} sub-problems created")
+
+        execution_time = time.time() - start_time
+
+        # **ACTUAL INTEGRATION**: Extract knowledge from successful decomposition
+        if len(sub_problems) > 0:
+            self._extract_decomposition_knowledge(problem, plan, strategy)
+
+        # **ACTUAL INTEGRATION**: Trigger alerts if needed
+        success = len(sub_problems) > 0 and (not quality_scores or quality_scores.overall_score >= 0.3)
+        self._trigger_decomposition_alerts(problem, plan, strategy, success)
+
+        # **ACTUAL INTEGRATION**: Cache decomposition pattern
+        if success:
+            self._cache_decomposition_pattern(problem, plan, strategy)
+
+        # **ACTUAL INTEGRATION**: Track strategy performance
+        self._track_strategy_performance(problem, plan, strategy, success, execution_time)
+
+        self.logger.info(f"Decomposition complete: {len(sub_problems)} sub-problems created in {execution_time:.2f}s")
         return plan
 
     def validate_with_z3(
@@ -1639,3 +1738,225 @@ Your selection:"""
             },
             timestamp=datetime.now()
         )
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - These connect DecompositionEngine to other systems
+    # =========================================================================
+
+    def _extract_decomposition_knowledge(
+        self,
+        problem: ProblemDefinition,
+        plan: DecompositionPlan,
+        strategy: str
+    ) -> bool:
+        """
+        **ACTUAL INTEGRATION**: Extract knowledge from decomposition to KnowledgeEngine.
+
+        Learns:
+        - Problem patterns → optimal strategies
+        - Decomposition structures that work
+        - Sub-problem relationships
+        """
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            from knowledge_engine.enterprise_knowledge_engine import KnowledgeArtifact
+
+            knowledge_engine = get_knowledge_engine()
+
+            # Create knowledge artifact from decomposition
+            artifact = KnowledgeArtifact(
+                artifact_id=f"decomp_{problem.id}_{plan.id}",
+                artifact_type="decomposition_pattern",
+                source_component="decomposition_engine",
+                title=f"Decomposition Pattern: {strategy} strategy",
+                content={
+                    "problem_type": problem.problem_type.value if problem.problem_type else "unknown",
+                    "problem_domain": problem.domain_context.value if problem.domain_context else "general",
+                    "strategy_used": strategy,
+                    "subproblem_count": len(plan.sub_problems),
+                    "complexity": problem.complexity_score.overall_complexity if problem.complexity_score else 5.0,
+                    "quality_scores": plan.quality_scores.to_dict() if plan.quality_scores else {},
+                    "decomposition_structure": [
+                        {
+                            "id": sp.id,
+                            "type": sp.sub_problem_type.value if sp.sub_problem_type else "unknown",
+                            "complexity": sp.complexity_score.overall_complexity if sp.complexity_score else 5.0,
+                            "dependencies": sp.dependencies or []
+                        }
+                        for sp in plan.sub_problems
+                    ]
+                },
+                metadata={
+                    "confidence": plan.confidence_level,
+                    "created_at": datetime.now().isoformat(),
+                    "verified": True
+                },
+                tags=[strategy, problem.problem_type.value if problem.problem_type else "unknown", "decomposition"]
+            )
+
+            # Store in knowledge engine
+            knowledge_engine.store_artifact(artifact)
+            self.logger.debug(f"Extracted decomposition knowledge to KnowledgeEngine: {artifact.artifact_id}")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to extract decomposition knowledge: {e}")
+            return False
+
+    def _trigger_decomposition_alerts(
+        self,
+        problem: ProblemDefinition,
+        plan: Optional[DecompositionPlan],
+        strategy: str,
+        success: bool,
+        error: Optional[str] = None
+    ):
+        """
+        **ACTUAL INTEGRATION**: Trigger alerts for decomposition failures.
+
+        Alerts on:
+        - Decomposition failures (no sub-problems)
+        - Low quality decompositions
+        - Strategy selection issues
+        """
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Check for decomposition failure
+            if not success or not plan or len(plan.sub_problems) == 0:
+                severity = AlertSeverity.HIGH if not success else AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Decomposition Failed: {problem.id}",
+                    description=f"Decomposition using '{strategy}' strategy failed. "
+                               f"{'Error: ' + error if error else 'No sub-problems generated'}",
+                    severity=severity.value,
+                    source="decomposition_engine",
+                    component="decomposition",
+                    metadata={
+                        "problem_id": problem.id,
+                        "strategy": strategy,
+                        "error": error,
+                        "problem_type": problem.problem_type.value if problem.problem_type else "unknown"
+                    }
+                )
+                return
+
+            # Check for low quality
+            if plan.quality_scores and plan.quality_scores.overall_score < 0.5:
+                alert_manager.create_alert(
+                    title=f"Low Quality Decomposition: {problem.id}",
+                    description=f"Decomposition quality score: {plan.quality_scores.overall_score:.2f}. "
+                               f"Strategy: {strategy}, Sub-problems: {len(plan.sub_problems)}",
+                    severity=AlertSeverity.MEDIUM.value,
+                    source="decomposition_engine",
+                    component="decomposition",
+                    metadata={
+                        "problem_id": problem.id,
+                        "strategy": strategy,
+                        "quality_score": plan.quality_scores.overall_score,
+                        "subproblem_count": len(plan.sub_problems)
+                    }
+                )
+
+        except Exception as e:
+            self.logger.error(f"Failed to trigger decomposition alerts: {e}")
+
+    def _cache_decomposition_pattern(
+        self,
+        problem: ProblemDefinition,
+        plan: DecompositionPlan,
+        strategy: str
+    ) -> bool:
+        """
+        **ACTUAL INTEGRATION**: Cache decomposition patterns for reuse.
+
+        Caches:
+        - Similar problem → decomposition mappings
+        - Strategy effectiveness patterns
+        """
+        if not CACHE_AVAILABLE:
+            return False
+
+        try:
+            cache = get_solution_cache()
+
+            # Create cache key from problem features
+            import hashlib
+            key_data = f"{problem.problem_type.value if problem.problem_type else 'unknown'}:{strategy}:{problem.domain_context.value if problem.domain_context else 'general'}"
+            cache_key = f"decomposition:{hashlib.sha256(key_data.encode()).hexdigest()[:16]}"
+
+            # Cache the pattern
+            cache.set(
+                cache_key,
+                {
+                    "strategy": strategy,
+                    "subproblem_count": len(plan.sub_problems),
+                    "quality": plan.quality_scores.overall_score if plan.quality_scores else 0.0,
+                    "structure": [
+                        {"type": sp.sub_problem_type.value if sp.sub_problem_type else "unknown"}
+                        for sp in plan.sub_problems
+                    ]
+                },
+                ttl=7200  # 2 hours
+            )
+
+            self.logger.debug(f"Cached decomposition pattern: {cache_key}")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to cache decomposition pattern: {e}")
+            return False
+
+    def _track_strategy_performance(
+        self,
+        problem: ProblemDefinition,
+        plan: Optional[DecompositionPlan],
+        strategy: str,
+        success: bool,
+        execution_time: float
+    ):
+        """
+        **ACTUAL INTEGRATION**: Track strategy performance in adaptive selector.
+
+        Tracks:
+        - Strategy success rates by problem type
+        - Quality achieved by strategy
+        - Execution time performance
+        """
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Calculate quality score
+            quality = plan.quality_scores.overall_score if plan and plan.quality_scores else (1.0 if success else 0.0)
+
+            # Create performance data
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"decomposition_{strategy}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "problem_type": problem.problem_type.value if problem.problem_type else "unknown",
+                    "execution_time": execution_time,
+                    "subproblem_count": len(plan.sub_problems) if plan else 0
+                }
+            )
+
+            # Add to tracker
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                self.logger.debug(f"Tracked strategy performance: {strategy} -> quality={quality:.2f}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to track strategy performance: {e}")

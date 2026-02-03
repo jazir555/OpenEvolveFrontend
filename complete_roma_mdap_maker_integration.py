@@ -56,17 +56,15 @@ def verify_integration():
     if not status['roma_mdap_maker_available']:
         print("\n   [WARN] Core ROMA/MDAP components missing. Running in mock/fallback mode if possible.")
 
-    # 3. Create Configuration
-    print("\n3. Creating Configuration...")
-    from roma_mdap_maker_reliability_ssot import get_standard_config
-    config = get_standard_config(
-        preset="standard",
-        # Can override specific parameters if needed
-        # roma_max_depth_analysis=3,  # Example: Override if preset doesn't match needs
-        # roma_max_depth_solving=2,    # Example: Override if preset doesn't match needs
-        # temperature=0.1              # Example: Override if preset doesn't match needs
+    # 3. Creating Configuration
+    from roma_mdap_maker_reliability_ssot import get_reliability_config
+    config = get_reliability_config(
+        preset="fast", # Base on fast preset
+        use_evaluator_team=True, # Force enable for mock test
+        use_gauntlet_system=True, # Force enable for mock test
+        roma_enable_logging=True
     )
-    print("   [OK] Configuration created")
+    print("   [OK] Configuration created (Mock Full Pipeline)")
 
     # 4. Initialize Engine
     print("\n4. Initializing Engine...")
@@ -111,7 +109,7 @@ def verify_integration():
         # Check Evaluator Assessment
         eval_assessment = result.get("evaluator_assessment", {})
         print("\n   Evaluator Assessment:")
-        print(f"     Verdict: {eval_assessment.get('verdict', 'N/A')}")
+        print(f"     Verdict: {eval_assessment.get('final_verdict') or eval_assessment.get('verdict') or 'N/A'}")
         print(f"     Consensus Score: {eval_assessment.get('consensus_score', 'N/A')}")
         
         # Check MDAP Validation

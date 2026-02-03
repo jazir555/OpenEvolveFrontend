@@ -619,6 +619,74 @@ def render_openevolve_advanced_ui():
         - Strategy: Elite {elite_ratio:.1f}, Explore {exploration_ratio:.1f}, Exploit {exploitation_ratio:.1f}
         - Advanced: Cascade={use_cascade}, Artifacts={use_artifacts}, LLM Feedback={use_llm_feedback}, Tracing={enable_tracing}
         """)
-    
+
     with main_tabs[3]:  # Performance Metrics
         render_evolution_insights()
+
+
+def get_pygraphistry_viz(nodes: list, edges: list, config: Optional[Dict[str, Any]] = None) -> Optional[str]:
+    """
+    Get a PyGraphistry visualization URL for knowledge graph data.
+
+    Args:
+        nodes: List of node dictionaries with 'id' and attributes
+        edges: List of edge dictionaries with 'source', 'target', and attributes
+        config: Optional configuration for PyGraphistry
+
+    Returns:
+        URL to the PyGraphistry visualization or None if failed
+    """
+    try:
+        from knowledge_graph_visualizer import KnowledgeGraphVisualizer
+
+        # Create a temporary visualizer instance
+        visualizer = KnowledgeGraphVisualizer(use_pygraphistry=True)
+
+        # Since we're passing nodes and edges directly, we'll simulate building the graph
+        # by creating a minimal graph structure and then calling the visualization
+        import networkx as nx
+
+        if visualizer.graph is None:
+            # Initialize the graph if not already done
+            visualizer.graph = nx.DiGraph()
+
+        # Clear any existing nodes/edges
+        visualizer.graph.clear()
+
+        # Add nodes and edges to the NetworkX graph
+        for node in nodes:
+            node_id = node.get('id')
+            if node_id:
+                visualizer.graph.add_node(node_id, **{k: v for k, v in node.items() if k != 'id'})
+
+        for edge in edges:
+            source = edge.get('source')
+            target = edge.get('target')
+            if source and target:
+                visualizer.graph.add_edge(source, target, **{k: v for k, v in edge.items() if k not in ['source', 'target']})
+
+        # Create a temporary output path
+        import tempfile
+        import os
+        temp_path = os.path.join(tempfile.gettempdir(), f"pygraphistry_viz_{hash(str(nodes) + str(edges))}.html")
+
+        # Attempt to visualize using PyGraphistry
+        result = visualizer.visualize_interactive(
+            output_path=temp_path,
+            apply_clustering=True,
+            clustering_method="dbscan",
+            embedding_method="umap"
+        )
+
+        if result:
+            # Return the path to the visualization
+            return temp_path
+        else:
+            return None
+
+    except ImportError as e:
+        print(f"PyGraphistry integration not available: {e}")
+        return None
+    except Exception as e:
+        print(f"Error in get_pygraphistry_viz: {e}")
+        return None

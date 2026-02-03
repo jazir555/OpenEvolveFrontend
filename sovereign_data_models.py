@@ -707,3 +707,83 @@ class EnhancedQualityScores:
             self.testability, self.maintainability
         ]
         return sum(scores) / len(scores) if scores else 0.0
+
+@dataclass
+class GauntletRoundRule:
+    """Rule for a single round in a gauntlet."""
+    rule_id: str
+    rule_type: str  # automated, red_team, gold_team, human
+    description: str
+    validation_type: str  # acceptance, quality, security, performance
+    min_score: float
+    max_attempts: int = 1
+    evaluator: str = "automated"
+    evaluation_prompt: str = ""
+    success_criteria: List[str] = field(default_factory=list)
+    is_required: bool = True
+    can_fail_gracefully: bool = False
+    retry_on_failure: bool = False
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass
+class GauntletDefinition:
+    """Definition of a complete gauntlet."""
+    gauntlet_id: str
+    name: str
+    description: str
+    rounds: List[GauntletRoundRule]
+    execution_order: str = "sequential"  # sequential, parallel, adaptive
+    stop_on_first_failure: bool = False
+    require_all_rounds: bool = True
+    red_team_required: bool = False
+    gold_team_required: bool = False
+    blue_team_participation: str = "none"
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+    def validate(self) -> List[str]:
+        errors = []
+        if not self.rounds:
+            errors.append("Gauntlet must have at least one round")
+        return errors
+
+@dataclass
+class GauntletExecution:
+    """Record of a gauntlet execution."""
+    execution_id: str
+    gauntlet_definition: GauntletDefinition
+    sub_problem_id: str
+    solution_attempt: Any  # SolutionAttempt
+    start_time: datetime
+    end_time: Optional[datetime] = None
+    execution_duration: float = 0.0
+    round_results: List[Dict[str, Any]] = field(default_factory=list)
+    rounds_passed: int = 0
+    rounds_failed: int = 0
+    final_score: float = 0.0
+    overall_passed: bool = False
+    metadata: Dict[str, Any] = field(default_factory=dict)
+
+@dataclass
+class GauntletAssignment:
+    """Assignment of a gauntlet to a task."""
+    assignment_id: str
+    gauntlet_id: str
+    task_id: str
+    assigned_by: str
+    assigned_at: datetime = field(default_factory=datetime.now)
+    status: str = "pending"
+
+@dataclass
+class CritiqueReport:
+    """Detailed critique report from validation."""
+    report_id: str
+    solution_id: str
+    critic_id: str
+    overall_score: float
+    passed: bool
+    flaws: List[str] = field(default_factory=list)
+    strengths: List[str] = field(default_factory=list)
+    feedback: str = ""
+    improvements: List[str] = field(default_factory=list)
+    timestamp: datetime = field(default_factory=datetime.now)
+    metadata: Dict[str, Any] = field(default_factory=dict)

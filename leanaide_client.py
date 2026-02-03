@@ -76,6 +76,10 @@ class LeanAideConfig:
     max_connections: int = 100
     enable_logging: bool = True
     verify_ssl: bool = False  # For HTTPS connections
+    enable_caching: bool = False  # Enable response caching
+    cache_ttl_seconds: int = 3600  # Cache TTL in seconds
+    cache_dir: str = ".leanaide_cache"  # Cache directory path
+    max_cache_size_mb: int = 500  # Maximum cache size in MB
 
     @property
     def base_url(self) -> str:

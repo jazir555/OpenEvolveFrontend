@@ -1,0 +1,374 @@
+name: OpenEvolve CI
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+  pull_request:
+    branches: [ main, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # ============================================================================
+  # Lint & Format Checks
+  # ============================================================================
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install black flake8 mypy bandit
+        pip install -r requirements_integration.txt
+    
+    - name: Check code formatting with Black
+      run: black --check .
+    
+    - name: Lint with Flake8
+      run: flake8 . --max-line-length=100 --extend-ignore=E203,W503 --count
+    
+    - name: Type check with MyPy
+      run: mypy . --ignore-missing-imports || true
+    
+    - name: Security scan with Bandit
+      run: bandit -r . -f json -o bandit-report.json || true
+    
+    - name: Upload security report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: security-report
+        path: bandit-report.json
+
+  # ============================================================================
+  # Unit Tests
+  # ============================================================================
+  test-unit:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements_integration.txt
+        pip install -r requirements_with_testing.txt
+        pip install pytest pytest-cov pytest-asyncio
+    
+    - name: Run unit tests
+      run: |
+        pytest test_integrations_comprehensive.py -v -m "not integration and not slow" --cov=. --cov-report=xml --cov-report=html -x
+    
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage.xml
+        fail_ci_if_error: false
+        verbose: true
+    
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: coverage-report
+        path: htmlcov/
+
+  # ============================================================================
+  # Integration Tests
+  # ============================================================================
+  test-integration:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    needs: test-unit
+    services:
+      valkey:
+        image: valkey/valkey:latest
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "valkey-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements*.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install -r requirements_integration.txt
+        pip install -r requirements_with_testing.txt
+        pip install pytest pytest-asyncio httpx
+    
+    - name: Wait for Valkey
+      run: |
+        sleep 5
+        valkey-cli -h localhost -p 6379 ping
+    
+    - name: Run integration tests
+      run: |
+        pytest test_integrations_comprehensive.py -v -m integration --timeout=300
+      env:
+        VALKEY_HOST: localhost
+        VALKEY_PORT: 6379
+        OPENEVOLVE_EVENT_BUS__HOST: localhost
+
+  # ============================================================================
+  # Health Check
+  # ============================================================================
+  health-check:
+    name: System Health Check
+    runs-on: ubuntu-latest
+    needs: test-unit
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements_integration.txt
+    
+    - name: Run health check
+      run: |
+        python system_health.py --json
+    
+    - name: Check file structure
+      run: |
+        python -c "
+        from migrate_to_unified_mcp import MCPMigrationAnalyzer
+        analyzer = MCPMigrationAnalyzer()
+        files = analyzer.find_mcp_files()
+        print(f'Found {len(files)} MCP files')
+        assert len(files) > 0
+        "
+
+  # ============================================================================
+  # Build & Push Docker
+  # ============================================================================
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [test-unit, health-check]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+    
+    - name: Build Docker image
+      run: |
+        docker build -t openevolve:${{ github.sha }} -t openevolve:latest .
+    
+    - name: Test Docker image
+      run: |
+        docker run --rm openevolve:${{ github.sha }} python -c "import sys; print(sys.version)"
+        docker run --rm openevolve:${{ github.sha }} python -m py_compile unified_mcp_server.py
+        docker run --rm openevolve:${{ github.sha }} python -m py_compile event_bus.py
+        docker run --rm openevolve:${{ github.sha }} python -m py_compile stage6_knowledge_extraction.py
+    
+    - name: Save Docker image
+      run: |
+        docker save openevolve:${{ github.sha }} | gzip > openevolve-image.tar.gz
+    
+    - name: Upload Docker image
+      uses: actions/upload-artifact@v4
+      with:
+        name: docker-image
+        path: openevolve-image.tar.gz
+        retention-days: 7
+
+  # ============================================================================
+  # Performance Benchmarks
+  # ============================================================================
+  benchmark:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    needs: test-unit
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements_integration.txt
+        pip install rich
+    
+    - name: Run benchmarks
+      run: |
+        python benchmark_integrations.py --output benchmark-results/
+    
+    - name: Upload benchmark results
+      uses: actions/upload-artifact@v4
+      with:
+        name: benchmark-results
+        path: benchmark-results/
+
+  # ============================================================================
+  # Documentation
+  # ============================================================================
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check documentation
+      run: |
+        test -f INTEGRATION_GUIDE.md
+        test -f AGENTS.md
+        test -f INTEGRATION_IMPLEMENTATION_COMPLETE.md
+        echo "Documentation files present"
+    
+    - name: Check README
+      run: |
+        test -f README.md
+        echo "README present"
+
+  # ============================================================================
+  # License Check
+  # ============================================================================
+  license-check:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Check for GPL/AGPL dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install pip-licenses
+        pip install -r requirements_integration.txt
+        pip-licenses --format=json --output-file=licenses.json
+        
+        # Check for GPL/AGPL
+        python -c "
+        import json
+        import sys
+        
+        with open('licenses.json') as f:
+            licenses = json.load(f)
+        
+        forbidden = ['GPL', 'AGPL', 'LGPL']
+        violations = []
+        
+        for pkg in licenses:
+            license_name = pkg.get('License', '')
+            if any(f in license_name for f in forbidden):
+                violations.append(f\"{pkg['Name']}: {license_name}\")
+        
+        if violations:
+            print('FORBIDDEN LICENSES FOUND:')
+            for v in violations:
+                print(f'  - {v}')
+            sys.exit(1)
+        else:
+            print('All licenses compliant (Apache 2.0/MIT/BSD only)')
+        "
+    
+    - name: Upload license report
+      uses: actions/upload-artifact@v4
+      with:
+        name: license-report
+        path: licenses.json
+
+  # ============================================================================
+  # Release
+  # ============================================================================
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: [test-integration, docker-build, docs, license-check]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Generate release notes
+      run: |
+        echo "# OpenEvolve Integration Release" > release-notes.md
+        echo "" >> release-notes.md
+        echo "## Components" >> release-notes.md
+        echo "- Unified MCP Server" >> release-notes.md
+        echo "- Event Bus (Valkey-based)" >> release-notes.md
+        echo "- GraphQL API" >> release-notes.md
+        echo "- REST API" >> release-notes.md
+        echo "- OpenTelemetry Integration" >> release-notes.md
+        echo "- Stage 6 Knowledge Extraction" >> release-notes.md
+        echo "- Service Orchestrator" >> release-notes.md
+        echo "- Plugin Registry" >> release-notes.md
+        echo "- API Gateway" >> release-notes.md
+        echo "- CLI Management Tool" >> release-notes.md
+        echo "" >> release-notes.md
+        echo "## License" >> release-notes.md
+        echo "Apache 2.0" >> release-notes.md
+    
+    - name: Upload release notes
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-notes
+        path: release-notes.md

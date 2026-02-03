@@ -11,13 +11,22 @@ import json
 import numpy as np
 from collections import defaultdict
 
-from workflow_structures import (
-    SolutionPatternArtifact,
-    TeamPerformanceArtifact,
-    GauntletEffectivenessArtifact,
-    KnowledgeArtifactManager,
-    KnowledgeArtifact,
-)
+try:
+    from workflow_structures import (
+        SolutionPatternArtifact,
+        TeamPerformanceArtifact,
+        GauntletEffectivenessArtifact,
+        KnowledgeArtifact,
+    )
+    from workflow_knowledge_extractor import KnowledgeArtifactManager
+except ImportError as e:
+    print(f"Warning: Could not import from workflow_structures or workflow_knowledge_extractor: {e}")
+    # Define minimal classes for fallback
+    SolutionPatternArtifact = object
+    TeamPerformanceArtifact = object
+    GauntletEffectivenessArtifact = object
+    KnowledgeArtifact = object
+    KnowledgeArtifactManager = object
 
 
 class KnowledgeGraphVisualizer:
@@ -263,20 +272,13 @@ class KnowledgeGraphVisualizer:
         if self.use_pygraphistry and self.pygraphistry_bridge:
             # Use PyGraphistry for advanced visualization
             try:
-                result = self.pygraphistry_bridge.visualize_knowledge_graph(
-                    nodes=nodes_list,
-                    edges=edges_list,
-                    apply_clustering=apply_clustering,
-                    clustering_method=clustering_method,
-                    embedding_method=embedding_method,
-                    output_path=output_path
-                )
-
-                if result and 'url' in result:
-                    print(f"PyGraphistry visualization saved to {output_path}")
-                    return True
-                else:
-                    print("PyGraphistry visualization failed, falling back to Plotly...")
+                # Since PyGraphistryBridge methods are async, we need to handle this carefully
+                # If we're in an async context, we should await; otherwise, we need to run in a new loop
+                import asyncio
+                try:
+                    loop = asyncio.get_running_loop()
+                    # We're already in an async context, so we can't use run_until_complete
+                    print("PyGraphistry visualization skipped: already in async context")
                     # Fall back to the original implementation
                     return self._visualize_with_plotly(
                         output_path=output_path,
@@ -288,6 +290,35 @@ class KnowledgeGraphVisualizer:
                         size_by=size_by,
                         show_labels=show_labels
                     )
+                except RuntimeError:
+                    # No running loop, we can create one
+                    result = asyncio.run(
+                        self.pygraphistry_bridge.visualize_knowledge_graph(
+                            nodes=nodes_list,
+                            edges=edges_list,
+                            apply_clustering=apply_clustering,
+                            clustering_method=clustering_method,
+                            embedding_method=embedding_method,
+                            output_path=output_path
+                        )
+                    )
+
+                    if result and 'url' in result:
+                        print(f"PyGraphistry visualization saved to {output_path}")
+                        return True
+                    else:
+                        print("PyGraphistry visualization failed, falling back to Plotly...")
+                        # Fall back to the original implementation
+                        return self._visualize_with_plotly(
+                            output_path=output_path,
+                            layout=layout,
+                            filter_node_type=filter_node_type,
+                            filter_attribute=filter_attribute,
+                            filter_value=filter_value,
+                            color_by=color_by,
+                            size_by=size_by,
+                            show_labels=show_labels
+                        )
             except Exception as e:  # TODO: Catch specific exception instead of Exception
                 print(f"PyGraphistry visualization failed: {e}, falling back to Plotly...")
                 # Fall back to the original implementation

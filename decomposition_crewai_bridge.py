@@ -379,28 +379,80 @@ def decomposition_phase_4_verify(
 
         if VERIFICATION_ENGINE_AVAILABLE:
             engine = VerificationEngine()
-            criteria = engine.create_success_criteria(requirements or [
-                "Solution addresses the problem",
-                "Solution is complete and correct",
-                "Solution follows best practices",
-            ])
-            report = engine.verify_solution(attempt, criteria)
-            report_dict = report.to_dict()
-            verifications.append({
-                "sub_problem_id": sp_id,
-                "is_verified": report.is_approved,
-                "verification_score": report.verification_score,
-                "summary": report.summary,
-                "criteria_results": report.criteria_results,
-                "report": report_dict,
-            })
+
+            # Try formal verification first
+            try:
+                formal_result = engine.verify_formal(
+                    attempt,
+                    use_z3=True,
+                    use_leanaide=True,
+                    strategy="adaptive"
+                )
+
+                # If formal verification succeeded, use it
+                if formal_result['confidence'] >= 0.5:
+                    verifications.append({
+                        "sub_problem_id": sp_id,
+                        "is_verified": formal_result['overall_verified'],
+                        "verification_score": formal_result['confidence'],
+                        "verification_type": "formal",
+                        "summary": formal_result['recommendation'],
+                        "z3_result": formal_result.get('z3_result'),
+                        "leanaide_result": formal_result.get('leanaide_result'),
+                        "strategy_used": formal_result.get('strategy_used'),
+                        "formal_verification": True,
+                    })
+                    logger.info(f"Formal verification completed for {sp_id}: {formal_result['overall_verified']}")
+                else:
+                    # Fall back to standard verification
+                    criteria = engine.create_success_criteria(requirements or [
+                        "Solution addresses the problem",
+                        "Solution is complete and correct",
+                        "Solution follows best practices",
+                    ])
+                    report = engine.verify_solution(attempt, criteria)
+                    report_dict = report.to_dict()
+                    verifications.append({
+                        "sub_problem_id": sp_id,
+                        "is_verified": report.is_approved,
+                        "verification_score": report.verification_score,
+                        "verification_type": "standard",
+                        "summary": report.summary,
+                        "criteria_results": report.criteria_results,
+                        "report": report_dict,
+                        "formal_verification": False,
+                    })
+                    logger.info(f"Standard verification completed for {sp_id}: {report.is_approved}")
+
+            except Exception as formal_error:
+                logger.warning(f"Formal verification failed for {sp_id}, falling back to standard: {formal_error}")
+                # Fall back to standard verification
+                criteria = engine.create_success_criteria(requirements or [
+                    "Solution addresses the problem",
+                    "Solution is complete and correct",
+                    "Solution follows best practices",
+                ])
+                report = engine.verify_solution(attempt, criteria)
+                report_dict = report.to_dict()
+                verifications.append({
+                    "sub_problem_id": sp_id,
+                    "is_verified": report.is_approved,
+                    "verification_score": report.verification_score,
+                    "verification_type": "standard",
+                    "summary": report.summary,
+                    "criteria_results": report.criteria_results,
+                    "report": report_dict,
+                    "formal_verification": False,
+                })
         else:
             verifications.append({
                 "sub_problem_id": sp_id,
                 "is_verified": bool(content.strip()),
                 "verification_score": 0.5 if content.strip() else 0.0,
+                "verification_type": "basic",
                 "summary": "Verification engine not available; performed basic content check",
                 "criteria_results": {},
+                "formal_verification": False,
             })
 
     return {

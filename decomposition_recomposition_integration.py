@@ -55,6 +55,22 @@ from enhanced_recomposition_engine import (
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# Public API exports
+__all__ = [
+    # Configuration
+    'PipelineConfig',
+    'PipelineStage',
+    'PipelineResult',
+    'PipelineAnalytics',
+    # Core Classes
+    'SolutionSolver',
+    'SimpleSolutionSolver',
+    'DecompositionRecompositionPipeline',
+    'BatchPipelineProcessor',
+    # Utility Functions
+    'quick_solve',
+]
+
 
 # ============================================================================
 # DATA CLASSES

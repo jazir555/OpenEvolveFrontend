@@ -18,6 +18,13 @@ import logging
 from datetime import datetime, timedelta
 from dataclasses import dataclass, field
 
+# **ACTUAL INTEGRATION**: Knowledge engine for semantic cache keys
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 # Metrics integration (lazy import to avoid circular dependency)
@@ -261,27 +268,35 @@ class AtomicSolutionCache:
             # Cache disabled, solve directly
             return await solve_func(problem)
 
-        # Generate cache key
-        cache_key = self.hasher.generate_hash(problem)
+        # **ACTUAL INTEGRATION**: Generate semantic cache key using knowledge
+        cache_key = await self.generate_semantic_cache_key(problem)
 
         # Try cache first
         cached = await self.backend.get(cache_key)
         if cached is not None:
             # Cache HIT - log and track metrics
             problem_id = problem.get('id', problem.get('statement', 'unknown'))
-            logger.info(f"Cache HIT for problem: {problem_id}")
+            cached_solution = json.loads(cached.decode('utf-8'))
 
-            # Track metrics
-            collector = get_metrics_collector()
-            if collector:
-                collector.record_cache_operation(
-                    operation='hit',
-                    cache_type=type(self.backend).__name__,
-                    key=cache_key[:16],  # First 16 chars of hash
-                    metadata={'problem_id': str(problem_id)}
-                )
+            # **ACTUAL INTEGRATION**: Check cache relevance using knowledge
+            relevance = await self.check_cache_relevance(problem, cached_solution)
 
-            return json.loads(cached.decode('utf-8'))
+            if relevance >= 0.7:  # Only use cached if relevant
+                logger.info(f"Cache HIT for problem: {problem_id} (relevance: {relevance:.2f})")
+
+                # Track metrics
+                collector = get_metrics_collector()
+                if collector:
+                    collector.record_cache_operation(
+                        operation='hit',
+                        cache_type=type(self.backend).__name__,
+                        key=cache_key[:16],  # First 16 chars of hash
+                        metadata={'problem_id': str(problem_id), 'relevance': relevance}
+                    )
+
+                return cached_solution
+            else:
+                logger.info(f"Cache HIT but low relevance ({relevance:.2f}), resolving")
 
         # Cache MISS - log and track metrics
         problem_id = problem.get('id', problem.get('statement', 'unknown'))
@@ -296,6 +311,7 @@ class AtomicSolutionCache:
                 key=cache_key[:16],
                 metadata={'problem_id': str(problem_id)}
             )
+
         solution = await solve_func(problem)
 
         # Store in cache
@@ -356,6 +372,91 @@ class AtomicSolutionCache:
             'enabled': self.enabled,
             'type': 'unknown',
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Knowledge-aware caching
+    # =========================================================================
+
+    async def generate_semantic_cache_key(
+        self,
+        problem: Dict[str, Any],
+        use_knowledge: bool = True
+    ) -> str:
+        """
+        **ACTUAL INTEGRATION**: Generate semantic cache key using knowledge engine.
+
+        Uses knowledge graph to create semantically meaningful cache keys
+        that can identify similar problems even with different wording.
+        """
+        # Start with standard hash
+        base_key = self.hasher.generate_hash(problem)
+
+        if not use_knowledge or not KNOWLEDGE_AVAILABLE:
+            return base_key
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            # Query knowledge for similar problems
+            problem_statement = problem.get('statement', '')
+            if not problem_statement:
+                return base_key
+
+            # Extract semantic features from knowledge
+            similar_problems = await knowledge_engine.search_knowledge(
+                query=problem_statement[:200],
+                query_type='semantic',
+                limit=3
+            )
+
+            if similar_problems.get('results'):
+                # Add semantic signature to key
+                semantic_features = [
+                    r.get('artifact_id', '')[:8]
+                    for r in similar_problems['results'][:2]
+                ]
+                semantic_suffix = '_'.join(semantic_features)
+                return f"{base_key}:semantic:{semantic_suffix}"
+
+        except Exception as e:
+            logger.debug(f"Knowledge-aware key generation failed: {e}")
+
+        return base_key
+
+    async def check_cache_relevance(
+        self,
+        problem: Dict[str, Any],
+        cached_solution: Any
+    ) -> float:
+        """
+        **ACTUAL INTEGRATION**: Check if cached solution is relevant using knowledge.
+
+        Returns relevance score between 0 and 1.
+        """
+        if not KNOWLEDGE_AVAILABLE:
+            return 1.0  # Assume relevant if knowledge unavailable
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            # Compare problem semantics with cached solution
+            problem_statement = problem.get('statement', '')
+            solution_content = json.dumps(cached_solution) if isinstance(cached_solution, dict) else str(cached_solution)
+
+            # Query knowledge for relevance
+            relevance_result = await knowledge_engine.search_knowledge(
+                query=f"{problem_statement[:100]} <-> {solution_content[:100]}",
+                query_type='similarity',
+                limit=1
+            )
+
+            if relevance_result.get('results'):
+                return relevance_result['results'][0].get('score', 1.0)
+
+        except Exception as e:
+            logger.debug(f"Relevance check failed: {e}")
+
+        return 1.0
 
 
 def create_solution_cache(config: Dict[str, Any] = None) -> AtomicSolutionCache:

@@ -35,6 +35,29 @@ except ImportError:
     OPENEVOLVE_AVAILABLE = False
     logger.warning("OpenEvolve backend not available - using fallback implementation")
 
+# Import DTS integration for enhanced fix generation and strategy exploration
+try:
+    from dts_integration import DTSIntegration, DTSIntegrationConfig
+    DTS_AVAILABLE = True
+    logger.info("DTS integration available for enhanced fix generation and strategy exploration")
+except (ImportError, Exception):
+    DTS_AVAILABLE = False
+    logger.warning("DTS integration not available - using standard fix generation methods")
+
+# Import DSPy for enhanced prompting
+try:
+    import dspy
+    from dspy.teleprompt import BootstrapFewShot
+    from dspy.predict import Predict
+    DSPY_AVAILABLE = True
+    logger.info("DSPy available for enhanced programmatic prompting")
+except ImportError:
+    dspy = None
+    BootstrapFewShot = None
+    Predict = None
+    DSPY_AVAILABLE = False
+    logger.warning("DSPy not available - using standard prompting methods")
+
 from prompt_engineering import PromptEngineeringSystem
 from model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTeam
 from quality_assessment import QualityAssessmentEngine, SeverityLevel
@@ -1825,6 +1848,323 @@ Provide your evaluation."""
         }
         
         return report
+
+    def generate_fixes_with_dts(self, content: str, content_type: str = "general",
+                               issues: List[IssueFinding] = None,
+                               use_strategy_exploration: bool = True,
+                               rounds: int = 2) -> Dict[str, Any]:
+        """
+        Generate fixes using Dialogue Tree Search (DTS) for enhanced strategy exploration.
+        
+        This method uses DTS to explore multiple fix strategies in parallel and
+        select the best approach using multi-judge scoring.
+        
+        Args:
+            content: The content to fix
+            content_type: Type of content (code, document, protocol, etc.)
+            issues: Optional list of specific issues to address (if None, will auto-detect)
+            use_strategy_exploration: Whether to use DTS's strategy exploration
+            rounds: Number of exploration rounds for DTS
+            
+        Returns:
+            Dictionary with results including:
+                - fix_strategies: List of explored fix strategies with scores
+                - best_fix: The selected best fix content
+                - confidence_score: Confidence in the selected fix
+                - dts_available: Whether DTS was actually used
+                - exploration_details: Detailed exploration results
+        """
+        if not DTS_AVAILABLE:
+            logger.warning("DTS not available, falling back to standard fix generation")
+            # Fall back to standard fix generation
+            if issues is None:
+                # First get issues from red team
+                if self.red_team:
+                    red_assessment = self.red_team.assess_content(content, content_type)
+                    issues = red_assessment.findings
+                else:
+                    # Create a simple red team instance for assessment
+                    from red_team import RedTeam
+                    temp_red_team = RedTeam()
+                    red_assessment = temp_red_team.assess_content(content, content_type)
+                    issues = red_assessment.findings
+            
+            # Generate fixes using standard method (apply_fixes)
+            assessment = self.apply_fixes(content, issues, content_type=content_type)
+            return {
+                "fix_strategies": [],
+                "best_fix": assessment.fixed_content,
+                "confidence_score": assessment.confidence_score,
+                "dts_available": False,
+                "fallback_used": True,
+                "fix_count": len(assessment.fix_suggestions)
+            }
+        
+        try:
+            # Initialize DTS integration
+            dts_config = DTSIntegrationConfig(
+                max_rounds=rounds,
+                use_multi_judge=True,
+                use_strategy_exploration=use_strategy_exploration
+            )
+            dts_integration = DTSIntegration(dts_config)
+            
+            # Prepare context for DTS
+            context = {
+                "content": content,
+                "content_type": content_type,
+                "issues": [issue.title for issue in issues] if issues else []
+            }
+            
+            # Run DTS for fix strategy exploration
+            result = dts_integration.generate_strategies(
+                context=context,
+                goal="Generate effective fixes for the identified issues",
+                strategy_type="fix_generation"
+            )
+            
+            # Extract fix strategies from DTS result
+            fix_strategies = []
+            if "strategies" in result:
+                fix_strategies = result["strategies"]
+            elif "suggestions" in result:
+                fix_strategies = result["suggestions"]
+            
+            # Select best fix strategy based on scores
+            best_fix = content  # Default to original
+            confidence_score = 0.0
+            
+            if fix_strategies:
+                # Find strategy with highest score
+                best_strategy = max(fix_strategies,
+                                  key=lambda s: s.get("score", 0) if isinstance(s, dict) else 0)
+                
+                # Apply the best strategy to generate fixed content
+                if isinstance(best_strategy, dict) and "implementation" in best_strategy:
+                    # Use the implementation from DTS
+                    best_fix = best_strategy["implementation"]
+                else:
+                    # Generate fix using standard method but with DTS guidance
+                    fix_instructions = str(best_strategy)
+                    best_fix = self._apply_fix_with_guidance(content, fix_instructions)
+                
+                # Calculate confidence score
+                if "judge_scores" in result and result["judge_scores"]:
+                    confidence_score = sum(result["judge_scores"]) / len(result["judge_scores"])
+                elif "score" in result:
+                    confidence_score = result["score"]
+                else:
+                    confidence_score = 0.7  # Default moderate confidence
+            
+            return {
+                "fix_strategies": fix_strategies,
+                "best_fix": best_fix,
+                "confidence_score": confidence_score,
+                "dts_available": True,
+                "fallback_used": False,
+                "exploration_details": result,
+                "fix_count": len(fix_strategies)
+            }
+            
+        except Exception as e:
+            logger.error(f"Error running DTS fix generation: {e}", exc_info=True)
+            # Fall back to standard fix generation
+            assessment = self.apply_fixes(content, issues, content_type=content_type)
+            return {
+                "fix_strategies": [],
+                "best_fix": assessment.fixed_content,
+                "confidence_score": assessment.confidence_score,
+                "dts_available": True,  # DTS was available but failed
+                "fallback_used": True,
+                "error": str(e),
+                "fix_count": len(assessment.fix_suggestions)
+            }
+    
+    def _apply_fix_with_guidance(self, content: str, guidance: str) -> str:
+        """
+        Apply fix to content using guidance from DTS.
+        This is a helper method that uses the orchestrator to apply fixes.
+        """
+        if self.orchestrator:
+            try:
+                request = OrchestrationRequest(
+                    content=content,
+                    content_type="code",
+                    operation="apply_fix",
+                    parameters={"guidance": guidance}
+                )
+                result = self.orchestrator.process_request(request)
+                if result and "fixed_content" in result:
+                    return result["fixed_content"]
+            except Exception as e:
+                logger.warning(f"Failed to apply fix with orchestrator: {e}")
+        
+        # Fallback: simple text replacement based on guidance
+        # This is a very basic implementation - in practice would be more sophisticated
+        if "add input validation" in guidance.lower():
+            # Simple example: add basic input validation for Python code
+            if "def " in content and "input" in content.lower():
+                # Find function definitions and add validation
+                lines = content.split('\n')
+                for i, line in enumerate(lines):
+                    if line.strip().startswith('def '):
+                        # Add a basic validation comment
+                        lines.insert(i + 1, '    # Input validation added based on DTS guidance')
+                        break
+                return '\n'.join(lines)
+        
+        return content  # Return original if no specific guidance can be applied
+
+    def generate_fixes_with_dspy(self, content: str, content_type: str = "general",
+                                 issues: List[IssueFinding] = None,
+                                 priority_focus: str = "all") -> Dict[str, Any]:
+        """
+        Generate fixes using DSPy for enhanced programmatic prompting and structured analysis.
+
+        This method uses DSPy to generate fixes with consistent, structured output
+        and multi-dimensional evaluation.
+
+        Args:
+            content: The content to fix
+            content_type: Type of content (code, document, protocol, etc.)
+            issues: Optional list of specific issues to address (if None, will auto-detect)
+            priority_focus: Focus on 'critical', 'high', 'medium', 'low', or 'all' priority issues
+
+        Returns:
+            Dictionary with results including:
+                - suggested_fixes: List of suggested fixes with detailed information
+                - fixed_content: The content after applying fixes
+                - confidence_score: Confidence in the fixes
+                - dspy_available: Whether DSPy was actually used
+                - analysis_details: Detailed analysis results
+        """
+        if not DSPY_AVAILABLE:
+            logger.info("DSPy not available, falling back to standard fix generation")
+            # Fall back to standard fix generation
+            if issues is None:
+                # First get issues from red team
+                if self.red_team:
+                    red_assessment = self.red_team.assess_content(content, content_type)
+                    issues = red_assessment.findings
+                else:
+                    # Create a simple red team instance for assessment
+                    from red_team import RedTeam
+                    temp_red_team = RedTeam()
+                    red_assessment = temp_red_team.assess_content(content, content_type)
+                    issues = red_assessment.findings
+
+            # Generate fixes using standard method (apply_fixes)
+            assessment = self.apply_fixes(content, issues, content_type=content_type)
+            return {
+                "suggested_fixes": [suggestion.fix_description for suggestion in assessment.fix_suggestions],
+                "fixed_content": assessment.fixed_content,
+                "confidence_score": assessment.confidence_score,
+                "dspy_available": False,
+                "fallback_used": True,
+                "fix_count": len(assessment.fix_suggestions),
+                "analysis_details": {"method": "standard"}
+            }
+
+        try:
+            # Define a DSPy signature for fix generation
+            class FixGenerationSignature(dspy.Signature):
+                """Generate fixes for identified issues in content."""
+                content_to_fix = dspy.InputField(desc="Original content that needs fixes")
+                content_type = dspy.InputField(desc="Type of content (code, document, protocol, etc.)")
+                identified_issues = dspy.InputField(desc="List of issues identified in the content")
+                priority_focus = dspy.InputField(desc="Focus on specific priority issues (critical, high, medium, low, all)")
+
+                suggested_fixes_json = dspy.OutputField(desc="""JSON array of fixes, each with:
+                    - issue_title: Title of the issue being fixed
+                    - issue_description: Description of the issue
+                    - fix_type: Type of fix (security_patch, performance_optimization, etc.)
+                    - fix_description: Detailed description of the fix
+                    - implementation_details: Specific implementation instructions
+                    - priority: Priority level (critical, high, medium, low)
+                    - estimated_effectiveness: Estimated effectiveness score (0-100)
+                    - potential_side_effects: Potential side effects of the fix""")
+
+                fixed_content = dspy.OutputField(desc="Content after applying the fixes")
+                confidence_score = dspy.OutputField(desc="Confidence in the fixes (0-100)")
+                improvement_analysis = dspy.OutputField(desc="Analysis of expected improvements")
+
+            # Create a predictor using the signature
+            generate_fixes = dspy.Predict(FixGenerationSignature)
+
+            # Prepare issues list
+            if issues is None:
+                # Get issues from red team if not provided
+                if self.red_team:
+                    red_assessment = self.red_team.assess_content(content, content_type)
+                    issues = red_assessment.findings
+                else:
+                    from red_team import RedTeam
+                    temp_red_team = RedTeam()
+                    red_assessment = temp_red_team.assess_content(content, content_type)
+                    issues = red_assessment.findings
+
+            issues_list = [f"{issue.title}: {issue.description}" for issue in issues]
+
+            # Run DSPy fix generation
+            result = generate_fixes(
+                content_to_fix=content,
+                content_type=content_type,
+                identified_issues=str(issues_list),
+                priority_focus=priority_focus
+            )
+
+            # Parse the results
+            import json
+            try:
+                suggested_fixes = json.loads(result.suggested_fixes_json) if isinstance(result.suggested_fixes_json, str) else result.suggested_fixes_json
+            except json.JSONDecodeError:
+                logger.warning("Could not parse DSPy fix generation result, using fallback")
+                suggested_fixes = []
+
+            # Calculate confidence score
+            try:
+                confidence_score = float(result.confidence_score) if result.confidence_score.replace('.', '').isdigit() else 75.0
+            except:
+                confidence_score = 75.0  # Default confidence
+
+            return {
+                "suggested_fixes": suggested_fixes,
+                "fixed_content": result.fixed_content,
+                "confidence_score": confidence_score,
+                "dspy_available": True,
+                "fallback_used": False,
+                "fix_count": len(suggested_fixes),
+                "analysis_details": {
+                    "method": "dspy_enhanced",
+                    "improvement_analysis": result.improvement_analysis
+                }
+            }
+
+        except Exception as e:
+            logger.error(f"Error running DSPy fix generation: {e}", exc_info=True)
+            # Fall back to standard fix generation
+            if issues is None:
+                # Get issues from red team if not provided
+                if self.red_team:
+                    red_assessment = self.red_team.assess_content(content, content_type)
+                    issues = red_assessment.findings
+                else:
+                    from red_team import RedTeam
+                    temp_red_team = RedTeam()
+                    red_assessment = temp_red_team.assess_content(content, content_type)
+                    issues = red_assessment.findings
+
+            assessment = self.apply_fixes(content, issues, content_type=content_type)
+            return {
+                "suggested_fixes": [suggestion.fix_description for suggestion in assessment.fix_suggestions],
+                "fixed_content": assessment.fixed_content,
+                "confidence_score": assessment.confidence_score,
+                "dspy_available": True,  # DSPy was available but failed
+                "fallback_used": True,
+                "error": str(e),
+                "fix_count": len(assessment.fix_suggestions),
+                "analysis_details": {"method": "standard_after_dspy_failure"}
+            }
 
     def _generate_content_diff(self, original: str, fixed: str) -> str:
         """Generate a simple diff between original and fixed content"""

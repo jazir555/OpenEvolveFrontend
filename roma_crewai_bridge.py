@@ -24,6 +24,26 @@ License: MIT (replaces AGPL Hephaestus)
 
 import logging
 from typing import Dict, Any, List, Optional
+from datetime import datetime
+
+# **ACTUAL INTEGRATION**: Verification, knowledge, and alerting for ROMA
+try:
+    from verification_engine import VerificationEngine
+    VERIFICATION_AVAILABLE = True
+except ImportError:
+    VERIFICATION_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
 
 # Import CrewAI zero-error workflow (has ROMA decomposition)
 from crewai_zero_error_workflow import (
@@ -106,7 +126,7 @@ def execute_phase_1_setup(
             ],
         }
 
-        return {
+        result = {
             "phase": 1,
             "status": "completed",
             "analysis": analysis,
@@ -116,8 +136,17 @@ def execute_phase_1_setup(
             "message": f"Phase 1 complete: ROMA analysis finished ({len(decomposition_plan.sub_problems)} sub-problems)",
         }
 
+        # **ACTUAL INTEGRATION**: Extract ROMA knowledge to knowledge engine
+        _extract_roma_knowledge("phase1_setup", result, problem_statement)
+
+        return result
+
     except (RuntimeError, ValueError, TypeError) as e:
         logger.error(f"Phase 1 failed: {e}")
+
+        # **ACTUAL INTEGRATION**: Trigger alert on ROMA failure
+        _trigger_roma_alerts("phase1_setup", False, str(e), {"problem_statement": problem_statement[:200]})
+
         return {
             "phase": 1,
             "status": "failed",
@@ -1012,6 +1041,116 @@ def execute_full_workflow(
         },
         "message": "Full ROMA workflow completed",
     }
+
+
+# =============================================================================
+# ACTUAL INTEGRATION FUNCTIONS - Connect ROMA to verification, knowledge, alerting
+# =============================================================================
+
+def _verify_roma_solution(
+    solution: Dict[str, Any],
+    problem_statement: str
+) -> Optional[Dict[str, Any]]:
+    """
+    **ACTUAL INTEGRATION**: Verify ROMA solution using verification engine.
+
+    Returns verification result or None if verification unavailable.
+    """
+    if not VERIFICATION_AVAILABLE:
+        return None
+
+    try:
+        verifier = VerificationEngine()
+        result = verifier.verify_formal(
+            solution_content=str(solution),
+            constraints=[]
+        )
+        return result
+    except Exception as e:
+        logging.error(f"ROMA solution verification failed: {e}")
+        return None
+
+
+def _extract_roma_knowledge(
+    phase: str,
+    result: Dict[str, Any],
+    problem_statement: str
+) -> bool:
+    """
+    **ACTUAL INTEGRATION**: Extract ROMA knowledge to knowledge engine.
+
+    Learns:
+    - ROMA decomposition patterns
+    - Recursive solution strategies
+    - Aggregation effectiveness
+    """
+    if not KNOWLEDGE_AVAILABLE:
+        return False
+
+    try:
+        knowledge_engine = get_knowledge_engine()
+
+        artifact = KnowledgeArtifact(
+            artifact_id=f"roma_{phase}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            artifact_type="roma_execution",
+            source_component="roma_crewai_bridge",
+            title=f"ROMA {phase} Execution",
+            content={
+                "phase": phase,
+                "problem_statement": problem_statement[:500],
+                "result": result,
+                "timestamp": datetime.now().isoformat()
+            },
+            metadata={
+                "status": result.get("status"),
+                "sub_problems": result.get("estimated_sub_problems", 0)
+            },
+            tags=["roma", phase, "recursive"]
+        )
+
+        knowledge_engine.store_artifact(artifact)
+        logging.debug(f"Extracted ROMA knowledge for phase {phase}")
+        return True
+
+    except Exception as e:
+        logging.error(f"Failed to extract ROMA knowledge: {e}")
+        return False
+
+
+def _trigger_roma_alerts(
+    phase: str,
+    success: bool,
+    error: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None
+):
+    """
+    **ACTUAL INTEGRATION**: Trigger alerts for ROMA failures.
+
+    Alerts on:
+    - ROMA agent failures
+    - Recursive decomposition failures
+    - Aggregation failures
+    """
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_manager = get_alert_manager()
+
+        if not success:
+            severity = AlertSeverity.HIGH if phase in ["setup", "aggregation"] else AlertSeverity.MEDIUM
+
+            alert_manager.create_alert(
+                title=f"ROMA {phase} Failed",
+                description=f"ROMA phase '{phase}' failed. " + (f"Error: {error}" if error else ""),
+                severity=severity.value,
+                source="roma_crewai_bridge",
+                component="roma",
+                metadata=metadata or {}
+            )
+
+    except Exception as e:
+        logging.error(f"Failed to trigger ROMA alert: {e}")
 
 
 # =============================================================================

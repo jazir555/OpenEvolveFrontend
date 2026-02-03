@@ -926,9 +926,9 @@ def register_bubblelabs_tools():
         logger.info("LeanAide tools registered with BubbleLabs")
         return True
 
-        except (RuntimeError, ValueError, ImportError) as e:
-            logger.error(f"Failed to register tools: {e}", exc_info=True)
-            return False
+    except (RuntimeError, ValueError, ImportError) as e:
+        logger.error(f"Failed to register tools: {e}", exc_info=True)
+        return False
 
 
 # =============================================================================
@@ -953,13 +953,14 @@ def initialize_leanaide_integration():
     }
 
     # Create bridge
+    bridge = None
     try:
         bridge = get_leanaide_bridge()
         status["bridge_available"] = True
         logger.info("LeanAide bridge created successfully")
-        except (RuntimeError, ValueError, ConnectionError) as e:
-            logger.error(f"Failed to create bridge: {e}", exc_info=True)
-            return status
+    except (RuntimeError, ValueError, ConnectionError) as e:
+        logger.error(f"Failed to create bridge: {e}", exc_info=True)
+        return status
 
     # Get bridge status
     bridge_status = bridge.get_status()

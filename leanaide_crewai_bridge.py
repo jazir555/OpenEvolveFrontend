@@ -41,6 +41,19 @@ from enum import Enum
 from datetime import datetime
 from pathlib import Path
 
+# **ACTUAL INTEGRATION**: Knowledge and alerting for LeanAide
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
 # Import CrewAI zero-error workflow (replaces Hephaestus)
 from crewai_zero_error_workflow import (
     ZeroErrorWorkflow,
@@ -1105,6 +1118,92 @@ def analyze_and_verify_math_problem(
     bridge = LeanAideCrewAIBridge(config)
     result = bridge.execute_full_workflow(problem_statement)
     return result
+
+
+# =============================================================================
+# ACTUAL INTEGRATION FUNCTIONS - Connect LeanAide to knowledge and alerting
+# =============================================================================
+
+def _extract_leanaide_knowledge(
+    phase: str,
+    result: Dict[str, Any],
+    problem_statement: str
+) -> bool:
+    """
+    **ACTUAL INTEGRATION**: Extract LeanAide knowledge to knowledge engine.
+
+    Learns:
+    - Verified theorems
+    - Lean 4 translation patterns
+    - Proof strategies
+    """
+    if not KNOWLEDGE_AVAILABLE:
+        return False
+
+    try:
+        knowledge_engine = get_knowledge_engine()
+
+        artifact = KnowledgeArtifact(
+            artifact_id=f"leanaide_{phase}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            artifact_type="leanaide_execution",
+            source_component="leanaide_crewai_bridge",
+            title=f"LeanAide {phase} Execution",
+            content={
+                "phase": phase,
+                "problem_statement": problem_statement[:500],
+                "result": result,
+                "timestamp": datetime.now().isoformat()
+            },
+            metadata={
+                "status": result.get("status"),
+                "verification_status": result.get("verification_status")
+            },
+            tags=["leanaide", phase, "lean4", "math"]
+        )
+
+        knowledge_engine.store_artifact(artifact)
+        logging.debug(f"Extracted LeanAide knowledge for phase {phase}")
+        return True
+
+    except Exception as e:
+        logging.error(f"Failed to extract LeanAide knowledge: {e}")
+        return False
+
+
+def _trigger_leanaide_alerts(
+    phase: str,
+    success: bool,
+    error: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None
+):
+    """
+    **ACTUAL INTEGRATION**: Trigger alerts for LeanAide failures.
+
+    Alerts on:
+    - Proof failures
+    - Translation errors
+    - Verification timeouts
+    """
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_manager = get_alert_manager()
+
+        if not success:
+            severity = AlertSeverity.HIGH if phase == "formal_verification" else AlertSeverity.MEDIUM
+
+            alert_manager.create_alert(
+                title=f"LeanAide {phase} Failed",
+                description=f"LeanAide phase '{phase}' failed. " + (f"Error: {error}" if error else ""),
+                severity=severity.value,
+                source="leanaide_crewai_bridge",
+                component="leanaide",
+                metadata=metadata or {}
+            )
+
+    except Exception as e:
+        logging.error(f"Failed to trigger LeanAide alert: {e}")
 
 
 # =============================================================================

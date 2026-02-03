@@ -1,168 +1,215 @@
-# Z3-LeanAIDE-OpenEvolve-BubbleLabs Integration
-# Docker Compose Configuration
-
 version: '3.8'
 
+# OpenEvolve Docker Compose Configuration
+# License: Apache 2.0
+# 
+# Services:
+#   - valkey: Message broker and cache (Apache 2.0)
+#   - openevolve: Main application
+#   - jaeger: OpenTelemetry collector (Apache 2.0)
+#   - prometheus: Metrics collection (Apache 2.0)
+#   - grafana: Metrics visualization (Apache 2.0)
+#
+# Usage:
+#   docker-compose up -d
+#   docker-compose logs -f
+#   docker-compose down
+
 services:
-  # ==========================================================================
-  # Main API Server
-  # ==========================================================================
-  z3-integration:
+  # ============================================================================
+  # Valkey - Message Broker and Cache (Apache 2.0)
+  # ============================================================================
+  valkey:
+    image: valkey/valkey:latest
+    container_name: openevolve-valkey
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+      - ./config/valkey.conf:/etc/valkey/valkey.conf:ro
+    command: valkey-server /etc/valkey/valkey.conf
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 3
+    networks:
+      - openevolve-network
+
+  # ============================================================================
+  # Jaeger - OpenTelemetry Collector (Apache 2.0)
+  # ============================================================================
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: openevolve-jaeger
+    ports:
+      - "16686:16686"  # Jaeger UI
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    restart: unless-stopped
+    networks:
+      - openevolve-network
+
+  # ============================================================================
+  # Prometheus - Metrics Collection (Apache 2.0)
+  # ============================================================================
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: openevolve-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./config/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    restart: unless-stopped
+    networks:
+      - openevolve-network
+
+  # ============================================================================
+  # Grafana - Metrics Visualization (Apache 2.0)
+  # ============================================================================
+  grafana:
+    image: grafana/grafana:latest
+    container_name: openevolve-grafana
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    restart: unless-stopped
+    networks:
+      - openevolve-network
+    depends_on:
+      - prometheus
+
+  # ============================================================================
+  # OpenEvolve - Main Application
+  # ============================================================================
+  openevolve:
     build:
       context: .
       dockerfile: Dockerfile
       target: production
-    image: openevolve/z3-integration:2.0.0
-    container_name: z3-integration
-    restart: unless-stopped
-    
+    container_name: openevolve-app
     ports:
-      - "8765:8765"
-    
+      - "8000:8000"   # REST API
+      - "8001:8001"   # GraphQL API
+      - "8080:8080"   # Orchestrator / Gateway
+      - "8501:8501"   # Streamlit Dashboard
     environment:
-      - Z3_CONFIG_PATH=/app/z3_config.yaml
-      - DB_PASSWORD=${DB_PASSWORD:-changeme}
-      - REDIS_URL=redis://redis:6379/0
-      - LOG_LEVEL=INFO
-    
+      # Core Configuration
+      - OPENEVOLVE_LOG_LEVEL=INFO
+      - OPENEVOLVE_ORCHESTRATOR_PORT=8080
+      
+      # Service Configuration
+      - OPENEVOLVE_SERVICES__REST_API=true
+      - OPENEVOLVE_SERVICES__GRAPHQL_API=true
+      - OPENEVOLVE_SERVICES__EVENT_BUS=true
+      - OPENEVOLVE_SERVICES__MCP_SERVER=true
+      - OPENEVOLVE_SERVICES__TELEMETRY=true
+      
+      # REST API Configuration
+      - OPENEVOLVE_REST_API__HOST=0.0.0.0
+      - OPENEVOLVE_REST_API__PORT=8000
+      
+      # GraphQL Configuration
+      - OPENEVOLVE_GRAPHQL__HOST=0.0.0.0
+      - OPENEVOLVE_GRAPHQL__PORT=8001
+      
+      # Event Bus Configuration
+      - OPENEVOLVE_EVENT_BUS__ENABLED=true
+      - OPENEVOLVE_EVENT_BUS__BACKEND=valkey
+      - OPENEVOLVE_EVENT_BUS__HOST=valkey
+      - OPENEVOLVE_EVENT_BUS__PORT=6379
+      
+      # Telemetry Configuration
+      - OPENEVOLVE_TELEMETRY__ENABLED=true
+      - OPENEVOLVE_TELEMETRY__SERVICE_NAME=openevolve
+      - OPENEVOLVE_TELEMETRY__OTLP_ENDPOINT=http://jaeger:4317
+      
+      # Valkey Configuration
+      - VALKEY_HOST=valkey
+      - VALKEY_PORT=6379
+      
+      # Security (change in production!)
+      - SECRET_KEY=${SECRET_KEY:-changeme-in-production}
     volumes:
-      - ./data:/app/data
-      - ./logs:/app/logs
-      - ./z3_config.yaml:/app/z3_config.yaml:ro
-    
+      - ./integration_config.yaml:/app/integration_config.yaml:ro
+      - ./plugins:/app/plugins:ro
+      - openevolve_data:/app/data
     depends_on:
-      - redis
-      - db
-    
+      valkey:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    restart: unless-stopped
     networks:
-      - z3-network
-    
+      - openevolve-network
     healthcheck:
-      test: ["CMD", "python", "-c", "import requests; requests.get('http://localhost:8765/health')"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8080/health')"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
 
-  # ==========================================================================
-  # Redis Cache (Optional)
-  # ==========================================================================
-  redis:
-    image: redis:7-alpine
-    container_name: z3-redis
-    restart: unless-stopped
-    
-    ports:
-      - "6379:6379"
-    
-    volumes:
-      - redis-data:/data
-    
-    networks:
-      - z3-network
-    
-    command: redis-server --appendonly yes
-
-  # ==========================================================================
-  # PostgreSQL Database (Optional, alternative to SQLite)
-  # ==========================================================================
-  db:
-    image: postgres:16-alpine
-    container_name: z3-db
-    restart: unless-stopped
-    
+  # ============================================================================
+  # OpenEvolve Worker - Background Task Processor (Optional)
+  # ============================================================================
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: openevolve-worker
     environment:
-      - POSTGRES_DB=z3_integration
-      - POSTGRES_USER=z3_user
-      - POSTGRES_PASSWORD=${DB_PASSWORD:-changeme}
-    
+      - OPENEVOLVE_LOG_LEVEL=INFO
+      - OPENEVOLVE_EVENT_BUS__ENABLED=true
+      - OPENEVOLVE_EVENT_BUS__BACKEND=valkey
+      - OPENEVOLVE_EVENT_BUS__HOST=valkey
+      - OPENEVOLVE_EVENT_BUS__PORT=6379
+      - VALKEY_HOST=valkey
+      - VALKEY_PORT=6379
+      - WORKER_MODE=true
     volumes:
-      - postgres-data:/var/lib/postgresql/data
-    
-    networks:
-      - z3-network
-    
-    ports:
-      - "5432:5432"
-
-  # ==========================================================================
-  # Monitoring Stack (Optional)
-  # ==========================================================================
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: z3-prometheus
-    restart: unless-stopped
-    
-    volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - prometheus-data:/prometheus
-    
-    ports:
-      - "9090:9090"
-    
-    networks:
-      - z3-network
-    
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-
-  grafana:
-    image: grafana/grafana:latest
-    container_name: z3-grafana
-    restart: unless-stopped
-    
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
-    
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources:ro
-    
-    ports:
-      - "3000:3000"
-    
-    networks:
-      - z3-network
-    
+      - ./integration_config.yaml:/app/integration_config.yaml:ro
+      - openevolve_data:/app/data
     depends_on:
-      - prometheus
-
-  # ==========================================================================
-  # Load Balancer (Optional, for scaling)
-  # ==========================================================================
-  nginx:
-    image: nginx:alpine
-    container_name: z3-nginx
+      - valkey
+      - openevolve
     restart: unless-stopped
-    
-    ports:
-      - "80:80"
-      - "443:443"
-    
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/ssl:/etc/nginx/ssl:ro
-    
     networks:
-      - z3-network
-    
-    depends_on:
-      - z3-integration
+      - openevolve-network
+    command: ["python", "-m", "openevolve_cli", "services", "start", "--event-bus"]
+    deploy:
+      replicas: 2
 
-# ==========================================================================
-# Volumes
-# ==========================================================================
-volumes:
-  redis-data:
-  postgres-data:
-  prometheus-data:
-  grafana-data:
-
-# ==========================================================================
+# ============================================================================
 # Networks
-# ==========================================================================
+# ============================================================================
 networks:
-  z3-network:
+  openevolve-network:
     driver: bridge
+
+# ============================================================================
+# Volumes
+# ============================================================================
+volumes:
+  valkey_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  openevolve_data:
+    driver: local

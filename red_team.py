@@ -33,6 +33,15 @@ except ImportError:
     OPENEVOLVE_AVAILABLE = False
     logger.warning("OpenEvolve backend not available - using fallback implementation")
 
+# Import DTS integration for enhanced adversarial dialogue
+try:
+    from dts_integration import DTSIntegration, DTSIntegrationConfig
+    DTS_AVAILABLE = True
+    logger.info("DTS integration available for enhanced adversarial dialogue")
+except (ImportError, Exception):
+    DTS_AVAILABLE = False
+    logger.warning("DTS integration not available - using standard adversarial methods")
+
 from prompt_engineering import PromptEngineeringSystem
 from model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTeam
 from quality_assessment import QualityAssessmentEngine, SeverityLevel
@@ -2040,7 +2049,111 @@ class RedTeam:
             else:
                 return "General feedback: Solution requires review for potential issues. No specific sub-problem IDs were identified in the critique."
     
-    def run_final_red_team_gauntlet(self, final_solution: SolutionAttempt, 
+    def run_adversarial_dialogue_with_dts(self, content: str, content_type: str = "general",
+                                         attacker_persona: str = "security_expert",
+                                         defender_persona: str = "system_designer",
+                                         rounds: int = 3,
+                                         use_multi_judge: bool = True) -> Dict[str, Any]:
+        """
+        Run adversarial dialogue using Dialogue Tree Search (DTS) for enhanced critique.
+        
+        This method uses DTS to simulate a multi-turn conversation between an attacker
+        (red team) and defender (blue team) to deeply explore vulnerabilities and defenses.
+        
+        Args:
+            content: The content to analyze
+            content_type: Type of content (code, document, protocol, etc.)
+            attacker_persona: Persona for the attacker (red team)
+            defender_persona: Persona for the defender (blue team)
+            rounds: Number of dialogue rounds to simulate
+            use_multi_judge: Whether to use multi-judge scoring for evaluation
+            
+        Returns:
+            Dictionary with results including:
+                - dialogue_history: List of conversation turns
+                - vulnerabilities_found: List of identified vulnerabilities
+                - defense_strategies: List of proposed defense strategies
+                - final_score: Overall security/robustness score
+                - dts_available: Whether DTS was actually used
+        """
+        if not DTS_AVAILABLE:
+            logger.warning("DTS not available, falling back to standard adversarial assessment")
+            # Fall back to standard adversarial assessment
+            assessment = self.assess_content(content, content_type, strategy=RedTeamStrategy.ADVERSARIAL)
+            return {
+                "dialogue_history": [],
+                "vulnerabilities_found": [f.title for f in assessment.findings],
+                "defense_strategies": [],
+                "final_score": assessment.confidence_score,
+                "dts_available": False,
+                "fallback_used": True,
+                "findings_count": len(assessment.findings)
+            }
+        
+        try:
+            # Initialize DTS integration
+            dts_config = DTSIntegrationConfig(
+                max_rounds=rounds,
+                use_multi_judge=use_multi_judge,
+                attacker_persona=attacker_persona,
+                defender_persona=defender_persona
+            )
+            dts_integration = DTSIntegration(dts_config)
+            
+            # Run adversarial dialogue
+            result = dts_integration.adversarial_dialogue(
+                content=content,
+                content_type=content_type,
+                attacker_persona=attacker_persona,
+                defender_persona=defender_persona,
+                rounds=rounds
+            )
+            
+            # Convert DTS result to findings
+            vulnerabilities_found = []
+            if "vulnerabilities" in result:
+                vulnerabilities_found = result["vulnerabilities"]
+            elif "issues" in result:
+                vulnerabilities_found = result["issues"]
+            
+            defense_strategies = []
+            if "defenses" in result:
+                defense_strategies = result["defenses"]
+            elif "suggestions" in result:
+                defense_strategies = result["suggestions"]
+            
+            # Calculate a score based on the dialogue outcome
+            final_score = result.get("score", 0.5)
+            if "judge_scores" in result and result["judge_scores"]:
+                final_score = sum(result["judge_scores"]) / len(result["judge_scores"])
+            
+            return {
+                "dialogue_history": result.get("dialogue", []),
+                "vulnerabilities_found": vulnerabilities_found,
+                "defense_strategies": defense_strategies,
+                "final_score": final_score,
+                "dts_available": True,
+                "fallback_used": False,
+                "findings_count": len(vulnerabilities_found),
+                "dts_result": result
+            }
+            
+        except Exception as e:
+            logger.error(f"Error running DTS adversarial dialogue: {e}", exc_info=True)
+            # Fall back to standard assessment
+            assessment = self.assess_content(content, content_type, strategy=RedTeamStrategy.ADVERSARIAL)
+            return {
+                "dialogue_history": [],
+                "vulnerabilities_found": [f.title for f in assessment.findings],
+                "defense_strategies": [],
+                "final_score": assessment.confidence_score,
+                "dts_available": True,  # DTS was available but failed
+                "fallback_used": True,
+                "error": str(e),
+                "findings_count": len(assessment.findings)
+            }
+    
+    def run_final_red_team_gauntlet(self, final_solution: SolutionAttempt,
                                    gauntlet_def: GauntletDefinition, 
                                    team: Team, api_key: str, 
                                    model_name: str = "gpt-4o") -> CritiqueReport:

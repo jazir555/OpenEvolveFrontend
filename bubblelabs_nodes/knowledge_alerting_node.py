@@ -139,14 +139,39 @@ class KnowledgeAlertingNode(BubbleLabsNode):
         self._alert_history: List[Dict[str, Any]] = []
         self._last_alert_times: Dict[str, datetime] = {}
 
+        # Import alerting system if available
+        alerting_module = self.safe_import(
+            'alerting_system',
+            fallback_value=None,
+            error_msg="AlertingSystem not available for KnowledgeAlertingNode"
+        )
+
+        self.AlertManager = None
+        self.alert_manager = None
+        if alerting_module:
+            self.AlertManager = getattr(alerting_module, 'AlertManager', None)
+            if self.AlertManager:
+                try:
+                    self.alert_manager = self.AlertManager()
+                    self.logger.info("AlertManager initialized for KnowledgeAlertingNode")
+                except Exception as e:
+                    self.logger.warning(f"Could not initialize AlertManager: {e}")
+
         # Load any persisted alert rules
         self._load_alert_rules()
 
     def _load_alert_rules(self):
         """Load persisted alert rules if available."""
-        # This is a placeholder for persistence logic
-        # In a real implementation, this would load from database/file
-        pass
+        if self.alert_manager:
+            try:
+                # Load alert rules from alert manager storage
+                all_alerts = self.alert_manager.get_all_alerts(component='knowledge_alerting')
+                self.logger.info(f"Loaded {len(all_alerts)} knowledge alerting rules")
+            except Exception as e:
+                self.logger.warning(f"Failed to load alert rules: {e}")
+        else:
+            # Fallback to placeholder
+            self.logger.debug("AlertManager not available - using in-memory storage")
 
     def _save_alert_rules(self):
         """Save alert rules for persistence."""
@@ -1041,6 +1066,15 @@ class KnowledgeAlertingNode(BubbleLabsNode):
                             'status': 'sent' if result else 'failed',
                             'timestamp': datetime.now().isoformat()
                         })
+                    # **ACTUAL INTEGRATION**: Use the actual alerting_system
+                    elif channel == 'alerting_system':
+                        result = self._send_via_alerting_system(alert)
+                        notifications_sent.append({
+                            'alert_id': alert['id'],
+                            'channel': 'alerting_system',
+                            'status': 'sent' if result else 'failed',
+                            'timestamp': datetime.now().isoformat()
+                        })
                 except Exception as e:
                     self.logger.warning(f"Failed to send {channel} notification: {e}")
                     notifications_sent.append({
@@ -1052,6 +1086,47 @@ class KnowledgeAlertingNode(BubbleLabsNode):
                     })
 
         return notifications_sent
+
+    def _send_via_alerting_system(self, alert: Dict) -> bool:
+        """
+        **ACTUAL INTEGRATION**: Send alert via the actual alerting_system.
+
+        This wires the knowledge_alerting_node to the central alerting system.
+        """
+        if not self.alert_manager:
+            return False
+
+        try:
+            # Map severity to AlertSeverity enum
+            from alerting_system import AlertSeverity
+
+            severity_map = {
+                'info': AlertSeverity.INFO,
+                'warning': AlertSeverity.MEDIUM,
+                'critical': AlertSeverity.HIGH
+            }
+            alert_severity = severity_map.get(alert.get('severity', 'info').lower(), AlertSeverity.MEDIUM)
+
+            # Create alert using the alerting_system
+            self.alert_manager.create_alert(
+                title=alert.get('title', 'Knowledge Alert'),
+                description=alert.get('description', ''),
+                severity=alert_severity.value,
+                source='knowledge_alerting_node',
+                component='knowledge_graph',
+                metadata={
+                    'alert_id': alert.get('id'),
+                    'alert_type': alert.get('type'),
+                    'knowledge_graph_id': alert.get('knowledge_graph_id')
+                }
+            )
+
+            self.logger.debug(f"Alert sent via alerting_system: {alert.get('id')}")
+            return True
+
+        except Exception as e:
+            self.logger.warning(f"alerting_system notification failed: {e}")
+            return False
 
     def _send_log_notification(self, alert: Dict):
         """Send notification via logging."""

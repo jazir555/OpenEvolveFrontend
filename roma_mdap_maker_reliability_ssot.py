@@ -10,7 +10,7 @@ eliminating code bloat from 40+ parameter blocks.
 
 import os
 from typing import Dict, Any, Optional
-from roma_mdap_maker_associative_integration import (
+from roma_mdap_maker_config import (
     ROMAMDAPMakerAssociativeConfig,
     create_romamdapmaker_associative_config
 )

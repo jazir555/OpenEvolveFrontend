@@ -28,6 +28,19 @@ from io import StringIO
 from collections import OrderedDict
 from functools import wraps
 
+# **ACTUAL INTEGRATION**: Knowledge and alerting for BubbleLabs
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
 # Import CrewAI zero-error workflow (replaces Hephaestus)
 from crewai_zero_error_workflow import (
     CrewAIZeroErrorWorkflow,
@@ -1124,6 +1137,92 @@ def create_bridge(
         config=config,
         state_storage_dir=state_storage_dir
     )
+
+
+# =============================================================================
+# ACTUAL INTEGRATION FUNCTIONS - Connect BubbleLabs to knowledge and alerting
+# =============================================================================
+
+def _extract_bubblelabs_knowledge(
+    gauntlet_name: str,
+    result: Dict[str, Any],
+    workflow_id: str
+) -> bool:
+    """
+    **ACTUAL INTEGRATION**: Extract BubbleLabs gauntlet knowledge to knowledge engine.
+
+    Learns:
+    - Gauntlet patterns
+    - Test effectiveness
+    - Solution durability
+    """
+    if not KNOWLEDGE_AVAILABLE:
+        return False
+
+    try:
+        knowledge_engine = get_knowledge_engine()
+
+        artifact = KnowledgeArtifact(
+            artifact_id=f"bubblelabs_{gauntlet_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            artifact_type="bubblelabs_gauntlet",
+            source_component="bubblelabs_crewai_bridge",
+            title=f"BubbleLabs Gauntlet: {gauntlet_name}",
+            content={
+                "gauntlet_name": gauntlet_name,
+                "workflow_id": workflow_id,
+                "result": result,
+                "timestamp": datetime.now().isoformat()
+            },
+            metadata={
+                "status": result.get("status"),
+                "metrics": result.get("metrics", {})
+            },
+            tags=["bubblelabs", "gauntlet", "adversarial"]
+        )
+
+        knowledge_engine.store_artifact(artifact)
+        logging.debug(f"Extracted BubbleLabs knowledge for gauntlet {gauntlet_name}")
+        return True
+
+    except Exception as e:
+        logging.error(f"Failed to extract BubbleLabs knowledge: {e}")
+        return False
+
+
+def _trigger_bubblelabs_alerts(
+    gauntlet_name: str,
+    success: bool,
+    error: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None
+):
+    """
+    **ACTUAL INTEGRATION**: Trigger alerts for BubbleLabs gauntlet failures.
+
+    Alerts on:
+    - Gauntlet execution failures
+    - Low quality results
+    - Test failures
+    """
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_manager = get_alert_manager()
+
+        if not success:
+            severity = AlertSeverity.HIGH
+
+            alert_manager.create_alert(
+                title=f"BubbleLabs Gauntlet Failed: {gauntlet_name}",
+                description=f"Gauntlet '{gauntlet_name}' failed. " + (f"Error: {error}" if error else ""),
+                severity=severity.value,
+                source="bubblelabs_crewai_bridge",
+                component="bubblelabs",
+                metadata=metadata or {}
+            )
+
+    except Exception as e:
+        logging.error(f"Failed to trigger BubbleLabs alert: {e}")
 
 
 if __name__ == "__main__":

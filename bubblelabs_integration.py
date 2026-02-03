@@ -18,6 +18,21 @@ from team_manager import TeamManager
 from gauntlet_manager import GauntletManager
 from api_server import team_manager, gauntlet_manager  # Import managers only
 
+# Import LeanAide integration
+try:
+    from bubblelabs_leanaide_integration import (
+        get_leanaide_bridge,
+        LeanAideIntegrationBridge,
+        LEANAIDE_AVAILABLE,
+        MCTS_AVAILABLE,
+        MDAP_AVAILABLE
+    )
+    LEANAIDE_INTEGRATION_AVAILABLE = True
+except ImportError:
+    LEANAIDE_INTEGRATION_AVAILABLE = False
+    get_leanaide_bridge = None
+    LeanAideIntegrationBridge = None
+
 # Import state machine validation
 try:
     from bubblelabs_crewai_bridge import (
@@ -313,6 +328,48 @@ class BubbleLabsIntegration:
         with self._instances_lock:
             return list(self.workflow_instances.values())
     
+    # =========================================================================
+    # LeanAide Integration
+    # =========================================================================
+    
+    def get_leanaide_bridge(self) -> Optional[LeanAideIntegrationBridge]:
+        """
+        Get the LeanAide integration bridge.
+        
+        Returns:
+            LeanAideIntegrationBridge instance or None if not available
+        """
+        if not LEANAIDE_INTEGRATION_AVAILABLE:
+            logger.warning("LeanAide integration not available")
+            return None
+        
+        return get_leanaide_bridge()
+    
+    def is_leanaide_available(self) -> bool:
+        """
+        Check if LeanAide integration is available.
+        
+        Returns:
+            True if LeanAide is available
+        """
+        return LEANAIDE_INTEGRATION_AVAILABLE and LEANAIDE_AVAILABLE
+    
+    def get_leanaide_status(self) -> Dict[str, Any]:
+        """
+        Get LeanAide integration status.
+        
+        Returns:
+            Dictionary with LeanAide status information
+        """
+        if not LEANAIDE_INTEGRATION_AVAILABLE:
+            return {"available": False, "reason": "Integration not available"}
+        
+        bridge = get_leanaide_bridge()
+        if bridge is None:
+            return {"available": False, "reason": "Bridge initialization failed"}
+        
+        return bridge.get_status()
+    
     def control_workflow_local(self, instance_id: str, action: str) -> Dict[str, Any]:
         """
         Control a running workflow instance locally with state machine validation.
@@ -496,6 +553,66 @@ class BubbleLabsIntegration:
                 return {"message": f"Action '{action}' performed", "status": instance.status}
 
         return {"error": "Workflow instance not found"}
+
+    def get_knowledge_graph_visualization(
+        self,
+        use_pygraphistry: bool = True,
+        max_nodes: int = 500,
+        apply_clustering: bool = True,
+        clustering_method: str = "dbscan",
+        embedding_method: str = "umap"
+    ) -> Optional[str]:
+        """
+        Get knowledge graph visualization using PyGraphistry or fallback method.
+
+        Args:
+            use_pygraphistry: Whether to use PyGraphistry for visualization
+            max_nodes: Maximum number of nodes to include
+            apply_clustering: Whether to apply clustering pipeline (PyGraphistry only)
+            clustering_method: Clustering method ('dbscan', 'kmeans') (PyGraphistry only)
+            embedding_method: Embedding method ('umap', 'pca') (PyGraphistry only)
+
+        Returns:
+            Path or URL to the visualization, or None if failed
+        """
+        try:
+            from knowledge_graph_visualizer import KnowledgeGraphVisualizer
+
+            # Create visualizer with PyGraphistry support
+            visualizer = KnowledgeGraphVisualizer(use_pygraphistry=use_pygraphistry)
+
+            # Build the graph
+            stats = visualizer.build_graph(max_nodes=max_nodes)
+
+            if stats.get("nodes", 0) == 0:
+                print("No nodes in knowledge graph to visualize")
+                return None
+
+            # Create output path
+            import tempfile
+            import os
+            output_path = os.path.join(tempfile.gettempdir(), f"knowledge_graph_viz_{hash(str(stats))}.html")
+
+            # Visualize with the specified parameters
+            success = visualizer.visualize_interactive(
+                output_path=output_path,
+                apply_clustering=apply_clustering,
+                clustering_method=clustering_method,
+                embedding_method=embedding_method
+            )
+
+            if success:
+                return output_path
+            else:
+                print("Failed to create knowledge graph visualization")
+                return None
+
+        except ImportError as e:
+            print(f"Knowledge graph visualization not available: {e}")
+            return None
+        except Exception as e:
+            print(f"Error in get_knowledge_graph_visualization: {e}")
+            return None
 
 
 # Initialize the integration manager

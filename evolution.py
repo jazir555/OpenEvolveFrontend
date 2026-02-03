@@ -505,6 +505,15 @@ except ImportError:
     DEEP_INTEGRATION_AVAILABLE = False
     print("Deep OpenEvolve integration not available")
 
+# Import DTS integration for enhanced strategy exploration
+try:
+    from dts_integration import DTSIntegration, DTSIntegrationConfig
+    DTS_AVAILABLE = True
+    logger.info("DTS integration available for enhanced strategy exploration")
+except (ImportError, Exception):
+    DTS_AVAILABLE = False
+    logger.warning("DTS integration not available - using standard evolution strategies")
+
 
 class ContentEvaluator:
     """
@@ -540,10 +549,63 @@ class ContentEvaluator:
         """
         Evaluator for code content.
         """
-        # For now, return a basic score based on content structure
+        # First, try basic evaluation
         score = min(1.0, len(content) / 500.0)  # Basic length-based scoring
 
-        # More sophisticated evaluation would happen here
+        # Try to enhance with DSPy if available
+        try:
+            from dspy_integration import DSPY_AVAILABLE
+            if DSPY_AVAILABLE:
+                from dspy import Predict, Signature
+
+                # Define a DSPy signature for code evaluation
+                class CodeEvaluationSignature(Signature):
+                    """Evaluate code quality based on multiple criteria."""
+                    code = dspy.InputField(desc="Code to evaluate")
+                    criteria = dspy.InputField(desc="List of evaluation criteria")
+
+                    correctness_score = dspy.OutputField(desc="Correctness score (1-10)")
+                    efficiency_score = dspy.OutputField(desc="Efficiency score (1-10)")
+                    readability_score = dspy.OutputField(desc="Readability score (1-10)")
+                    maintainability_score = dspy.OutputField(desc="Maintainability score (1-10)")
+                    overall_score = dspy.OutputField(desc="Overall score (1-10)")
+                    issues = dspy.OutputField(desc="List of identified issues")
+                    suggestions = dspy.OutputField(desc="Improvement suggestions")
+
+                # Create a predictor
+                evaluate_code = Predict(CodeEvaluationSignature)
+
+                # Run evaluation
+                criteria = "correctness, efficiency, readability, maintainability"
+                result = evaluate_code(code=content, criteria=criteria)
+
+                # Calculate normalized score
+                try:
+                    overall = float(result.overall_score) if result.overall_score.replace('.', '').isdigit() else 5.0
+                    dsp_score = overall / 10.0  # Normalize to 0-1 range
+                    score = dsp_score  # Use DSPy score instead of basic score
+                except:
+                    # If DSPy parsing fails, keep basic score
+                    pass
+
+                return {
+                    "score": score,
+                    "length": len(content),
+                    "timestamp": time.time(),
+                    "dspy_enhanced": True,
+                    "dspy_results": {
+                        "correctness": result.correctness_score,
+                        "efficiency": result.efficiency_score,
+                        "readability": result.readability_score,
+                        "maintainability": result.maintainability_score,
+                        "issues": result.issues,
+                        "suggestions": result.suggestions
+                    }
+                }
+        except ImportError:
+            pass  # DSPy not available, continue with basic evaluation
+
+        # Return basic evaluation
         return {"score": score, "length": len(content), "timestamp": time.time()}
 
     def _evaluate_general_content(self, content: str) -> Dict[str, Any]:
@@ -557,6 +619,61 @@ class ContentEvaluator:
         # For general content, return a basic score
         score = min(1.0, len(content) / 1000.0)  # Basic length-based scoring
 
+        # Try to enhance with DSPy if available
+        try:
+            from dspy_integration import DSPY_AVAILABLE
+            if DSPY_AVAILABLE:
+                from dspy import Predict, Signature
+
+                # Define a DSPy signature for general content evaluation
+                class GeneralContentEvaluationSignature(Signature):
+                    """Evaluate general content quality based on multiple criteria."""
+                    content = dspy.InputField(desc="Content to evaluate")
+                    criteria = dspy.InputField(desc="List of evaluation criteria")
+
+                    clarity_score = dspy.OutputField(desc="Clarity score (1-10)")
+                    coherence_score = dspy.OutputField(desc="Coherence score (1-10)")
+                    completeness_score = dspy.OutputField(desc="Completeness score (1-10)")
+                    relevance_score = dspy.OutputField(desc="Relevance score (1-10)")
+                    overall_score = dspy.OutputField(desc="Overall score (1-10)")
+                    strengths = dspy.OutputField(desc="List of content strengths")
+                    weaknesses = dspy.OutputField(desc="List of content weaknesses")
+                    suggestions = dspy.OutputField(desc="Improvement suggestions")
+
+                # Create a predictor
+                evaluate_content = Predict(GeneralContentEvaluationSignature)
+
+                # Run evaluation
+                criteria = "clarity, coherence, completeness, relevance"
+                result = evaluate_content(content=content, criteria=criteria)
+
+                # Calculate normalized score
+                try:
+                    overall = float(result.overall_score) if result.overall_score.replace('.', '').isdigit() else 5.0
+                    dsp_score = overall / 10.0  # Normalize to 0-1 range
+                    score = dsp_score  # Use DSPy score instead of basic score
+                except:
+                    # If DSPy parsing fails, keep basic score
+                    pass
+
+                return {
+                    "score": score,
+                    "length": len(content),
+                    "timestamp": time.time(),
+                    "dspy_enhanced": True,
+                    "dspy_results": {
+                        "clarity": result.clarity_score,
+                        "coherence": result.coherence_score,
+                        "completeness": result.completeness_score,
+                        "relevance": result.relevance_score,
+                        "strengths": result.strengths,
+                        "weaknesses": result.weaknesses,
+                        "suggestions": result.suggestions
+                    }
+                }
+        except ImportError:
+            pass  # DSPy not available, continue with basic evaluation
+
         return {"score": score, "length": len(content), "timestamp": time.time()}
 
     def _evaluate_legal_content(self, content: str) -> Dict[str, Any]:
@@ -567,6 +684,62 @@ class ContentEvaluator:
             f"⚖️ Evaluating legal content of {len(content)} characters"
         )
         score = min(1.0, len(content) / 1500.0)  # Example scoring
+
+        # Try to enhance with DSPy if available
+        try:
+            from dspy_integration import DSPY_AVAILABLE
+            if DSPY_AVAILABLE:
+                from dspy import Predict, Signature
+
+                # Define a DSPy signature for legal content evaluation
+                class LegalContentEvaluationSignature(Signature):
+                    """Evaluate legal content quality based on multiple criteria."""
+                    content = dspy.InputField(desc="Legal content to evaluate")
+                    criteria = dspy.InputField(desc="List of evaluation criteria")
+
+                    accuracy_score = dspy.OutputField(desc="Accuracy score (1-10)")
+                    completeness_score = dspy.OutputField(desc="Completeness score (1-10)")
+                    compliance_score = dspy.OutputField(desc="Regulatory compliance score (1-10)")
+                    clarity_score = dspy.OutputField(desc="Clarity score (1-10)")
+                    overall_score = dspy.OutputField(desc="Overall score (1-10)")
+                    legal_issues = dspy.OutputField(desc="List of identified legal issues")
+                    compliance_gaps = dspy.OutputField(desc="List of compliance gaps")
+                    recommendations = dspy.OutputField(desc="Legal recommendations")
+
+                # Create a predictor
+                evaluate_legal = Predict(LegalContentEvaluationSignature)
+
+                # Run evaluation
+                criteria = "accuracy, completeness, compliance, clarity"
+                result = evaluate_legal(content=content, criteria=criteria)
+
+                # Calculate normalized score
+                try:
+                    overall = float(result.overall_score) if result.overall_score.replace('.', '').isdigit() else 5.0
+                    dsp_score = overall / 10.0  # Normalize to 0-1 range
+                    score = dsp_score  # Use DSPy score instead of basic score
+                except:
+                    # If DSPy parsing fails, keep basic score
+                    pass
+
+                return {
+                    "score": score,
+                    "length": len(content),
+                    "timestamp": time.time(),
+                    "dspy_enhanced": True,
+                    "dspy_results": {
+                        "accuracy": result.accuracy_score,
+                        "completeness": result.completeness_score,
+                        "compliance": result.compliance_score,
+                        "clarity": result.clarity_score,
+                        "legal_issues": result.legal_issues,
+                        "compliance_gaps": result.compliance_gaps,
+                        "recommendations": result.recommendations
+                    }
+                }
+        except ImportError:
+            pass  # DSPy not available, continue with basic evaluation
+
         return {"score": score, "length": len(content), "timestamp": time.time()}
 
     def _evaluate_medical_content(self, content: str) -> Dict[str, Any]:
@@ -577,6 +750,62 @@ class ContentEvaluator:
             f"⚕️ Evaluating medical content of {len(content)} characters"
         )
         score = min(1.0, len(content) / 1200.0)  # Example scoring
+
+        # Try to enhance with DSPy if available
+        try:
+            from dspy_integration import DSPY_AVAILABLE
+            if DSPY_AVAILABLE:
+                from dspy import Predict, Signature
+
+                # Define a DSPy signature for medical content evaluation
+                class MedicalContentEvaluationSignature(Signature):
+                    """Evaluate medical content quality based on multiple criteria."""
+                    content = dspy.InputField(desc="Medical content to evaluate")
+                    criteria = dspy.InputField(desc="List of evaluation criteria")
+
+                    accuracy_score = dspy.OutputField(desc="Medical accuracy score (1-10)")
+                    completeness_score = dspy.OutputField(desc="Completeness score (1-10)")
+                    safety_score = dspy.OutputField(desc="Patient safety score (1-10)")
+                    evidence_score = dspy.OutputField(desc="Evidence-based medicine score (1-10)")
+                    overall_score = dspy.OutputField(desc="Overall score (1-10)")
+                    medical_errors = dspy.OutputField(desc="List of identified medical errors")
+                    safety_concerns = dspy.OutputField(desc="List of patient safety concerns")
+                    recommendations = dspy.OutputField(desc="Medical recommendations")
+
+                # Create a predictor
+                evaluate_medical = Predict(MedicalContentEvaluationSignature)
+
+                # Run evaluation
+                criteria = "accuracy, completeness, safety, evidence-based"
+                result = evaluate_medical(content=content, criteria=criteria)
+
+                # Calculate normalized score
+                try:
+                    overall = float(result.overall_score) if result.overall_score.replace('.', '').isdigit() else 5.0
+                    dsp_score = overall / 10.0  # Normalize to 0-1 range
+                    score = dsp_score  # Use DSPy score instead of basic score
+                except:
+                    # If DSPy parsing fails, keep basic score
+                    pass
+
+                return {
+                    "score": score,
+                    "length": len(content),
+                    "timestamp": time.time(),
+                    "dspy_enhanced": True,
+                    "dspy_results": {
+                        "accuracy": result.accuracy_score,
+                        "completeness": result.completeness_score,
+                        "safety": result.safety_score,
+                        "evidence_based": result.evidence_score,
+                        "medical_errors": result.medical_errors,
+                        "safety_concerns": result.safety_concerns,
+                        "recommendations": result.recommendations
+                    }
+                }
+        except ImportError:
+            pass  # DSPy not available, continue with basic evaluation
+
         return {"score": score, "length": len(content), "timestamp": time.time()}
 
     def _evaluate_technical_content(self, content: str) -> Dict[str, Any]:
@@ -587,6 +816,62 @@ class ContentEvaluator:
             f"⚙️ Evaluating technical content of {len(content)} characters"
         )
         score = min(1.0, len(content) / 1000.0)  # Example scoring
+
+        # Try to enhance with DSPy if available
+        try:
+            from dspy_integration import DSPY_AVAILABLE
+            if DSPY_AVAILABLE:
+                from dspy import Predict, Signature
+
+                # Define a DSPy signature for technical content evaluation
+                class TechnicalContentEvaluationSignature(Signature):
+                    """Evaluate technical content quality based on multiple criteria."""
+                    content = dspy.InputField(desc="Technical content to evaluate")
+                    criteria = dspy.InputField(desc="List of evaluation criteria")
+
+                    accuracy_score = dspy.OutputField(desc="Technical accuracy score (1-10)")
+                    completeness_score = dspy.OutputField(desc="Completeness score (1-10)")
+                    clarity_score = dspy.OutputField(desc="Technical clarity score (1-10)")
+                    feasibility_score = dspy.OutputField(desc="Implementation feasibility score (1-10)")
+                    overall_score = dspy.OutputField(desc="Overall score (1-10)")
+                    technical_issues = dspy.OutputField(desc="List of identified technical issues")
+                    implementation_challenges = dspy.OutputField(desc="List of implementation challenges")
+                    recommendations = dspy.OutputField(desc="Technical recommendations")
+
+                # Create a predictor
+                evaluate_technical = Predict(TechnicalContentEvaluationSignature)
+
+                # Run evaluation
+                criteria = "accuracy, completeness, clarity, feasibility"
+                result = evaluate_technical(content=content, criteria=criteria)
+
+                # Calculate normalized score
+                try:
+                    overall = float(result.overall_score) if result.overall_score.replace('.', '').isdigit() else 5.0
+                    dsp_score = overall / 10.0  # Normalize to 0-1 range
+                    score = dsp_score  # Use DSPy score instead of basic score
+                except:
+                    # If DSPy parsing fails, keep basic score
+                    pass
+
+                return {
+                    "score": score,
+                    "length": len(content),
+                    "timestamp": time.time(),
+                    "dspy_enhanced": True,
+                    "dspy_results": {
+                        "accuracy": result.accuracy_score,
+                        "completeness": result.completeness_score,
+                        "clarity": result.clarity_score,
+                        "feasibility": result.feasibility_score,
+                        "technical_issues": result.technical_issues,
+                        "implementation_challenges": result.implementation_challenges,
+                        "recommendations": result.recommendations
+                    }
+                }
+        except ImportError:
+            pass  # DSPy not available, continue with basic evaluation
+
         return {"score": score, "length": len(content), "timestamp": time.time()}
 
 
@@ -975,17 +1260,9 @@ def run_evolution_loop(
                 population_size=config.population_size,
                 temperature=config.temperature,
                 max_tokens=config.max_tokens,
-                seed=config.seed,
                 random_seed=config.seed,
-                early_stopping=config.early_stopping,
+                early_stopping_patience=config.early_stopping_patience if config.early_stopping else None,
                 convergence_threshold=config.convergence_threshold,
-                fitness_function=config.fitness_function,
-                selection_pressure=config.selection_pressure,
-                mutation_rate=config.mutation_rate,
-                crossover_rate=config.crossover_rate,
-                elitism=config.elitism,
-                diversity_maintenance=config.diversity_maintenance,
-                adaptive_parameters=config.adaptive_parameters,
                 
                 # Prompt Configuration
                 system_message=config.system_prompt,
@@ -1176,7 +1453,6 @@ def run_evolution_loop(
                 include_fitness=config.include_fitness,
                 
                 # Early Stopping Parameters
-                early_stopping_patience=config.early_stopping_patience,
                 min_improvement=config.min_improvement,
                 improvement_window=config.improvement_window,
                 plateau_threshold=config.plateau_threshold,
@@ -1380,6 +1656,52 @@ def _evaluate_candidate(
     Evaluate a single candidate.
     """
     try:
+        # First, try to use DSPy for enhanced evaluation if available
+        try:
+            from dspy_integration import DSPY_AVAILABLE
+            if DSPY_AVAILABLE:
+                from dspy import Predict, Signature
+
+                # Define a DSPy signature for candidate evaluation
+                class CandidateEvaluationSignature(Signature):
+                    """Evaluate a candidate solution based on quality and effectiveness."""
+                    candidate_content = dspy.InputField(desc="Content of the candidate to evaluate")
+                    evaluation_criteria = dspy.InputField(desc="Criteria for evaluation")
+
+                    quality_score = dspy.OutputField(desc="Quality score (1-10)")
+                    effectiveness_score = dspy.OutputField(desc="Effectiveness score (1-10)")
+                    correctness_score = dspy.OutputField(desc="Correctness score (1-10)")
+                    creativity_score = dspy.OutputField(desc="Creativity score (1-10)")
+                    overall_score = dspy.OutputField(desc="Overall score (1-10)")
+                    strengths = dspy.OutputField(desc="List of strengths in the candidate")
+                    weaknesses = dspy.OutputField(desc="List of weaknesses in the candidate")
+                    suggestions = dspy.OutputField(desc="Improvement suggestions")
+
+                # Create a predictor
+                evaluate_candidate = Predict(CandidateEvaluationSignature)
+
+                # Determine evaluation criteria based on content type
+                content_type = getattr(evaluator, 'content_type', 'general')
+                criteria = f"quality, effectiveness, correctness for {content_type} content"
+
+                # Run evaluation using DSPy
+                result = evaluate_candidate(
+                    candidate_content=candidate,
+                    evaluation_criteria=criteria
+                )
+
+                # Calculate normalized score from DSPy result
+                try:
+                    overall = float(result.overall_score) if result.overall_score.replace('.', '').isdigit() else 5.0
+                    score = overall / 10.0  # Normalize to 0-1 range
+                    return score
+                except:
+                    # If DSPy parsing fails, fall back to traditional method
+                    pass
+        except ImportError:
+            # DSPy not available, continue with traditional evaluation
+            pass
+
         # Use the evaluator's system prompt if available, otherwise use a default
         system_prompt = getattr(evaluator, 'evaluator_system_prompt', "You are an evaluator assessing the quality of content. Please provide a score from 0 to 100.")
         evaluation = _request_openai_compatible_chat(
@@ -3462,6 +3784,266 @@ def run_ultimate_comprehensive_evolution(
         _update_evolution_log_and_status(f"💥 ULTIMATE Comprehensive Evolution failed: {e}")
         logger.error(f"Ultimate comprehensive evolution error: {e}", exc_info=True)
         return ultimate_result
+
+
+def run_evolution_with_dts_strategy_exploration(
+    content: str,
+    content_type: str = "document_general",
+    evolution_mode: str = "standard",
+    use_dts_for_strategy: bool = True,
+    dts_rounds: int = 2,
+    use_multi_judge: bool = True,
+    **evolution_params
+) -> Dict[str, Any]:
+    """
+    Run evolution with DTS strategy exploration for enhanced search.
+    
+    This method uses Dialogue Tree Search (DTS) to explore multiple evolution
+    strategies in parallel and select the most promising approach using
+    multi-judge scoring before running the actual evolution.
+    
+    Args:
+        content: Content to evolve
+        content_type: Type of content (code, document, protocol, etc.)
+        evolution_mode: Evolution mode (standard, adversarial, quality_diversity, etc.)
+        use_dts_for_strategy: Whether to use DTS for strategy exploration
+        dts_rounds: Number of DTS exploration rounds
+        use_multi_judge: Whether to use multi-judge scoring for strategy evaluation
+        **evolution_params: Additional parameters for evolution
+        
+    Returns:
+        Dictionary with results including:
+            - best_content: The evolved content
+            - evolution_metrics: Metrics from the evolution process
+            - dts_strategies: Strategies explored by DTS
+            - selected_strategy: The strategy selected by DTS
+            - dts_available: Whether DTS was actually used
+            - final_score: Quality score of the evolved content
+    """
+    start_time = time.time()
+    result = {
+        "best_content": content,
+        "evolution_metrics": {},
+        "dts_strategies": [],
+        "selected_strategy": None,
+        "dts_available": False,
+        "final_score": 0.0,
+        "start_time": start_time,
+        "end_time": None,
+        "total_duration": None
+    }
+    
+    if not DTS_AVAILABLE or not use_dts_for_strategy:
+        logger.warning("DTS not available or disabled, using standard evolution")
+        # Fall back to standard evolution based on mode
+        if evolution_mode == "adversarial":
+            evolution_result = run_ultimate_adversarial_evolution(content, content_type, **evolution_params)
+        elif evolution_mode == "quality_diversity":
+            evolution_result = run_quality_diversity_evolution(content, content_type, **evolution_params)
+        elif evolution_mode == "multi_objective":
+            evolution_result = run_multi_objective_evolution(content, content_type, **evolution_params)
+        else:
+            evolution_result = run_comprehensive_evolution(content, content_type, **evolution_params)
+        
+        result["best_content"] = evolution_result.get("best_content", content)
+        result["evolution_metrics"] = evolution_result.get("metrics", {})
+        result["final_score"] = evolution_result.get("final_score", 0.0)
+        result["dts_available"] = False
+        result["fallback_used"] = True
+        result["evolution_result"] = evolution_result
+        return result
+    
+    try:
+        # Initialize DTS integration for strategy exploration
+        dts_config = DTSIntegrationConfig(
+            max_rounds=dts_rounds,
+            use_multi_judge=use_multi_judge,
+            use_strategy_exploration=True
+        )
+        dts_integration = DTSIntegration(dts_config)
+        
+        # Prepare context for DTS strategy exploration
+        strategy_context = {
+            "content": content,
+            "content_type": content_type,
+            "evolution_mode": evolution_mode,
+            "evolution_params": evolution_params
+        }
+        
+        # Explore evolution strategies using DTS
+        _update_evolution_log_and_status("🔍 Exploring evolution strategies with DTS...")
+        strategy_result = dts_integration.generate_strategies(
+            context=strategy_context,
+            goal=f"Generate effective evolution strategies for {evolution_mode} evolution",
+            strategy_type="evolution"
+        )
+        
+        # Extract strategies from DTS result
+        strategies = strategy_result.get("strategies", [])
+        result["dts_strategies"] = strategies
+        
+        # Select best strategy based on scores
+        selected_strategy = None
+        if strategies:
+            # Find strategy with highest score
+            scored_strategies = []
+            for strategy in strategies:
+                if isinstance(strategy, dict):
+                    score = strategy.get("score", 0)
+                    scored_strategies.append((strategy, score))
+                else:
+                    scored_strategies.append((strategy, 0.5))
+
+            if scored_strategies:
+                selected_strategy = max(scored_strategies, key=lambda x: x[1])[0]
+                result["selected_strategy"] = selected_strategy
+
+        # Enhance strategy selection with DSPy if available
+        try:
+            from dspy_integration import DSPY_AVAILABLE
+            if DSPY_AVAILABLE:
+                from dspy import Predict, Signature
+
+                # Define a DSPy signature for strategy evaluation
+                class StrategyEvaluationSignature(Signature):
+                    """Evaluate evolution strategies and recommend the best one."""
+                    content_to_evolve = dspy.InputField(desc="Content that needs to be evolved")
+                    content_type = dspy.InputField(desc="Type of content (code, document, etc.)")
+                    evolution_mode = dspy.InputField(desc="Evolution mode (standard, adversarial, etc.)")
+                    available_strategies = dspy.InputField(desc="List of available evolution strategies")
+
+                    best_strategy = dspy.OutputField(desc="The most appropriate strategy for this content and mode")
+                    confidence_score = dspy.OutputField(desc="Confidence in the recommendation (1-10)")
+                    reasoning = dspy.OutputField(desc="Reasoning for why this strategy is best")
+                    potential_risks = dspy.OutputField(desc="Potential risks with this strategy")
+                    success_factors = dspy.OutputField(desc="Key factors for success with this strategy")
+
+                # Create a predictor
+                evaluate_strategies = Predict(StrategyEvaluationSignature)
+
+                # Prepare strategies for DSPy input
+                strategies_text = "\n".join([
+                    f"- {s.get('name', f'Strategy {i+1}')}: {s.get('description', 'No description')}"
+                    for i, s in enumerate(strategies)
+                ])
+
+                # Run DSPy evaluation
+                dspy_result = evaluate_strategies(
+                    content_to_evolve=content,
+                    content_type=content_type,
+                    evolution_mode=evolution_mode,
+                    available_strategies=strategies_text
+                )
+
+                # Update result with DSPy analysis
+                result["dspy_strategy_analysis"] = {
+                    "recommended_strategy": dspy_result.best_strategy,
+                    "confidence": dspy_result.confidence_score,
+                    "reasoning": dspy_result.reasoning,
+                    "risks": dspy_result.potential_risks,
+                    "success_factors": dspy_result.success_factors
+                }
+
+                # Use DSPy recommendation if confidence is high enough
+                try:
+                    dspy_confidence = float(dspy_result.confidence_score) if dspy_result.confidence_score.replace('.', '').isdigit() else 5.0
+                    if dspy_confidence >= 7.0:  # High confidence threshold
+                        result["selected_strategy"] = dspy_result.best_strategy
+                        result["strategy_selected_by"] = "dspy"
+                    else:
+                        result["strategy_selected_by"] = "dts_with_low_dspy_confidence"
+                except:
+                    result["strategy_selected_by"] = "dts"
+            else:
+                result["strategy_selected_by"] = "dts"
+        except ImportError:
+            result["strategy_selected_by"] = "dts"
+        
+        # Apply the selected strategy to evolution parameters
+        enhanced_params = evolution_params.copy()
+        if selected_strategy and isinstance(selected_strategy, dict):
+            # Extract strategy recommendations
+            if "recommendations" in selected_strategy:
+                recommendations = selected_strategy["recommendations"]
+                # Apply relevant recommendations to parameters
+                for rec in recommendations:
+                    if isinstance(rec, dict) and "parameter" in rec and "value" in rec:
+                        param_name = rec["parameter"]
+                        param_value = rec["value"]
+                        enhanced_params[param_name] = param_value
+        
+        # Run evolution with enhanced parameters
+        _update_evolution_log_and_status(f"🚀 Running {evolution_mode} evolution with DTS-optimized strategy...")
+        
+        # Run appropriate evolution based on mode
+        # Strip parameters not supported by targeted evolution functions
+        evolution_func_params = enhanced_params.copy()
+        unsupported_params = ["selection_pressure", "mutation_rate", "crossover_rate", "elitism",
+                             "diversity_maintenance", "adaptive_parameters", "fitness_function"]
+        for p in unsupported_params:
+            if p in evolution_func_params:
+                del evolution_func_params[p]
+
+        if evolution_mode == "adversarial":
+            evolution_result = run_ultimate_adversarial_evolution(content, content_type, **evolution_func_params)
+        elif evolution_mode == "quality_diversity":
+            evolution_result = run_quality_diversity_evolution(content, content_type, **evolution_func_params)
+        elif evolution_mode == "multi_objective":
+            evolution_result = run_multi_objective_evolution(content, content_type, **evolution_func_params)
+        else:
+            evolution_result = run_comprehensive_evolution(content, content_type, **evolution_func_params)
+        
+        # Update result with evolution outcome
+        result["best_content"] = evolution_result.get("best_content", content)
+        result["evolution_metrics"] = evolution_result.get("metrics", {})
+        result["final_score"] = evolution_result.get("final_score", 0.0)
+        result["dts_available"] = True
+        result["fallback_used"] = False
+        result["evolution_result"] = evolution_result
+        result["dts_strategy_result"] = strategy_result
+        
+        # Calculate final score incorporating DTS confidence
+        dts_confidence = strategy_result.get("confidence", 0.7)
+        evolution_score = result["final_score"]
+        result["combined_score"] = (evolution_score * 0.7) + (dts_confidence * 100 * 0.3)
+        
+        return result
+        
+    except Exception as e:
+        logger.error(f"Error running DTS-enhanced evolution: {e}", exc_info=True)
+        # Fall back to standard evolution
+        _update_evolution_log_and_status("⚠️ DTS strategy exploration failed, using standard evolution...")
+        
+        # Strip parameters not supported by targeted evolution functions
+        evolution_func_params = evolution_params.copy()
+        unsupported_params = ["selection_pressure", "mutation_rate", "crossover_rate", "elitism",
+                             "diversity_maintenance", "adaptive_parameters", "fitness_function"]
+        for p in unsupported_params:
+            if p in evolution_func_params:
+                del evolution_func_params[p]
+
+        if evolution_mode == "adversarial":
+            evolution_result = run_ultimate_adversarial_evolution(content, content_type, **evolution_func_params)
+        elif evolution_mode == "quality_diversity":
+            evolution_result = run_quality_diversity_evolution(content, content_type, **evolution_func_params)
+        elif evolution_mode == "multi_objective":
+            evolution_result = run_multi_objective_evolution(content, content_type, **evolution_func_params)
+        else:
+            evolution_result = run_comprehensive_evolution(content, content_type, **evolution_func_params)
+        
+        result["best_content"] = evolution_result.get("best_content", content)
+        result["evolution_metrics"] = evolution_result.get("metrics", {})
+        result["final_score"] = evolution_result.get("final_score", 0.0)
+        result["dts_available"] = True  # DTS was available but failed
+        result["fallback_used"] = True
+        result["error"] = str(e)
+        result["evolution_result"] = evolution_result
+        
+        return result
+    
+    finally:
+        result["end_time"] = time.time()
+        result["total_duration"] = result["end_time"] - start_time
 
 
 def run_native_openevolve_with_workflow_enhancement(

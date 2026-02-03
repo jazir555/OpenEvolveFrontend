@@ -21,9 +21,9 @@ from enum import Enum
 # Import adaptive enhancement components
 try:
     from decomposition_engine_adaptive_enhancement import (
-        AdaptiveDecompositionEngine,
-        StrategySelector,
-        EnhancementConfig,
+        AdaptiveDecompositionEngineMixin,
+        select_decomposition_strategy_v3,
+        setup_adaptive_selection,
     )
     ADAPTIVE_ENHANCEMENT_AVAILABLE = True
 except ImportError as e:
@@ -33,9 +33,8 @@ except ImportError as e:
 # Import ROMA MDAP maker associative integration
 try:
     from roma_mdap_maker_associative_integration import (
-        AssociativeIntegrationEngine,
-        IntegrationPattern,
-        AssociativeConfig,
+        ROMAMDAPMakerAssociativeEngine,
+        create_romamdapmaker_associative_config,
     )
     ROMA_ASSOCIATIVE_AVAILABLE = True
 except ImportError as e:
@@ -45,9 +44,9 @@ except ImportError as e:
 # Import ROMA MDAP maker reliability SSOT
 try:
     from roma_mdap_maker_reliability_ssot import (
-        ReliabilitySSOT,
-        ReliabilityConfig,
-        SSOTManager,
+        get_reliability_config,
+        get_standard_config,
+        get_thorough_config,
     )
     ROMA_RELIABILITY_AVAILABLE = True
 except ImportError as e:
@@ -117,20 +116,26 @@ class AdaptiveDecompositionIntegration:
     def _initialize_components(self) -> None:
         """Initialize available components."""
         try:
+            # Initialize adaptive enhancement
             if ADAPTIVE_ENHANCEMENT_AVAILABLE and self.config.enable_adaptive_enhancement:
-                self.adaptive_engine = AdaptiveDecompositionEngine()
-                logger.info("Adaptive decomposition engine initialized")
-            
+                # Use setup function instead of direct class instantiation
+                self.adaptive_engine = setup_adaptive_selection()
+                logger.info("Adaptive decomposition selection initialized")
+
+            # Initialize ROMA associative integration
             if ROMA_ASSOCIATIVE_AVAILABLE and self.config.enable_associative_integration:
-                self.associative_engine = AssociativeIntegrationEngine()
-                logger.info("Associative integration engine initialized")
-            
+                config = create_romamdapmaker_associative_config()
+                self.associative_engine = ROMAMDAPMakerAssociativeEngine(config)
+                logger.info("ROMA associative integration engine initialized")
+
+            # Initialize reliability SSOT (use config function, not a class)
             if ROMA_RELIABILITY_AVAILABLE and self.config.enable_reliability_ssot:
-                self.reliability_ssot = ReliabilitySSOT()
-                logger.info("Reliability SSOT initialized")
-            
+                # Store the config function instead of instantiating a class
+                self.reliability_ssot = get_standard_config()
+                logger.info("Reliability SSOT config loaded")
+
             self.status = IntegrationStatus.READY
-            
+
         except (ImportError, AttributeError, TypeError) as e:
             logger.error(f"Failed to initialize components: {e}")
             self.status = IntegrationStatus.ERROR

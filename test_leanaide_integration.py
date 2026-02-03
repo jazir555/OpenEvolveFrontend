@@ -69,7 +69,8 @@ try:
         leanaide_generate_documentation,
         leanaide_elaborate_code,
         get_leanaide_status,
-        list_mcp_tools
+        list_mcp_tools,
+        get_mcp_tool
     )
 except ImportError:
     MCP_AVAILABLE = False
@@ -182,7 +183,7 @@ def mock_server_response():
 
 
 @pytest.fixture
-async def mock_client():
+def mock_client():
     """Mock LeanAide client for offline testing."""
     if not LEANAIDE_AVAILABLE:
         pytest.skip("LeanAide client not available")
@@ -279,19 +280,30 @@ class TestLeanAideClientHealthChecks:
     @pytest.mark.asyncio
     async def test_health_check_success(self, mock_client):
         """Test successful health check."""
+        from unittest.mock import MagicMock
+        
         # Mock successful response
         mock_response = MagicMock()
         mock_response.status = 200
-
+        
+        # Create async context manager for session.get
+        class AsyncMockContext:
+            async def __aenter__(self):
+                return mock_response
+            async def __aexit__(self, *args):
+                pass
+        
         async def mock_get(*args, **kwargs):
-            class MockContext:
-                async def __aenter__(self):
-                    return mock_response
-                async def __aexit__(self, *args):
-                    pass
-            return MockContext()
-
-        mock_client.session.get = mock_get
+            return AsyncMockContext()
+        
+        # Create a simple mock object that doesn't auto-create child mocks
+        class SimpleMockSession:
+            def __init__(self):
+                self.closed = False
+            def get(self, *args, **kwargs):
+                return mock_get(*args, **kwargs)
+        
+        mock_client._session = SimpleMockSession()
 
         result = await mock_client.health_check()
         assert result is True
@@ -299,11 +311,26 @@ class TestLeanAideClientHealthChecks:
     @pytest.mark.asyncio
     async def test_health_check_failure(self, mock_client):
         """Test failed health check."""
-        # Mock failed response
+        from unittest.mock import MagicMock
+        
+        # Create async context manager that raises exception
+        class AsyncMockContextError:
+            async def __aenter__(self):
+                raise Exception("Connection refused")
+            async def __aexit__(self, *args):
+                pass
+        
         async def mock_get(*args, **kwargs):
-            raise Exception("Connection refused")
-
-        mock_client.session.get = mock_get
+            return AsyncMockContextError()
+        
+        # Create a simple mock object that doesn't auto-create child mocks
+        class SimpleMockSession:
+            def __init__(self):
+                self.closed = False
+            def get(self, *args, **kwargs):
+                return mock_get(*args, **kwargs)
+        
+        mock_client._session = SimpleMockSession()
 
         result = await mock_client.health_check()
         assert result is False

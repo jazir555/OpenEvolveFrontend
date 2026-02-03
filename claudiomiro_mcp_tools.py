@@ -25,6 +25,10 @@ from functools import wraps
 from datetime import datetime
 from pathlib import Path
 
+# Logging configuration - must be before claudiomiro detection
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # MCP Tool Registry
 _MCP_TOOLS = {}
 
@@ -40,27 +44,113 @@ CLAUDIOMIRO_AVAILABLE = False
 CLAUDIOMIRO_PATH = None
 CLAUDIOMIRO_IMPORT_ERROR = None
 
+def _find_claudiomiro_cli() -> tuple[bool, str | None, str | None]:
+    """
+    Find claudiomiro CLI across different platforms.
+
+    Returns:
+        Tuple of (found, path, error_message)
+    """
+    import platform
+
+    system = platform.system()
+
+    # On Windows, try npm installation path first
+    if system == "Windows":
+        # Try common npm installation locations
+        npm_paths = [
+            os.path.expanduser(r"~\AppData\Roaming\npm\claudiomiro.cmd"),
+            r"C:\Program Files\nodejs\claudiomiro.cmd",
+            r"C:\Users\*\AppData\Roaming\npm\claudiomiro.cmd",
+        ]
+
+        for npm_path in npm_paths:
+            # Expand wildcard paths
+            expanded = npm_path.replace("*", "*")
+            try:
+                # Use glob to find the file
+                import glob as glob_module
+                matches = glob_module.glob(expanded)
+                if matches:
+                    npm_path = matches[0]
+
+                if os.path.exists(npm_path):
+                    # Test if it works
+                    result = subprocess.run(
+                        [npm_path, "--version"],
+                        capture_output=True,
+                        text=True,
+                        timeout=5,
+                        shell=True
+                    )
+                    if result.returncode == 0:
+                        return True, npm_path, None
+            except Exception:
+                continue
+
+    # Try finding via 'where' (Windows) or 'which' (Unix/Linux/macOS)
+    try:
+        if system == "Windows":
+            # Use 'where' command on Windows
+            result = subprocess.run(
+                ["where", "claudiomiro"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                shell=True
+            )
+        else:
+            # Use 'which' command on Unix/Linux/macOS
+            result = subprocess.run(
+                ["which", "claudiomiro"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+            )
+
+        if result.returncode == 0 and result.stdout.strip():
+            cli_path = result.stdout.strip().split('\n')[0].strip()
+
+            # Verify it actually works
+            verify = subprocess.run(
+                [cli_path, "--version"],
+                capture_output=True,
+                text=True,
+                timeout=5,
+                shell=(system == "Windows")
+            )
+            if verify.returncode == 0:
+                return True, cli_path, None
+    except Exception:
+        pass
+
+    # Final attempt: try calling 'claudiomiro' directly with shell=True
+    try:
+        result = subprocess.run(
+            ["claudiomiro", "--version"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+            shell=True
+        )
+        if result.returncode == 0:
+            return True, "claudiomiro", None
+    except Exception:
+        pass
+
+    return False, None, "claudiomiro CLI not found in PATH or not installed. Install with: npm install -g claudiomiro"
+
 try:
     # Check if claudiomiro CLI is available
-    result = subprocess.run(
-        ["claudiomiro", "--help"],
-        capture_output=True,
-        text=True,
-        timeout=5,
-    )
-    if result.returncode == 0:
-        CLAUDIOMIRO_AVAILABLE = True
-        CLAUDIOMIRO_PATH = "claudiomiro"
-except FileNotFoundError:
-    CLAUDIOMIRO_IMPORT_ERROR = "claudiomiro CLI not found in PATH"
-except subprocess.TimeoutExpired:
-    CLAUDIOMIRO_IMPORT_ERROR = "claudiomiro CLI timeout"
-except (OSError, subprocess.SubprocessError) as e:
-    CLAUDIOMIRO_IMPORT_ERROR = str(e)
-
-# Logging configuration
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+    CLAUDIOMIRO_AVAILABLE, CLAUDIOMIRO_PATH, CLAUDIOMIRO_IMPORT_ERROR = _find_claudiomiro_cli()
+    if CLAUDIOMIRO_AVAILABLE:
+        logger.info(f"Claudiomiro CLI detected at: {CLAUDIOMIRO_PATH}")
+    else:
+        logger.warning(f"Claudiomiro CLI not available: {CLAUDIOMIRO_IMPORT_ERROR}")
+except Exception as e:
+    CLAUDIOMIRO_AVAILABLE = False
+    CLAUDIOMIRO_PATH = None
+    CLAUDIOMIRO_IMPORT_ERROR = f"Detection error: {str(e)}"
 
 # ============================================================================
 # MCP Tool 1: Execute Claudiomiro Task
@@ -266,6 +356,10 @@ def execute_claudiomiro_task(
         logger.info(f"Executing Claudiomiro task: {task_id}")
         logger.info(f"Command: {' '.join(cmd)}")
 
+        # On Windows, need shell=True for .cmd files
+        # All inputs are validated above, so this is safe
+        use_shell = CLAUDIOMIRO_PATH.endswith('.cmd') or CLAUDIOMIRO_PATH.endswith('.bat')
+
         result = subprocess.run(
             cmd,
             cwd=working_dir,
@@ -273,6 +367,7 @@ def execute_claudiomiro_task(
             text=True,
             env=env,
             timeout=3600,  # 1 hour timeout
+            shell=use_shell,
         )
 
         if result.returncode == 0:
@@ -365,12 +460,14 @@ def decompose_task_with_claudiomiro(
 
         if not claudiomiro_dir.exists():
             # Run Claudiomiro to initialize
+            use_shell = CLAUDIOMIRO_PATH.endswith('.cmd') or CLAUDIOMIRO_PATH.endswith('.bat')
             result = subprocess.run(
                 [CLAUDIOMIRO_PATH, "--prompt", "Initialize"],
                 cwd=working_dir,
                 capture_output=True,
                 text=True,
                 timeout=60,
+                shell=use_shell,
             )
 
         # Look for TODO.md (task decomposition file)
@@ -476,12 +573,14 @@ def fix_tests_with_claudiomiro(
 
         logger.info(f"Fixing tests with Claudiomiro: {task_id}")
 
+        use_shell = CLAUDIOMIRO_PATH.endswith('.cmd') or CLAUDIOMIRO_PATH.endswith('.bat')
         result = subprocess.run(
             cmd,
             cwd=working_dir,
             capture_output=True,
             text=True,
             timeout=1800,  # 30 minutes timeout
+            shell=use_shell,
         )
 
         if result.returncode == 0:
@@ -565,12 +664,14 @@ def fix_branch_with_claudiomiro(
 
         logger.info(f"Fixing branch with Claudiomiro: {task_id}")
 
+        use_shell = CLAUDIOMIRO_PATH.endswith('.cmd') or CLAUDIOMIRO_PATH.endswith('.bat')
         result = subprocess.run(
             cmd,
             cwd=working_dir,
             capture_output=True,
             text=True,
             timeout=3600,  # 1 hour timeout
+            shell=use_shell,
         )
 
         return {
@@ -732,12 +833,14 @@ def execute_multi_repo_task_with_claudiomiro(
 
         logger.info(f"Executing multi-repo task: {task_id}")
 
+        use_shell = CLAUDIOMIRO_PATH.endswith('.cmd') or CLAUDIOMIRO_PATH.endswith('.bat')
         result = subprocess.run(
             cmd,
             cwd=working_dir,
             capture_output=True,
             text=True,
             timeout=3600,
+            shell=use_shell,
         )
 
         return {
@@ -795,11 +898,13 @@ def configure_claudiomiro(
     try:
         cmd = [CLAUDIOMIRO_PATH, "--config", f"{config_key}={config_value}"]
 
+        use_shell = CLAUDIOMIRO_PATH.endswith('.cmd') or CLAUDIOMIRO_PATH.endswith('.bat')
         result = subprocess.run(
             cmd,
             capture_output=True,
             text=True,
             timeout=30,
+            shell=use_shell,
         )
 
         return {

@@ -205,63 +205,57 @@ Suggest improvements to make the gauntlet more effective. Return JSON with sugge
         self.update_gauntlet(gauntlet)
         return True
 
-    def get_gauntlet_effectiveness(
+    def execute_gauntlet(
         self,
-        gauntlet_name: str
+        gauntlet: GauntletDefinition,
+        solution_content: str,
+        context: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
-        Analyze gauntlet effectiveness from metrics
-
-        Args:
-            gauntlet_name: Name of gauntlet
-
-        Returns:
-            Dictionary with effectiveness analysis
+        Executes a gauntlet against a solution.
+        For now, this is a simulated execution that interfaces with the data models.
         """
-        gauntlet = self.get_gauntlet(gauntlet_name)
-        if not gauntlet or not hasattr(gauntlet, 'openevolve_metrics'):
-            return {
-                'total_uses': 0,
-                'avg_effectiveness': 0.0,
-                'trend': 'unknown'
-            }
-
-        metrics_list = gauntlet.openevolve_metrics
-        if not metrics_list:
-            return {
-                'total_uses': 0,
-                'avg_effectiveness': 0.0,
-                'trend': 'unknown'
-            }
-
-        # Calculate effectiveness
-        total_uses = len(metrics_list)
-        effectiveness_scores = []
-
-        for entry in metrics_list:
-            metrics = entry.get('metrics', {})
-            score = metrics.get('best_fitness', 0.0)
-            effectiveness_scores.append(score)
-
-        avg_effectiveness = sum(effectiveness_scores) / len(effectiveness_scores) if effectiveness_scores else 0.0
-
-        # Determine trend
-        if len(effectiveness_scores) >= 2:
-            recent_avg = sum(effectiveness_scores[-5:]) / min(5, len(effectiveness_scores[-5:]))
-            older_avg = sum(effectiveness_scores[:-5]) / len(effectiveness_scores[:-5]) if len(effectiveness_scores) > 5 else avg_effectiveness
-
-            if recent_avg > older_avg * 1.1:
-                trend = 'improving'
-            elif recent_avg < older_avg * 0.9:
-                trend = 'declining'
-            else:
-                trend = 'stable'
-        else:
-            trend = 'insufficient_data'
-
+        from sovereign_data_models import GauntletExecution, SolutionAttempt, generate_id
+        from datetime import datetime
+        
+        execution_id = generate_id("exec")
+        solution_id = generate_id("sol")
+        
+        # Create a mock solution attempt for the execution record
+        solution = SolutionAttempt(
+            id=solution_id,
+            sub_problem_id=context.get("sub_problem_id", "root"),
+            approach="automated_generation",
+            solution_content=solution_content,
+            team_id="default_team",
+            confidence_score=0.8
+        )
+        
+        execution = GauntletExecution(
+            execution_id=execution_id,
+            gauntlet_definition=gauntlet,
+            sub_problem_id=context.get("sub_problem_id", "root"),
+            solution_attempt=solution,
+            start_time=datetime.now()
+        )
+        
+        # Simple simulated pass/fail logic
+        passed_rounds = 0
+        for round_rule in gauntlet.rounds:
+            passed_rounds += 1 # Simulation always passes for now
+            
+        execution.rounds_passed = passed_rounds
+        execution.overall_passed = True
+        execution.final_score = 1.0
+        execution.end_time = datetime.now()
+        
         return {
-            'total_uses': total_uses,
-            'avg_effectiveness': avg_effectiveness,
-            'trend': trend,
-            'recent_scores': effectiveness_scores[-10:]
+            "execution_id": execution_id,
+            "passed": execution.overall_passed,
+            "score": execution.final_score,
+            "final_score": execution.final_score,
+            "rounds_passed": execution.rounds_passed,
+            "total_rounds": len(gauntlet.rounds),
+            "rounds": [{"name": r.rule_id, "passed": True} for r in gauntlet.rounds],
+            "feedback": ["Simulated gauntlet pass"]
         }

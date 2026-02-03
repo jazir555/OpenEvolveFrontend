@@ -10,6 +10,21 @@ import uuid
 from typing import Dict, List, Any, Optional, Tuple
 import json
 import numpy as np
+import logging
+
+# Try to import DSPy for enhanced prompting
+try:
+    import dspy
+    from dspy.teleprompt import BootstrapFewShot
+    from dspy.predict import Predict
+    DSPY_AVAILABLE = True
+    logging.getLogger(__name__).info("DSPy available for enhanced programmatic prompting")
+except ImportError:
+    dspy = None
+    BootstrapFewShot = None
+    Predict = None
+    DSPY_AVAILABLE = False
+    logging.getLogger(__name__).warning("DSPy not available - using standard prompting methods")
 
 from workflow_structures import (
     SolutionPatternArtifact,
@@ -518,6 +533,46 @@ class SolutionPatternMiner:
         Returns:
             Description string
         """
+        # Try to use DSPy for enhanced description generation if available
+        if DSPY_AVAILABLE:
+            try:
+                # Define a DSPy signature for cluster description generation
+                class ClusterDescriptionSignature(dspy.Signature):
+                    """Generate a human-readable description of a solution pattern cluster."""
+                    cluster_analysis = dspy.InputField(desc="Dictionary with cluster analysis results")
+                    cluster_patterns = dspy.InputField(desc="List of patterns in the cluster")
+
+                    cluster_description = dspy.OutputField(desc="Human-readable description of the cluster")
+
+                # Create a predictor
+                generate_description = dspy.Predict(ClusterDescriptionSignature)
+
+                # Prepare input data
+                cluster_analysis_str = json.dumps({
+                    "size": analysis.get("size", 0),
+                    "avg_complexity": analysis.get("avg_complexity", 0),
+                    "avg_success_rate": analysis.get("avg_success_rate", 0),
+                    "most_common_domain": analysis.get("most_common_domain", ""),
+                    "most_common_strategy": analysis.get("most_common_strategy", ""),
+                    "common_characteristics": analysis.get("common_characteristics", [])
+                }, default=str)
+
+                patterns_summary = [f"Pattern {i+1}: {getattr(p, 'title', 'Unknown')}" for i, p in enumerate(patterns[:5])]  # Limit to first 5 patterns
+
+                # Run DSPy prediction
+                result = generate_description(
+                    cluster_analysis=cluster_analysis_str,
+                    cluster_patterns=str(patterns_summary)
+                )
+
+                # Return DSPy-generated description if successful
+                if result and hasattr(result, 'cluster_description') and result.cluster_description:
+                    return result.cluster_description
+
+            except Exception as e:
+                logging.getLogger(__name__).warning(f"DSPy cluster description generation failed: {e}")
+
+        # Fallback to traditional method
         parts = []
 
         # Domain and strategy
@@ -545,6 +600,190 @@ class SolutionPatternMiner:
             parts.append(f"Common traits: {', '.join(top_chars)}")
 
         return ". ".join(parts) + "."
+
+    def mine_patterns_with_dspy(
+        self,
+        patterns: Optional[List[SolutionPatternArtifact]] = None,
+        n_clusters: Optional[int] = None,
+        use_clustering_analysis: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Mine solution patterns using DSPy for enhanced analysis and clustering.
+
+        Args:
+            patterns: Optional list of patterns (if None, loads from database)
+            n_clusters: Number of clusters (if None, uses default)
+            use_clustering_analysis: Whether to use DSPy for enhanced cluster analysis
+
+        Returns:
+            Dictionary with enhanced clustering results
+        """
+        if not DSPY_AVAILABLE:
+            logging.getLogger(__name__).info("DSPy not available, falling back to standard mining")
+            return self.fit(patterns)
+
+        try:
+            # Load patterns if not provided
+            if patterns is None:
+                patterns = self.artifact_manager.list_solution_patterns(limit=10000)
+
+            if len(patterns) < 2:
+                return {"status": "error", "message": "Not enough patterns for clustering"}
+
+            # Extract features
+            features = self._extract_features(patterns)
+            print(f"Extracted features with DSPy enhancement: {features.shape}")
+
+            # Reduce dimensions
+            if self.dimensionality_reduction:
+                reduced_features = self._reduce_dimensions(features)
+                print(f"Reduced dimensions: {reduced_features.shape}")
+            else:
+                reduced_features = features
+
+            # Cluster patterns
+            cluster_labels = self._cluster_patterns(reduced_features)
+            print(f"Clustered patterns into {len(set(cluster_labels))} clusters")
+
+            # Use DSPy for enhanced cluster analysis if requested
+            if use_clustering_analysis:
+                cluster_analysis = self._analyze_clusters_with_dspy(patterns, cluster_labels, reduced_features)
+            else:
+                cluster_analysis = self._analyze_clusters(patterns, cluster_labels, reduced_features)
+
+            return {
+                "status": "success",
+                "n_patterns": len(patterns),
+                "n_clusters": len(set(cluster_labels)),
+                "cluster_labels": cluster_labels.tolist(),
+                "cluster_analysis": cluster_analysis,
+                "dspy_enhanced": True,
+            }
+        except Exception as e:
+            logging.getLogger(__name__).warning(f"DSPy pattern mining failed, falling back to standard: {e}")
+            return self.fit(patterns)
+
+    def _analyze_clusters_with_dspy(self, patterns: List[SolutionPatternArtifact], labels: np.ndarray, features: np.ndarray) -> List[Dict[str, Any]]:
+        """
+        Analyze clusters using DSPy for enhanced insights.
+
+        Args:
+            patterns: List of patterns
+            labels: Cluster labels
+            features: Feature matrix
+
+        Returns:
+            List of enhanced cluster analyses
+        """
+        clusters = {}
+        for pattern, label in zip(patterns, labels):
+            if label not in clusters:
+                clusters[label] = []
+            clusters[label].append(pattern)
+
+        analyses = []
+        for cluster_id, cluster_patterns in clusters.items():
+            analysis = {
+                "cluster_id": int(cluster_id),
+                "size": len(cluster_patterns),
+                "patterns": [p.artifact_id for p in cluster_patterns],
+            }
+
+            # Calculate cluster statistics
+            analysis["avg_complexity"] = float(np.mean([p.complexity for p in cluster_patterns]))
+            analysis["avg_success_rate"] = float(np.mean([p.success_rate for p in cluster_patterns]))
+            analysis["avg_confidence"] = float(np.mean([p.confidence for p in cluster_patterns]))
+
+            # Most common domain
+            domains = [p.domain for p in cluster_patterns]
+            if domains:
+                analysis["most_common_domain"] = max(set(domains), key=domains.count)
+            else:
+                analysis["most_common_domain"] = ""
+
+            # Most common strategy
+            strategies = [p.decomposition_strategy for p in cluster_patterns]
+            if strategies:
+                analysis["most_common_strategy"] = max(set(strategies), key=strategies.count)
+            else:
+                analysis["most_common_strategy"] = ""
+
+            # Common problem characteristics
+            all_characteristics = []
+            for p in cluster_patterns:
+                all_characteristics.extend(p.problem_characteristics)
+            # Count characteristics
+            char_counts = {}
+            for char in all_characteristics:
+                char_counts[char] = char_counts.get(char, 0) + 1
+            analysis["common_characteristics"] = sorted(char_counts.items(), key=lambda x: x[1], reverse=True)[:5]
+
+            # Use DSPy for enhanced description generation
+            try:
+                # Define a DSPy signature for cluster analysis
+                class ClusterAnalysisSignature(dspy.Signature):
+                    """Analyze a cluster of solution patterns to extract insights."""
+                    cluster_patterns = dspy.InputField(desc="List of patterns in the cluster")
+                    cluster_statistics = dspy.InputField(desc="Basic statistics about the cluster")
+
+                    cluster_insights = dspy.OutputField(desc="Key insights about the cluster")
+                    improvement_opportunities = dspy.OutputField(desc="Opportunities for improvement")
+                    pattern_categories = dspy.OutputField(desc="Categories of patterns in the cluster")
+                    success_factors = dspy.OutputField(desc="Factors contributing to success")
+
+                # Create a predictor
+                analyze_cluster = dspy.Predict(ClusterAnalysisSignature)
+
+                # Prepare input data
+                patterns_info = [
+                    {
+                        "title": getattr(p, 'title', ''),
+                        "domain": getattr(p, 'domain', ''),
+                        "strategy": getattr(p, 'decomposition_strategy', ''),
+                        "complexity": getattr(p, 'complexity', 0),
+                        "success_rate": getattr(p, 'success_rate', 0),
+                        "confidence": getattr(p, 'confidence', 0)
+                    }
+                    for p in cluster_patterns
+                ]
+
+                stats_info = {
+                    "size": analysis["size"],
+                    "avg_complexity": analysis["avg_complexity"],
+                    "avg_success_rate": analysis["avg_success_rate"],
+                    "avg_confidence": analysis["avg_confidence"],
+                    "most_common_domain": analysis["most_common_domain"],
+                    "most_common_strategy": analysis["most_common_strategy"]
+                }
+
+                # Run DSPy analysis
+                result = analyze_cluster(
+                    cluster_patterns=json.dumps(patterns_info, default=str),
+                    cluster_statistics=json.dumps(stats_info, default=str)
+                )
+
+                # Add DSPy-enhanced analysis
+                analysis["dspy_analysis"] = {
+                    "insights": getattr(result, 'cluster_insights', 'Not available'),
+                    "improvement_opportunities": getattr(result, 'improvement_opportunities', 'Not available'),
+                    "pattern_categories": getattr(result, 'pattern_categories', 'Not available'),
+                    "success_factors": getattr(result, 'success_factors', 'Not available')
+                }
+            except Exception as e:
+                logging.getLogger(__name__).warning(f"DSPy cluster analysis failed for cluster {cluster_id}: {e}")
+                analysis["dspy_analysis"] = {
+                    "insights": "DSPy analysis not available",
+                    "improvement_opportunities": "DSPy analysis not available",
+                    "pattern_categories": "DSPy analysis not available",
+                    "success_factors": "DSPy analysis not available"
+                }
+
+            # Generate cluster description (this will use DSPy if available)
+            analysis["description"] = self._generate_cluster_description(analysis, cluster_patterns)
+
+            analyses.append(analysis)
+
+        return analyses
 
     def find_similar_patterns(self, pattern: SolutionPatternArtifact, n_neighbors: int = 5) -> List[Tuple[SolutionPatternArtifact, float]]:
         """

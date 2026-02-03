@@ -2135,5 +2135,318 @@ def stop_api_server():
         server.should_exit = True
         server.force_exit = True
 
+# PyGraphistry Visualization Endpoint for BubbleLab Integration
+
+class PyGraphistryVisualizationRequest(BaseModel):
+    """Request model for PyGraphistry visualization."""
+    nodes: List[Dict[str, Any]]
+    edges: List[Dict[str, Any]]
+    config: Optional[Dict[str, Any]] = None
+
+
+@app.post("/api/openevolve/visualize/pygraphistry", dependencies=[Depends(verify_api_key)])
+async def get_pygraphistry_visualization(request: PyGraphistryVisualizationRequest, user: AuthUser = Depends(verify_api_key)):
+    """
+    Get a PyGraphistry visualization for knowledge graph data.
+    This endpoint is specifically designed for BubbleLab integration.
+
+    Args:
+        request: Request body containing nodes and edges data
+        user: Authenticated user information
+
+    Returns:
+        Dictionary with visualization URL or path
+    """
+    try:
+        from openevolve_visualization import get_pygraphistry_viz
+
+        # Call the visualization function with nodes and edges from request
+        result = get_pygraphistry_viz(request.nodes, request.edges, request.config)
+
+        if result:
+            record_audit_event(
+                user=user,
+                operation="VISUALIZE_PYGRAPHISTRY",
+                resource="visualization",
+                resource_id="pygraphistry_viz",
+                success=True
+            )
+            return {
+                "status": "success",
+                "visualization_url": result,
+                "message": "PyGraphistry visualization generated successfully"
+            }
+        else:
+            record_audit_event(
+                user=user,
+                operation="VISUALIZE_PYGRAPHISTRY_FAILED",
+                resource="visualization",
+                resource_id="pygraphistry_viz",
+                success=False
+            )
+            return {
+                "status": "error",
+                "message": "Failed to generate PyGraphistry visualization"
+            }
+
+    except ImportError as e:
+        logger.error(f"PyGraphistry import error: {e}")
+        return {
+            "status": "error",
+            "message": "PyGraphistry integration not available"
+        }
+    except Exception as e:
+        logger.error(f"Error in PyGraphistry visualization endpoint: {e}")
+        record_audit_event(
+            user=user,
+            operation="VISUALIZE_PYGRAPHISTRY_ERROR",
+            resource="visualization",
+            resource_id="pygraphistry_viz",
+            success=False,
+            details={"error": str(e)}
+        )
+        return {
+            "status": "error",
+            "message": f"Error generating visualization: {str(e)}"
+        }
+
+
+# =============================================================================
+# RAGBITS INTEGRATION ENDPOINTS
+# =============================================================================
+
+class RAGBitsSearchRequest(BaseModel):
+    """Request model for RAGBits search."""
+    query: str = Field(..., description="Search query")
+    top_k: int = Field(5, ge=1, le=100, description="Number of results to return")
+    filters: Optional[Dict[str, Any]] = Field(None, description="Metadata filters")
+    min_score: float = Field(0.0, ge=0.0, le=1.0, description="Minimum similarity score")
+
+
+class RAGBitsIngestRequest(BaseModel):
+    """Request model for RAGBits ingest."""
+    content: str = Field(..., description="Document content")
+    metadata: Optional[Dict[str, Any]] = Field(None, description="Document metadata")
+    source: str = Field("manual", description="Document source identifier")
+
+
+@app.post("/openevolve/ragbits/search", dependencies=[Depends(verify_api_key)])
+async def ragbits_search(request: RAGBitsSearchRequest, user: AuthUser = Depends(verify_api_key)):
+    """
+    Search documents using RAGBits semantic search.
+
+    Args:
+        request: Search request containing query and parameters
+        user: Authenticated user information
+
+    Returns:
+        Search results from RAGBits
+    """
+    try:
+        from knowledge_engine.ragbits_retriever import get_ragbits_retriever
+
+        retriever = get_ragbits_retriever()
+
+        # Perform search
+        results = await retriever.search_similar_solutions(
+            query=request.query,
+            top_k=request.top_k,
+            filters=request.filters,
+            enable_hybrid_search=True
+        )
+
+        record_audit_event(
+            user=user,
+            operation="RAGBITS_SEARCH",
+            resource="ragbits",
+            resource_id="search",
+            success=True
+        )
+
+        return {
+            "status": "success",
+            "results": results,
+            "total_results": len(results),
+            "query": request.query
+        }
+
+    except ImportError:
+        error_msg = "RAGBits integration not available"
+        logger.error(error_msg)
+        record_audit_event(
+            user=user,
+            operation="RAGBITS_SEARCH_FAILED",
+            resource="ragbits",
+            resource_id="search",
+            success=False,
+            details={"error": error_msg}
+        )
+        return {
+            "status": "error",
+            "message": error_msg
+        }
+    except Exception as e:
+        error_msg = f"Error performing RAGBits search: {str(e)}"
+        logger.error(error_msg)
+        record_audit_event(
+            user=user,
+            operation="RAGBITS_SEARCH_ERROR",
+            resource="ragbits",
+            resource_id="search",
+            success=False,
+            details={"error": str(e)}
+        )
+        return {
+            "status": "error",
+            "message": error_msg
+        }
+
+
+@app.post("/openevolve/ragbits/ingest", dependencies=[Depends(verify_api_key)])
+async def ragbits_ingest(request: RAGBitsIngestRequest, user: AuthUser = Depends(verify_api_key)):
+    """
+    Ingest a document into the RAGBits system.
+
+    Args:
+        request: Ingest request containing content and metadata
+        user: Authenticated user information
+
+    Returns:
+        Ingestion result
+    """
+    try:
+        from knowledge_engine.ragbits_document_processor import RAGBitsDocumentProcessor, RAGBitsProcessorConfig
+
+        # Initialize processor
+        config = RAGBitsProcessorConfig()
+        processor = RAGBitsDocumentProcessor(config)
+        await processor.initialize()
+
+        # Ingest document
+        result = await processor.ingest_text(
+            text=request.content,
+            metadata=request.metadata,
+            source=request.source
+        )
+
+        record_audit_event(
+            user=user,
+            operation="RAGBITS_INGEST",
+            resource="ragbits",
+            resource_id=result.document_id,
+            success=result.success
+        )
+
+        return {
+            "status": "success" if result.success else "error",
+            "document_id": result.document_id,
+            "chunks_ingested": result.chunks_ingested,
+            "processing_time": result.processing_time,
+            "error": result.error
+        }
+
+    except ImportError:
+        error_msg = "RAGBits integration not available"
+        logger.error(error_msg)
+        record_audit_event(
+            user=user,
+            operation="RAGBITS_INGEST_FAILED",
+            resource="ragbits",
+            resource_id="ingest",
+            success=False,
+            details={"error": error_msg}
+        )
+        return {
+            "status": "error",
+            "message": error_msg
+        }
+    except Exception as e:
+        error_msg = f"Error ingesting document to RAGBits: {str(e)}"
+        logger.error(error_msg)
+        record_audit_event(
+            user=user,
+            operation="RAGBITS_INGEST_ERROR",
+            resource="ragbits",
+            resource_id="ingest",
+            success=False,
+            details={"error": str(e)}
+        )
+        return {
+            "status": "error",
+            "message": error_msg
+        }
+
+
+@app.get("/openevolve/ragbits/stats", dependencies=[Depends(verify_api_key)])
+async def ragbits_stats(user: AuthUser = Depends(verify_api_key)):
+    """
+    Get RAGBits system statistics.
+
+    Args:
+        user: Authenticated user information
+
+    Returns:
+        System statistics
+    """
+    try:
+        from knowledge_engine.ragbits_document_processor import RAGBitsDocumentProcessor, RAGBitsProcessorConfig
+        from knowledge_engine.ragbits_retriever import get_ragbits_retriever
+
+        # Get processor stats
+        config = RAGBitsProcessorConfig()
+        processor = RAGBitsDocumentProcessor(config)
+        await processor.initialize()
+        processor_stats = await processor.get_statistics()
+
+        # Get retriever stats
+        retriever = get_ragbits_retriever()
+        retriever_stats = await retriever.get_statistics()
+
+        record_audit_event(
+            user=user,
+            operation="RAGBITS_STATS",
+            resource="ragbits",
+            resource_id="stats",
+            success=True
+        )
+
+        return {
+            "status": "success",
+            "processor": processor_stats,
+            "retriever": retriever_stats
+        }
+
+    except ImportError:
+        error_msg = "RAGBits integration not available"
+        logger.error(error_msg)
+        record_audit_event(
+            user=user,
+            operation="RAGBITS_STATS_FAILED",
+            resource="ragbits",
+            resource_id="stats",
+            success=False,
+            details={"error": error_msg}
+        )
+        return {
+            "status": "error",
+            "message": error_msg
+        }
+    except Exception as e:
+        error_msg = f"Error getting RAGBits stats: {str(e)}"
+        logger.error(error_msg)
+        record_audit_event(
+            user=user,
+            operation="RAGBITS_STATS_ERROR",
+            resource="ragbits",
+            resource_id="stats",
+            success=False,
+            details={"error": str(e)}
+        )
+        return {
+            "status": "error",
+            "message": error_msg
+        }
+
+
 if __name__ == "__main__":
     start_api_server()

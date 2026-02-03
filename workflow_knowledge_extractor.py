@@ -58,6 +58,17 @@ except ImportError:
     ACEClient = Any
     logging.warning("ACE client not available. Install ace_client for enhanced extraction.")
 
+# Optional DSPy import
+try:
+    import dspy
+    from dspy.teleprompt import BootstrapFewShot
+    DSPY_AVAILABLE = True
+except ImportError:
+    dspy = None
+    BootstrapFewShot = None
+    DSPY_AVAILABLE = False
+    logging.warning("DSPy not available. Install dspy for enhanced programmatic prompting.")
+
 # Optional knowledge engine import
 try:
     from knowledge_engine.orchestration import KnowledgeEngine
@@ -116,7 +127,7 @@ class KnowledgeArtifactManager:
         """Retrieve an artifact by ID."""
         return self.artifacts.get(artifact_id)
     
-    def search_artifacts(self, artifact_type: Optional[str] = None, 
+    def search_artifacts(self, artifact_type: Optional[str] = None,
                         domain: Optional[str] = None) -> List[KnowledgeArtifact]:
         """Search artifacts by type and/or domain."""
         results = []
@@ -127,6 +138,21 @@ class KnowledgeArtifactManager:
                 continue
             results.append(artifact)
         return results
+
+    def list_solution_patterns(self, limit: int = 100) -> List[SolutionPatternArtifact]:
+        """List solution pattern artifacts."""
+        patterns = list(self.solution_patterns.values())
+        return patterns[:limit]
+
+    def list_team_performance(self, limit: int = 100) -> List[TeamPerformanceArtifact]:
+        """List team performance artifacts."""
+        performances = list(self.team_performances.values())
+        return performances[:limit]
+
+    def list_gauntlet_effectiveness(self, limit: int = 100) -> List[GauntletEffectivenessArtifact]:
+        """List gauntlet effectiveness artifacts."""
+        effectiveness = list(self.gauntlet_effectiveness.values())
+        return effectiveness[:limit]
 
 
 class WorkflowKnowledgeExtractor:
@@ -909,8 +935,315 @@ reusable_patterns, adaptation_recommendations.
                 return self.ace_client.complete(prompt)
         except Exception as e:
             logger.warning(f"LLM call failed: {e}")
-        
+
         return None
+
+    def _call_dspy(self, prompt: str, signature=None):
+        """
+        Call DSPy for enhanced extraction with programmatic prompting.
+
+        Args:
+            prompt: Input prompt for DSPy
+            signature: Optional DSPy signature for specific task
+
+        Returns:
+            DSPy prediction result or None if DSPy is not available
+        """
+        if not DSPY_AVAILABLE:
+            return None
+
+        try:
+            # If no specific signature provided, create a generic one
+            if signature is None:
+                class GenericSignature(dspy.Signature):
+                    """Generic extraction signature for various knowledge extraction tasks."""
+                    context = dspy.InputField(desc="Context for extraction")
+                    question = dspy.InputField(desc="Specific extraction question")
+                    answer = dspy.OutputField(desc="Extraction result in structured format")
+
+                # Create a predictor with the signature
+                predictor = dspy.Predict(GenericSignature)
+
+                # Run the prediction
+                result = predictor(context=prompt, question="Extract relevant information")
+                return result.answer
+            else:
+                # Use provided signature
+                predictor = dspy.Predict(signature)
+                result = predictor(**signature)
+                return result
+
+        except Exception as e:
+            logger.warning(f"DSPy call failed: {e}")
+            return None
+
+    def _create_dspy_solution_pattern_signature(self):
+        """
+        Create a DSPy signature for extracting solution patterns.
+
+        Returns:
+            DSPy signature for solution pattern extraction
+        """
+        if not DSPY_AVAILABLE:
+            return None
+
+        class SolutionPatternSignature(dspy.Signature):
+            """Extract solution patterns from workflow execution data."""
+            problem_statement = dspy.InputField(desc="Original problem statement")
+            decomposition_strategy = dspy.InputField(desc="Decomposition strategy used (ROMA/MAKER/MDAP)")
+            final_solution = dspy.InputField(desc="Final solution code/text")
+            success = dspy.InputField(desc="Whether the solution was successful (true/false)")
+
+            problem_characteristics = dspy.OutputField(desc="List of problem characteristics (domain, complexity, constraints)")
+            solution_approach = dspy.OutputField(desc="High-level solution approach")
+            code_patterns = dspy.OutputField(desc="Key code patterns used")
+            optimization_techniques = dspy.OutputField(desc="Optimization techniques applied")
+            typical_refinements = dspy.OutputField(desc="Typical refinements needed")
+            domain = dspy.OutputField(desc="Problem domain (algorithms, data_structures, etc.)")
+            complexity = dspy.OutputField(desc="Complexity rating (1-10)")
+
+        return SolutionPatternSignature
+
+    def _create_dspy_decomposition_signature(self):
+        """
+        Create a DSPy signature for extracting decomposition strategies.
+
+        Returns:
+            DSPy signature for decomposition strategy extraction
+        """
+        if not DSPY_AVAILABLE:
+            return None
+
+        class DecompositionSignature(dspy.Signature):
+            """Extract decomposition strategies from workflow execution data."""
+            problem_statement = dspy.InputField(desc="Original problem statement")
+            strategy = dspy.InputField(desc="Decomposition strategy used")
+            framework = dspy.InputField(desc="Framework used (ROMA/MAKER/MDAP)")
+            num_sub_problems = dspy.InputField(desc="Number of sub-problems created")
+            success = dspy.InputField(desc="Whether the decomposition was successful (true/false)")
+
+            strategy_insights = dspy.OutputField(desc="Key insights about the decomposition strategy")
+            effectiveness_score = dspy.OutputField(desc="Effectiveness score (0.0-1.0)")
+            improvement_suggestions = dspy.OutputField(desc="Suggestions for improving the strategy")
+
+        return DecompositionSignature
+
+
+class DSPySolutionPatternExtractor:
+    """
+    DSPy-based extractor for solution patterns from successful solutions.
+
+    This class leverages DSPy's programmatic prompting capabilities to extract
+    solution patterns from successful solution attempts with improved consistency
+    and performance compared to traditional prompting approaches.
+    """
+
+    def __init__(self, model_name: str = "gpt-4o-mini", ace_client: Optional[Any] = None):
+        """
+        Initialize the DSPy-based solution pattern extractor.
+
+        Args:
+            model_name: Name of the LLM to use with DSPy
+            ace_client: Optional ACE client for fallback
+        """
+        self.model_name = model_name
+        self.ace_client = ace_client
+
+        if DSPY_AVAILABLE:
+            # Set up DSPy with the specified model
+            try:
+                # Use LiteLLM for flexibility with different models
+                dspy.settings.configure(lm=dspy.LM(model=model_name))
+            except Exception as e:
+                logger.warning(f"Failed to configure DSPy with model {model_name}: {e}")
+                # Try to configure with a default model
+                try:
+                    dspy.settings.configure(lm=dspy.LM(model="gpt-4o-mini"))
+                except:
+                    logger.warning("Could not configure DSPy LLM, will use fallback methods")
+        else:
+            logger.warning("DSPy not available, using fallback extraction methods")
+
+    def extract_solution_patterns(self, solutions: List[SolutionAttempt]) -> List[SolutionPatternArtifact]:
+        """
+        Extract solution patterns from a list of solutions using DSPy.
+
+        Args:
+            solutions: List of solution attempts to analyze
+
+        Returns:
+            List of SolutionPatternArtifacts
+        """
+        if not DSPY_AVAILABLE:
+            # Fallback to basic extraction
+            return self._extract_with_fallback(solutions)
+
+        patterns = []
+        for solution in solutions:
+            if not solution:
+                continue
+
+            # Filter for high-quality solutions (>0.8 score)
+            quality_score = getattr(solution, 'quality_score', 0.0)
+            if quality_score < 0.8:
+                continue
+
+            pattern = self._dspy_analyze_solution_pattern(solution)
+            if pattern:
+                patterns.append(pattern)
+
+        return patterns
+
+    def _dspy_analyze_solution_pattern(self, solution: SolutionAttempt) -> Optional[SolutionPatternArtifact]:
+        """
+        Analyze a single solution to extract its pattern using DSPy.
+
+        Args:
+            solution: The solution attempt to analyze
+
+        Returns:
+            SolutionPatternArtifact if analysis successful
+        """
+        if not DSPY_AVAILABLE:
+            return None
+
+        try:
+            # Define the DSPy signature for solution pattern extraction
+            class SolutionPatternSignature(dspy.Signature):
+                """Extract solution patterns from workflow execution data."""
+                problem_statement = dspy.InputField(desc="Original problem statement")
+                decomposition_strategy = dspy.InputField(desc="Decomposition strategy used (ROMA/MAKER/MDAP)")
+                final_solution = dspy.InputField(desc="Final solution code/text")
+                success = dspy.InputField(desc="Whether the solution was successful (true/false)")
+
+                problem_characteristics = dspy.OutputField(desc="List of problem characteristics (domain, complexity, constraints)")
+                solution_approach = dspy.OutputField(desc="High-level solution approach")
+                code_patterns = dspy.OutputField(desc="Key code patterns used")
+                optimization_techniques = dspy.OutputField(desc="Optimization techniques applied")
+                typical_refinements = dspy.OutputField(desc="Typical refinements needed")
+                domain = dspy.OutputField(desc="Problem domain (algorithms, data_structures, etc.)")
+                complexity = dspy.OutputField(desc="Complexity rating (1-10)")
+
+            # Create predictor
+            predictor = dspy.Predict(SolutionPatternSignature)
+
+            # Prepare inputs
+            problem_statement = getattr(solution, 'problem_statement', 'Unknown problem')
+            decomposition_strategy = getattr(solution, 'decomposition_strategy', 'Unknown')
+            final_code = getattr(solution, 'final_code', '')
+            success = str(getattr(solution, 'is_successful', False))
+
+            # Run prediction
+            result = predictor(
+                problem_statement=problem_statement,
+                decomposition_strategy=decomposition_strategy,
+                final_solution=final_code,
+                success=success
+            )
+
+            # Create the artifact from DSPy results
+            content = {
+                "code_language": getattr(solution, 'code_language', 'python'),
+                "solution_quality": getattr(solution, 'quality_score', 0.0),
+                "approach": getattr(solution, 'approach_description', ''),
+                "complexity": getattr(solution, 'complexity_score', 5),
+                "dspy_analysis": {
+                    "problem_characteristics": result.problem_characteristics,
+                    "solution_approach": result.solution_approach,
+                    "code_patterns": result.code_patterns,
+                    "optimization_techniques": result.optimization_techniques,
+                    "typical_refinements": result.typical_refinements,
+                    "domain": result.domain,
+                    "complexity": result.complexity
+                }
+            }
+
+            artifact = SolutionPatternArtifact(
+                artifact_id=f"dspy_solution_pattern_{uuid.uuid4().hex[:16]}",
+                artifact_type="solution_pattern",
+                source_workflow_id=getattr(solution, 'workflow_id', 'unknown'),
+                source_stage=3,
+                timestamp=datetime.now(),
+                confidence=getattr(solution, 'quality_score', 0.8),
+                title=f"DSPy Solution Pattern: {getattr(solution, 'approach_type', 'General')}",
+                description=getattr(solution, 'approach_description', 'Solution pattern extracted using DSPy'),
+                content=content,
+                pattern_category=getattr(solution, 'approach_type', 'general'),
+                problem_domains=[result.domain if hasattr(result, 'domain') and result.domain else getattr(solution, 'domain', 'general')],
+                approach_signature={
+                    "quality_score": getattr(solution, 'quality_score', 0.0),
+                    "complexity": int(result.complexity) if hasattr(result, 'complexity') and result.complexity.isdigit() else getattr(solution, 'complexity_score', 5),
+                    "language": getattr(solution, 'code_language', 'python'),
+                },
+                success_rate=1.0 if getattr(solution, 'is_successful', False) else 0.5,
+                avg_execution_time=getattr(solution, 'execution_time', 0.0),
+                tags=["dspy_solution_pattern", getattr(solution, 'code_language', 'python'),
+                      getattr(solution, 'approach_type', 'general'), "dspy_enhanced"],
+            )
+
+            return artifact
+
+        except Exception as e:
+            logger.warning(f"DSPy solution pattern analysis failed: {e}")
+            # Fallback to basic extraction
+            if self.ace_client:
+                return self._extract_with_fallback([solution])[0] if self._extract_with_fallback([solution]) else None
+            return None
+
+    def _extract_with_fallback(self, solutions: List[SolutionAttempt]) -> List[SolutionPatternArtifact]:
+        """
+        Fallback extraction method when DSPy is not available.
+
+        Args:
+            solutions: List of solution attempts to analyze
+
+        Returns:
+            List of SolutionPatternArtifacts
+        """
+        # Simple fallback extraction
+        patterns = []
+        for solution in solutions:
+            if not solution:
+                continue
+
+            quality_score = getattr(solution, 'quality_score', 0.0)
+            if quality_score < 0.8:
+                continue
+
+            content = {
+                "code_language": getattr(solution, 'code_language', 'python'),
+                "solution_quality": quality_score,
+                "approach": getattr(solution, 'approach_description', ''),
+                "complexity": getattr(solution, 'complexity_score', 5),
+                "fallback_extraction": True
+            }
+
+            artifact = SolutionPatternArtifact(
+                artifact_id=f"fallback_solution_pattern_{uuid.uuid4().hex[:16]}",
+                artifact_type="solution_pattern",
+                source_workflow_id=getattr(solution, 'workflow_id', 'unknown'),
+                source_stage=3,
+                timestamp=datetime.now(),
+                confidence=quality_score,
+                title=f"Fallback Solution Pattern: {getattr(solution, 'approach_type', 'General')}",
+                description=getattr(solution, 'approach_description', 'Solution pattern extracted using fallback method'),
+                content=content,
+                pattern_category=getattr(solution, 'approach_type', 'general'),
+                problem_domains=[getattr(solution, 'domain', 'general')],
+                approach_signature={
+                    "quality_score": quality_score,
+                    "complexity": getattr(solution, 'complexity_score', 5),
+                    "language": getattr(solution, 'code_language', 'python'),
+                },
+                success_rate=1.0 if getattr(solution, 'is_successful', False) else 0.5,
+                avg_execution_time=getattr(solution, 'execution_time', 0.0),
+                tags=["fallback_solution_pattern", getattr(solution, 'code_language', 'python'),
+                      getattr(solution, 'approach_type', 'general')],
+            )
+
+            patterns.append(artifact)
+
+        return patterns
 
 
 class SolutionPatternExtractor:
@@ -963,10 +1296,10 @@ class SolutionPatternExtractor:
     def _analyze_solution_pattern(self, solution: SolutionAttempt) -> Optional[SolutionPatternArtifact]:
         """
         Analyze a single solution to extract its pattern.
-        
+
         Args:
             solution: The solution attempt to analyze
-            
+
         Returns:
             SolutionPatternArtifact if analysis successful
         """
@@ -978,13 +1311,36 @@ class SolutionPatternExtractor:
                 "approach": getattr(solution, 'approach_description', ''),
                 "complexity": getattr(solution, 'complexity_score', 5),
             }
-            
+
             # Extract code patterns from final code
             final_code = getattr(solution, 'final_code', '')
             if final_code:
                 content["code_patterns"] = self._extract_code_patterns_from_code(final_code)
                 content["code_structure"] = self._analyze_code_structure(final_code)
-            
+
+            # Use DSPy for enhanced extraction if available
+            if DSPY_AVAILABLE:
+                dspy_signature = self._create_dspy_solution_pattern_signature()
+                if dspy_signature:
+                    try:
+                        # Prepare input for DSPy
+                        problem_statement = getattr(solution, 'problem_statement', 'Unknown problem')
+                        decomposition_strategy = getattr(solution, 'decomposition_strategy', 'Unknown')
+                        success = str(getattr(solution, 'is_successful', False))
+
+                        # Call DSPy for enhanced analysis
+                        dspy_result = self._call_dspy(
+                            prompt=f"Problem: {problem_statement}\nDecomposition: {decomposition_strategy}\nCode: {final_code}\nSuccess: {success}",
+                            signature=dspy_signature()
+                        )
+
+                        # Integrate DSPy results into content if available
+                        if dspy_result:
+                            content["dspy_analysis"] = dspy_result
+
+                    except Exception as e:
+                        logger.warning(f"DSPy solution pattern analysis failed: {e}")
+
             # Create the artifact
             artifact = SolutionPatternArtifact(
                 artifact_id=f"solution_pattern_{uuid.uuid4().hex[:16]}",
@@ -1005,12 +1361,12 @@ class SolutionPatternExtractor:
                 },
                 success_rate=1.0 if getattr(solution, 'is_successful', False) else 0.5,
                 avg_execution_time=getattr(solution, 'execution_time', 0.0),
-                tags=["solution_pattern", getattr(solution, 'code_language', 'python'), 
+                tags=["solution_pattern", getattr(solution, 'code_language', 'python'),
                       getattr(solution, 'approach_type', 'general')],
             )
-            
+
             return artifact
-            
+
         except Exception as e:
             logger.warning(f"Failed to analyze solution pattern: {e}")
             return None
@@ -1054,6 +1410,182 @@ class SolutionPatternExtractor:
             "has_docstrings": '"""' in code or "'''" in code,
             "has_type_hints": ": " in code and "->" in code,
         }
+
+
+class DSPyDecompositionStrategyExtractor:
+    """
+    DSPy-based extractor for decomposition strategies from workflow execution results.
+
+    This class leverages DSPy's programmatic prompting capabilities to extract
+    decomposition strategies from workflow execution results with improved consistency
+    and performance compared to traditional prompting approaches.
+    """
+
+    def __init__(self, model_name: str = "gpt-4o-mini", ace_client: Optional[Any] = None):
+        """
+        Initialize the DSPy-based decomposition strategy extractor.
+
+        Args:
+            model_name: Name of the LLM to use with DSPy
+            ace_client: Optional ACE client for fallback
+        """
+        self.model_name = model_name
+        self.ace_client = ace_client
+
+        if DSPY_AVAILABLE:
+            # Set up DSPy with the specified model
+            try:
+                dspy.settings.configure(lm=dspy.LM(model=model_name))
+            except Exception as e:
+                logger.warning(f"Failed to configure DSPy with model {model_name}: {e}")
+                # Try to configure with a default model
+                try:
+                    dspy.settings.configure(lm=dspy.LM(model="gpt-4o-mini"))
+                except:
+                    logger.warning("Could not configure DSPy LLM, will use fallback methods")
+        else:
+            logger.warning("DSPy not available, using fallback extraction methods")
+
+    def extract_strategies(self, execution_results: List[Dict[str, Any]]) -> List[KnowledgeArtifact]:
+        """
+        Extract decomposition strategies from execution results using DSPy.
+
+        Args:
+            execution_results: List of execution results to analyze
+
+        Returns:
+            List of KnowledgeArtifacts representing decomposition strategies
+        """
+        if not DSPY_AVAILABLE:
+            # Fallback to basic extraction
+            return self._extract_with_fallback(execution_results)
+
+        strategies = []
+        for result in execution_results:
+            if not result:
+                continue
+
+            strategy = self._dspy_analyze_decomposition_strategy(result)
+            if strategy:
+                strategies.append(strategy)
+
+        return strategies
+
+    def _dspy_analyze_decomposition_strategy(self, result: Dict[str, Any]) -> Optional[KnowledgeArtifact]:
+        """
+        Analyze a single execution result to extract its decomposition strategy using DSPy.
+
+        Args:
+            result: The execution result to analyze
+
+        Returns:
+            KnowledgeArtifact if analysis successful
+        """
+        if not DSPY_AVAILABLE:
+            return None
+
+        try:
+            # Define the DSPy signature for decomposition strategy extraction
+            class DecompositionSignature(dspy.Signature):
+                """Extract decomposition strategies from workflow execution data."""
+                problem_statement = dspy.InputField(desc="Original problem statement")
+                strategy = dspy.InputField(desc="Decomposition strategy used")
+                framework = dspy.InputField(desc="Framework used (ROMA/MAKER/MDAP)")
+                num_sub_problems = dspy.InputField(desc="Number of sub-problems created")
+                success = dspy.InputField(desc="Whether the decomposition was successful (true/false)")
+
+                strategy_insights = dspy.OutputField(desc="Key insights about the decomposition strategy")
+                effectiveness_score = dspy.OutputField(desc="Effectiveness score (0.0-1.0)")
+                improvement_suggestions = dspy.OutputField(desc="Suggestions for improving the strategy")
+
+            # Create predictor
+            predictor = dspy.Predict(DecompositionSignature)
+
+            # Prepare inputs
+            problem_statement = result.get('problem_statement', 'Unknown problem')
+            strategy = result.get('strategy', 'Unknown')
+            framework = result.get('framework', 'Unknown')
+            num_sub_problems = str(result.get('num_sub_problems', 0))
+            success = str(result.get('success', False))
+
+            # Run prediction
+            dspy_result = predictor(
+                problem_statement=problem_statement,
+                strategy=strategy,
+                framework=framework,
+                num_sub_problems=num_sub_problems,
+                success=success
+            )
+
+            # Create the artifact from DSPy results
+            content = {
+                "dspy_analysis": {
+                    "strategy_insights": dspy_result.strategy_insights,
+                    "effectiveness_score": dspy_result.effectiveness_score,
+                    "improvement_suggestions": dspy_result.improvement_suggestions
+                },
+                "raw_result": result
+            }
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"dspy_decomposition_strategy_{uuid.uuid4().hex[:16]}",
+                artifact_type="decomposition_strategy",
+                source_workflow_id=result.get('workflow_id', 'unknown'),
+                source_stage=3,
+                timestamp=datetime.now(),
+                confidence=float(dspy_result.effectiveness_score) if dspy_result.effectiveness_score.replace('.', '').isdigit() else 0.8,
+                title=f"DSPy Decomposition Strategy: {strategy}",
+                description=f"Decomposition strategy extracted using DSPy: {dspy_result.strategy_insights}",
+                content=content,
+                tags=["dspy_decomposition", framework, "dspy_enhanced"]
+            )
+
+            return artifact
+
+        except Exception as e:
+            logger.warning(f"DSPy decomposition strategy analysis failed: {e}")
+            # Fallback to basic extraction
+            if self.ace_client:
+                return self._extract_with_fallback([result])[0] if self._extract_with_fallback([result]) else None
+            return None
+
+    def _extract_with_fallback(self, execution_results: List[Dict[str, Any]]) -> List[KnowledgeArtifact]:
+        """
+        Fallback extraction method when DSPy is not available.
+
+        Args:
+            execution_results: List of execution results to analyze
+
+        Returns:
+            List of KnowledgeArtifacts
+        """
+        # Simple fallback extraction
+        strategies = []
+        for result in execution_results:
+            if not result:
+                continue
+
+            content = {
+                "raw_result": result,
+                "fallback_extraction": True
+            }
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"fallback_decomposition_strategy_{uuid.uuid4().hex[:16]}",
+                artifact_type="decomposition_strategy",
+                source_workflow_id=result.get('workflow_id', 'unknown'),
+                source_stage=3,
+                timestamp=datetime.now(),
+                confidence=0.8,
+                title=f"Fallback Decomposition Strategy: {result.get('strategy', 'Unknown')}",
+                description="Decomposition strategy extracted using fallback method",
+                content=content,
+                tags=["fallback_decomposition", "fallback_extraction"],
+            )
+
+            strategies.append(artifact)
+
+        return strategies
 
 
 class DecompositionStrategyExtractor:
@@ -1217,4 +1749,48 @@ def extract_decomposition_strategies(execution_results: List[Dict[str, Any]],
         List of KnowledgeArtifacts containing decomposition strategies
     """
     extractor = DecompositionStrategyExtractor(ace_client)
+    return extractor.extract_strategies(execution_results)
+
+
+def extract_solution_patterns_with_dspy(solutions: List[SolutionAttempt],
+                                        model_name: str = "gpt-4o-mini",
+                                        ace_client: Optional[Any] = None) -> List[SolutionPatternArtifact]:
+    """
+    Convenience function to extract solution patterns from solutions using DSPy.
+
+    Args:
+        solutions: List of solution attempts
+        model_name: Name of the LLM to use with DSPy
+        ace_client: Optional ACE client for fallback
+
+    Returns:
+        List of SolutionPatternArtifacts
+    """
+    if not DSPY_AVAILABLE:
+        logger.warning("DSPy not available, falling back to regular extraction")
+        return extract_solution_patterns(solutions, ace_client)
+
+    extractor = DSPySolutionPatternExtractor(model_name=model_name, ace_client=ace_client)
+    return extractor.extract_solution_patterns(solutions)
+
+
+def extract_decomposition_strategies_with_dspy(execution_results: List[Dict[str, Any]],
+                                               model_name: str = "gpt-4o-mini",
+                                               ace_client: Optional[Any] = None) -> List[KnowledgeArtifact]:
+    """
+    Convenience function to extract decomposition strategies using DSPy.
+
+    Args:
+        execution_results: List of execution results
+        model_name: Name of the LLM to use with DSPy
+        ace_client: Optional ACE client for fallback
+
+    Returns:
+        List of KnowledgeArtifacts containing decomposition strategies
+    """
+    if not DSPY_AVAILABLE:
+        logger.warning("DSPy not available, falling back to regular extraction")
+        return extract_decomposition_strategies(execution_results, ace_client)
+
+    extractor = DSPyDecompositionStrategyExtractor(model_name=model_name, ace_client=ace_client)
     return extractor.extract_strategies(execution_results)

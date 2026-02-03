@@ -8,6 +8,19 @@ from typing import Dict, List, Any, Optional
 from datetime import datetime
 from dataclasses import dataclass
 
+# **ACTUAL INTEGRATION**: Alerting and caching for Sovereign integration
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from bubblelabs_nodes.solution_cache import get_solution_cache
+    CACHE_AVAILABLE = True
+except ImportError:
+    CACHE_AVAILABLE = False
+
 from problem_analyzer import ProblemAnalyzer
 from decomposition_engine import DecompositionEngine
 from sovereign_gauntlets import GauntletSystem
@@ -966,4 +979,85 @@ def execute_complete_solution_workflow(
             return retrieved_value == test_value
         except Exception as e:
             self.error_handler.handle_error(e, context={"health_check": "cache_health"}, severity=ErrorSeverity.CRITICAL)
+            return False
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting and caching for sovereign
+    # =========================================================================
+
+    def _trigger_sovereign_alerts(
+        self,
+        alert_type: str,
+        success: bool,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """
+        **ACTUAL INTEGRATION**: Trigger alerts for sovereign integration failures.
+
+        Alerts on:
+        - Integration failures
+        - Component failures
+        - Quality issues
+        """
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.HIGH
+
+                alert_manager.create_alert(
+                    title=f"Sovereign Integration {alert_type}",
+                    description=f"Sovereign integration issue: {alert_type}. " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="sovereign_integration",
+                    component="orchestrator",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            self.logger.error(f"Failed to trigger sovereign alert: {e}")
+
+    def _cache_sovereign_result(
+        self,
+        problem_id: str,
+        result: IntegrationResult
+    ) -> bool:
+        """
+        **ACTUAL INTEGRATION**: Cache sovereign integration results.
+
+        Caches:
+        - Problem → integration result mappings
+        - Successful integration patterns
+        """
+        if not CACHE_AVAILABLE:
+            return False
+
+        try:
+            cache = get_solution_cache()
+
+            # Cache the integration result
+            import hashlib
+            cache_key = f"sovereign:{hashlib.sha256(problem_id.encode()).hexdigest()[:16]}"
+
+            cache.set(
+                cache_key,
+                {
+                    "problem_id": problem_id,
+                    "success": result.success,
+                    "quality_score": result.quality_score,
+                    "refinement_cycles": result.refinement_cycles,
+                    "execution_time": result.execution_time
+                },
+                ttl=7200  # 2 hours
+            )
+
+            self.logger.debug(f"Cached sovereign integration result: {cache_key}")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to cache sovereign result: {e}")
             return False
