@@ -9,3 +9,4 @@ env/
 envs/
 .git
 LoongFlow/pyproject.toml
+rese/lean4/.lake/packages/mathlib
