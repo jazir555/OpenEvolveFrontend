@@ -1321,8 +1321,41 @@ def run_evolution_loop(
                 "coevolutionary_approach": getattr(config, 'coevolutionary_approach', False),
             }
             
+            # Now run with only truly supported parameters
+            safe_params = {}
+            for k, v in unified_params.items():
+                if v is not None:
+                    safe_params[k] = v
+            
+            # Manually specify only the parameters that run_unified_evolution definitely supports
+            final_params = {}
+            required_keys = ['content', 'content_type', 'evolution_mode', 'model_configs', 'api_key']
+            for key in required_keys:
+                if key in safe_params:
+                    final_params[key] = safe_params[key]
+            
+            # Add other known supported parameters
+            supported_keys = [
+                'api_base', 'temperature', 'top_p', 'max_tokens', 'max_iterations',
+                'population_size', 'system_message', 'evaluator_system_message',
+                'feature_dimensions', 'feature_bins', 'archive_size', 'num_islands',
+                'migration_interval', 'migration_rate', 'elite_ratio', 'exploration_ratio',
+                'exploitation_ratio', 'cascade_evaluation', 'parallel_evaluations',
+                'evaluator_timeout', 'max_retries_eval', 'use_llm_feedback', 'llm_feedback_weight',
+                'evaluator_models', 'enable_artifacts', 'memory_limit_mb', 'cpu_limit',
+                'checkpoint_interval', 'db_path', 'double_selection', 'adaptive_feature_dimensions',
+                'distributed', 'multi_strategy_sampling', 'ring_topology', 'controlled_gene_flow',
+                'coevolutionary_approach', 'objectives', 'attack_model_config', 'defense_model_config',
+                'api_timeout', 'api_retries', 'api_retry_delay', 'random_seed',
+                'early_stopping_patience', 'convergence_threshold'
+            ]
+            
+            for key in supported_keys:
+                if key in safe_params:
+                    final_params[key] = safe_params[key]
+            
             # Run evolution using the unified function with only supported parameters
-            result = run_unified_evolution(**unified_params)
+            result = run_unified_evolution(**final_params)
 
             # Process the results with comprehensive logging
             if result and result.get("success", False):
