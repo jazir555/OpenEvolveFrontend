@@ -21,6 +21,25 @@ import asyncio
 from pathlib import Path
 import hashlib
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Checkpoint Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -455,6 +474,10 @@ class CheckpointManager:
                 self.checkpoint_count += 1
                 logger.info(f"✅ Checkpoint created: {checkpoint_id} ({len(data)} bytes)")
 
+                # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful checkpoint
+                self._extract_checkpoint_knowledge("create_checkpoint", checkpoint_id, metadata, state)
+                self._track_checkpoint_performance("create_checkpoint", True, len(data))
+
                 # Auto-cleanup old checkpoints
                 if self.auto_cleanup:
                     await self.repository.cleanup_old_checkpoints(problem_id, keep_last_n=5)
@@ -462,6 +485,11 @@ class CheckpointManager:
                 return checkpoint_id
             else:
                 logger.error(f"Failed to save checkpoint: {checkpoint_id}")
+
+                # **ACTUAL INTEGRATION**: Trigger alert, track performance for failed checkpoint
+                self._trigger_checkpoint_alerts("create_checkpoint", False, problem_id, checkpoint_id, stage, "Failed to save checkpoint")
+                self._track_checkpoint_performance("create_checkpoint", False, len(data))
+
                 return None
 
         except Exception as e:
@@ -486,18 +514,36 @@ class CheckpointManager:
 
             if result is None:
                 logger.warning(f"Checkpoint not found: {checkpoint_id}")
+
+                # **ACTUAL INTEGRATION**: Trigger alert for missing checkpoint
+                self._trigger_checkpoint_alerts("resume_from_checkpoint", False, None, checkpoint_id, None, "Checkpoint not found")
+                self._track_checkpoint_performance("resume_from_checkpoint", False)
+
                 return None
 
             data, metadata = result
 
             # Deserialize state
+            import time
+            start_time = time.time()
             state = await self.serializer.deserialize(data)
+            load_time = time.time() - start_time
 
             logger.info(f"✅ Checkpoint loaded: {checkpoint_id} from {metadata.timestamp}")
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful resume
+            self._extract_checkpoint_knowledge("resume_from_checkpoint", checkpoint_id, metadata, state)
+            self._track_checkpoint_performance("resume_from_checkpoint", True, len(data), load_time)
+
             return state
 
         except Exception as e:
             logger.error(f"Failed to load checkpoint: {e}")
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track performance for failed resume
+            self._trigger_checkpoint_alerts("resume_from_checkpoint", False, None, checkpoint_id, None, str(e))
+            self._track_checkpoint_performance("resume_from_checkpoint", False)
+
             return None
 
     async def list_checkpoints(self, problem_id: str = None) -> List[CheckpointMetadata]:
@@ -521,6 +567,137 @@ class CheckpointManager:
         """Generate a unique checkpoint ID"""
         timestamp = datetime.utcnow().strftime('%Y%m%d_%H%M%S_%f')
         return f"{problem_id}_{level}_{stage}_{timestamp}"
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Checkpoint Manager
+    # =========================================================================
+
+    def _trigger_checkpoint_alerts(
+        self,
+        operation: str,
+        success: bool,
+        problem_id: Optional[str] = None,
+        checkpoint_id: Optional[str] = None,
+        stage: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for checkpoint failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on checkpoint failures
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Checkpoint Manager Alert: {operation}",
+                    description=f"Checkpoint operation '{operation}' failed" +
+                                 (f" for problem '{problem_id}'" if problem_id else "") +
+                                 (f" at stage '{stage}'" if stage else "") +
+                                 (f" (checkpoint: {checkpoint_id})" if checkpoint_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="checkpoint_manager",
+                    component="checkpoint_resumption",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Checkpoint alert: {e}")
+
+    def _extract_checkpoint_knowledge(
+        self,
+        operation: str,
+        checkpoint_id: str,
+        metadata: CheckpointMetadata,
+        state: PipelineState
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract checkpoint knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"checkpoint_{operation}_{checkpoint_id}",
+                artifact_type="checkpoint",
+                source_component="checkpoint_manager",
+                title=f"Checkpoint: {checkpoint_id} ({operation})",
+                content={
+                    "operation": operation,
+                    "checkpoint_id": checkpoint_id,
+                    "problem_id": metadata.problem_id,
+                    "stage": metadata.stage,
+                    "level": metadata.level,
+                    "state_size": metadata.state_size,
+                    "compressed": metadata.compressed,
+                    "num_solutions": len(state.solutions) if state.solutions else 0,
+                    "timestamp": datetime.utcnow().isoformat()
+                },
+                metadata={
+                    "parent_checkpoint_id": metadata.parent_checkpoint_id,
+                    "execution_status": state.execution_status,
+                    "metrics": state.metrics
+                },
+                tags=["checkpoint", "resumption", operation, metadata.stage]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Checkpoint knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Checkpoint knowledge: {e}")
+            return False
+
+    def _track_checkpoint_performance(
+        self,
+        operation: str,
+        success: bool,
+        state_size: int = 0,
+        load_time: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track checkpoint performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on success and size efficiency
+            quality = 1.0 if success else 0.0
+            if success:
+                # Penalize very large checkpoints (>10MB)
+                if state_size > 10_000_000:
+                    quality *= 0.8
+                # Penalize very slow loads (>5 seconds)
+                if load_time > 5.0:
+                    quality *= 0.8
+            quality = max(quality, 0.0)
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"checkpoint_manager_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.utcnow(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "state_size": state_size,
+                    "load_time": load_time
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Checkpoint performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Checkpoint performance: {e}")
 
 
 def create_checkpoint_manager(

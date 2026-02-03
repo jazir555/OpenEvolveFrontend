@@ -34,7 +34,7 @@ Additional DSPy-Enhanced Tools:
 - translate_with_z3_leanaide_dspy (Z3_PROVER category)
 - verify_with_robust_z3_leanaide (Z3_PROVER category)
 
-TOTAL: 119 tools across 14 categories
+TOTAL: 120 tools across 14 categories
 
 Author: OpenEvolve Team
 Version: 2.0.0
@@ -349,12 +349,12 @@ class UnifiedMCPServer:
             self.server.register_tool(registration)
     
     def register_all_tools(self) -> None:
-        """Register all 119 tools."""
-        # 14 categories, ~119 total tools (includes 12 DSPy-enhanced tools)
+        """Register all 120 tools."""
+        # 14 categories, ~120 total tools (includes 13 DSPy-enhanced tools)
         self._register_leanaide_tools()      # 9 tools
         self._register_bubblelabs_tools()    # 8 tools
         self._register_decomposition_tools() # 9 tools
-        self._register_z3_tools()            # 12 tools (9 original + 3 DSPy-enhanced)
+        self._register_z3_tools()            # 13 tools (9 original + 4 DSPy-enhanced)
         self._register_ace_tools()           # 16 tools (7 original + 9 DSPy-enhanced)
         self._register_claudiomiro_tools()   # 7 tools
         self._register_c2c_tools()           # 7 tools

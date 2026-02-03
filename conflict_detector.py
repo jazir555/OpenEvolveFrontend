@@ -26,6 +26,26 @@ from enum import Enum
 import logging
 from collections import defaultdict
 import difflib
+from datetime import datetime
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Conflict Detector
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 # Configure logging
 logging.basicConfig(
@@ -378,6 +398,22 @@ class ConflictDetector:
         conflicts.extend(self.analyze_dependency_conflicts(sub_solutions))
 
         logger.info(f"Conflict detection complete. Found {len(conflicts)} conflicts")
+
+        # **ACTUAL INTEGRATION**: Extract knowledge, track performance, and trigger alerts
+        num_critical = sum(1 for c in conflicts if c.severity == ConflictSeverity.CRITICAL)
+        self._extract_conflict_knowledge("detect_conflicts", conflicts, len(sub_solutions))
+        self._track_conflict_performance("detect_conflicts", True, len(conflicts), num_critical)
+
+        # Trigger alert for critical conflicts
+        if num_critical > 0:
+            self._trigger_conflict_alerts(
+                "detect_conflicts",
+                True,
+                len(conflicts),
+                num_critical,
+                None,
+                {"critical_count": num_critical}
+            )
 
         return conflicts
 
@@ -1274,6 +1310,141 @@ class ConflictDetector:
             ]
 
         return resolution
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Conflict Detector
+    # =========================================================================
+
+    def _trigger_conflict_alerts(
+        self,
+        operation: str,
+        success: bool,
+        num_conflicts: int = 0,
+        num_critical: int = 0,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for conflict detection failures or critical conflicts."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures or critical conflicts
+            if not success or num_critical > 0:
+                severity = AlertSeverity.HIGH if not success or num_critical > 0 else AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Conflict Detector Alert: {operation}",
+                    description=f"Conflict detection operation '{operation}' " +
+                                 ("failed" if not success else f"detected {num_critical} critical conflicts") +
+                                 (f" out of {num_conflicts} total conflicts" if num_conflicts > 0 else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="conflict_detector",
+                    component="conflict_analysis",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Conflict Detector alert: {e}")
+
+    def _extract_conflict_knowledge(
+        self,
+        operation: str,
+        conflicts: List[Conflict],
+        sub_solutions_count: int
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract conflict detection knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            # Count conflicts by severity and type
+            severity_counts = {}
+            type_counts = {}
+            for conflict in conflicts:
+                severity_counts[conflict.severity.value] = severity_counts.get(conflict.severity.value, 0) + 1
+                type_counts[conflict.conflict_type.value] = type_counts.get(conflict.conflict_type.value, 0) + 1
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"conflict_{operation}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="conflict_detection",
+                source_component="conflict_detector",
+                title=f"Conflict Detection: {operation} ({len(conflicts)} conflicts)",
+                content={
+                    "operation": operation,
+                    "num_conflicts": len(conflicts),
+                    "num_solutions": sub_solutions_count,
+                    "severity_breakdown": severity_counts,
+                    "type_breakdown": type_counts,
+                    "num_critical": severity_counts.get('CRITICAL', 0),
+                    "num_high": severity_counts.get('HIGH', 0),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "conflict_descriptions": [c.description for c in conflicts[:10]]
+                },
+                tags=["conflict", "detection", operation]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Conflict Detection knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Conflict Detection knowledge: {e}")
+            return False
+
+    def _track_conflict_performance(
+        self,
+        operation: str,
+        success: bool,
+        num_conflicts: int = 0,
+        num_critical: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track conflict detection performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on success and conflict ratio
+            quality = 1.0 if success else 0.0
+            if success:
+                # More conflicts found = better detection (inverse of quality)
+                # But too many critical conflicts is bad
+                conflict_ratio = num_conflicts / max(len(self.analyses), 1)
+                critical_penalty = min(num_critical * 0.1, 0.5)
+                quality = max(1.0 - critical_penalty, 0.5)
+                # Bonus for finding conflicts (detection working)
+                quality = min(quality + conflict_ratio * 0.2, 1.0)
+            quality = max(quality, 0.0)
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"conflict_detector_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "num_conflicts": num_conflicts,
+                    "num_critical": num_critical
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Conflict Detection performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Conflict Detection performance: {e}")
 
 
 class ConflictReporter:

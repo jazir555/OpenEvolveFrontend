@@ -29,7 +29,7 @@ import hashlib
 from collections import defaultdict, Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import (
     Any, Callable, Dict, List, Optional, Set, Tuple, Union
@@ -115,7 +115,7 @@ class RedFlag:
     reason: str
     severity: float  # 0.0 to 1.0
     confidence: float  # Confidence in the flag
-    timestamp: float = field(default_factory=time.time)
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     metadata: Dict[str, Any] = field(default_factory=dict)
     
     def to_dict(self) -> Dict[str, Any]:
@@ -238,7 +238,8 @@ class RedFlaggingSystem:
         # Check variance if multiple confidence values exist
         confidence_values = self._extract_confidence_values(item)
         if len(confidence_values) > 1:
-            variance = sum((c - sum(confidence_values)/len(confidence_values))**2 for c in confidence_values) / len(confidence_values)
+            avg_conf = sum(confidence_values) / len(confidence_values)
+            variance = sum((c - avg_conf)**2 for c in confidence_values) / len(confidence_values)
             if variance > self.config.confidence_variance_threshold:
                 flags.append(RedFlag(
                     flag_type=RedFlagType.CONFIDENCE_VARIANCE_HIGH,

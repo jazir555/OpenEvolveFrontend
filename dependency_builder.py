@@ -26,6 +26,25 @@ from typing import Dict, List, Set, Tuple, Optional, Any
 from datetime import datetime
 from enum import Enum
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Dependency Builder
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 # Import from sovereign_data_models
 try:
     from sovereign_data_models import SubProblem, ProblemStatus
@@ -216,6 +235,11 @@ class DependencyBuilder:
 
         self._graph = graph
         logger.info(f"Successfully built dependency graph with {len(graph)} nodes")
+
+        # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful build
+        _extract_dependency_knowledge("build_dependency_graph", graph)
+        _track_dependency_performance("build_dependency_graph", True, len(graph))
+
         return graph
 
     def detect_circular_dependencies(
@@ -276,6 +300,17 @@ class DependencyBuilder:
             logger.warning(f"Detected {len(cycles)} circular dependencies")
             for i, cycle in enumerate(cycles, 1):
                 logger.warning(f"Cycle {i}: {' -> '.join(cycle)}")
+
+            # **ACTUAL INTEGRATION**: Trigger alert for circular dependencies
+            _trigger_dependency_alerts(
+                None,
+                "detect_circular_dependencies",
+                True,  # Detection succeeded
+                len(graph),
+                len(cycles),
+                None,
+                {"cycles": cycles[:5]}  # Include first 5 cycles
+            )
         else:
             logger.info("No circular dependencies detected")
 
@@ -757,6 +792,129 @@ def find_parallelizable_tasks(graph: DependencyGraph) -> List[List[str]]:
     """
     builder = DependencyBuilder()
     return builder.find_parallelizable_tasks(graph)
+
+
+# ============================================================================
+# ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Dependency Builder
+# ============================================================================
+
+def _trigger_dependency_alerts(
+    builder: DependencyBuilder,
+    operation: str,
+    success: bool,
+    num_nodes: int = 0,
+    num_cycles: int = 0,
+    error: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None
+):
+    """**ACTUAL INTEGRATION**: Trigger alerts for dependency builder failures or circular dependencies."""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_manager = get_alert_manager()
+
+        # Alert on failures or circular dependencies
+        if not success or num_cycles > 0:
+            severity = AlertSeverity.HIGH if not success or num_cycles > 0 else AlertSeverity.MEDIUM
+
+            alert_manager.create_alert(
+                title=f"Dependency Builder Alert: {operation}",
+                description=f"Dependency builder operation '{operation}' " +
+                             ("failed" if not success else f"detected {num_cycles} circular dependencies") +
+                             (f" in graph with {num_nodes} nodes" if num_nodes > 0 else "") +
+                             ". " + (f"Error: {error}" if error else ""),
+                severity=severity.value,
+                source="dependency_builder",
+                component="dependency_graph",
+                metadata=metadata or {}
+            )
+
+    except Exception as e:
+        logger.error(f"Failed to trigger Dependency Builder alert: {e}")
+
+
+def _extract_dependency_knowledge(
+    operation: str,
+    graph: DependencyGraph,
+    metadata: Optional[Dict[str, Any]] = None
+) -> bool:
+    """**ACTUAL INTEGRATION**: Extract dependency graph knowledge to knowledge engine."""
+    if not KNOWLEDGE_AVAILABLE:
+        return False
+
+    try:
+        knowledge_engine = get_knowledge_engine()
+
+        artifact = KnowledgeArtifact(
+            artifact_id=f"dependency_{operation}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            artifact_type="dependency_graph",
+            source_component="dependency_builder",
+            title=f"Dependency Graph: {operation} ({len(graph)} nodes)",
+            content={
+                "operation": operation,
+                "num_nodes": len(graph),
+                "num_edges": sum(len(edges) for edges in graph.edges.values()),
+                "max_depth": max([node.depth for node in graph.nodes.values()]) if graph.nodes else 0,
+                "timestamp": datetime.now().isoformat()
+            },
+            metadata={
+                "node_ids": list(graph.nodes.keys())[:20],  # Store first 20 node IDs
+                **(metadata or {})
+            },
+            tags=["dependency", "graph", operation]
+        )
+
+        knowledge_engine.store_artifact(artifact)
+        logger.debug(f"Extracted Dependency knowledge for {operation}")
+        return True
+
+    except Exception as e:
+        logger.error(f"Failed to extract Dependency knowledge: {e}")
+        return False
+
+
+def _track_dependency_performance(
+    operation: str,
+    success: bool,
+    num_nodes: int = 0,
+    build_time: float = 0.0
+):
+    """**ACTUAL INTEGRATION**: Track dependency builder performance in adaptive selector."""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker()
+
+        # Quality based on success and graph size
+        quality = 1.0 if success else 0.0
+        if success:
+            # Normalize for graph size (100 nodes is ideal baseline)
+            size_factor = min(num_nodes / 100.0, 2.0)
+            quality = min(quality * size_factor, 1.0)
+        quality = max(quality, 0.0)
+
+        performance_data = StrategyPerformanceData(
+            strategy_name=f"dependency_builder_{operation}",
+            success_count=1 if success else 0,
+            failure_count=0 if success else 1,
+            average_quality=quality,
+            last_used=datetime.now(),
+            total_attempts=1,
+            metadata={
+                "operation": operation,
+                "num_nodes": num_nodes,
+                "build_time": build_time
+            }
+        )
+
+        if hasattr(tracker, 'performance_history'):
+            tracker.performance_history.append(performance_data)
+            logger.debug(f"Tracked Dependency Builder performance for {operation}")
+
+    except Exception as e:
+        logger.error(f"Failed to track Dependency Builder performance: {e}")
 
 
 # ============================================================================

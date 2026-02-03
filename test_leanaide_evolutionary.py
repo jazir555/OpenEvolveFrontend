@@ -1780,7 +1780,7 @@ class TestMathematicalProblemDetection:
                 keyword in problem_text.lower()
                 for keyword in ["prove", "show", "calculate", "theorem"]
             )
-            assert is_math or problem_name  # Should detect mathematical content
+            assert is_math  # Should detect mathematical content
 
 
 @mark.integration

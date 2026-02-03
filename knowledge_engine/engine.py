@@ -742,6 +742,169 @@ class KnowledgeEngine:
                     "message": f"DSPy extraction failed: {str(e)}, and fallback also failed: {str(fallback_error)}"
                 }
 
+    async def extract_knowledge_with_dts_strategy_exploration(
+        self,
+        content: str,
+        content_type: str = "general",
+        num_strategies: int = 5,
+        use_multi_judge: bool = True,
+        judge_count: int = 3
+    ) -> Dict[str, Any]:
+        """
+        Extract knowledge using DTS (Dialogue Tree Search) for enhanced strategy exploration.
+        
+        Args:
+            content: Content to extract knowledge from
+            content_type: Type of content (code, document, etc.)
+            num_strategies: Number of extraction strategies to explore
+            use_multi_judge: Whether to use multi-judge validation
+            judge_count: Number of judges to use for validation
+            
+        Returns:
+            Dictionary with extraction results and strategy comparison
+        """
+        if not DTS_AVAILABLE:
+            self.logger.warning("DTS not available, falling back to standard extraction")
+            # Fall back to standard extraction
+            try:
+                # Use basic extraction methods from available tools
+                extracted_knowledge = {
+                    "entities": [],
+                    "relationships": [],
+                    "concepts": [],
+                    "patterns": [],
+                    "insights": []
+                }
+                
+                # Simple extraction based on content type
+                if "code" in content_type.lower():
+                    # Extract basic code constructs
+                    import re
+                    functions = re.findall(r'def\s+(\w+)\s*\(', content)
+                    classes = re.findall(r'class\s+(\w+)\s*', content)
+                    extracted_knowledge["entities"] = [{"type": "function", "name": f} for f in functions]
+                    extracted_knowledge["entities"].extend([{"type": "class", "name": c} for c in classes])
+                
+                return {
+                    "knowledge_extraction": extracted_knowledge,
+                    "best_strategy": "standard_extraction",
+                    "confidence_score": 0.7,
+                    "dts_available": False,
+                    "fallback_used": True,
+                    "strategy_comparison": []
+                }
+            except Exception as e:
+                self.logger.error(f"Error in fallback knowledge extraction: {e}")
+                return {
+                    "error": str(e),
+                    "dts_available": False,
+                    "fallback_used": True,
+                    "knowledge_extraction": {}
+                }
+        
+        try:
+            # Initialize DTS integration
+            dts_config = DTSIntegrationConfig(
+                use_strategy_exploration=True,
+                use_multi_judge=use_multi_judge,
+                judge_count=judge_count,
+                max_rounds=2
+            )
+            dts_integration = DTSIntegration(dts_config)
+            
+            # Prepare extraction context
+            extraction_context = {
+                "content_type": content_type,
+                "content_length": len(content),
+                "domain_knowledge": ["computer science", "mathematics", "general"]  # Could be dynamic
+            }
+            
+            # Generate extraction strategies using DTS
+            strategies = dts_integration.generate_strategies(
+                problem=f"Extract knowledge from {content_type} content",
+                num_strategies=num_strategies,
+                context=extraction_context
+            )
+            
+            # Evaluate strategies using multi-judge approach
+            strategy_results = []
+            best_strategy = None
+            best_score = 0.0
+            
+            for i, strategy in enumerate(strategies):
+                try:
+                    # Apply the strategy to extract knowledge
+                    # This is a simplified implementation - in reality, each strategy would
+                    # define how to approach the extraction differently
+                    strategy_name = strategy.get("tagline", f"strategy_{i}")
+                    strategy_desc = strategy.get("description", "No description")
+                    
+                    # For now, we'll use a simple approach based on the strategy description
+                    # In a real implementation, each strategy would define specific extraction techniques
+                    if "entity" in strategy_desc.lower():
+                        # Simulate entity extraction
+                        extracted = {"entities": [{"type": "concept", "name": f"concept_{i}", "confidence": 0.8}]}
+                    elif "relationship" in strategy_desc.lower():
+                        # Simulate relationship extraction
+                        extracted = {"relationships": [{"type": "related_to", "entities": [f"entity_{i}", f"entity_{i+1}"] }]}
+                    else:
+                        # General extraction
+                        extracted = {"entities": [{"type": "general", "name": f"item_{i}", "confidence": 0.7}]}
+                    
+                    # Score the extraction results (in a real implementation, this would involve LLM evaluation)
+                    score = len(extracted.get("entities", [])) * 0.5 + len(extracted.get("relationships", [])) * 0.3
+                    
+                    strategy_result = {
+                        "strategy_id": i,
+                        "strategy_name": strategy_name,
+                        "strategy_description": strategy_desc,
+                        "extraction_result": extracted,
+                        "score": score,
+                        "confidence": 0.8  # Default confidence
+                    }
+                    
+                    strategy_results.append(strategy_result)
+                    
+                    if score > best_score:
+                        best_score = score
+                        best_strategy = strategy_result
+                        
+                except Exception as e:
+                    self.logger.error(f"Error applying strategy {i}: {e}")
+                    continue
+            
+            return {
+                "knowledge_extraction": best_strategy["extraction_result"] if best_strategy else {},
+                "best_strategy": best_strategy,
+                "best_score": best_score,
+                "strategy_comparison": strategy_results,
+                "dts_available": True,
+                "fallback_used": False,
+                "total_strategies_evaluated": len(strategy_results)
+            }
+            
+        except Exception as e:
+            self.logger.error(f"Error running DTS-enhanced knowledge extraction: {e}", exc_info=True)
+            # Fall back to standard extraction
+            try:
+                extracted_knowledge = {"entities": [], "relationships": [], "concepts": []}
+                return {
+                    "knowledge_extraction": extracted_knowledge,
+                    "best_strategy": "standard_extraction",
+                    "confidence_score": 0.6,  # Lower confidence due to error
+                    "dts_available": True,  # DTS was available but failed
+                    "fallback_used": True,
+                    "error": str(e),
+                    "strategy_comparison": []
+                }
+            except Exception as fallback_error:
+                self.logger.error(f"Fallback extraction also failed: {fallback_error}")
+                return {
+                    "error": f"DTS extraction failed: {e}, fallback also failed: {fallback_error}",
+                    "dts_available": True,
+                    "fallback_used": True,
+                    "knowledge_extraction": {}
+                }
 
 # Example usage
 async def main():

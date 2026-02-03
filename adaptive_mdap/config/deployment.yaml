@@ -1,0 +1,210 @@
+# Adaptive MDAP Deployment Configuration
+# 
+# This file contains deployment configurations for different environments.
+# Copy to config/adaptive_mdap.yaml and customize for your deployment.
+
+# Development Environment
+development:
+  enabled: true
+  
+  classifier:
+    embedding_model: "all-MiniLM-L6-v2"
+    cache_dir: "./cache/adaptive_mdap/dev"
+    feature_weights:
+      text_length: 0.15
+      domain_rarity: 0.20
+      depth: 0.15
+      historical_error: 0.20
+      dependency: 0.10
+      keyword_complexity: 0.10
+      constraint_density: 0.10
+  
+  allocator:
+    thresholds: [0.2, 0.4, 0.6, 0.8]
+    enable_learning: true
+    enable_context_aware: true
+  
+  strategies:
+    direct:
+      n_agents: 1
+      k_ahead: 0
+      max_retries: 1
+      timeout_ms: 30000
+    
+    mdap_light:
+      n_agents: 3
+      k_ahead: 1
+      max_retries: 2
+      timeout_ms: 60000
+    
+    mdap_medium:
+      n_agents: 5
+      k_ahead: 1
+      max_retries: 2
+      timeout_ms: 90000
+    
+    maker_full:
+      n_agents: 5
+      k_ahead: 2
+      max_retries: 3
+      timeout_ms: 120000
+    
+    maker_ultra:
+      n_agents: 7
+      k_ahead: 3
+      max_retries: 4
+      timeout_ms: 180000
+  
+  monitoring:
+    enabled: true
+    log_level: "DEBUG"
+    enable_structured_logging: true
+    metrics_export_format: "json"
+    health_check_interval_seconds: 30
+
+# Staging Environment
+staging:
+  enabled: true
+  
+  classifier:
+    embedding_model: "all-MiniLM-L6-v2"
+    cache_dir: "./cache/adaptive_mdap/staging"
+    feature_weights:
+      text_length: 0.15
+      domain_rarity: 0.20
+      depth: 0.15
+      historical_error: 0.20
+      dependency: 0.10
+      keyword_complexity: 0.10
+      constraint_density: 0.10
+  
+  allocator:
+    thresholds: [0.2, 0.4, 0.6, 0.8]
+    enable_learning: true
+    enable_context_aware: true
+  
+  strategies:
+    direct:
+      n_agents: 1
+      k_ahead: 0
+      max_retries: 1
+      timeout_ms: 30000
+    
+    mdap_light:
+      n_agents: 3
+      k_ahead: 1
+      max_retries: 2
+      timeout_ms: 60000
+    
+    mdap_medium:
+      n_agents: 5
+      k_ahead: 1
+      max_retries: 2
+      timeout_ms: 90000
+    
+    maker_full:
+      n_agents: 5
+      k_ahead: 2
+      max_retries: 3
+      timeout_ms: 120000
+    
+    maker_ultra:
+      n_agents: 7
+      k_ahead: 3
+      max_retries: 4
+      timeout_ms: 180000
+  
+  monitoring:
+    enabled: true
+    log_level: "INFO"
+    enable_structured_logging: true
+    metrics_export_format: "prometheus"
+    health_check_interval_seconds: 60
+
+# Production Environment
+production:
+  enabled: true
+  
+  classifier:
+    embedding_model: "all-MiniLM-L6-v2"
+    cache_dir: "/var/cache/adaptive_mdap"
+    feature_weights:
+      text_length: 0.15
+      domain_rarity: 0.20
+      depth: 0.15
+      historical_error: 0.20
+      dependency: 0.10
+      keyword_complexity: 0.10
+      constraint_density: 0.10
+  
+  allocator:
+    thresholds: [0.2, 0.4, 0.6, 0.8]
+    enable_learning: true
+    enable_context_aware: true
+  
+  strategies:
+    direct:
+      n_agents: 1
+      k_ahead: 0
+      max_retries: 1
+      timeout_ms: 30000
+    
+    mdap_light:
+      n_agents: 3
+      k_ahead: 1
+      max_retries: 2
+      timeout_ms: 60000
+    
+    mdap_medium:
+      n_agents: 5
+      k_ahead: 1
+      max_retries: 2
+      timeout_ms: 90000
+    
+    maker_full:
+      n_agents: 5
+      k_ahead: 2
+      max_retries: 3
+      timeout_ms: 120000
+    
+    maker_ultra:
+      n_agents: 7
+      k_ahead: 3
+      max_retries: 4
+      timeout_ms: 180000
+  
+  monitoring:
+    enabled: true
+    log_level: "WARNING"
+    enable_structured_logging: true
+    metrics_export_format: "prometheus"
+    health_check_interval_seconds: 60
+
+# Cloud-Specific Configurations
+cloud_development:
+  extends: development
+  strategies:
+    direct:
+      timeout_ms: 45000  # 1.5x for cloud latency
+    mdap_light:
+      timeout_ms: 90000
+    mdap_medium:
+      timeout_ms: 135000
+    maker_full:
+      timeout_ms: 180000
+    maker_ultra:
+      timeout_ms: 270000
+
+cloud_production:
+  extends: production
+  strategies:
+    direct:
+      timeout_ms: 45000
+    mdap_light:
+      timeout_ms: 90000
+    mdap_medium:
+      timeout_ms: 135000
+    maker_full:
+      timeout_ms: 180000
+    maker_ultra:
+      timeout_ms: 270000

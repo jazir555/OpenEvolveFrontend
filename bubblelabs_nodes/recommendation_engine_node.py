@@ -21,6 +21,25 @@ import random
 
 from .base_node import BubbleLabsNode, NodeExecutionError
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Recommendation Engine
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 
 class RecommendationEngineNode(BubbleLabsNode):
     """
@@ -269,12 +288,30 @@ class RecommendationEngineNode(BubbleLabsNode):
             context.update_progress(100, f"Operation complete: {len(result.get('recommendations', []))} recommendations")
             self.logger.info(f"Recommendation operation completed: {len(result.get('recommendations', []))} recommendations")
 
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful recommendation
+            num_recommendations = len(result.get('recommendations', []))
+            avg_confidence = sum(result.get('confidence_scores', [0])) / max(len(result.get('confidence_scores', [1])), 1)
+            self._extract_recommendation_knowledge(operation, result, entity_id, user_id)
+            self._track_recommendation_performance(operation, True, num_recommendations, avg_confidence)
+
+            # Trigger alert if no recommendations
+            if num_recommendations == 0:
+                self._trigger_recommendation_alerts(operation, True, 0, None, result.get('metadata', {}))
+
             return result
 
         except NodeExecutionError:
+            # **ACTUAL INTEGRATION**: Track performance and trigger alert for re-raised errors
+            self._track_recommendation_performance(operation, False, 0, 0.0)
+            self._trigger_recommendation_alerts(operation, False, 0, "Node execution error", {'operation': operation})
             raise
         except Exception as e:
             self.logger.error(f"Recommendation failed: {str(e)}", exc_info=True)
+
+            # **ACTUAL INTEGRATION**: Track performance and trigger alert for failures
+            self._track_recommendation_performance(operation, False, 0, 0.0)
+            self._trigger_recommendation_alerts(operation, False, 0, str(e), {'operation': operation, 'exception_type': type(e).__name__})
+
             raise NodeExecutionError(
                 node_name=self.get_display_name(),
                 message=f"Recommendation failed: {str(e)}",
@@ -1282,6 +1319,135 @@ class RecommendationEngineNode(BubbleLabsNode):
                 }
             }
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Recommendation Engine
+    # =========================================================================
+
+    def _trigger_recommendation_alerts(
+        self,
+        operation: str,
+        success: bool,
+        num_recommendations: int = 0,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for recommendation failures or low results."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures or very low recommendation counts
+            if not success or num_recommendations == 0:
+                severity = AlertSeverity.HIGH if not success else AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Recommendation Engine Alert: {operation}",
+                    description=f"Recommendation operation '{operation}' " +
+                                 ("failed" if not success else f"returned no recommendations") +
+                                 (f" (expected at least 1)" if num_recommendations == 0 else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="recommendation_engine_node",
+                    component="recommendations",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            self.logger.error(f"Failed to trigger Recommendation alert: {e}")
+
+    def _extract_recommendation_knowledge(
+        self,
+        operation: str,
+        result: Dict[str, Any],
+        entity_id: Optional[str] = None,
+        user_id: Optional[str] = None
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract recommendation knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"recommendation_{operation}_{entity_id or user_id or 'unknown'}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="recommendation",
+                source_component="recommendation_engine_node",
+                title=f"Recommendation: {operation} for {entity_id or user_id or 'Unknown'}",
+                content={
+                    "operation": operation,
+                    "entity_id": entity_id,
+                    "user_id": user_id,
+                    "num_recommendations": len(result.get('recommendations', [])),
+                    "avg_confidence": sum(result.get('confidence_scores', [0])) / max(len(result.get('confidence_scores', [1])), 1),
+                    "kg_hub_available": result.get('metadata', {}).get('kg_hub_available', False),
+                    "neuralkg_available": result.get('metadata', {}).get('neuralkg_available', False),
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                },
+                metadata={
+                    "recommendation_types": [r.get('type') for r in result.get('recommendations', [])[:10]],
+                    "execution_id": result.get('metadata', {}).get('execution_id')
+                },
+                tags=["recommendation", "ml", operation]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            self.logger.debug(f"Extracted Recommendation knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to extract Recommendation knowledge: {e}")
+            return False
+
+    def _track_recommendation_performance(
+        self,
+        operation: str,
+        success: bool,
+        num_recommendations: int = 0,
+        avg_confidence: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track recommendation performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on success, recommendation count, and confidence
+            quality = 0.5 if success else 0.0
+            if success:
+                # Factor in recommendation count (5-20 is ideal)
+                if 5 <= num_recommendations <= 20:
+                    quality += 0.3
+                elif num_recommendations < 5:
+                    quality -= 0.2
+                # Factor in average confidence
+                quality += (avg_confidence - 0.5) * 0.4
+                quality = max(min(quality, 1.0), 0.0)
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"recommendation_engine_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(timezone.utc),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "num_recommendations": num_recommendations,
+                    "avg_confidence": avg_confidence
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                self.logger.debug(f"Tracked Recommendation performance for {operation}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to track Recommendation performance: {e}")
 
     def is_healthy(self) -> bool:
         """

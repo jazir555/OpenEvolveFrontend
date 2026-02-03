@@ -58,6 +58,12 @@ try:
 except ImportError:
     CACHING_AVAILABLE = False
 
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 import hashlib
 
 # Configure logging
@@ -405,10 +411,22 @@ class VerificationEngine:
                 f"score={verification_score:.2f}"
             )
 
+            # **ACTUAL INTEGRATION**: Track performance for successful verification
+            self._track_verification_performance(
+                "verify_solution",
+                True,
+                verification_score,
+                quality_metrics.overall_score
+            )
+
             return report
 
         except (ValueError, TypeError, RuntimeError, AttributeError) as e:
             self.logger.error(f"Verification failed with error: {e}")
+
+            # **ACTUAL INTEGRATION**: Track performance for failed verification
+            self._track_verification_performance("verify_solution", False, 0.0, 0.0)
+
             # Create failure report
             solution_id = getattr(solution, 'id', getattr(solution, 'sub_problem_id', 'unknown'))
             return VerificationReport(
@@ -2233,6 +2251,48 @@ def example_custom_criteria():
         except Exception as e:
             self.logger.error(f"Failed to query knowledge: {e}")
             return []
+
+    def _track_verification_performance(
+        self,
+        operation: str,
+        success: bool,
+        verification_score: float = 0.0,
+        quality_score: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track verification performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on success and scores
+            quality = 0.5 if success else 0.0
+            if success:
+                # Average of verification and quality scores
+                quality = (verification_score + quality_score) / 2.0
+            quality = max(min(quality, 1.0), 0.0)
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"verification_engine_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "verification_score": verification_score,
+                    "quality_score": quality_score
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                self.logger.debug(f"Tracked Verification performance for {operation}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to track Verification performance: {e}")
 
     # Mock solution
     @dataclass

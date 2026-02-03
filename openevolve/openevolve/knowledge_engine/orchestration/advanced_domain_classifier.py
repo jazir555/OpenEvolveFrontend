@@ -24,6 +24,25 @@ import statistics
 from pathlib import Path
 import threading
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Advanced Domain Classifier
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -675,7 +694,22 @@ class AdvancedDomainClassifier:
             classification_methods=methods_used,
             uncertainty_estimate=uncertainty
         )
-        
+
+        # **ACTUAL INTEGRATION**: Extract knowledge, track performance, and trigger alerts
+        self._extract_classification_knowledge("classify", result, len(text))
+        self._track_classification_performance("classify", True, raw_confidence, len(text))
+
+        # Trigger alert for low confidence
+        if raw_confidence < 0.3:
+            self._trigger_classification_alerts(
+                "classify",
+                True,
+                raw_confidence,
+                result.primary_domain.value,
+                None,
+                {"text_length": len(text)}
+            )
+
         return result
     
     def _aggregate_predictions(self, predictions: List[DomainPrediction],
@@ -842,6 +876,132 @@ class AdvancedDomainClassifier:
                 for b, v in sorted(bins.items())
             }
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Advanced Domain Classifier
+    # =========================================================================
+
+    def _trigger_classification_alerts(
+        self,
+        operation: str,
+        success: bool,
+        confidence: float = 0.0,
+        domain: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for low confidence classifications."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures or very low confidence
+            if not success or confidence < 0.3:
+                severity = AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Domain Classifier Alert: {operation}",
+                    description=f"Domain classification operation '{operation}' " +
+                                 ("failed" if not success else f"has low confidence: {confidence:.2%}") +
+                                 (f" for domain '{domain}'" if domain else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="advanced_domain_classifier",
+                    component="domain_classification",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Domain Classifier alert: {e}")
+
+    def _extract_classification_knowledge(
+        self,
+        operation: str,
+        result: ClassificationResult,
+        text_length: int = 0
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract classification knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"classification_{operation}_{result.primary_domain.value}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="domain_classification",
+                source_component="advanced_domain_classifier",
+                title=f"Domain Classification: {result.primary_domain.value} ({operation})",
+                content={
+                    "operation": operation,
+                    "primary_domain": result.primary_domain.value,
+                    "confidence": result.confidence,
+                    "calibrated_confidence": result.calibrated_confidence,
+                    "content_type": result.content_type.value if result.content_type else "unknown",
+                    "is_multi_domain": result.is_multi_domain,
+                    "num_secondary_domains": len(result.secondary_domains) if result.secondary_domains else 0,
+                    "text_length": text_length,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                },
+                metadata={
+                    "all_domain_scores": {k.value: v for k, v in result.all_domain_scores.items()} if result.all_domain_scores else {},
+                    "uncertainty_estimate": result.uncertainty_estimate,
+                    "methods_used": result.methods_used
+                },
+                tags=["domain_classification", "ml", operation, result.primary_domain.value]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Domain Classification knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Domain Classification knowledge: {e}")
+            return False
+
+    def _track_classification_performance(
+        self,
+        operation: str,
+        success: bool,
+        confidence: float = 0.0,
+        text_length: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track classification performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on confidence and success
+            quality = confidence if success else 0.0
+            # Penalize very short texts (harder to classify)
+            if text_length < 100:
+                quality *= 0.8
+            quality = max(min(quality, 1.0), 0.0)
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"domain_classifier_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(timezone.utc),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "confidence": confidence,
+                    "text_length": text_length
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Domain Classification performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Domain Classification performance: {e}")
 
 
 # Convenience function

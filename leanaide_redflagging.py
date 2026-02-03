@@ -721,7 +721,7 @@ class LeanRedFlagger(RedFlagger):
     def _check_rw_args(self, code: str) -> bool:
         """Check if rw has arguments"""
         # Check for rw with arguments
-        return bool(re.search(r'\brw\b\s+\[', code) or re.search(r'\brw\b\s+\[', code))
+        return bool(re.search(r'\brw\b\s+\[', code) or re.search(r'\brw\b\s+\w+', code))
 
     def _check_induction_args(self, code: str) -> bool:
         """Check if induction has a variable to induct on"""
