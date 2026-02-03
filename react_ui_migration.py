@@ -156,7 +156,7 @@ export interface Artifact {
 export interface Decomposition {
   id: string;
   subproblems: SubProblem[];
-  entanglementMatrix: number[][];
+  entanglementMatrix: Record<string, string[]>;
 }
 
 export interface SubProblem {

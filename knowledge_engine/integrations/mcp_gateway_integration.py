@@ -149,65 +149,41 @@ class MCPGatewayIntegration:
     
     def _initialize_mock_components(self):
         """Initialize mock components when MCP Gateway is not available."""
-        logger.info({
-            "msg": "Initializing mock MCP Gateway components",
+        logger.warning({
+            "msg": "MCP Gateway not available - components will fail on use",
+            "install": "pip install mcp-gateway",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
-        # Create mock implementations
-        class MockToolRegistry:
-            def __init__(self):
-                self.tools = {}
-            
-            def register_tool(self, tool_def):
-                self.tools[f"{tool_def.namespace}/{tool_def.name}"] = tool_def
-            
-            def get_tool(self, namespace, name):
-                return self.tools.get(f"{namespace}/{name}")
-            
-            def list_tools(self, namespace=None, category=None):
-                tools = list(self.tools.values())
-                if namespace:
-                    tools = [t for t in tools if t.namespace == namespace]
-                if category:
-                    tools = [t for t in tools if t.category == category]
-                return tools
+        # Create failing mock implementations
+        from ..optional_imports import create_failing_mock
         
-        class MockToolRouter:
-            def route(self, tool_name, namespace=None):
-                return {"server_name": "mock_server", "server_url": "http://mock:8080"}
-            
-            async def execute_with_fallback(self, tool_name, params, execute_func, namespace=None):
-                # Mock execution
-                result = await execute_func("http://mock:8080", tool_name, params)
-                return result
+        MockToolRegistry = create_failing_mock(
+            package_name='mcp-gateway',
+            feature_name='MCP Tool Registry',
+            install_command='pip install mcp-gateway'
+        )
         
-        class MockUnifiedGateway:
-            def __init__(self):
-                self.tool_registry = MockToolRegistry()
-                self.tool_router = MockToolRouter()
-                self.is_initialized = True
-                self.is_running = True
-            
-            async def initialize(self):
-                pass
-            
-            async def call_tool(self, tool_name, params):
-                # Mock tool call
-                return type('MockResult', (), {
-                    'success': True,
-                    'result': f'Mock result for {tool_name} with params {params}',
-                    'execution_time': 0.1,
-                    'timestamp': datetime.now(timezone.utc)
-                })()
-            
-            async def list_tools(self, namespace="", category=None):
-                # Mock tool listing
-                return []
+        MockToolRouter = create_failing_mock(
+            package_name='mcp-gateway',
+            feature_name='MCP Tool Router',
+            install_command='pip install mcp-gateway'
+        )
         
-        self.unified_gateway = MockUnifiedGateway()
-        self.tool_registry = self.unified_gateway.tool_registry
-        self.tool_router = self.unified_gateway.tool_router
+        MockUnifiedGateway = create_failing_mock(
+            package_name='mcp-gateway',
+            feature_name='MCP Unified Gateway',
+            install_command='pip install mcp-gateway'
+        )
+        
+        self._mock_classes = {
+            'tool_registry': MockToolRegistry,
+            'tool_router': MockToolRouter,
+            'unified_gateway': MockUnifiedGateway
+        }
+        self.tool_registry = None
+        self.tool_router = None
+        self.unified_gateway = None
     
     async def call_tool(
         self,

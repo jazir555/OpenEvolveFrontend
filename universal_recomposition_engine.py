@@ -43,6 +43,8 @@ from enum import Enum
 from collections import defaultdict
 import hashlib
 from abc import ABC, abstractmethod
+from utils.entanglement_utils import normalize_entanglement_matrix
+from utils.symbolic_analyzer import SymbolicAnalyzer
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -144,6 +146,7 @@ class DecompositionPlan:
     strategy_used: str
     dependency_graph: Dict[str, List[str]] = field(default_factory=dict)
     execution_order: List[str] = field(default_factory=list)
+    metadata: Dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass
@@ -239,32 +242,38 @@ class ConflictDetector:
     def detect_conflicts(
         self,
         sub_solutions: Dict[str, SubProblemSolution],
-        dependency_graph: Dict[str, List[str]]
+        dependency_graph: Dict[str, List[str]],
+        entanglement_matrix: Optional[Dict[str, Set[str]]] = None
     ) -> List[Conflict]:
         """Detect all conflicts between sub-solutions"""
         conflicts = []
         
         # Detect contradictions
-        conflicts.extend(self._detect_contradictions(sub_solutions))
+        conflicts.extend(self._detect_contradictions(sub_solutions, entanglement_matrix))
         
         # Detect overlaps
-        conflicts.extend(self._detect_overlaps(sub_solutions))
+        conflicts.extend(self._detect_overlaps(sub_solutions, entanglement_matrix))
         
         # Detect dependency violations
         conflicts.extend(self._detect_dependency_violations(sub_solutions, dependency_graph))
         
         # Detect inconsistencies
-        conflicts.extend(self._detect_inconsistencies(sub_solutions))
+        conflicts.extend(self._detect_inconsistencies(sub_solutions, entanglement_matrix))
+
+        # Detect entanglement alignment issues
+        conflicts.extend(self._detect_entanglement_alignment(sub_solutions, entanglement_matrix))
         
         return conflicts
     
     def _detect_contradictions(
         self, 
-        sub_solutions: Dict[str, SubProblemSolution]
+        sub_solutions: Dict[str, SubProblemSolution],
+        entanglement_matrix: Optional[Dict[str, Set[str]]] = None
     ) -> List[Conflict]:
         """Detect contradictory solutions"""
         conflicts = []
         solution_ids = list(sub_solutions.keys())
+        entangled_pairs = self._build_entangled_pairs(entanglement_matrix)
         
         # Look for explicit contradiction markers
         contradiction_markers = [
@@ -290,7 +299,8 @@ class ConflictDetector:
                             severity="critical",
                             involved_solutions=[id1, id2],
                             description=f"Potential contradiction: {matches1} vs {matches2}",
-                            suggested_resolution="Review and reconcile conflicting requirements"
+                            suggested_resolution="Review and reconcile conflicting requirements",
+                            metadata={"entangled_pair": frozenset([id1, id2]) in entangled_pairs}
                         )
                         conflicts.append(conflict)
                         break
@@ -299,11 +309,13 @@ class ConflictDetector:
     
     def _detect_overlaps(
         self, 
-        sub_solutions: Dict[str, SubProblemSolution]
+        sub_solutions: Dict[str, SubProblemSolution],
+        entanglement_matrix: Optional[Dict[str, Set[str]]] = None
     ) -> List[Conflict]:
         """Detect overlapping/duplicate content"""
         conflicts = []
         solution_ids = list(sub_solutions.keys())
+        entangled_pairs = self._build_entangled_pairs(entanglement_matrix)
         
         for i, id1 in enumerate(solution_ids):
             for id2 in solution_ids[i+1:]:
@@ -313,14 +325,17 @@ class ConflictDetector:
                 # Calculate Jaccard similarity
                 similarity = self._jaccard_similarity(content1, content2)
                 
-                if similarity > self.overlap_threshold:
+                entangled = frozenset([id1, id2]) in entangled_pairs
+                threshold = 0.55 if entangled else self.overlap_threshold
+                if similarity > threshold:
                     conflict = Conflict(
                         conflict_id=self._generate_id("ovlp"),
                         conflict_type="overlap",
                         severity="medium",
                         involved_solutions=[id1, id2],
                         description=f"Significant overlap detected (similarity: {similarity:.2f})",
-                        suggested_resolution="Consolidate overlapping sections or refine sub-problem boundaries"
+                        suggested_resolution="Consolidate overlapping sections or refine sub-problem boundaries",
+                        metadata={"entangled_pair": entangled}
                     )
                     conflicts.append(conflict)
         
@@ -361,7 +376,8 @@ class ConflictDetector:
     
     def _detect_inconsistencies(
         self, 
-        sub_solutions: Dict[str, SubProblemSolution]
+        sub_solutions: Dict[str, SubProblemSolution],
+        entanglement_matrix: Optional[Dict[str, Set[str]]] = None
     ) -> List[Conflict]:
         """Detect style/format inconsistencies"""
         conflicts = []
@@ -390,11 +406,75 @@ class ConflictDetector:
                 severity="low",
                 involved_solutions=list(sub_solutions.keys()),
                 description=f"Inconsistent formats detected: {list(formats_detected.keys())}",
-                suggested_resolution="Standardize on a single format for all sub-solutions"
+                suggested_resolution="Standardize on a single format for all sub-solutions",
+                metadata={"entanglement_context": bool(entanglement_matrix)}
             )
             conflicts.append(conflict)
         
         return conflicts
+
+    def _detect_entanglement_alignment(
+        self,
+        sub_solutions: Dict[str, SubProblemSolution],
+        entanglement_matrix: Optional[Dict[str, Set[str]]] = None,
+    ) -> List[Conflict]:
+        """Detect entanglement alignment issues across coupled sub-solutions."""
+        if not entanglement_matrix:
+            return []
+
+        conflicts = []
+        analyzer = SymbolicAnalyzer()
+        token_cache: Dict[str, Set[str]] = {}
+
+        for sp_id, solution in sub_solutions.items():
+            token_cache[sp_id] = analyzer.analyze(solution.solution_content or "").symbols
+
+        seen_pairs = set()
+        for source, targets in entanglement_matrix.items():
+            for target in targets:
+                pair = frozenset([source, target])
+                if pair in seen_pairs:
+                    continue
+                seen_pairs.add(pair)
+                if source not in token_cache or target not in token_cache:
+                    continue
+                tokens_a = token_cache[source]
+                tokens_b = token_cache[target]
+                if not tokens_a or not tokens_b:
+                    continue
+                overlap = tokens_a & tokens_b
+                union = tokens_a | tokens_b
+                similarity = len(overlap) / max(1, len(union))
+                if similarity < 0.05:
+                    conflict = Conflict(
+                        conflict_id=self._generate_id("ent"),
+                        conflict_type="entanglement_alignment",
+                        severity="low",
+                        involved_solutions=[source, target],
+                        description=(
+                            f"Entangled components show low interface overlap "
+                            f"(similarity: {similarity:.2f})"
+                        ),
+                        suggested_resolution=(
+                            "Review shared interfaces and synchronize entangled outputs"
+                        ),
+                        metadata={"entangled_pair": True},
+                    )
+                    conflicts.append(conflict)
+
+        return conflicts
+
+    @staticmethod
+    def _build_entangled_pairs(
+        entanglement_matrix: Optional[Dict[str, Set[str]]]
+    ) -> Set[frozenset]:
+        pairs: Set[frozenset] = set()
+        if not entanglement_matrix:
+            return pairs
+        for source, targets in entanglement_matrix.items():
+            for target in targets:
+                pairs.add(frozenset([source, target]))
+        return pairs
     
     def _jaccard_similarity(self, text1: str, text2: str) -> float:
         """Calculate Jaccard similarity between two texts"""
@@ -772,6 +852,55 @@ class UniversalRecompositionEngine:
         self.conflict_resolver = ConflictResolver(llm_client)
         self.logger = logging.getLogger(self.__class__.__name__)
         self.assembly_history: List[IntegratedSolution] = []
+
+    def _extract_entanglement_matrix(self, plan: DecompositionPlan) -> Dict[str, Set[str]]:
+        """Extract and normalize entanglement matrix from the plan."""
+        raw_matrix = {}
+        if hasattr(plan, "entanglement_matrix"):
+            raw_matrix = getattr(plan, "entanglement_matrix") or {}
+        if not raw_matrix and hasattr(plan, "metadata") and isinstance(plan.metadata, dict):
+            raw_matrix = plan.metadata.get("entanglement_matrix", {}) or {}
+        if not raw_matrix and hasattr(plan, "analyzed_context") and isinstance(plan.analyzed_context, dict):
+            raw_matrix = plan.analyzed_context.get("entanglement_matrix", {}) or {}
+        try:
+            return normalize_entanglement_matrix(
+                raw_matrix,
+                allowed_ids=[sp.id for sp in plan.sub_problems],
+                enforce_symmetry=True,
+                strict=False,
+            )
+        except Exception as exc:
+            self.logger.warning(f"Failed to normalize entanglement matrix: {exc}")
+            return {}
+
+    @staticmethod
+    def _apply_entanglement_invalidation(
+        sub_solutions: Dict[str, SubProblemSolution],
+        entanglement_matrix: Dict[str, Set[str]],
+        conflicts: List[Conflict],
+    ) -> None:
+        """Propagate entanglement invalidation across coupled sub-solutions."""
+        if not conflicts:
+            return
+        conflict_pairs = set()
+        for conflict in conflicts:
+            involved = conflict.involved_solutions or []
+            for i in range(len(involved)):
+                for j in range(i + 1, len(involved)):
+                    conflict_pairs.add(frozenset([involved[i], involved[j]]))
+
+        for pair in conflict_pairs:
+            if len(pair) != 2:
+                continue
+            a, b = tuple(pair)
+            if b not in entanglement_matrix.get(a, set()) and a not in entanglement_matrix.get(b, set()):
+                continue
+            for source, target in [(a, b), (b, a)]:
+                if target not in sub_solutions:
+                    continue
+                meta = sub_solutions[target].metadata
+                meta.setdefault("entanglement_invalidation", []).append(source)
+                meta["needs_consistency_refinement"] = True
     
     def assemble(
         self,
@@ -812,12 +941,15 @@ class UniversalRecompositionEngine:
                 if k in valid_ids
             }
 
+            entanglement_matrix = self._extract_entanglement_matrix(plan)
+
             # Detect conflicts
             conflicts_detected = []
             if detect_conflicts:
                 conflicts_detected = self.conflict_detector.detect_conflicts(
                     filtered_solutions,
-                    plan.dependency_graph
+                    plan.dependency_graph,
+                    entanglement_matrix=entanglement_matrix
                 )
                 self.logger.info(f"Detected {len(conflicts_detected)} conflicts")
 
@@ -832,6 +964,9 @@ class UniversalRecompositionEngine:
                 conflicts_resolved = [c for c in conflicts_detected if c not in unresolved]
                 conflicts_detected = unresolved
                 self.logger.info(f"Resolved {len(conflicts_resolved)} conflicts, {len(conflicts_detected)} remain")
+
+            if entanglement_matrix and conflicts_detected:
+                self._apply_entanglement_invalidation(filtered_solutions, entanglement_matrix, conflicts_detected)
 
             # Select and execute assembly strategy
             strategy_class = self.STRATEGIES.get(strategy, AdaptiveAssembly)
@@ -864,7 +999,15 @@ class UniversalRecompositionEngine:
                     f"Conflicts detected: {len(conflicts_detected) + len(conflicts_resolved)}",
                     f"Conflicts resolved: {len(conflicts_resolved)}",
                     f"Quality score: {quality_metrics.overall_score:.2f}"
-                ]
+                ],
+                metadata={
+                    "entanglement_matrix": {
+                        key: sorted(list(value)) for key, value in entanglement_matrix.items()
+                    },
+                    "entanglement_conflicts": [
+                        c.conflict_id for c in conflicts_detected if c.conflict_type.startswith("entanglement")
+                    ],
+                }
             )
 
             self.assembly_history.append(solution)

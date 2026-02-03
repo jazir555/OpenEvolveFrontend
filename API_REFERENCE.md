@@ -150,7 +150,10 @@ Decompose a problem.
       "complexity": 0.7
     }
   ],
-  "entanglement_matrix": [[0, 0.5], [0.5, 0]]
+  "entanglement_matrix": {
+    "sub_001": ["sub_002"],
+    "sub_002": ["sub_001"]
+  }
 }
 ```
 

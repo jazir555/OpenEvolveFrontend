@@ -25,8 +25,12 @@ from threading import Lock
 import uuid
 import re
 
-# Import unified models
-from knowledge_engine.schemas.base import (
+# Import unified models - use relative import
+import sys
+from pathlib import Path
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from schemas.base import (
     Entity,
     Relationship,
     ValidationResult,

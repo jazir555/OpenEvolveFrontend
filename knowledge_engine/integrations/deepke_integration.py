@@ -795,62 +795,29 @@ class DeepKEIntegration:
 
 
 class MockDeepKEExtractor:
-    """Mock implementation of DeepKE extractor for when DeepKE is not available."""
+    """
+    Failing mock implementation of DeepKE extractor.
+    
+    This class raises an informative error when instantiated or used,
+    directing users to install the required DeepKE dependency.
+    """
     
     def __init__(self):
-        self.initialized = True
-        logger.info("Mock DeepKE extractor initialized")
+        from ..optional_imports import OptionalDependencyError
+        raise OptionalDependencyError(
+            package_name='deepke',
+            feature_name='DeepKE knowledge extraction',
+            install_command='pip install deepke'
+        )
     
     def predict(self, text: str) -> List[Dict[str, Any]]:
-        """Mock prediction method."""
-        # This is a simplified mock implementation
-        # In a real implementation, this would use sophisticated NLP models
-        import re
-        
-        # Simple pattern matching to extract potential relations
-        sentences = re.split(r'[.!?]+', text)
-        relations = []
-        
-        for sentence in sentences:
-            sentence = sentence.strip()
-            if not sentence:
-                continue
-                
-            # Look for patterns like "X is a Y", "X works at Y", etc.
-            # This is a very basic approach compared to DeepKE's actual capabilities
-            patterns = [
-                r'([A-Z][a-zA-Z\s]+?)\s+(?:is|was)\s+(?:a|an)\s+([A-Z][a-zA-Z\s]+)',
-                r'([A-Z][a-zA-Z\s]+?)\s+(?:works at|works for)\s+([A-Z][a-zA-Z\s]+)',
-                r'([A-Z][a-zA-Z\s]+?)\s+(?:located in|based in)\s+([A-Z][a-zA-Z\s]+)',
-                r'([A-Z][a-zA-Z\s]+?)\s+(?:founded|established)\s+([A-Z][a-zA-Z\s]+)',
-            ]
-            
-            for pattern in patterns:
-                matches = re.findall(pattern, sentence)
-                for match in matches:
-                    if len(match) >= 2:
-                        subj, obj = match[0].strip(), match[1].strip()
-                        # Determine relation based on pattern
-                        if 'is' in pattern or 'was' in pattern:
-                            pred = "is_a"
-                        elif 'works' in pattern:
-                            pred = "works_for"
-                        elif 'located' in pattern or 'based' in pattern:
-                            pred = "located_in"
-                        elif 'founded' in pattern or 'established' in pattern:
-                            pred = "founded"
-                        else:
-                            pred = "related_to"
-                        
-                        relations.append({
-                            "subject": subj,
-                            "predicate": pred,
-                            "object": obj,
-                            "confidence": 0.7,  # Mock confidence
-                            "sentence": sentence
-                        })
-
-        return relations
+        """This method should never be called - __init__ raises error."""
+        from ..optional_imports import OptionalDependencyError
+        raise OptionalDependencyError(
+            package_name='deepke',
+            feature_name='DeepKE relation extraction',
+            install_command='pip install deepke'
+        )
 
 
 class DeepKEEnhancedExtractor:

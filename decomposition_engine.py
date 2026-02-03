@@ -28,6 +28,11 @@ from sovereign_data_models import DomainContext, ProblemType
 from problem_analyzer import ProblemAnalyzer
 from sovereign_knowledge_manager import KnowledgeManager
 from sovereign_reliability import with_error_handling, ErrorSeverity
+from utils.entanglement_utils import (
+    build_symbolic_entanglement_matrix,
+    normalize_entanglement_matrix,
+    serialize_entanglement_matrix,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1310,6 +1315,26 @@ class DecompositionEngine:
             created_by="decomposition_engine"
         )
 
+        # Build entanglement matrix for coordination across sub-problems
+        try:
+            matrix, symbols_by_id = build_symbolic_entanglement_matrix(
+                sub_problems,
+                allowed_ids=[sp.id for sp in sub_problems],
+                enforce_symmetry=True,
+                strict=False,
+            )
+            serialized = serialize_entanglement_matrix(matrix)
+            plan.metadata["entanglement_matrix"] = serialized
+            for sp in sub_problems:
+                entangled_with = serialized.get(sp.id, [])
+                sp.metadata["entangled_with"] = entangled_with
+                if entangled_with and "entanglement_source" not in sp.metadata:
+                    sp.metadata["entanglement_source"] = "symbolic_overlap"
+                if sp.id in symbols_by_id:
+                    sp.metadata["entanglement_symbols"] = sorted(symbols_by_id.get(sp.id, set()))
+        except Exception as exc:
+            self.logger.warning(f"Failed to build entanglement matrix: {exc}")
+
         execution_time = time.time() - start_time
 
         # **ACTUAL INTEGRATION**: Extract knowledge from successful decomposition
@@ -1365,17 +1390,48 @@ class DecompositionEngine:
                 )
                 subproblem_models.append(model)
             
-            # Extract entanglements from dependency graph
+            # Extract entanglements from entanglement matrix (preferred) or dependency graph (fallback)
             entanglements = []
-            if plan.dependency_graph:
-                for edge in plan.dependency_graph.get('edges', []):
-                    ent = EntanglementSpecification(
-                        entanglement_id=f"ent_{edge.get('source')}_{edge.get('target')}",
-                        source_subproblem=edge.get('source', ''),
-                        target_subproblem=edge.get('target', ''),
-                        strength=edge.get('type', 'weak')
-                    )
-                    entanglements.append(ent)
+            entanglement_matrix = (plan.metadata or {}).get("entanglement_matrix", {}) or {}
+            if entanglement_matrix:
+                normalized = normalize_entanglement_matrix(
+                    entanglement_matrix,
+                    allowed_ids=[sp.id for sp in plan.sub_problems],
+                    enforce_symmetry=True,
+                    strict=False,
+                )
+                seen_pairs = set()
+                for source, targets in normalized.items():
+                    for target in targets:
+                        pair = tuple(sorted([source, target]))
+                        if pair in seen_pairs:
+                            continue
+                        seen_pairs.add(pair)
+                        entanglements.append(
+                            EntanglementSpecification(
+                                entanglement_id=f"ent_{source}_{target}",
+                                source_subproblem=source,
+                                target_subproblem=target,
+                                strength="entangled",
+                            )
+                        )
+            else:
+                dep_edges: Dict[str, List[str]] = {}
+                if plan.dependency_graph:
+                    if isinstance(plan.dependency_graph, dict):
+                        dep_edges = plan.dependency_graph.get("edges", plan.dependency_graph)
+                    else:
+                        dep_edges = plan.dependency_graph.edges
+                for source, targets in dep_edges.items():
+                    for target in targets or []:
+                        entanglements.append(
+                            EntanglementSpecification(
+                                entanglement_id=f"ent_{source}_{target}",
+                                source_subproblem=source,
+                                target_subproblem=target,
+                                strength="weak",
+                            )
+                        )
             
             # Run validation
             result = self._z3_validator.validate_decomposition(

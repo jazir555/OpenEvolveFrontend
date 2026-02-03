@@ -166,27 +166,41 @@ class LeanAideIntegration:
     
     def _initialize_mock_components(self):
         """Initialize mock components when LeanAide is not available."""
-        logger.info({
-            "msg": "Initializing mock LeanAide components",
+        logger.warning({
+            "msg": "LeanAide not available - components will fail on use",
+            "install": "pip install leanaide",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
-        # Create mock implementations
-        class MockProofSearcher:
-            def search_proof(self, theorem, timeout=30):
-                return {"success": True, "proof": "Mock proof generated", "steps": []}
+        # Create failing mock implementations
+        from ..optional_imports import create_failing_mock
         
-        class MockAutoTactic:
-            def apply_tactic(self, goal, tactic):
-                return {"success": True, "result": "Tactic applied successfully"}
+        MockProofSearcher = create_failing_mock(
+            package_name='leanaide',
+            feature_name='LeanAide Proof Searcher',
+            install_command='pip install leanaide'
+        )
         
-        class MockFormalVerifier:
-            def verify_theorem(self, theorem, proof):
-                return {"verified": True, "errors": []}
+        MockAutoTactic = create_failing_mock(
+            package_name='leanaide',
+            feature_name='LeanAide Auto Tactic',
+            install_command='pip install leanaide'
+        )
         
-        self.proof_searcher = MockProofSearcher()
-        self.auto_tactic = MockAutoTactic()
-        self.formal_verifier = MockFormalVerifier()
+        MockFormalVerifier = create_failing_mock(
+            package_name='leanaide',
+            feature_name='LeanAide Formal Verifier',
+            install_command='pip install leanaide'
+        )
+        
+        self._mock_classes = {
+            'proof_searcher': MockProofSearcher,
+            'auto_tactic': MockAutoTactic,
+            'formal_verifier': MockFormalVerifier
+        }
+        self.proof_searcher = None
+        self.auto_tactic = None
+        self.formal_verifier = None
     
     def _initialize_proof_searcher(self):
         """Initialize the proof searcher component."""

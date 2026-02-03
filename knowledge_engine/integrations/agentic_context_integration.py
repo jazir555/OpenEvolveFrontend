@@ -173,58 +173,49 @@ class AgenticContextEngine:
     
     def _initialize_mock_components(self):
         """Initialize mock components when ACE is not available."""
-        logger.info({
-            "msg": "Initializing mock ACE components",
+        logger.warning({
+            "msg": "ACE (Agentic Context Engine) not available - components will fail on use",
+            "install": "pip install ace-framework",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
-        # Create mock implementations
-        class MockSkillbook:
-            def __init__(self):
-                self.skills_list = []
-            
-            def add_skill(self, skill):
-                self.skills_list.append(skill)
-            
-            def get_skills(self):
-                return self.skills_list
-            
-            def as_prompt(self):
-                return "Mock skillbook with no skills"
+        # Create failing mock implementations
+        from ..optional_imports import create_failing_mock
         
-        class MockAgent:
-            def generate(self, question, context, skillbook, reflection, sample=None):
-                # Mock generation result
-                return type('MockAgentOutput', (), {
-                    'final_answer': f"Mock answer to: {question}",
-                    'thought_process': "Mock thought process",
-                    'skill_ids': [],
-                    'metadata': {}
-                })()
+        MockSkillbook = create_failing_mock(
+            package_name='ace-framework',
+            feature_name='ACE Skillbook',
+            install_command='pip install ace-framework'
+        )
         
-        class MockReflector:
-            def reflect(self, question, agent_output, skillbook, ground_truth, feedback, max_refinement_rounds=1):
-                # Mock reflection result
-                return type('MockReflectorOutput', (), {
-                    'reflection': f"Mock reflection on: {question}",
-                    'improvements': ["Mock improvement suggestion"],
-                    'skill_tags': [],
-                    'raw': {"reflection": f"Mock reflection on: {question}"}
-                })()
+        MockAgent = create_failing_mock(
+            package_name='ace-framework',
+            feature_name='ACE Agent',
+            install_command='pip install ace-framework'
+        )
         
-        class MockSkillManager:
-            def update_skills(self, reflection, skillbook, question_context, progress):
-                # Mock skill manager output
-                return type('MockSkillManagerOutput', (), {
-                    'update': {"skills_added": 0, "skills_modified": 0},
-                    'new_skills': [],
-                    'modified_skills': []
-                })()
+        MockReflector = create_failing_mock(
+            package_name='ace-framework',
+            feature_name='ACE Reflector',
+            install_command='pip install ace-framework'
+        )
         
-        self.skillbook = MockSkillbook()
-        self.agent = MockAgent()
-        self.reflector = MockReflector()
-        self.skill_manager = MockSkillManager()
+        MockSkillManager = create_failing_mock(
+            package_name='ace-framework',
+            feature_name='ACE SkillManager',
+            install_command='pip install ace-framework'
+        )
+        
+        self._mock_classes = {
+            'skillbook': MockSkillbook,
+            'agent': MockAgent,
+            'reflector': MockReflector,
+            'skill_manager': MockSkillManager
+        }
+        self.skillbook = None
+        self.agent = None
+        self.reflector = None
+        self.skill_manager = None
         self.offline_ace = None
         self.online_ace = None
     

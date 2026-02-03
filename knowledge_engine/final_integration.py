@@ -118,20 +118,115 @@ class PerformanceMonitor:
                 await asyncio.sleep(self.check_interval)
     
     async def _collect_metrics(self) -> PerformanceMetrics:
-        """Collect current performance metrics."""
-        # In a real implementation, this would use psutil or similar
-        # For now, return simulated metrics
+        """Collect current performance metrics using psutil."""
+        try:
+            import psutil
+            
+            # CPU usage
+            cpu_percent = psutil.cpu_percent(interval=0.1)
+            
+            # Memory usage
+            memory = psutil.virtual_memory()
+            memory_mb = memory.used / (1024 * 1024)
+            
+            # Network connections (approximation of active connections)
+            try:
+                connections = len(psutil.net_connections())
+            except (psutil.AccessDenied, PermissionError):
+                connections = 0
+            
+            # Calculate request latency and RPS from internal tracking
+            current_time = datetime.utcnow()
+            if hasattr(self, '_request_times'):
+                # Clean old request times (> 1 minute)
+                self._request_times = [
+                    t for t in self._request_times 
+                    if (current_time - t).total_seconds() < 60
+                ]
+                request_count = len(self._request_times)
+                requests_per_second = request_count / 60.0
+                
+                # Calculate average latency if we have response times
+                if hasattr(self, '_response_times') and self._response_times:
+                    avg_latency = sum(self._response_times) / len(self._response_times)
+                    self._response_times = []  # Reset after calculation
+                else:
+                    avg_latency = 0.0
+            else:
+                self._request_times = []
+                requests_per_second = 0.0
+                avg_latency = 0.0
+            
+            # Calculate cache hit rate from internal cache tracking
+            if hasattr(self, '_cache_hits') and hasattr(self, '_cache_misses'):
+                total = self._cache_hits + self._cache_misses
+                if total > 0:
+                    cache_hit_rate = self._cache_hits / total
+                else:
+                    cache_hit_rate = 0.0
+            else:
+                self._cache_hits = 0
+                self._cache_misses = 0
+                cache_hit_rate = 0.0
+            
+            return PerformanceMetrics(
+                timestamp=current_time,
+                cpu_percent=cpu_percent,
+                memory_mb=memory_mb,
+                request_latency_ms=avg_latency,
+                requests_per_second=requests_per_second,
+                active_connections=connections,
+                cache_hit_rate=cache_hit_rate
+            )
+            
+        except ImportError:
+            logger.warning("psutil not available, using fallback metrics")
+            return self._collect_fallback_metrics()
+        except Exception as e:
+            logger.error(f"Failed to collect metrics: {e}")
+            return self._collect_fallback_metrics()
+    
+    def _collect_fallback_metrics(self) -> PerformanceMetrics:
+        """Collect basic metrics without psutil."""
+        import os
+        import sys
         
-        import random
+        current_time = datetime.utcnow()
+        
+        # Try to get memory info from resource module (Unix only)
+        memory_mb = 0.0
+        try:
+            import resource
+            rusage = resource.getrusage(resource.RUSAGE_SELF)
+            memory_mb = rusage.ru_maxrss / 1024  # Convert KB to MB
+        except (ImportError, AttributeError):
+            pass
+        
         return PerformanceMetrics(
-            timestamp=datetime.utcnow(),
-            cpu_percent=random.uniform(10, 60),
-            memory_mb=random.uniform(100, 500),
-            request_latency_ms=random.uniform(10, 100),
-            requests_per_second=random.uniform(10, 1000),
-            active_connections=random.randint(1, 100),
-            cache_hit_rate=random.uniform(0.7, 0.95)
+            timestamp=current_time,
+            cpu_percent=0.0,
+            memory_mb=memory_mb,
+            request_latency_ms=0.0,
+            requests_per_second=0.0,
+            active_connections=0,
+            cache_hit_rate=0.0
         )
+    
+    def record_request(self, latency_ms: float, cache_hit: bool = False):
+        """Record a request for metrics calculation."""
+        if not hasattr(self, '_request_times'):
+            self._request_times = []
+            self._response_times = []
+            self._cache_hits = 0
+            self._cache_misses = 0
+        
+        self._request_times.append(datetime.utcnow())
+        self._response_times.append(latency_ms)
+        
+        if cache_hit:
+            self._cache_hits += 1
+        else:
+            self._cache_misses += 1
     
     def on_metrics(self, callback: Callable[[PerformanceMetrics], None]):
         """Register metrics callback."""

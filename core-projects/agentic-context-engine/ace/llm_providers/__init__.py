@@ -2,6 +2,7 @@
 
 from typing import Optional
 from .litellm_client import LiteLLMClient, LiteLLMConfig
+from .resilient_client import CallInfo, ResilientLLMClient
 
 LangChainLiteLLMClient: Optional[type]
 
@@ -15,5 +16,7 @@ except ImportError:
 __all__ = [
     "LiteLLMClient",
     "LiteLLMConfig",
+    "ResilientLLMClient",
+    "CallInfo",
     "LangChainLiteLLMClient",
 ]

@@ -320,6 +320,20 @@ class SubProblemSolver:
             sub_problem,
             parent_problem
         )
+
+        entangled_with = []
+        entanglement_symbols = []
+        if context:
+            entangled_with = context.get("entangled_with", []) or []
+            entanglement_symbols = context.get("entanglement_symbols", []) or []
+        if entangled_with:
+            symbols_text = ", ".join(entanglement_symbols) if entanglement_symbols else "n/a"
+            content = (
+                f"{content}\n\n### Entanglement Context\n"
+                f"- Entangled with: {', '.join(entangled_with)}\n"
+                f"- Shared symbols: {symbols_text}\n"
+                f"- Coordination note: keep shared interfaces consistent with entangled peers\n"
+            )
         
         # Estimate quality based on completeness
         quality = self._estimate_quality(content, sub_problem)
@@ -335,7 +349,9 @@ class SubProblemSolver:
                 'domain': domain,
                 'type': sub_problem.type if isinstance(sub_problem.type, str) else sub_problem.type.value,
                 'solving_duration_ms': (datetime.now() - start_time).total_seconds() * 1000,
-                'template_used': template is not None
+                'template_used': template is not None,
+                'entangled_with': entangled_with,
+                'entanglement_symbols': entanglement_symbols,
             }
         )
         
@@ -576,9 +592,23 @@ class UniversalProblemSolver:
             
             for sp in plan.sub_problems:
                 self.logger.info(f"Solving: {sp.title}")
+                entanglement_matrix = {}
+                if hasattr(plan, "metadata") and isinstance(plan.metadata, dict):
+                    entanglement_matrix = plan.metadata.get("entanglement_matrix", {}) or {}
+                entangled_with = []
+                entanglement_symbols = []
+                if hasattr(sp, "metadata") and isinstance(sp.metadata, dict):
+                    entangled_with = sp.metadata.get("entangled_with", []) or []
+                    entanglement_symbols = sp.metadata.get("entanglement_symbols", []) or []
+                context = {
+                    "entanglement_matrix": entanglement_matrix,
+                    "entangled_with": entangled_with,
+                    "entanglement_symbols": entanglement_symbols,
+                }
                 solution = self.sub_problem_solver.solve(
                     sub_problem=sp,
-                    parent_problem=plan.original_problem
+                    parent_problem=plan.original_problem,
+                    context=context
                 )
                 sub_solutions[sp.id] = solution
             

@@ -792,28 +792,29 @@ class ResearchQuestIntegration:
 
 
 class MockResearchQuestGraph:
-    """Mock implementation of Research-Quest graph for when it's not available."""
+    """
+    Failing mock implementation of Research-Quest graph.
+    
+    Raises an informative error when instantiated, directing users to
+    install the required Research-Quest dependency.
+    """
     
     def __init__(self):
-        self.current_stage = 0
-        self.vertices = {}
-        self.edges = {}
-        self.initialized = False
-        
-        logger.info("Mock Research-Quest graph initialized")
+        from ..optional_imports import OptionalDependencyError
+        raise OptionalDependencyError(
+            package_name='research-quest',
+            feature_name='Research-Quest graph analysis',
+            install_command='pip install research-quest'
+        )
     
     def initialize(self, task_description: str, initial_confidence: List[float], config: Dict[str, Any]) -> Dict[str, Any]:
-        """Mock initialization."""
-        self.current_stage = 1
-        self.initialized = True
-        
-        return {
-            "success": True,
-            "node_id": "n0",
-            "message": "Graph initialized (mock)",
-            "current_stage": self.current_stage,
-            "stage_name": "initialization"
-        }
+        """This method should never be called - __init__ raises error."""
+        from ..optional_imports import OptionalDependencyError
+        raise OptionalDependencyError(
+            package_name='research-quest',
+            feature_name='Research-Quest graph initialization',
+            install_command='pip install research-quest'
+        )
     
     def decompose_task(self, custom_dimensions: Optional[List[str]] = None) -> Dict[str, Any]:
         """Mock task decomposition."""

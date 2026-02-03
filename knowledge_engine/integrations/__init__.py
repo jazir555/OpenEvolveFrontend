@@ -129,7 +129,7 @@ __all__ = [
     "get_auto_extraction_manager",
     "enable_auto_extraction",
     "disable_auto_extraction",
-    "auto_extract_ktraction",
+    "auto_extract_knowledge",
     "Z3KnowledgeExtractorMixin",
     
     # Z3 API

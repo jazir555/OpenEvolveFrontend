@@ -4,7 +4,9 @@ Entanglement Matrix Utilities
 Normalization and serialization helpers for fractal entanglement matrices.
 """
 
-from typing import Any, Dict, Iterable, Mapping, Optional, Set, List
+from typing import Any, Dict, Iterable, Mapping, Optional, Set, List, Tuple
+
+from utils.symbolic_analyzer import SymbolicAnalyzer
 
 
 def normalize_entanglement_matrix(
@@ -21,10 +23,33 @@ def normalize_entanglement_matrix(
     - Optionally enforces symmetry (A->B implies B->A)
     - Ensures all allowed_ids exist as keys (empty set if none)
     """
-    allowed_set = set(allowed_ids or [])
+    allowed_list = list(allowed_ids or [])
+    allowed_set = set(allowed_list)
     raw_map: Dict[str, Set[str]] = {}
 
-    if matrix:
+    if matrix and not isinstance(matrix, Mapping) and isinstance(matrix, (list, tuple)) and allowed_list:
+        # Support adjacency-style matrices when allowed_ids provides ordering.
+        for row_idx, row in enumerate(matrix):
+            if row_idx >= len(allowed_list):
+                break
+            key = allowed_list[row_idx]
+            if allowed_set and key not in allowed_set:
+                continue
+            if not isinstance(row, (list, tuple)):
+                continue
+            for col_idx, value in enumerate(row):
+                if col_idx >= len(allowed_list):
+                    break
+                if not value:
+                    continue
+                partner = allowed_list[col_idx]
+                if partner == key:
+                    if strict:
+                        raise ValueError(f"Self-entanglement detected for {key}")
+                    continue
+                raw_map.setdefault(key, set()).add(partner)
+
+    if matrix and isinstance(matrix, Mapping):
         for key, value in matrix.items():
             if allowed_set and key not in allowed_set:
                 if strict:
@@ -87,3 +112,74 @@ def normalize_entanglement_matrix(
 def serialize_entanglement_matrix(matrix: Mapping[str, Iterable[str]]) -> Dict[str, List[str]]:
     """Serialize a normalized entanglement matrix into JSON-safe lists."""
     return {key: sorted(list(value)) for key, value in matrix.items()}
+
+
+def build_symbolic_entanglement_matrix(
+    sub_problems: Iterable[Any],
+    allowed_ids: Optional[Iterable[str]] = None,
+    enforce_symmetry: bool = True,
+    strict: bool = False,
+) -> Tuple[Dict[str, Set[str]], Dict[str, Set[str]]]:
+    """
+    Build a symbolic entanglement matrix from sub-problem content.
+
+    Returns:
+        (matrix, symbols_by_id)
+    """
+    analyzer = SymbolicAnalyzer()
+    ids: List[str] = []
+    symbols_by_id: Dict[str, Set[str]] = {}
+    symbol_map: Dict[str, Set[str]] = {}
+
+    for sp in sub_problems:
+        sp_id = getattr(sp, "id", None)
+        if not sp_id and isinstance(sp, dict):
+            sp_id = sp.get("id")
+        if not sp_id:
+            continue
+        ids.append(sp_id)
+
+        metadata = getattr(sp, "metadata", None)
+        if metadata is None and isinstance(sp, dict):
+            metadata = sp.get("metadata") or {}
+        metadata = metadata or {}
+
+        symbols: Set[str] = set()
+        for key in ("shared_symbols", "interface_symbols", "entanglement_symbols", "interface_contracts"):
+            values = metadata.get(key)
+            if isinstance(values, (list, tuple, set)):
+                symbols.update(str(v) for v in values if v)
+            elif isinstance(values, str):
+                symbols.add(values)
+
+        title = getattr(sp, "title", None)
+        description = getattr(sp, "description", None)
+        if title is None and isinstance(sp, dict):
+            title = sp.get("title")
+        if description is None and isinstance(sp, dict):
+            description = sp.get("description")
+
+        text = " ".join([t for t in [title, description] if t])
+        if text:
+            symbols.update(analyzer.analyze(text).symbols)
+
+        symbols = {s for s in symbols if s}
+        symbols_by_id[sp_id] = symbols
+
+        for sym in symbols:
+            symbol_map.setdefault(sym, set()).add(sp_id)
+
+    matrix: Dict[str, Set[str]] = {sp_id: set() for sp_id in ids}
+    for _, components in symbol_map.items():
+        if len(components) < 2:
+            continue
+        for comp in components:
+            matrix[comp].update({c for c in components if c != comp})
+
+    normalized = normalize_entanglement_matrix(
+        matrix,
+        allowed_ids=allowed_ids or ids,
+        enforce_symmetry=enforce_symmetry,
+        strict=strict,
+    )
+    return normalized, symbols_by_id

@@ -6,6 +6,9 @@ orchestrating all integrated components into a unified system that can learn,
 evolve, and improve over time through coordinated operation of all components.
 """
 
+import logging
+logger = logging.getLogger(__name__)
+
 # Initialize __all__ list
 __all__ = []
 
@@ -345,6 +348,73 @@ __all__.extend([
     'KnowledgeEngineMCPHandler',
     'create_mcp_server',
 ])
+
+# Import completion modules (NEW - COMPLETION FEATURES)
+try:
+    from .embedding_service import (
+        EmbeddingService,
+        EmbeddingConfig,
+        create_embedding_service,
+        get_default_embedding_service
+    )
+    from .confidence_scorer import (
+        ConfidenceScorer,
+        ConfidenceFactors,
+        calculate_confidence,
+        get_confidence_scorer
+    )
+    from .core.strategy_recommender_complete import (
+        StrategyRecommendation,
+        EnsembleStrategySelector,
+        recommend_strategy
+    )
+    from .core.backends.full_featured_backends import (
+        FullFeaturedInMemoryBackend,
+        FullFeaturedPostgreSQLBackend,
+        FullFeaturedQdrantBackend,
+        create_full_featured_backend
+    )
+    from .cloud_storage_backends import (
+        S3BackupStorage,
+        GCSBackupStorage,
+        AzureBackupStorage,
+        S3Credentials,
+        GCSCredentials,
+        AzureCredentials,
+        create_cloud_storage
+    )
+    
+    __all__.extend([
+        # Embedding service
+        'EmbeddingService',
+        'EmbeddingConfig',
+        'create_embedding_service',
+        'get_default_embedding_service',
+        # Confidence scoring
+        'ConfidenceScorer',
+        'ConfidenceFactors',
+        'calculate_confidence',
+        'get_confidence_scorer',
+        # Strategy recommendation
+        'StrategyRecommendation',
+        'EnsembleStrategySelector',
+        'recommend_strategy',
+        # Full-featured backends
+        'FullFeaturedInMemoryBackend',
+        'FullFeaturedPostgreSQLBackend',
+        'FullFeaturedQdrantBackend',
+        'create_full_featured_backend',
+        # Cloud storage
+        'S3BackupStorage',
+        'GCSBackupStorage',
+        'AzureBackupStorage',
+        'S3Credentials',
+        'GCSCredentials',
+        'AzureCredentials',
+        'create_cloud_storage',
+    ])
+except ImportError as e:
+    logging.getLogger(__name__).debug(f"Completion modules not available: {e}")
 
 import asyncio
 import logging

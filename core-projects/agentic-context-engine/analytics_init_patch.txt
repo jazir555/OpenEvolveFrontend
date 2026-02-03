@@ -1,0 +1,25 @@
+# PATCH INSTRUCTIONS FOR ace/__init__.py
+# Apply these changes to export analytics functionality
+
+# 1. After the deduplication imports (around line 96-99), add:
+
+# Import analytics module
+from .analytics import (
+    SkillbookStats,
+    SkillUsageTracker,
+    get_skillbook_stats,
+    calculate_effectiveness_score,
+    export_analytics,
+)
+
+# 2. In the __all__ list (around line 127-128), add after DeduplicationManager entries:
+
+    # Analytics
+    "SkillbookStats",
+    "SkillUsageTracker",
+    "get_skillbook_stats",
+    "calculate_effectiveness_score",
+    "export_analytics",
+
+# This will allow users to import analytics directly:
+# from ace import get_skillbook_stats, SkillUsageTracker

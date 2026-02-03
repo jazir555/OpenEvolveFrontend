@@ -175,34 +175,42 @@ class RagbitsIntegration:
     
     def _initialize_mock_components(self):
         """Initialize mock components when Ragbits is not available."""
-        logger.info({
-            "msg": "Initializing mock Ragbits components",
+        logger.warning({
+            "msg": "Ragbits not available - components will fail on use",
+            "install": "pip install ragbits",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
-        # Create mock implementations
-        class MockVectorStore:
-            def __init__(self):
-                self.documents = {}
-            
-            async def retrieve(self, query: str, options=None):
-                # Mock retrieval - return empty results
-                return []
+        # Create failing mock implementations
+        from ..optional_imports import create_failing_mock
         
-        class MockQueryRephraser:
-            async def rephrase(self, query: str, options=None):
-                # Return original query
-                return [query]
+        MockVectorStore = create_failing_mock(
+            package_name='ragbits',
+            feature_name='Ragbits Vector Store',
+            install_command='pip install ragbits'
+        )
         
-        class MockReranker:
-            async def rerank(self, elements, query, options=None):
-                # Return elements as-is
-                return elements
+        MockQueryRephraser = create_failing_mock(
+            package_name='ragbits',
+            feature_name='Ragbits Query Rephraser',
+            install_command='pip install ragbits'
+        )
         
-        self.vector_store = MockVectorStore()
-        self.query_rephraser = MockQueryRephraser()
-        self.reranker = MockReranker()
-        self.document_search = None  # Will use individual components directly
+        MockReranker = create_failing_mock(
+            package_name='ragbits',
+            feature_name='Ragbits Reranker',
+            install_command='pip install ragbits'
+        )
+        
+        self._mock_classes = {
+            'vector_store': MockVectorStore,
+            'query_rephraser': MockQueryRephraser,
+            'reranker': MockReranker
+        }
+        self.vector_store = None
+        self.query_rephraser = None
+        self.reranker = None
+        self.document_search = None
     
     async def search_documents(
         self,

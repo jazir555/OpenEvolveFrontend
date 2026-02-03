@@ -139,79 +139,35 @@ class AgentJSONIntegration:
     
     def _initialize_mock_components(self):
         """Initialize mock components when AgentJSON is not available."""
-        logger.info({
-            "msg": "Initializing mock AgentJSON components",
+        logger.warning({
+            "msg": "AgentJSON not available - components will fail on use",
+            "install": "pip install agentjson",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
-        # Create mock implementations
-        class MockRepairOptions:
-            def __init__(self, **kwargs):
-                for k, v in kwargs.items():
-                    setattr(self, k, v)
+        # Create failing mock implementations
+        from ..optional_imports import create_failing_mock
         
-        def mock_parse(text, options=None):
-            # Mock parsing implementation
-            import json
-            import re
-            
-            # Try to extract JSON from arbitrary text
-            # Look for JSON-like structures
-            json_pattern = r'(\{(?:[^{}]|(?R))*\}|\[(?:[^\[\]]|(?R))*\])'
-            matches = re.findall(json_pattern, text, re.DOTALL)
-            
-            if matches:
-                # Try to parse the first match
-                for match in matches:
-                    try:
-                        # Clean up common issues
-                        cleaned = match.strip()
-                        # Replace single quotes with double quotes
-                        cleaned = re.sub(r"'([^']*)':", r'"\1":', cleaned)
-                        cleaned = re.sub(r":\s*'([^']*)'", r': "\1"', cleaned)
-                        # Replace Python literals
-                        cleaned = cleaned.replace('True', 'true').replace('False', 'false').replace('None', 'null')
-                        
-                        parsed = json.loads(cleaned)
-                        return type('MockResult', (), {
-                            'status': 'repaired',
-                            'best': type('MockCandidate', (), {
-                                'value': parsed,
-                                'confidence': 0.8,
-                                'cost': 1,
-                                'repairs': [{'op': 'cleanup', 'span': (0, len(match)), 'note': 'Cleaned up quotes and literals'}]
-                            })(),
-                            'candidates': [type('MockCandidate', (), {
-                                'value': parsed,
-                                'confidence': 0.8,
-                                'cost': 1,
-                                'repairs': [{'op': 'cleanup', 'span': (0, len(match)), 'note': 'Cleaned up quotes and literals'}]
-                            })()],
-                            'best_index': 0,
-                            'metrics': type('MockMetrics', (), {
-                                'elapsed_ms': 1.0,
-                                'llm_calls': 0,
-                                'llm_time_ms': 0
-                            })()
-                        })()
-                    except json.JSONDecodeError:
-                        continue
-            
-            # If no JSON found, return a mock failure result
-            return type('MockResult', (), {
-                'status': 'failed',
-                'best': None,
-                'candidates': [],
-                'best_index': -1,
-                'metrics': type('MockMetrics', (), {
-                    'elapsed_ms': 1.0,
-                    'llm_calls': 0,
-                    'llm_time_ms': 0
-                })()
-            })()
+        MockRepairOptions = create_failing_mock(
+            package_name='agentjson',
+            feature_name='AgentJSON Repair Options',
+            install_command='pip install agentjson'
+        )
         
-        self.repair_options = MockRepairOptions(**self.config)
-        self.parser = mock_parse
+        self._mock_classes = {
+            'repair_options': MockRepairOptions
+        }
+        self.repair_options = None
+        self._parser_available = False
+    
+    def _mock_parse_fails(self, text, options=None):
+        """Mock parse that always fails with informative error."""
+        from ..optional_imports import OptionalDependencyError
+        raise OptionalDependencyError(
+            package_name='agentjson',
+            feature_name='JSON parsing with repair',
+            install_command='pip install agentjson'
+        )
     
     async def parse_json(
         self,

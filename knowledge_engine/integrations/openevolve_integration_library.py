@@ -242,44 +242,24 @@ class OpenEvolveIntegrationLibrary:
     
     def _initialize_mock_adapters(self):
         """Initialize mock adapters when the library is not available."""
-        logger.info({
-            "msg": "Initializing mock OpenEvolve Integration Library adapters",
+        logger.warning({
+            "msg": "OpenEvolve Integration Library not available - adapters will fail on use",
+            "install": "pip install openevolve-lib",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
-        # Create mock implementations
-        class MockAdapter:
-            def __init__(self, name):
-                self.name = name
-            
-            async def execute(self, inputs, options=None):
-                # Mock execution that returns a simple result
-                return {
-                    "success": True,
-                    "output": f"Mock result from {self.name}",
-                    "metadata": {"adapter": self.name, "mock": True},
-                    "processing_time_ms": 10.0
-                }
-            
-            async def health_check(self):
-                return {
-                    "name": self.name,
-                    "status": "available",
-                    "response_time": 5.0
-                }
+        # Create failing mock implementations
+        from ..optional_imports import create_failing_mock
         
-        # Initialize mock adapters for all integration types
-        self.adapters = {
-            "leanaide": MockAdapter("leanaide"),
-            "evolution": MockAdapter("evolution"),
-            "knowledge": MockAdapter("knowledge"),
-            "maker": MockAdapter("maker"),
-            "crewai": MockAdapter("crewai"),
-            "decomposition": MockAdapter("decomposition"),
-            "verification": MockAdapter("verification"),
-            "assembly": MockAdapter("assembly"),
-            "solution": MockAdapter("solution")
-        }
+        MockAdapter = create_failing_mock(
+            package_name='openevolve-lib',
+            feature_name='OpenEvolve Integration Adapters',
+            install_command='pip install openevolve-lib'
+        )
+        
+        self._mock_adapter_class = MockAdapter
+        # Don't initialize adapters - they'll fail when accessed
+        self.adapters = {}
     
     async def execute_integration(
         self,

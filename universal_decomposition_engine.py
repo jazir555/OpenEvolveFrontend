@@ -45,6 +45,10 @@ from datetime import datetime
 from enum import Enum, auto
 from collections import defaultdict, deque
 import hashlib
+from utils.entanglement_utils import (
+    build_symbolic_entanglement_matrix,
+    serialize_entanglement_matrix,
+)
 
 # Configure logging
 logger = logging.getLogger(__name__)
@@ -916,6 +920,26 @@ class UniversalDecompositionEngine:
                     'num_subproblems': len(sub_problems)
                 }
             )
+
+            # Build entanglement matrix for downstream coordination
+            try:
+                matrix, symbols_by_id = build_symbolic_entanglement_matrix(
+                    sub_problems,
+                    allowed_ids=[sp.id for sp in sub_problems],
+                    enforce_symmetry=True,
+                    strict=False,
+                )
+                serialized = serialize_entanglement_matrix(matrix)
+                plan.metadata["entanglement_matrix"] = serialized
+                for sp in sub_problems:
+                    entangled_with = serialized.get(sp.id, [])
+                    sp.metadata["entangled_with"] = entangled_with
+                    if entangled_with and "entanglement_source" not in sp.metadata:
+                        sp.metadata["entanglement_source"] = "symbolic_overlap"
+                    if sp.id in symbols_by_id:
+                        sp.metadata["entanglement_symbols"] = sorted(symbols_by_id.get(sp.id, set()))
+            except Exception as exc:
+                self.logger.warning(f"Failed to build entanglement matrix: {exc}")
 
             self.decomposition_history.append(plan)
             self.logger.info(f"Decomposition complete: {len(sub_problems)} sub-problems, quality={quality_score:.2f}")

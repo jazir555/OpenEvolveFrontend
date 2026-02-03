@@ -719,6 +719,8 @@ class SubProblem:
     solution_requirements: Dict[str, Any] = dataclasses.field(default_factory=dict)  # Requirements for the solution
     specific_constraints: List[str] = dataclasses.field(default_factory=list)  # Constraints specific to this sub-problem
     dependency_outputs: Dict[str, Any] = dataclasses.field(default_factory=dict)  # Outputs from dependencies
+    # Sub-problem metadata (including entanglement signals)
+    metadata: Dict[str, Any] = dataclasses.field(default_factory=dict)
     # Lean 4 / LeanAide mathematical verification fields
     mathematical_components: List[MathematicalComponent] = dataclasses.field(default_factory=list)
     requires_formal_verification: bool = False
@@ -755,6 +757,8 @@ class DecompositionPlan:
     assembler_team_name: str = ""
     final_red_team_gauntlet_name: Optional[str] = None
     final_gold_team_gauntlet_name: str = ""
+    # Decomposition metadata (including entanglement matrix)
+    metadata: Dict[str, Any] = dataclasses.field(default_factory=dict)
 
 @dataclasses.dataclass
 class SolutionAttempt:

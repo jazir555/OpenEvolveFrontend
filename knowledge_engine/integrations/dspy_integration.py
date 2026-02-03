@@ -203,29 +203,31 @@ class DSPyIntegration:
     
     def _initialize_mock_components(self):
         """Initialize mock components when DSPy is not available."""
-        logger.info({
-            "msg": "Initializing mock DSPy components",
+        logger.warning({
+            "msg": "DSPy not available - integration will raise errors on use",
+            "install": "pip install dspy-ai",
             "timestamp": datetime.now(timezone.utc).isoformat()
         })
         
-        # Create mock implementations
-        class MockLM:
-            def __init__(self, **kwargs):
-                self.kwargs = kwargs
-                self.history = []
-            
-            def __call__(self, *args, **kwargs):
-                # Mock response
-                return type('MockResponse', (), {
-                    'completions': [{'response': 'Mock response'}]
-                })()
+        # Create failing mock implementations
+        from ..optional_imports import create_failing_mock
         
-        class MockTeleprompter:
-            def compile(self, module, *args, **kwargs):
-                return module
+        MockLM = create_failing_mock(
+            package_name='dspy-ai',
+            feature_name='DSPy language model interface',
+            install_command='pip install dspy-ai'
+        )
         
-        self.lm = MockLM()
-        self.teleprompter = MockTeleprompter()
+        MockTeleprompter = create_failing_mock(
+            package_name='dspy-ai',
+            feature_name='DSPy teleprompter',
+            install_command='pip install dspy-ai'
+        )
+        
+        self.lm = None
+        self.teleprompter = None
+        self._mock_lm_class = MockLM
+        self._mock_teleprompter_class = MockTeleprompter
     
     async def chain_of_thought(
         self,

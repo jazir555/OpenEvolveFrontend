@@ -229,15 +229,17 @@ class ComponentRegistry:
             return self._create_mock_component(name)
     
     def _create_mock_component(self, name: str):
-        """Create a mock component for when real one is not available"""
-        class MockComponent:
-            def __init__(self, name):
-                self.name = name
-            def is_available(self):
-                return False
-            def __repr__(self):
-                return f"MockComponent({self.name})"
-        return MockComponent(name)
+        """Create a failing mock component for when real one is not available."""
+        from .optional_imports import create_failing_mock
+        
+        MockComponent = create_failing_mock(
+            package_name=name,
+            feature_name=f'{name} integration',
+            install_command=f'pip install {name.lower().replace(" ", "-")}'
+        )
+        
+        # Return the class itself - instantiation will raise error
+        return MockComponent
     
     def get_component(self, name: str) -> Optional[Any]:
         """Get a component by name"""
