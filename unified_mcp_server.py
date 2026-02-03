@@ -3555,6 +3555,38 @@ class UnifiedMCPServer:
                               "solution": {"type": "object"},
                               "type": {"type": "string"}
                           }})
+        
+        async def quality_calculate_score(args: Dict[str, Any]) -> Dict[str, Any]:
+            """Calculate quality score."""
+            try:
+                from quality_calculator import calculate_score
+                score = calculate_score(args.get("artifact", {}))
+                return {"success": True, "score": score}
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+        
+        self.register_tool("quality_calculate_score", ToolCategory.QUALITY,
+                          "Calculate quality score",
+                          quality_calculate_score,
+                          {"type": "object", "properties": {
+                              "artifact": {"type": "object"}
+                          }})
+        
+        async def quality_tracker_record(args: Dict[str, Any]) -> Dict[str, Any]:
+            """Record quality metric."""
+            try:
+                from quality_tracker import record_metric
+                record_metric(args.get("metric", {}))
+                return {"success": True, "recorded": True}
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+        
+        self.register_tool("quality_tracker_record", ToolCategory.QUALITY,
+                          "Record quality metric",
+                          quality_tracker_record,
+                          {"type": "object", "properties": {
+                              "metric": {"type": "object"}
+                          }})
     
     # ========================================================================
     # CATEGORY 20: TEAM MANAGEMENT TOOLS (8 tools)
