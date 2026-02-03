@@ -10,6 +10,8 @@ Features:
 - Z3 theorem proving bubbles  
 - LeanAIDE proof visualization bubbles
 - Cross-verification bubbles
+- Sub-problem loop bubbles for entangled workflows
+- Entanglement matrix integration and visualization
 - Flexible workflow builder for arbitrary patterns
 
 Usage:
@@ -18,13 +20,16 @@ Usage:
         create_z3_prover_bubble,
         create_leanaide_proof_bubble,
         create_cross_verification_bubble,
-        create_z3_workflow
+        create_z3_workflow,
+        create_subproblem_loop_bubble,
+        create_entanglement_visualization_bubble,
+        create_z3_workflow_with_entanglement
     )
 """
 
 import uuid
 import logging
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List, Optional, Set, Tuple
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -53,6 +58,10 @@ Z3_NODE_COLORS = {
     "classification": "#0984E3",
     "input": "#74B9FF",
     "result": "#00B894",
+    "subproblem_loop": "#FDCB6E",
+    "entanglement_viz": "#E84393",
+    "subproblem": "#81ECEC",
+    "super_node": "#A29BFE",
 }
 
 Z3_NODE_ICONS = {
@@ -63,6 +72,10 @@ Z3_NODE_ICONS = {
     "classification": "🔍",
     "input": "📥",
     "result": "✅",
+    "subproblem_loop": "🔄",
+    "entanglement_viz": "🕸️",
+    "subproblem": "📦",
+    "super_node": "🔗",
 }
 
 
@@ -113,9 +126,172 @@ class ProblemClassificationBubbleConfig:
     auto_classify: bool = True
 
 
+@dataclass
+class SubProblemLoopBubbleConfig:
+    """Configuration for sub-problem loop bubble (handles entangled sub-problems)."""
+    sub_problems: List[Dict[str, Any]]
+    entanglement_matrix: Dict[str, List[str]] = field(default_factory=dict)
+    loop_strategy: str = "sequential"  # sequential, parallel, super_node
+    max_iterations: int = 10
+    convergence_threshold: float = 0.95
+    
+    def get_sub_problem_ids(self) -> List[str]:
+        """Extract sub-problem IDs from the list."""
+        return [sp.get("id", f"sp_{i}") for i, sp in enumerate(self.sub_problems)]
+    
+    def get_entangled_pairs(self) -> List[Tuple[str, str]]:
+        """Get all entangled pairs from the matrix."""
+        pairs = []
+        for source, targets in self.entanglement_matrix.items():
+            for target in targets:
+                pairs.append((source, target))
+        return pairs
+
+
+@dataclass
+class EntanglementVisualizationConfig:
+    """Configuration for entanglement matrix visualization bubble."""
+    entanglement_matrix: Dict[str, List[str]]
+    sub_problems: List[Dict[str, Any]] = field(default_factory=list)
+    show_coupling_strength: bool = True
+    highlight_super_nodes: bool = True
+    
+    def get_coupling_density(self) -> float:
+        """Calculate coupling density (entanglements / max possible)."""
+        n = len(self.sub_problems)
+        if n < 2:
+            return 0.0
+        max_edges = n * (n - 1) / 2
+        actual_edges = sum(len(targets) for targets in self.entanglement_matrix.values()) // 2
+        return actual_edges / max_edges if max_edges > 0 else 0.0
+
+
+@dataclass
+class SubProblemBubbleConfig:
+    """Configuration for an individual sub-problem bubble."""
+    sub_problem_id: str
+    problem_text: str
+    entangled_with: List[str] = field(default_factory=list)
+    entanglement_source: str = "symbolic_overlap"
+    is_super_node: bool = False
+    super_node_partner: Optional[str] = None
+    
+
 # =============================================================================
-# Bubble Creation Functions
+# Entanglement Matrix Utilities (compatible with utils/entanglement_utils)
 # =============================================================================
+
+def normalize_entanglement_matrix_z3(
+    matrix: Dict[str, Any],
+    allowed_ids: Optional[List[str]] = None,
+    enforce_symmetry: bool = True,
+    strict: bool = False,
+) -> Dict[str, Set[str]]:
+    """
+    Normalize entanglement matrices to Dict[str, Set[str]].
+    Compatible with utils/entanglement_utils.normalize_entanglement_matrix.
+    
+    Args:
+        matrix: Raw entanglement matrix
+        allowed_ids: Allowed sub-problem IDs
+        enforce_symmetry: Ensure bidirectional entanglements
+        strict: Raise on validation errors
+    
+    Returns:
+        Normalized matrix
+    """
+    allowed_set = set(allowed_ids or [])
+    raw_map: Dict[str, Set[str]] = {}
+    
+    if matrix:
+        for key, value in matrix.items():
+            if allowed_set and key not in allowed_set:
+                if strict:
+                    raise ValueError(f"Entanglement matrix key not allowed: {key}")
+                continue
+            if isinstance(value, (set, list, tuple)):
+                items = value
+            elif value is None:
+                items = []
+            else:
+                items = [value]
+            
+            raw_set: Set[str] = set()
+            for item in items:
+                if item is None:
+                    continue
+                if item == key:
+                    if strict:
+                        raise ValueError(f"Self-entanglement detected for {key}")
+                    continue
+                if allowed_set and item not in allowed_set:
+                    if strict:
+                        raise ValueError(f"Entanglement partner not allowed: {item}")
+                    continue
+                raw_set.add(item)
+            raw_map[key] = raw_set
+    
+    if not allowed_set:
+        allowed_set = set(raw_map.keys())
+    
+    normalized: Dict[str, Set[str]] = {key: set() for key in allowed_set}
+    for key, partners in raw_map.items():
+        if allowed_set and key not in allowed_set:
+            continue
+        normalized.setdefault(key, set()).update(partners)
+    
+    if enforce_symmetry:
+        for key, partners in list(normalized.items()):
+            for partner in list(partners):
+                normalized.setdefault(partner, set()).add(key)
+    
+    for key in normalized:
+        normalized[key].discard(key)
+    
+    return normalized
+
+
+def serialize_entanglement_matrix_z3(matrix: Dict[str, Set[str]]) -> Dict[str, List[str]]:
+    """Serialize normalized matrix to JSON-safe format."""
+    return {key: sorted(list(value)) for key, value in matrix.items()}
+
+
+def build_entanglement_from_subproblems(sub_problems: List[Dict[str, Any]]) -> Dict[str, List[str]]:
+    """
+    Build entanglement matrix from sub-problem shared symbols.
+    
+    Args:
+        sub_problems: List of sub-problem dicts with optional 'shared_symbols' field
+    
+    Returns:
+        Entanglement matrix
+    """
+    matrix: Dict[str, Set[str]] = {}
+    
+    # Initialize empty sets for all sub-problems
+    ids = [sub_problems[i].get("id", f"sp_{i}") for i in range(len(sub_problems))]
+    for sp_id in ids:
+        matrix[sp_id] = set()
+    
+    # Find shared symbols and create entanglements
+    for i, sp1 in enumerate(sub_problems):
+        id1 = sp1.get("id", f"sp_{i}")
+        symbols1 = set(sp1.get("shared_symbols", []))
+        
+        for j, sp2 in enumerate(sub_problems):
+            if i >= j:
+                continue
+            id2 = sp2.get("id", f"sp_{j}")
+            symbols2 = set(sp2.get("shared_symbols", []))
+            
+            # Check for symbol overlap
+            overlap = symbols1 & symbols2
+            if overlap:
+                matrix[id1].add(id2)
+                matrix[id2].add(id1)
+    
+    return serialize_entanglement_matrix_z3(matrix)
+
 
 def create_z3_solver_bubble(
     config: Z3SolverBubbleConfig,
@@ -375,6 +551,201 @@ def create_z3_result_bubble(
 
 
 # =============================================================================
+# Sub-Problem Loop and Entanglement Bubbles
+# =============================================================================
+
+def create_subproblem_loop_bubble(
+    config: SubProblemLoopBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create a sub-problem loop bubble for handling entangled sub-problems.
+    
+    This bubble manages iterative solving of entangled sub-problems,
+    supporting convergence-based refinement.
+    
+    Args:
+        config: SubProblemLoopBubbleConfig with loop configuration
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing a sub-problem loop bubble
+    """
+    position = position or {"x": 300, "y": 200}
+    icon = Z3_NODE_ICONS.get("subproblem_loop", "🔄")
+    color = Z3_NODE_COLORS.get("subproblem_loop", "#FDCB6E")
+    
+    sub_problem_ids = config.get_sub_problem_ids()
+    entangled_pairs = config.get_entangled_pairs()
+    
+    label = label or f"{icon} Sub-Problem Loop ({len(sub_problem_ids)} problems)"
+    
+    bubble = {
+        "id": f"subproblem_loop_{uuid.uuid4().hex[:8]}",
+        "type": "subproblem_loop",
+        "position": position,
+        "data": {
+            "label": label,
+            "sub_problems": config.sub_problems,
+            "sub_problem_ids": sub_problem_ids,
+            "entanglement_matrix": config.entanglement_matrix,
+            "entangled_pairs": entangled_pairs,
+            "loop_strategy": config.loop_strategy,
+            "max_iterations": config.max_iterations,
+            "convergence_threshold": config.convergence_threshold,
+            "status": "pending",
+            "node_color": color,
+            "current_iteration": 0,
+            "converged": False,
+            "refined_sub_problems": []
+        }
+    }
+    
+    logger.debug(f"Created sub-problem loop bubble: {bubble['id']}")
+    return bubble
+
+
+def create_entanglement_visualization_bubble(
+    config: EntanglementVisualizationConfig,
+    position: Dict[str, float] = None,
+    label: str = "Entanglement Matrix"
+) -> Dict[str, Any]:
+    """
+    Create a bubble for visualizing the entanglement matrix.
+    
+    This bubble displays the coupling between sub-problems and
+    highlights super-nodes (tightly coupled groups).
+    
+    Args:
+        config: EntanglementVisualizationConfig with visualization settings
+        position: Optional position override
+        label: Display label for the bubble
+    
+    Returns:
+        Dict representing an entanglement visualization bubble
+    """
+    position = position or {"x": 150, "y": 200}
+    icon = Z3_NODE_ICONS.get("entanglement_viz", "🕸️")
+    color = Z3_NODE_COLORS.get("entanglement_viz", "#E84393")
+    
+    coupling_density = config.get_coupling_density()
+    
+    # Identify super-nodes (nodes with high degree)
+    super_nodes = []
+    if config.highlight_super_nodes:
+        matrix = normalize_entanglement_matrix_z3(config.entanglement_matrix)
+        avg_degree = sum(len(neighbors) for neighbors in matrix.values()) / max(len(matrix), 1)
+        for sp_id, neighbors in matrix.items():
+            if len(neighbors) > avg_degree * 1.5:
+                super_nodes.append(sp_id)
+    
+    bubble = {
+        "id": f"entanglement_viz_{uuid.uuid4().hex[:8]}",
+        "type": "entanglement_viz",
+        "position": position,
+        "data": {
+            "label": f"{icon} {label}",
+            "entanglement_matrix": config.entanglement_matrix,
+            "sub_problems": config.sub_problems,
+            "coupling_density": coupling_density,
+            "super_nodes": super_nodes,
+            "show_coupling_strength": config.show_coupling_strength,
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created entanglement visualization bubble: {bubble['id']}")
+    return bubble
+
+
+def create_subproblem_bubble(
+    config: SubProblemBubbleConfig,
+    position: Dict[str, float] = None,
+    label: str = None
+) -> Dict[str, Any]:
+    """
+    Create an individual sub-problem bubble for detailed viewing.
+    
+    Args:
+        config: SubProblemBubbleConfig with sub-problem details
+        position: Optional position override
+        label: Display label (auto-generated if not provided)
+    
+    Returns:
+        Dict representing a sub-problem bubble
+    """
+    position = position or {"x": 400, "y": 200}
+    icon = Z3_NODE_ICONS.get("super_node", "📦") if config.is_super_node else Z3_NODE_ICONS.get("subproblem", "📦")
+    color = Z3_NODE_COLORS.get("super_node", "#A29BFE") if config.is_super_node else Z3_NODE_COLORS.get("subproblem", "#81ECEC")
+    
+    label = label or f"{icon} {config.sub_problem_id}"
+    
+    bubble = {
+        "id": f"subproblem_{config.sub_problem_id}_{uuid.uuid4().hex[:8]}",
+        "type": "subproblem",
+        "sub_problem_id": config.sub_problem_id,
+        "position": position,
+        "data": {
+            "label": label,
+            "problem_text": config.problem_text,
+            "entangled_with": config.entangled_with,
+            "entanglement_source": config.entanglement_source,
+            "is_super_node": config.is_super_node,
+            "super_node_partner": config.super_node_partner,
+            "status": "pending",
+            "node_color": color
+        }
+    }
+    
+    logger.debug(f"Created sub-problem bubble: {bubble['id']}")
+    return bubble
+
+
+def create_super_node_bubble(
+    sub_problem_ids: List[str],
+    problem_text: str = "Super Node",
+    position: Dict[str, float] = None
+) -> Dict[str, Any]:
+    """
+    Create a super-node bubble for tightly coupled sub-problems.
+    
+    Super-nodes are groups of sub-problems that are highly entangled
+    and should be solved together.
+    
+    Args:
+        sub_problem_ids: List of sub-problem IDs in the super node
+        problem_text: Description of the super node
+        position: Optional position override
+    
+    Returns:
+        Dict representing a super-node bubble
+    """
+    position = position or {"x": 500, "y": 200}
+    icon = Z3_NODE_ICONS.get("super_node", "🔗")
+    color = Z3_NODE_COLORS.get("super_node", "#A29BFE")
+    
+    bubble = {
+        "id": f"super_node_{uuid.uuid4().hex[:8]}",
+        "type": "super_node",
+        "position": position,
+        "data": {
+            "label": f"{icon} Super Node ({len(sub_problem_ids)} problems)",
+            "sub_problem_ids": sub_problem_ids,
+            "problem_text": problem_text,
+            "status": "pending",
+            "node_color": color,
+            "member_count": len(sub_problem_ids)
+        }
+    }
+    
+    logger.debug(f"Created super-node bubble: {bubble['id']}")
+    return bubble
+
+
+# =============================================================================
 # Edge Creation Functions
 # =============================================================================
 
@@ -621,6 +992,141 @@ def create_z3_leanaide_workflow(
     }
     
     logger.info(f"Created Z3-LeanAIDE workflow: {workflow['id']}")
+    return workflow
+
+
+def create_z3_workflow_with_entanglement(
+    problem_text: str,
+    sub_problems: List[Dict[str, Any]],
+    entanglement_matrix: Dict[str, List[str]] = None,
+    workflow_name: str = "Entangled Z3 Workflow",
+    loop_strategy: str = "sequential"
+) -> Dict[str, Any]:
+    """
+    Create a Z3 workflow with sub-problem loops and entanglement matrix integration.
+    
+    This workflow supports:
+    - Iterative solving of entangled sub-problems
+    - Convergence-based refinement
+    - Super-node detection for tightly coupled problems
+    
+    Args:
+        problem_text: The overall problem description
+        sub_problems: List of sub-problem dicts with 'id', 'problem_text', optional 'shared_symbols'
+        entanglement_matrix: Dict mapping sub-problem IDs to lists of entangled IDs
+        workflow_name: Name of the workflow
+        loop_strategy: Strategy for sub-problem loops (sequential, parallel, super_node)
+    
+    Returns:
+        Dict with complete workflow definition including entanglement visualization
+    """
+    # Build entanglement matrix if not provided
+    if entanglement_matrix is None:
+        entanglement_matrix = build_entanglement_from_subproblems(sub_problems)
+    
+    nodes = []
+    edges = []
+    
+    # Create input bubble
+    input_bubble = {
+        "id": f"z3_input_{uuid.uuid4().hex[:8]}",
+        "type": "input",
+        "position": {"x": 0, "y": 0},
+        "data": {
+            "label": "📥 Input",
+            "problem_text": problem_text,
+            "status": "pending",
+            "node_color": Z3_NODE_COLORS["input"]
+        }
+    }
+    nodes.append(input_bubble)
+    
+    # Create entanglement visualization bubble
+    ent_viz_config = EntanglementVisualizationConfig(
+        entanglement_matrix=entanglement_matrix,
+        sub_problems=sub_problems,
+        show_coupling_strength=True,
+        highlight_super_nodes=True
+    )
+    ent_viz_bubble = create_entanglement_visualization_bubble(ent_viz_config)
+    nodes.append(ent_viz_bubble)
+    edges.append(create_z3_edge(input_bubble["id"], ent_viz_bubble["id"]))
+    
+    # Create sub-problem loop bubble
+    loop_config = SubProblemLoopBubbleConfig(
+        sub_problems=sub_problems,
+        entanglement_matrix=entanglement_matrix,
+        loop_strategy=loop_strategy,
+        max_iterations=10,
+        convergence_threshold=0.95
+    )
+    loop_bubble = create_subproblem_loop_bubble(loop_config)
+    nodes.append(loop_bubble)
+    edges.append(create_z3_edge(ent_viz_bubble["id"], loop_bubble["id"]))
+    
+    # Create individual sub-problem bubbles
+    sub_problem_bubbles = []
+    for i, sp in enumerate(sub_problems):
+        sp_id = sp.get("id", f"sp_{i}")
+        entangled_with = entanglement_matrix.get(sp_id, [])
+        
+        # Check if this is a super-node
+        matrix = normalize_entanglement_matrix_z3(entanglement_matrix)
+        avg_degree = sum(len(neighbors) for neighbors in matrix.values()) / max(len(matrix), 1)
+        is_super_node = len(matrix.get(sp_id, set())) > avg_degree * 1.5
+        
+        sp_config = SubProblemBubbleConfig(
+            sub_problem_id=sp_id,
+            problem_text=sp.get("problem_text", f"Sub-problem {sp_id}"),
+            entangled_with=entangled_with,
+            entanglement_source=sp.get("entanglement_source", "symbolic_overlap"),
+            is_super_node=is_super_node
+        )
+        sp_bubble = create_subproblem_bubble(
+            sp_config,
+            position={"x": 400, "y": 200 + i * 80}
+        )
+        nodes.append(sp_bubble)
+        sub_problem_bubbles.append(sp_bubble)
+        
+        # Connect loop to each sub-problem
+        edges.append(create_z3_edge(loop_bubble["id"], sp_bubble["id"], "feedback"))
+    
+    # Create cross-verification for entangled pairs
+    cross_bubble = create_cross_verification_bubble(
+        CrossVerificationBubbleConfig(problem_text=problem_text)
+    )
+    nodes.append(cross_bubble)
+    
+    # Connect all sub-problems to cross-verification
+    for sp_bubble in sub_problem_bubbles:
+        edges.append(create_z3_edge(sp_bubble["id"], cross_bubble["id"]))
+    
+    # Create result bubble
+    result_bubble = create_z3_result_bubble()
+    nodes.append(result_bubble)
+    edges.append(create_z3_edge(cross_bubble["id"], result_bubble["id"]))
+    
+    workflow = {
+        "id": str(uuid.uuid4()),
+        "name": workflow_name,
+        "description": f"Entangled Z3 workflow with {len(sub_problems)} sub-problems",
+        "nodes": nodes,
+        "edges": edges,
+        "metadata": {
+            "problem_text": problem_text,
+            "sub_problems": sub_problems,
+            "entanglement_matrix": entanglement_matrix,
+            "workflow_type": "z3_entangled",
+            "loop_strategy": loop_strategy,
+            "coupling_density": ent_viz_config.get_coupling_density(),
+            "super_nodes": ent_viz_bubble["data"]["super_nodes"],
+            "created_at": datetime.now().isoformat(),
+            "version": "1.0.0"
+        }
+    }
+    
+    logger.info(f"Created entangled Z3 workflow: {workflow['id']}")
     return workflow
 
 
@@ -895,12 +1401,58 @@ def example_z3_leanaide_workflow():
     return workflow
 
 
+def example_entangled_z3_workflow():
+    """Example: Create and export an entangled Z3 workflow with sub-problem loops."""
+    # Define sub-problems with shared symbols for entanglement
+    sub_problems = [
+        {
+            "id": "sp_A",
+            "problem_text": "Solve for x: x + y = 10",
+            "shared_symbols": ["x", "y"]
+        },
+        {
+            "id": "sp_B", 
+            "problem_text": "Solve for y: x * y = 24",
+            "shared_symbols": ["x", "y"]
+        },
+        {
+            "id": "sp_C",
+            "problem_text": "Verify x > 0 and y > 0",
+            "shared_symbols": ["x", "y"]
+        },
+        {
+            "id": "sp_D",
+            "problem_text": "Calculate x^2 + y^2",
+            "shared_symbols": ["x", "y"]
+        }
+    ]
+    
+    # Entanglement matrix (automatically computed from shared_symbols)
+    workflow = create_z3_workflow_with_entanglement(
+        problem_text="System of equations with entangled variables",
+        sub_problems=sub_problems,
+        workflow_name="Entangled Equation Solver",
+        loop_strategy="sequential"
+    )
+    
+    export_z3_workflow_to_json(workflow, "z3_entangled_workflow_example.json")
+    
+    return workflow
+
 if __name__ == "__main__":
     # Run examples
     workflow = example_z3_workflow()
     print(f"Created workflow: {workflow['name']}")
     print(f"Nodes: {len(workflow['nodes'])}")
     print(f"Edges: {len(workflow['edges'])}")
+    
+    # Run entanglement example
+    ent_workflow = example_entangled_z3_workflow()
+    print(f"\nCreated entangled workflow: {ent_workflow['name']}")
+    print(f"Nodes: {len(ent_workflow['nodes'])}")
+    print(f"Edges: {len(ent_workflow['edges'])}")
+    print(f"Coupling density: {ent_workflow['metadata'].get('coupling_density', 'N/A')}")
+    print(f"Super nodes: {ent_workflow['metadata'].get('super_nodes', [])}")
 
 
 # =============================================================================
@@ -914,8 +1466,18 @@ __all__ = [
     'LeanAideProofBubbleConfig',
     'CrossVerificationBubbleConfig',
     'ProblemClassificationBubbleConfig',
+    'SubProblemLoopBubbleConfig',
+    'EntanglementVisualizationConfig',
+    'SubProblemBubbleConfig',
+    
+    # Builder definition classes
     'Z3BubbleDefinition',
     'Z3EdgeDefinition',
+    
+    # Entanglement utilities
+    'normalize_entanglement_matrix_z3',
+    'serialize_entanglement_matrix_z3',
+    'build_entanglement_from_subproblems',
     
     # Bubble creation
     'create_z3_solver_bubble',
@@ -924,6 +1486,10 @@ __all__ = [
     'create_cross_verification_bubble',
     'create_problem_classification_bubble',
     'create_z3_result_bubble',
+    'create_subproblem_loop_bubble',
+    'create_entanglement_visualization_bubble',
+    'create_subproblem_bubble',
+    'create_super_node_bubble',
     
     # Edge creation
     'create_z3_edge',
@@ -933,6 +1499,7 @@ __all__ = [
     # Workflow creation
     'create_z3_solver_workflow',
     'create_z3_leanaide_workflow',
+    'create_z3_workflow_with_entanglement',
     
     # Flexible builder
     'Z3FlexibleWorkflowBuilder',

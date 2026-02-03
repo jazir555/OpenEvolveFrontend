@@ -22,8 +22,16 @@ from z3_leanaide_bubbles import (
     LeanAideProofBubbleConfig,
     CrossVerificationBubbleConfig,
     ProblemClassificationBubbleConfig,
+    SubProblemLoopBubbleConfig,
+    EntanglementVisualizationConfig,
+    SubProblemBubbleConfig,
     Z3BubbleDefinition,
     Z3EdgeDefinition,
+    
+    # Entanglement utilities
+    normalize_entanglement_matrix_z3,
+    serialize_entanglement_matrix_z3,
+    build_entanglement_from_subproblems,
     
     # Bubble creation
     create_z3_solver_bubble,
@@ -32,6 +40,10 @@ from z3_leanaide_bubbles import (
     create_cross_verification_bubble,
     create_problem_classification_bubble,
     create_z3_result_bubble,
+    create_subproblem_loop_bubble,
+    create_entanglement_visualization_bubble,
+    create_subproblem_bubble,
+    create_super_node_bubble,
     
     # Edge creation
     create_z3_edge,
@@ -42,6 +54,7 @@ from z3_leanaide_bubbles import (
     # Workflow creation
     create_z3_solver_workflow,
     create_z3_leanaide_workflow,
+    create_z3_workflow_with_entanglement,
     
     # Flexible builder
     Z3FlexibleWorkflowBuilder,
@@ -805,5 +818,322 @@ class TestExportValidation:
             assert "type" in edge
 
 
+class TestEntanglementConfigClasses:
+    """Tests for entanglement-related config classes."""
+    
+    def test_subproblem_loop_config_defaults(self):
+        """Test SubProblemLoopBubbleConfig default values."""
+        config = SubProblemLoopBubbleConfig(
+            sub_problems=[{"id": "sp1", "problem_text": "test"}]
+        )
+        
+        assert config.sub_problems[0]["id"] == "sp1"
+        assert config.entanglement_matrix == {}
+        assert config.loop_strategy == "sequential"
+        assert config.max_iterations == 10
+        assert config.convergence_threshold == 0.95
+    
+    def test_subproblem_loop_config_get_ids(self):
+        """Test SubProblemLoopBubbleConfig.get_sub_problem_ids()."""
+        config = SubProblemLoopBubbleConfig(
+            sub_problems=[
+                {"id": "sp_A", "problem_text": "A"},
+                {"id": "sp_B", "problem_text": "B"}
+            ]
+        )
+        
+        ids = config.get_sub_problem_ids()
+        assert ids == ["sp_A", "sp_B"]
+    
+    def test_subproblem_loop_config_get_pairs(self):
+        """Test SubProblemLoopBubbleConfig.get_entangled_pairs()."""
+        config = SubProblemLoopBubbleConfig(
+            sub_problems=[{"id": "sp1"}, {"id": "sp2"}],
+            entanglement_matrix={"sp1": ["sp2"], "sp2": ["sp1"]}
+        )
+        
+        pairs = config.get_entangled_pairs()
+        assert len(pairs) == 2  # Both directions
+    
+    def test_entanglement_viz_config_defaults(self):
+        """Test EntanglementVisualizationConfig default values."""
+        config = EntanglementVisualizationConfig(
+            entanglement_matrix={"sp1": ["sp2"]},
+            sub_problems=[{"id": "sp1"}, {"id": "sp2"}]
+        )
+        
+        assert config.show_coupling_strength == True
+        assert config.highlight_super_nodes == True
+    
+    def test_entanglement_viz_config_coupling_density(self):
+        """Test EntanglementVisualizationConfig.get_coupling_density()."""
+        config = EntanglementVisualizationConfig(
+            entanglement_matrix={"sp1": ["sp2"], "sp2": ["sp1"]},
+            sub_problems=[{"id": "sp1"}, {"id": "sp2"}]
+        )
+        
+        density = config.get_coupling_density()
+        assert density == 1.0  # Complete graph with 2 nodes
+    
+    def test_subproblem_bubble_config_defaults(self):
+        """Test SubProblemBubbleConfig default values."""
+        config = SubProblemBubbleConfig(
+            sub_problem_id="sp_1",
+            problem_text="Test problem"
+        )
+        
+        assert config.sub_problem_id == "sp_1"
+        assert config.entangled_with == []
+        assert config.entanglement_source == "symbolic_overlap"
+        assert config.is_super_node == False
+
+
+class TestEntanglementUtilities:
+    """Tests for entanglement utility functions."""
+    
+    def test_normalize_entanglement_matrix_z3(self):
+        """Test normalize_entanglement_matrix_z3 function."""
+        from z3_leanaide_bubbles import normalize_entanglement_matrix_z3
+        
+        matrix = {"A": ["B", "C"], "B": ["A"], "C": ["A"]}
+        normalized = normalize_entanglement_matrix_z3(matrix, enforce_symmetry=True)
+        
+        assert "A" in normalized
+        assert "B" in normalized
+        assert "C" in normalized
+        assert "A" not in normalized["A"]  # No self-entanglement
+    
+    def test_normalize_entanglement_matrix_z3_strict(self):
+        """Test normalize_entanglement_matrix_z3 with strict mode."""
+        from z3_leanaide_bubbles import normalize_entanglement_matrix_z3
+        
+        # Self-entanglement should raise in strict mode
+        matrix = {"A": ["A"]}
+        with pytest.raises(ValueError):
+            normalize_entanglement_matrix_z3(matrix, strict=True)
+    
+    def test_serialize_entanglement_matrix_z3(self):
+        """Test serialize_entanglement_matrix_z3 function."""
+        from z3_leanaide_bubbles import serialize_entanglement_matrix_z3
+        
+        matrix = {"A": {"B", "C"}, "B": {"A"}, "C": {"A"}}
+        serialized = serialize_entanglement_matrix_z3(matrix)
+        
+        assert isinstance(serialized["A"], list)
+        assert "B" in serialized["A"]
+        assert "C" in serialized["A"]
+    
+    def test_build_entanglement_from_subproblems(self):
+        """Test build_entanglement_from_subproblems function."""
+        from z3_leanaide_bubbles import build_entanglement_from_subproblems
+        
+        sub_problems = [
+            {"id": "sp1", "problem_text": "A + B = 10", "shared_symbols": ["A", "B"]},
+            {"id": "sp2", "problem_text": "A * B = 24", "shared_symbols": ["A", "B"]},
+            {"id": "sp3", "problem_text": "C + D = 5", "shared_symbols": ["C", "D"]}
+        ]
+        
+        matrix = build_entanglement_from_subproblems(sub_problems)
+        
+        # sp1 and sp2 share A and B, so they should be entangled
+        assert "sp2" in matrix.get("sp1", [])
+        assert "sp1" in matrix.get("sp2", [])
+        # sp3 should not be entangled with sp1 or sp2
+        assert "sp3" not in matrix.get("sp1", [])
+
+
+class TestEntanglementBubbleCreation:
+    """Tests for entanglement-related bubble creation functions."""
+    
+    def test_create_subproblem_loop_bubble(self):
+        """Test creating a sub-problem loop bubble."""
+        from z3_leanaide_bubbles import (
+            SubProblemLoopBubbleConfig,
+            create_subproblem_loop_bubble
+        )
+        
+        config = SubProblemLoopBubbleConfig(
+            sub_problems=[
+                {"id": "sp1", "problem_text": "Solve x"},
+                {"id": "sp2", "problem_text": "Solve y"}
+            ],
+            entanglement_matrix={"sp1": ["sp2"]},
+            loop_strategy="sequential"
+        )
+        
+        bubble = create_subproblem_loop_bubble(config)
+        
+        assert bubble["type"] == "subproblem_loop"
+        assert "sub_problem_ids" in bubble["data"]
+        assert "entanglement_matrix" in bubble["data"]
+        assert bubble["data"]["loop_strategy"] == "sequential"
+    
+    def test_create_entanglement_visualization_bubble(self):
+        """Test creating an entanglement visualization bubble."""
+        from z3_leanaide_bubbles import (
+            EntanglementVisualizationConfig,
+            create_entanglement_visualization_bubble
+        )
+        
+        config = EntanglementVisualizationConfig(
+            entanglement_matrix={"sp1": ["sp2"], "sp2": ["sp1"]},
+            sub_problems=[{"id": "sp1"}, {"id": "sp2"}]
+        )
+        
+        bubble = create_entanglement_visualization_bubble(config)
+        
+        assert bubble["type"] == "entanglement_viz"
+        assert "coupling_density" in bubble["data"]
+        assert "super_nodes" in bubble["data"]
+    
+    def test_create_subproblem_bubble(self):
+        """Test creating an individual sub-problem bubble."""
+        from z3_leanaide_bubbles import (
+            SubProblemBubbleConfig,
+            create_subproblem_bubble
+        )
+        
+        config = SubProblemBubbleConfig(
+            sub_problem_id="sp_test",
+            problem_text="Test problem",
+            entangled_with=["sp_A", "sp_B"],
+            is_super_node=True
+        )
+        
+        bubble = create_subproblem_bubble(config)
+        
+        assert bubble["type"] == "subproblem"
+        assert bubble["sub_problem_id"] == "sp_test"
+        assert bubble["data"]["is_super_node"] == True
+        assert bubble["data"]["entangled_with"] == ["sp_A", "sp_B"]
+    
+    def test_create_super_node_bubble(self):
+        """Test creating a super-node bubble."""
+        from z3_leanaide_bubbles import create_super_node_bubble
+        
+        bubble = create_super_node_bubble(
+            sub_problem_ids=["sp1", "sp2", "sp3"],
+            problem_text="Tightly coupled group"
+        )
+        
+        assert bubble["type"] == "super_node"
+        assert bubble["data"]["member_count"] == 3
+        assert "sp1" in bubble["data"]["sub_problem_ids"]
+
+
+class TestEntanglementWorkflowCreation:
+    """Tests for entanglement-aware workflow creation."""
+    
+    def test_create_z3_workflow_with_entanglement_basic(self):
+        """Test creating a Z3 workflow with entanglement."""
+        from z3_leanaide_bubbles import create_z3_workflow_with_entanglement
+        
+        sub_problems = [
+            {"id": "sp_A", "problem_text": "x + y = 10", "shared_symbols": ["x", "y"]},
+            {"id": "sp_B", "problem_text": "x * y = 24", "shared_symbols": ["x", "y"]}
+        ]
+        
+        workflow = create_z3_workflow_with_entanglement(
+            problem_text="System of equations",
+            sub_problems=sub_problems,
+            workflow_name="Test Entangled Workflow"
+        )
+        
+        assert workflow["name"] == "Test Entangled Workflow"
+        assert workflow["metadata"]["workflow_type"] == "z3_entangled"
+        assert "entanglement_matrix" in workflow["metadata"]
+        assert "coupling_density" in workflow["metadata"]
+        
+        # Check nodes exist
+        node_types = [n["type"] for n in workflow["nodes"]]
+        assert "entanglement_viz" in node_types
+        assert "subproblem_loop" in node_types
+        assert "cross_verification" in node_types
+    
+    def test_create_z3_workflow_with_entanglement_auto_matrix(self):
+        """Test that entanglement matrix is auto-computed from shared_symbols."""
+        from z3_leanaide_bubbles import create_z3_workflow_with_entanglement
+        
+        sub_problems = [
+            {"id": "sp1", "problem_text": "A", "shared_symbols": ["x", "y"]},
+            {"id": "sp2", "problem_text": "B", "shared_symbols": ["x", "y"]},
+            {"id": "sp3", "problem_text": "C", "shared_symbols": ["a", "b"]}  # No overlap
+        ]
+        
+        workflow = create_z3_workflow_with_entanglement(
+            problem_text="Test",
+            sub_problems=sub_problems
+        )
+        
+        matrix = workflow["metadata"]["entanglement_matrix"]
+        
+        # sp1 and sp2 share x, y so should be entangled
+        assert "sp2" in matrix.get("sp1", [])
+        # sp3 should not be entangled with anyone
+        assert len(matrix.get("sp3", [])) == 0
+    
+    def test_create_z3_workflow_with_entanglement_super_nodes(self):
+        """Test super-node detection in entangled workflow."""
+        from z3_leanaide_bubbles import create_z3_workflow_with_entanglement
+        
+        # Create highly connected sub-problems
+        sub_problems = [
+            {"id": "hub", "problem_text": "Central", "shared_symbols": ["a", "b", "c", "d"]},
+            {"id": "sp1", "problem_text": "A", "shared_symbols": ["a"]},
+            {"id": "sp2", "problem_text": "B", "shared_symbols": ["b"]},
+            {"id": "sp3", "problem_text": "C", "shared_symbols": ["c"]},
+            {"id": "isolated", "problem_text": "I", "shared_symbols": ["z"]}
+        ]
+        
+        workflow = create_z3_workflow_with_entanglement(
+            problem_text="Test",
+            sub_problems=sub_problems
+        )
+        
+        super_nodes = workflow["metadata"].get("super_nodes", [])
+        # Hub should be identified as super-node
+        assert "hub" in super_nodes
+        # Isolated should not be
+        assert "isolated" not in super_nodes
+    
+    def test_create_z3_workflow_with_entanglement_parallel_strategy(self):
+        """Test entangled workflow with parallel loop strategy."""
+        from z3_leanaide_bubbles import create_z3_workflow_with_entanglement
+        
+        sub_problems = [
+            {"id": "sp1", "problem_text": "A", "shared_symbols": ["x"]},
+            {"id": "sp2", "problem_text": "B", "shared_symbols": ["y"]}
+        ]
+        
+        workflow = create_z3_workflow_with_entanglement(
+            problem_text="Test",
+            sub_problems=sub_problems,
+            loop_strategy="parallel"
+        )
+        
+        assert workflow["metadata"]["loop_strategy"] == "parallel"
+    
+    def test_entangled_workflow_node_count(self):
+        """Test that entangled workflow has correct node count."""
+        from z3_leanaide_bubbles import create_z3_workflow_with_entanglement
+        
+        sub_problems = [
+            {"id": "sp1", "problem_text": "A"},
+            {"id": "sp2", "problem_text": "B"},
+            {"id": "sp3", "problem_text": "C"}
+        ]
+        
+        workflow = create_z3_workflow_with_entanglement(
+            problem_text="Test",
+            sub_problems=sub_problems
+        )
+        
+        # Expected: input + ent_viz + loop + 3 sub_problems + cross_verify + result = 8 nodes
+        assert len(workflow["nodes"]) == 8
+        # Expected edges: input->ent_viz, ent_viz->loop, loop->3x sub_problems, 3x sub_problems->cross_verify, cross_verify->result = 9 edges
+        assert len(workflow["edges"]) == 9
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
+

@@ -51,6 +51,25 @@ MDAP_AVAILABLE = True
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for ROMA MDAP MAKER Engine
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 # Try to import ROMA components
 try:
     from roma_dspy.core.engine.solve import RecursiveSolver
@@ -1014,6 +1033,7 @@ class ROMAMDAPMakerEngine:
 
         context = context or {}
         execution_id = f"roma_mdap_maker_{int(time.time())}"
+        success = False
 
         try:
             # Phase 1: ROMA Analysis and Decomposition
@@ -1021,6 +1041,9 @@ class ROMAMDAPMakerEngine:
             roma_result = self._roma_decompose(task, context)
 
             if roma_result.get("error"):
+                # **ACTUAL INTEGRATION**: Trigger alert for ROMA decomposition failure
+                self._trigger_roma_mdap_alerts("solve_with_roma_mdap_maker", False, execution_id, roma_result["error"])
+
                 return {
                     "error": roma_result["error"],
                     "execution_id": execution_id,
@@ -1061,7 +1084,8 @@ class ROMAMDAPMakerEngine:
                 self.metrics["total_executions"]
             )
 
-            return {
+            success = True
+            result = {
                 "result": final_result.get("result"),
                 "confidence": final_result.get("confidence", 0.5),
                 "roma_hierarchy": roma_result.get("hierarchy"),
@@ -1075,13 +1099,25 @@ class ROMAMDAPMakerEngine:
                 "error_free": voting_result.get("error_rate", 1.0) == 0.0
             }
 
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful execution
+            self._extract_roma_mdap_knowledge("solve_with_roma_mdap_maker", execution_id, result)
+            self._track_roma_mdap_performance("solve_with_roma_mdap_maker", True, execution_time, result["total_steps"])
+
+            return result
+
         except (RuntimeError, ValueError, TypeError) as e:
+            execution_time = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_roma_mdap_alerts("solve_with_roma_mdap_maker", False, execution_id, str(e))
+            self._track_roma_mdap_performance("solve_with_roma_mdap_maker", False, execution_time, 0)
+
             logger.error(f"Error in ROMA-MDAP-MAKER execution: {e}", exc_info=True)
             return {
                 "error": str(e),
                 "execution_id": execution_id,
                 "task": task,
-                "execution_time": time.time() - start_time
+                "execution_time": execution_time
             }
 
     def _roma_decompose(
@@ -1268,6 +1304,127 @@ class ROMAMDAPMakerEngine:
             "avg_confidence": 0.0,
             "avg_execution_time": 0.0
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for ROMA MDAP MAKER
+    # =========================================================================
+
+    def _trigger_roma_mdap_alerts(
+        self,
+        operation: str,
+        success: bool,
+        execution_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for ROMA MDAP MAKER failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            from datetime import datetime
+
+            alert_manager = get_alert_manager()
+
+            if not success:
+                alert_manager.create_alert(
+                    title=f"ROMA MDAP MAKER Alert: {operation}",
+                    description=f"ROMA MDAP MAKER operation '{operation}' failed" +
+                                 (f" for execution '{execution_id}'" if execution_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="roma_mdap_maker_engine",
+                    component="roma_mdap_maker",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger ROMA MDAP MAKER alert: {e}")
+
+    def _extract_roma_mdap_knowledge(
+        self,
+        operation: str,
+        execution_id: str,
+        result: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract ROMA MDAP MAKER knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            from datetime import datetime
+
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"roma_mdap_{operation}_{execution_id}",
+                artifact_type="roma_mdap_maker_execution",
+                source_component="roma_mdap_maker_engine",
+                title=f"ROMA MDAP MAKER: {operation} - {execution_id}",
+                content={
+                    "operation": operation,
+                    "execution_id": execution_id,
+                    "total_steps": result.get("total_steps", 0),
+                    "error_rate": result.get("error_rate", 0.0),
+                    "confidence": result.get("confidence", 0.0),
+                    "red_flags": result.get("red_flags", 0),
+                    "error_free": result.get("error_free", False),
+                    "execution_time": result.get("execution_time", 0.0),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "roma_available": ROMA_AVAILABLE,
+                    "mdap_enabled": self.config.mdap_enabled
+                },
+                tags=["roma_mdap_maker", operation, "hierarchical_voting"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted ROMA MDAP MAKER knowledge for {execution_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract ROMA MDAP MAKER knowledge: {e}")
+            return False
+
+    def _track_roma_mdap_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        total_steps: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track ROMA MDAP MAKER performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            from datetime import datetime
+
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"roma_mdap_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "total_steps": total_steps
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked ROMA MDAP MAKER performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track ROMA MDAP MAKER performance: {e}")
 
 
 # =============================================================================

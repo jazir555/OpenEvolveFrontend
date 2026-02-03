@@ -49,6 +49,25 @@ import hashlib
 # Configure logging
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Universal Decomposition Engine
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 
 # ============================================================================
 # ENUMS - Core Type Definitions
@@ -818,7 +837,7 @@ class UniversalDecompositionEngine:
     ) -> DecompositionPlan:
         """
         Decompose a problem statement into sub-problems.
-        
+
         Args:
             problem_statement: The problem to decompose
             title: Optional title for the problem
@@ -828,74 +847,97 @@ class UniversalDecompositionEngine:
             strategy: Decomposition strategy to use (auto-selected if None)
             max_subproblems: Maximum number of sub-problems to create
             min_subproblem_size: Minimum description length for sub-problems
-            
+
         Returns:
             DecompositionPlan with all sub-problems and dependencies
         """
-        start_time = datetime.now()
-        
-        self.logger.info(f"Starting decomposition: {title or problem_statement[:50]}...")
-        
-        # Create problem definition
-        problem = self._create_problem_definition(
-            problem_statement=problem_statement,
-            title=title,
-            domain=domain,
-            constraints=constraints or [],
-            success_criteria=success_criteria or []
-        )
-        
-        # Select strategy
-        selected_strategy = strategy or self._select_strategy(problem)
-        self.logger.info(f"Using strategy: {selected_strategy.value}")
-        
-        # Get strategy instance
-        strategy_class = self.STRATEGIES[selected_strategy]
-        strategy_instance = strategy_class(self.llm_client)
-        
-        # Execute decomposition
-        sub_problems = strategy_instance.decompose(problem)
-        
-        # Post-process
-        sub_problems = self._post_process_subproblems(
-            sub_problems, 
-            max_count=max_subproblems,
-            min_size=min_subproblem_size
-        )
-        
-        # Build dependency graph
-        dependency_graph = self._build_dependency_graph(sub_problems)
-        
-        # Calculate execution order
-        execution_order = self._calculate_execution_order(sub_problems, dependency_graph)
-        
-        # Identify parallel groups
-        parallel_groups = self._identify_parallel_groups(sub_problems, dependency_graph)
-        
-        # Calculate quality score
-        quality_score = self._calculate_quality_score(problem, sub_problems, dependency_graph)
-        
-        # Create plan
-        plan = DecompositionPlan(
-            id=self._generate_id("plan"),
-            original_problem=problem,
-            sub_problems=sub_problems,
-            strategy_used=selected_strategy,
-            dependency_graph=dependency_graph,
-            execution_order=execution_order,
-            parallel_groups=parallel_groups,
-            quality_score=quality_score,
-            metadata={
-                'decomposition_time_ms': (datetime.now() - start_time).total_seconds() * 1000,
-                'strategy_class': strategy_class.__name__,
-                'num_subproblems': len(sub_problems)
-            }
-        )
-        
-        self.decomposition_history.append(plan)
-        self.logger.info(f"Decomposition complete: {len(sub_problems)} sub-problems, quality={quality_score:.2f}")
-        
-        return plan
+        import time
+        start_time_total = time.time()
+        success = False
+        problem_id = title or problem_statement[:50]
+
+        try:
+            start_time = datetime.now()
+
+            self.logger.info(f"Starting decomposition: {problem_id}...")
+
+            # Create problem definition
+            problem = self._create_problem_definition(
+                problem_statement=problem_statement,
+                title=title,
+                domain=domain,
+                constraints=constraints or [],
+                success_criteria=success_criteria or []
+            )
+
+            # Select strategy
+            selected_strategy = strategy or self._select_strategy(problem)
+            self.logger.info(f"Using strategy: {selected_strategy.value}")
+
+            # Get strategy instance
+            strategy_class = self.STRATEGIES[selected_strategy]
+            strategy_instance = strategy_class(self.llm_client)
+
+            # Execute decomposition
+            sub_problems = strategy_instance.decompose(problem)
+
+            # Post-process
+            sub_problems = self._post_process_subproblems(
+                sub_problems,
+                max_count=max_subproblems,
+                min_size=min_subproblem_size
+            )
+
+            # Build dependency graph
+            dependency_graph = self._build_dependency_graph(sub_problems)
+
+            # Calculate execution order
+            execution_order = self._calculate_execution_order(sub_problems, dependency_graph)
+
+            # Identify parallel groups
+            parallel_groups = self._identify_parallel_groups(sub_problems, dependency_graph)
+
+            # Calculate quality score
+            quality_score = self._calculate_quality_score(problem, sub_problems, dependency_graph)
+
+            # Create plan
+            plan = DecompositionPlan(
+                id=self._generate_id("plan"),
+                original_problem=problem,
+                sub_problems=sub_problems,
+                strategy_used=selected_strategy,
+                dependency_graph=dependency_graph,
+                execution_order=execution_order,
+                parallel_groups=parallel_groups,
+                quality_score=quality_score,
+                metadata={
+                    'decomposition_time_ms': (datetime.now() - start_time).total_seconds() * 1000,
+                    'strategy_class': strategy_class.__name__,
+                    'num_subproblems': len(sub_problems)
+                }
+            )
+
+            self.decomposition_history.append(plan)
+            self.logger.info(f"Decomposition complete: {len(sub_problems)} sub-problems, quality={quality_score:.2f}")
+
+            success = True
+            duration = time.time() - start_time_total
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful decomposition
+            self._extract_universal_decomp_knowledge("decompose", problem_id, selected_strategy, plan)
+            self._track_universal_decomp_performance("decompose", True, duration, len(sub_problems))
+
+            return plan
+
+        except Exception as e:
+            duration = time.time() - start_time_total
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_universal_decomp_alerts("decompose", False, problem_id, str(e))
+            self._track_universal_decomp_performance("decompose", False, duration, 0)
+
+            self.logger.error(f"Error during decomposition: {e}")
+            raise
     
     def _create_problem_definition(
         self,
@@ -1113,6 +1155,120 @@ class UniversalDecompositionEngine:
     def get_decomposition_history(self) -> List[DecompositionPlan]:
         """Get history of all decompositions"""
         return self.decomposition_history.copy()
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Universal Decomposition
+    # =========================================================================
+
+    def _trigger_universal_decomp_alerts(
+        self,
+        operation: str,
+        success: bool,
+        problem_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for universal decomposition failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Universal Decomposition Alert: {operation}",
+                    description=f"Universal Decomposition operation '{operation}' failed" +
+                                 (f" for problem '{problem_id}'" if problem_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="universal_decomposition_engine",
+                    component="universal_decomposition",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            self.logger.error(f"Failed to trigger Universal Decomposition alert: {e}")
+
+    def _extract_universal_decomp_knowledge(
+        self,
+        operation: str,
+        problem_id: str,
+        strategy: 'DecompositionStrategy',
+        plan: 'DecompositionPlan'
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract universal decomposition knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"univ_decomp_{operation}_{problem_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="universal_decomposition_execution",
+                source_component="universal_decomposition_engine",
+                title=f"Universal Decomposition: {operation} - {problem_id}",
+                content={
+                    "operation": operation,
+                    "problem_id": problem_id,
+                    "strategy": strategy.value if strategy else "unknown",
+                    "num_subproblems": len(plan.sub_problems),
+                    "quality_score": plan.quality_score,
+                    "domain": plan.original_problem.domain.value if hasattr(plan.original_problem, 'domain') else "unknown",
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "parallel_groups": len(plan.parallel_groups) if hasattr(plan, 'parallel_groups') else 0,
+                    "dependencies": len(plan.dependency_graph.edges) if hasattr(plan, 'dependency_graph') and hasattr(plan.dependency_graph, 'edges') else 0
+                },
+                tags=["universal_decomposition", operation, strategy.value if strategy else "unknown"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            self.logger.debug(f"Extracted Universal Decomposition knowledge for {problem_id}")
+            return True
+
+        except Exception as e:
+            self.logger.error(f"Failed to extract Universal Decomposition knowledge: {e}")
+            return False
+
+    def _track_universal_decomp_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        num_subproblems: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track universal decomposition performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"univ_decomp_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "num_subproblems": num_subproblems
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                self.logger.debug(f"Tracked Universal Decomposition performance for {operation}")
+
+        except Exception as e:
+            self.logger.error(f"Failed to track Universal Decomposition performance: {e}")
 
 
 # ============================================================================

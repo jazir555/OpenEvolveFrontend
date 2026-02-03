@@ -610,27 +610,37 @@ class KnowledgeEngine:
             Dictionary with extracted knowledge and analysis
         """
         try:
-            # Try to import DSPy
+            # Import DSPy through the global integration module for consistency
+            from dspy_integration import DSPY_AVAILABLE, get_global_dspy_instance, initialize_dspy
             import dspy
             from dspy.teleprompt import BootstrapFewShot
             from dspy.predict import Predict
-            DSPY_AVAILABLE = True
         except ImportError:
-            DSPY_AVAILABLE = False
-            self.logger.info("DSPy not available, falling back to standard knowledge extraction")
-            # Fallback to standard extraction
-            result = await self.generate_knowledge(context, content)
-            return {
-                "success": True,
-                "dspy_enhanced": False,
-                "extracted_knowledge": result,
-                "extraction_type": extraction_type,
-                "entities": [],
-                "relations": [],
-                "patterns": [],
-                "confidence": 0.5,
-                "message": "DSPy not available, using standard extraction"
-            }
+            # Fallback to local import if global module not available
+            try:
+                import dspy
+                from dspy.teleprompt import BootstrapFewShot
+                from dspy.predict import Predict
+                DSPY_AVAILABLE = True
+            except ImportError:
+                dspy = None
+                BootstrapFewShot = None
+                Predict = None
+                DSPY_AVAILABLE = False
+                self.logger.info("DSPy not available, falling back to standard knowledge extraction")
+                # Fallback to standard extraction
+                result = await self.generate_knowledge(context, content)
+                return {
+                    "success": True,
+                    "dspy_enhanced": False,
+                    "extracted_knowledge": result,
+                    "extraction_type": extraction_type,
+                    "entities": [],
+                    "relations": [],
+                    "patterns": [],
+                    "confidence": 0.5,
+                    "message": "DSPy not available, using standard extraction"
+                }
 
         if not DSPY_AVAILABLE:
             # Fallback to standard extraction
