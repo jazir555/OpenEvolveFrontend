@@ -2,6 +2,7 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 from llm_utils import _compose_messages, _request_openai_compatible_chat
@@ -11,6 +12,25 @@ from mdap_engine import (
     RedFlagger,
     canonicalize_candidate
 )
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Maker operations
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -303,3 +323,104 @@ class MakerEngine:
         if isinstance(winner, dict):
             return winner.get("action")
         return winner
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Maker
+    # =========================================================================
+
+    def _trigger_maker_alerts(
+        self,
+        run_id: str,
+        success: bool,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for Maker failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.HIGH
+
+                alert_manager.create_alert(
+                    title=f"Maker Run Failed: {run_id}",
+                    description=f"Maker run '{run_id}' failed. " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="maker_engine",
+                    component="maker",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Maker alert: {e}")
+
+    def _extract_maker_knowledge(
+        self,
+        run_id: str,
+        result: 'MakerRunResult'
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract Maker execution knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"maker_{run_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="maker_execution",
+                source_component="maker_engine",
+                title=f"Maker Execution: {run_id}",
+                content={
+                    "run_id": run_id,
+                    "metrics": result.metrics,
+                    "terminated_reason": result.terminated_reason,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "final_step": result.state.step_index
+                },
+                tags=["maker", "workflow", "multi_step"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Maker knowledge for {run_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Maker knowledge: {e}")
+            return False
+
+    def _track_maker_performance(
+        self,
+        run_id: str,
+        success: bool,
+        steps_completed: int
+    ):
+        """**ACTUAL INTEGRATION**: Track Maker performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"maker_{self.team.name}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"steps_completed": steps_completed}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Maker performance: {run_id}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Maker performance: {e}")
+

@@ -42,6 +42,20 @@ except (ImportError, Exception):
     DTS_AVAILABLE = False
     logger.warning("DTS integration not available - using standard adversarial methods")
 
+# Import DSPy for enhanced prompting
+try:
+    import dspy
+    from dspy.teleprompt import BootstrapFewShot
+    from dspy.predict import Predict
+    DSPY_AVAILABLE = True
+    logger.info("DSPy available for enhanced programmatic prompting")
+except ImportError:
+    dspy = None
+    BootstrapFewShot = None
+    Predict = None
+    DSPY_AVAILABLE = False
+    logger.warning("DSPy not available - using standard prompting methods")
+
 from prompt_engineering import PromptEngineeringSystem
 from model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTeam
 from quality_assessment import QualityAssessmentEngine, SeverityLevel
@@ -2048,7 +2062,148 @@ class RedTeam:
                 return f"Structural issues identified: {', '.join(structural_issues)}. Consider which sub-problems these issues might relate to."
             else:
                 return "General feedback: Solution requires review for potential issues. No specific sub-problem IDs were identified in the critique."
-    
+
+    def assess_content_with_dspy(self, content: str, content_type: str = "general",
+                                 assessment_strategy: str = "comprehensive") -> RedTeamAssessment:
+        """
+        Assess content using DSPy for enhanced programmatic prompting and structured vulnerability analysis.
+
+        This method uses DSPy to identify vulnerabilities with consistent, structured output
+        and multi-dimensional evaluation.
+
+        Args:
+            content: The content to assess for vulnerabilities
+            content_type: Type of content (code, document, protocol, etc.)
+            assessment_strategy: Strategy to use ('comprehensive', 'security_focus', 'performance_focus', 'logic_focus')
+
+        Returns:
+            RedTeamAssessment with detailed vulnerability findings
+        """
+        if not DSPY_AVAILABLE:
+            logger.info("DSPy not available, falling back to standard assessment")
+            # Fall back to standard assessment
+            return self.assess_content(content, content_type)
+
+        try:
+            # Define a DSPy signature for vulnerability assessment
+            class VulnerabilityAssessmentSignature(dspy.Signature):
+                """Identify vulnerabilities and issues in content."""
+                content_to_assess = dspy.InputField(desc="Content to assess for vulnerabilities and issues")
+                content_type = dspy.InputField(desc="Type of content (code, document, protocol, etc.)")
+                assessment_strategy = dspy.InputField(desc="Strategy to use (comprehensive, security_focus, performance_focus, logic_focus)")
+
+                vulnerability_findings_json = dspy.OutputField(desc="""JSON array of vulnerabilities, each with:
+                    - title: Brief title of the vulnerability
+                    - description: Detailed description of the issue
+                    - category: Category of the issue (security_vulnerability, logical_error, etc.)
+                    - severity: Severity level (low, medium, high, critical)
+                    - confidence: Confidence in the finding (0-100)
+                    - suggested_fix: Suggested fix for the issue
+                    - location: Location of the issue in the content""")
+
+                assessment_summary = dspy.OutputField(desc="Summary of the assessment")
+                confidence_score = dspy.OutputField(desc="Overall confidence in the assessment (0-100)")
+
+            # Create a predictor using the signature
+            assess_vulnerabilities = dspy.Predict(VulnerabilityAssessmentSignature)
+
+            # Run DSPy vulnerability assessment
+            result = assess_vulnerabilities(
+                content_to_assess=content,
+                content_type=content_type,
+                assessment_strategy=assessment_strategy
+            )
+
+            # Parse the results
+            import json
+            try:
+                vulnerability_findings = json.loads(result.vulnerability_findings_json) if isinstance(result.vulnerability_findings_json, str) else result.vulnerability_findings_json
+            except json.JSONDecodeError:
+                logger.warning("Could not parse DSPy vulnerability assessment result, using fallback")
+                vulnerability_findings = []
+
+            # Convert DSPy results to IssueFinding objects
+            findings = []
+            severity_counts = {}
+            category_counts = {}
+
+            for finding_data in vulnerability_findings:
+                # Map severity
+                severity_str = finding_data.get("severity", "medium").lower()
+                severity_map = {
+                    "low": SeverityLevel.LOW,
+                    "medium": SeverityLevel.MEDIUM,
+                    "high": SeverityLevel.HIGH,
+                    "critical": SeverityLevel.CRITICAL
+                }
+                severity = severity_map.get(severity_str, SeverityLevel.MEDIUM)
+
+                # Map category
+                category_str = finding_data.get("category", "logical_error").lower()
+                category_map = {
+                    "security_vulnerability": IssueCategory.SECURITY_VULNERABILITY,
+                    "logical_error": IssueCategory.LOGICAL_ERROR,
+                    "performance_problem": IssueCategory.PERFORMANCE_PROBLEM,
+                    "compliance_issue": IssueCategory.COMPLIANCE_ISSUE,
+                    "structural_flaw": IssueCategory.STRUCTURAL_FLAW,
+                    "clarity_issue": IssueCategory.CLARITY_ISSUE,
+                    "maintainability_problem": IssueCategory.MAINTAINABILITY_PROBLEM,
+                    "scalability_issue": IssueCategory.SCALABILITY_ISSUE,
+                    "usability_problem": IssueCategory.USABILITY_PROBLEM,
+                    "technical_debt": IssueCategory.TECHNICAL_DEBT,
+                    "documentation_gap": IssueCategory.DOCUMENTATION_GAP,
+                    "edge_case": IssueCategory.EDGE_CASE,
+                }
+                category = category_map.get(category_str, IssueCategory.LOGICAL_ERROR)
+
+                # Create IssueFinding
+                finding = IssueFinding(
+                    title=finding_data.get("title", "Vulnerability detected"),
+                    description=finding_data.get("description", "No description provided"),
+                    severity=severity,
+                    category=category,
+                    confidence=finding_data.get("confidence", 0.8),
+                    suggested_fix=finding_data.get("suggested_fix"),
+                    location=finding_data.get("location"),
+                    exploit_example=finding_data.get("exploit_example")  # May not be in the DSPy output
+                )
+
+                findings.append(finding)
+
+                # Count by severity
+                severity_counts[severity] = severity_counts.get(severity, 0) + 1
+                # Count by category
+                category_counts[category] = category_counts.get(category, 0) + 1
+
+            # Calculate overall confidence score
+            try:
+                confidence_score = float(result.confidence_score) if result.confidence_score.replace('.', '').isdigit() else 75.0
+            except:
+                confidence_score = 75.0  # Default confidence
+
+            # Create and return assessment
+            assessment = RedTeamAssessment(
+                findings=findings,
+                assessment_summary=result.assessment_summary,
+                confidence_score=confidence_score,
+                time_taken=time.time() - time.time(),  # Placeholder - actual time calculation would need to be adjusted
+                assessment_metadata={
+                    "content_type": content_type,
+                    "assessment_strategy": assessment_strategy,
+                    "dspy_enhanced": True,
+                    "method": "dspy_vulnerability_assessment"
+                },
+                issues_by_severity=severity_counts,
+                issues_by_category=category_counts
+            )
+
+            return assessment
+
+        except Exception as e:
+            logger.error(f"Error running DSPy vulnerability assessment: {e}", exc_info=True)
+            # Fall back to standard assessment
+            return self.assess_content(content, content_type)
+
     def run_adversarial_dialogue_with_dts(self, content: str, content_type: str = "general",
                                          attacker_persona: str = "security_expert",
                                          defender_persona: str = "system_designer",

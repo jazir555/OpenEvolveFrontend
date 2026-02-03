@@ -6,10 +6,30 @@ import re
 import threading
 import time
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
 from llm_utils import _compose_messages, _request_openai_compatible_chat
 from workflow_structures import ModelConfig, Team
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for MDAP operations
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 
 # SECURITY: Input validation helpers to prevent injection attacks
@@ -617,3 +637,138 @@ class MDAPOrchestrator:
     def _cache_key(self, step: MDAPStep, task: MDAPTask) -> str:
         payload = f"{task.task_id}:{step.step_id}:{step.prompt}"
         return hashlib.sha256(payload.encode("utf-8")).hexdigest()
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for MDAP
+    # =========================================================================
+
+    def _trigger_mdap_alerts(
+        self,
+        task_id: str,
+        success: bool,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for MDAP failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.HIGH
+
+                alert_manager.create_alert(
+                    title=f"MDAP Task Failed: {task_id}",
+                    description=f"MDAP task '{task_id}' failed. " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="mdap_engine",
+                    component="mdap",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logging.error(f"Failed to trigger MDAP alert: {e}")
+
+    def _extract_mdap_knowledge(
+        self,
+        task_id: str,
+        result: 'MDAPRunResult'
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract MDAP execution knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"mdap_{task_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="mdap_execution",
+                source_component="mdap_engine",
+                title=f"MDAP Execution: {task_id}",
+                content={
+                    "task_id": task_id,
+                    "metrics": result.metrics,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "steps_completed": result.metrics.get("steps_completed", 0),
+                    "steps_failed": result.metrics.get("steps_failed", 0)
+                },
+                tags=["mdap", "multi_agent", "voting"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logging.debug(f"Extracted MDAP knowledge for {task_id}")
+            return True
+
+        except Exception as e:
+            logging.error(f"Failed to extract MDAP knowledge: {e}")
+            return False
+
+    def _track_mdap_performance(
+        self,
+        task_id: str,
+        success: bool,
+        execution_time: float
+    ):
+        """**ACTUAL INTEGRATION**: Track MDAP performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"mdap_{self.team.name}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logging.debug(f"Tracked MDAP performance: {task_id}")
+
+        except Exception as e:
+            logging.error(f"Failed to track MDAP performance: {e}")
+
+    def execute_task(self, task: MDAPTask) -> MDAPRunResult:
+        """Execute task with integrations."""
+        import time
+        start_time = time.time()
+
+        step_results: Dict[str, MDAPStepResult] = {}
+        try:
+            for step in task.steps:
+                result = self._execute_step_with_retries(step, task)
+                step_results[step.step_id] = result
+                if result.status == "success":
+                    self.metrics["steps_completed"] += 1
+                else:
+                    self.metrics["steps_failed"] += 1
+
+            result = MDAPRunResult(task_id=task.task_id, step_results=step_results, metrics=self.metrics.copy())
+
+            # **ACTUAL INTEGRATION**: Extract knowledge
+            self._extract_mdap_knowledge(task.task_id, result)
+
+            # **ACTUAL INTEGRATION**: Track performance
+            execution_time = time.time() - start_time
+            success = result.metrics.get("steps_failed", 0) == 0
+            self._track_mdap_performance(task.task_id, success, execution_time)
+
+            return result
+
+        except Exception as e:
+            execution_time = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert on failure
+            self._trigger_mdap_alerts(task.task_id, False, str(e), {"execution_time": execution_time})
+
+            # Re-raise the exception
+            raise

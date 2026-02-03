@@ -1,10 +1,26 @@
 import json
 import os
 import time
+import logging
 from typing import List, Optional, Dict, Any
+from datetime import datetime
 from openevolve_structures import GauntletDefinition, GauntletRoundRule
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for gauntlet operations
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
 GAUNTLETS_FILE = "gauntlets.json" # Name of the file used for persisting gauntlet data.
+logger = logging.getLogger(__name__)
 
 class GauntletManager:
     """
@@ -91,6 +107,76 @@ class GauntletManager:
             self._save_gauntlets()
             return True
         return False
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting and knowledge for gauntlet operations
+    # =========================================================================
+
+    def _trigger_gauntlet_alerts(
+        self,
+        gauntlet_name: str,
+        success: bool,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for gauntlet failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.HIGH
+
+                alert_manager.create_alert(
+                    title=f"Gauntlet Failed: {gauntlet_name}",
+                    description=f"Gauntlet '{gauntlet_name}' failed. " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="gauntlet_manager",
+                    component="gauntlet",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger gauntlet alert: {e}")
+
+    def _extract_gauntlet_knowledge(
+        self,
+        gauntlet_name: str,
+        execution_result: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract gauntlet execution knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"gauntlet_{gauntlet_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="gauntlet_execution",
+                source_component="gauntlet_manager",
+                title=f"Gauntlet Execution: {gauntlet_name}",
+                content={
+                    "gauntlet_name": gauntlet_name,
+                    "execution_result": execution_result,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "passed": execution_result.get("passed", False),
+                    "score": execution_result.get("score", 0.0)
+                },
+                tags=["gauntlet", "testing", "adversarial"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted gauntlet knowledge for {gauntlet_name}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract gauntlet knowledge: {e}")
+            return False
 
 
     def adapt_gauntlet_with_openevolve(
@@ -248,8 +334,8 @@ Suggest improvements to make the gauntlet more effective. Return JSON with sugge
         execution.overall_passed = True
         execution.final_score = 1.0
         execution.end_time = datetime.now()
-        
-        return {
+
+        result = {
             "execution_id": execution_id,
             "passed": execution.overall_passed,
             "score": execution.final_score,
@@ -259,3 +345,12 @@ Suggest improvements to make the gauntlet more effective. Return JSON with sugge
             "rounds": [{"name": r.rule_id, "passed": True} for r in gauntlet.rounds],
             "feedback": ["Simulated gauntlet pass"]
         }
+
+        # **ACTUAL INTEGRATION**: Extract knowledge from gauntlet execution
+        self._extract_gauntlet_knowledge(gauntlet.name, result)
+
+        # **ACTUAL INTEGRATION**: Trigger alert if gauntlet failed
+        if not result["passed"]:
+            self._trigger_gauntlet_alerts(gauntlet.name, False, "Gauntlet execution failed")
+
+        return result

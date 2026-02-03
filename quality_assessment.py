@@ -1467,7 +1467,7 @@ class QualityAssessmentEngine:
             
             # If still no scores, use standard assessment as fallback
             if not scores:
-                standard_result = self.assess_content(content, content_type)
+                standard_result = self.assess_quality(content, content_type)
                 scores = standard_result.scores
                 judge_scores = []
             

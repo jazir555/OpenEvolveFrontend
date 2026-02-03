@@ -1,9 +1,25 @@
 import json
 import os
+import logging
 from typing import List, Optional, Dict, Any
+from datetime import datetime
 from openevolve_structures import Team, ModelConfig
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for team operations
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
 TEAMS_FILE = "teams.json" # Name of the file used for persisting team data.
+logger = logging.getLogger(__name__)
 
 class TeamManager:
     """
@@ -214,3 +230,74 @@ class TeamManager:
             self.update_team(team)
 
         return True
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting and knowledge for team operations
+    # =========================================================================
+
+    def _trigger_team_alerts(
+        self,
+        team_name: str,
+        success: bool,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for team operation failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Team Operation Failed: {team_name}",
+                    description=f"Team operation failed for '{team_name}'. " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="team_manager",
+                    component="team",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger team alert: {e}")
+
+    def _extract_team_knowledge(
+        self,
+        team_name: str,
+        operation: str,
+        result: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract team operation knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"team_{team_name}_{operation}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="team_operation",
+                source_component="team_manager",
+                title=f"Team Operation: {team_name} - {operation}",
+                content={
+                    "team_name": team_name,
+                    "operation": operation,
+                    "result": result,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "success": result.get("success", True)
+                },
+                tags=["team", operation]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted team knowledge for {team_name} - {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract team knowledge: {e}")
+            return False

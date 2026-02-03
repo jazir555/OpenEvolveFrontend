@@ -86,6 +86,19 @@ except ImportError:
     ENSEMBLE_AVAILABLE = False
     logging.warning("OpenEvolve Ensemble not available - using fallback coordination")
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for coordinator operations
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -1797,6 +1810,75 @@ class EvaluatorTeamCoordinator:
                     cfg.weight = new_weights[cfg.name]
 
         logger.info(f"Updated ensemble weights: {self.ensemble_weights}")
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting and knowledge for coordinator
+    # =========================================================================
+
+    def _trigger_coordinator_alerts(
+        self,
+        session_id: str,
+        success: bool,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for coordinator failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.HIGH
+
+                alert_manager.create_alert(
+                    title=f"Coordinator Session Failed: {session_id}",
+                    description=f"Evaluation session '{session_id}' failed. " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="evaluator_team_coordinator",
+                    component="coordinator",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger coordinator alert: {e}")
+
+    def _extract_coordinator_knowledge(
+        self,
+        session_id: str,
+        result: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract coordinator session knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"coordinator_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="coordinator_session",
+                source_component="evaluator_team_coordinator",
+                title=f"Coordinator Session: {session_id}",
+                content={
+                    "session_id": session_id,
+                    "result": result,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "evaluations_completed": result.get("total_evaluations", 0)
+                },
+                tags=["coordinator", "evaluation", "team"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted coordinator knowledge for {session_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract coordinator knowledge: {e}")
+            return False
 
     def shutdown(self):
         """Shutdown the coordinator and cleanup resources"""
