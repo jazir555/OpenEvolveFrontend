@@ -17,7 +17,7 @@ envs/
 # Project Specific
 LoongFlow/pyproject.toml
 rese/lean4/.lake/packages/mathlib
-
+rese/lean4/.lake/
 # Federation Infrastructure
 # Core projects are tracked separately (submodules or external)
 # Comment out the line below if you want to track core-projects locally
@@ -42,3 +42,4 @@ tests/.nyc_output/
 # Logs
 *.log
 logs/
+rese/lean4/.lake/packages/mathlib
