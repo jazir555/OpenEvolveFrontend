@@ -1,0 +1,15 @@
+# Test artifacts
+coverage/
+test-results/
+*.log
+
+# Node modules (local to tests)
+node_modules/
+
+# Jest cache
+.cache/
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store

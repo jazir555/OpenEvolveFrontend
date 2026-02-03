@@ -1,0 +1,39 @@
+{
+  "name": "@openevolve/glue-metrics",
+  "version": "1.0.0",
+  "description": "Metrics and monitoring library for OpenEvolve Glue Layer - Federation Constitution compliant",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": [
+    "monitoring",
+    "metrics",
+    "prometheus",
+    "opentelemetry",
+    "tracing",
+    "health-checks",
+    "alerts"
+  ],
+  "author": "OpenEvolve",
+  "license": "MIT",
+  "dependencies": {
+    "prom-client": "^15.1.0",
+    "@opentelemetry/api": "^1.7.0",
+    "@opentelemetry/sdk-trace-node": "^1.18.1",
+    "@opentelemetry/sdk-trace-base": "^1.18.1",
+    "@opentelemetry/resources": "^1.18.1",
+    "@opentelemetry/semantic-conventions": "^1.18.1",
+    "@opentelemetry/exporter-trace-otlp-grpc": "^0.45.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "@openevolve/glue-lib": "^1.0.0"
+  }
+}

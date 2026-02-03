@@ -1,0 +1,57 @@
+{
+  "name": "@openevolve/leanaide-adapter",
+  "version": "1.0.0",
+  "description": "LeanAide adapter for OpenEvolve Federation Glue Layer",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "jest --config=tests/jest.config.js",
+    "test:watch": "jest --config=tests/jest.config.js --watch",
+    "test:coverage": "jest --config=tests/jest.config.js --coverage",
+    "test:ci": "jest --config=tests/jest.config.js --ci --coverage --maxWorkers=2",
+    "contract:verify": "node -e \"require('./tests/contract.test.ts').runContractTests().then(success => process.exit(success ? 0 : 1))\"",
+    "lint": "eslint src tests --ext .ts",
+    "lint:fix": "eslint src tests --ext .ts --fix",
+    "type-check": "tsc --noEmit"
+  },
+  "keywords": [
+    "lean4",
+    "leanaide",
+    "formal-verification",
+    "proof-assistant",
+    "openevolve",
+    "federation",
+    "glue-layer"
+  ],
+  "author": "OpenEvolve Federation",
+  "license": "MIT",
+  "dependencies": {
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "jest-junit": "^16.0.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "peerDependencies": {
+    "zod": "^3.22.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/openevolve/federation-glue-layer",
+    "directory": "glue/adapters/leanaide-adapter"
+  },
+  "bugs": {
+    "url": "https://github.com/openevolve/federation-glue-layer/issues"
+  },
+  "homepage": "https://github.com/openevolve/federation-glue-layer#readme"
+}

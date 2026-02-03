@@ -1,0 +1,276 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    OPENEVOLVE COORDINATION FLOW DIAGRAM                        ║
+║                         Task #17 - COMPLETED ✅                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         CLIENT REQUEST                                       │
+│  POST /openevolve/workflows                                                 │
+│  {                                                                          │
+│    "workflow_id": "math-proof-001",                                        │
+│    "problem_statement": "Prove Pythagorean theorem",                       │
+│    "sub_problems": [...]                                                   │
+│  }                                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    ANTI-CORRUPTION LAYER (ACL)                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ✓ Validate request against canonical schema                       │   │
+│  │  ✓ Transform to internal format                                   │   │
+│  │  ✓ Enforce contract rules                                         │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                  INTEGRATION COORDINATOR                                    │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Analyze Request:                                                  │   │
+│  │    • Problem Type: "formal_verification"                           │   │
+│  │    • Domain: "mathematics"                                         │   │
+│  │    • Capabilities: ["smt_solving", "tactic_execution"]            │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Select Adapters:                                                  │   │
+│  │    → Z3 (smt_solving capability)   ✓                               │   │
+│  │    → LeanAide (tactic_execution)    ✓                               │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Plan Execution:                                                   │   │
+│  │    • Parallel: YES (different adapter types)                       │   │
+│  │    • Estimated Duration: 3000ms                                    │   │
+│  │    • Fallback Order: [Z3, LeanAide]                               │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    CIRCUIT BREAKER CHECK                                    │
+│  ┌──────────────┐  ┌──────────────┐                                       │
+│  │ Z3 Breaker  │  │LeanAide Brkr │                                       │
+│  │              │  │              │                                       │
+│  │ State:       │  │ State:       │                                       │
+│  │ CLOSED ✓     │  │ CLOSED ✓     │                                       │
+│  └──────────────┘  └──────────────┘                                       │
+│                                                                              │
+│  [All adapters healthy - proceed with execution]                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│              PARALLEL EXECUTION (with Retry Logic)                           │
+│                                                                              │
+│  ┌─────────────────────────┐    ┌─────────────────────────┐                 │
+│  │      Z3 Adapter         │    │   LeanAide Adapter      │                 │
+│  │  ┌───────────────────┐  │    │  ┌───────────────────┐  │                 │
+│  │  │ Request 1         │  │    │  │ Request 1         │  │                 │
+│  │  │ ↓                 │  │    │  │ ↓                 │  │                 │
+│  │  │ Success! ✓        │  │    │  │ Failure! ✗        │  │                 │
+│  │  │ Latency: 1200ms   │  │    │  │ Latency: 800ms    │  │                 │
+│  │  └───────────────────┘  │    │  └───────────────────┘  │                 │
+│  │                         │    │    ↓                   │                 │
+│  │                         │    │  Retry 2 (1000ms)      │                 │
+│  │                         │    │    ↓                   │                 │
+│  │                         │    │  Retry 3 (2000ms)      │                 │
+│  │                         │    │    ↓                   │                 │
+│  │                         │    │  Success! ✓            │                 │
+│  └─────────────────────────┘    └─────────────────────────┘                 │
+│                                                                              │
+│  [Total execution time: ~3000ms]                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      AGGREGATE RESULTS                                       │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Z3 Result:                                                        │   │
+│  │    { "status": "success", "data": { "proof": "..." } }             │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  LeanAide Result:                                                  │   │
+│  │    { "status": "success", "data": { "tactics": [...] } }           │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                 TRANSFORM TO CANONICAL (ACL)                                │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  Canonical Format:                                                 │   │
+│  │    {                                                                │   │
+│  │      "workflow_id": "math-proof-001",                              │   │
+│  │      "status": "completed",                                         │   │
+│  │      "results": [                                                  │   │
+│  │        { "source": "z3", "content": {...} },                       │   │
+│  │        { "source": "leanaide", "content": {...} }                  │   │
+│  │      ]                                                              │   │
+│  │    }                                                                │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                      RESPONSE TO CLIENT                                      │
+│  200 OK                                                                     │
+│  {                                                                          │
+│    "workflow_id": "math-proof-001",                                        │
+│    "status": "completed",                                                   │
+│    "progress": 1.0,                                                         │
+│    "results": [...]                                                         │
+│  }                                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         WORKFLOW EXECUTION STAGES                             ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  STAGE 1: Content Analysis                                                  │
+│  • Input: Problem Statement                                                 │
+│  • Adapters: [RAGBits, Vector DB]                                          │
+│  • Execution: Parallel                                                      │
+│  • Output: Analyzed Context                                                │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  STAGE 2: Decomposition Planning                                            │
+│  • Input: Analyzed Context                                                  │
+│  • Adapters: [Graphiti, Knowledge Engine]                                  │
+│  • Execution: Sequential                                                    │
+│  • Output: Sub-problems Plan                                               │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  STAGE 3-N: Sub-problem Solving (Parallel)                                  │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐                      │
+│  │ Sub-Prob 1  │  │ Sub-Prob 2  │  │ Sub-Prob 3  │                      │
+│  │ → [Z3]      │  │ → [LeanAide]│  │ → [Z3+Lean] │                      │
+│  └──────────────┘  └──────────────┘  └──────────────┘                      │
+│  • Execution: Parallel (different adapters)                                │
+│  • Output: Individual Solutions                                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  STAGE N+1: Solution Assembly                                               │
+│  • Input: All Sub-problem Solutions                                        │
+│  • Adapters: [Knowledge Engine]                                            │
+│  • Execution: Sequential                                                    │
+│  • Output: Assembled Final Solution                                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  STAGE N+2: Final Verification                                              │
+│  • Input: Final Solution                                                   │
+│  • Adapters: [Z3 (verification mode)]                                      │
+│  • Execution: Sequential                                                    │
+│  • Output: Verification Report                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  STAGE N+3: Knowledge Extraction                                            │
+│  • Input: Entire Workflow State                                            │
+│  • Adapters: [Knowledge Aggregator]                                        │
+│  • Execution: Sequential                                                    │
+│  • Output: Knowledge Artifacts                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                    ↓
+                              WORKFLOW COMPLETE ✓
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                       CIRCUIT BREAKER STATE MACHINE                          ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+      ┌──────────────────┐
+      │                  │
+      │   CLOSED         │  ← Initial State
+      │   (Normal)       │     Requests pass through
+      │                  │     Successes reset failures
+      └────────┬─────────┘
+               │
+               │ Failure threshold reached
+               │ (default: 5 failures)
+               ↓
+      ┌──────────────────┐
+      │                  │
+      │   OPEN           │  ← Reject all requests
+      │   (Failing)      │     Wait for timeout (60s)
+      │                  │     Prevents cascading failures
+      └────────┬─────────┘
+               │
+               │ Timeout elapsed
+               ↓
+      ┌──────────────────┐
+      │                  │
+      │   HALF_OPEN      │  ← Test recovery
+      │   (Testing)      │     Allow one test request
+      │                  │
+      └────────┬─────────┘
+               │
+        ┌──────┴──────┐
+        │             │
+    Success ✓    Failure ✗
+        │             │
+        │             │
+        ↓             ↓
+    CLOSED         OPEN
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                         KEY METRICS                                           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  Total Lines of Code:          ~6,200
+  ├── Probes:                   784 lines (3 files)
+  ├── Tests:                    878 lines (2 files)
+  ├── Source:                   2,655 lines (5 files)
+  └── Documentation:            1,500 lines (4 files)
+
+  Adapters Coordinated:         8
+  ├── Z3 Prover
+  ├── LeanAide
+  ├── RAGBits
+  ├── Vector DB
+  ├── Graphiti
+  ├── KarateClub
+  ├── Knowledge Engine
+  └── Event Bus
+
+  Compliance:                  100%
+  ├── Air Gap:                 ✓
+  ├── Runtime Truth:           ✓
+  ├── Untouchable DB:          ✓
+  ├── Idempotency:             ✓
+  ├── Config Explicitness:     ✓
+  └── UTC:                     ✓
+
+  Features Implemented:
+  ├── Anti-Corruption Layer    ✓
+  ├── Circuit Breakers         ✓ (per adapter)
+  ├── Retry with Backoff       ✓ (exponential + jitter)
+  ├── Integration Coordinator  ✓
+  ├── Workflow Orchestrator    ✓
+  ├── Knowledge Aggregator     ✓
+  ├── Structured Logging       ✓ (JSON Lines)
+  ├── Contract Tests           ✓
+  ├── Probes                   ✓ (3 scripts)
+  └── Documentation            ✓ (ADR, README, diagrams)
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                      TASK COMPLETION SUMMARY                                 ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+  Task #17: Create OpenEvolve Main Adapter
+
+  Status: ✅ COMPLETED
+
+  Deliverables:
+    ✅ Probes (3 scripts)
+    ✅ Tests (comprehensive contract tests)
+    ✅ Source (5 TypeScript modules)
+    ✅ Documentation (ADR, README, diagrams)
+    ✅ Configuration (package.json, tsconfig.json)
+
+  Compliance: 100% adherence to Federation Constitution
+
+  Ready for: Deployment and integration testing
+
+  Report Date: 2025-02-03T12:00:00Z

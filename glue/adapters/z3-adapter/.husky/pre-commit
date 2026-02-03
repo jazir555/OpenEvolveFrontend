@@ -1,0 +1,27 @@
+#!/bin/sh
+# husky pre-commit hook for Z3 Adapter
+# Runs contract tests before allowing commits
+
+. "$(dirname "$0")/_/husky.sh"
+
+echo "🔒 Running Z3 Adapter contract tests before commit..."
+
+# Navigate to adapter directory
+cd "$(dirname "$0")/.." || exit 1
+
+# Run contract tests
+npm run test:contract
+
+# Check exit code
+if [ $? -ne 0 ]; then
+  echo ""
+  echo "❌ Contract tests failed. Commit aborted."
+  echo ""
+  echo "Please fix the contract violations before committing."
+  echo "Run 'npm run test:contract' to see the full test output."
+  echo ""
+  exit 1
+fi
+
+echo "✅ Contract tests passed. Proceeding with commit..."
+exit 0

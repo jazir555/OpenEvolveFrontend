@@ -1,12 +1,44 @@
+# Python
 *.pyc
 __pycache__/
 _pycache__/
 .pytest_cache/
+
+# Virtual Environments
 .env/
 .venv/
 venv/
 env/
 envs/
-.git
+
+# Git
+.git/
+
+# Project Specific
 LoongFlow/pyproject.toml
 rese/lean4/.lake/packages/mathlib
+
+# Federation Infrastructure
+# Core projects are tracked separately (submodules or external)
+# Comment out the line below if you want to track core-projects locally
+# core-projects/
+
+# Adapter runtime files (keep source, ignore artifacts)
+glue/adapters/*/node_modules/
+glue/adapters/*/.pytest_cache/
+glue/adapters/*/dist/
+glue/adapters/*/build/
+
+# Infrastructure secrets
+infra/secrets/
+infra/.env.local
+infra/*.key
+infra/*.pem
+
+# Test artifacts
+tests/coverage/
+tests/.nyc_output/
+
+# Logs
+*.log
+logs/

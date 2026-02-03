@@ -1,0 +1,75 @@
+# Rust
+target/
+Cargo.lock
+*.rs.bk
+
+# Flutter
+visualizer/.dart_tool/
+visualizer/build/
+visualizer/.flutter-plugins
+visualizer/.flutter-plugins-dependencies
+visualizer/.packages
+visualizer/pubspec.lock
+.dart_tool/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Arbor
+.arbor/
+arbor-graph.json
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Debug Artifacts
+log_dump.txt
+debug_wrapper.bat
+err_check.txt
+out_check.txt
+crates/err.txt
+crates/input.json
+crates/log.txt
+crates/out.txt
+crates/output.log
+crates/response.json
+crates/stderr.txt
+crates/stdout.txt
+crates/test_output.txt
+
+# Security - Never commit these
+.env
+.env.*
+*.pem
+*.key
+secrets.json
+credentials.json
+
+# Release artifacts (upload to GitHub Releases instead)
+*.zip
+arbor-windows-*/
+
+# Node.js (VS Code extension)
+node_modules/
+extensions/*/node_modules/
+*.vsix
+
+# Personal Release Guides
+v1_release_checklist.md
+
+# MCP Publisher (NEVER COMMIT)
+.mcpregistry_*
+mcp-publisher.exe
+server.json
+.servers-fork/

@@ -1,0 +1,57 @@
+{
+  "name": "@openevolve/ragbits-adapter-tests",
+  "version": "1.0.0",
+  "description": "RAGBits Adapter Contract Tests - Following Federation Constitution",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:verbose": "jest --verbose",
+    "validate": "jest --validate",
+    "contract": "jest tests/contract.test.ts"
+  },
+  "keywords": [
+    "ragbits",
+    "adapter",
+    "rag",
+    "retrieval",
+    "vector-database",
+    "contract-tests",
+    "federation-constitution"
+  ],
+  "author": "OpenEvolve Architecture Team",
+  "license": "MIT",
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.6",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3",
+    "zod": "^3.22.4"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "jest": {
+    "preset": "ts-jest/presets/default-esm",
+    "testEnvironment": "node",
+    "extensionsToTreatAsEsm": [
+      ".ts"
+    ],
+    "moduleNameMapper": {
+      "^(\\.{1,2}/.*)\\.js$": "$1"
+    },
+    "transform": {
+      "^.+\\.ts$": [
+        "ts-jest",
+        {
+          "useESM": true
+        }
+      ]
+    }
+  }
+}

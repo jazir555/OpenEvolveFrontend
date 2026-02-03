@@ -9,7 +9,7 @@ Focus on contracts as the correct approach, you should declaratively say what yo
 
 \*\*Operating Mode:\*\* `ZERO TRUST`. Trust nothing. Verify everything. Handle failure gracefully.
 
-
+**All core project dependencies (e.g. OpenEvolve, Bubblelab, Z3prover, ragbits, etc) are in the "core-projects" directory.**
 
 ---
 

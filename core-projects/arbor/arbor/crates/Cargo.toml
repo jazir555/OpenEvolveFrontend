@@ -1,0 +1,36 @@
+[workspace]
+resolver = "2"
+members = [
+    "arbor-core",
+    "arbor-graph",
+    "arbor-watcher",
+    "arbor-server",
+    "arbor-cli", "arbor-mcp",
+]
+
+[workspace.package]
+version = "1.0.1"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/Anandb71/arbor"
+authors = ["Arbor Contributors"]
+
+[workspace.dependencies]
+# Shared dependencies across crates
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+tracing = "0.1"
+tokio = { version = "1.0", features = ["full"] }
+
+# Tree-sitter and parsers
+tree-sitter = "0.22"
+tree-sitter-typescript = "0.21"
+tree-sitter-rust = "0.21"
+tree-sitter-python = "0.21"
+tree-sitter-go = "0.21"
+tree-sitter-java = "0.21"
+tree-sitter-c = "0.21"
+tree-sitter-cpp = "0.21"
+tree-sitter-dart = "0.0.4"
+tree-sitter-c-sharp = "0.21"

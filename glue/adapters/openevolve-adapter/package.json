@@ -1,0 +1,91 @@
+{
+  "name": "@openevolve/openevolve-adapter-tests",
+  "version": "1.0.0",
+  "description": "OpenEvolve Main Adapter Contract Tests - Validates orchestration and integration coordination",
+  "main": "tests/contract.test.ts",
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:verbose": "jest --verbose",
+    "test:coverage": "jest --coverage",
+    "test:contract": "jest tests/contract.test.ts",
+    "test:integration": "jest tests/contract.test.ts --testNamePattern='Integration Coordination'",
+    "validate": "npm run test:contract",
+    "clean": "rm -rf coverage dist build .jest-cache",
+    "lint": "eslint 'tests/**/*.ts' 'src/**/*.ts'",
+    "lint:fix": "eslint 'tests/**/*.ts' 'src/**/*.ts' --fix"
+  },
+  "keywords": [
+    "openevolve",
+    "adapter",
+    "orchestration",
+    "contract-tests",
+    "coordination",
+    "integration",
+    "federation"
+  ],
+  "author": "OpenEvolve Federation",
+  "license": "MIT",
+  "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "roots": [
+      "<rootDir>/tests"
+    ],
+    "testMatch": [
+      "**/__tests__/**/*.test.ts",
+      "**/?(*.)+(spec|test).ts"
+    ],
+    "transform": {
+      "^.+\\.ts$": "ts-jest"
+    },
+    "collectCoverageFrom": [
+      "src/**/*.ts",
+      "!src/**/*.d.ts",
+      "!src/**/*.interface.ts",
+      "!src/index.ts"
+    ],
+    "coverageDirectory": "coverage",
+    "coverageReporters": [
+      "text",
+      "lcov",
+      "html",
+      "json"
+    ],
+    "verbose": true,
+    "testTimeout": 30000,
+    "setupFilesAfterEnv": [],
+    "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1",
+      "^@tests/(.*)$": "<rootDir>/tests/$1"
+    },
+    "maxWorkers": 1,
+    "globals": {
+      "ts-jest": {
+        "isolatedModules": true
+      }
+    }
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "@types/jest": "^29.5.11",
+    "@types/node": "^20.10.6",
+    "@typescript-eslint/eslint-plugin": "^6.17.0",
+    "@typescript-eslint/parser": "^6.17.0",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "axios": "^1.6.5",
+    "zod": "^3.22.4"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "peerDependencies": {
+    "zod": "^3.22.0"
+  }
+}
