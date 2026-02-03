@@ -1,6 +1,18 @@
 """
 Request validation utilities
 """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Validators
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, validator
 import re

@@ -68,23 +68,6 @@ from maker_workflow_integration import (
     get_maker_integration_info
 )
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for intelligent resource allocation
-try:
-    from adaptive_mdap import (
-        TaskComplexityClassifier,
-        AdaptiveMDAPAllocator,
-        AdaptiveExecutionController,
-        SolveStrategy,
-    )
-    from adaptive_mdap.integrations.workflow_engine_integration import (
-        AdaptiveWorkflowIntegration,
-        AdaptiveWorkflowConfig,
-        get_adaptive_workflow,
-    )
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-
 # Initialize managers (assuming they are initialized in ui_components or main app)
 # These managers are used to retrieve Team and Gauntlet definitions.
 team_manager = TeamManager()

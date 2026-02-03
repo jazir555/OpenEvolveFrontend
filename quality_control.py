@@ -15,7 +15,6 @@ from pathlib import Path
 import json
 import re
 
-
 @dataclass
 class QualityIssue:
     """Represents a code quality issue."""

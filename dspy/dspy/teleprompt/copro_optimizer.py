@@ -33,6 +33,18 @@ Note that this teleprompter takes in the following parameters:
                 These statistics will be returned as attributes of the best program.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Copro Optimizer
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 
 class BasicGenerateInstruction(Signature):
     """You are an instruction optimizer for large language models. I will give you a ``signature`` of fields (inputs and outputs) in English. Your task is to propose an instruction that will lead a good language model to perform the task well. Don't be afraid to be creative."""

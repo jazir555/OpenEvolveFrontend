@@ -32,7 +32,6 @@ import shutil
 # Configure logging
 logger = logging.getLogger(__name__)
 
-
 class SandboxProvider(Enum):
     """Supported sandbox providers"""
     E2B = "e2b"                    # E2B Code Interpreter SDK

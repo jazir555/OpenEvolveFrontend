@@ -10,6 +10,7 @@ def hexagon_packing_12():
         outer_hex_data: np.ndarray of shape (3,) of form (x,y,angle_degree) containing the (x,y) coordinates and angle_degree of the outer hexagon.
         outer_hex_side_length: float representing the side length of the outer hexagon.
     """
+
     n = 12
     # Simple grid arrangement of inner hexagons
     inner_hex_data = np.array(

@@ -5,6 +5,18 @@ This module provides the central gateway that coordinates tools from multiple
 MCP servers (kg-gen, Graphiti, OpenEvolve, etc.) into a single namespace.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Unified Mcp Gateway
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import logging
 import asyncio
 import yaml

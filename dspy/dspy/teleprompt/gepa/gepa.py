@@ -60,6 +60,18 @@ class GEPAFeedbackMetric(Protocol):
         If no feedback is returned, GEPA will use a simple text feedback consisting of just the score:
         f"This trajectory got a score of {score}."
         """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Gepa
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
         ...
 
 

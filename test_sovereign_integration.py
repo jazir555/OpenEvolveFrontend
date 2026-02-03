@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from datetime import datetime
 from problem_analyzer import ProblemAnalyzer
 from decomposition_engine import DecompositionEngine

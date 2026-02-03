@@ -16,7 +16,7 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 try:
-    from bubblelabs_crewai_bridge # MIGRATED import (
+    from bubblelabs_crewai_bridge import (
         ExtendedWorkflowStatus,
         ExtendedTicketStatus,
         VALID_WORKFLOW_TRANSITIONS,
@@ -27,7 +27,7 @@ try:
         get_valid_ticket_transitions,
         is_terminal_workflow_status,
         is_terminal_ticket_status
-    )
+    )  # MIGRATED
     STATE_VALIDATION_AVAILABLE = True
 except ImportError as e:
     print(f"WARNING: Could not import state validation: {e}")
@@ -273,7 +273,7 @@ class TestWorkflowToTicketMapping(unittest.TestCase):
             self.skipTest("State validation not available")
 
         # Import the bridge class
-        from bubblelabs_crewai_bridge # MIGRATED import BubbleLabsCREWAIBridge
+        from bubblelabs_crewai_bridge import BubbleLabsCREWAIBridge  # MIGRATED
         from bubblelabs_integration import BubbleLabsIntegration
 
         self.bridge = BubbleLabsCREWAIBridge(

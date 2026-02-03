@@ -34,6 +34,18 @@ class GenerateEnhancedMultimodalInstructionFromFeedback(dspy.Signature):
 
     Focus on creating an instruction that helps the assistant properly analyze visual content, integrate it with textual information, and avoid the specific visual analysis mistakes shown in the examples."""
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Instruction Proposal
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     current_instruction = dspy.InputField(
         desc="The current instruction that was provided to the assistant to perform the multimodal task"
     )

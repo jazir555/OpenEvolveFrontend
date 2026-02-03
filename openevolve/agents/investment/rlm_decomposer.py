@@ -11,6 +11,18 @@ This module implements the RLM approach from "Language Models are Reasoning Agen
 (Roumeliotis et al., 2024), adapted for investment decision-making.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Rlm Decomposer
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import asyncio
 from typing import Any, Dict, List, Optional, Tuple
 import logging

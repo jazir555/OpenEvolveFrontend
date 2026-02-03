@@ -30,7 +30,6 @@ import json
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-
 @dataclass
 class SolutionQualityMetrics:
     """Quality metrics for solution attempts.

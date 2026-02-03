@@ -5,6 +5,7 @@ class ElasticsearchSearchEngine:
     """
     A client for interacting with an Elasticsearch instance for searching.
     """
+
     def __init__(self, hosts: List[str], api_key: str):
         self.es = Elasticsearch(hosts=hosts, api_key=api_key)
 

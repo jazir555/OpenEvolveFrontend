@@ -48,6 +48,7 @@ except ImportError:
 
 def read_pdf_metadata(file_path: Path) -> dict:
     """Read PDF metadata with proper encoding handling."""
+
     if not PyPDF2:
         return {"title": "PyPDF2 not installed", "authors": [], "year": "", "first_lines": []}
     try:

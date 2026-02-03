@@ -7,6 +7,7 @@ Run these examples to understand the system's capabilities.
 Author: OpenEvolve Frontend Team
 """
 
+
 import streamlit as st
 from bubblelabs_evolution_integration import BubbleLabsEvolutionIntegration
 from evolution_workflow_templates import TemplateManager

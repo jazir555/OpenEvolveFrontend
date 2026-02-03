@@ -26,16 +26,6 @@ from enum import Enum
 from typing import Any, Dict, List, Optional, Set, Tuple, Union
 import uuid
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for decomposition strategy complexity
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    SubProblem = None
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,

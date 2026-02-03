@@ -30,15 +30,6 @@ from datetime import datetime
 from enum import Enum
 import logging
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP plugin hooks
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-
 logger = logging.getLogger(__name__)
 
 

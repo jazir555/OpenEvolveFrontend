@@ -27,6 +27,18 @@ except ImportError:
 
         :param obj: The Python object to display.
         """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Evaluate
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
         print(obj)
 
     def HTML(x: str) -> str:  # noqa: N802

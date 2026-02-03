@@ -30,7 +30,6 @@ from pathlib import Path
 # Configure logging
 logger = logging.getLogger(__name__)
 
-
 class BrowserEngine(Enum):
     """Supported browser engines"""
     PLAYWRIGHT = "playwright"

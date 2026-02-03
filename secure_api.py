@@ -17,7 +17,6 @@ from cryptography.hazmat.primitives.asymmetric import rsa, padding
 import hashlib
 import secrets
 
-
 logger = logging.getLogger(__name__)
 
 

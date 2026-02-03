@@ -60,16 +60,6 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for solution assembly complexity
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    from adaptive_mdap.core.types import SubProblem as AdaptiveSubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveSubProblem = None
-
 # Import from sovereign_data_models with fallbacks
 try:
     from sovereign_data_models import (

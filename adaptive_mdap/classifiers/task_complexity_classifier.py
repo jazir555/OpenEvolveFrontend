@@ -12,6 +12,18 @@ Features:
 - Dependency Complexity: Number of dependencies
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Task Complexity Classifier
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import math
 import time
 from typing import Dict, Any, Optional, List

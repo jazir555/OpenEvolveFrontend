@@ -48,7 +48,8 @@ try:
     VERIFICATION_ENGINE_AVAILABLE = True
 except ImportError:
     VerificationEngine = None
-    VERIFICATION_ENGINE_AVAILABLE = False
+
+VERIFICATION_ENGINE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 

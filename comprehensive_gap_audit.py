@@ -9,6 +9,100 @@ from pathlib import Path
 from typing import List, Dict, Tuple
 from dataclasses import dataclass
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
+
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Gap Audit
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Gap Audit
+def _trigger_gap_audit_alerts(operation, success, audit_id=None, error=None, metadata=None):
+    """Trigger alerts for gap audit operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"Gap Audit {operation} Failed",
+            message=f"Gap audit operation '{operation}' failed: {error}",
+            severity=severity,
+            source="GapAuditor",
+            metadata=metadata or {"audit_id": audit_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger gap audit alert: {e}")
+
+
+def _extract_gap_audit_knowledge(operation, audit_id, result):
+    """Extract knowledge from gap audit operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        artifact = KnowledgeArtifact(
+            artifact_id=f"gap_audit_{operation}_{audit_id}",
+            artifact_type="gap_audit_execution",
+            source_component="GapAuditor",
+            content={
+                "operation": operation,
+                "audit_id": audit_id,
+                "gaps_found": len(result.get("gaps", [])) if result else 0,
+                "critical_gaps": len([g for g in result.get("gaps", []) if g.get("severity") == "CRITICAL"]) if result else 0,
+                "high_gaps": len([g for g in result.get("gaps", []) if g.get("severity") == "HIGH"]) if result else 0,
+                "success": result is not None,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract gap audit knowledge: {e}")
+
+
+def _track_gap_audit_performance(operation, success, duration_seconds, files_audited, gaps_found=0):
+    """Track performance of gap audit operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name="gap_audit",
+            component_name="GapAuditor",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "files_audited": files_audited,
+                "gaps_found": gaps_found
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track gap audit performance: {e}")
+
 
 @dataclass
 class Gap:
@@ -28,30 +122,51 @@ class GapAuditor:
 
     def audit_file(self, filepath: Path) -> List[Gap]:
         """Audit a single file for gaps"""
-        gaps = []
+        import time
+        start_time = time.time()
+        success = False
+        audit_id = f"gap_{hash(str(filepath)) % 10000:04d}"
+
         try:
-            content = filepath.read_text(encoding='utf-8')
-            lines = content.split('\n')
+            gaps = []
+            try:
+                content = filepath.read_text(encoding='utf-8')
+                lines = content.split('\n')
 
-            # Check 1: Empty class definitions (class with only pass)
-            gaps.extend(self._find_empty_classes(filepath, content, lines))
+                # Check 1: Empty class definitions (class with only pass)
+                gaps.extend(self._find_empty_classes(filepath, content, lines))
 
-            # Check 2: Empty methods (def with only pass or ...)
-            gaps.extend(self._find_empty_methods(filepath, content, lines))
+                # Check 2: Empty methods (def with only pass or ...)
+                gaps.extend(self._find_empty_methods(filepath, content, lines))
 
-            # Check 3: TODO/FIXME/NotImplemented comments
-            gaps.extend(self._find_todo_comments(filepath, content, lines))
+                # Check 3: TODO/FIXME/NotImplemented comments
+                gaps.extend(self._find_todo_comments(filepath, content, lines))
 
-            # Check 4: Stub/mock implementations
-            gaps.extend(self._find_stub_implementations(filepath, content, lines))
+                # Check 4: Stub/mock implementations
+                gaps.extend(self._find_stub_implementations(filepath, content, lines))
 
-            # Check 5: Placeholder method bodies
-            gaps.extend(self._find_placeholder_bodies(filepath, content, lines))
+                # Check 5: Placeholder method bodies
+                gaps.extend(self._find_placeholder_bodies(filepath, content, lines))
+
+                # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+                success = True
+                duration = time.time() - start_time
+                result_dict = {"gaps": [{"severity": g.severity} for g in gaps]}
+                _extract_gap_audit_knowledge("audit_file", audit_id, result_dict)
+                _track_gap_audit_performance("audit_file", True, duration, 1, len(gaps))
+
+            except Exception as e:
+                # **ACTUAL INTEGRATION**: Trigger alert and track failure
+                duration = time.time() - start_time
+                _trigger_gap_audit_alerts("audit_file", False, audit_id, str(e))
+                _track_gap_audit_performance("audit_file", False, duration, 0, 0)
+                raise
+
+            return gaps
 
         except Exception as e:  # TODO: Catch specific exception instead of Exception
             print(f"Error auditing {filepath}: {e}")
-
-        return gaps
+            return []
 
     def _find_empty_classes(self, filepath: Path, content: str, lines: List[str]) -> List[Gap]:
         """Find class definitions with only 'pass' statement"""

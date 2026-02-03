@@ -21,6 +21,96 @@ import logging
 # Configure logging first
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Blue Team
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Blue Team
+def _trigger_blue_team_alerts(operation, success, fix_id=None, error=None, metadata=None):
+    """Trigger alerts for blue team operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.HIGH if operation == "generate_fixes" else AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"Blue Team {operation} Failed",
+            message=f"Blue team operation '{operation}' failed: {error}",
+            severity=severity,
+            source="BlueTeam",
+            metadata=metadata or {"fix_id": fix_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger blue team alert: {e}")
+
+
+def _extract_blue_team_knowledge(operation, fix_id, result):
+    """Extract knowledge from blue team operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        artifact = KnowledgeArtifact(
+            artifact_id=f"blue_team_{operation}_{fix_id}",
+            artifact_type="blue_team_execution",
+            source_component="BlueTeam",
+            content={
+                "operation": operation,
+                "fix_id": fix_id,
+                "fixes_generated": len(result.get("fixes", [])) if result else 0,
+                "fixes_applied": result.get("fixes_applied", 0) if result else 0,
+                "success": result is not None,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract blue team knowledge: {e}")
+
+
+def _track_blue_team_performance(operation, success, duration_seconds, strategy, fixes_count=0):
+    """Track performance of blue team operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name=f"blue_team_{strategy}",
+            component_name="BlueTeam",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "strategy": strategy,
+                "fixes_count": fixes_count
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track blue team performance: {e}")
+
+
 from llm_utils import _request_openai_compatible_chat, _compose_messages
 from content_analyzer import ContentAnalyzer
 
@@ -65,16 +155,6 @@ except ImportError:
         Predict = None
         DSPY_AVAILABLE = False
         logger.warning("DSPy not available - using standard prompting methods")
-
-# Import Adaptive MDAP for intelligent resource allocation
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-    logger.info("Adaptive MDAP available for intelligent fix resource allocation")
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    logger.info("Adaptive MDAP not available - using standard fix resource allocation")
 
 from prompt_engineering import PromptEngineeringSystem
 from model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTeam

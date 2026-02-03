@@ -5,6 +5,7 @@ Fix HIGH severity security issues
 - B602: subprocess shell=True (2 instances) - Change to shell=False
 - B201: Flask debug (1 instance) - Set debug=False in production
 """
+
 import re
 from pathlib import Path
 from datetime import datetime

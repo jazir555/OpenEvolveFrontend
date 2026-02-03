@@ -39,6 +39,7 @@ def hexagon_vertices(
     Returns:
     A list of tuples, where each tuple (x, y) represents the vertex location.
     """
+
     vertices = []
     angle_radians = math.radians(angle_degrees)
     for i in range(6):

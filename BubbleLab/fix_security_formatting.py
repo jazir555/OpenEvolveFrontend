@@ -18,7 +18,7 @@ def fix_file_formatting(file_path: Path) -> bool:
         # Pattern: */ followed by * Security Fixes
         content = re.sub(
             r'\*/\n \* Security Fixes Applied \(Wave 5\):',
-            r*/\n *\n * Security Fixes Applied (Wave 5):,
+            r'*/\n *\n * Security Fixes Applied (Wave 5):',
             content
         )
 

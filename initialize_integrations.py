@@ -9,6 +9,7 @@ Usage:
     python initialize_integrations.py
 """
 
+
 import logging
 import sys
 from datetime import datetime

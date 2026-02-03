@@ -28,6 +28,7 @@ from sovereign_data_models import (
     generate_id
 )
 
+
 # **ACTUAL INTEGRATION**: Alerting and knowledge for Learning Loop Manager
 try:
     from alerting_system import get_alert_manager, AlertSeverity

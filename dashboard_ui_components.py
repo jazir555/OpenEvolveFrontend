@@ -22,7 +22,6 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-
 class UIComponent:
     """Base class for UI components."""
 

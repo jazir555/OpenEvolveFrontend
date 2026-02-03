@@ -97,7 +97,6 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -387,50 +386,50 @@ reusable_patterns, adaptation_recommendations.
                 logger.debug(f"Extracted {len(stage_0_artifacts)} artifacts from Stage 0")
             except Exception as e:
                 logger.warning(f"Failed to extract from Stage 0: {e}")
-        
-        # Extract from Stage 1: Decomposition
-        try:
-            stage_1_artifacts = self._extract_from_stage_1(workflow_state)
-            artifacts.extend(stage_1_artifacts)
-            logger.debug(f"Extracted {len(stage_1_artifacts)} artifacts from Stage 1")
-        except Exception as e:
-            logger.warning(f"Failed to extract from Stage 1: {e}")
-        
-        # Skip Stage 2 (Planning) - usually doesn't have extractable patterns
-        
-        # Extract from Stage 3: Solution & Critique
-        try:
-            stage_3_artifacts = self._extract_from_stage_3(workflow_state)
-            artifacts.extend(stage_3_artifacts)
-            logger.debug(f"Extracted {len(stage_3_artifacts)} artifacts from Stage 3")
-        except Exception as e:
-            logger.warning(f"Failed to extract from Stage 3: {e}")
-        
-        # Skip Stage 4 (Verification) - patterns extracted in Stage 5
-        
-        # Extract from Stage 5: Quality Assessment & Self-Healing
-        try:
-            stage_5_artifacts = self._extract_from_stage_5(workflow_state)
-            artifacts.extend(stage_5_artifacts)
-            logger.debug(f"Extracted {len(stage_5_artifacts)} artifacts from Stage 5")
-        except Exception as e:
-            logger.warning(f"Failed to extract from Stage 5: {e}")
-        
-        # Extract from Stage 6: Execution Results & Learning
-        try:
-            stage_6_artifacts = self._extract_from_stage_6(workflow_state)
-            artifacts.extend(stage_6_artifacts)
-            logger.debug(f"Extracted {len(stage_6_artifacts)} artifacts from Stage 6")
-        except Exception as e:
-            logger.warning(f"Failed to extract from Stage 6: {e}")
+            
+            # Extract from Stage 1: Decomposition
+            try:
+                stage_1_artifacts = self._extract_from_stage_1(workflow_state)
+                artifacts.extend(stage_1_artifacts)
+                logger.debug(f"Extracted {len(stage_1_artifacts)} artifacts from Stage 1")
+            except Exception as e:
+                logger.warning(f"Failed to extract from Stage 1: {e}")
+            
+            # Skip Stage 2 (Planning) - usually doesn't have extractable patterns
+            
+            # Extract from Stage 3: Solution & Critique
+            try:
+                stage_3_artifacts = self._extract_from_stage_3(workflow_state)
+                artifacts.extend(stage_3_artifacts)
+                logger.debug(f"Extracted {len(stage_3_artifacts)} artifacts from Stage 3")
+            except Exception as e:
+                logger.warning(f"Failed to extract from Stage 3: {e}")
+            
+            # Skip Stage 4 (Verification) - patterns extracted in Stage 5
+            
+            # Extract from Stage 5: Quality Assessment & Self-Healing
+            try:
+                stage_5_artifacts = self._extract_from_stage_5(workflow_state)
+                artifacts.extend(stage_5_artifacts)
+                logger.debug(f"Extracted {len(stage_5_artifacts)} artifacts from Stage 5")
+            except Exception as e:
+                logger.warning(f"Failed to extract from Stage 5: {e}")
+            
+            # Extract from Stage 6: Execution Results & Learning
+            try:
+                stage_6_artifacts = self._extract_from_stage_6(workflow_state)
+                artifacts.extend(stage_6_artifacts)
+                logger.debug(f"Extracted {len(stage_6_artifacts)} artifacts from Stage 6")
+            except Exception as e:
+                logger.warning(f"Failed to extract from Stage 6: {e}")
 
-        success = True
-        duration = time.time() - start_time
+            success = True
+            duration = time.time() - start_time
 
-        # **ACTUAL INTEGRATION**: Track performance for successful workflow extraction
-        self._track_knowledge_extractor_performance("extract_from_workflow", success, duration, len(artifacts))
+            # **ACTUAL INTEGRATION**: Track performance for successful workflow extraction
+            self._track_knowledge_extractor_performance("extract_from_workflow", success, duration, len(artifacts))
 
-        return artifacts
+            return artifacts
 
         except Exception as e:
             duration = time.time() - start_time

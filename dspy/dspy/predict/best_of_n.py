@@ -46,6 +46,18 @@ class BestOfN(Module):
             # Returns: Brussels
             ```
         """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Best Of N
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
         self.module = module
         self.reward_fn = lambda *args: reward_fn(*args)  # to prevent this from becoming a parameter
         self.threshold = threshold

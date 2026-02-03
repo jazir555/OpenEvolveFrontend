@@ -2,6 +2,7 @@
 """
 Unified Evaluator for Scaling Law Discovery.
 """
+
 import argparse
 import concurrent.futures
 import importlib.util

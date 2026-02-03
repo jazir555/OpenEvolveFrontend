@@ -107,7 +107,8 @@ class AdversarialConfiguration:
     Comprehensive adversarial configuration utilizing all adversarial parameters
     from the parameter manager plus relevant parameters from other categories
     """
-    # Core Adversarial Parameters (20)
+
+# Core Adversarial Parameters (20)
     attack_model_config: Dict[str, Any] = None
     defense_model_config: Dict[str, Any] = None
     adversarial_rounds: int = 5

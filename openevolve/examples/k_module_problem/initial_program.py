@@ -14,7 +14,6 @@ correct gives the same partial feedback as 1/4 - you don't know WHICH
 modules are correct.
 """
 
-
 def configure_pipeline():
     """
     Configure a data processing pipeline with 4 independent modules.

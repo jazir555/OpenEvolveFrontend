@@ -10,6 +10,8 @@ This script starts the complete OpenEvolve platform with BubbleLabs integration:
 - Advanced visualization capabilities
 """
 
+
+
 import os
 import sys
 import subprocess

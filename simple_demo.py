@@ -1,6 +1,7 @@
 """
 Simple demo showcasing OpenEvolve performance optimization functionality
 """
+
 import sys
 import os
 import time

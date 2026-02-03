@@ -1,3 +1,15 @@
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Multi Chain Comparison
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 from dspy.predict.predict import Predict
 from dspy.primitives.module import Module
 from dspy.signatures import InputField, OutputField

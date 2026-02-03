@@ -18,6 +18,18 @@ class ClaudeClient:
     
     def generate_pydantic_models(self, field_config: Dict[str, Any]) -> str:
         """Generate Pydantic models based on field configuration"""
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Claude Client
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
         
         use_case = field_config.get('use_case', 'Document Analysis')
         description = field_config.get('description', 'Extract structured information from documents')

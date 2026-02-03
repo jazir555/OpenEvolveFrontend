@@ -18,6 +18,7 @@ def select_integration_strategy(
     - "compositional": Solutions can be composed together like building blocks
     - "adaptive": Dynamic strategy selection based on solution characteristics
     """
+
     from collections import defaultdict
 
     dependency_depths = defaultdict(set)

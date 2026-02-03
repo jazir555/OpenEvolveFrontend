@@ -48,7 +48,6 @@ try:
     Z3_ADVANCED_AVAILABLE = True
 except ImportError:
     Z3_ADVANCED_AVAILABLE = False
-    logger.warning("Z3 advanced features not available")
 
 try:
     from z3_leanaide_bridge import (

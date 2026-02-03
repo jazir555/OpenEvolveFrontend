@@ -5,6 +5,18 @@ This module manages the registration, categorization, and discovery of tools
 from all connected MCP servers.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Tool Registry
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import logging
 from typing import Dict, List, Optional, Set
 from datetime import datetime, timedelta

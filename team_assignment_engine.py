@@ -42,14 +42,6 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-based team sizing
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-
 logger = logging.getLogger(__name__)
 
 

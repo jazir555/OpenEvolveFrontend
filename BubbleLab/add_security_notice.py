@@ -3,6 +3,18 @@
 Add security notice to files that are missing it
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Add Security Notice
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 from pathlib import Path
 
 def add_security_notice(file_path: Path) -> bool:

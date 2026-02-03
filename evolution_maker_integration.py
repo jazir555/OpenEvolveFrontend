@@ -78,6 +78,97 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Evolution MAKER Integration
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Evolution MAKER
+def _trigger_evolution_maker_alerts(operation, success, run_id=None, error=None, metadata=None):
+    """Trigger alerts for evolution MAKER operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.HIGH if operation == "run_maker_evolution" else AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"Evolution MAKER {operation} Failed",
+            message=f"Evolution MAKER operation '{operation}' failed: {error}",
+            severity=severity,
+            source="EvolutionMAKERIntegration",
+            metadata=metadata or {"run_id": run_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger evolution MAKER alert: {e}")
+
+
+def _extract_evolution_maker_knowledge(operation, run_id, result):
+    """Extract knowledge from evolution MAKER operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        from datetime import datetime
+        artifact = KnowledgeArtifact(
+            artifact_id=f"evo_maker_{operation}_{run_id}",
+            artifact_type="evolution_maker_execution",
+            source_component="EvolutionMAKERIntegration",
+            content={
+                "operation": operation,
+                "run_id": run_id,
+                "final_fitness": result.get("best_fitness", 0.0) if result else 0.0,
+                "iterations": result.get("iterations", 0) if result else 0,
+                "population_size": result.get("population_size", 0) if result else 0,
+                "success": result is not None,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract evolution MAKER knowledge: {e}")
+
+
+def _track_evolution_maker_performance(operation, success, duration_seconds, mode, iterations=0):
+    """Track performance of evolution MAKER operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name=f"evo_maker_{mode}",
+            component_name="EvolutionMAKERIntegration",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "mode": mode,
+                "iterations": iterations
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track evolution MAKER performance: {e}")
+
 
 # =============================================================================
 # MAKER EVOLUTION CONFIGURATION

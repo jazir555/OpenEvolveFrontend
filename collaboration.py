@@ -4,6 +4,7 @@ from typing import Set, Dict, Any
 import socket  # Added this import
 import threading # Added this import
 
+
 # Optional imports with fallbacks
 try:
     import websockets
@@ -56,170 +57,153 @@ class CollaborationServer:
                     await self.broadcast_cursor(websocket, data.get("payload", {}))
                 elif msg_type == "text_update":
                     await self.broadcast_text(websocket, data.get("payload", {}))
+        except websockets.exceptions.ConnectionClosed:
+            pass
         finally:
-            self.users.remove(websocket)
-            del self.user_info[websocket]
+            self.users.discard(websocket)
+            if websocket in self.user_info:
+                del self.user_info[websocket]
             await self.broadcast_presence()
 
     async def broadcast_presence(self):
+        """Broadcast user presence updates to all connected clients."""
         if not WEBSOCKETS_AVAILABLE:
             return
-            
-        """
-        Broadcast presence information to all connected users.
-        """
         presence_data = {
-            "type": "presence_update",
-            "payload": list(self.user_info.values()),
+            "type": "presence",
+            "payload": {
+                "users": [
+                    {"id": info["id"]} 
+                    for info in self.user_info.values()
+                ]
+            }
         }
-        message = json.dumps(presence_data)
-        if self.users:
-            await asyncio.wait([user.send(message) for user in self.users])
+        await self._broadcast(presence_data)
 
-    async def broadcast_notification(self, payload: Dict[str, Any]):
+    async def broadcast_config(self, config: Dict[str, Any]):
+        """Broadcast configuration updates."""
         if not WEBSOCKETS_AVAILABLE:
             return
-            
-        """
-        Broadcast a notification to all connected users.
-        """
-        notification_data = {"type": "notification", "payload": payload}
-        message = json.dumps(notification_data)
-        if self.users:
-            await asyncio.wait([user.send(message) for user in self.users])
+        await self._broadcast({"type": "config", "payload": config})
 
-    async def broadcast_config(self, payload: Dict[str, Any]):
+    async def broadcast_results(self, results: Dict[str, Any]):
+        """Broadcast results to all users."""
         if not WEBSOCKETS_AVAILABLE:
             return
-            
-        """
-        Broadcast the evolution configuration to all connected users.
-        """
-        config_data = {"type": "config_update", "payload": payload}
-        message = json.dumps(config_data)
-        if self.users:
-            await asyncio.wait([user.send(message) for user in self.users])
+        await self._broadcast({"type": "results", "payload": results})
 
-    async def broadcast_results(self, payload: Dict[str, Any]):
+    async def broadcast_cursor(self, sender, cursor_data: Dict[str, Any]):
+        """Broadcast cursor position to other users."""
         if not WEBSOCKETS_AVAILABLE:
             return
-            
-        """
-        Broadcast the evolution results to all connected users.
-        """
-        results_data = {"type": "results_update", "payload": payload}
-        message = json.dumps(results_data)
-        if self.users:
-            await asyncio.wait([user.send(message) for user in self.users])
-
-    async def broadcast_comment(self, payload: Dict[str, Any]):
-        if not WEBSOCKETS_AVAILABLE:
-            return
-            
-        """
-        Broadcast a new comment to all connected users.
-        """
-        comment_data = {"type": "comment_added", "payload": payload}
-        message = json.dumps(comment_data)
-        if self.users:
-            await asyncio.wait([user.send(message) for user in self.users])
-
-    async def broadcast_cursor(
-        self, sender, payload: Dict[str, Any]
-    ):
-        if not WEBSOCKETS_AVAILABLE:
-            return
-            
-        """
-        Broadcast cursor position to other users.
-        """
-        cursor_data = {
-            "type": "cursor_update",
-            "payload": payload,
-            "sender": self.user_info[sender]["id"],
+        message = {
+            "type": "cursor",
+            "payload": {**cursor_data, "user_id": self.user_info.get(sender, {}).get("id")}
         }
-        message = json.dumps(cursor_data)
+        await self._broadcast(message, exclude=sender)
+
+    async def broadcast_text(self, sender, text_data: Dict[str, Any]):
+        """Broadcast text updates to other users."""
+        if not WEBSOCKETS_AVAILABLE:
+            return
+        message = {
+            "type": "text",
+            "payload": {**text_data, "user_id": self.user_info.get(sender, {}).get("id")}
+        }
+        await self._broadcast(message, exclude=sender)
+
+    async def _broadcast(self, message: Dict[str, Any], exclude=None):
+        """Send message to all connected users."""
+        if not WEBSOCKETS_AVAILABLE:
+            return
+        disconnected = []
         for user in self.users:
-            if user != sender:
-                await user.send(message)
+            if user != exclude:
+                try:
+                    await user.send(json.dumps(message))
+                except websockets.exceptions.ConnectionClosed:
+                    disconnected.append(user)
+        
+        # Clean up disconnected users
+        for user in disconnected:
+            self.users.discard(user)
+            if user in self.user_info:
+                del self.user_info[user]
 
-    async def broadcast_text(
-        self, sender, payload: Dict[str, Any]
-    ):
+    async def start(self):
+        """Start the collaboration server."""
         if not WEBSOCKETS_AVAILABLE:
+            print("WebSockets not available - cannot start collaboration server")
             return
             
-        """
-        Broadcast text updates to other users.
-        """
-        text_data = {
-            "type": "text_update",
-            "payload": payload,
-            "sender": self.user_info[sender]["id"],
-        }
-        message = json.dumps(text_data)
-        for user in self.users:
-            if user != sender:
-                await user.send(message)
-
-    def start(self):
-        if not WEBSOCKETS_AVAILABLE:
-            print("Collaboration server cannot start - websockets module not available")
-            return
-            
-        """
-        Start the websocket server in a separate thread.
-        """
-
-        async def run_server():
-            self.server = await websockets.serve(self.handler, self.host, self.port)
-            await self.server.wait_closed()
-
-        def run_loop():
-            asyncio.run(run_server())
-
-        thread = threading.Thread(target=run_loop)
-        thread.daemon = True
-        thread.start()
+        print(f"Starting collaboration server on {self.host}:{self.port}")
+        self.server = await websockets.serve(self.handler, self.host, self.port)
         print(f"Collaboration server started on ws://{self.host}:{self.port}")
 
+    async def stop(self):
+        """Stop the collaboration server."""
+        if self.server:
+            self.server.close()
+            await self.server.wait_closed()
+            print("Collaboration server stopped")
 
-def start_collaboration_server():
-    if not WEBSOCKETS_AVAILABLE:
-        print("Collaboration server cannot start - websockets module not available")
-        return
-
-    if "collaboration_server_instance" not in st.session_state:
-        st.session_state.collaboration_server_instance = None
-        st.session_state.collaboration_server_started = False
-        st.session_state.collaboration_server_error = False
-
-    # Only attempt to start if not already started and no previous error
-    if not st.session_state.collaboration_server_started and not st.session_state.collaboration_server_error:
-        # Try default collaboration port first, then fallback to alternatives
-        ports_to_try = [8765, 8766, 8767, 8768, 8769, 9000, 9001, 9002]
-        
-        selected_port = None
-        for port in ports_to_try:
-            # Test if port is available
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
-                try:
-                    sock.bind(('localhost', port))
-                    selected_port = port
-                    break  # Found an available port
-                except OSError:
-                    continue  # Try next port
-        
-        if selected_port is None:
-            st.warning(f"No available ports found for collaboration server (tried {ports_to_try}).")
-            st.session_state.collaboration_server_error = True
+    def run_in_thread(self):
+        """Run the server in a background thread."""
+        if not WEBSOCKETS_AVAILABLE:
+            print("WebSockets not available - cannot run collaboration server")
             return
+            
+        def run_server():
+            asyncio.set_event_loop(asyncio.new_event_loop())
+            loop = asyncio.get_event_loop()
+            loop.run_until_complete(self.start())
+            loop.run_forever()
+        
+        server_thread = threading.Thread(target=run_server, daemon=True)
+        server_thread.start()
+        print(f"Collaboration server started in background thread")
 
-        try:
-            st.session_state.collaboration_server_instance = CollaborationServer(host="localhost", port=selected_port)
-            st.session_state.collaboration_server_instance.start()
-            st.session_state.collaboration_server_started = True
-            print(f"Collaboration server started successfully on ws://localhost:{selected_port}")
-        except (OSError, IOError, RuntimeError) as e:
-            st.error(f"Failed to start collaboration server: {e}")
-            st.session_state.collaboration_server_error = True
+
+def get_local_ip():
+    """Get the local IP address for display."""
+    try:
+        # Create a socket to determine local IP
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+        s.close()
+        return ip
+    except Exception:
+        return "localhost"
+
+
+def display_collaboration_panel():
+    """Display the collaboration panel in Streamlit."""
+    st.subheader("Real-time Collaboration")
+    
+    if not WEBSOCKETS_AVAILABLE:
+        st.warning("WebSockets not available. Install with: pip install websockets")
+        return
+    
+    local_ip = get_local_ip()
+    
+    st.info(f"""
+    **Collaboration Server**
+    - Local: ws://localhost:8765
+    - Network: ws://{local_ip}:8765
+    """)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("Start Server"):
+            st.session_state.collaboration_server = CollaborationServer()
+            st.session_state.collaboration_server.run_in_thread()
+            st.success("Collaboration server started!")
+    
+    with col2:
+        if st.button("Stop Server"):
+            if hasattr(st.session_state, 'collaboration_server'):
+                # Note: Proper async cleanup would require more complexity
+                st.info("Server stopping... (restart app for clean state)")
+            else:
+                st.warning("No server running")

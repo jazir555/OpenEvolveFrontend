@@ -8,6 +8,7 @@ def determine_review_type(content: str) -> str:
     Returns:
         str: The determined review type (code, document, plan, etc.)
     """
+
     content_lower = content.lower()
     
     # Check for code indicators

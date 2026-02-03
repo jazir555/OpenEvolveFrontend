@@ -28,6 +28,7 @@ from sovereign_data_models import (
 logger = logging.getLogger(__name__)
 
 
+
 class SelfHealingMechanism:
     """
     Automatically detects and fixes issues in decompositions and solutions.

@@ -46,7 +46,6 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
-
 class PersistentDecompositionEngine(DecompositionEngine):
     """
     DecompositionEngine with workflow persistence.

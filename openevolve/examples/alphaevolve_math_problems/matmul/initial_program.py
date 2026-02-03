@@ -19,6 +19,7 @@ import tqdm
 @jax.custom_vjp
 def round_to_half_ste(x):
     """Forward pass: snaps values to the nearest half-integer."""
+
     return jnp.round(x * 2) / 2
 
 

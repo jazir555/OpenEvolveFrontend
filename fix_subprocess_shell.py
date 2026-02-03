@@ -2,6 +2,7 @@
 Fixer for subprocess calls with shell=True (B603)
 Replace with safer shell=False or use list arguments
 """
+
 import re
 from pathlib import Path
 from datetime import datetime

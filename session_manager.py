@@ -5,15 +5,6 @@ and combines all the modular functionality.
 File size: ~200 lines (well under the 2000 line limit)
 """
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for session complexity tracking
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-
 from session_defaults import session_defaults
 from content_manager import content_manager
 from collaboration_manager import collaboration_manager

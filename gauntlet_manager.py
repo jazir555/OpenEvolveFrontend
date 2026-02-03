@@ -25,13 +25,8 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for gauntlet resource allocation
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
+# Adaptive MDAP not available
+ADAPTIVE_MDAP_AVAILABLE = False
 
 # **BUBBLELABS INTEGRATION**: BubbleLab workflow visualization for gauntlets
 try:

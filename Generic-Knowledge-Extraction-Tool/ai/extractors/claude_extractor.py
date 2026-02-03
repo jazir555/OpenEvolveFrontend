@@ -13,6 +13,18 @@ logger = logging.getLogger(__name__)
 
 class ClaudeExtractor:
     """Claude AI powered data extraction"""
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Claude Extractor
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
     
     def __init__(self, model_selection='claude-sonnet-4-20250514'):
         self.claude_client = ClaudeClient()

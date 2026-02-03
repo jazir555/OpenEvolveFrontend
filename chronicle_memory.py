@@ -14,6 +14,7 @@ Key Features:
 - Integration with Graphiti for hybrid memory
 """
 
+
 import os
 import json
 import time
@@ -30,6 +31,95 @@ from pathlib import Path
 
 # Configure logging
 logger = logging.getLogger(__name__)
+
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Chronicle Memory
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Chronicle Memory
+def _trigger_chronicle_alerts(operation, success, event_id=None, error=None, metadata=None):
+    """Trigger alerts for chronicle memory operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.HIGH if operation in ["record_event", "create_narrative"] else AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"Chronicle Memory {operation} Failed",
+            message=f"Chronicle memory operation '{operation}' failed: {error}",
+            severity=severity,
+            source="ChronicleMemory",
+            metadata=metadata or {"event_id": event_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger chronicle alert: {e}")
+
+
+def _extract_chronicle_knowledge(operation, event_id, event_type, result):
+    """Extract knowledge from chronicle memory operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        artifact = KnowledgeArtifact(
+            artifact_id=f"chronicle_{operation}_{event_id}",
+            artifact_type="chronicle_memory_operation",
+            source_component="ChronicleMemory",
+            content={
+                "operation": operation,
+                "event_id": event_id,
+                "event_type": event_type,
+                "outcome": getattr(result, 'outcome', None) if result else None,
+                "success": result is not None,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract chronicle knowledge: {e}")
+
+
+def _track_chronicle_performance(operation, success, duration_seconds, event_type, events_count=0):
+    """Track performance of chronicle memory operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name=f"chronicle_{event_type}",
+            component_name="ChronicleMemory",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "event_type": event_type,
+                "events_count": events_count
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track chronicle performance: {e}")
 
 
 class EventType(Enum):
@@ -470,9 +560,9 @@ class ChronicleMemory:
             "## Consequences\n"
             f"{consequences}\n"
             f"## Alternatives Rejected\n"
-            f"{'- ' + '\\n- '.join(alternatives_rejected) if alternatives_rejected else '- None'}\n"
+            f"{chr(10).join(['- ' + a for a in alternatives_rejected]) if alternatives_rejected else '- None'}\n"
             f"## Entangled Components\n"
-            f"{'- ' + '\\n- '.join(entangled_components) if entangled_components else '- None'}\n"
+            f"{chr(10).join(['- ' + e for e in entangled_components]) if entangled_components else '- None'}\n"
         )
 
         adr_dir = self.store.storage_path / "adrs"
@@ -523,7 +613,7 @@ class ChronicleMemory:
     ) -> ChronicleEvent:
         """
         Record an event in the chronicle
-        
+
         Args:
             event_type: Type of event
             action: Action description
@@ -531,34 +621,50 @@ class ChronicleMemory:
             outcome: Outcome of the action
             narrative: Human-readable description
             context: Additional context
-            
+
         Returns:
             The recorded event
         """
+        start_time = time.time()
         event_id = str(uuid.uuid4())[:12]
-        
-        # Get parent from stack
-        parent_id = self._event_stack[-1] if self._event_stack else None
-        
-        event = ChronicleEvent(
-            event_id=event_id,
-            event_type=event_type,
-            timestamp=datetime.utcnow(),
-            agent_id=self._current_agent or "unknown",
-            session_id=self.session_id,
-            action=action,
-            parameters=parameters or {},
-            outcome=outcome,
-            context=context or {},
-            parent_event_id=parent_id,
-            narrative=narrative or action
-        )
-        
-        await self.store.append(event)
-        
-        logger.debug(f"Recorded event: {event_id} - {action}")
-        
-        return event
+        success = False
+
+        try:
+            # Get parent from stack
+            parent_id = self._event_stack[-1] if self._event_stack else None
+
+            event = ChronicleEvent(
+                event_id=event_id,
+                event_type=event_type,
+                timestamp=datetime.utcnow(),
+                agent_id=self._current_agent or "unknown",
+                session_id=self.session_id,
+                action=action,
+                parameters=parameters or {},
+                outcome=outcome,
+                context=context or {},
+                parent_event_id=parent_id,
+                narrative=narrative or action
+            )
+
+            await self.store.append(event)
+
+            logger.debug(f"Recorded event: {event_id} - {action}")
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            success = True
+            duration = time.time() - start_time
+            _extract_chronicle_knowledge("record_event", event_id, event_type.value, event)
+            _track_chronicle_performance("record_event", True, duration, event_type.value)
+
+            return event
+
+        except Exception as e:
+            duration = time.time() - start_time
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            _trigger_chronicle_alerts("record_event", False, event_id, str(e))
+            _track_chronicle_performance("record_event", False, duration, event_type.value)
+            raise
     
     async def start_action(
         self,

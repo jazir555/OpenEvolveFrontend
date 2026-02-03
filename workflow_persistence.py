@@ -35,7 +35,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-
 def generate_workflow_id() -> str:
     """Generate a unique workflow ID."""
     import uuid

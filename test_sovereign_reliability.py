@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 import time
 from sovereign_reliability import (
     RetryStrategy, with_retry, ErrorHandler, HealthMonitor, CircuitBreaker,

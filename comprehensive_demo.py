@@ -1,6 +1,7 @@
 """
 Comprehensive demo showcasing all OpenEvolve functionality
 """
+
 import sys
 import os
 import time

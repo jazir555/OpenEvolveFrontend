@@ -38,6 +38,18 @@ class ChatAdapter(Adapter):
         - Provides automatic fallback to JSONAdapter if the chat format fails.
     """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Chat Adapter
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     def __init__(
         self,
         callbacks: list[BaseCallback] | None = None,

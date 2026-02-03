@@ -49,7 +49,6 @@ try:
     Z3_INTEGRATION_AVAILABLE = True
 except ImportError:
     Z3_INTEGRATION_AVAILABLE = False
-    logger.warning("Z3 integration not available")
 
 # Import LeanAIDE integration
 try:
@@ -74,14 +73,6 @@ try:
 except ImportError:
     LEANAIDE_WORKFLOW_AVAILABLE = False
     logger.warning("LeanAIDE workflow integration not available")
-
-# Import Adaptive MDAP for verification complexity
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
 
 
 # =============================================================================

@@ -22,7 +22,6 @@ from typing import (
 from dataclasses import dataclass
 from enum import Enum
 
-
 # =============================================================================
 # TYPE ALIASES
 # =============================================================================

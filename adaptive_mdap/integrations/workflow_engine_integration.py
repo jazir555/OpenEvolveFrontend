@@ -5,6 +5,18 @@ This module provides integration between the Workflow Engine and Adaptive MDAP,
 enabling intelligent resource allocation for sub-problem solving.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Workflow Engine Integration
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import logging
 from typing import Dict, Any, Optional, Callable
 from dataclasses import dataclass

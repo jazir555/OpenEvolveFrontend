@@ -10,6 +10,7 @@ Fix MEDIUM severity security issues
 - B615: Format string (2) - Use proper formatting
 - B102: Exception for StopIteration (4) - Use proper exception
 """
+
 import re
 from pathlib import Path
 

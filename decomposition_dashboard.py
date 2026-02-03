@@ -29,7 +29,6 @@ from dataclasses import asdict
 
 logger = logging.getLogger(__name__)
 
-
 class DashboardConfig:
     """Configuration for dashboard rendering."""
 

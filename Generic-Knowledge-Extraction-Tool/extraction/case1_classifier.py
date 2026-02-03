@@ -4,6 +4,18 @@ Document Type Classification & Routing (Case 1) Implementation
 Multi-type document extraction using the same approach as single-type extraction.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Case1 Classifier
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 from enum import Enum
 from typing import Dict, List, Tuple, Optional, Any
 from dataclasses import dataclass

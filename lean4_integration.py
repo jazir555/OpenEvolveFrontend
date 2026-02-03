@@ -14,6 +14,7 @@ Enhanced with:
 - Fallback to simulation when server unavailable
 """
 
+
 import asyncio
 import json
 import logging

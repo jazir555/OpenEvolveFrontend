@@ -1595,18 +1595,19 @@ Blue Team Fixes:
                 # Convert to SuccessCriterion dataclass format
                 success_criteria = []
                 for criterion in binary_criteria:
+                    # Get verification string
+                    vp = getattr(criterion, 'verification_procedure', None)
+                    if vp and hasattr(vp, '__str__'):
+                        verification_str = str(vp)
+                    else:
+                        verification_str = 'Standard verification'
+                    
                     sc = SuccessCriterion(
                         criterion=getattr(criterion, 'name', 'Success Criterion'),
                         measurement_method=getattr(criterion, 'measurement_procedure', 'Standard measurement'),
                         pass_threshold=float(getattr(criterion, 'threshold', 0.0)),
                         units=getattr(criterion, 'units', ''),
-                        verification=getattr(criterion, 'verification_procedure', VerificationProcedure(
-                            procedure_id='default',
-                            steps=['Verify criterion'],
-                            equipment_required=[],
-                            expertise_level='standard',
-                            estimated_duration='standard'
-                        )).__str__() if hasattr(getattr(criterion, 'verification_procedure', None), '__str__') else 'Standard verification'),
+                        verification=verification_str,
                         fallback_criteria=[
                             fc.criterion for fc in getattr(criterion, 'fallback_criteria', [])
                         ]

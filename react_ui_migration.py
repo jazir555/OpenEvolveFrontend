@@ -16,7 +16,6 @@ from typing import Dict, List, Optional
 from dataclasses import dataclass
 import argparse
 
-
 @dataclass
 class ComponentSpec:
     """Specification for a React component."""

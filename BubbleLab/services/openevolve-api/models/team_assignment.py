@@ -305,8 +305,8 @@ PREDEFINED_LLM_MODELS = {
         name="Llama 3 70B (Groq)",
         capabilities=[LLMCapability.TEXT, LLMCapability.CODE, LLMCapability.REASONING],
         supports_streaming=True,
-        input_price_per_1k=0.0000?  # Groq pricing varies
-        output_price_per_1k=0.0000?,
+        input_price_per_1k=0.0000,  # Groq pricing varies
+        output_price_per_1k=0.0000,
     ),
 
     # DeepSeek

@@ -7,6 +7,7 @@ adversarial testing scenarios. These templates can be loaded and customized.
 Author: OpenEvolve Frontend Team
 """
 
+
 from typing import Dict, Any, List
 from dataclasses import dataclass, asdict
 

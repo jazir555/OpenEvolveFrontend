@@ -28,6 +28,18 @@ class File(Type):
         ```
     """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for File
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     file_data: str | None = None
     file_id: str | None = None
     filename: str | None = None

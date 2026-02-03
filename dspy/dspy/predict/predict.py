@@ -32,6 +32,18 @@ class Predict(Module, Parameter):
                 predict(q="What is 1 + 52?", config={"rollout_id": 2, "temperature": 1.0})
     """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Predict
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     def __init__(self, signature: str | type[Signature], callbacks: list[BaseCallback] | None = None, **config):
         super().__init__(callbacks=callbacks)
         self.stage = random.randbytes(8).hex()

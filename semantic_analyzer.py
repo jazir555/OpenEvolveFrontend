@@ -45,6 +45,7 @@ EnhancedDomainContext = None  # type: ignore - STUB
 
 logger = logging.getLogger(__name__)
 
+
 # Import OpenEvolve client
 try:
     from openevolve_client import OpenEvolveClient, OPENEVOLVE_AVAILABLE

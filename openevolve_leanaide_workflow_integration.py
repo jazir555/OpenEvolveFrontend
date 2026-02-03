@@ -91,15 +91,7 @@ except ImportError:
     get_leanaide_quality_gate_verifier = None
     logger.warning("LeanAide quality gate not available")
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for LeanAide workflow complexity
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    SubProblem = None
+
 
 
 # =============================================================================

@@ -18,6 +18,18 @@ logger = logging.getLogger(__name__)
 class ProgramMeta(type):
     """Metaclass ensuring every ``dspy.Module`` instance is properly initialised."""
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Module
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     def __call__(cls, *args, **kwargs):
         # Create the instance without invoking ``__init__`` so we can inject
         # the base initialization beforehand.

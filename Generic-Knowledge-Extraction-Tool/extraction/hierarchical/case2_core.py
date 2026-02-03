@@ -4,6 +4,18 @@ Case 2 Core Data Structures and Enums
 Hierarchical multi-document extraction with relationships
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Case2 Core
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 from enum import Enum
 from typing import Dict, List, Tuple, Optional, Any, Type
 from dataclasses import dataclass, field

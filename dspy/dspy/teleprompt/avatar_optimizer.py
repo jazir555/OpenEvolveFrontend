@@ -27,6 +27,18 @@ Task:
 (2) Then, review the computational logic for any inconsistencies in the previous actions.
 (3) Lastly, specify the modification in tools used that can lead to improved performance on the negative inputs."""
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Avatar Optimizer
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     instruction: str = dspy.InputField(
         prefix="Instruction: ",
         desc="Instruction for the actor to execute the task",

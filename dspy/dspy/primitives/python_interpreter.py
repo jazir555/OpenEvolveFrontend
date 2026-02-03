@@ -37,6 +37,18 @@ class PythonInterpreter:
         sync_files: bool = True,
     ) -> None:
         """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Python Interpreter
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
         Args:
             deno_command: command list to launch Deno.
             enable_read_paths: Files or directories to allow reading from in the sandbox. 

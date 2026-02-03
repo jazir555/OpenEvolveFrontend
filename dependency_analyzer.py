@@ -21,16 +21,6 @@ from collections import deque, defaultdict
 from sovereign_data_models import SubProblem, ComplexityScore
 from utils.symbolic_analyzer import SymbolicAnalyzer
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for dependency complexity analysis
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    from adaptive_mdap.core.types import SubProblem as AdaptiveSubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveSubProblem = None
-
 logger = logging.getLogger(__name__)
 
 

@@ -11,6 +11,18 @@ logger = logging.getLogger(__name__)
 class TextDescriptionClient(ABC):
     """Abstract base class for text description parsing clients"""
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Text Description Client
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     @abstractmethod
     def parse_description(self, description: str, use_case: str = "", context: str = "") -> Dict[str, Any]:
         """Parse text description and return structured field data"""

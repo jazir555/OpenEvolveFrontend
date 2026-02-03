@@ -17,6 +17,18 @@ logger = logging.getLogger(__name__)
 
 class ModelGenerator:
     """Dynamic Pydantic model generator using Claude AI or OpenAI"""
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Model Generator
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
     
     def __init__(self, model_selection='claude-3-5-sonnet-20241022', api_config=None):
         self.model_selection = model_selection

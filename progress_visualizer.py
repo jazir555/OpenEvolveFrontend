@@ -37,7 +37,6 @@ except ImportError:
     logger.warning("Visualization libraries not available. Install matplotlib and networkx for full visualization support.")
     VISUALIZATION_AVAILABLE = False
 
-
 class ProgressVisualizer:
     """
     Generates visualizations of decomposition progress.

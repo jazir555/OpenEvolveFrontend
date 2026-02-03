@@ -3,6 +3,18 @@ Custom adapter for improving structured outputs using the information from Pydan
 Based on the format used by BAML: https://github.com/BoundaryML/baml
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Baml Adapter
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import inspect
 import types
 from typing import Any, Literal, Union, get_args, get_origin

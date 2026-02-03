@@ -67,7 +67,6 @@ except ImportError:
     roma_bridge_phase_3 = None
     roma_bridge_phase_4 = None
     roma_bridge_phase_5 = None
-    roma_bridge_phase_6 = None
 
 try:
     from roma_mdap_maker_crewai_bridge import get_romamdapmaker_bridge_status

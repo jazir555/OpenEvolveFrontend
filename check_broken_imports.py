@@ -4,6 +4,25 @@ Comprehensive Import Checker for OpenEvolve Frontend
 Checks all Python files for broken imports and missing dependencies
 """
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Check Broken Imports
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 import sys
 import os
 import ast
@@ -11,6 +30,81 @@ import importlib
 from pathlib import Path
 from typing import List, Dict, Tuple, Set
 import traceback
+import time
+import logging
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Check Broken Imports
+def _trigger_import_check_alerts(operation, success, check_id=None, error=None, metadata=None):
+    """Trigger alerts for import check operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        alert_mgr.trigger_alert(
+            title=f"Import Check {operation} Failed",
+            message=f"Import check operation '{operation}' failed: {error}",
+            severity=AlertSeverity.MEDIUM,
+            source="CheckBrokenImports",
+            metadata=metadata or {"check_id": check_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger import check alert: {e}")
+
+
+def _extract_import_check_knowledge(operation, check_id, result):
+    """Extract knowledge from import check operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        artifact = KnowledgeArtifact(
+            artifact_id=f"import_check_{operation}_{check_id}",
+            artifact_type="import_validation",
+            source_component="CheckBrokenImports",
+            content={
+                "operation": operation,
+                "check_id": check_id,
+                "files_checked": result.get("files_checked", 0) if result else 0,
+                "broken_imports": len(result.get("broken_imports", [])) if result else 0,
+                "missing_modules": len(result.get("missing_modules", [])) if result else 0,
+                "success": result.get("success", False) if result else False,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract import check knowledge: {e}")
+
+
+def _track_import_check_performance(operation, success, duration_seconds, files_checked, issues_found=0):
+    """Track performance of import check operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name="import_validation",
+            component_name="CheckBrokenImports",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "files_checked": files_checked,
+                "issues_found": issues_found
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track import check performance: {e}")
 
 # Track all issues
 BROKEN_IMPORTS = []
@@ -47,10 +141,8 @@ def check_module_exists(module_name: str) -> Tuple[bool, str]:
         # Try to import the module
         importlib.import_module(module_name)
         return True, "OK"
-    except ImportError as e:
-        return False, str(e)
-        except (ImportError, ModuleNotFoundError, AttributeError) as e:
-            return False, f"Error: {str(e)}"
+    except (ImportError, ModuleNotFoundError, AttributeError) as e:
+        return False, f"Error: {str(e)}"
 
 
 def check_file_exists(filepath: str, import_line: str) -> bool:
@@ -149,84 +241,119 @@ def check_file_for_broken_imports(filepath: Path) -> List[Dict]:
             'import_name': 'N/A',
             'error': f"Syntax error: {e.msg}"
         })
-        except (OSError, IOError, UnicodeDecodeError) as e:
-            try:
-                rel_path = filepath.relative_to(Path.cwd())
-            except ValueError:
-                rel_path = filepath
+    except (OSError, IOError, UnicodeDecodeError) as e:
+        try:
+            rel_path = filepath.relative_to(Path.cwd())
+        except ValueError:
+            rel_path = filepath
 
-            issues.append({
-                'file': str(rel_path),
-                'line': 0,
-                'import_type': 'PARSE_ERROR',
-                'import_name': 'N/A',
-                'error': f"Parse error: {str(e)}"
-            })
+        issues.append({
+            'file': str(rel_path),
+            'line': 0,
+            'import_type': 'PARSE_ERROR',
+            'import_name': 'N/A',
+            'error': f"Parse error: {str(e)}"
+        })
 
     return issues
 
 
 def main():
     """Main function to check all Python files"""
-    print("=" * 80)
-    print("OPENEVOLVE FRONTEND - BROKEN IMPORT CHECKER")
-    print("=" * 80)
-    print()
+    start_time = time.time()
+    success = False
+    check_id = f"import_check_{int(time.time()) % 10000:04d}"
 
-    # Find all Python files
-    start_path = Path.cwd()
-    python_files = list(start_path.rglob('*.py'))
+    try:
+        print("=" * 80)
+        print("OPENEVOLVE FRONTEND - BROKEN IMPORT CHECKER")
+        print("=" * 80)
+        print()
 
-    # Filter out test environments and node_modules
-    python_files = [f for f in python_files
-                    if 'openevolve_test_env' not in str(f)
-                    and 'node_modules' not in str(f)
-                    and '.venv' not in str(f)
-                    and 'venv' not in str(f)
-                    and 'site-packages' not in str(f)]
+        # Find all Python files
+        start_path = Path.cwd()
+        python_files = list(start_path.rglob('*.py'))
 
-    print(f"Found {len(python_files)} Python files to check\n")
+        # Filter out test environments and node_modules
+        python_files = [f for f in python_files
+                        if 'openevolve_test_env' not in str(f)
+                        and 'node_modules' not in str(f)
+                        and '.venv' not in str(f)
+                        and 'venv' not in str(f)
+                        and 'site-packages' not in str(f)]
 
-    # Check each file
-    all_issues = {}
-    for filepath in python_files:
-        issues = check_file_for_broken_imports(filepath)
-        if issues:
-            all_issues[str(filepath)] = issues
+        print(f"Found {len(python_files)} Python files to check\n")
 
-    # Report results
-    if all_issues:
-        print(f"\n{'='*80}")
-        print(f"BROKEN IMPORTS FOUND IN {len(all_issues)} FILES")
-        print(f"{'='*80}\n")
+        # Check each file
+        all_issues = {}
+        for filepath in python_files:
+            issues = check_file_for_broken_imports(filepath)
+            if issues:
+                all_issues[str(filepath)] = issues
 
-        for filepath, issues in sorted(all_issues.items()):
-            rel_path = Path(filepath).relative_to(Path.cwd())
-            print(f"\n{rel_path}:")
-            for issue in issues:
-                print(f"  Line {issue['line']}: {issue['import_type']} {issue['import_name']}")
-                print(f"    Error: {issue['error']}")
+        # Report results
+        if all_issues:
+            print(f"\n{'='*80}")
+            print(f"BROKEN IMPORTS FOUND IN {len(all_issues)} FILES")
+            print(f"{'='*80}\n")
 
-        # Summary
-        print(f"\n{'='*80}")
-        print("SUMMARY")
-        print(f"{'='*80}")
-        print(f"Files with issues: {len(all_issues)}")
-        print(f"Total broken imports: {sum(len(issues) for issues in all_issues.values())}")
-        print(f"Missing unique modules: {len(set(MISSING_MODULES))}")
+            for filepath, issues in sorted(all_issues.items()):
+                rel_path = Path(filepath).relative_to(Path.cwd())
+                print(f"\n{rel_path}:")
+                for issue in issues:
+                    print(f"  Line {issue['line']}: {issue['import_type']} {issue['import_name']}")
+                    print(f"    Error: {issue['error']}")
 
-        if MISSING_MODULES:
-            print(f"\nMISSING MODULES ({len(set(MISSING_MODULES))}):")
-            for module in sorted(set(MISSING_MODULES)):
-                print(f"  - {module}")
+            # Summary
+            print(f"\n{'='*80}")
+            print("SUMMARY")
+            print(f"{'='*80}")
+            print(f"Files with issues: {len(all_issues)}")
+            print(f"Total broken imports: {sum(len(issues) for issues in all_issues.values())}")
+            print(f"Missing unique modules: {len(set(MISSING_MODULES))}")
 
+            if MISSING_MODULES:
+                print(f"\nMISSING MODULES ({len(set(MISSING_MODULES))}):")
+                for module in sorted(set(MISSING_MODULES)):
+                    print(f"  - {module}")
+
+            success = True
+            duration = time.time() - start_time
+            result = {
+                "files_checked": len(python_files),
+                "files_with_issues": len(all_issues),
+                "broken_imports": sum(len(issues) for issues in all_issues.values()),
+                "missing_modules": len(set(MISSING_MODULES)),
+                "success": True
+            }
+            _extract_import_check_knowledge("check_imports", check_id, result)
+            _track_import_check_performance("check_imports", True, duration, len(python_files), sum(len(issues) for issues in all_issues.values()))
+            return 1
+        else:
+            print("\n" + "="*80)
+            print("NO BROKEN IMPORTS FOUND!")
+            print("="*80)
+            print("\nAll imports can be resolved.")
+            success = True
+            duration = time.time() - start_time
+            result = {
+                "files_checked": len(python_files),
+                "files_with_issues": 0,
+                "broken_imports": 0,
+                "missing_modules": 0,
+                "success": True
+            }
+            _extract_import_check_knowledge("check_imports", check_id, result)
+            _track_import_check_performance("check_imports", True, duration, len(python_files), 0)
+            return 0
+    except Exception as e:
+        duration = time.time() - start_time
+        _trigger_import_check_alerts("check_imports", False, check_id, str(e))
+        _track_import_check_performance("check_imports", False, duration, 0)
+        print(f"\nFatal error during import check: {e}")
+        import traceback
+        traceback.print_exc()
         return 1
-    else:
-        print("\n" + "="*80)
-        print("NO BROKEN IMPORTS FOUND!")
-        print("="*80)
-        print("\nAll imports can be resolved.")
-        return 0
 
 
 if __name__ == '__main__':

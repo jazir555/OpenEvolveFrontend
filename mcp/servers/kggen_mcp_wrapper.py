@@ -5,6 +5,18 @@ This module wraps the kg-gen MCP server, providing a standardized interface
 for the unified gateway to interact with kg-gen tools.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Kggen Mcp Wrapper
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import logging
 import asyncio
 from typing import Dict, Any, Optional, List

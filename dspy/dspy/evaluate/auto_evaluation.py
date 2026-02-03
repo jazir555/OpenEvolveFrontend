@@ -9,6 +9,18 @@ class SemanticRecallPrecision(Signature):
     If asked to reason, enumerate key ideas in each response, and whether they are present in the other response.
     """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Auto Evaluation
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     question: str = InputField()
     ground_truth: str = InputField()
     system_response: str = InputField()

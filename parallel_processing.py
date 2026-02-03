@@ -20,6 +20,7 @@ from sovereign_data_models import SubProblem, DecompositionPlan, SolutionAttempt
 from sovereign_reliability import with_error_handling, ErrorSeverity
 
 
+
 @dataclass
 class ParallelTaskResult:
     """Result of a parallel task execution."""

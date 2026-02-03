@@ -33,6 +33,7 @@ def minimum_circumscribing_rectangle(circles: np.ndarray):
     Returns:
     A tuple (width, height) of the minimum circumscribing rectangle.
     """
+
     min_x = np.min(circles[:, 0] - circles[:, 2])
     max_x = np.max(circles[:, 0] + circles[:, 2])
     min_y = np.min(circles[:, 1] - circles[:, 2])

@@ -19,7 +19,6 @@ import json
 from sovereign_data_models import generate_id
 from sovereign_persistence import SovereignDatabase
 
-
 logger = logging.getLogger(__name__)
 
 

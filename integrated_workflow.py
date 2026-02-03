@@ -36,16 +36,6 @@ except ImportError:
     OPENEVOLVE_AVAILABLE = False
     print("OpenEvolve backend not available - using API-based evolution only")
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for integrated workflow complexity
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    SubProblem = None
-
 
 def run_fully_integrated_adversarial_evolution(
     current_content: str,

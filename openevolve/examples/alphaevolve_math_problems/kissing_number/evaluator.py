@@ -25,6 +25,7 @@ BENCHMARK = 593
 
 def compute_squared_norm(point: list[int]) -> int:
     """Returns the squared norm of an integer vector using exact computation."""
+
     return sum(pow(int(x), 2) for x in point)
 
 

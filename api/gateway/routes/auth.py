@@ -1,6 +1,18 @@
 """
 Authentication and User Management Routes
 """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Auth
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from models.schemas import (
     UserRegister,

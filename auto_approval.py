@@ -8,7 +8,6 @@ based on configurable criteria, reducing manual review overhead for simple cases
 from typing import Dict, Any, List, Tuple
 from workflow_structures import DecompositionPlan, SubProblem
 
-
 class AutoApprovalChecker:
     """Checks if a decomposition plan meets auto-approval criteria."""
     

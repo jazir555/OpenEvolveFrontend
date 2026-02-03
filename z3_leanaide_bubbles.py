@@ -27,6 +27,7 @@ Usage:
     )
 """
 
+
 import uuid
 import logging
 from typing import Dict, Any, List, Optional, Set, Tuple
@@ -76,6 +77,26 @@ Z3_NODE_COLORS = {
     "parallelization": "#6C5CE7",
     "convergence": "#FDCB6E",
     "divergence": "#FF7675",
+    # Extended bubbles
+    "adversarial_testing": "#FF4757",
+    "mdap": "#3742FA",
+    "decomposition": "#2ED573",
+    "recomposition": "#FFA502",
+    "monitoring": "#70A1FF",
+    "alerting": "#FF6B81",
+    "security": "#2F3542",
+    "api_gateway": "#5352ED",
+    "logging": "#A4B0BE",
+    "visualization": "#FF7F50",
+    "batch_processing": "#1E90FF",
+    "experiment_tracking": "#32CD32",
+    "prompt_engineering": "#DA70D6",
+    "evaluation": "#FFD700",
+    "deployment": "#00CED1",
+    "optimization": "#FF69B4",
+    "heuristic": "#8A2BE2",
+    "sampling": "#20B2AA",
+    "ensemble": "#FF6347",
 }
 
 Z3_NODE_ICONS = {
@@ -104,6 +125,26 @@ Z3_NODE_ICONS = {
     "parallelization": "⚡",
     "convergence": "🎯",
     "divergence": "⚠️",
+    # Extended bubbles
+    "adversarial_testing": "⚔️",
+    "mdap": "📊",
+    "decomposition": "✂️",
+    "recomposition": "🧩",
+    "monitoring": "📡",
+    "alerting": "🔔",
+    "security": "🛡️",
+    "api_gateway": "🌐",
+    "logging": "📝",
+    "visualization": "🎨",
+    "batch_processing": "📚",
+    "experiment_tracking": "🧪",
+    "prompt_engineering": "💬",
+    "evaluation": "📋",
+    "deployment": "🚀",
+    "optimization": "⚙️",
+    "heuristic": "🔍",
+    "sampling": "🎲",
+    "ensemble": "👥",
 }
 
 
@@ -321,6 +362,220 @@ class ConvergenceDivergenceBubbleConfig:
     window_size: int = 10
     threshold: float = 0.01
     trend_analysis: bool = True
+
+
+# =============================================================================
+# Additional Extended Config Classes
+# =============================================================================
+
+@dataclass
+class AdversarialTestingBubbleConfig:
+    """Configuration for adversarial testing bubble."""
+    problem_text: str
+    attack_strategies: List[str] = field(default_factory=lambda: ["fuzzing", "boundary", "edge_case"])
+    attack_intensity: float = 0.7
+    num_attacks: int = 10
+    auto_fix: bool = True
+
+
+@dataclass
+class MDAPBubbleConfig:
+    """Configuration for Multi-Dimensional Adaptive Planning bubble."""
+    objectives: List[Dict[str, Any]]
+    planning_horizon: int = 5
+    adaptive_rate: float = 0.3
+    exploration_factor: float = 0.2
+    resource_constraints: Dict[str, float] = field(default_factory=dict)
+
+
+@dataclass
+class DecompositionBubbleConfig:
+    """Configuration for problem decomposition bubble."""
+    problem_text: str
+    decomposition_type: str = "semantic"  # semantic, syntactic, hybrid
+    max_sub_problems: int = 10
+    min_sub_problem_size: int = 1
+    overlap_allowed: bool = False
+    recursive_depth: int = 3
+
+
+@dataclass
+class RecompositionBubbleConfig:
+    """Configuration for solution recomposition bubble."""
+    sub_solutions: List[Dict[str, Any]]
+    recomposition_strategy: str = "hierarchical"  # hierarchical, sequential, parallel
+    validation_mode: str = "strict"  # strict, lenient, adaptive
+    merge_conflicts: str = "resolve"  # resolve, flag, abort
+
+
+@dataclass
+class MonitoringBubbleConfig:
+    """Configuration for monitoring bubble."""
+    metrics: List[str] = field(default_factory=lambda: ["time", "memory", "accuracy"])
+    sampling_interval: float = 1.0
+    alerting_enabled: bool = True
+    alert_thresholds: Dict[str, float] = field(default_factory=dict)
+    persistent_logging: bool = True
+
+
+@dataclass
+class AlertingBubbleConfig:
+    """Configuration for alerting bubble."""
+    alert_types: List[str] = field(default_factory=lambda: ["error", "warning", "info"])
+    alert_channels: List[str] = field(default_factory=lambda: ["console", "log"])
+    escalation_policy: str = "linear"  # linear, exponential, immediate
+    max_escalation_level: int = 5
+    quiet_period_seconds: int = 300
+
+
+@dataclass
+class SecurityBubbleConfig:
+    """Configuration for security bubble."""
+    security_level: str = "standard"  # minimal, standard, high
+    vulnerability_scan: bool = True
+    injection_prevention: bool = True
+    authentication_required: bool = False
+    encryption_enabled: bool = True
+
+
+@dataclass
+class APIGatewayBubbleConfig:
+    """Configuration for API gateway bubble."""
+    endpoints: List[str]
+    rate_limiting: bool = True
+    max_requests_per_minute: int = 100
+    authentication: str = "optional"  # required, optional, none
+    request_validation: bool = True
+    response_caching: bool = True
+
+
+@dataclass
+class LoggingBubbleConfig:
+    """Configuration for logging bubble."""
+    log_level: str = "INFO"  # DEBUG, INFO, WARNING, ERROR
+    log_format: str = "json"  # json, text, structured
+    log_outputs: List[str] = field(default_factory=lambda: ["console", "file"])
+    log_rotation: bool = True
+    max_log_size_mb: int = 100
+    retention_days: int = 30
+
+
+@dataclass
+class VisualizationBubbleConfig:
+    """Configuration for visualization bubble."""
+    data_source: str
+    visualization_type: str = "graph"  # graph, timeline, heatmap, tree
+    interactive: bool = True
+    export_formats: List[str] = field(default_factory=lambda: ["png", "svg"])
+    animation_enabled: bool = False
+    theme: str = "default"  # default, dark, light
+
+
+@dataclass
+class CachingBubbleConfig:
+    """Configuration for caching bubble."""
+    cache_type: str = "memory"  # memory, disk, distributed
+    ttl_seconds: int = 3600
+    max_size_mb: int = 100
+    compression_enabled: bool = False
+    cache_invalidation: str = "ttl"  # ttl, manual, adaptive
+
+
+@dataclass
+class BatchProcessingBubbleConfig:
+    """Configuration for batch processing bubble."""
+    batch_items: List[Dict[str, Any]]
+    batch_size: int = 50
+    parallelization_mode: str = "auto"  # auto, sequential, parallel
+    progress_tracking: bool = True
+    error_handling: str = "skip"  # skip, abort, retry
+    checkpoint_interval: int = 10
+
+
+@dataclass
+class ExperimentTrackingBubbleConfig:
+    """Configuration for experiment tracking bubble."""
+    experiment_name: str
+    parameters: Dict[str, Any]
+    metrics: List[str]
+    log_artifacts: bool = True
+    comparison_mode: bool = True
+    export_results: bool = True
+
+
+@dataclass
+class PromptEngineeringBubbleConfig:
+    """Configuration for prompt engineering bubble."""
+    base_prompt: str
+    prompt_variations: List[str] = field(default_factory=list)
+    optimization_strategy: str = "auto"  # manual, auto, learned
+    evaluation_criteria: List[str] = field(default_factory=lambda: ["accuracy", "relevance"])
+    few_shot_examples: int = 3
+    temperature: float = 0.7
+
+
+@dataclass
+class EvaluationBubbleConfig:
+    """Configuration for evaluation bubble."""
+    criteria: List[str]
+    evaluation_type: str = "comprehensive"  # basic, comprehensive, automated
+    scoring_method: str = "weighted"  # weighted, ranking, threshold
+    benchmark_comparison: bool = True
+    detailed_reporting: bool = True
+
+
+@dataclass
+class DeploymentBubbleConfig:
+    """Configuration for deployment bubble."""
+    deployment_target: str  # local, staging, production
+    environment_config: Dict[str, Any]
+    health_check_enabled: bool = True
+    rollback_enabled: bool = True
+    monitoring_integration: bool = True
+    blue_green_deployment: bool = False
+
+
+@dataclass
+class OptimizationBubbleConfig:
+    """Configuration for optimization bubble."""
+    optimization_target: str  # speed, memory, accuracy, cost
+    optimization_algorithm: str = "auto"  # auto, grid, random, bayesian
+    constraint_bounds: Dict[str, Any] = field(default_factory=dict)
+    max_iterations: int = 100
+    convergence_tolerance: float = 1e-6
+
+
+@dataclass
+class HeuristicBubbleConfig:
+    """Configuration for heuristic search bubble."""
+    search_space: Dict[str, Any]
+    heuristic_function: str = "default"  # default, custom, learned
+    search_depth: int = 10
+    branching_factor: int = 4
+    pruning_enabled: bool = True
+    ordering_strategy: str = "best_first"  # best_first, breadth_first, depth_first
+
+
+@dataclass
+class SamplingBubbleConfig:
+    """Configuration for sampling bubble."""
+    population_size: int
+    sample_size: int
+    sampling_method: str = "random"  # random, stratified, systematic, reservoir
+    stratification_field: Optional[str] = None
+    replacement: bool = False
+    seed: Optional[int] = None
+
+
+@dataclass
+class EnsembleBubbleConfig:
+    """Configuration for ensemble bubble."""
+    models: List[Dict[str, Any]]
+    ensemble_method: str = "voting"  # voting, stacking, bagging, boosting
+    weight_strategy: str = "equal"  # equal, performance_based, learned
+    cross_validation_folds: int = 5
+    parallel_training: bool = True
+
 
 # =============================================================================
 # Entanglement Matrix Utilities (compatible with utils/entanglement_utils)
@@ -2179,6 +2434,28 @@ __all__ = [
     'ValidationBubbleConfig',
     'ParallelizationBubbleConfig',
     'ConvergenceDivergenceBubbleConfig',
+    
+    # Additional extended config classes
+    'AdversarialTestingBubbleConfig',
+    'MDAPBubbleConfig',
+    'DecompositionBubbleConfig',
+    'RecompositionBubbleConfig',
+    'MonitoringBubbleConfig',
+    'AlertingBubbleConfig',
+    'SecurityBubbleConfig',
+    'APIGatewayBubbleConfig',
+    'LoggingBubbleConfig',
+    'VisualizationBubbleConfig',
+    'CachingBubbleConfig',
+    'BatchProcessingBubbleConfig',
+    'ExperimentTrackingBubbleConfig',
+    'PromptEngineeringBubbleConfig',
+    'EvaluationBubbleConfig',
+    'DeploymentBubbleConfig',
+    'OptimizationBubbleConfig',
+    'HeuristicBubbleConfig',
+    'SamplingBubbleConfig',
+    'EnsembleBubbleConfig',
     
     # Builder definition classes
     'Z3BubbleDefinition',

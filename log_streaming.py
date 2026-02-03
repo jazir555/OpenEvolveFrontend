@@ -54,10 +54,10 @@ class LogStreaming:
                 while True:
                     try:
                         message = self.log_queue.get(timeout=1)
-                        yield f"data: {message}\\n\\n"
+                        yield f"data: {message}\n\n"
                     except queue.Empty:
                         # Send a comment to keep the connection alive
-                        yield ": keep-alive\\n\\n"
+                        yield ": keep-alive\n\n"
             return Response(generate(), mimetype="text/event-stream")
 
         @self.app.route("/health")
@@ -120,149 +120,44 @@ class LogStreaming:
             self.logger.error(message)
         elif level == "WARNING":
             self.logger.warning(message)
-        elif level == "INFO":
-            self.logger.info(message)
         else:
-            self.logger.debug(message)
+            self.logger.info(message)
 
-    def log_evolution_event(self, event_type: str, details: Dict[str, Any]):
-        """Log evolution-related events with structured data."""
-        message = f"EVOLUTION {event_type.upper()}: {json.dumps(details)}"
-        self.add_log_message(message, "INFO")
-        
-        # Also log specific metrics if available
-        if "fitness" in details:
-            self.add_log_message(f"Fitness score: {details['fitness']}", "INFO")
-        if "generation" in details:
-            self.add_log_message(f"Generation: {details['generation']}", "INFO")
+    def get_logs_as_dataframe(self) -> pd.DataFrame:
+        """Get log history as a pandas DataFrame for display."""
+        return pd.DataFrame(self.log_history)
 
-    def log_adversarial_event(self, event_type: str, details: Dict[str, Any]):
-        """Log adversarial testing events with structured data."""
-        message = f"ADVERSARIAL {event_type.upper()}: {json.dumps(details)}"
-        self.add_log_message(message, "INFO")
-        
-        # Log specific metrics
-        if "approval_rate" in details:
-            self.add_log_message(f"Approval rate: {details['approval_rate']:.2%}", "INFO")
-
-    def log_system_event(self, event_type: str, details: Dict[str, Any]):
-        """Log system events with structured data."""
-        message = f"SYSTEM {event_type.upper()}: {json.dumps(details)}"
-        self.add_log_message(message, "INFO")
-
-    def render_log_streaming_ui(self):
-        st.header("📄 Log Streaming & Monitoring")
+    def display_log_dashboard(self):
+        """Display the log dashboard in Streamlit."""
+        st.subheader("Log Streaming Dashboard")
         
         if not FLASK_AVAILABLE:
-            st.warning("Flask not available. Log streaming features are disabled. Install Flask to enable real-time log streaming.")
-            # Basic log functionality without Flask
-            st.subheader("Recent Logs")
-            if self.log_history:
-                # Create a dataframe for display
-                recent_logs = self.log_history[-20:]  # Show last 20 logs
-                log_df = []
-                for log in recent_logs:
-                    log_df.append({
-                        "Timestamp": log["timestamp"],
-                        "Level": log["level"],
-                        "Message": log["message"]
-                    })
-                
-                if log_df:
-                    df = pd.DataFrame(log_df)
-                    st.dataframe(df, use_container_width=True)
-            else:
-                st.info("No recent logs to display.")
+            st.warning("Flask not available. Install with: pip install flask")
             return
         
-        # Interactive log streaming controls
-        col1, col2, col3 = st.columns(3)
+        # Start/Stop controls
+        col1, col2 = st.columns(2)
         with col1:
-            if st.button("🔄 Restart Log Service"):
-                if self.flask_thread and self.flask_thread.is_alive():
-                    st.info("Service restarted! (Note: In a real app, we'd properly restart the service)")
-                else:
-                    self.run_flask_app_in_thread()
-                    st.success("Log streaming service restarted!")
-
+            if st.button("Start Log Streaming Service"):
+                self.run_flask_app_in_thread()
+                st.success("Log streaming service started on port 5001")
+        
         with col2:
-            log_message = st.text_input("Custom log message", placeholder="Enter message to send to log stream...")
-            log_level = st.selectbox("Log Level", ["INFO", "WARNING", "ERROR", "SUCCESS"], index=0)
-            if st.button("Send Log Message"):
-                if log_message.strip():
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    formatted_message = f"[{timestamp}] {log_message}"
-                    self.add_log_message(formatted_message, log_level)
-                    st.success(f"Message sent: {formatted_message}")
-                else:
-                    st.warning("Please enter a log message to send")
+            if st.button("Stop Log Streaming Service"):
+                st.info("Service will stop when app closes. Restart Streamlit for clean state.")
         
-        with col3:
-            # Show log metrics
-            st.metric("Queue Size", self.log_queue.qsize())
-            st.metric("History Count", len(self.log_history))
-        
-        # Show the log stream using an iframe
-        st.subheader("Live Log Stream")
-        st.markdown('<iframe src="http://localhost:5001/logs" width="100%" height="300px"></iframe>', unsafe_allow_html=True)
-        
-        st.info("💡 Tip: This shows real-time logs from the backend. The log stream updates automatically as new messages are added.")
-        
-        # Show recent logs
+        # Display recent logs
         st.subheader("Recent Logs")
         if self.log_history:
-            # Create a dataframe for display
-            recent_logs = self.log_history[-20:]  # Show last 20 logs
-            log_df = []
-            for log in recent_logs:
-                log_df.append({
-                    "Timestamp": log["timestamp"],
-                    "Level": log["level"],
-                    "Message": log["message"]
-                })
-            
-            if log_df:
-                df = pd.DataFrame(log_df)
-                st.dataframe(df, use_container_width=True)
+            df = self.get_logs_as_dataframe()
+            st.dataframe(df.tail(100), use_container_width=True)
         else:
-            st.info("No recent logs to display.")
+            st.info("No logs yet. Start the service to begin logging.")
         
-        # Add sample log messages with different types
-        st.subheader("Add Sample Log Messages")
-        col3, col4, col5, col6 = st.columns(4)
-        
-        with col3:
-            if st.button("✅ Success Log"):
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.add_log_message("Operation completed successfully", "SUCCESS")
-                st.success("Success log added")
-        
-        with col4:
-            if st.button("⚠️ Warning Log"):
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.add_log_message("Potential issue detected", "WARNING")
-                st.success("Warning log added")
-        
-        with col5:
-            if st.button("❌ Error Log"):
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.add_log_message("Operation failed", "ERROR")
-                st.success("Error log added")
-        
-        with col6:
-            if st.button("🔄 Info Log"):
-                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                self.add_log_message("System update completed", "INFO")
-                st.success("Info log added")
-        
-        # Status information
-        st.subheader("Service Status")
-        status_col1, status_col2, status_col3 = st.columns(3)
-        with status_col1:
-            st.write(f"✅ Service Running: {st.session_state.get('log_streaming_flask_running', False)}")
-        with status_col2:
-            st.write(f"📊 Queue Size: {self.log_queue.qsize()}")
-        with status_col3:
-            st.write(f"📖 History: {len(self.log_history)} entries")
-        
-        st.info("The log streaming service allows real-time monitoring of backend operations. Perfect for debugging and monitoring!")
+        # Display metrics
+        st.subheader("Metrics")
+        metrics_col1, metrics_col2 = st.columns(2)
+        with metrics_col1:
+            st.metric("Queue Size", self.log_queue.qsize())
+        with metrics_col2:
+            st.metric("History Count", len(self.log_history))

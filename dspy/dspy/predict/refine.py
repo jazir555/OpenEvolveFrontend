@@ -21,6 +21,18 @@ class OfferFeedback(Signature):
     to avoid the same mistake on the same or similar inputs.
     """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Refine
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     program_code: str = InputField(desc="The code of the program that we are analyzing")
     modules_defn: str = InputField(desc="The definition of each module in the program, including its I/O")
     program_inputs: str = InputField(desc="The inputs to the program that we are analyzing")

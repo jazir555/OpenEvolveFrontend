@@ -2,8 +2,9 @@
 Enhanced Monitoring System for CrewAI Integration with Sovereign-Grade Decomposition Workflows
 
 This module provides comprehensive monitoring and reporting capabilities for the 
-CrewAI integration with OpenEvolve's Sovereign-Grade Decomposition workflows."""}, {
+CrewAI integration with OpenEvolve's Sovereign-Grade Decomposition workflows.
 """
+
 import streamlit as st
 import pandas as pd
 import numpy as np

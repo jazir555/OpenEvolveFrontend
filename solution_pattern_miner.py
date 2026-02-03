@@ -40,6 +40,7 @@ from workflow_structures import (
 )
 
 
+
 class SolutionPatternMiner:
     """
     Mines solution patterns using machine learning techniques.

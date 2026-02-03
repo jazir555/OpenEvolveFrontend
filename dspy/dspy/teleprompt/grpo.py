@@ -614,6 +614,18 @@ class GRPO(FinetuneTeleprompter):
 
 def disable_lm_cache(program: Module, lm_cache_dict: dict):
     """Disable the LM cache for all predictors in the program."""
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Grpo
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
     for pred in program.predictors():
         if not pred.lm:
             raise ValueError(f"Cannot disable cache: predictor {pred} does not have an LM set.")

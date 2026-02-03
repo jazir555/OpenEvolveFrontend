@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 import time
 from sovereign_performance_optimization import (
     PerformanceCache, PerformanceMonitor, LazyLoader, BatchProcessor,

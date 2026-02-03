@@ -22,6 +22,100 @@ from typing import Dict, List, Set, Tuple, Any, Optional
 from collections import defaultdict, Counter
 from dataclasses import dataclass, field
 import json
+import logging
+from datetime import datetime
+
+logger = logging.getLogger(__name__)
+
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Static Analysis
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Static Analysis
+def _trigger_static_analysis_alerts(operation, success, analysis_id=None, error=None, metadata=None):
+    """Trigger alerts for static analysis operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"Static Analysis {operation} Failed",
+            message=f"Static analysis operation '{operation}' failed: {error}",
+            severity=severity,
+            source="DeepStaticAnalyzer",
+            metadata=metadata or {"analysis_id": analysis_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger static analysis alert: {e}")
+
+
+def _extract_static_analysis_knowledge(operation, analysis_id, result):
+    """Extract knowledge from static analysis operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        artifact = KnowledgeArtifact(
+            artifact_id=f"static_analysis_{operation}_{analysis_id}",
+            artifact_type="static_analysis_execution",
+            source_component="DeepStaticAnalyzer",
+            content={
+                "operation": operation,
+                "analysis_id": analysis_id,
+                "files_analyzed": result.get("total_files", 0) if result else 0,
+                "issues_found": result.get("total_issues", 0) if result else 0,
+                "critical_issues": result.get("critical_issues", 0) if result else 0,
+                "success": result is not None,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract static analysis knowledge: {e}")
+
+
+def _track_static_analysis_performance(operation, success, duration_seconds, files_analyzed, issues_found=0):
+    """Track performance of static analysis operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name="static_analysis",
+            component_name="DeepStaticAnalyzer",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "files_analyzed": files_analyzed,
+                "issues_found": issues_found
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track static analysis performance: {e}")
 
 
 @dataclass
@@ -60,21 +154,43 @@ class DeepStaticAnalyzer:
 
     def analyze_files(self, file_paths: List[str]) -> Dict[str, Any]:
         """Analyze multiple files and return comprehensive report."""
-        print(f"Analyzing {len(file_paths)} files...")
+        import time
+        start_time = time.time()
+        success = False
+        analysis_id = f"static_{hash(str(file_paths)) % 10000:04d}"
 
-        # First pass: parse all files and build import graph
-        for file_path in file_paths:
-            self._analyze_single_file(file_path)
+        try:
+            print(f"Analyzing {len(file_paths)} files...")
 
-        # Second pass: detect circular dependencies
-        self._detect_circular_dependencies()
+            # First pass: parse all files and build import graph
+            for file_path in file_paths:
+                self._analyze_single_file(file_path)
 
-        # Third pass: detect unused imports
-        for file_path in file_paths:
-            self._detect_unused_imports(file_path)
+            # Second pass: detect circular dependencies
+            self._detect_circular_dependencies()
 
-        # Generate report
-        return self._generate_report()
+            # Third pass: detect unused imports
+            for file_path in file_paths:
+                self._detect_unused_imports(file_path)
+
+            # Generate report
+            result = self._generate_report()
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            success = True
+            duration = time.time() - start_time
+            _extract_static_analysis_knowledge("analyze_files", analysis_id, result)
+            _track_static_analysis_performance("analyze_files", True, duration, len(file_paths),
+                                               result.get("total_issues", 0))
+
+            return result
+
+        except Exception as e:
+            duration = time.time() - start_time
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            _trigger_static_analysis_alerts("analyze_files", False, analysis_id, str(e))
+            _track_static_analysis_performance("analyze_files", False, duration, 0, 0)
+            raise
 
     def _analyze_single_file(self, file_path: str) -> FileAnalysis:
         """Analyze a single file for all issues."""

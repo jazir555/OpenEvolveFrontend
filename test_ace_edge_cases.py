@@ -262,7 +262,7 @@ try:
                 result = validate_string_length(wrong_value, param_name, max_length=100)
             else:
                 result = validate_numeric_range(wrong_value, param_name, 0, 100)
-            print(f'  ❌ FAIL: Type mismatch NOT detected for {param_name}")
+            print(f'  ❌ FAIL: Type mismatch NOT detected for {param_name}')
         except (TypeError, ValueError, AttributeError) as e:
             blocked += 1
             print(f'  ✅ PASS: Type mismatch detected for {param_name}')
@@ -297,10 +297,10 @@ try:
                 negative_val, param_name,
                 min_val=min_val, max_val=max_val
             )
-            print(f'  ❌ FAIL: Negative value NOT blocked for {param_name}")
+            print(f'  ❌ FAIL: Negative value NOT blocked for {param_name}')
         except ValueError as e:
             blocked += 1
-            print(f'  ✅ PASS: Negative value blocked for {param_name}")
+            print(f'  ✅ PASS: Negative value blocked for {param_name}')
 
     if blocked == len(negative_values):
         print(f'\n  ✅ SUCCESS: All {blocked} negative value attempts blocked')
@@ -331,10 +331,10 @@ try:
                 long_string, param_name,
                 max_length=max_len, min_length=min_len
             )
-            print(f'  ❌ FAIL: Oversized string NOT blocked for {param_name}")
+            print(f'  ❌ FAIL: Oversized string NOT blocked for {param_name}')
         except ValueError as e:
             blocked += 1
-            print(f'  ✅ PASS: Oversized string blocked for {param_name} (len={len(long_string)})")
+            print(f'  ✅ PASS: Oversized string blocked for {param_name} (len={len(long_string)})')
 
     if blocked == len(long_strings):
         print(f'\n  ✅ SUCCESS: All {blocked} oversized strings blocked')
@@ -365,7 +365,7 @@ try:
                 large_list, param_name,
                 max_size=max_size, min_size=min_size
             )
-            print(f'  ❌ FAIL: Oversized list NOT blocked for {param_name}")
+            print(f'  ❌ FAIL: Oversized list NOT blocked for {param_name}')
         except ValueError as e:
             blocked += 1
             print(f'  ✅ PASS: Oversized list blocked for {param_name} (size={len(large_list)})')

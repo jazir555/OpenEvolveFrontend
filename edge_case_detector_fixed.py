@@ -19,6 +19,100 @@ from pathlib import Path
 from typing import Dict, List, Set, Any, Optional, Tuple
 from collections import defaultdict, Counter
 from datetime import datetime
+import logging
+import time
+
+logger = logging.getLogger(__name__)
+
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Edge Case Detector
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Edge Case Detector
+def _trigger_edge_case_alerts(operation, success, analysis_id=None, error=None, metadata=None):
+    """Trigger alerts for edge case detection operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"Edge Case Detection {operation} Failed",
+            message=f"Edge case detection operation '{operation}' failed: {error}",
+            severity=severity,
+            source="EdgeCaseDetector",
+            metadata=metadata or {"analysis_id": analysis_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger edge case alert: {e}")
+
+
+def _extract_edge_case_knowledge(operation, analysis_id, result):
+    """Extract knowledge from edge case detection operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        artifact = KnowledgeArtifact(
+            artifact_id=f"edge_case_{operation}_{analysis_id}",
+            artifact_type="edge_case_detection",
+            source_component="EdgeCaseDetector",
+            content={
+                "operation": operation,
+                "analysis_id": analysis_id,
+                "files_analyzed": result.get("total_files", 0) if result else 0,
+                "issues_found": result.get("total_issues", 0) if result else 0,
+                "circular_dependencies": result.get("circular_dependencies", 0) if result else 0,
+                "success": result is not None,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract edge case knowledge: {e}")
+
+
+def _track_edge_case_performance(operation, success, duration_seconds, files_analyzed, issues_found=0):
+    """Track performance of edge case detection operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name="edge_case_detection",
+            component_name="EdgeCaseDetector",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "files_analyzed": files_analyzed,
+                "issues_found": issues_found
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track edge case performance: {e}")
 
 
 def set_parent_references(node: ast.AST, parent: Optional[ast.AST] = None):
@@ -436,44 +530,65 @@ class ComprehensiveAnalyzer:
 
     def analyze(self) -> Dict:
         """Run complete analysis"""
-        print(f"Analyzing Python files in: {self.root_dir}")
+        start_time = time.time()
+        success = False
+        analysis_id = f"edge_{hash(str(self.root_dir)) % 10000:04d}"
 
-        python_files = list(self.root_dir.rglob("*.py"))
-        print(f"Found {len(python_files)} Python files")
+        try:
+            print(f"Analyzing Python files in: {self.root_dir}")
 
-        # Phase 1: Build import graph
-        print("\n[Phase 1] Building import dependency graph...")
-        for py_file in python_files:
-            self._build_import_info(py_file)
+            python_files = list(self.root_dir.rglob("*.py"))
+            print(f"Found {len(python_files)} Python files")
 
-        # Phase 2: Detect circular dependencies
-        print("[Phase 2] Detecting circular dependencies...")
-        detector = CircularDependencyDetector(self.graph)
-        cycles = detector.find_all_cycles()
+            # Phase 1: Build import graph
+            print("\n[Phase 1] Building import dependency graph...")
+            for py_file in python_files:
+                self._build_import_info(py_file)
 
-        # Phase 3: Analyze files for edge cases
-        print("[Phase 3] Analyzing files for edge cases...")
-        analyzed = 0
-        for py_file in python_files:
-            try:
-                issues = self._analyze_file(py_file)
-                if issues:
-                    rel_path = str(py_file.relative_to(self.root_dir))
-                    self.file_issues[rel_path] = issues
-                    self.all_issues.extend(issues)
-                analyzed += 1
+            # Phase 2: Detect circular dependencies
+            print("[Phase 2] Detecting circular dependencies...")
+            detector = CircularDependencyDetector(self.graph)
+            cycles = detector.find_all_cycles()
 
-                if analyzed % 1000 == 0:
-                    print(f"  Analyzed {analyzed}/{len(python_files)} files...")
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
-                import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Error in {__name__}", exc_info=True)
-                raise  # Re-raise the exception
+            # Phase 3: Analyze files for edge cases
+            print("[Phase 3] Analyzing files for edge cases...")
+            analyzed = 0
+            for py_file in python_files:
+                try:
+                    issues = self._analyze_file(py_file)
+                    if issues:
+                        rel_path = str(py_file.relative_to(self.root_dir))
+                        self.file_issues[rel_path] = issues
+                        self.all_issues.extend(issues)
+                    analyzed += 1
 
-        # Generate report
-        print("[Phase 4] Generating report...")
-        return self._generate_report(cycles, len(python_files))
+                    if analyzed % 1000 == 0:
+                        print(f"  Analyzed {analyzed}/{len(python_files)} files...")
+                except Exception as e:  # TODO: Catch specific exception instead of Exception
+                    import logging
+                    logger = logging.getLogger(__name__)
+                    logger.error(f"Error in {__name__}", exc_info=True)
+                    raise  # Re-raise the exception
+
+            # Generate report
+            print("[Phase 4] Generating report...")
+            result = self._generate_report(cycles, len(python_files))
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            success = True
+            duration = time.time() - start_time
+            _extract_edge_case_knowledge("analyze", analysis_id, result)
+            _track_edge_case_performance("analyze", True, duration, len(python_files),
+                                        result.get("total_issues", 0))
+
+            return result
+
+        except Exception as e:
+            duration = time.time() - start_time
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            _trigger_edge_case_alerts("analyze", False, analysis_id, str(e))
+            _track_edge_case_performance("analyze", False, duration, 0, 0)
+            raise
 
     def _build_import_info(self, file_path: Path):
         """Extract import information from file"""

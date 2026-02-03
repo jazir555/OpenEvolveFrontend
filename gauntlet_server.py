@@ -42,7 +42,11 @@ def read_docs():
     """
     Returns the OpenAPI documentation for the Gauntlet Runner Service.
     """
+
     return app.openapi()
+
+# Adaptive MDAP not available
+ADAPTIVE_MDAP_AVAILABLE = False
 
 @app.post("/run_gauntlet")
 def handle_run_gauntlet(request: GauntletRequest):

@@ -28,7 +28,6 @@ except ImportError as e:
     KnowledgeArtifact = object
     KnowledgeArtifactManager = object
 
-
 class KnowledgeGraphVisualizer:
     """
     Visualizes knowledge artifacts as an interactive graph.

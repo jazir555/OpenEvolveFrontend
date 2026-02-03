@@ -101,6 +101,18 @@ class DoclingParser:
     
     def _detect_device(self):
         """Detect the best available device (CUDA or CPU)"""
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Docling Parser
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
         if HAS_TORCH:
             if torch.cuda.is_available():
                 return AcceleratorDevice.CUDA

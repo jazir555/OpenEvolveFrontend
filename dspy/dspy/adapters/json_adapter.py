@@ -31,6 +31,18 @@ def _has_open_ended_mapping(signature: SignatureMeta) -> bool:
     such as dict[str, Any]. Structured Outputs require explicit properties, so such fields
     are incompatible.
     """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Json Adapter
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
     for field in signature.output_fields.values():
         annotation = field.annotation
         if get_origin(annotation) is dict:

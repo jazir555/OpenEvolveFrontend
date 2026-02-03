@@ -48,7 +48,8 @@ try:
     DECOMPOSITION_AVAILABLE = True
 except ImportError as e:
     logger.warning(f"Decomposition engine not available: {e}")
-    DECOMPOSITION_AVAILABLE = False
+
+DECOMPOSITION_AVAILABLE = False
 
 # Try to import LLM utilities
 try:

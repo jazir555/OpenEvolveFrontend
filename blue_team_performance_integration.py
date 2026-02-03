@@ -17,6 +17,7 @@ Usage:
     assessment = tracked_team.assess_and_fix(content, issues)
 """
 
+
 import logging
 from typing import Dict, List, Any, Optional
 from datetime import datetime

@@ -6,6 +6,7 @@ the Streamlit UI and BubbleLabs UI, ensuring all OpenEvolve parameters
 are consistently maintained across both interfaces.
 """
 
+
 import streamlit as st
 import time
 from typing import Dict, Any, Callable, List

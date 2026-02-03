@@ -19,6 +19,97 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Sub-Problem Solver
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Sub-Problem Solver
+def _trigger_subproblem_solver_alerts(operation, success, problem_id=None, error=None, metadata=None):
+    """Trigger alerts for sub-problem solver operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.HIGH if operation == "solve" else AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"Sub-Problem Solver {operation} Failed",
+            message=f"Sub-problem solver operation '{operation}' failed: {error}",
+            severity=severity,
+            source="SubProblemSolver",
+            metadata=metadata or {"problem_id": problem_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger sub-problem solver alert: {e}")
+
+
+def _extract_subproblem_solver_knowledge(operation, problem_id, approach, result):
+    """Extract knowledge from sub-problem solver operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        from datetime import datetime
+        artifact = KnowledgeArtifact(
+            artifact_id=f"subproblem_solver_{operation}_{problem_id}",
+            artifact_type="subproblem_solver_execution",
+            source_component="SubProblemSolver",
+            content={
+                "operation": operation,
+                "problem_id": problem_id,
+                "approach": approach,
+                "confidence": getattr(result, 'confidence_score', 0.0) if result else 0.0,
+                "success": result is not None,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract sub-problem solver knowledge: {e}")
+
+
+def _track_subproblem_solver_performance(operation, success, duration_seconds, approach, confidence=0.0):
+    """Track performance of sub-problem solver operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name=f"subproblem_solver_{approach}",
+            component_name="SubProblemSolver",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "approach": approach,
+                "confidence": confidence
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track sub-problem solver performance: {e}")
+
+
 class SubProblemSolver:
     """Solves sub-problems using LLM-based solution generation."""
 
@@ -86,41 +177,68 @@ class SubProblemSolver:
     @with_retry(max_attempts=2, retry_on=(RuntimeError,))
     def solve(self, sub_problem: SubProblem) -> SolutionAttempt:
         """Generates a solution for a sub-problem using an LLM."""
+        start_time = time.time()
+        success = False
+        approach = "unknown"
+
         logger.info(f"Solving sub-problem: {sub_problem.title}")
 
-        # Try adaptive allocation if enabled
-        if self.enable_adaptive_allocation and self.adaptive_integration:
-            try:
-                return self._solve_adaptive(sub_problem)
-            except Exception as e:
-                logger.warning(f"Adaptive solve failed, falling back to standard: {e}")
-                # Fall through to standard solve
+        try:
+            # Try adaptive allocation if enabled
+            if self.enable_adaptive_allocation and self.adaptive_integration:
+                try:
+                    solution = self._solve_adaptive(sub_problem)
+                    # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+                    success = True
+                    approach = f"adaptive-{solution.approach}"
+                    duration = time.time() - start_time
+                    _extract_subproblem_solver_knowledge("solve", sub_problem.id, approach, solution)
+                    _track_subproblem_solver_performance("solve", True, duration, approach, solution.confidence_score)
+                    return solution
+                except Exception as e:
+                    logger.warning(f"Adaptive solve failed, falling back to standard: {e}")
+                    # Fall through to standard solve
 
-        if not self.openevolve_client:
-            raise RuntimeError("OpenEvolve client not available for sub-problem solver.")
+            if not self.openevolve_client:
+                raise RuntimeError("OpenEvolve client not available for sub-problem solver.")
 
-        prompt = self._build_prompt(sub_problem)
+            prompt = self._build_prompt(sub_problem)
 
-        result = self.openevolve_client.evolve(
-            content=prompt,
-            evolution_mode="standard",
-            content_type="code",
-            max_iterations=1,
-            temperature=0.5,
-            max_tokens=1000,
-        )
+            result = self.openevolve_client.evolve(
+                content=prompt,
+                evolution_mode="standard",
+                content_type="code",
+                max_iterations=1,
+                temperature=0.5,
+                max_tokens=1000,
+            )
 
-        if not result.success or not result.best_code:
-            raise RuntimeError("LLM evolution failed to produce a solution.")
+            if not result.success or not result.best_code:
+                raise RuntimeError("LLM evolution failed to produce a solution.")
 
-        return SolutionAttempt(
-            id=generate_id("solution"),
-            sub_problem_id=sub_problem.id,
-            approach="llm-generated",
-            solution_content=result.best_code,
-            team_id="standard-llm",
-            confidence_score=0.75,  # Initial confidence for LLM-generated solution
-        )
+            solution = SolutionAttempt(
+                id=generate_id("solution"),
+                sub_problem_id=sub_problem.id,
+                approach="llm-generated",
+                solution_content=result.best_code,
+                team_id="standard-llm",
+                confidence_score=0.75,  # Initial confidence for LLM-generated solution
+            )
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            success = True
+            approach = "llm-generated"
+            duration = time.time() - start_time
+            _extract_subproblem_solver_knowledge("solve", sub_problem.id, approach, solution)
+            _track_subproblem_solver_performance("solve", True, duration, approach, 0.75)
+            return solution
+
+        except Exception as e:
+            duration = time.time() - start_time
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            _trigger_subproblem_solver_alerts("solve", False, sub_problem.id, str(e))
+            _track_subproblem_solver_performance("solve", False, duration, approach, 0.0)
+            raise
 
     def _solve_adaptive(self, sub_problem: SubProblem) -> SolutionAttempt:
         """Solves sub-problem using adaptive resource allocation."""

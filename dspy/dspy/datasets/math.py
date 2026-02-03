@@ -62,3 +62,15 @@ def extract_answer(s):
 NOTE: MATH's official math_equivalence.is_equiv does not seem to have perfect recall.
 Consider its behavior on reference values like `left[\frac{1}{2}, \frac{4}{3}\right]`.
 """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Math
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+

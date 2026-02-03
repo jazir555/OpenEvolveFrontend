@@ -5,6 +5,18 @@ This module tracks and analyzes tool usage, performance metrics,
 and provides insights for gateway optimization.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Analytics
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import logging
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta

@@ -11,6 +11,18 @@ from dspy.dsp.utils import dotdict
 class ColBERTv2:
     """Wrapper for the ColBERTv2 Retrieval."""
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Colbertv2
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     def __init__(
         self,
         url: str = "http://0.0.0.0",

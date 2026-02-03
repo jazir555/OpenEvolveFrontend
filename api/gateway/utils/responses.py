@@ -1,6 +1,18 @@
 """
 Response formatting utilities
 """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Responses
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 from typing import Any, Optional, List, Dict, TypeVar, Generic
 from pydantic import BaseModel, Field
 from datetime import datetime

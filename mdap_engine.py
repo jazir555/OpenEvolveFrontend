@@ -31,7 +31,6 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
-
 # SECURITY: Input validation helpers to prevent injection attacks
 def _validate_string_input(value: Any, name: str, max_length: int = 10000) -> str:
     """

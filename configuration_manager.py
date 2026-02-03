@@ -11,6 +11,7 @@ class ConfigurationManager:
     Manages loading and providing configuration settings from config.yaml.
     Thread-safe singleton pattern with double-checked locking.
     """
+
     _instance = None
     _lock = threading.Lock()
 

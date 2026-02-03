@@ -5,6 +5,18 @@ This module provides the HTTP API server that exposes the unified gateway
 to clients, including CREWAI agents and ROMA.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Server
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime

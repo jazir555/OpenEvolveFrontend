@@ -28,6 +28,18 @@ TIPS = {
 class DescribeProgram(dspy.Signature):
     (
         """Below is some pseudo-code for a pipeline that solves tasks with calls to language models. Please describe what type of task this program appears to be designed to solve, and how it appears to work."""
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Grounded Proposer
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
     )
     program_code = dspy.InputField(
         format=str,

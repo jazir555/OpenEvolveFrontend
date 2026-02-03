@@ -20,6 +20,18 @@ class Reasoning(Type):
     perspective, `Reasoning` is treated as a string.
     """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Reasoning
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     content: str
 
     def format(self):

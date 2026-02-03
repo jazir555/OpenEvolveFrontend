@@ -5,6 +5,18 @@ This module provides the bridge between the existing SubProblemSolver
 and the new adaptive MDAP allocation system.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Subproblem Solver Integration
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import time
 import uuid
 from typing import Dict, Any, Optional, Callable, TYPE_CHECKING

@@ -12,7 +12,6 @@ import networkx as nx
 from typing import List, Dict, Any, Tuple, Optional
 from workflow_structures import DecompositionPlan, SubProblem
 
-
 class DependencyVisualizer:
     """Visualizes and analyzes sub-problem dependencies."""
     

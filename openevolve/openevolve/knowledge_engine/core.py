@@ -4,6 +4,7 @@ class KnowledgeState:
     """
     Represents the current state of knowledge for a given query or context.
     """
+
     def __init__(self, query: str):
         self.query: str = query
         self.facts: List[str] = []

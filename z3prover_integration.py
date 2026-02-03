@@ -59,6 +59,7 @@ try:
 except ImportError:
     logger.warning("Z3 Python bindings not available - will use CLI interface")
 
+
 # Check for Z3 binary
 try:
     result = subprocess.run(['z3', '--version'], capture_output=True, timeout=5)

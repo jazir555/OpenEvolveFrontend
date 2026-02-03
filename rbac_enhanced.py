@@ -47,6 +47,7 @@ try:
 except ImportError:
     REQUESTS_AVAILABLE = False
 
+
 # Import sovereign persistence if available
 try:
     from sovereign_persistence import SovereignDatabase

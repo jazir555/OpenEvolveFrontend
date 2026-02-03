@@ -25,17 +25,6 @@ import logging
 from typing import Dict, Any, List, Optional, Union
 from dataclasses import dataclass, field
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for ROMA resource allocation
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.integrations.workflow_engine_integration import AdaptiveWorkflowIntegration
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    AdaptiveWorkflowIntegration = None
-
 logger = logging.getLogger(__name__)
 
 

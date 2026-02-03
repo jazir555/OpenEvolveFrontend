@@ -2,6 +2,7 @@
 Final Integration Verification Script
 Verifies that all OpenEvolve frontend components work together correctly
 """
+
 import sys
 import os
 import traceback

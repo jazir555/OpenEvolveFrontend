@@ -145,6 +145,7 @@ def get_url(cfg, option, default):
 
 def get_config():
     """Returns a ConfigParser object for the .kattisrc file(s)"""
+
     cfg = configparser.ConfigParser()
     if os.path.exists(_DEFAULT_CONFIG):
         cfg.read(_DEFAULT_CONFIG)

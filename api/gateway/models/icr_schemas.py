@@ -9,6 +9,18 @@ All schemas are compatible with Pydantic v2 and include proper validation
 and type hints for type safety and consistency across the ICR integration.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Icr Schemas
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 from pydantic import BaseModel, Field, ConfigDict, field_validator
 from typing import Optional, List, Dict, Any, Literal
 from datetime import datetime

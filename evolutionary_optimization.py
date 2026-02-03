@@ -2,6 +2,7 @@
 Evolutionary Optimization Framework for OpenEvolve
 This module now uses the core OpenEvolve evolutionary optimization instead of custom implementation.
 """
+
 import tempfile
 import os
 from typing import Dict, Any

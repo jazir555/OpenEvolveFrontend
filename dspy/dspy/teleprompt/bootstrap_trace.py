@@ -1,3 +1,15 @@
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Bootstrap Trace
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 import logging
 from dataclasses import dataclass
 from types import MethodType

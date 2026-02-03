@@ -4,6 +4,18 @@ Case 2 Hierarchical Model Generator
 Generates multi-stage Pydantic models for hierarchical extraction
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Case2 Model Generator
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import json
 import logging
 from typing import Dict, List, Any, Type, Tuple, Optional

@@ -24,6 +24,7 @@ def verify_c2_solution(f_values: np.ndarray, c2_achieved_from_opt: float, n_poin
     """
     Verifies the C2 lower bound solution using the rigorous, unitless, piecewise linear integral method.
     """
+
     if f_values.shape != (n_points,):
         raise ValueError(f"Expected function values shape {(n_points,)}. Got {f_values.shape}.")
 

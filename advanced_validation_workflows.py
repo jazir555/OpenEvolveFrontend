@@ -6,6 +6,7 @@ This module implements advanced validation workflows including:
 - Custom validation criteria per ticket type
 - Quality metrics tracking and reporting
 """
+
 import asyncio
 import logging
 import json
@@ -32,6 +33,25 @@ from openevolve_integration import run_unified_evolution, create_comprehensive_o
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Advanced Validation Workflows
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 
 @dataclass
 class ValidationStage:
@@ -52,6 +72,79 @@ class AdvancedValidationConfig:
     caching_enabled: bool = True
     performance_tracking_enabled: bool = True
     custom_validation_functions: Optional[Dict[str, Callable]] = None
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Advanced Validation Workflows
+def _trigger_validation_alerts(operation, success, validation_id=None, error=None, metadata=None):
+    """Trigger alerts for advanced validation operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.HIGH if operation == "run_advanced_validation" else AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"Validation {operation} Failed",
+            message=f"Advanced validation operation '{operation}' failed: {error}",
+            severity=severity,
+            source="AdvancedValidationWorkflows",
+            metadata=metadata or {"validation_id": validation_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger validation alert: {e}")
+
+
+def _extract_validation_knowledge(operation, validation_id, config, result):
+    """Extract knowledge from validation operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        artifact = KnowledgeArtifact(
+            artifact_id=f"validation_{operation}_{validation_id}",
+            artifact_type="validation_execution",
+            source_component="AdvancedValidationWorkflows",
+            content={
+                "operation": operation,
+                "validation_id": validation_id,
+                "num_stages": len(getattr(config, 'validation_stages', [])),
+                "parallel_validation": getattr(config, 'parallel_validation_enabled', False),
+                "stages_passed": result.get("stages_passed", 0) if result else 0,
+                "stages_failed": result.get("stages_failed", 0) if result else 0,
+                "success": result.get("success", False) if result else False,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract validation knowledge: {e}")
+
+
+def _track_validation_performance(operation, success, duration_seconds, num_stages, stages_passed=0, stages_failed=0):
+    """Track performance of validation operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name="advanced_validation",
+            component_name="AdvancedValidationWorkflows",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "num_stages": num_stages,
+                "stages_passed": stages_passed,
+                "stages_failed": stages_failed
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track validation performance: {e}")
 
 
 class AdvancedValidationOrchestrator:
@@ -95,6 +188,9 @@ class AdvancedValidationOrchestrator:
             Dict containing validation results and status
         """
         start_time = time.time()
+        success = False
+        validation_id = f"val_{workflow_id}_{ticket_id}"
+
         validation_results = {
             "workflow_id": workflow_id,
             "ticket_id": ticket_id,
@@ -104,108 +200,134 @@ class AdvancedValidationOrchestrator:
             "validation_time": 0.0,
             "all_reports": []
         }
-        
+
         all_reports = []  # Collect all gauntlet reports
-        
+
         logger.info(f"Starting advanced validation for workflow {workflow_id}, ticket {ticket_id}")
-        
-        for stage_idx, stage in enumerate(self.config.validation_stages):
-            logger.info(f"Running validation stage {stage_idx + 1}: {stage.name}")
-            
-            # Check cache first if enabled
-            cache_key = f"{workflow_id}:{ticket_id}:{stage.gauntlet_name}:{hash(content)}"
-            if self.config.caching_enabled and cache_key in self.validation_cache:
-                stage_result = self.validation_cache[cache_key]
-                logger.info(f"Using cached result for stage: {stage.name}")
-            else:
-                # Run validation stage
-                stage_result = await self._run_validation_stage(
-                    content, 
-                    stage, 
-                    context, 
-                    workflow_id, 
-                    ticket_id,
-                    stage_idx
-                )
+
+        try:
+            for stage_idx, stage in enumerate(self.config.validation_stages):
+                logger.info(f"Running validation stage {stage_idx + 1}: {stage.name}")
                 
-                # Cache result if enabled
-                if self.config.caching_enabled:
-                    self.validation_cache[cache_key] = stage_result
-            
-            validation_results["stages_results"].append(stage_result)
-            all_reports.extend(stage_result.get("reports", []))
-            
-            # Check custom criteria if specified for this stage
-            if stage.custom_criteria:
-                custom_result = await self._evaluate_custom_criteria(
-                    content, 
-                    stage.custom_criteria, 
-                    stage_result
-                )
-                
-                if not custom_result.get("passed", True):
-                    logger.warning(f"Custom criteria failed for stage {stage.name}: {custom_result.get('message', 'Unknown issue')}")
-                    
-                    # Add custom criteria result to reports
-                    all_reports.append({
-                        "type": "custom_criteria",
-                        "stage_name": stage.name,
-                        "passed": False,
-                        "message": custom_result.get("message", "Custom criteria failed"),
-                        "criteria": stage.custom_criteria
-                    })
-            
-            # Handle stage failure based on failure_action
-            approval_rate = stage_result.get("approval_rate", 0.0)
-            if approval_rate < stage.required_approval_rate:
-                logger.warning(f"Stage {stage.name} failed: approval rate {approval_rate:.2f} < required {stage.required_approval_rate:.2f}")
-                
-                if stage.failure_action == "stop":
-                    logger.info(f"Stopping validation after stage {stage.name} failure")
-                    validation_results["overall_status"] = "failed"
-                    break
-                elif stage.failure_action == "retry" and stage_result.get("retry_count", 0) < stage.max_retries:
-                    logger.info(f"Retrying stage {stage.name}")
-                    # Implement retry logic
-                    retry_result = await self._run_validation_stage(
+                # Check cache first if enabled
+                cache_key = f"{workflow_id}:{ticket_id}:{stage.gauntlet_name}:{hash(content)}"
+                if self.config.caching_enabled and cache_key in self.validation_cache:
+                    stage_result = self.validation_cache[cache_key]
+                    logger.info(f"Using cached result for stage: {stage.name}")
+                else:
+                    # Run validation stage
+                    stage_result = await self._run_validation_stage(
                         content, 
                         stage, 
                         context, 
                         workflow_id, 
                         ticket_id,
-                        stage_idx,
-                        retry=True
+                        stage_idx
                     )
-                    validation_results["stages_results"][-1] = retry_result  # Update with retry result
-                    all_reports.extend(retry_result.get("reports", []))
-                    continue
-                # If failure_action is "continue", proceed to next stage
+                    
+                    # Cache result if enabled
+                    if self.config.caching_enabled:
+                        self.validation_cache[cache_key] = stage_result
+                
+                validation_results["stages_results"].append(stage_result)
+                all_reports.extend(stage_result.get("reports", []))
+                
+                # Check custom criteria if specified for this stage
+                if stage.custom_criteria:
+                    custom_result = await self._evaluate_custom_criteria(
+                        content, 
+                        stage.custom_criteria, 
+                        stage_result
+                    )
+                    
+                    if not custom_result.get("passed", True):
+                        logger.warning(f"Custom criteria failed for stage {stage.name}: {custom_result.get('message', 'Unknown issue')}")
+                        
+                        # Add custom criteria result to reports
+                        all_reports.append({
+                            "type": "custom_criteria",
+                            "stage_name": stage.name,
+                            "passed": False,
+                            "message": custom_result.get("message", "Custom criteria failed"),
+                            "criteria": stage.custom_criteria
+                        })
+                
+                # Handle stage failure based on failure_action
+                approval_rate = stage_result.get("approval_rate", 0.0)
+                if approval_rate < stage.required_approval_rate:
+                    logger.warning(f"Stage {stage.name} failed: approval rate {approval_rate:.2f} < required {stage.required_approval_rate:.2f}")
+                    
+                    if stage.failure_action == "stop":
+                        logger.info(f"Stopping validation after stage {stage.name} failure")
+                        validation_results["overall_status"] = "failed"
+                        break
+                    elif stage.failure_action == "retry" and stage_result.get("retry_count", 0) < stage.max_retries:
+                        logger.info(f"Retrying stage {stage.name}")
+                        # Implement retry logic
+                        retry_result = await self._run_validation_stage(
+                            content, 
+                            stage, 
+                            context, 
+                            workflow_id, 
+                            ticket_id,
+                            stage_idx,
+                            retry=True
+                        )
+                        validation_results["stages_results"][-1] = retry_result  # Update with retry result
+                        all_reports.extend(retry_result.get("reports", []))
+                        continue
+                    # If failure_action is "continue", proceed to next stage
+                else:
+                    logger.info(f"Stage {stage.name} passed: approval rate {approval_rate:.2f} >= required {stage.required_approval_rate:.2f}")
+            
+            # Calculate overall validation status
+            successful_stages = [sr for sr in validation_results["stages_results"] 
+                                if sr.get("approval_rate", 0) >= sr.get("stage_required_approval", 0)]
+            
+            validation_results["all_reports"] = all_reports
+            validation_results["successful_stages"] = len(successful_stages)
+            validation_results["total_stages"] = len(self.config.validation_stages)
+            
+            if len(successful_stages) == len(self.config.validation_stages):
+                validation_results["overall_status"] = "passed"
+            elif len(successful_stages) == 0:
+                validation_results["overall_status"] = "failed"
             else:
-                logger.info(f"Stage {stage.name} passed: approval rate {approval_rate:.2f} >= required {stage.required_approval_rate:.2f}")
-        
-        # Calculate overall validation status
-        successful_stages = [sr for sr in validation_results["stages_results"] 
-                            if sr.get("approval_rate", 0) >= sr.get("stage_required_approval", 0)]
-        
-        validation_results["all_reports"] = all_reports
-        validation_results["successful_stages"] = len(successful_stages)
-        validation_results["total_stages"] = len(self.config.validation_stages)
-        
-        if len(successful_stages) == len(self.config.validation_stages):
-            validation_results["overall_status"] = "passed"
-        elif len(successful_stages) == 0:
-            validation_results["overall_status"] = "failed"
-        else:
-            # Partial success - may need custom logic for this case
-            validation_results["overall_status"] = "partial_success"
-        
-        # Update performance metrics
-        validation_time = time.time() - start_time
-        validation_results["validation_time"] = validation_time
-        self._update_performance_metrics(validation_results, validation_time)
-        
-        logger.info(f"Advanced validation completed for {workflow_id}:{ticket_id} - Status: {validation_results['overall_status']}")
-        return validation_results
+                # Partial success - may need custom logic for this case
+                validation_results["overall_status"] = "partial_success"
+            
+            # Update performance metrics
+            validation_time = time.time() - start_time
+            validation_results["validation_time"] = validation_time
+            self._update_performance_metrics(validation_results, validation_time)
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            success = True
+            _extract_validation_knowledge("run_advanced_validation", validation_id, self.config, validation_results)
+            _track_validation_performance("run_advanced_validation", True, validation_time,
+                                         len(self.config.validation_stages),
+                                         validation_results.get("successful_stages", 0),
+                                         validation_results.get("total_stages", 0) - validation_results.get("successful_stages", 0))
+
+            logger.info(f"Advanced validation completed for {workflow_id}:{ticket_id} - Status: {validation_results['overall_status']}")
+            return validation_results
+
+        except Exception as e:
+            validation_time = time.time() - start_time
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            _trigger_validation_alerts("run_advanced_validation", False, validation_id, str(e),
+                                      {"workflow_id": workflow_id, "ticket_id": ticket_id})
+            _track_validation_performance("run_advanced_validation", False, validation_time,
+                                         len(getattr(self.config, 'validation_stages', [])), 0, 0)
+            logger.error(f"Advanced validation failed for {workflow_id}:{ticket_id}: {e}")
+            return {
+                "workflow_id": workflow_id,
+                "ticket_id": ticket_id,
+                "overall_status": "error",
+                "error": str(e),
+                "stages_results": [],
+                "validation_time": validation_time
+            }
     
     async def _run_validation_stage(
         self, 

@@ -31,6 +31,7 @@ def check_inside_triangle_wtol(points: np.ndarray, tol: float = 1e-6):
         points: Array of 2D points to check
         tol: Tolerance for numerical errors
     """
+
     for x, y in points:
         cond1 = y >= -tol
         cond2 = np.sqrt(3) * x <= np.sqrt(3) - y + tol

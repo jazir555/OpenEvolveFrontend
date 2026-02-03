@@ -14,7 +14,6 @@ import tempfile
 import shutil
 from datetime import datetime
 
-
 class CIPipeline:
     """Continuous Integration pipeline for the Sovereign Decomposition System."""
     

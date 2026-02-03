@@ -1,3 +1,15 @@
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Utils Finetune
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
 import os
 from enum import Enum
 from typing import Any, Literal, TypedDict

@@ -10,6 +10,7 @@ def heilbronn_convex13() -> np.ndarray:
     Returns:
         points: np.ndarray of shape (13,2) with the x,y coordinates of the points.
     """
+
     n = 13
     rng = np.random.default_rng(seed=42)
     points = rng.random((n, 2))

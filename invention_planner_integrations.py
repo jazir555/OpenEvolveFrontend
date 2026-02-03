@@ -48,7 +48,7 @@ try:
 except ImportError as e:
     CREWAI_AVAILABLE = False
     logger.warning(f"CrewAI not available: {e} - task delegation will be local")
-    CrewAIClient = None
+
 
 # Task 4.3: Sovereign Integration
 try:

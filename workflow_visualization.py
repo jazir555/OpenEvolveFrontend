@@ -19,7 +19,6 @@ import json
 from workflow_structures import WorkflowState
 from openevolve_bubblelabs_api import openevolve_bubblelabs_integration
 
-
 class OpenEvolveVisualizer:
     """
     Provides visualization for OpenEvolve workflow execution.

@@ -15,7 +15,6 @@ import logging
 from typing import Any, Dict, Optional
 from dataclasses import dataclass
 
-
 @dataclass
 class FallbackResult:
     """Result from fallback operation"""

@@ -1,5 +1,17 @@
 """Dashboard utilities for Adaptive MDAP monitoring."""
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Dashboard
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import time
 from typing import Dict, Any, List, Optional
 from dataclasses import dataclass, field

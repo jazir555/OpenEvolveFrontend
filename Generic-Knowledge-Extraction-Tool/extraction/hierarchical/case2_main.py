@@ -4,6 +4,18 @@ Case 2 Main Orchestrator
 Main entry point for Case 2 hierarchical multi-document extraction
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Case2 Main
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import json
 import logging
 import os

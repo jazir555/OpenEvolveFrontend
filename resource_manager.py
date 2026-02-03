@@ -32,6 +32,7 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+
 logger = logging.getLogger(__name__)
 
 

@@ -10,7 +10,6 @@ import numpy as np
 from knowledge_graph_visualizer import KnowledgeGraphVisualizer
 from integrations.pygraphistry.bridge import PygraphistryBridge
 
-
 class KnowledgeGraphVisualizerWithPyGraphistry(KnowledgeGraphVisualizer):
     """
     Enhanced Knowledge Graph Visualizer with PyGraphistry integration.

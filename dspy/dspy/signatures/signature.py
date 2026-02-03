@@ -15,6 +15,18 @@ or a signature, you can use the ensure_signature function.
 For compatibility with the legacy dsp format, you can use the signature_to_template function.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Signature
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import ast
 import importlib
 import inspect

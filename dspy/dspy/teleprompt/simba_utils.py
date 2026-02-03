@@ -182,6 +182,18 @@ class OfferFeedback(dspy.Signature):
     - Ensure each unique module name appears exactly once as a key in the advice dictionary.
     """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Simba Utils
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     program_code: str = InputField(desc="The code of the program that we are analyzing")
     modules_defn: str = InputField(desc="The definition of each module in the program, including its I/O")
     program_inputs: str = InputField(desc="The inputs to the program that we are analyzing")

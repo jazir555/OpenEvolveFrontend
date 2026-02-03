@@ -4,6 +4,18 @@ This module provides algorithms for positioning nodes in a DAG for ASCII renderi
 Uses NetworkX for graph algorithms and provides hierarchical and topological layouts.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Dag Layout
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 from __future__ import annotations
 
 from collections import defaultdict

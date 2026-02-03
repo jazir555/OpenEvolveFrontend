@@ -49,16 +49,7 @@ except ImportError:
     get_valid_workflow_transitions = None
     is_terminal_workflow_status = None
 
-# Import Adaptive MDAP integration
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.integrations.workflow_engine_integration import AdaptiveWorkflowIntegration
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-    AdaptiveWorkflowIntegration = None
+
 
 logger = logging.getLogger(__name__)
 

@@ -32,7 +32,6 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-
 class VerificationStatus(Enum):
     """Verification status for knowledge."""
     VERIFIED = "verified"

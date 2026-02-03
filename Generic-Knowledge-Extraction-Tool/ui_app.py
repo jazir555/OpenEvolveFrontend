@@ -4,6 +4,18 @@ Unified Knowledge Extraction Agent UI
 Combined configuration and extraction interface.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Ui App
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import streamlit as st
 import json
 import os

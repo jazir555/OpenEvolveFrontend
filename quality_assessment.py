@@ -33,14 +33,6 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for complexity-aware quality thresholds
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-
 # Configure logger
 logger = logging.getLogger(__name__)
 
@@ -1917,93 +1909,6 @@ class QualityAssessmentEngine:
         except Exception as e:
             logger.error(f"Failed to track quality assessment performance: {e}")
     
-    # **ADAPTIVE MDAP INTEGRATION**: Complexity-aware quality thresholds
-    def assess_quality_with_complexity(
-        self,
-        content: str,
-        content_type: str = "general",
-        custom_requirements: Optional[Dict[str, Any]] = None,
-        api_key: Optional[str] = None,
-        model_name: str = "gpt-4o",
-        use_adaptive_thresholds: bool = True
-    ) -> QualityAssessmentResult:
-        """
-        Assess quality with complexity-aware thresholds.
-        
-        Uses Adaptive MDAP to analyze content complexity and adjust
-        quality thresholds accordingly:
-        - Simple content: Higher threshold (must be excellent)
-        - Complex content: Lower threshold (allows for complexity)
-        
-        Args:
-            content: Content to assess
-            content_type: Type of content
-            custom_requirements: Custom requirements
-            api_key: API key for backend
-            model_name: Model to use
-            use_adaptive_thresholds: Whether to use complexity-aware thresholds
-            
-        Returns:
-            QualityAssessmentResult with complexity metadata
-        """
-        # Get base assessment
-        result = self.assess_quality(
-            content, content_type, custom_requirements, api_key, model_name
-        )
-        
-        if not use_adaptive_thresholds or not ADAPTIVE_MDAP_AVAILABLE:
-            return result
-        
-        try:
-            # Compute complexity
-            from adaptive_mdap import TaskComplexityClassifier
-            from adaptive_mdap.core.types import SubProblem
-            
-            sp = SubProblem(
-                id="quality-assessment",
-                description=content[:500],
-                domain=content_type,
-                depth=1,
-                dependencies=[],
-                metadata={"content_length": len(content)}
-            )
-            
-            classifier = TaskComplexityClassifier()
-            score = classifier.compute_complexity(sp)
-            complexity = score.overall_score
-            
-            # Adjust thresholds based on complexity
-            # Higher complexity = slightly lower thresholds (more lenient)
-            # Lower complexity = higher thresholds (stricter)
-            if complexity <= 0.3:
-                # Simple content - be strict
-                threshold_adjustment = 1.05  # 5% higher threshold
-            elif complexity <= 0.6:
-                # Medium complexity - standard
-                threshold_adjustment = 1.0
-            else:
-                # Complex content - be more lenient
-                threshold_adjustment = 0.95  # 5% lower threshold
-            
-            # Apply adjustment to composite score interpretation
-            adjusted_score = result.composite_score * threshold_adjustment
-            
-            # Add complexity metadata
-            result.assessment_metadata = result.assessment_metadata or {}
-            result.assessment_metadata['complexity_score'] = complexity
-            result.assessment_metadata['threshold_adjustment'] = threshold_adjustment
-            result.assessment_metadata['adjusted_score'] = adjusted_score
-            
-            logger.info(
-                f"Complexity-aware assessment: score={result.composite_score:.2f}, "
-                f"complexity={complexity:.3f}, adjusted={adjusted_score:.2f}"
-            )
-            
-        except Exception as e:
-            logger.warning(f"Failed to apply complexity-aware thresholds: {e}")
-        
-        return result
-    
     def get_content_complexity(
         self,
         content: str,
@@ -2019,30 +1924,8 @@ class QualityAssessmentEngine:
         Returns:
             Complexity score (0.0-1.0) or None
         """
-        if not ADAPTIVE_MDAP_AVAILABLE:
-            return None
-        
-        try:
-            from adaptive_mdap import TaskComplexityClassifier
-            from adaptive_mdap.core.types import SubProblem
-            
-            sp = SubProblem(
-                id="complexity-check",
-                description=content[:500],
-                domain=content_type,
-                depth=1,
-                dependencies=[],
-                metadata={}
-            )
-            
-            classifier = TaskComplexityClassifier()
-            score = classifier.compute_complexity(sp)
-            
-            return score.overall_score
-            
-        except Exception as e:
-            logger.warning(f"Failed to compute content complexity: {e}")
-            return None
+        # Complexity analysis not available
+        return None
 
 # Example usage and testing
 def test_quality_assessment_engine():

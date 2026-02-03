@@ -5,6 +5,7 @@ class BedrockKnowledgeBaseClient:
     """
     A client for interacting with Amazon Bedrock Knowledge Bases.
     """
+
     def __init__(self, region_name: str = 'us-east-1'):
         self.client = boto3.client('bedrock-agent-runtime', region_name=region_name)
 

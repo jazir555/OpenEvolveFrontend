@@ -17,6 +17,18 @@ The main issue below is that the second step's signature is entirely created on 
 adapter explicitly constructed with no demonstrations. This means that it cannot "learn" or get optimized.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Two Step Adapter
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 
 class TwoStepAdapter(Adapter):
     """

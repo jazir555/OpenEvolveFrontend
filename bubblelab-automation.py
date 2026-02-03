@@ -23,6 +23,7 @@ Commands:
     status      Show system status
 """
 
+
 import os
 import sys
 import json
@@ -513,8 +514,8 @@ def cmd_list(args):
             print(f"   ID: {flow['id']}")
             print()
 
-        except (ConnectionError, RuntimeError, ValueError) as e:
-            print(f"❌ Error: {e}")
+    except (ConnectionError, RuntimeError, ValueError) as e:
+        print(f"❌ Error: {e}")
         sys.exit(1)
 
 
@@ -553,8 +554,8 @@ def cmd_create(args):
             client.activate_flow(flow['id'])
             print("   ▶️  Activated")
 
-        except (ConnectionError, RuntimeError, ValueError) as e:
-            print(f"❌ Error: {e}")
+    except (ConnectionError, RuntimeError, ValueError) as e:
+        print(f"❌ Error: {e}")
         sys.exit(1)
 
 
@@ -613,8 +614,8 @@ def cmd_generate(args):
             print(f"\n📝 Explanation:")
             print(f"   {result['explanation'][:200]}...")
 
-        except (RuntimeError, ConnectionError) as e:
-            print(f"\n❌ Error: {e}")
+    except (RuntimeError, ConnectionError) as e:
+        print(f"\n❌ Error: {e}")
         sys.exit(1)
 
 
@@ -630,8 +631,8 @@ def cmd_export(args):
     try:
         files = manager.export_all_workflows(output_dir)
         print(f"\n✅ Exported {len(files)} workflows")
-        except (ConnectionError, RuntimeError, ValueError) as e:
-            print(f"❌ Error: {e}")
+    except (ConnectionError, RuntimeError, ValueError) as e:
+        print(f"❌ Error: {e}")
         sys.exit(1)
 
 
@@ -645,8 +646,8 @@ def cmd_backup(args):
     try:
         backup_path = manager.backup_workflows(backup_dir)
         print(f"\n✅ Backup created at: {backup_path}")
-        except (ConnectionError, RuntimeError, ValueError) as e:
-            print(f"❌ Error: {e}")
+    except (ConnectionError, RuntimeError, ValueError) as e:
+        print(f"❌ Error: {e}")
         sys.exit(1)
 
 
@@ -715,14 +716,14 @@ def cmd_sync(args):
 
     environment = args.environment or 'development'
 
-        try:
-            results = manager.sync_environment(environment)
+    try:
+        results = manager.sync_environment(environment)
 
-            if results['failed']:
-                sys.exit(1)
-        except (RuntimeError, ConnectionError) as e:
-            print(f"\n❌ Error: {e}")
+        if results['failed']:
             sys.exit(1)
+    except (RuntimeError, ConnectionError) as e:
+        print(f"\n❌ Error: {e}")
+        sys.exit(1)
 
 
 def cmd_status(args):
@@ -749,20 +750,20 @@ def cmd_status(args):
         print(f"   Active: {active_count}")
         print(f"   Total Executions: {total_executions}")
 
-        except (ConnectionError, RuntimeError) as e:
-            print(f"   Status: ❌ Disconnected")
-            print(f"   Error: {e}")
-            return
+    except (ConnectionError, RuntimeError) as e:
+        print(f"   Status: ❌ Disconnected")
+        print(f"   Error: {e}")
+        return
 
     # Templates
     try:
         templates = client.get_templates()
         print(f"\n📋 Templates: {len(templates)}")
-        except (ConnectionError, RuntimeError) as e:
-            import logging
-            logger = logging.getLogger(__name__)
-            logger.debug(f"Failed to get templates: {e}")
-            print(f"\n📋 Templates: 0")
+    except (ConnectionError, RuntimeError) as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.debug(f"Failed to get templates: {e}")
+        print(f"\n📋 Templates: 0")
 
     # Configuration
     print(f"\n⚙️  Configuration:")

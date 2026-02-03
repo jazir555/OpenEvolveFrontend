@@ -26,6 +26,18 @@ class XMLAdapter(ChatAdapter):
         XMLAdapter requires input and output fields to be wrapped in XML tags like `<field_name>`.
         """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Xml Adapter
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
         parts = []
         parts.append("All interactions will be structured in the following way, with the appropriate values filled in.")
 

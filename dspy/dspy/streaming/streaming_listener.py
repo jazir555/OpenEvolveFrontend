@@ -23,6 +23,18 @@ ADAPTER_SUPPORT_STREAMING = [ChatAdapter, XMLAdapter, JSONAdapter]
 class StreamListener:
     """Class that listens to the stream to capture the streeaming of a specific output field of a predictor."""
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Streaming Listener
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     def __init__(
         self,
         signature_field_name: str,

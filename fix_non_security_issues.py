@@ -2,6 +2,7 @@
 Comprehensive fixer for non-security code quality issues
 Fixes: B101 (assert), B110 (try/except/pass), B112 (try/except/continue), B113 (requests timeout)
 """
+
 import ast
 import re
 from pathlib import Path

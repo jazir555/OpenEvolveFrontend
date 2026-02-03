@@ -9,6 +9,7 @@ def get_content_suggestions(content: str) -> List[str]:
     """
     Get AI-powered content suggestions for improvement recommendations.
     """
+
     api_key = st.session_state.api_key
     base_url = st.session_state.base_url
     model = st.session_state.model

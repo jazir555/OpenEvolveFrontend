@@ -32,6 +32,7 @@ def _construct_P_with_forced_zero(coeffs: np.ndarray) -> sp.Expr:
     where c_last is chosen so that P(0) = 0.
     Also flip sign if limit at +inf is negative.
     """
+
     m = len(coeffs)
     Hs, _ = _hermite_4k_polys(m + 1)  # include the (m)-th term for solving P(0)=0
     rc = [sp.Rational(c) for c in coeffs]

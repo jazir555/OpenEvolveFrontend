@@ -51,6 +51,7 @@ Consider these algorithmic improvements for massive performance gains:
 This is the initial implementation that will be evolved by OpenEvolve.
 The solve method will be improved through evolution.
 """
+
 import logging
 import numpy as np
 from scipy import signal

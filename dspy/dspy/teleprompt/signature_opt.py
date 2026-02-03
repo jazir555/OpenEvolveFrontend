@@ -31,6 +31,18 @@ Note that this teleprompter takes in the following parameters:
                 These statistics will be returned as attributes of the best program.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Signature Opt
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 
 class SignatureOptimizer(COPRO):
     def __init__(

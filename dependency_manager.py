@@ -15,6 +15,98 @@ from sovereign_reliability import with_error_handling, ErrorSeverity
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Dependency Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Dependency Manager
+def _trigger_dependency_alerts(operation, success, graph_id=None, error=None, metadata=None):
+    """Trigger alerts for dependency manager operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.HIGH if operation == "build_graph" else AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"Dependency {operation} Failed",
+            message=f"Dependency manager operation '{operation}' failed: {error}",
+            severity=severity,
+            source="DependencyManager",
+            metadata=metadata or {"graph_id": graph_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger dependency alert: {e}")
+
+
+def _extract_dependency_knowledge(operation, graph_id, result):
+    """Extract knowledge from dependency operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        artifact = KnowledgeArtifact(
+            artifact_id=f"dependency_{operation}_{graph_id}",
+            artifact_type="dependency_execution",
+            source_component="DependencyManager",
+            content={
+                "operation": operation,
+                "graph_id": graph_id,
+                "num_nodes": len(result.get("nodes", {})) if result else 0,
+                "num_edges": sum(len(deps) for deps in result.get("edges", {}).values()) if result else 0,
+                "has_cycles": len(result.get("cycles", [])) > 0 if result else False,
+                "critical_path_length": len(result.get("critical_path", [])) if result else 0,
+                "success": result is not None,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract dependency knowledge: {e}")
+
+
+def _track_dependency_performance(operation, success, duration_seconds, num_nodes, num_edges=0, has_cycles=False):
+    """Track performance of dependency operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name="dependency_graph_analysis",
+            component_name="DependencyManager",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "num_nodes": num_nodes,
+                "num_edges": num_edges,
+                "has_cycles": has_cycles
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track dependency performance: {e}")
+
 
 class DependencyManager:
     """Manages dependencies between sub-problems."""
@@ -26,43 +118,54 @@ class DependencyManager:
     def build_graph(self, sub_problems: List[SubProblem]) -> DependencyGraph:
         """
         Constructs dependency graph from sub-problems.
-        
+
         Args:
             sub_problems: List of sub-problems
-            
+
         Returns:
             DependencyGraph with nodes, edges, and analysis
         """
+        import time
+        start_time = time.time()
+        success = False
+        graph_id = f"dep_{hash(str(sub_problems)) % 10000:04d}"
+
         if not sub_problems:
             self.logger.warning("No sub-problems provided to build_graph. Returning an empty DependencyGraph.")
             return DependencyGraph(nodes={}, edges={})
 
         self.logger.info(f"Building dependency graph for {len(sub_problems)} sub-problems")
-        
+
         try:
             nodes = {sp.id: sp for sp in sub_problems}
             edges = {sp.id: sp.dependencies for sp in sub_problems}
         except AttributeError as e:
             self.logger.error(f"Invalid sub-problem object found during graph building: {e}", exc_info=True)
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            _trigger_dependency_alerts("build_graph", False, graph_id, str(e))
+            _track_dependency_performance("build_graph", False, time.time() - start_time, 0)
             return DependencyGraph(nodes={}, edges={})
         except Exception as e:
             self.logger.error(f"An unexpected error occurred while creating nodes and edges for the dependency graph: {e}", exc_info=True)
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            _trigger_dependency_alerts("build_graph", False, graph_id, str(e))
+            _track_dependency_performance("build_graph", False, time.time() - start_time, 0)
             return DependencyGraph(nodes={}, edges={})
-        
+
         # Detect cycles
         cycles = self.detect_cycles(DependencyGraph(nodes=nodes, edges=edges))
         if cycles:
             self.logger.warning(f"Detected {len(cycles)} cycles in dependency graph")
-        
+
         # Calculate critical path
         critical_path = self.find_critical_path(DependencyGraph(nodes=nodes, edges=edges))
-        
+
         # Identify parallel opportunities
         parallel_groups = self.identify_parallel_opportunities(DependencyGraph(nodes=nodes, edges=edges))
-        
+
         # Calculate execution order
         execution_order = self.calculate_execution_order(DependencyGraph(nodes=nodes, edges=edges))
-        
+
         graph = DependencyGraph(
             nodes=nodes,
             edges=edges,
@@ -70,10 +173,23 @@ class DependencyManager:
             parallel_groups=parallel_groups,
             execution_order=execution_order
         )
-        
+
         self.logger.info(f"Dependency graph built: {len(critical_path)} nodes in critical path, "
                         f"{len(parallel_groups)} parallel groups")
-        
+
+        # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+        success = True
+        duration = time.time() - start_time
+        result_dict = {
+            "nodes": nodes,
+            "edges": edges,
+            "cycles": cycles,
+            "critical_path": critical_path
+        }
+        _extract_dependency_knowledge("build_graph", graph_id, result_dict)
+        _track_dependency_performance("build_graph", True, duration, len(nodes),
+                                     sum(len(deps) for deps in edges.values()), len(cycles) > 0)
+
         return graph
     
     @with_error_handling(severity=ErrorSeverity.MEDIUM, fallback=lambda graph: [])

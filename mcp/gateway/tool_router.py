@@ -5,6 +5,18 @@ This module handles routing of tool calls to appropriate MCP servers,
 including load balancing, circuit breaking, and fallback logic.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Tool Router
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import logging
 import asyncio
 import time

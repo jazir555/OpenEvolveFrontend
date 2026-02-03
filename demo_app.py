@@ -2,6 +2,7 @@
 Demo Application for OpenEvolve
 A simple demonstration of the complete OpenEvolve system functionality.
 """
+
 import streamlit as st
 import sys
 import os

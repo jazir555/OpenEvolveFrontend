@@ -31,6 +31,7 @@ class EnhancedJSONEncoder(json.JSONEncoder):
     """
     A JSON encoder that can handle dataclass objects.
     """
+
     def default(self, obj):
         if dataclasses.is_dataclass(obj):
             return dataclasses.asdict(obj)

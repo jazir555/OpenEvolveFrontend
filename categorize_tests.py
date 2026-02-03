@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Categorize test files by migration priority"""
+
 import os
 import re
 from pathlib import Path

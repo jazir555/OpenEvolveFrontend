@@ -1,5 +1,17 @@
 """Caching utilities for Adaptive MDAP."""
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Cache
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import hashlib
 import json
 import pickle

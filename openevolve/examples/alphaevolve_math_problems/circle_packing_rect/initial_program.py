@@ -9,6 +9,7 @@ def circle_packing21() -> np.ndarray:
     Returns:
         circles: np.array of shape (21,3), where the i-th row (x,y,r) stores the (x,y) coordinates of the i-th circle of radius r.
     """
+
     n = 21
     circles = np.zeros((n, 3))
 

@@ -4,6 +4,18 @@ Case 2 AI Client Adapter
 Adapts existing extractors (OpenAI, Claude) to Case 2 interface without modifying them
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Case2 Ai Adapter
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import logging
 from typing import Any, Dict, Optional
 

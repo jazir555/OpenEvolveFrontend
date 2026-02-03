@@ -37,7 +37,6 @@ from integrations import IntegrationFactory
 # Logging configuration
 logger = logging.getLogger(__name__)
 
-
 # =============================================================================
 # KNOWLEDGE GRAPH VISUALIZATION COMPONENTS
 # =============================================================================

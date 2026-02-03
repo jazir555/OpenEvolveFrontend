@@ -7,6 +7,7 @@ class EKSKnowledgeBaseHandler:
     This is a placeholder and assumes integration with a specific
     EKS hosted MCP service.
     """
+
     def __init__(self, region_name: str = 'us-east-1'):
         # In a real scenario, this would likely interact with a custom API
         # or a specific AWS service designed for EKS knowledge management.

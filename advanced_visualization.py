@@ -16,7 +16,6 @@ import time
 
 from workflow_structures import WorkflowState, DecompositionPlan, SubProblem
 
-
 class DependencyGraphVisualizer:
     """Visualizes dependency graphs for sub-problems."""
     

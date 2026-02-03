@@ -56,6 +56,25 @@ except ImportError as e:
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Adaptive Decomposition Integration
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 
 class IntegrationStatus(Enum):
     """Status of the adaptive decomposition integration."""
@@ -86,6 +105,78 @@ class AdaptiveIntegrationConfig:
     quality_threshold: float = 75.0
     max_iterations: int = 5
     timeout_seconds: int = 300
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Adaptive Decomposition Integration
+def _trigger_adaptive_decomp_alerts(operation, success, problem_id=None, error=None, metadata=None):
+    """Trigger alerts for adaptive decomposition integration operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.HIGH if operation == "decompose" else AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"Adaptive Decomposition {operation} Failed",
+            message=f"Adaptive decomposition integration operation '{operation}' failed: {error}",
+            severity=severity,
+            source="AdaptiveDecompositionIntegration",
+            metadata=metadata or {"problem_id": problem_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger adaptive decomp alert: {e}")
+
+
+def _extract_adaptive_decomp_knowledge(operation, problem_id, strategy, result):
+    """Extract knowledge from adaptive decomposition operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        artifact = KnowledgeArtifact(
+            artifact_id=f"adaptive_decomp_{operation}_{problem_id}",
+            artifact_type="adaptive_decomposition_execution",
+            source_component="AdaptiveDecompositionIntegration",
+            content={
+                "operation": operation,
+                "problem_id": problem_id,
+                "strategy": strategy,
+                "sub_problems_count": len(result.get("sub_problems", [])),
+                "quality_score": result.get("quality_score", 0.0),
+                "success": result.get("success", False),
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract adaptive decomp knowledge: {e}")
+
+
+def _track_adaptive_decomp_performance(operation, success, duration_seconds, strategy, sub_problems_count=0, quality_score=0.0):
+    """Track performance of adaptive decomposition operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name=f"adaptive_decomp_{strategy}",
+            component_name="AdaptiveDecompositionIntegration",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "sub_problems_count": sub_problems_count,
+                "quality_score": quality_score,
+                "strategy": strategy
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track adaptive decomp performance: {e}")
 
 
 class AdaptiveDecompositionIntegration:
@@ -148,46 +239,68 @@ class AdaptiveDecompositionIntegration:
     ) -> Dict[str, Any]:
         """
         Decompose a problem using adaptive strategies.
-        
+
         Args:
             problem: The problem description to decompose
             context: Optional context information
             strategy_hint: Optional hint for strategy selection
-            
+
         Returns:
             Dictionary containing decomposition results
         """
+        import time
+        start_time = time.time()
+        success = False
+        problem_id = f"adp_{hash(problem) % 10000:04d}"
+
         if self.status != IntegrationStatus.READY:
             return {
                 "success": False,
                 "error": f"Integration not ready. Status: {self.status.value}",
                 "sub_problems": []
             }
-        
+
         self.status = IntegrationStatus.PROCESSING
-        
+
         try:
             # Use adaptive engine if available
             if self.adaptive_engine:
                 result = self._decompose_adaptive(problem, context, strategy_hint)
+                strategy = strategy_hint or "adaptive"
             else:
                 # Fallback to basic decomposition
                 result = self._decompose_basic(problem, context)
-            
+                strategy = "basic"
+
             # Apply associative integration if available
             if self.associative_engine and result.get("success"):
                 result = self._apply_associative_integration(result, context)
-            
+
             # Validate with reliability SSOT if available
             if self.reliability_ssot and result.get("success"):
                 result = self._validate_with_ssot(result)
-            
+
             self.status = IntegrationStatus.READY
+            success = True
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            _extract_adaptive_decomp_knowledge("decompose", problem_id, strategy, result)
+            _track_adaptive_decomp_performance("decompose", True, duration, strategy,
+                                               len(result.get("sub_problems", [])),
+                                               result.get("quality_score", 0.0))
             return result
-            
+
         except (RuntimeError, ValueError, KeyError) as e:
+            duration = time.time() - start_time
             logger.error(f"Decomposition failed: {e}")
             self.status = IntegrationStatus.ERROR
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            _trigger_adaptive_decomp_alerts("decompose", False, problem_id, str(e),
+                                           {"strategy": strategy_hint or "unknown"})
+            _track_adaptive_decomp_performance("decompose", False, duration,
+                                              strategy_hint or "unknown", 0, 0.0)
             return {
                 "success": False,
                 "error": str(e),

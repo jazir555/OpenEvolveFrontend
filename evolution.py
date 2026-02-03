@@ -51,15 +51,6 @@ except ImportError as e:
     TEAM_SYSTEM_AVAILABLE = False
     logger.warning(f"Team system components not available - adversarial features will be limited: {e}")
 
-# Import Adaptive MDAP components for intelligent resource allocation
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator, SolveStrategy
-    from adaptive_mdap.integrations.workflow_engine_integration import AdaptiveWorkflowIntegration, AdaptiveWorkflowConfig
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError as e:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    logger.info(f"Adaptive MDAP not available - using standard resource allocation: {e}")
-
 @dataclass
 class EvolutionConfiguration:
     """

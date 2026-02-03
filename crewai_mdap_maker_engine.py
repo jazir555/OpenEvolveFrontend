@@ -47,6 +47,7 @@ from crewai_state_management import (
     SolutionAttempt,
 )
 
+
 logger = logging.getLogger(__name__)
 
 # **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for CrewAI MDAP MAKER Engine

@@ -10,6 +10,7 @@ def heilbronn_triangle11() -> np.ndarray:
     Returns:
         points: np.ndarray of shape (11,2) with the x,y coordinates of the points.
     """
+
     n = 11
     points = np.zeros((n, 2))
     return points

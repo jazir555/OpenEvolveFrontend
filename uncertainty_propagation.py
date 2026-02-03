@@ -23,7 +23,6 @@ import json
 
 logger = logging.getLogger(__name__)
 
-
 class ErrorCategory(Enum):
     """Categories of error sources in invention planning"""
     EQUIPMENT_SPECIFICATION = "equipment_specification"

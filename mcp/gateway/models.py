@@ -5,6 +5,18 @@ This module defines the core data structures used throughout the gateway system,
 including tool definitions, server configurations, and routing results.
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Models
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 from dataclasses import dataclass, field
 from typing import Optional, Dict, List, Any
 from datetime import datetime

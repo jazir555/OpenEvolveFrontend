@@ -17,6 +17,7 @@ def send_discord_notification(webhook_url: str, message: str) -> bool:
     Returns:
         bool: True if successful, False otherwise
     """
+
     try:
         payload = {"content": message}
         response = requests.post(webhook_url, json=payload, timeout=10)

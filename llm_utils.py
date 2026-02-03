@@ -74,226 +74,99 @@ async def initialize_llm_client(
     if GOOGLE_AVAILABLE and api_config.get("google", {}).get("api_key"):
         try:
             genai.configure(api_key=api_config["google"]["api_key"])
+            client = genai
             if verbose_output:
                 logger.info("Initialized Google client")
-            return genai, "google"
+            return client, "google"
         except Exception as e:
             logger.warning(f"Failed to initialize Google client: {e}")
     
-    logger.warning("No LLM client available - checked Anthropic, OpenAI, Google")
+    logger.warning("No LLM client available - check API configuration")
     return None, None
 
-def _compose_messages(system_message: str, user_message: str) -> List[Dict[str, str]]:
-    """Helper function to compose messages in the format expected by OpenAI-compatible chat APIs.
 
-    Args:
-        system_message (str): The system message to set the context or role of the AI.
-        user_message (str): The user's message or prompt.
-
-    Returns:
-        List[Dict[str, str]]: A list of message dictionaries.
+def get_model_for_task(
+    task_type: str,
+    default_models: Dict[str, str],
+    client_type: Optional[str] = None
+) -> str:
     """
-    return [{"role": "system", "content": system_message}, {"role": "user", "content": user_message}]
+    Get the appropriate model for a task type.
+    
+    Args:
+        task_type: Type of task (e.g., 'analysis', 'generation', 'coding')
+        default_models: Dict of default models for each provider
+        client_type: Type of client ('anthropic', 'openai', 'google')
+        
+    Returns:
+        Model name to use
+    """
+    if client_type and client_type in default_models:
+        return default_models[client_type]
+    
+    # Fallback to any available model
+    for provider, model in default_models.items():
+        if model:
+            return model
+    
+    return "gpt-3.5-turbo"  # Ultimate fallback
 
-def _request_openai_compatible_chat(
-    api_key: str,
-    base_url: str,
+
+async def call_llm(
+    client: Any,
+    client_type: str,
+    prompt: str,
     model: str,
-    messages: List[Dict[str, str]],
-    extra_headers: Optional[Dict[str, str]] = None,
+    max_tokens: int = 1000,
     temperature: float = 0.7,
-    top_p: float = 1.0,
-    frequency_penalty: float = 0.0,
-    presence_penalty: float = 0.0,
-    max_tokens: int = 4096,
-    seed: Optional[int] = None,
-    stop_sequences: Optional[List[str]] = None,
-    logprobs: Optional[bool] = None,
-    top_logprobs: Optional[int] = None,
-    response_format: Optional[Dict[str, str]] = None,
-    stream: Optional[bool] = None,
-    user: Optional[str] = None,
-    reasoning_effort: Optional[str] = None,
-    max_retries: int = 5,
-    timeout: int = 120,
-    organization: Optional[str] = None,
-    response_model: Optional[str] = None,
-    tools: Optional[List[Dict[str, Any]]] = None,
-    tool_choice: Optional[Any] = None,
-    system_fingerprint: Optional[str] = None,
-    deployment_id: Optional[str] = None,
-    encoding_format: Optional[str] = None,
-    max_input_tokens: Optional[int] = None,
-    stop_token: Optional[str] = None,
-    best_of: Optional[int] = None,
-    logprobs_offset: Optional[int] = None,
-    suffix: Optional[str] = None,
-    presence_penalty_range: Optional[List[float]] = None,
-    frequency_penalty_range: Optional[List[float]] = None,
-    stop_token_id: Optional[int] = None,
-    response_json_format: Optional[bool] = None,
-    max_output_tokens: Optional[int] = None,
-    stream_options: Optional[Dict[str, Any]] = None,
-    logprobs_type: Optional[str] = None,
-    top_k: Optional[int] = None,
-    repetition_penalty: Optional[float] = None,
-    length_penalty: Optional[float] = None,
-    early_stopping: Optional[bool] = None,
-    num_beams: Optional[int] = None,
-    do_sample: Optional[bool] = None,
-    temperature_fallback: Optional[float] = None,
-    top_p_fallback: Optional[float] = None,
-    max_time: Optional[int] = None,
-    return_full_text: Optional[bool] = None,
-    tokenizer_config: Optional[Dict[str, Any]] = None,
-    model_kwargs: Optional[Dict[str, Any]] = None
+    logger: Optional[logging.Logger] = None
 ) -> Optional[str]:
     """
-    Makes a request to an OpenAI-compatible API endpoint for chat completions.
+    Call an LLM with the given prompt.
+    
+    Args:
+        client: Initialized LLM client
+        client_type: Type of client
+        prompt: Prompt to send
+        model: Model to use
+        max_tokens: Maximum tokens to generate
+        temperature: Temperature for generation
+        logger: Optional logger
+        
+    Returns:
+        Generated text or None if failed
     """
+    if logger is None:
+        logger = logging.getLogger(__name__)
+    
     try:
-        import openai
-        # Initialize OpenAI client with organization and base_url
-        client_params = {"api_key": api_key, "base_url": base_url}
-        if organization: client_params["organization"] = organization
-        client = openai.OpenAI(**client_params)
-        
-        completion_params = {
-            "model": model,
-            "messages": messages,
-            "temperature": temperature,
-            "top_p": top_p,
-            "frequency_penalty": frequency_penalty,
-            "presence_penalty": presence_penalty,
-            "max_tokens": max_tokens,
-            "seed": seed,
-            "stop": stop_sequences if stop_sequences else stop_token,
-            "logprobs": logprobs,
-            "top_logprobs": top_logprobs,
-            "response_format": response_format,
-            "stream": stream,
-            "user": user,
-            "tools": tools,
-            "tool_choice": tool_choice,
-            "system_fingerprint": system_fingerprint,
-            "best_of": best_of,
-            "logit_bias": None, # Not directly exposed in ModelConfig yet, but can be added
-            "suffix": suffix,
-            "stop_token_id": stop_token_id,
-            "max_output_tokens": max_output_tokens,
-            "stream_options": stream_options,
-            "top_k": top_k,
-            "repetition_penalty": repetition_penalty,
-            "length_penalty": length_penalty,
-            "early_stopping": early_stopping,
-            "num_beams": num_beams,
-            "do_sample": do_sample,
-            "temperature_fallback": temperature_fallback,
-            "top_p_fallback": top_p_fallback,
-            "max_time": max_time,
-            "return_full_text": return_full_text,
-        }
-        # Filter out None values to avoid sending them to the API if not specified
-        completion_params = {k: v for k, v in completion_params.items() if v is not None}
-
-        response = client.chat.completions.create(**completion_params)
-        
-        return response.choices[0].message.content
-        
-    except ImportError:
-        # If openai package is not available, try using requests
-        
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
-        if extra_headers:
-            headers.update(extra_headers)
-        
-        data = {
-            "model": model,
-            "messages": messages,
-            "temperature": temperature,
-            "top_p": top_p,
-            "frequency_penalty": frequency_penalty,
-            "presence_penalty": presence_penalty,
-            "max_tokens": max_tokens,
-            "seed": seed,
-            "stop": stop_sequences if stop_sequences else stop_token,
-            "logprobs": logprobs,
-            "top_logprobs": top_logprobs,
-            "response_format": response_format,
-            "stream": stream,
-            "user": user,
-            "tools": tools,
-            "tool_choice": tool_choice,
-            "system_fingerprint": system_fingerprint,
-            "best_of": best_of,
-            "logit_bias": None, # Not directly exposed in ModelConfig yet
-            "suffix": suffix,
-            "stop_token_id": stop_token_id,
-            "max_output_tokens": max_output_tokens,
-            "stream_options": stream_options,
-            "top_k": top_k,
-            "repetition_penalty": repetition_penalty,
-            "length_penalty": length_penalty,
-            "early_stopping": early_stopping,
-            "num_beams": num_beams,
-            "do_sample": do_sample,
-            "temperature_fallback": temperature_fallback,
-            "top_p_fallback": top_p_fallback,
-            "max_time": max_time,
-            "return_full_text": return_full_text,
-        }
-        # Filter out None values
-        data = {k: v for k, v in data.items() if v is not None}
+        if client_type == "anthropic":
+            response = await client.messages.create(
+                model=model,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                messages=[{"role": "user", "content": prompt}]
+            )
+            return response.content[0].text
             
-        response = requests.post(f"{base_url}/chat/completions", headers=headers, json=data, timeout=timeout)
-        response.raise_for_status()
-        
-        result = response.json()
-        return result["choices"][0]["message"]["content"]
-        
+        elif client_type == "openai":
+            response = await client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                max_tokens=max_tokens,
+                temperature=temperature
+            )
+            return response.choices[0].message.content
+            
+        elif client_type == "google":
+            model_obj = client.GenerativeModel(model)
+            response = await model_obj.generate_content_async(prompt)
+            return response.text
+            
+        else:
+            logger.warning(f"Unknown client type: {client_type}")
+            return None
+            
     except Exception as e:
-        print(f"Error making API request: {e}")
+        logger.error(f"LLM call failed: {e}")
         return None
-
-
-def call_openevolve_cascade(content: str, api_key: str, thresholds: List[float]) -> Dict[str, Any]:
-    """Call OpenEvolve with cascade evaluation"""
-    try:
-        from openevolve_client import OpenEvolveClient
-        
-        client = OpenEvolveClient(api_key=api_key)
-        
-        result = client.evolve(
-            content=content,
-            evolution_mode="standard",
-            max_iterations=10,
-            population_size=20,
-            cascade_evaluation=True,
-            cascade_thresholds=thresholds
-        )
-        
-        return result
-    except Exception as e:
-        return {'error': str(e)}
-
-def call_openevolve_ensemble(content: str, api_key: str, num_models: int) -> Dict[str, Any]:
-    """Call OpenEvolve with ensemble of models"""
-    try:
-        from openevolve_client import OpenEvolveClient
-        
-        client = OpenEvolveClient(api_key=api_key)
-        
-        result = client.evolve(
-            content=content,
-            evolution_mode="standard",
-            max_iterations=5,
-            population_size=num_models,
-            temperature=0.7
-        )
-        
-        return result
-    except Exception as e:
-        return {'error': str(e)}

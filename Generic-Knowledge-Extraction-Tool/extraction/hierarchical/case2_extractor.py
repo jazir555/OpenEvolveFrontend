@@ -4,6 +4,18 @@ Case 2 Sequential Extraction Engine
 Orchestrates hierarchical multi-stage document extraction with data flow
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Case2 Extractor
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import json
 import logging
 from typing import Dict, List, Any, Optional, Tuple

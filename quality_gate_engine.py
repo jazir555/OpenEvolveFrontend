@@ -40,13 +40,6 @@ from evaluator_team import (
     EvaluationConfidence
 )
 
-# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Quality Gate Engine
-try:
-    from alerting_system import get_alert_manager, AlertSeverity
-    ALERTING_AVAILABLE = True
-except ImportError:
-    ALERTING_AVAILABLE = False
-
 try:
     from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
     KNOWLEDGE_AVAILABLE = True
@@ -58,16 +51,6 @@ try:
     ADAPTIVE_AVAILABLE = True
 except ImportError:
     ADAPTIVE_AVAILABLE = False
-
-# **ACTUAL INTEGRATION**: Adaptive MDAP for quality gate complexity analysis
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    SubProblem = None
 
 # Configure logging
 logger = logging.getLogger(__name__)

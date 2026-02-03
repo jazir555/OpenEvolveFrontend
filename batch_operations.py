@@ -8,7 +8,6 @@ simultaneously in the decomposition workflow.
 from typing import List, Dict, Any, Optional
 from workflow_structures import DecompositionPlan, SubProblem
 
-
 class BatchOperations:
     """Handles batch operations on sub-problems."""
     

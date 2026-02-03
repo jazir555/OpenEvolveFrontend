@@ -47,15 +47,6 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for conflict complexity analysis
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    SubProblem = None
 
 # Configure logging
 logging.basicConfig(

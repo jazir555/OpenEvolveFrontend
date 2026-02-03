@@ -25,16 +25,6 @@ from typing import Any, Dict, List, Optional, Tuple, Union, Callable
 from collections import OrderedDict
 from enum import Enum
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for cache complexity analysis
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    SubProblem = None
-
 # Configure logging
 logger = logging.getLogger(__name__)
 

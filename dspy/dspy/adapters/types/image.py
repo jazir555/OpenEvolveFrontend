@@ -50,6 +50,18 @@ class Image(Type):
         Any additional keyword arguments are passed to :class:`pydantic.BaseModel`.
         """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Image
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
         if url is not None and "url" not in data:
             # Support a positional argument while allowing ``url=`` in **data.
             if isinstance(url, dict) and set(url.keys()) == {"url"}:

@@ -38,6 +38,18 @@ class ReAct(Module):
         pred = react(question="What is the weather in Tokyo?")
         ```
         """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for React
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
         super().__init__()
         self.signature = signature = ensure_signature(signature)
         self.max_iters = max_iters

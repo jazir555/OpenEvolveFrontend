@@ -14,7 +14,6 @@ from typing import Dict, List, Optional, Tuple
 
 from sop_generator import SOPGenerator, StandardOperatingProcedure
 
-
 @dataclass(frozen=True)
 class ResearchQuestStageDefinition:
     stage_id: int

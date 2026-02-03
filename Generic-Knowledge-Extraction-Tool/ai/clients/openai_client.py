@@ -11,6 +11,18 @@ logger = logging.getLogger(__name__)
 
 class OpenAIClient:
     """OpenAI API client with support for both standard and Azure endpoints"""
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Openai Client
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
     
     def __init__(self, api_config: Optional[Dict[str, Any]] = None):
         """Initialize OpenAI client based on configuration"""

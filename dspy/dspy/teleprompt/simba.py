@@ -25,6 +25,18 @@ class SIMBA(Teleprompter):
     For more details, see: https://dspy.ai/api/optimizers/SIMBA/
     """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Simba
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     def __init__(
         self,
         *,

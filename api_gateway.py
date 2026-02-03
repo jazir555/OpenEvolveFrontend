@@ -38,7 +38,6 @@ except ImportError:
 import logging
 logger = logging.getLogger(__name__)
 
-
 class RateLimitConfig(BaseModel):
     """Rate limiting configuration."""
     requests_per_minute: int = 100

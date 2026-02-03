@@ -64,6 +64,18 @@ class PredictorFeedbackFn(Protocol):
         captured_trace: DSPyTrace,
     ) -> ScoreWithFeedback:
         """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Gepa Utils
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
         This function is used to provide feedback to a specific predictor.
         The function is called with the following arguments:
         - predictor_output: The output of the predictor.

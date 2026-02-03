@@ -10,6 +10,18 @@ logger = logging.getLogger(__name__)
 
 class ParsedField(BaseModel):
     """Represents a parsed field from text description"""
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Text Description Parser
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
     field_name: str = Field(..., description="Field name in snake_case")
     field_type: str = Field(..., description="Data type (str, int, float, bool, list, enum)")
     description: str = Field(..., description="Field description")

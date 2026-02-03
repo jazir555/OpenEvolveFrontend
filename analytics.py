@@ -9,18 +9,6 @@ import numpy as np
 from typing import Dict, Any, List
 import streamlit as st
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for analytics complexity
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    SubProblem = None
-
-
-
 def analyze_plan_quality(plan_text: str) -> Dict[str, Any]:
     """Analyze plan quality metrics.
 

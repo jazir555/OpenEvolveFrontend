@@ -33,6 +33,7 @@ def compute_output_base_metrics(y_pred: np.ndarray, y: np.ndarray) -> Dict[str, 
     Computes base metrics after filtering NaNs from predictions.
     Ensures inputs y_pred and y are treated as 1D arrays.
     """
+
     # Ensure y_pred and y are 1D arrays.
     y_pred_1d = np.asarray(y_pred).squeeze()
     y_1d = np.asarray(y).squeeze()

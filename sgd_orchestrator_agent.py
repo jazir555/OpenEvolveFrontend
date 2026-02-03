@@ -3,6 +3,7 @@
 SGD (Sovereign-Grade Decomposition) Orchestrator Agent
 Connects OpenEvolve's structured decomposition workflow with CrewAI' adaptive agentic framework
 """
+
 import asyncio
 import logging
 import json

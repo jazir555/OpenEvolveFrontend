@@ -11,6 +11,18 @@ Integrates with:
 - mdap_engine.MDAPEngine
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Execution Controller
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import time
 import uuid
 from typing import Dict, Any, Optional, Callable, List

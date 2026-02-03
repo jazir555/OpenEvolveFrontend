@@ -18,16 +18,6 @@ from reliability_config import (
     RATE_LIMITER_CONFIG,
 )
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for reliability-based complexity analysis
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    SubProblem = None
-
 logger = logging.getLogger(__name__)
 
 

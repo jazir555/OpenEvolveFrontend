@@ -16,6 +16,7 @@ class ResearchQuestEngine:
     Implements the Systematic Scientific Reasoning logic (ASR-GoT).
     Manages the 8-stage research graph evolution.
     """
+
     def __init__(self):
         self.graphs: Dict[str, EntityKnowledgeGraph] = {}
         self.metadata: Dict[str, Dict[str, Any]] = {}

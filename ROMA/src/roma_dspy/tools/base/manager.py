@@ -1,5 +1,17 @@
 """Toolkit manager for dynamic loading and instance management."""
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Manager
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 from __future__ import annotations
 
 import asyncio

@@ -9,6 +9,18 @@ class Actor(dspy.Signature):
 
     Note: You can opt to use no tools and provide the final answer directly. You can also one tool multiple times with different input queries if applicable."""
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Signatures
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     goal: str = dspy.InputField(
         prefix="Goal:",
         desc="Task to be accomplished.",

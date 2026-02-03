@@ -13,6 +13,18 @@ def majority(prediction_or_completions, normalize=default_normalize, field=None)
     In case of a tie, earlier completion are prioritized.
     """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Aggregation
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     assert any(isinstance(prediction_or_completions, t) for t in [Prediction, Completions, list])
     type(prediction_or_completions)
 

@@ -40,17 +40,6 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for CrewAI bridge complexity
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    SubProblem = None
-
-
 # =============================================================================
 # PHASE 1: SETUP - GENERATE INITIAL ALGORITHM
 # =============================================================================

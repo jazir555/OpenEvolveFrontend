@@ -31,6 +31,18 @@ class Type(pydantic.BaseModel):
         ```
     """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Base Type
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     def format(self) -> list[dict[str, Any]] | str:
         raise NotImplementedError
 

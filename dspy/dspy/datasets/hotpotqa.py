@@ -91,3 +91,15 @@ Both London and German have seen attacks during war, there was one specific type
 Pre-Madonna was a collection of demos by the singer who was a leading presence during the emergence of what network?
 Alan Mills composed the classic folk song that tells the story of what?
 """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Hotpotqa
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+

@@ -59,7 +59,6 @@ except ImportError:
 
 logger = logging.getLogger(__name__)
 
-
 class MutationType(Enum):
     """Types of mutations that can be applied to proof strategies"""
     TACTIC_SUBSTITUTION = "tactic_substitution"

@@ -23,6 +23,96 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for API Server
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: API Server
+def _trigger_api_alerts(operation, success, request_id=None, error=None, metadata=None):
+    """Trigger alerts for API server operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"API {operation} Failed",
+            message=f"API server operation '{operation}' failed: {error}",
+            severity=severity,
+            source="APIServer",
+            metadata=metadata or {"request_id": request_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger API alert: {e}")
+
+
+def _extract_api_knowledge(operation, request_id, endpoint, result):
+    """Extract knowledge from API operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        artifact = KnowledgeArtifact(
+            artifact_id=f"api_{operation}_{request_id}",
+            artifact_type="api_execution",
+            source_component="APIServer",
+            content={
+                "operation": operation,
+                "request_id": request_id,
+                "endpoint": endpoint,
+                "status": result.get("status", "unknown") if result else "unknown",
+                "success": result is not None,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract API knowledge: {e}")
+
+
+def _track_api_performance(operation, success, duration_seconds, endpoint, status_code=200):
+    """Track performance of API operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name=f"api_{endpoint}",
+            component_name="APIServer",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "endpoint": endpoint,
+                "status_code": status_code
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track API performance: {e}")
+
+
 # Import environment helpers
 from env_helpers import is_production
 
@@ -363,19 +453,46 @@ class IcrHeatmapSnapshot(BaseModel):
 
 def verify_api_key(x_api_key: str = Header(...)) -> AuthUser:
     """Verify API key from header and return user info."""
-    if x_api_key not in API_KEYS:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid API key",
-            headers={"WWW-Authenticate": "ApiKey"}
+    import time
+    start_time = time.time()
+    success = False
+
+    try:
+        if x_api_key not in API_KEYS:
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            duration = time.time() - start_time
+            _trigger_api_alerts("verify_api_key", False, None, "Invalid API key")
+            _track_api_performance("verify_api_key", False, duration, "verify_api_key", 401)
+
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid API key",
+                headers={"WWW-Authenticate": "ApiKey"}
+            )
+
+        key_info = API_KEYS[x_api_key]
+        user = AuthUser(
+            api_key=x_api_key,
+            role=key_info["role"],
+            name=key_info["name"]
         )
-    
-    key_info = API_KEYS[x_api_key]
-    return AuthUser(
-        api_key=x_api_key,
-        role=key_info["role"],
-        name=key_info["name"]
-    )
+
+        # **ACTUAL INTEGRATION**: Track performance on success
+        success = True
+        duration = time.time() - start_time
+        _track_api_performance("verify_api_key", True, duration, "verify_api_key", 200)
+
+        return user
+
+    except HTTPException:
+        # Re-raise HTTP exceptions
+        raise
+    except Exception as e:
+        # **ACTUAL INTEGRATION**: Trigger alert and track unexpected errors
+        duration = time.time() - start_time
+        _trigger_api_alerts("verify_api_key", False, None, str(e))
+        _track_api_performance("verify_api_key", False, duration, "verify_api_key", 500)
+        raise
 
 
 def require_role(required_role: UserRole):

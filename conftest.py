@@ -11,6 +11,90 @@ import pytest
 # Add frontend directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Test Configuration
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+
+# **ACTUAL INTEGRATION HELPER METHODS**: Test Configuration
+def _trigger_test_alerts(operation, success, test_id=None, error=None, metadata=None):
+    """Trigger alerts for test configuration operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        alert_mgr.trigger_alert(
+            title=f"Test Config {operation} Failed",
+            message=f"Test configuration operation '{operation}' failed: {error}",
+            severity=AlertSeverity.LOW,
+            source="TestConfig",
+            metadata=metadata or {"test_id": test_id, "operation": operation}
+        )
+    except Exception:
+        pass  # Suppress errors during test configuration
+
+
+def _extract_test_knowledge(operation, test_id, result):
+    """Extract knowledge from test operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        from datetime import datetime
+        artifact = KnowledgeArtifact(
+            artifact_id=f"test_config_{operation}_{test_id}",
+            artifact_type="test_execution",
+            source_component="TestConfig",
+            content={
+                "operation": operation,
+                "test_id": test_id,
+                "success": getattr(result, 'failed', 0) == 0,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception:
+        pass  # Suppress errors during test configuration
+
+
+def _track_test_performance(operation, success, duration_seconds):
+    """Track performance of test operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name="test_configuration",
+            component_name="TestConfig",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={}
+        )
+        tracker.record_execution(data)
+    except Exception:
+        pass  # Suppress errors during test configuration
+
 
 class TestResult:
     """Track test results for custom test reporting."""

@@ -3,6 +3,7 @@
 Scaling law discovery for LLM finetuning scenarios
 Initial program with a simple power law form that can be evolved
 """
+
 import numpy as np
 from scipy.optimize import minimize
 

@@ -8,6 +8,7 @@ Author: OpenEvolve AI System
 Version: 1.0.0
 """
 
+
 from conflict_detector import (
     ConflictDetector,
     ConflictReporter,

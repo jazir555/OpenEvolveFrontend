@@ -327,6 +327,18 @@ def get_free_port() -> int:
     """
     Return a free TCP port on localhost.
     """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Lm Local
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.bind(("localhost", 0))
         return s.getsockname()[1]

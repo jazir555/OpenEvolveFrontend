@@ -18,15 +18,6 @@ from dataclasses import dataclass
 
 from utils.entanglement_utils import normalize_entanglement_matrix, serialize_entanglement_matrix
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for CrewAI task complexity
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-
 logger = logging.getLogger(__name__)
 
 

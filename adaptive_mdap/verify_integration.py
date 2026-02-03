@@ -13,6 +13,18 @@ Usage:
     python -m adaptive_mdap.verify_integration
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Verify Integration
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import sys
 import time
 from typing import List, Dict, Any

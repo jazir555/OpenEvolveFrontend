@@ -12,6 +12,18 @@ Where:
 - k = voting threshold (grows as ln s)
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Cost Calculator
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 from typing import Dict, Any, Optional, List
 from dataclasses import dataclass
 from enum import Enum

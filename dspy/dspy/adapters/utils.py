@@ -25,6 +25,18 @@ def serialize_for_json(value: Any) -> Any:
     Returns:
         The formatted value, which is serializable as a JSON string.
     """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Utils
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
     # Attempt to format the value as a JSON-compatible object using pydantic, falling back to
     # a string representation of the value if that fails (e.g. if the value contains an object
     # that pydantic doesn't recognize or can't serialize)

@@ -28,7 +28,6 @@ from io import BytesIO
 
 logger = logging.getLogger(__name__)
 
-
 class InteractiveGraph:
     """
     Interactive graph visualization with D3.js or vis.js backend.

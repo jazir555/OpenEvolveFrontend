@@ -17,16 +17,6 @@ from enum import Enum
 
 from workflow_structures import SubProblem, DecompositionPlan, WorkflowState, SolutionAttempt
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for task complexity-based distribution
-try:
-    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
-    from adaptive_mdap.core.types import SubProblem as AdaptiveSubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    AdaptiveMDAPAllocator = None
-
 logger = logging.getLogger(__name__)
 
 

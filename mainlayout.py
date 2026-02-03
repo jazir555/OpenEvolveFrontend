@@ -96,7 +96,6 @@ try:
 except ImportError as e:
     print(f"OpenEvolve backend not available - using API-based evolution only: {e}")
 
-
 # --- Global Constants ---
 MODEL_OPTIONS = [
     "gpt-4o", "gpt-4o-mini", "gpt-4-turbo", "gpt-4", "gpt-3.5-turbo",

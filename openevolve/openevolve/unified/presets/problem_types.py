@@ -96,7 +96,7 @@ class MultiObjectivePreset(BasePreset):
     # Multi-objective parameters
     max_iterations: int = Field(default=150, description="For Pareto convergence")
     population_size: int = Field(default=600, description="For diverse Pareto front")
-    concurrency: int = Field(default=6, description="Good throughput)
+    concurrency: int = Field(default=6, description="Good throughput")
 
     def get_info(self) -> PresetInfo:
         return PresetInfo(
@@ -241,7 +241,7 @@ class FastEvaluationPreset(BasePreset):
     max_iterations: int = Field(default=500, description="Many iterations")
     population_size: int = Field(default=2000, description="Huge population")
     concurrency: int = Field(default=20, description="High parallelism")
-    timeout: int = Field(default=10, description="Short timeout)
+    timeout: int = Field(default=10, description="Short timeout")
 
     def get_info(self) -> PresetInfo:
         return PresetInfo(
@@ -310,9 +310,9 @@ class SafetyCriticalPreset(BasePreset):
 
     # Safety-critical parameters
     max_iterations: int = Field(default=250, description="Thorough validation")
-    population_size: int = Field(default=1000, description="Large population)
-    concurrency: int = Field(default=8, description="Good parallelism)
-    timeout: int = Field(default=600, description="Long timeout)
+    population_size: int = Field(default=1000, description="Large population")
+    concurrency: int = Field(default=8, description="Good parallelism")
+    timeout: int = Field(default=600, description="Long timeout")
 
     def get_info(self) -> PresetInfo:
         return PresetInfo(

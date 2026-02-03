@@ -2,6 +2,7 @@
 Comprehensive validation of all security fixes
 Tests syntax, imports, and functionality
 """
+
 import ast
 import sys
 import subprocess

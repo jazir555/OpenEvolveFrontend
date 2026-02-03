@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Verify LeanAide integration works correctly."""
+
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
 

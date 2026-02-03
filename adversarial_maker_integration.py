@@ -86,6 +86,24 @@ from workflow_structures import Team, SubProblem, WorkflowState, SolutionAttempt
 
 logger = logging.getLogger(__name__)
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Adversarial MAKER Integration
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import enterprise_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 # =============================================================================
 # ADVERSARIAL MAKER CONFIGURATION
@@ -719,6 +737,80 @@ class AdversarialCoEvolution:
 # UTILITY FUNCTIONS
 # =============================================================================
 
+# **ACTUAL INTEGRATION HELPER METHODS**: Adversarial MAKER Integration
+def _trigger_maker_adversarial_alerts(operation, success, test_id=None, error=None, metadata=None):
+    """Trigger alerts for adversarial MAKER integration operations"""
+    if not ALERTING_AVAILABLE:
+        return
+
+    try:
+        alert_mgr = get_alert_manager()
+        if success:
+            return  # No alerts for successful operations
+
+        severity = AlertSeverity.HIGH if operation == "run_maker_adversarial_testing" else AlertSeverity.MEDIUM
+        alert_mgr.trigger_alert(
+            title=f"MAKER Adversarial {operation} Failed",
+            message=f"Adversarial MAKER integration operation '{operation}' failed: {error}",
+            severity=severity,
+            source="AdversarialMAKERIntegration",
+            metadata=metadata or {"test_id": test_id, "operation": operation}
+        )
+    except Exception as e:
+        logger.warning(f"Failed to trigger MAKER adversarial alert: {e}")
+
+
+def _extract_maker_adversarial_knowledge(operation, test_id, config, result):
+    """Extract knowledge from adversarial MAKER operations"""
+    if not KNOWLEDGE_AVAILABLE:
+        return
+
+    try:
+        from datetime import datetime
+        artifact = KnowledgeArtifact(
+            artifact_id=f"maker_adv_{operation}_{test_id}",
+            artifact_type="maker_adversarial_execution",
+            source_component="AdversarialMAKERIntegration",
+            content={
+                "operation": operation,
+                "test_id": test_id,
+                "coevolution_rounds": getattr(config, 'coevolution_rounds', 0),
+                "red_team_consensus": getattr(config, 'red_team_consensus_threshold', 0),
+                "attack_findings": len(result.get("attacks", [])) if result else 0,
+                "defenses_generated": len(result.get("defenses", [])) if result else 0,
+                "success": result.get("success", True) if result else True,
+            },
+            metadata={"timestamp": datetime.utcnow().isoformat()}
+        )
+        enterprise_knowledge_engine.store_artifact(artifact)
+    except Exception as e:
+        logger.warning(f"Failed to extract MAKER adversarial knowledge: {e}")
+
+
+def _track_maker_adversarial_performance(operation, success, duration_seconds, coevolution_rounds, attacks_found=0, defenses_generated=0):
+    """Track performance of adversarial MAKER operations"""
+    if not ADAPTIVE_AVAILABLE:
+        return
+
+    try:
+        tracker = StrategyPerformanceTracker.get_instance()
+        data = StrategyPerformanceData(
+            strategy_name="maker_adversarial_coevolution",
+            component_name="AdversarialMAKERIntegration",
+            operation_name=operation,
+            success=success,
+            duration_seconds=duration_seconds,
+            metadata={
+                "coevolution_rounds": coevolution_rounds,
+                "attacks_found": attacks_found,
+                "defenses_generated": defenses_generated
+            }
+        )
+        tracker.record_execution(data)
+    except Exception as e:
+        logger.warning(f"Failed to track MAKER adversarial performance: {e}")
+
+
 def create_adversarial_maker_config(
     adversarial_config: AdversarialConfiguration
 ) -> AdversarialMAKERConfig:
@@ -769,47 +861,75 @@ def run_maker_adversarial_testing(
     Returns:
         Dict with attack findings, defense strategies, and metrics
     """
-    config = config or AdversarialConfiguration()
+    import time
+    start_time = time.time()
+    success = False
+    test_id = f"maker_adv_{hash(content) % 10000:04d}"
 
-    # Create MAKER config
-    maker_config = create_adversarial_maker_config(config)
+    try:
+        config = config or AdversarialConfiguration()
 
-    # Create red team agents
-    red_team = [
-        MAKERRedTeamAgent(
-            name=f"RedAgent{i}",
-            specializations=[IssueCategory.SECURITY_VULNERABILITY],
-            maker_config=maker_config
+        # Create MAKER config
+        maker_config = create_adversarial_maker_config(config)
+
+        # Create red team agents
+        red_team = [
+            MAKERRedTeamAgent(
+                name=f"RedAgent{i}",
+                specializations=[IssueCategory.SECURITY_VULNERABILITY],
+                maker_config=maker_config
+            )
+            for i in range(config.red_team_sample_size)
+        ]
+
+        # Create blue team agents
+        blue_team = [
+            MDAPBlueTeamAgent(
+                name=f"BlueAgent{i}",
+                mdap_config=MDAPConfig()
+            )
+            for i in range(config.blue_team_sample_size)
+        ]
+
+        # Run co-evolution
+        coevolution = AdversarialCoEvolution(maker_config, red_team, blue_team)
+        result = coevolution.run_coevolution(
+            target_content=content,
+            content_type=content_type,
+            num_rounds=maker_config.coevolution_rounds
         )
-        for i in range(config.red_team_sample_size)
-    ]
 
-    # Create blue team agents
-    blue_team = [
-        MDAPBlueTeamAgent(
-            name=f"BlueAgent{i}",
-            mdap_config=MDAPConfig()
-        )
-        for i in range(config.blue_team_sample_size)
-    ]
+        # Add metrics
+        result["config"] = {
+            "maker_enabled": True,
+            "mdap_enabled": True,
+            "coevolution_rounds": maker_config.coevolution_rounds,
+            "k_ahead": maker_config.red_team_consensus_threshold
+        }
 
-    # Run co-evolution
-    coevolution = AdversarialCoEvolution(maker_config, red_team, blue_team)
-    result = coevolution.run_coevolution(
-        target_content=content,
-        content_type=content_type,
-        num_rounds=maker_config.coevolution_rounds
-    )
+        # **ACTUAL INTEGRATION**: Extract knowledge and track performance on success
+        success = True
+        duration = time.time() - start_time
+        _extract_maker_adversarial_knowledge("run_maker_adversarial_testing", test_id, maker_config, result)
+        _track_maker_adversarial_performance("run_maker_adversarial_testing", True, duration,
+                                             maker_config.coevolution_rounds,
+                                             len(result.get("attacks", [])),
+                                             len(result.get("defenses", [])))
+        return result
 
-    # Add metrics
-    result["config"] = {
-        "maker_enabled": True,
-        "mdap_enabled": True,
-        "coevolution_rounds": maker_config.coevolution_rounds,
-        "k_ahead": maker_config.red_team_consensus_threshold
-    }
-
-    return result
+    except Exception as e:
+        duration = time.time() - start_time
+        # **ACTUAL INTEGRATION**: Trigger alert and track failure
+        _trigger_maker_adversarial_alerts("run_maker_adversarial_testing", False, test_id, str(e),
+                                          {"content_type": content_type})
+        _track_maker_adversarial_performance("run_maker_adversarial_testing", False, duration, 0, 0, 0)
+        # Re-raise the exception or return error dict
+        return {
+            "success": False,
+            "error": str(e),
+            "attacks": [],
+            "defenses": []
+        }
 
 
 # =============================================================================

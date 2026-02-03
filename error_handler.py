@@ -11,7 +11,6 @@ from dataclasses import dataclass
 from enum import Enum
 import functools
 
-
 class ErrorSeverity(Enum):
     """Error severity levels"""
     LOW = "low"

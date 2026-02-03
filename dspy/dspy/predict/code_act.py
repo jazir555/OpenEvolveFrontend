@@ -16,6 +16,18 @@ class CodeAct(ReAct, ProgramOfThought):
     CodeAct is a module that utilizes the Code Interpreter and predefined tools to solve the problem.
     """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Code Act
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
     def __init__(self, signature: str | type[Signature], tools: list[Callable], max_iters: int = 5, interpreter: PythonInterpreter | None = None):
         """
         Initializes the CodeAct class with the specified model, temperature, and max tokens.

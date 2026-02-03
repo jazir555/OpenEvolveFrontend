@@ -9,6 +9,18 @@ Key features:
 - Flat storage structure: /app → /opt/sentient
 """
 
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Roma Harbor Agent
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
+
 import json
 import os
 import shlex

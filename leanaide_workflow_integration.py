@@ -43,7 +43,6 @@ except ImportError:
 # Configure logging
 logger = logging.getLogger(__name__)
 
-
 class VerificationMethod(Enum):
     """Available verification methods."""
     LEANAIDE_FORMAL = "leanaide_formal"

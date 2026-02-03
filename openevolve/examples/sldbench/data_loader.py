@@ -4,6 +4,7 @@ Unified data loading interface for scaling law discovery.
 Dynamically loads data from the Hugging Face Hub repository 'pkuHaowei/sldbench'.
 This approach centralizes data access and ensures consistency.
 """
+
 import numpy as np
 import datasets
 from typing import Dict, Any, Tuple

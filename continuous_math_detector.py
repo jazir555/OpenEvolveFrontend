@@ -3,6 +3,7 @@ Continuous Math Detector
 Identifies mathematical content and continuous math problems
 """
 
+
 from enum import Enum
 
 

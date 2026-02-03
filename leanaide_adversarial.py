@@ -71,7 +71,6 @@ except ImportError:
     ADVERSARIAL_AVAILABLE = False
     logger.warning("Adversarial teams not available - using simplified implementation")
 
-
 class ProofApproach(Enum):
     """Different approaches to generating proofs"""
     CONSTRUCTIVE = "constructive"  # Build proof explicitly

@@ -67,6 +67,18 @@ class BootstrapFewShot(Teleprompter):
             max_errors (Optional[int]): Maximum number of errors until program ends.
                 If ``None``, inherits from ``dspy.settings.max_errors``.
         """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Bootstrap
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
         self.metric = metric
         self.metric_threshold = metric_threshold
         self.teacher_settings = {} if teacher_settings is None else teacher_settings

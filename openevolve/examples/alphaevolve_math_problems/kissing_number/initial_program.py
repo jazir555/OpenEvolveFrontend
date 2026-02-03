@@ -9,6 +9,7 @@ def kissing_number11() -> np.ndarray:
     Returns:
         points: np.ndarray of shape (num_points,11)
     """
+
     d = 11
     points = np.array([np.ones(d), -1 * np.ones(d)]).astype(np.int64)
 

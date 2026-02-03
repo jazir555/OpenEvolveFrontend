@@ -2,6 +2,7 @@
 """
 Quick syntax checker for the main files to ensure they can be imported without errors.
 """
+
 import ast
 import sys
 import os

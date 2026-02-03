@@ -32,9 +32,6 @@ except ImportError:
     VALKEY_AVAILABLE = False
     logging.warning("valkey-py not installed. EventBus will use in-memory fallback.")
 
-logger = logging.getLogger(__name__)
-
-
 class EventPriority(Enum):
     """Event priority levels."""
     CRITICAL = 0

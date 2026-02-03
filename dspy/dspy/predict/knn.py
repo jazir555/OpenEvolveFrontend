@@ -36,6 +36,18 @@ class KNN:
             similar_examples = knn(input="hello")
             ```
         """
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for Knn
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveMDAPAllocator = None
+    SubProblem = None
+
         self.k = k
         self.trainset = trainset
         self.embedding = vectorizer

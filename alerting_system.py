@@ -34,15 +34,6 @@ from enum import Enum
 import requests
 from functools import wraps
 
-# **ACTUAL INTEGRATION**: Adaptive MDAP for alert complexity analysis
-try:
-    from adaptive_mdap import TaskComplexityClassifier
-    from adaptive_mdap.core.types import SubProblem
-    ADAPTIVE_MDAP_AVAILABLE = True
-except ImportError:
-    ADAPTIVE_MDAP_AVAILABLE = False
-    TaskComplexityClassifier = None
-    SubProblem = None
 
 logger = logging.getLogger(__name__)
 
