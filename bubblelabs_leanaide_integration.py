@@ -31,7 +31,7 @@ import os
 import threading
 import time
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 from concurrent.futures import ThreadPoolExecutor
@@ -172,7 +172,7 @@ class MCTSTreeVisualization:
     iterations: int
     best_path: List[str]
     statistics: Dict[str, Any]
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for JSON serialization."""
@@ -212,7 +212,7 @@ class Lean4ProofStep:
     proof_state: str
     is_valid: bool
     error_message: Optional[str] = None
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -243,7 +243,7 @@ class Lean4ProofVisualization:
     is_verified: bool
     lean_code: str
     errors: List[str]
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""
@@ -280,7 +280,7 @@ class LeanAideExecutionResult:
     execution_time: float
     error: Optional[str]
     visualization_data: Optional[Dict[str, Any]] = None
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""

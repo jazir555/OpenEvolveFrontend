@@ -34,6 +34,25 @@ import queue
 import hashlib
 import random
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Red Team Coordinator
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 # Import existing Red Team components
 try:
     from red_team import (
@@ -426,10 +445,40 @@ class RedTeamCoordinator:
 
             logger.info(f"Session {session_id} completed: {len(session.aggregated_findings)} vulnerabilities found")
 
+            # **ACTUAL INTEGRATION**: Extract knowledge, track performance, and trigger alerts
+            session_data = {
+                "content_type": content_type,
+                "total_tasks": session.total_tasks,
+                "completed_tasks": session.completed_tasks,
+                "failed_tasks": session.failed_tasks,
+                "vulnerabilities_found": len(session.aggregated_findings),
+                "session_duration_seconds": session_duration,
+                "attack_categories": categories,
+                "use_ensemble": self.use_ensemble
+            }
+            self._extract_red_team_knowledge("coordinate_adversarial_testing", session_id, session_data)
+            self._track_red_team_performance("coordinate_adversarial_testing", True, session_duration, len(session.aggregated_findings))
+
+            # Trigger alerts if vulnerabilities were found
+            if len(session.aggregated_findings) > 0:
+                self._trigger_red_team_alerts(
+                    "coordinate_adversarial_testing",
+                    True,
+                    session_id,
+                    len(session.aggregated_findings),
+                    None,
+                    {"session_duration": session_duration}
+                )
+
         except (RuntimeError, ValueError, TypeError) as e:
             logger.error(f"Error in adversarial testing session {session_id}: {e}", exc_info=True)
             session.status = AttackTaskStatus.FAILED
             session.error = str(e)
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            session_duration = (datetime.now() - session.started_at).total_seconds() if session.started_at else 0
+            self._trigger_red_team_alerts("coordinate_adversarial_testing", False, session_id, 0, str(e))
+            self._track_red_team_performance("coordinate_adversarial_testing", False, session_duration, 0)
 
         finally:
             # Save state if enabled
@@ -928,6 +977,128 @@ Provide your analysis as a JSON object with:
         """Clear session history"""
         self.session_history.clear()
         logger.info("Cleared session history")
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Red Team Coordinator
+    # =========================================================================
+
+    def _trigger_red_team_alerts(
+        self,
+        operation: str,
+        success: bool,
+        session_id: Optional[str] = None,
+        vulnerabilities_found: int = 0,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for red team failures or critical findings."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures or when critical vulnerabilities are found
+            if not success or vulnerabilities_found > 0:
+                severity = AlertSeverity.HIGH if not success else AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Red Team {'Alert' if not success else 'Findings'}: {operation}",
+                    description=f"Red team operation '{operation}' " +
+                                 ("failed" if not success else f"found {vulnerabilities_found} vulnerabilities") +
+                                 (f" for session '{session_id}'" if session_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="red_team_coordinator",
+                    component="adversarial_testing",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Red Team alert: {e}")
+
+    def _extract_red_team_knowledge(
+        self,
+        operation: str,
+        session_id: str,
+        session_data: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract red team knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"red_team_{operation}_{session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="red_team_session",
+                source_component="red_team_coordinator",
+                title=f"Red Team Session: {session_id} ({operation})",
+                content={
+                    "operation": operation,
+                    "session_id": session_id,
+                    "content_type": session_data.get("content_type"),
+                    "total_tasks": session_data.get("total_tasks", 0),
+                    "completed_tasks": session_data.get("completed_tasks", 0),
+                    "vulnerabilities_found": session_data.get("vulnerabilities_found", 0),
+                    "session_duration_seconds": session_data.get("session_duration_seconds", 0),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "attack_categories": [str(c) for c in session_data.get("attack_categories", [])],
+                    "use_ensemble": session_data.get("use_ensemble", False)
+                },
+                tags=["red_team", "adversarial", operation, "security_testing"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Red Team knowledge for {session_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Red Team knowledge: {e}")
+            return False
+
+    def _track_red_team_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        vulnerabilities_found: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track red team operation performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on success and findings
+            quality = 1.0 if success else 0.0
+            if success and vulnerabilities_found > 0:
+                quality = min(1.0, 0.5 + (vulnerabilities_found * 0.1))
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"red_team_coordinator_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "vulnerabilities_found": vulnerabilities_found
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Red Team performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Red Team performance: {e}")
 
     def shutdown(self):
         """Shutdown the coordinator and cleanup resources"""

@@ -31,7 +31,7 @@ import logging
 import time
 import hashlib
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, List, Optional, Tuple, Union
 from concurrent.futures import ThreadPoolExecutor
@@ -140,7 +140,7 @@ class Z3SolverNodeState:
     execution_time: float = 0.0
     solution_found: bool = False
     error_message: Optional[str] = None
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -182,7 +182,7 @@ class Z3TheoremProverNodeState:
     execution_time: float = 0.0
     tactic_used: Optional[str] = None
     error_message: Optional[str] = None
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -215,7 +215,7 @@ class CrossVerificationNodeState:
     lean_details: Optional[Dict[str, Any]] = None
     execution_time: float = 0.0
     error_message: Optional[str] = None
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -249,7 +249,7 @@ class ProblemClassificationNodeState:
     reasoning: str = ""
     suggested_strategy: str = "adaptive"
     execution_time: float = 0.0
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     
     def to_dict(self) -> Dict[str, Any]:
         return {
@@ -284,7 +284,7 @@ class Z3BubbleLabsUIManager:
     
     def __init__(self):
         self._solver_states: Dict[str, Z3SolverNodeState] = {}
-        _prover_states: Dict[str, Z3TheoremProverNodeState] = {}
+        self._prover_states: Dict[str, Z3TheoremProverNodeState] = {}
         self._cross_verify_states: Dict[str, CrossVerificationNodeState] = {}
         self._classification_states: Dict[str, ProblemClassificationNodeState] = {}
         
@@ -305,7 +305,7 @@ class Z3BubbleLabsUIManager:
             "full_integration_available": FULL_INTEGRATION_AVAILABLE and self.full_integration is not None,
             "bubblelabs_leanaide_available": BUBBLELABS_LEANAIDE_AVAILABLE and self.leanaide_bridge is not None,
             "active_solver_nodes": len(self._solver_states),
-            "active_prover_nodes": len(_prover_states),
+            "active_prover_nodes": len(self._prover_states),
             "active_cross_verify_nodes": len(self._cross_verify_states),
             "active_classification_nodes": len(self._classification_states)
         }
@@ -476,7 +476,7 @@ class Z3BubbleLabsUIManager:
             status=NodeStatus.RUNNING,
             theorem_statement=theorem_statement
         )
-        _prover_states[node_id] = state
+        self._prover_states[node_id] = state
         
         try:
             if not self.z3_prover:
@@ -522,7 +522,7 @@ class Z3BubbleLabsUIManager:
     
     def get_theorem_prover_node(self, node_id: str) -> Optional[Z3TheoremProverNodeState]:
         """Get theorem prover node state."""
-        return _prover_states.get(node_id)
+        return self._prover_states.get(node_id)
     
     # =====================================================================
     # Cross-Verification Node
@@ -754,7 +754,7 @@ class Z3BubbleLabsUIManager:
             },
             "prover_nodes": {
                 node_id: state.to_dict()
-                for node_id, state in _prover_states.items()
+                for node_id, state in self._prover_states.items()
             },
             "cross_verify_nodes": {
                 node_id: state.to_dict()

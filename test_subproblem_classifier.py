@@ -12,7 +12,7 @@ Tests include:
 """
 
 import pytest
-from datetime import datetime
+from datetime import datetime, timezone
 from subproblem_classifier import (
     SubProblemType,
     ClassificationResult,
@@ -38,7 +38,7 @@ def sample_subproblem_dict():
         'status': 'pending',
         'confidence': 0.0,
         'assigned_agent': None,
-        'created_at': datetime.utcnow().isoformat(),
+        'created_at': datetime.now(timezone.utc).isoformat(),
         'completed_at': None
     }
 

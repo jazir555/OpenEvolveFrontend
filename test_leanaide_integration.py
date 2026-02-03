@@ -19,7 +19,7 @@ import os
 import sys
 import time
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 from unittest.mock import Mock, patch, MagicMock, AsyncMock
@@ -177,7 +177,7 @@ def mock_server_response():
             "task": task,
             "success": success,
             "data": data or {},
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         }
     return _response
 

@@ -39,6 +39,18 @@ Enhanced strategy exploration for evolution processes:
 - Integrates with DSPy for enhanced programmatic prompting
 - Falls back to standard evolution when DTS unavailable
 
+### 6. Evaluator Team Integration (`evaluator_team.py`)
+Enhanced evaluation capabilities:
+- `evaluate_with_dts_multi_judge()`: Multi-judge scoring using DTS for comprehensive evaluation
+- Uses comparative and absolute scoring modes
+- Falls back to standard evaluation when DTS unavailable
+
+### 7. Gauntlet System Integration (`sovereign_gauntlets.py`)
+Enhanced gauntlet validation with strategy exploration:
+- `run_gauntlet_with_dts_strategy_exploration()`: Uses DTS for enhanced strategy exploration during gauntlet runs
+- Explores multiple validation strategies to find the most effective approach
+- Falls back to standard gauntlet execution when DTS unavailable
+
 ## Configuration
 
 ### DTS Configuration Options

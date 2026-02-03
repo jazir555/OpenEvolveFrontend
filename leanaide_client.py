@@ -15,7 +15,7 @@ import logging
 from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional, Union
-from datetime import datetime
+from datetime import datetime, timezone
 
 import aiohttp
 from aiohttp import ClientTimeout, ClientSession, ClientError, ClientResponseError
@@ -49,7 +49,7 @@ class LeanAideResult:
     error: Optional[str] = None
     logs: Optional[str] = None
     response_time: float = 0.0
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert result to dictionary."""
@@ -145,10 +145,9 @@ class LeanAideClient:
         self._closed = False
 
         if self.config.enable_logging:
-            logging.basicConfig(
-                level=logging.INFO,
-                format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-            )
+            # Note: We don't call logging.basicConfig here as it's a global setting
+            # The application should configure logging. We just ensure our logger level is set.
+            logger.setLevel(logging.INFO)
 
     async def __aenter__(self):
         """Async context manager entry."""
@@ -219,7 +218,7 @@ class LeanAideClient:
         """
         url = f"{self.config.base_url}/{endpoint}"
         task_name = payload.get("task", "unknown")
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         logger.info(f"Executing task: {task_name}")
 
@@ -232,7 +231,7 @@ class LeanAideClient:
                 ) as response:
                     # Calculate response time
                     response_time = (
-                        datetime.utcnow() - start_time
+                        datetime.now(timezone.utc) - start_time
                     ).total_seconds()
 
                     # Handle different response statuses

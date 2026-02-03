@@ -19,6 +19,25 @@ import psutil
 import sqlite3
 from contextlib import contextmanager
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Monitoring System
+try:
+    from alerting_system import get_alert_manager as get_global_alert_manager, AlertSeverity
+    GLOBAL_ALERTING_AVAILABLE = True
+except ImportError:
+    GLOBAL_ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 
 logger = logging.getLogger(__name__)
 
@@ -536,35 +555,62 @@ class ObservabilityManager:
                 for key, value in system_metrics['system'].items():
                     if isinstance(value, (int, float)):
                         self.metrics_collector.set_gauge(f"system_{key}", value)
-                
+
                 # Update dashboard
                 self.dashboard.update_dashboard()
-                
+
                 # Check alert rules
-                self.alert_manager.check_metrics(self.metrics_collector)
-                
+                triggered_alerts = self.alert_manager.check_metrics(self.metrics_collector)
+
+                # **ACTUAL INTEGRATION**: Extract knowledge and trigger alerts for critical monitoring events
+                if triggered_alerts:
+                    # Get dashboard data for knowledge extraction
+                    dashboard_data = self.dashboard.get_dashboard_data()
+                    self._extract_monitoring_knowledge("monitoring_loop", {
+                        "alerts_triggered": len(triggered_alerts),
+                        "system_metrics": system_metrics,
+                        "dashboard_data": dashboard_data
+                    })
+
+                    # Trigger global alerts for critical issues
+                    critical_alerts = [a for a in triggered_alerts if a.get('severity') == 'critical']
+                    if critical_alerts:
+                        self._trigger_monitoring_alerts(
+                            "monitoring_loop",
+                            False,
+                            None,
+                            f"Critical alerts triggered: {len(critical_alerts)}",
+                            {"alerts": critical_alerts}
+                        )
+
                 time.sleep(interval)
             except (OSError, IOError, RuntimeError, ValueError) as e:
                 logger.error(f"Monitoring loop error: {e}")
+                # **ACTUAL INTEGRATION**: Trigger alert for monitoring loop error
+                self._trigger_monitoring_alerts("monitoring_loop", False, None, str(e))
                 time.sleep(interval)
     
     @contextmanager
     def trace_operation(self, operation_name: str, attributes: Dict[str, Any] = None):
         """Context manager for tracing operations"""
         span = self.tracer.start_span(operation_name)
-        
+
         if attributes:
             for key, value in attributes.items():
                 span.set_attribute(key, value)
-        
+
         try:
             yield span
+            # **ACTUAL INTEGRATION**: Track successful operation
+            self._track_monitoring_performance(f"trace_{operation_name}", True)
+            span.end("OK")
         except (OSError, IOError, RuntimeError, ValueError, TypeError) as e:
             span.set_attribute("error", str(e))
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_monitoring_alerts(f"trace_{operation_name}", False, operation_name, str(e))
+            self._track_monitoring_performance(f"trace_{operation_name}", False)
             span.end("ERROR")
             raise
-        else:
-            span.end("OK")
     
     def add_custom_metric(self, name: str, value: float, metric_type: MetricType, 
                          labels: Dict[str, str] = None):
@@ -612,6 +658,108 @@ class ObservabilityManager:
     def export_prometheus_metrics(self) -> str:
         """Export metrics in Prometheus format"""
         return self.metrics_collector.export_prometheus_format()
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Monitoring System
+    # =========================================================================
+
+    def _trigger_monitoring_alerts(
+        self,
+        operation: str,
+        success: bool,
+        metric_name: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for monitoring system failures."""
+        if not GLOBAL_ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_global_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Monitoring System Alert: {operation}",
+                    description=f"Monitoring operation '{operation}' failed" +
+                                 (f" for metric '{metric_name}'" if metric_name else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="monitoring_system",
+                    component="observability",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Monitoring alert: {e}")
+
+    def _extract_monitoring_knowledge(
+        self,
+        operation: str,
+        metrics_data: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract monitoring knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"monitoring_{operation}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="monitoring_metrics",
+                source_component="monitoring_system",
+                title=f"Monitoring Metrics: {operation}",
+                content={
+                    "operation": operation,
+                    "metrics_summary": metrics_data,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "num_metrics": len(metrics_data.get("metrics", {})),
+                    "has_alerts": len(metrics_data.get("alerts", {})) > 0
+                },
+                tags=["monitoring", "observability", operation, "metrics"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Monitoring knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Monitoring knowledge: {e}")
+            return False
+
+    def _track_monitoring_performance(
+        self,
+        operation: str,
+        success: bool
+    ):
+        """**ACTUAL INTEGRATION**: Track monitoring operation performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"monitoring_system_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"operation": operation}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Monitoring performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Monitoring performance: {e}")
 
 
 # Global observability manager instance

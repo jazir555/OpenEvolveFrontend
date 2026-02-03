@@ -10,7 +10,7 @@ Or: python test_success_criteria.py
 
 import pytest
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 
 # Import the module to test
@@ -722,7 +722,7 @@ if __name__ == "__main__":
             problem_id="test",
             solution="Test solution with security and performance features",
             score=0.8,
-            timestamp=datetime.utcnow()
+            timestamp=datetime.now(timezone.utc)
         )
 
         # Test evaluation

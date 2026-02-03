@@ -33,7 +33,7 @@ import hashlib
 import threading
 from typing import Dict, Any, List, Optional, Union, Tuple, Callable
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps, lru_cache
 from concurrent.futures import ThreadPoolExecutor
 
@@ -304,7 +304,7 @@ class ProductionKnowledgeBase:
                 
             # Add source to metadata
             metadata["source"] = source
-            metadata["timestamp"] = datetime.utcnow().isoformat()
+            metadata["timestamp"] = datetime.now(timezone.utc).isoformat()
             
             # Create document
             doc_content = text
@@ -485,7 +485,7 @@ class ProductionTripartiteSystem:
             
         result = {
             "task": task,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "success": False,
             "knowledge_used": False,
             "execution_time": 0.0,
@@ -532,7 +532,7 @@ class ProductionTripartiteSystem:
             execution_result = {
                 "response": f"[EXECUTED] {task} - Based on knowledge: {len(knowledge_results) if knowledge_results else 0} sources",
                 "reasoning": "Execution completed successfully",
-                "timestamp": datetime.utcnow().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             }
             
             # Step 4: Verify with Steer
@@ -626,7 +626,7 @@ DETAILS:
             metadata = {
                 "type": "learning_experience",
                 "verification_status": "pass" if verification_result.get('all_passed') else "fail",
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "query_length": len(query),
                 "response_length": len(response)
             }

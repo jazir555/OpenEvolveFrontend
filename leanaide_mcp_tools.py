@@ -22,7 +22,7 @@ import os
 import copy
 import socket
 from typing import Any, Dict, List, Optional, Union
-from datetime import datetime
+from datetime import datetime, timezone
 from functools import wraps
 import urllib.request
 import urllib.parse
@@ -39,8 +39,8 @@ from ace_security_utils import (
 )
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
 
 # ============================================================================
 # Configuration
@@ -482,7 +482,7 @@ def leanaide_translate_theorem(
         except ValueError as e:
             return create_safe_error("Invalid timeout", e)
 
-    start_time = datetime.now()
+    start_time = datetime.now(timezone.utc)
 
     try:
         client = get_client(host=host, port=port, timeout=timeout)
@@ -493,7 +493,7 @@ def leanaide_translate_theorem(
             timeout=timeout,
         )
 
-        execution_time = (datetime.now() - start_time).total_seconds()
+        execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         return {
             "success": True,
@@ -575,7 +575,7 @@ def leanaide_translate_definition(
         except ValueError as e:
             return create_safe_error("Invalid timeout", e)
 
-    start_time = datetime.now()
+    start_time = datetime.now(timezone.utc)
 
     try:
         client = get_client(host=host, port=port, timeout=timeout)
@@ -585,7 +585,7 @@ def leanaide_translate_definition(
             timeout=timeout,
         )
 
-        execution_time = (datetime.now() - start_time).total_seconds()
+        execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Extract Lean code from result
         lean_code = ""
@@ -683,7 +683,7 @@ def leanaide_generate_proof(
         except ValueError as e:
             return create_safe_error("Invalid timeout", e)
 
-    start_time = datetime.now()
+    start_time = datetime.now(timezone.utc)
 
     try:
         client = get_client(host=host, port=port, timeout=timeout)
@@ -694,7 +694,7 @@ def leanaide_generate_proof(
             timeout=timeout,
         )
 
-        execution_time = (datetime.now() - start_time).total_seconds()
+        execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         return {
             "success": True,
@@ -780,7 +780,7 @@ def leanaide_verify_solution(
         except ValueError as e:
             return create_safe_error("Invalid timeout", e)
 
-    start_time = datetime.now()
+    start_time = datetime.now(timezone.utc)
 
     try:
         client = get_client(host=host, port=port, timeout=timeout)
@@ -790,7 +790,7 @@ def leanaide_verify_solution(
             timeout=timeout,
         )
 
-        execution_time = (datetime.now() - start_time).total_seconds()
+        execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Extract elaboration results
         is_valid = True
@@ -906,7 +906,7 @@ def leanaide_math_query(
         except ValueError as e:
             return create_safe_error("Invalid timeout", e)
 
-    start_time = datetime.now()
+    start_time = datetime.now(timezone.utc)
 
     try:
         client = get_client(host=host, port=port, timeout=timeout)
@@ -918,7 +918,7 @@ def leanaide_math_query(
             timeout=timeout,
         )
 
-        execution_time = (datetime.now() - start_time).total_seconds()
+        execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Extract answers
         answers = []
@@ -1024,7 +1024,7 @@ def leanaide_generate_documentation(
         except ValueError as e:
             return create_safe_error("Invalid timeout", e)
 
-    start_time = datetime.now()
+    start_time = datetime.now(timezone.utc)
 
     try:
         client = get_client(host=host, port=port, timeout=timeout)
@@ -1036,7 +1036,7 @@ def leanaide_generate_documentation(
             timeout=timeout,
         )
 
-        execution_time = (datetime.now() - start_time).total_seconds()
+        execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Extract documentation
         documentation = ""
@@ -1126,7 +1126,7 @@ def leanaide_elaborate_code(
         except ValueError as e:
             return create_safe_error("Invalid timeout", e)
 
-    start_time = datetime.now()
+    start_time = datetime.now(timezone.utc)
 
     try:
         client = get_client(host=host, port=port, timeout=timeout)
@@ -1136,7 +1136,7 @@ def leanaide_elaborate_code(
             timeout=timeout,
         )
 
-        execution_time = (datetime.now() - start_time).total_seconds()
+        execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
         # Extract elaboration results
         declarations = []

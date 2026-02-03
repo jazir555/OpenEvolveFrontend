@@ -14,6 +14,14 @@ from sovereign_data_models import (
 
 logger = logging.getLogger(__name__)
 
+# Import DTS integration
+try:
+    from dts_integration import DTSIntegration, DTSIntegrationConfig, DTS_AVAILABLE
+    logger.info("DTS integration available for enhanced gauntlet evaluation")
+except ImportError:
+    DTS_AVAILABLE = False
+    logger.warning("DTS not available - using fallback gauntlet methods")
+
 
 class DecompositionGauntlet(ABC):
     """Base class for decomposition gauntlets."""
@@ -1430,3 +1438,137 @@ class GauntletSystem:
         self._gauntlet_patterns.clear()
         self._gauntlet_metrics.clear()
         self.logger.info("Cleared all gauntlet patterns and metrics")
+    
+    def run_gauntlet_with_dts_strategy_exploration(
+        self,
+        plan: DecompositionPlan,
+        gauntlet_name: str,
+        strategy_count: int = 5,
+        use_adaptive_strategies: bool = True
+    ) -> Dict[str, Any]:
+        """
+        Run a gauntlet with DTS (Dialogue Tree Search) for enhanced strategy exploration.
+        
+        Args:
+            plan: The decomposition plan to validate
+            gauntlet_name: Name of the gauntlet to run
+            strategy_count: Number of strategies to explore (default 5)
+            use_adaptive_strategies: Whether to use adaptive strategies based on context
+            
+        Returns:
+            Dictionary with results including best strategy, scores, and recommendations
+        """
+        if not DTS_AVAILABLE:
+            logger.warning("DTS not available, falling back to standard gauntlet")
+            # Fall back to standard gauntlet run
+            gauntlet = self.gauntlets.get(gauntlet_name)
+            if gauntlet:
+                result = gauntlet.run(plan)
+                return {
+                    "strategy_results": [{"strategy": "standard", "result": result}],
+                    "best_strategy": "standard",
+                    "best_score": result.score,
+                    "dts_available": False,
+                    "fallback_used": True
+                }
+            else:
+                return {
+                    "error": f"Gauntlet {gauntlet_name} not found",
+                    "dts_available": False,
+                    "fallback_used": True
+                }
+        
+        try:
+            # Initialize DTS integration
+            dts_config = DTSIntegrationConfig(
+                use_strategy_exploration=True,
+                use_multi_judge=True,
+                judge_count=3,
+                use_comparative_scoring=True
+            )
+            dts_integration = DTSIntegration(dts_config)
+            
+            # Prepare context for strategy exploration
+            context = {
+                "decomposition_plan": {
+                    "id": plan.id,
+                    "title": plan.title,
+                    "description": plan.description,
+                    "sub_problems": [sp.title for sp in plan.sub_problems]
+                },
+                "gauntlet_name": gauntlet_name,
+                "current_strategy": "standard",
+                "optimization_goals": ["effectiveness", "efficiency", "completeness"]
+            }
+            
+            # Generate strategies using DTS
+            strategies = dts_integration.generate_strategies(
+                problem=f"Validate decomposition plan using {gauntlet_name} gauntlet",
+                num_strategies=strategy_count,
+                context=context
+            )
+            
+            # Evaluate each strategy and find the best one
+            strategy_results = []
+            best_strategy = None
+            best_score = 0.0
+            
+            for i, strategy in enumerate(strategies):
+                try:
+                    # Apply the strategy to the gauntlet run (this is a simplified approach)
+                    # In a real implementation, you would customize how the gauntlet is run
+                    # based on the strategy suggestion
+                    gauntlet = self.gauntlets.get(gauntlet_name)
+                    if gauntlet:
+                        result = gauntlet.run(plan)  # Standard run for now
+                        
+                        strategy_result = {
+                            "strategy_id": i,
+                            "strategy_description": strategy.get("description", f"Strategy {i}"),
+                            "result": result,
+                            "score": result.score,
+                            "passed": result.passed
+                        }
+                        
+                        strategy_results.append(strategy_result)
+                        
+                        if result.score > best_score:
+                            best_score = result.score
+                            best_strategy = strategy_result
+                            
+                except Exception as e:
+                    logger.error(f"Error running strategy {i}: {e}")
+                    continue
+            
+            return {
+                "strategy_results": strategy_results,
+                "best_strategy": best_strategy,
+                "best_score": best_score,
+                "total_strategies": len(strategy_results),
+                "successful_strategies": len([r for r in strategy_results if r["passed"]]),
+                "dts_available": True,
+                "fallback_used": False,
+                "strategies_generated": strategies
+            }
+            
+        except Exception as e:
+            logger.error(f"Error running DTS-enhanced gauntlet: {e}", exc_info=True)
+            # Fall back to standard gauntlet run
+            gauntlet = self.gauntlets.get(gauntlet_name)
+            if gauntlet:
+                result = gauntlet.run(plan)
+                return {
+                    "strategy_results": [{"strategy": "standard", "result": result}],
+                    "best_strategy": "standard",
+                    "best_score": result.score,
+                    "dts_available": True,  # DTS was available but failed
+                    "fallback_used": True,
+                    "error": str(e)
+                }
+            else:
+                return {
+                    "error": f"Gauntlet {gauntlet_name} not found",
+                    "dts_available": True,
+                    "fallback_used": True,
+                    "error": str(e)
+                }

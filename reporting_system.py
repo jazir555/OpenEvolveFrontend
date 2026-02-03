@@ -13,6 +13,25 @@ from typing import Dict, List, Any
 from dataclasses import dataclass, asdict
 import logging
 
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Reporting System
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -70,7 +89,7 @@ class ReportGenerator:
             print(f"Failed to save historical scores: {e}")
     
     def generate_evolution_report(
-        self, 
+        self,
         run_id: str,
         evolution_mode: str,
         content_type: str,
@@ -79,38 +98,56 @@ class ReportGenerator:
         metrics: Dict[str, Any]
     ) -> EvolutionReport:
         """Generate a comprehensive evolution report."""
-        
-        # Generate performance analysis
-        performance_analysis = self._analyze_performance(results, metrics)
-        
-        # Generate recommendations
-        recommendations = self._generate_recommendations(evolution_mode, performance_analysis)
-        
-        # Generate visualizations
-        visualizations = self._generate_visualizations(results, metrics)
-        
-        # Generate summary statistics
-        summary_statistics = self._calculate_summary_statistics(results, metrics)
-        
-        # Create the report
-        report = EvolutionReport(
-            run_id=run_id,
-            timestamp=datetime.now(),
-            evolution_mode=evolution_mode,
-            content_type=content_type,
-            parameters=parameters,
-            results=results,
-            metrics=metrics,
-            performance_analysis=performance_analysis,
-            recommendations=recommendations,
-            visualizations=visualizations,
-            summary_statistics=summary_statistics
-        )
-        
-        # Store the report
-        self.reports.append(report)
-        
-        return report
+
+        try:
+            # Generate performance analysis
+            performance_analysis = self._analyze_performance(results, metrics)
+
+            # Generate recommendations
+            recommendations = self._generate_recommendations(evolution_mode, performance_analysis)
+
+            # Generate visualizations
+            visualizations = self._generate_visualizations(results, metrics)
+
+            # Generate summary statistics
+            summary_statistics = self._calculate_summary_statistics(results, metrics)
+
+            # Create the report
+            report = EvolutionReport(
+                run_id=run_id,
+                timestamp=datetime.now(),
+                evolution_mode=evolution_mode,
+                content_type=content_type,
+                parameters=parameters,
+                results=results,
+                metrics=metrics,
+                performance_analysis=performance_analysis,
+                recommendations=recommendations,
+                visualizations=visualizations,
+                summary_statistics=summary_statistics
+            )
+
+            # Store the report
+            self.reports.append(report)
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            report_data = {
+                "run_id": run_id,
+                "evolution_mode": evolution_mode,
+                "content_type": content_type,
+                "results": results,
+                "metrics": metrics
+            }
+            self._extract_reporting_knowledge("generate_evolution_report", report_data)
+            self._track_reporting_performance("generate_evolution_report", True, metrics.get("total_runtime", 0))
+
+            return report
+
+        except Exception as e:
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_reporting_alerts("generate_evolution_report", False, run_id, str(e))
+            self._track_reporting_performance("generate_evolution_report", False)
+            raise
     
     def _analyze_performance(self, results: Dict[str, Any], metrics: Dict[str, Any]) -> Dict[str, Any]:
         """Analyze performance of the evolution run."""
@@ -374,8 +411,114 @@ class ReportGenerator:
             stats["improvement_rate"] = (max(scores) - min(scores)) / len(scores)
             stats["score_std_dev"] = np.std(scores)
             stats["score_variance"] = np.var(scores)
-        
+
         return stats
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Reporting System
+    # =========================================================================
+
+    def _trigger_reporting_alerts(
+        self,
+        operation: str,
+        success: bool,
+        run_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for reporting system failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            if not success:
+                severity = AlertSeverity.LOW
+
+                alert_manager.create_alert(
+                    title=f"Reporting System Alert: {operation}",
+                    description=f"Reporting operation '{operation}' failed" +
+                                 (f" for run '{run_id}'" if run_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="reporting_system",
+                    component="report_generation",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Reporting alert: {e}")
+
+    def _extract_reporting_knowledge(
+        self,
+        operation: str,
+        report_data: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract reporting knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"reporting_{operation}_{report_data.get('run_id', 'unknown')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="evolution_report",
+                source_component="reporting_system",
+                title=f"Evolution Report: {report_data.get('run_id', 'unknown')} ({operation})",
+                content={
+                    "operation": operation,
+                    "evolution_mode": report_data.get("evolution_mode"),
+                    "content_type": report_data.get("content_type"),
+                    "best_score": report_data.get("results", {}).get("best_score", 0.0),
+                    "total_generations": report_data.get("metrics", {}).get("total_generations", 0),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "run_id": report_data.get("run_id"),
+                    "has_recommendations": len(report_data.get("recommendations", [])) > 0
+                },
+                tags=["reporting", "evolution", operation, "analysis"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Reporting knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Reporting knowledge: {e}")
+            return False
+
+    def _track_reporting_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track reporting operation performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"reporting_system_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=1.0 if success else 0.0,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"operation": operation, "duration_seconds": duration_seconds}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Reporting performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Reporting performance: {e}")
 
 
 def render_interactive_report_viewer():

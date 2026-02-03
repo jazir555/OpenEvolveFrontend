@@ -6,10 +6,30 @@ Specialized agent for verifying solutions against requirements.
 
 from typing import List, Dict, Any, Optional
 import logging
+from datetime import datetime
 
 from ragbits_integration.agents.base_agent import BaseWorkflowAgent, AgentTool
 from ragbits_integration.agents.tools.knowledge_search_tool import KnowledgeSearchTool
 from ragbits_integration.agents.tools.solution_eval_tool import SolutionEvaluationTool
+
+# **ACTUAL INTEGRATION**: Alerting and knowledge for Gold Team Agent
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -218,6 +238,22 @@ class GoldTeamAgent(BaseWorkflowAgent):
         }
 
         logger.info(f"Verification complete: passes={passes}, score={result['overall_score']}")
+
+        # **ACTUAL INTEGRATION**: Extract knowledge, track performance, and trigger alerts
+        self._extract_gold_team_knowledge("verify_solution", result)
+        self._track_gold_team_performance("verify_solution", passes, result.get("overall_score"))
+
+        # Trigger alerts for failed verifications or low scores
+        if not passes or result.get("overall_score", 0) < 7.0:
+            self._trigger_gold_team_alerts(
+                "verify_solution",
+                passes,
+                sub_problem.get("title"),
+                result.get("overall_score"),
+                None,
+                {"artifact_id": artifact_id}
+            )
+
         return result
 
     def _get_default_criteria(self, sub_problem: Dict[str, Any]) -> List[str]:
@@ -419,3 +455,118 @@ VERIFIED_FAILED - Solution does not meet requirements
             "task": task,
             "agent_metadata": self.get_metadata()
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Gold Team Agent
+    # =========================================================================
+
+    def _trigger_gold_team_alerts(
+        self,
+        operation: str,
+        success: bool,
+        sub_problem_title: Optional[str] = None,
+        score: Optional[float] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for gold team verification failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on low scores or failures
+            if not success or (score is not None and score < 7.0):
+                severity = AlertSeverity.HIGH if not success else AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Gold Team Verification Alert: {operation}",
+                    description=f"Gold team operation '{operation}' " +
+                                 ("failed" if not success else f"has low score: {score}") +
+                                 (f" for '{sub_problem_title}'" if sub_problem_title else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="gold_team_agent",
+                    component="solution_verification",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Gold Team alert: {e}")
+
+    def _extract_gold_team_knowledge(
+        self,
+        operation: str,
+        verification_result: Dict[str, Any]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract gold team knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"gold_team_{operation}_{verification_result.get('sub_problem_id', 'unknown')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="gold_team_verification",
+                source_component="gold_team_agent",
+                title=f"Gold Team Verification: {verification_result.get('sub_problem_title', 'Unknown')} ({operation})",
+                content={
+                    "operation": operation,
+                    "sub_problem_id": verification_result.get("sub_problem_id"),
+                    "sub_problem_title": verification_result.get("sub_problem_title"),
+                    "passes": verification_result.get("passes", False),
+                    "overall_score": verification_result.get("overall_score", 0),
+                    "verdict": verification_result.get("parsed", {}).get("verdict"),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "evaluation_score": verification_result.get("evaluation", {}).get("overall_score", 0),
+                    "benchmarks_used": verification_result.get("benchmarks_used", 0)
+                },
+                tags=["gold_team", "verification", operation, "quality_assurance"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Gold Team knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Gold Team knowledge: {e}")
+            return False
+
+    def _track_gold_team_performance(
+        self,
+        operation: str,
+        success: bool,
+        score: Optional[float] = None
+    ):
+        """**ACTUAL INTEGRATION**: Track gold team verification performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on pass/fail and score
+            quality = 1.0 if success else 0.0
+            if success and score is not None:
+                quality = score / 10.0  # Normalize to 0-1
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"gold_team_agent_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={"operation": operation, "score": score}
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Gold Team performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Gold Team performance: {e}")

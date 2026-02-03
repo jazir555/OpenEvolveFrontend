@@ -31,8 +31,9 @@ Additional DSPy-Enhanced Tools:
 - solve_constraint_problem_with_dspy (ACE category)
 - verify_with_z3_leanaide_dspy (Z3_PROVER category)
 - translate_with_z3_leanaide_dspy (Z3_PROVER category)
+- verify_with_robust_z3_leanaide (Z3_PROVER category)
 
-TOTAL: 117 tools across 14 categories
+TOTAL: 118 tools across 14 categories
 
 Author: OpenEvolve Team
 Version: 2.0.0
@@ -347,12 +348,12 @@ class UnifiedMCPServer:
             self.server.register_tool(registration)
     
     def register_all_tools(self) -> None:
-        """Register all 117 tools."""
-        # 14 categories, ~117 total tools (includes 10 DSPy-enhanced tools)
+        """Register all 118 tools."""
+        # 14 categories, ~118 total tools (includes 11 DSPy-enhanced tools)
         self._register_leanaide_tools()      # 9 tools
         self._register_bubblelabs_tools()    # 8 tools
         self._register_decomposition_tools() # 9 tools
-        self._register_z3_tools()            # 11 tools (9 original + 2 DSPy-enhanced)
+        self._register_z3_tools()            # 12 tools (9 original + 3 DSPy-enhanced)
         self._register_ace_tools()           # 15 tools (7 original + 8 DSPy-enhanced)
         self._register_claudiomiro_tools()   # 7 tools
         self._register_c2c_tools()           # 7 tools
@@ -1304,6 +1305,118 @@ class UnifiedMCPServer:
                               "source_format": {"type": "string", "enum": ["smtlib", "lean", "auto"]},
                               "target_format": {"type": "string", "enum": ["smtlib", "lean", "auto"]}
                           }, "required": ["source_content"]})
+
+        async def verify_with_robust_z3_leanaide(args: Dict[str, Any]) -> Dict[str, Any]:
+            """Verify problems using robust Z3-LeanAIDE integration with enhanced error handling."""
+            try:
+                from robust_z3_leanaide_integration import get_robust_z3_leanaide_bridge, VerificationStrategy
+                from dspy_integration import DSPY_AVAILABLE
+
+                problem = args.get("problem", "")
+                strategy = args.get("strategy", "adaptive")
+                timeout = args.get("timeout", 60.0)
+                enable_cross_validation = args.get("enable_cross_validation", True)
+
+                # Map strategy string to enum
+                strategy_map = {
+                    "adaptive": VerificationStrategy.ADAPTIVE,
+                    "z3_first": VerificationStrategy.Z3_FIRST,
+                    "lean_first": VerificationStrategy.LEAN_FIRST,
+                    "parallel": VerificationStrategy.PARALLEL,
+                    "consensus": VerificationStrategy.CONSENSUS
+                }
+                verification_strategy = strategy_map.get(strategy, VerificationStrategy.ADAPTIVE)
+
+                bridge = get_robust_z3_leanaide_bridge()
+
+                # Use robust verification with error handling
+                result = bridge.robust_verify_with_both(
+                    problem=problem,
+                    strategy=verification_strategy,
+                    timeout=timeout,
+                    enable_cross_validation=enable_cross_validation,
+                    enable_dspy_enhancement=DSPY_AVAILABLE
+                )
+
+                return {
+                    "success": result.success,
+                    "dspy_enhanced": DSPY_AVAILABLE,
+                    "problem": problem,
+                    "strategy_used": result.strategy_used.value,
+                    "verification_result": {
+                        "z3_result": result.z3_result.to_dict() if result.z3_result and hasattr(result.z3_result, 'to_dict') else result.z3_result,
+                        "lean_result": result.lean_result.to_dict() if result.lean_result and hasattr(result.lean_result, 'to_dict') else result.lean_result,
+                        "agreement": result.agreement,
+                        "confidence_score": result.confidence_score,
+                        "recommendation": result.recommendation,
+                        "execution_time": result.execution_time,
+                        "fallback_used": result.fallback_used,
+                        "cross_validation_passed": result.cross_validation_passed
+                    },
+                    "errors": result.errors,
+                    "warnings": result.warnings,
+                    "dspy_analysis": result.dspy_analysis,
+                    "dspy_enhanced": result.dspy_enhanced,
+                    "verification_log": result.verification_log
+                }
+            except ImportError:
+                # Fallback if robust integration not available
+                try:
+                    from z3_leanaide_bridge import Z3LeanAideBridge
+                    from dspy_integration import DSPY_AVAILABLE
+
+                    problem = args.get("problem", "")
+                    strategy = args.get("strategy", "adaptive")
+
+                    bridge = Z3LeanAideBridge()
+
+                    # Use standard verification with error handling
+                    import asyncio
+                    loop = asyncio.new_event_loop()
+                    asyncio.set_event_loop(loop)
+                    result = loop.run_until_complete(
+                        bridge.verify_with_both(
+                            problem=problem,
+                            strategy=strategy
+                        )
+                    )
+                    loop.close()
+
+                    return {
+                        "success": result.success if result else False,
+                        "dspy_enhanced": DSPY_AVAILABLE,
+                        "problem": problem,
+                        "strategy_used": result.strategy_used.value if result and hasattr(result.strategy_used, 'value') else strategy,
+                        "verification_result": {
+                            "z3_result": result.z3_result.to_dict() if result and result.z3_result and hasattr(result.z3_result, 'to_dict') else None,
+                            "lean_result": result.lean_result if result else None,
+                            "agreement": result.agreement if result else False,
+                            "confidence_score": result.confidence_score if result else 0.0,
+                            "recommendation": result.recommendation if result else "No recommendation",
+                            "execution_time": result.execution_time if result else 0.0,
+                            "fallback_used": True,
+                            "cross_validation_passed": False
+                        },
+                        "errors": result.errors if result else ["Fallback verification used"],
+                        "warnings": result.warnings if result else [],
+                        "dspy_analysis": getattr(result, 'dspy_analysis', {}) if result else {},
+                        "dspy_enhanced": getattr(result, 'dspy_enhanced', False) if result else False,
+                        "verification_log": getattr(result, 'verification_log', []) if result else []
+                    }
+                except Exception as e:
+                    return {"success": False, "error": str(e), "dspy_enhanced": False}
+            except Exception as e:
+                return {"success": False, "error": str(e), "dspy_enhanced": False}
+
+        self.register_tool("verify_with_robust_z3_leanaide", ToolCategory.Z3_PROVER,
+                          "Verify with robust Z3-LeanAIDE integration",
+                          verify_with_robust_z3_leanaide,
+                          {"type": "object", "properties": {
+                              "problem": {"type": "string"},
+                              "strategy": {"type": "string", "enum": ["adaptive", "z3_first", "lean_first", "parallel", "consensus"]},
+                              "timeout": {"type": "number", "default": 60.0},
+                              "enable_cross_validation": {"type": "boolean", "default": True}
+                          }, "required": ["problem"]})
 
     # ========================================================================
     # CATEGORY 5: ACE TOOLS (7 tools)

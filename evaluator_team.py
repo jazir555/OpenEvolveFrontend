@@ -47,6 +47,14 @@ except ImportError:
     OPENEVOLVE_AVAILABLE = False
     logger.warning("OpenEvolve backend not available - using fallback implementation")
 
+# Import DTS integration
+try:
+    from dts_integration import DTSIntegration, DTSIntegrationConfig, DTS_AVAILABLE
+    logger.info("DTS integration available for enhanced evaluation")
+except ImportError:
+    DTS_AVAILABLE = False
+    logger.warning("DTS not available - using fallback evaluation methods")
+
 from prompt_engineering import PromptEngineeringSystem
 from model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTeam
 from quality_assessment import QualityAssessmentEngine, SeverityLevel
@@ -2045,6 +2053,85 @@ class EvaluatorTeam:
             return EvaluationConfidence.MEDIUM
         else:
             return EvaluationConfidence.LOW
+
+    def evaluate_with_dts_multi_judge(self, content: str, content_type: str = "general",
+                                      custom_criteria: Optional[List[str]] = None,
+                                      num_judges: int = 5,
+                                      use_comparative_scoring: bool = True) -> Dict[str, Any]:
+        """
+        Evaluate content using DTS (Dialogue Tree Search) for multi-judge scoring.
+        
+        Args:
+            content: Content to evaluate
+            content_type: Type of content (code, document, etc.)
+            custom_criteria: Optional custom evaluation criteria
+            num_judges: Number of judges to use (default 5)
+            use_comparative_scoring: Whether to use comparative or absolute scoring
+            
+        Returns:
+            Dictionary with evaluation results including scores, consensus, and feedback
+        """
+        if not DTS_AVAILABLE:
+            logger.warning("DTS not available, falling back to standard evaluation")
+            # Fall back to standard evaluation
+            standard_result = self.evaluate_content(content, content_type)
+            return {
+                "scores": {f"judge_{i}": {"score": standard_result.consensus_score, "criteria": custom_criteria or []}
+                          for i in range(num_judges)},
+                "consensus_score": standard_result.consensus_score,
+                "consensus": "high" if standard_result.consensus_score > 70 else "medium" if standard_result.consensus_score > 50 else "low",
+                "dts_available": False,
+                "fallback_used": True,
+                "assessment_result": standard_result
+            }
+        
+        try:
+            # Initialize DTS integration
+            dts_config = DTSIntegrationConfig(
+                use_multi_judge=True,
+                judge_count=num_judges,
+                use_comparative_scoring=use_comparative_scoring
+            )
+            dts_integration = DTSIntegration(dts_config)
+            
+            # Prepare assessment context
+            assessment_context = {
+                "content": content,
+                "content_type": content_type,
+                "criteria": custom_criteria or ["quality", "accuracy", "clarity", "relevance"],
+                "scoring_mode": "comparative" if use_comparative_scoring else "absolute"
+            }
+            
+            # Run DTS multi-judge scoring
+            result = dts_integration.multi_judge_scoring(
+                content=content,
+                context=assessment_context,
+                scoring_criteria=custom_criteria or "overall quality assessment"
+            )
+            
+            return {
+                "scores": result.get("scores", {}),
+                "consensus_score": result.get("average_score", 0.0),
+                "consensus": result.get("consensus", "unknown"),
+                "dts_available": True,
+                "fallback_used": False,
+                "dts_result": result
+            }
+            
+        except Exception as e:
+            logger.error(f"Error running DTS multi-judge evaluation: {e}", exc_info=True)
+            # Fall back to standard evaluation
+            standard_result = self.evaluate_content(content, content_type)
+            return {
+                "scores": {f"judge_{i}": {"score": standard_result.consensus_score, "criteria": custom_criteria or []}
+                          for i in range(num_judges)},
+                "consensus_score": standard_result.consensus_score,
+                "consensus": "high" if standard_result.consensus_score > 70 else "medium" if standard_result.consensus_score > 50 else "low",
+                "dts_available": True,  # DTS was available but failed
+                "fallback_used": True,
+                "error": str(e),
+                "assessment_result": standard_result
+            }
 
 # Example usage and testing
 def test_evaluator_team():

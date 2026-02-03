@@ -12,7 +12,7 @@ Comprehensive test suite covering:
 """
 
 import unittest
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 
 # Import the module to test
@@ -116,7 +116,7 @@ class TestDataModels(unittest.TestCase):
             estimated_effort="medium",
             requirements=["req1", "req2"],
             constraints=["constraint1"],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         self.assertEqual(problem.title, "Test Problem")
@@ -152,7 +152,7 @@ class TestHybridStrategy(unittest.TestCase):
                 "Budget: $5000",
                 "Timeline: 3 months"
             ],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
     def test_strategy_name(self):
@@ -217,7 +217,7 @@ class TestHybridStrategy(unittest.TestCase):
             estimated_effort="small",
             requirements=[],
             constraints=[],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         with self.assertRaises(ValueError):
@@ -247,7 +247,7 @@ class TestRomaStrategy(unittest.TestCase):
                 "Presentation layer"
             ],
             constraints=["Use layered architecture"],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
     def test_strategy_name(self):
@@ -289,7 +289,7 @@ class TestRomaStrategy(unittest.TestCase):
             estimated_effort="small",
             requirements=["Write function"],
             constraints=[],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         is_atomic = self.strategy._is_atomic(atomic_problem)
@@ -332,7 +332,7 @@ class TestSemanticStrategy(unittest.TestCase):
                 "Model deployment"
             ],
             constraints=["Use Python", "Accuracy > 90%"],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
     def test_strategy_name(self):
@@ -400,7 +400,7 @@ class TestStrategySelector(unittest.TestCase):
             estimated_effort="small",
             requirements=["one requirement"],
             constraints=[],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         strategy = self.selector.select_strategy(simple_problem)
@@ -418,7 +418,7 @@ class TestStrategySelector(unittest.TestCase):
             estimated_effort="large",
             requirements=[f"Requirement {i}" for i in range(10)],
             constraints=[f"Constraint {i}" for i in range(5)],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         strategy = self.selector.select_strategy(complex_problem)
@@ -438,7 +438,7 @@ class TestStrategySelector(unittest.TestCase):
             estimated_effort="medium",
             requirements=["req1"],
             constraints=[],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         for strategy in SovereignDecompositionStrategy:
@@ -463,7 +463,7 @@ class TestDecompositionExecutor(unittest.TestCase):
             estimated_effort="medium",
             requirements=["req1", "req2"],
             constraints=["constraint1"],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
     def test_execute_hybrid_strategy(self):
@@ -531,8 +531,8 @@ class TestDecompositionExecutor(unittest.TestCase):
             sub_problems=[],
             dependencies={},
             execution_order=[],
-            created_at=datetime.utcnow(),
-            modified_at=datetime.utcnow(),
+            created_at=datetime.now(timezone.utc),
+            modified_at=datetime.now(timezone.utc),
             status=ProblemStatus.PENDING
         )
         self.assertFalse(self.executor._validate_plan(invalid_plan))
@@ -553,7 +553,7 @@ class TestConvenienceFunctions(unittest.TestCase):
             estimated_effort="small",
             requirements=["req1"],
             constraints=[],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
     def test_decompose_hybrid(self):
@@ -613,7 +613,7 @@ class TestEdgeCases(unittest.TestCase):
             estimated_effort="small",
             requirements=[],
             constraints=[],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         # Should handle gracefully (might raise error or return minimal plan)
@@ -639,7 +639,7 @@ class TestEdgeCases(unittest.TestCase):
             estimated_effort="large",
             requirements=[f"Requirement {i}" for i in range(20)],
             constraints=[f"Constraint {i}" for i in range(10)],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         plan = decompose_hybrid(problem, depth=2)
@@ -657,7 +657,7 @@ class TestEdgeCases(unittest.TestCase):
             estimated_effort="small",
             requirements=[],
             constraints=[],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         plan = decompose_semantic(problem, clusters=2)
@@ -675,7 +675,7 @@ class TestEdgeCases(unittest.TestCase):
             estimated_effort="large",
             requirements=["req1"],
             constraints=[f"Constraint {i}" for i in range(15)],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         plan = decompose_hybrid(problem, depth=2)
@@ -697,7 +697,7 @@ class TestIntegrationWithSovereignModels(unittest.TestCase):
             estimated_effort="medium",
             requirements=["req1"],
             constraints=[],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         plan = decompose_hybrid(problem, depth=2)
@@ -724,7 +724,7 @@ class TestIntegrationWithSovereignModels(unittest.TestCase):
             estimated_effort="small",
             requirements=["req1"],
             constraints=[],
-            created_at=datetime.utcnow()
+            created_at=datetime.now(timezone.utc)
         )
 
         plan = decompose_roma(problem, max_depth=2)
