@@ -4,6 +4,7 @@ Knowledge Manager Module
 
 import json
 import os
+import logging
 from typing import List, Dict, Any, Optional
 from datetime import datetime
 import hashlib
@@ -12,6 +13,21 @@ from workflow_structures import KnowledgeArtifact, WorkflowState, PerformanceMet
 from knowledge_engine.engine import KnowledgeEngine
 from knowledge_engine.core import EntityKnowledgeGraph
 from ace_knowledge_artifacts import SkillbookStore, create_refinement_template
+
+# **ACTUAL INTEGRATION**: Alerting and adaptive for Knowledge Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
+logger = logging.getLogger(__name__)
 
 
 class KnowledgeManager:
@@ -39,35 +55,53 @@ class KnowledgeManager:
 
     async def reindex_knowledge_base(self):
         """(Re)Indexes the entire knowledge_base directory using the KnowledgeEngine."""
-        print("🧠 Re-indexing the entire knowledge base...")
-        # The target structure can be generic for a full re-index
-        target_structure = "General knowledge base for software and problem solving."
-        
-        # The indexer will create a file like 'knowledge_base_index.json'
-        # inside the 'knowledge_base' directory. We want to rename it to 'main_index.json'.
-        index_output_dir = os.path.join(self.storage_path, "temp_index")
+        import time
+        start_time = time.time()
 
-        output_files = await self.engine.index_project(
-            project_path=self.storage_path,
-            target_structure=target_structure,
-            output_dir=index_output_dir
-        )
+        try:
+            print("🧠 Re-indexing the entire knowledge base...")
+            # The target structure can be generic for a full re-index
+            target_structure = "General knowledge base for software and problem solving."
 
-        if output_files:
-            # Find the created index file and move it
-            for repo_name, index_path in output_files.items():
-                # Move the first found index to be the main index
-                os.rename(index_path, self.main_index_path)
-                print(f"✅ New main index created at: {self.main_index_path}")
-                break # We only expect one
-        
-        # Clean up the temporary directory
-        if os.path.exists(index_output_dir):
-            import shutil
-            shutil.rmtree(index_output_dir)
-            
-        # Finally, load the new index into memory
-        self._load_main_index()
+            # The indexer will create a file like 'knowledge_base_index.json'
+            # inside the 'knowledge_base' directory. We want to rename it to 'main_index.json'.
+            index_output_dir = os.path.join(self.storage_path, "temp_index")
+
+            output_files = await self.engine.index_project(
+                project_path=self.storage_path,
+                target_structure=target_structure,
+                output_dir=index_output_dir
+            )
+
+            if output_files:
+                # Find the created index file and move it
+                for repo_name, index_path in output_files.items():
+                    # Move the first found index to be the main index
+                    os.rename(index_path, self.main_index_path)
+                    print(f"✅ New main index created at: {self.main_index_path}")
+                    break # We only expect one
+
+            # Clean up the temporary directory
+            if os.path.exists(index_output_dir):
+                import shutil
+                shutil.rmtree(index_output_dir)
+
+            # Finally, load the new index into memory
+            self._load_main_index()
+
+            # **ACTUAL INTEGRATION**: Track performance for successful reindexing
+            duration = time.time() - start_time
+            self._track_knowledge_manager_performance("reindex_knowledge_base", True, duration, len(self.artifacts))
+
+        except (OSError, IOError, RuntimeError) as e:
+            logger.error(f"Error reindexing knowledge base: {e}", exc_info=True)
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_knowledge_manager_alerts("reindex_knowledge_base", False, None, str(e))
+            self._track_knowledge_manager_performance("reindex_knowledge_base", False, duration, 0)
+
+            raise
     
     def _load_artifacts(self) -> Dict[str, KnowledgeArtifact]:
         if not os.path.exists(self.artifacts_file):
@@ -166,30 +200,49 @@ class KnowledgeManager:
         )
 
     def store_knowledge_artifact(self, artifact: KnowledgeArtifact):
-        self.artifacts[artifact.id] = artifact
-        self._save_artifacts()
-        
-        # Also save the content to a file so it can be indexed later
-        try:
-            if isinstance(artifact.content, dict) or isinstance(artifact.content, list):
-                file_content = json.dumps(artifact.content, indent=2)
-                extension = ".json"
-            elif isinstance(artifact.content, str):
-                file_content = artifact.content
-                extension = ".txt"
-            else:
-                file_content = str(artifact.content)
-                extension = ".txt"
+        import time
+        start_time = time.time()
 
-            # Sanitize the artifact ID to create a valid filename
-            sanitized_id = "".join(c for c in artifact.id if c.isalnum() or c in ('-', '_')).rstrip()
-            file_path = os.path.join(self.storage_path, f"{sanitized_id}{extension}")
-            
-            with open(file_path, "w", encoding="utf-8") as f:
-                f.write(file_content)
+        try:
+            self.artifacts[artifact.id] = artifact
+            self._save_artifacts()
+
+            # Also save the content to a file so it can be indexed later
+            try:
+                if isinstance(artifact.content, dict) or isinstance(artifact.content, list):
+                    file_content = json.dumps(artifact.content, indent=2)
+                    extension = ".json"
+                elif isinstance(artifact.content, str):
+                    file_content = artifact.content
+                    extension = ".txt"
+                else:
+                    file_content = str(artifact.content)
+                    extension = ".txt"
+
+                # Sanitize the artifact ID to create a valid filename
+                sanitized_id = "".join(c for c in artifact.id if c.isalnum() or c in ('-', '_')).rstrip()
+                file_path = os.path.join(self.storage_path, f"{sanitized_id}{extension}")
+
+                with open(file_path, "w", encoding="utf-8") as f:
+                    f.write(file_content)
+
+            except (OSError, IOError, TypeError) as e:
+                print(f"Warning: Could not save artifact content to file for indexing. Error: {e}")
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful storage
+            duration = time.time() - start_time
+            self._extract_knowledge_manager_knowledge("store_knowledge_artifact", artifact.id, artifact)
+            self._track_knowledge_manager_performance("store_knowledge_artifact", True, duration, 1)
 
         except (OSError, IOError, TypeError) as e:
-            print(f"Warning: Could not save artifact content to file for indexing. Error: {e}")
+            logger.error(f"Error storing knowledge artifact: {e}", exc_info=True)
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_knowledge_manager_alerts("store_knowledge_artifact", False, artifact.id if hasattr(artifact, 'id') else None, str(e))
+            self._track_knowledge_manager_performance("store_knowledge_artifact", False, duration, 0)
+
+            raise
 
     def record_adr(self, adr: Dict[str, Any], entity_ids: Optional[List[str]] = None) -> KnowledgeArtifact:
         """Store an ADR as a knowledge artifact and link to entities."""
@@ -380,3 +433,119 @@ class KnowledgeManager:
                 })
         
         return recommendations
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting and adaptive for Knowledge Manager
+    # =========================================================================
+
+    def _trigger_knowledge_manager_alerts(
+        self,
+        operation: str,
+        success: bool,
+        artifact_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for knowledge manager failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Knowledge Manager Alert: {operation}",
+                    description=f"Knowledge manager operation '{operation}' failed" +
+                                 (f" for artifact '{artifact_id}'" if artifact_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.MEDIUM.value,
+                    source="knowledge_manager",
+                    component="knowledge_storage",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Knowledge Manager alert: {e}")
+
+    def _extract_knowledge_manager_knowledge(
+        self,
+        operation: str,
+        artifact_id: str,
+        artifact: KnowledgeArtifact
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Note: Knowledge Manager is itself a knowledge component.
+        This method bridges local knowledge to the enterprise knowledge engine."""
+        try:
+            # Import here to avoid circular dependency with enterprise knowledge engine
+            from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact as EnterpriseKnowledgeArtifact
+
+            knowledge_engine = get_knowledge_engine()
+
+            enterprise_artifact = EnterpriseKnowledgeArtifact(
+                artifact_id=f"knowledge_mgr_{operation}_{artifact_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="knowledge_manager_operation",
+                source_component="knowledge_manager",
+                title=f"Knowledge Manager Operation: {operation}",
+                content={
+                    "operation": operation,
+                    "artifact_id": artifact_id,
+                    "artifact_type": artifact.artifact_type,
+                    "domain": artifact.domain,
+                    "problem_type": artifact.problem_type,
+                    "usage_count": artifact.usage_count,
+                    "effectiveness_score": artifact.effectiveness_score,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "source_workflow_id": artifact.source_workflow_id,
+                    "related_artifacts": artifact.related_artifacts
+                },
+                tags=["knowledge_manager", operation, artifact.artifact_type]
+            )
+
+            knowledge_engine.store_artifact(enterprise_artifact)
+            logger.debug(f"Extracted knowledge manager knowledge for {artifact_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract knowledge manager knowledge: {e}")
+            return False
+
+    def _track_knowledge_manager_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        artifacts_count: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track knowledge manager performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"knowledge_manager_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "artifacts_count": artifacts_count
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked knowledge manager performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track knowledge manager performance: {e}")

@@ -21,7 +21,7 @@ import re
 from typing import Dict, List, Any, Optional, Tuple, Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import tempfile
 import subprocess
@@ -1405,7 +1405,7 @@ class LeanAdversarialEvolution:
         # Store in history
         self.evolution_history.append({
             "theorem": theorem,
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "rounds": len(round_results),
             "final_proof": final_proof,
             "statistics": statistics,

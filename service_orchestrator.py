@@ -38,6 +38,25 @@ from fastapi.responses import JSONResponse
 # Uvicorn - BSD
 import uvicorn
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Service Orchestrator
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -365,43 +384,62 @@ n    - Graceful shutdown
     async def start_all(self, service_names: Optional[List[str]] = None) -> Dict[str, bool]:
         """
         Start all or specified services.
-        
+
         Returns:
             Dict mapping service name to success status
         """
+        import time
+        start_time = time.time()
+
         results = {}
         services_to_start = (
             [self.services[name] for name in service_names if name in self.services]
             if service_names
             else list(self.services.values())
         )
-        
+
         # Start services in order
         for service in services_to_start:
             logger.info(f"Starting service: {service.name}")
             success = await service.start()
             results[service.name] = success
-            
+
             if not success:
                 logger.error(f"Failed to start {service.name}")
-                
+                # **ACTUAL INTEGRATION**: Trigger alert for failed service start
+                self._trigger_service_alerts("start_service", False, service.name, "Service failed to start")
+
         # Start health check monitoring
         self._health_check_task = asyncio.create_task(self._health_monitor())
-        
+
         # Start orchestrator API
         await self._start_orchestrator_api()
-        
+
+        # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+        duration = time.time() - start_time
+        all_success = all(results.values())
+        self._extract_service_knowledge("start_all", "all_services", results)
+        self._track_service_performance("start_all", all_success, duration, len(results))
+
+        # If any service failed, trigger an alert
+        if not all_success:
+            failed_services = [name for name, success in results.items() if not success]
+            self._trigger_service_alerts("start_all", False, None, f"Some services failed: {failed_services}")
+
         return results
         
     async def stop_all(self, timeout: float = 30.0) -> Dict[str, bool]:
         """
         Stop all services gracefully.
-        
+
         Returns:
             Dict mapping service name to success status
         """
+        import time
+        start_time = time.time()
+
         results = {}
-        
+
         # Cancel health check
         if self._health_check_task:
             self._health_check_task.cancel()
@@ -409,7 +447,7 @@ n    - Graceful shutdown
                 await self._health_check_task
             except asyncio.CancelledError:
                 pass
-        
+
         # Stop services in reverse order
         for service in reversed(list(self.services.values())):
             logger.info(f"Stopping service: {service.name}")
@@ -422,8 +460,15 @@ n    - Graceful shutdown
             except asyncio.TimeoutError:
                 logger.error(f"Timeout stopping {service.name}")
                 results[service.name] = False
-                
+
         self._shutdown_event.set()
+
+        # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+        duration = time.time() - start_time
+        all_success = all(results.values())
+        self._extract_service_knowledge("stop_all", "all_services", results)
+        self._track_service_performance("stop_all", all_success, duration, len(results))
+
         return results
         
     async def _health_monitor(self) -> None:
@@ -508,7 +553,118 @@ n    - Graceful shutdown
         server = uvicorn.Server(config)
         asyncio.create_task(server.serve())
         logger.info(f"Orchestrator API started on port {port}")
-        
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Service Orchestrator
+    # =========================================================================
+
+    def _trigger_service_alerts(
+        self,
+        operation: str,
+        success: bool,
+        service_name: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for service operation failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Service Orchestrator Alert: {operation}",
+                    description=f"Service operation '{operation}' failed" +
+                                 (f" for service '{service_name}'" if service_name else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="service_orchestrator",
+                    component="service_management",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger service orchestrator alert: {e}")
+
+    def _extract_service_knowledge(
+        self,
+        operation: str,
+        service_name: str,
+        result: Dict[str, bool]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract service operation knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"svc_orch_{operation}_{service_name}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="service_operation",
+                source_component="service_orchestrator",
+                title=f"Service Operation: {operation} - {service_name}",
+                content={
+                    "operation": operation,
+                    "service_name": service_name,
+                    "results": result,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "total_services": len(result),
+                    "successful_services": sum(1 for v in result.values() if v)
+                },
+                tags=["service_orchestrator", operation, service_name]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted service orchestrator knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract service orchestrator knowledge: {e}")
+            return False
+
+    def _track_service_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        services_count: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track service operation performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"service_orchestrator_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "services_count": services_count
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked service orchestrator performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track service orchestrator performance: {e}")
+
     def get_service(self, name: str) -> Optional[ManagedService]:
         """Get a service by name."""
         return self.services.get(name)

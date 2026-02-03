@@ -2708,5 +2708,245 @@ async def ragbits_stats(user: AuthUser = Depends(verify_api_key)):
         }
 
 
+# =============================================================================
+# Adaptive MDAP Endpoints
+# =============================================================================
+
+try:
+    from adaptive_mdap import (
+        TaskComplexityClassifier,
+        AdaptiveMDAPAllocator,
+        CostCalculator,
+        APIPricing,
+        get_health_checker,
+        get_dashboard,
+        ConfigProfile,
+        get_profile_config,
+    )
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    logger.warning("Adaptive MDAP not available, endpoints disabled")
+
+
+class ComplexityRequest(BaseModel):
+    """Request to classify problem complexity."""
+    description: str
+    domain: str = "general"
+    depth: int = 0
+    dependencies: List[str] = Field(default_factory=list)
+    constraints: List[str] = Field(default_factory=list)
+    success_criteria: List[str] = Field(default_factory=list)
+
+
+class AllocationRequest(BaseModel):
+    """Request to allocate resources based on complexity."""
+    complexity_score: float = Field(..., ge=0.0, le=1.0)
+    context: Optional[Dict[str, Any]] = None
+
+
+class CostCalculationRequest(BaseModel):
+    """Request to calculate costs."""
+    num_problems: int = Field(..., ge=1, le=1000000)
+    workload_distribution: Optional[Dict[str, float]] = None
+    model: str = "gpt-4o-mini"
+
+
+@app.get("/adaptive-mdap/health", dependencies=[Depends(verify_api_key)])
+def adaptive_mdap_health():
+    """Get Adaptive MDAP system health."""
+    if not ADAPTIVE_MDAP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Adaptive MDAP not available")
+    
+    health = get_health_checker()
+    report = health.get_status_report()
+    return report
+
+
+@app.post("/adaptive-mdap/complexity", dependencies=[Depends(verify_api_key)])
+def classify_complexity(request: ComplexityRequest):
+    """Classify problem complexity."""
+    if not ADAPTIVE_MDAP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Adaptive MDAP not available")
+    
+    try:
+        from adaptive_mdap.core.types import SubProblem
+        
+        classifier = TaskComplexityClassifier()
+        
+        subproblem = SubProblem(
+            id=f"api-{uuid.uuid4().hex[:8]}",
+            description=request.description,
+            domain=request.domain,
+            depth=request.depth,
+            dependencies=request.dependencies,
+            metadata={
+                "constraints": request.constraints,
+                "success_criteria": request.success_criteria,
+            },
+        )
+        
+        complexity = classifier.compute_complexity(subproblem)
+        
+        return {
+            "overall_score": complexity.overall_score,
+            "text_length_score": complexity.text_length_score,
+            "domain_rarity_score": complexity.domain_rarity_score,
+            "depth_score": complexity.depth_score,
+            "historical_error_score": complexity.historical_error_score,
+            "dependency_score": complexity.dependency_score,
+            "keyword_score": complexity.keyword_score,
+            "constraint_score": complexity.constraint_score,
+            "feature_weights": complexity.feature_weights,
+        }
+    except Exception as e:
+        logger.error(f"Error classifying complexity: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/adaptive-mdap/allocate", dependencies=[Depends(verify_api_key)])
+def allocate_resources(request: AllocationRequest):
+    """Allocate resources based on complexity score."""
+    if not ADAPTIVE_MDAP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Adaptive MDAP not available")
+    
+    try:
+        allocator = AdaptiveMDAPAllocator()
+        
+        from adaptive_mdap.allocators.resource_allocator import AllocationContext
+        
+        context = None
+        if request.context:
+            context = AllocationContext(
+                system_load=request.context.get("system_load"),
+                budget_remaining=request.context.get("budget_remaining"),
+                quality_requirements=request.context.get("quality_requirements"),
+            )
+        
+        config = allocator.allocate_resources(request.complexity_score, context)
+        
+        return {
+            "strategy": config.strategy.value,
+            "n_agents": config.n_agents,
+            "k_ahead": config.k_ahead,
+            "max_retries": config.max_retries,
+            "timeout_ms": config.timeout_ms,
+        }
+    except Exception as e:
+        logger.error(f"Error allocating resources: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/adaptive-mdap/cost", dependencies=[Depends(verify_api_key)])
+def calculate_cost(request: CostCalculationRequest):
+    """Calculate costs for adaptive allocation."""
+    if not ADAPTIVE_MDAP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Adaptive MDAP not available")
+    
+    try:
+        # Get pricing model
+        pricing_map = {
+            "gpt-4o-mini": APIPricing.gpt_4o_mini,
+            "gpt-4o": APIPricing.gpt_4o,
+            "gpt-4": APIPricing.gpt_4,
+            "claude-3-5-sonnet": APIPricing.claude_3_5_sonnet,
+            "claude-3-5-haiku": APIPricing.claude_3_5_haiku,
+            "gemini-1-5-pro": APIPricing.gemini_1_5_pro,
+            "gemini-1-5-flash": APIPricing.gemini_1_5_flash,
+        }
+        
+        pricing = pricing_map.get(request.model, APIPricing.gpt_4o_mini)()
+        calculator = CostCalculator(pricing=pricing)
+        
+        # Get workload distribution
+        from adaptive_mdap.tools.cost_calculator import WorkloadDistribution
+        
+        if request.workload_distribution:
+            workload = WorkloadDistribution(
+                easy_percentage=request.workload_distribution.get("easy", 0.3),
+                medium_percentage=request.workload_distribution.get("medium", 0.4),
+                hard_percentage=request.workload_distribution.get("hard", 0.3),
+            )
+        else:
+            workload = WorkloadDistribution.default()
+        
+        result = calculator.calculate_adaptive_cost(request.num_problems, workload)
+        
+        return {
+            "model": request.model,
+            "num_problems": request.num_problems,
+            "baseline_cost": result["baseline_cost"],
+            "adaptive_cost": result["adaptive_cost"],
+            "savings": result["savings"],
+            "savings_percent": result["savings_percent"],
+            "breakdown": result["breakdown"],
+        }
+    except Exception as e:
+        logger.error(f"Error calculating cost: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/adaptive-mdap/dashboard", dependencies=[Depends(verify_api_key)])
+def get_adaptive_dashboard():
+    """Get Adaptive MDAP dashboard data."""
+    if not ADAPTIVE_MDAP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Adaptive MDAP not available")
+    
+    try:
+        dashboard = get_dashboard()
+        full_dashboard = dashboard.generate_full_dashboard()
+        return full_dashboard
+    except Exception as e:
+        logger.error(f"Error getting dashboard: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/adaptive-mdap/profiles", dependencies=[Depends(verify_api_key)])
+def get_adaptive_profiles():
+    """Get available configuration profiles."""
+    if not ADAPTIVE_MDAP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Adaptive MDAP not available")
+    
+    profiles = {
+        "conservative": "Favors quality over cost (lower thresholds)",
+        "balanced": "Default balance between cost and quality",
+        "aggressive": "Favors cost savings over quality (higher thresholds)",
+        "cloud_conservative": "Cloud-optimized conservative profile",
+        "cloud_balanced": "Cloud-optimized balanced profile",
+        "cloud_aggressive": "Cloud-optimized aggressive profile",
+    }
+    
+    return {
+        "profiles": profiles,
+        "default": "balanced",
+    }
+
+
+@app.get("/adaptive-mdap/profiles/{profile_name}", dependencies=[Depends(verify_api_key)])
+def get_adaptive_profile_config(profile_name: str):
+    """Get specific configuration profile."""
+    if not ADAPTIVE_MDAP_AVAILABLE:
+        raise HTTPException(status_code=503, detail="Adaptive MDAP not available")
+    
+    profile_map = {
+        "conservative": ConfigProfile.CONSERVATIVE,
+        "balanced": ConfigProfile.BALANCED,
+        "aggressive": ConfigProfile.AGGRESSIVE,
+        "cloud_conservative": ConfigProfile.CLOUD_CONSERVATIVE,
+        "cloud_balanced": ConfigProfile.CLOUD_BALANCED,
+        "cloud_aggressive": ConfigProfile.CLOUD_AGGRESSIVE,
+    }
+    
+    if profile_name not in profile_map:
+        raise HTTPException(status_code=404, detail=f"Profile not found: {profile_name}")
+    
+    try:
+        config = get_profile_config(profile_map[profile_name])
+        return config
+    except Exception as e:
+        logger.error(f"Error getting profile config: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 if __name__ == "__main__":
     start_api_server()

@@ -23,6 +23,25 @@ from sovereign_data_models import (
     EnhancedDomainContext
 )
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Domain Optimization Manager
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 logger = logging.getLogger(__name__)
 
 
@@ -243,49 +262,68 @@ class DomainOptimizationManager:
         Returns:
             Optimized decomposition plan
         """
-        config = self.get_domain_config(domain)
-        if not config:
-            logger.warning(f"No configuration found for domain '{domain}', returning original plan")
-            return plan
+        import time
+        start_time = time.time()
 
-        logger.info(f"Optimizing decomposition plan for domain: {domain}")
+        try:
+            config = self.get_domain_config(domain)
+            if not config:
+                logger.warning(f"No configuration found for domain '{domain}', returning original plan")
+                return plan
 
-        # Get vocabulary
-        vocabulary = self.get_domain_vocabulary(domain)
+            logger.info(f"Optimizing decomposition plan for domain: {domain}")
 
-        # Optimize each sub-problem
-        optimized_sub_problems = []
-        for sub_problem in plan.sub_problems:
-            optimized_sub = self._optimize_sub_problem(sub_problem, config, vocabulary)
-            optimized_sub_problems.append(optimized_sub)
+            # Get vocabulary
+            vocabulary = self.get_domain_vocabulary(domain)
 
-        # Create optimized plan
-        optimized_plan = DecompositionPlan(
-            id=plan.id,
-            problem_id=plan.problem_id,
-            strategy=plan.strategy,
-            sub_problems=optimized_sub_problems,
-            dependency_graph=plan.dependency_graph,
-            validation_checkpoints=plan.validation_checkpoints,
-            quality_scores=plan.quality_scores,
-            enhanced_quality_scores=plan.enhanced_quality_scores,
-            confidence_level=plan.confidence_level,
-            created_by=plan.created_by,
-            approved_by=plan.approved_by,
-            status=plan.status,
-            created_at=plan.created_at,
-            updated_at=datetime.now(),
-            metadata={
-                **plan.metadata,
-                'domain_optimized': True,
-                'domain': domain,
-                'optimization_applied': True
-            }
-        )
+            # Optimize each sub-problem
+            optimized_sub_problems = []
+            for sub_problem in plan.sub_problems:
+                optimized_sub = self._optimize_sub_problem(sub_problem, config, vocabulary)
+                optimized_sub_problems.append(optimized_sub)
 
-        logger.info(f"Domain optimization complete for {len(optimized_sub_problems)} sub-problems")
+            # Create optimized plan
+            optimized_plan = DecompositionPlan(
+                id=plan.id,
+                problem_id=plan.problem_id,
+                strategy=plan.strategy,
+                sub_problems=optimized_sub_problems,
+                dependency_graph=plan.dependency_graph,
+                validation_checkpoints=plan.validation_checkpoints,
+                quality_scores=plan.quality_scores,
+                enhanced_quality_scores=plan.enhanced_quality_scores,
+                confidence_level=plan.confidence_level,
+                created_by=plan.created_by,
+                approved_by=plan.approved_by,
+                status=plan.status,
+                created_at=plan.created_at,
+                updated_at=datetime.now(),
+                metadata={
+                    **plan.metadata,
+                    'domain_optimized': True,
+                    'domain': domain,
+                    'optimization_applied': True
+                }
+            )
 
-        return optimized_plan
+            logger.info(f"Domain optimization complete for {len(optimized_sub_problems)} sub-problems")
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful optimization
+            duration = time.time() - start_time
+            self._extract_domain_optimization_knowledge("optimize_decomposition", domain, plan, optimized_plan)
+            self._track_domain_optimization_performance("optimize_decomposition", True, duration, domain, len(optimized_sub_problems))
+
+            return optimized_plan
+
+        except (RuntimeError, ValueError, TypeError) as e:
+            logger.error(f"Error optimizing decomposition for domain '{domain}': {e}", exc_info=True)
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_domain_optimization_alerts("optimize_decomposition", False, domain, plan.id, str(e))
+            self._track_domain_optimization_performance("optimize_decomposition", False, duration, domain, 0)
+
+            raise
 
     def _optimize_sub_problem(
         self,
@@ -561,3 +599,123 @@ class DomainOptimizationManager:
         )
 
         return enhanced_context
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Domain Optimization Manager
+    # =========================================================================
+
+    def _trigger_domain_optimization_alerts(
+        self,
+        operation: str,
+        success: bool,
+        domain: str,
+        plan_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for domain optimization failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Domain Optimization Alert: {operation}",
+                    description=f"Domain optimization operation '{operation}' failed for domain '{domain}'" +
+                                 (f" on plan '{plan_id}'" if plan_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.MEDIUM.value,
+                    source="domain_optimization_manager",
+                    component="domain_optimization",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Domain Optimization alert: {e}")
+
+    def _extract_domain_optimization_knowledge(
+        self,
+        operation: str,
+        domain: str,
+        plan: DecompositionPlan,
+        optimized_plan: DecompositionPlan
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract domain optimization knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"domain_opt_{operation}_{domain}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="domain_optimization",
+                source_component="domain_optimization_manager",
+                title=f"Domain Optimization: {domain} ({operation})",
+                content={
+                    "operation": operation,
+                    "domain": domain,
+                    "plan_id": plan.id,
+                    "optimized_plan_id": optimized_plan.id,
+                    "original_sub_problems": len(plan.sub_problems),
+                    "optimized_sub_problems": len(optimized_plan.sub_problems),
+                    "strategy": plan.strategy,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "domain": domain,
+                    "original_confidence": plan.confidence_level,
+                    "optimized_confidence": optimized_plan.confidence_level
+                },
+                tags=["domain_optimization", domain, operation, "decomposition"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted domain optimization knowledge for {domain}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract domain optimization knowledge: {e}")
+            return False
+
+    def _track_domain_optimization_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        domain: str,
+        sub_problems_count: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track domain optimization performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"domain_optimization_{operation}_{domain}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "domain": domain,
+                    "sub_problems_count": sub_problems_count
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked domain optimization performance for {domain}")
+
+        except Exception as e:
+            logger.error(f"Failed to track domain optimization performance: {e}")

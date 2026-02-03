@@ -73,6 +73,15 @@ DTS requires API keys for LLM access:
 - `llm_base_url`: Base URL for LLM API
 - `llm_model`: Model identifier (default: "minimax/minimax-m2.1")
 
+## Optional Usage
+
+DTS integration is completely optional and transparent to users:
+- All DTS-enabled methods have equivalent fallback implementations
+- When DTS is not configured or available, the system seamlessly uses standard OpenEvolve functionality
+- Users can continue using existing interfaces without any changes
+- DTS features are only activated when explicitly called and DTS is available
+- No configuration changes are required for existing functionality to continue working
+
 ## Fallback Mechanisms
 
 All DTS integrations include robust fallback mechanisms:

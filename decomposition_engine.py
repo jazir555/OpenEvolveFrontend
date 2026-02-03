@@ -79,6 +79,16 @@ try:
 except ImportError:
     ADAPTIVE_AVAILABLE = False
 
+# Adaptive MDAP Integration
+try:
+    from adaptive_mdap.classifiers.task_complexity_classifier import TaskComplexityClassifier
+    from adaptive_mdap.core.types import SubProblem as AdaptiveSubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    TaskComplexityClassifier = None
+    AdaptiveSubProblem = None
+
 
 class DecompositionStrategyBase(ABC):
     """Base class for decomposition strategies."""

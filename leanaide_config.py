@@ -977,6 +977,10 @@ class LeanAideConfigLoader:
         logging_data = self._raw_config.get("logging", {})
         security_data = self._raw_config.get("security", {})
         performance_data = self._raw_config.get("performance", {})
+        mdap_mcts_data = self._raw_config.get("mdap_mcts", {})
+        mdap_evolution_data = self._raw_config.get("mdap_evolution", {})
+        mdap_adversarial_data = self._raw_config.get("mdap_adversarial", {})
+        mdap_selfplay_data = self._raw_config.get("mdap_selfplay", {})
 
         # Server config
         server = LeanAideServerConfig(
@@ -1089,6 +1093,93 @@ class LeanAideConfigLoader:
             parallel_import_processing=get_value("performance", "parallel_import_processing", "bool", performance_data.get("parallel_import_processing", True)),
         )
 
+        # MDAP-MCTS config
+        mdap_mcts = LeanAideMDAPMCTSConfig(
+            mdap_enabled=get_value("mdap_mcts", "mdap_enabled", "bool", mdap_mcts_data.get("mdap_enabled", True)),
+            mdap_num_agents=get_value("mdap_mcts", "mdap_num_agents", "int", mdap_mcts_data.get("mdap_num_agents", 4), min_val=1),
+            mdap_agent_types=get_value("mdap_mcts", "mdap_agent_types", "list", mdap_mcts_data.get("mdap_agent_types", ["evolution", "mcts", "adversarial", "self_play"])),
+            mdap_voting_strategy=get_value("mdap_mcts", "mdap_voting_strategy", "str", mdap_mcts_data.get("mdap_voting_strategy", "first_k_ahead")),
+            mdap_k_ahead=get_value("mdap_mcts", "mdap_k_ahead", "int", mdap_mcts_data.get("mdap_k_ahead", 3), min_val=1),
+            mdap_consensus_threshold=get_value("mdap_mcts", "mdap_consensus_threshold", "float", mdap_mcts_data.get("mdap_consensus_threshold", 0.6), min_val=0.0, max_val=1.0),
+            mcts_enabled=get_value("mdap_mcts", "mcts_enabled", "bool", mdap_mcts_data.get("mcts_enabled", True)),
+            mcts_iterations=get_value("mdap_mcts", "mcts_iterations", "int", mdap_mcts_data.get("mcts_iterations", 100), min_val=1),
+            mcts_time_budget=get_value("mdap_mcts", "mcts_time_budget", "float", mdap_mcts_data.get("mcts_time_budget", 30.0), min_val=0.1),
+            mcts_c_param=get_value("mdap_mcts", "mcts_c_param", "float", mdap_mcts_data.get("mcts_c_param", 1.414), min_val=0.1),
+            mcts_rollout_depth=get_value("mdap_mcts", "mcts_rollout_depth", "int", mdap_mcts_data.get("mcts_rollout_depth", 100), min_val=1),
+            mcts_parallel_simulations=get_value("mdap_mcts", "mcts_parallel_simulations", "int", mdap_mcts_data.get("mcts_parallel_simulations", 4), min_val=1),
+            hybrid_mode=get_value("mdap_mcts", "hybrid_mode", "str", mdap_mcts_data.get("hybrid_mode", "mcts_then_mdap")),
+            hybrid_ratio=get_value("mdap_mcts", "hybrid_ratio", "float", mdap_mcts_data.get("hybrid_ratio", 0.5), min_val=0.0, max_val=1.0),
+            agent_weight_bonus=get_value("mdap_mcts", "agent_weight_bonus", "float", mdap_mcts_data.get("agent_weight_bonus", 0.3), min_val=0.0, max_val=1.0),
+            enable_mdap_selection=get_value("mdap_mcts", "enable_mdap_selection", "bool", mdap_mcts_data.get("enable_mdap_selection", True)),
+            enable_mdap_expansion=get_value("mdap_mcts", "enable_mdap_expansion", "bool", mdap_mcts_data.get("enable_mdap_expansion", True)),
+            enable_mdap_simulation=get_value("mdap_mcts", "enable_mdap_simulation", "bool", mdap_mcts_data.get("enable_mdap_simulation", False)),
+            track_agent_performance=get_value("mdap_mcts", "track_agent_performance", "bool", mdap_mcts_data.get("track_agent_performance", True)),
+            track_voting_statistics=get_value("mdap_mcts", "track_voting_statistics", "bool", mdap_mcts_data.get("track_voting_statistics", True)),
+            track_convergence_rates=get_value("mdap_mcts", "track_convergence_rates", "bool", mdap_mcts_data.get("track_convergence_rates", True)),
+            log_agent_decisions=get_value("mdap_mcts", "log_agent_decisions", "bool", mdap_mcts_data.get("log_agent_decisions", False)),
+            adaptive_agent_weights=get_value("mdap_mcts", "adaptive_agent_weights", "bool", mdap_mcts_data.get("adaptive_agent_weights", True)),
+            progressive_widening=get_value("mdap_mcts", "progressive_widening", "bool", mdap_mcts_data.get("progressive_widening", True)),
+            transposition_table=get_value("mdap_mcts", "transposition_table", "bool", mdap_mcts_data.get("transposition_table", True)),
+            amaf_enabled=get_value("mdap_mcts", "amaf_enabled", "bool", mdap_mcts_data.get("amaf_enabled", True)),
+            amaf_alpha=get_value("mdap_mcts", "amaf_alpha", "float", mdap_mcts_data.get("amaf_alpha", 0.5), min_val=0.0, max_val=1.0),
+        )
+
+        # MDAP-Evolution config
+        mdap_evolution = LeanAideMDAPEvolutionConfig(
+            evolution_population_size=get_value("mdap_evolution", "evolution_population_size", "int", mdap_evolution_data.get("evolution_population_size", 20), min_val=1),
+            evolution_max_generations=get_value("mdap_evolution", "evolution_max_generations", "int", mdap_evolution_data.get("evolution_max_generations", 20), min_val=1),
+            evolution_mutation_rate=get_value("mdap_evolution", "evolution_mutation_rate", "float", mdap_evolution_data.get("evolution_mutation_rate", 0.1), min_val=0.0, max_val=1.0),
+            evolution_crossover_rate=get_value("mdap_evolution", "evolution_crossover_rate", "float", mdap_evolution_data.get("evolution_crossover_rate", 0.8), min_val=0.0, max_val=1.0),
+            evolution_elitism_ratio=get_value("mdap_evolution", "evolution_elitism_ratio", "float", mdap_evolution_data.get("evolution_elitism_ratio", 0.1), min_val=0.0, max_val=1.0),
+            evolution_selection_method=get_value("mdap_evolution", "evolution_selection_method", "str", mdap_evolution_data.get("evolution_selection_method", "tournament")),
+            mdap_enabled=get_value("mdap_evolution", "mdap_enabled", "bool", mdap_evolution_data.get("mdap_enabled", True)),
+            mdap_num_agents=get_value("mdap_evolution", "mdap_num_agents", "int", mdap_evolution_data.get("mdap_num_agents", 4), min_val=1),
+            mdap_agent_types=get_value("mdap_evolution", "mdap_agent_types", "list", mdap_evolution_data.get("mdap_agent_types", ["evolution", "mcts", "adversarial", "self_play"])),
+            mdap_voting_strategy=get_value("mdap_evolution", "mdap_voting_strategy", "str", mdap_evolution_data.get("mdap_voting_strategy", "first_k_ahead")),
+            mdap_k_ahead=get_value("mdap_evolution", "mdap_k_ahead", "int", mdap_evolution_data.get("mdap_k_ahead", 3), min_val=1),
+            mdap_consensus_threshold=get_value("mdap_evolution", "mdap_consensus_threshold", "float", mdap_evolution_data.get("mdap_consensus_threshold", 0.6), min_val=0.0, max_val=1.0),
+            hybrid_mode=get_value("mdap_evolution", "hybrid_mode", "str", mdap_evolution_data.get("hybrid_mode", "mcts_then_mdap")),
+            hybrid_ratio=get_value("mdap_evolution", "hybrid_ratio", "float", mdap_evolution_data.get("hybrid_ratio", 0.5), min_val=0.0, max_val=1.0),
+            enable_mdap_parent_selection=get_value("mdap_evolution", "enable_mdap_parent_selection", "bool", mdap_evolution_data.get("enable_mdap_parent_selection", True)),
+            enable_mdap_crossover=get_value("mdap_evolution", "enable_mdap_crossover", "bool", mdap_evolution_data.get("enable_mdap_crossover", True)),
+            enable_mdap_mutation=get_value("mdap_evolution", "enable_mdap_mutation", "bool", mdap_evolution_data.get("enable_mdap_mutation", True)),
+            track_mdap_vs_pure=get_value("mdap_evolution", "track_mdap_vs_pure", "bool", mdap_evolution_data.get("track_mdap_vs_pure", True)),
+            track_agent_contributions=get_value("mdap_evolution", "track_agent_contributions", "bool", mdap_evolution_data.get("track_agent_contributions", True)),
+            track_voting_statistics=get_value("mdap_evolution", "track_voting_statistics", "bool", mdap_evolution_data.get("track_voting_statistics", True)),
+            track_convergence_rates=get_value("mdap_evolution", "track_convergence_rates", "bool", mdap_evolution_data.get("track_convergence_rates", True)),
+            log_agent_decisions=get_value("mdap_evolution", "log_agent_decisions", "bool", mdap_evolution_data.get("log_agent_decisions", False)),
+            adaptive_agent_weights=get_value("mdap_evolution", "adaptive_agent_weights", "bool", mdap_evolution_data.get("adaptive_agent_weights", True)),
+            progressive_widening=get_value("mdap_evolution", "progressive_widening", "bool", mdap_evolution_data.get("progressive_widening", True)),
+            enable_seeding=get_value("mdap_evolution", "enable_seeding", "bool", mdap_evolution_data.get("enable_seeding", True)),
+            seed_population_ratio=get_value("mdap_evolution", "seed_population_ratio", "float", mdap_evolution_data.get("seed_population_ratio", 0.3), min_val=0.0, max_val=1.0),
+        )
+
+        # MDAP-Adversarial config
+        mdap_adversarial = LeanAideAdversarialMDAPConfig(
+            blue_team_mdap_enabled=get_value("mdap_adversarial", "blue_team_mdap_enabled", "bool", mdap_adversarial_data.get("blue_team_mdap_enabled", True)),
+            blue_team_agents=get_value("mdap_adversarial", "blue_team_agents", "int", mdap_adversarial_data.get("blue_team_agents", 3), min_val=1),
+            blue_team_voting=get_value("mdap_adversarial", "blue_team_voting", "str", mdap_adversarial_data.get("blue_team_voting", "first_k_ahead")),
+            red_team_mdap_enabled=get_value("mdap_adversarial", "red_team_mdap_enabled", "bool", mdap_adversarial_data.get("red_team_mdap_enabled", True)),
+            red_team_agents=get_value("mdap_adversarial", "red_team_agents", "int", mdap_adversarial_data.get("red_team_agents", 3), min_val=1),
+            red_team_voting=get_value("mdap_adversarial", "red_team_voting", "str", mdap_adversarial_data.get("red_team_voting", "weighted")),
+            track_consensus_rate=get_value("mdap_adversarial", "track_consensus_rate", "bool", mdap_adversarial_data.get("track_consensus_rate", True)),
+            min_consensus_threshold=get_value("mdap_adversarial", "min_consensus_threshold", "float", mdap_adversarial_data.get("min_consensus_threshold", 0.7), min_val=0.0, max_val=1.0),
+            adversarial_rounds=get_value("mdap_adversarial", "adversarial_rounds", "int", mdap_adversarial_data.get("adversarial_rounds", 5), min_val=1),
+            round_timeout=get_value("mdap_adversarial", "round_timeout", "float", mdap_adversarial_data.get("round_timeout", 60.0), min_val=1.0),
+        )
+
+        # MDAP-SelfPlay config
+        mdap_selfplay = LeanAideSelfPlayMDAPConfig(
+            self_play_episodes=get_value("mdap_selfplay", "self_play_episodes", "int", mdap_selfplay_data.get("self_play_episodes", 50), min_val=1),
+            agents_per_game=get_value("mdap_selfplay", "agents_per_game", "int", mdap_selfplay_data.get("agents_per_game", 4), min_val=1),
+            learning_rate=get_value("mdap_selfplay", "learning_rate", "float", mdap_selfplay_data.get("learning_rate", 0.01), min_val=0.0, max_val=1.0),
+            mdap_strategy_selection=get_value("mdap_selfplay", "mdap_strategy_selection", "bool", mdap_selfplay_data.get("mdap_strategy_selection", True)),
+            consensus_policy_updates=get_value("mdap_selfplay", "consensus_policy_updates", "bool", mdap_selfplay_data.get("consensus_policy_updates", True)),
+            voting_weight=get_value("mdap_selfplay", "voting_weight", "float", mdap_selfplay_data.get("voting_weight", 0.7), min_val=0.0, max_val=1.0),
+            exploration_rate=get_value("mdap_selfplay", "exploration_rate", "float", mdap_selfplay_data.get("exploration_rate", 0.3), min_val=0.0, max_val=1.0),
+            exploration_decay=get_value("mdap_selfplay", "exploration_decay", "float", mdap_selfplay_data.get("exploration_decay", 0.995), min_val=0.0, max_val=1.0),
+        )
+
         # Global settings
         enabled = get_value("", "enabled", "bool", self._raw_config.get("enabled", True))
         environment = get_value("", "environment", "str", self._raw_config.get("environment", "development"))
@@ -1102,6 +1193,10 @@ class LeanAideConfigLoader:
             logging=logging_config,
             security=security,
             performance=performance,
+            mdap_mcts=mdap_mcts,
+            mdap_evolution=mdap_evolution,
+            mdap_adversarial=mdap_adversarial,
+            mdap_selfplay=mdap_selfplay,
             enabled=enabled,
             environment=environment,
         )

@@ -85,6 +85,23 @@ from adaptive_mdap.integrations.subproblem_solver_integration import (
     create_adaptive_solver,
 )
 
+try:
+    from adaptive_mdap.integrations.workflow_engine_integration import (
+        AdaptiveWorkflowIntegration,
+        AdaptiveWorkflowConfig,
+        get_adaptive_workflow,
+        configure_adaptive_workflow,
+        adaptive_solve_subproblem,
+    )
+    WORKFLOW_INTEGRATION_AVAILABLE = True
+except ImportError:
+    WORKFLOW_INTEGRATION_AVAILABLE = False
+    AdaptiveWorkflowIntegration = None
+    AdaptiveWorkflowConfig = None
+    get_adaptive_workflow = None
+    configure_adaptive_workflow = None
+    adaptive_solve_subproblem = None
+
 # Tools
 from adaptive_mdap.tools.cost_calculator import (
     CostCalculator,
@@ -183,6 +200,11 @@ __all__ = [
     "AdaptiveSubProblemSolver",
     "AdaptiveSolverConfig",
     "create_adaptive_solver",
+    "AdaptiveWorkflowIntegration",
+    "AdaptiveWorkflowConfig",
+    "get_adaptive_workflow",
+    "configure_adaptive_workflow",
+    "adaptive_solve_subproblem",
     
     # Tools
     "CostCalculator",

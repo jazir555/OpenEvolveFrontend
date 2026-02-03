@@ -5,7 +5,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 from openevolve_structures import Team, ModelConfig
 
-# **ACTUAL INTEGRATION**: Alerting and knowledge for team operations
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for team operations
 try:
     from alerting_system import get_alert_manager, AlertSeverity
     ALERTING_AVAILABLE = True
@@ -17,6 +17,12 @@ try:
     KNOWLEDGE_AVAILABLE = True
 except ImportError:
     KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 TEAMS_FILE = "teams.json" # Name of the file used for persisting team data.
 logger = logging.getLogger(__name__)
@@ -301,3 +307,40 @@ class TeamManager:
         except Exception as e:
             logger.error(f"Failed to extract team knowledge: {e}")
             return False
+
+    def _track_team_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        team_name: str
+    ):
+        """**ACTUAL INTEGRATION**: Track team operation performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"team_{operation}_{team_name}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "team_name": team_name
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked team performance for {team_name} - {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track team performance: {e}")

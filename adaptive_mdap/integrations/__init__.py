@@ -4,6 +4,7 @@ Integrations for Adaptive MDAP.
 Provides integration with:
 - CrewAI for orchestration
 - SubProblemSolver for existing solver integration
+- WorkflowEngine for workflow orchestration
 - Cloud APIs for cost calculation
 """
 
@@ -17,6 +18,23 @@ from adaptive_mdap.integrations.subproblem_solver_integration import (
     AdaptiveSolverConfig,
     create_adaptive_solver,
 )
+
+try:
+    from adaptive_mdap.integrations.workflow_engine_integration import (
+        AdaptiveWorkflowIntegration,
+        AdaptiveWorkflowConfig,
+        get_adaptive_workflow,
+        configure_adaptive_workflow,
+        adaptive_solve_subproblem,
+    )
+    WORKFLOW_INTEGRATION_AVAILABLE = True
+except ImportError:
+    WORKFLOW_INTEGRATION_AVAILABLE = False
+    AdaptiveWorkflowIntegration = None
+    AdaptiveWorkflowConfig = None
+    get_adaptive_workflow = None
+    configure_adaptive_workflow = None
+    adaptive_solve_subproblem = None
 
 try:
     from adaptive_mdap.integrations.cloud_api_client import (
@@ -39,6 +57,12 @@ __all__ = [
     "AdaptiveSubProblemSolver",
     "AdaptiveSolverConfig",
     "create_adaptive_solver",
+    # Workflow Engine Integration
+    "AdaptiveWorkflowIntegration",
+    "AdaptiveWorkflowConfig",
+    "get_adaptive_workflow",
+    "configure_adaptive_workflow",
+    "adaptive_solve_subproblem",
 ]
 
 if CLOUD_API_AVAILABLE:

@@ -99,6 +99,12 @@ try:
 except ImportError:
     KNOWLEDGE_AVAILABLE = False
 
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -501,9 +507,28 @@ class EvaluatorTeamCoordinator:
         try:
             self._execute_evaluation_tasks_parallel(session)
             session.status = EvaluationTaskStatus.COMPLETED
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful coordination
+            passed_tasks = [t for t in session.tasks if t.status == EvaluationTaskStatus.COMPLETED]
+            pass_rate = len(passed_tasks) / max(session.total_tasks, 1) if session.total_tasks > 0 else 0.0
+            self._extract_evaluator_knowledge("coordinate_solution_evaluations", session)
+            self._track_evaluator_performance("coordinate_solution_evaluations", True, session.total_tasks, pass_rate)
+
         except (RuntimeError, ValueError, TypeError, KeyError) as e:
             logger.error(f"Error during evaluation execution: {e}")
             session.status = EvaluationTaskStatus.FAILED
+
+            # **ACTUAL INTEGRATION**: Track performance and trigger alert for failures
+            self._track_evaluator_performance("coordinate_solution_evaluations", False, session.total_tasks, 0.0)
+            self._trigger_evaluator_alerts(
+                "coordinate_solution_evaluations",
+                False,
+                session.session_id,
+                session.total_tasks,
+                0,
+                str(e)
+            )
+
         finally:
             session.completed_at = datetime.now()
             self._update_session_metrics(session)
@@ -2065,6 +2090,137 @@ class DecompositionEvaluationBridge:
 
         # Return top recommendations by frequency
         return [rec for rec, _ in rec_counts.most_common(20)]
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Evaluator Team Coordinator
+    # =========================================================================
+
+    def _trigger_evaluator_alerts(
+        self,
+        operation: str,
+        success: bool,
+        session_id: Optional[str] = None,
+        num_tasks: int = 0,
+        num_passed: int = 0,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for evaluation coordination failures or low pass rates."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures or low pass rates
+            pass_rate = num_passed / max(num_tasks, 1) if num_tasks > 0 else 0.0
+            if not success or pass_rate < 0.5:
+                severity = AlertSeverity.HIGH if not success else AlertSeverity.MEDIUM
+
+                alert_manager.create_alert(
+                    title=f"Evaluator Team Coordinator Alert: {operation}",
+                    description=f"Evaluator coordination operation '{operation}' " +
+                                 ("failed" if not success else f"has low pass rate: {pass_rate:.2%}") +
+                                 (f" for session '{session_id}'" if session_id else "") +
+                                 f" ({num_passed}/{num_tasks} tasks passed)" +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=severity.value,
+                    source="evaluator_team_coordinator",
+                    component="evaluation_coordination",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger Evaluator Team alert: {e}")
+
+    def _extract_evaluator_knowledge(
+        self,
+        operation: str,
+        session: EvaluationSession
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract evaluator coordination knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            # Calculate metrics
+            passed_tasks = [t for t in session.tasks if t.status == EvaluationTaskStatus.COMPLETED]
+            failed_tasks = [t for t in session.tasks if t.status == EvaluationTaskStatus.FAILED]
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"evaluator_coord_{operation}_{session.session_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="evaluator_coordination",
+                source_component="evaluator_team_coordinator",
+                title=f"Evaluator Coordination: {operation} ({session.session_id})",
+                content={
+                    "operation": operation,
+                    "session_id": session.session_id,
+                    "num_tasks": session.total_tasks,
+                    "num_passed": len(passed_tasks),
+                    "num_failed": len(failed_tasks),
+                    "pass_rate": len(passed_tasks) / max(session.total_tasks, 1) if session.total_tasks > 0 else 0.0,
+                    "consensus_method": session.consensus_method.value if session.consensus_method else "unknown",
+                    "status": session.status.value if session.status else "unknown",
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "average_consensus_score": statistics.mean([t.consensus_score for t in session.tasks]) if session.tasks else 0.0,
+                    "validation_rate": len(passed_tasks) / max(session.total_tasks, 1) if session.total_tasks > 0 else 0.0,
+                    "failed_sub_problems": [t.sub_problem_id for t in failed_tasks]
+                },
+                tags=["evaluator", "coordination", operation]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted Evaluator Coordination knowledge for {operation}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract Evaluator Coordination knowledge: {e}")
+            return False
+
+    def _track_evaluator_performance(
+        self,
+        operation: str,
+        success: bool,
+        num_tasks: int = 0,
+        pass_rate: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track evaluator coordination performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            # Quality based on success and pass rate
+            quality = 0.5 if success else 0.0
+            if success:
+                quality = pass_rate
+            quality = max(quality, 0.0)
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"evaluator_coordinator_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "num_tasks": num_tasks,
+                    "pass_rate": pass_rate
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked Evaluator Coordination performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track Evaluator Coordination performance: {e}")
 
 
 # =============================================================================

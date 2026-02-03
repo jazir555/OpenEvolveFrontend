@@ -19,6 +19,7 @@ import json
 import logging
 import time
 import hashlib
+import uuid
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple, Union
 from enum import Enum
@@ -320,7 +321,7 @@ class LeanAideAutoformalizationEngine:
             domain = self._infer_domain(natural_language)
             
             mdap_task = LeanMDAPTask(
-                task_id=f"autoformalize_{int(time.time())}",
+                task_id=f"autoformalize_{uuid.uuid4()}",
                 description=f"Autoformalize: {natural_language}",
                 theorem_statement=natural_language,
                 domain=domain,

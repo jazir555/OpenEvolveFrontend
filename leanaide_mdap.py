@@ -39,6 +39,7 @@ import os
 import pickle
 import random
 import time
+import uuid
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
@@ -2076,7 +2077,7 @@ class CheckpointManager:
             # Create partial result
             result = LeanMDAPResult(
                 task_id=task_id,
-                execution_id=f"checkpointed_{int(time.time())}",
+                execution_id=f"checkpointed_{uuid.uuid4()}",
                 theorem_statement="",
                 domain=LeanDomain.GENERAL,
                 success=False,

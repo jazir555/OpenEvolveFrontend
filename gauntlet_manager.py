@@ -6,7 +6,7 @@ from typing import List, Optional, Dict, Any
 from datetime import datetime
 from openevolve_structures import GauntletDefinition, GauntletRoundRule
 
-# **ACTUAL INTEGRATION**: Alerting and knowledge for gauntlet operations
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for gauntlet operations
 try:
     from alerting_system import get_alert_manager, AlertSeverity
     ALERTING_AVAILABLE = True
@@ -18,6 +18,12 @@ try:
     KNOWLEDGE_AVAILABLE = True
 except ImportError:
     KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
 
 GAUNTLETS_FILE = "gauntlets.json" # Name of the file used for persisting gauntlet data.
 logger = logging.getLogger(__name__)
@@ -178,6 +184,45 @@ class GauntletManager:
             logger.error(f"Failed to extract gauntlet knowledge: {e}")
             return False
 
+    def _track_gauntlet_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        gauntlet_name: str,
+        score: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track gauntlet performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = score if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"gauntlet_{operation}_{gauntlet_name}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "gauntlet_name": gauntlet_name,
+                    "score": score
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked gauntlet performance for {gauntlet_name}")
+
+        except Exception as e:
+            logger.error(f"Failed to track gauntlet performance: {e}")
+
 
     def adapt_gauntlet_with_openevolve(
         self,
@@ -303,10 +348,11 @@ Suggest improvements to make the gauntlet more effective. Return JSON with sugge
         """
         from sovereign_data_models import GauntletExecution, SolutionAttempt, generate_id
         from datetime import datetime
-        
+
+        start_time = time.time()
         execution_id = generate_id("exec")
         solution_id = generate_id("sol")
-        
+
         # Create a mock solution attempt for the execution record
         solution = SolutionAttempt(
             id=solution_id,
@@ -316,7 +362,7 @@ Suggest improvements to make the gauntlet more effective. Return JSON with sugge
             team_id="default_team",
             confidence_score=0.8
         )
-        
+
         execution = GauntletExecution(
             execution_id=execution_id,
             gauntlet_definition=gauntlet,
@@ -324,16 +370,18 @@ Suggest improvements to make the gauntlet more effective. Return JSON with sugge
             solution_attempt=solution,
             start_time=datetime.now()
         )
-        
+
         # Simple simulated pass/fail logic
         passed_rounds = 0
         for round_rule in gauntlet.rounds:
             passed_rounds += 1 # Simulation always passes for now
-            
+
         execution.rounds_passed = passed_rounds
         execution.overall_passed = True
         execution.final_score = 1.0
         execution.end_time = datetime.now()
+
+        duration = time.time() - start_time
 
         result = {
             "execution_id": execution_id,
@@ -346,10 +394,10 @@ Suggest improvements to make the gauntlet more effective. Return JSON with sugge
             "feedback": ["Simulated gauntlet pass"]
         }
 
-        # **ACTUAL INTEGRATION**: Extract knowledge from gauntlet execution
+        # **ACTUAL INTEGRATION**: Extract knowledge, track performance, and trigger alerts
         self._extract_gauntlet_knowledge(gauntlet.name, result)
+        self._track_gauntlet_performance("execute_gauntlet", result["passed"], duration, gauntlet.name, result["score"])
 
-        # **ACTUAL INTEGRATION**: Trigger alert if gauntlet failed
         if not result["passed"]:
             self._trigger_gauntlet_alerts(gauntlet.name, False, "Gauntlet execution failed")
 

@@ -14,6 +14,25 @@ import numpy as np
 from textstat import flesch_reading_ease, flesch_kincaid_grade
 from datetime import datetime
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Quality Assessment
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 # Configure logger
 logger = logging.getLogger(__name__)
 

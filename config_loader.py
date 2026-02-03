@@ -173,6 +173,44 @@ class SecurityConfig:
 
 
 @dataclass
+class AdaptiveMDAPConfig:
+    """Adaptive MDAP/MAKER configuration."""
+    enabled: bool = True
+    embedding_model: str = "all-MiniLM-L6-v2"
+    cache_dir: str = "./cache/adaptive_mdap"
+    
+    # Feature weights for complexity classification
+    feature_weights: Dict[str, float] = field(default_factory=lambda: {
+        "text_length": 0.15,
+        "domain_rarity": 0.20,
+        "depth": 0.15,
+        "historical_error": 0.20,
+        "dependency": 0.10,
+        "keyword_complexity": 0.10,
+        "constraint_density": 0.10,
+    })
+    
+    # Allocator configuration
+    thresholds: List[float] = field(default_factory=lambda: [0.2, 0.4, 0.6, 0.8])
+    enable_learning: bool = False
+    enable_context_aware: bool = False
+    
+    # Strategy configurations
+    strategy_configs: Dict[str, Dict[str, Any]] = field(default_factory=lambda: {
+        "direct": {"n_agents": 1, "k_ahead": 0, "max_retries": 1, "timeout_ms": 30000},
+        "mdap_light": {"n_agents": 3, "k_ahead": 1, "max_retries": 2, "timeout_ms": 60000},
+        "mdap_medium": {"n_agents": 5, "k_ahead": 1, "max_retries": 2, "timeout_ms": 90000},
+        "maker_full": {"n_agents": 5, "k_ahead": 2, "max_retries": 3, "timeout_ms": 120000},
+        "maker_ultra": {"n_agents": 7, "k_ahead": 3, "max_retries": 4, "timeout_ms": 180000},
+    })
+    
+    # Monitoring
+    log_all_decisions: bool = True
+    track_complexity_scores: bool = True
+    compute_savings_metrics: bool = True
+
+
+@dataclass
 class Config:
     """Main configuration container."""
     generation: GenerationConfig = field(default_factory=GenerationConfig)
@@ -184,6 +222,7 @@ class Config:
     openevolve: OpenEvolveConfig = field(default_factory=OpenEvolveConfig)
     server: ServerConfig = field(default_factory=ServerConfig)
     security: SecurityConfig = field(default_factory=SecurityConfig)
+    adaptive_mdap: AdaptiveMDAPConfig = field(default_factory=AdaptiveMDAPConfig)
 
     # Environment
     environment: str = "development"
@@ -563,6 +602,48 @@ class ConfigLoader:
             key_encryption_key=env_var_str("KEY_ENCRYPTION_KEY"),
         )
 
+        # Adaptive MDAP config
+        adaptive_mdap_raw = self._raw_config.get("adaptive_mdap", {})
+        adaptive_mdap = AdaptiveMDAPConfig(
+            enabled=env_var_bool("ADAPTIVE_MDAP_ENABLED", default=adaptive_mdap_raw.get("enabled", True)),
+            embedding_model=env_var_str(
+                "ADAPTIVE_MDAP_EMBEDDING_MODEL",
+                default=adaptive_mdap_raw.get("embedding_model", "all-MiniLM-L6-v2")
+            ),
+            cache_dir=env_var_str(
+                "ADAPTIVE_MDAP_CACHE_DIR",
+                default=adaptive_mdap_raw.get("cache_dir", "./cache/adaptive_mdap")
+            ),
+            feature_weights=adaptive_mdap_raw.get("feature_weights", {
+                "text_length": 0.15,
+                "domain_rarity": 0.20,
+                "depth": 0.15,
+                "historical_error": 0.20,
+                "dependency": 0.10,
+                "keyword_complexity": 0.10,
+                "constraint_density": 0.10,
+            }),
+            thresholds=adaptive_mdap_raw.get("thresholds", [0.2, 0.4, 0.6, 0.8]),
+            enable_learning=env_var_bool(
+                "ADAPTIVE_MDAP_ENABLE_LEARNING",
+                default=adaptive_mdap_raw.get("enable_learning", False)
+            ),
+            enable_context_aware=env_var_bool(
+                "ADAPTIVE_MDAP_ENABLE_CONTEXT_AWARE",
+                default=adaptive_mdap_raw.get("enable_context_aware", False)
+            ),
+            strategy_configs=adaptive_mdap_raw.get("strategy_configs", {
+                "direct": {"n_agents": 1, "k_ahead": 0, "max_retries": 1, "timeout_ms": 30000},
+                "mdap_light": {"n_agents": 3, "k_ahead": 1, "max_retries": 2, "timeout_ms": 60000},
+                "mdap_medium": {"n_agents": 5, "k_ahead": 1, "max_retries": 2, "timeout_ms": 90000},
+                "maker_full": {"n_agents": 5, "k_ahead": 2, "max_retries": 3, "timeout_ms": 120000},
+                "maker_ultra": {"n_agents": 7, "k_ahead": 3, "max_retries": 4, "timeout_ms": 180000},
+            }),
+            log_all_decisions=adaptive_mdap_raw.get("log_all_decisions", True),
+            track_complexity_scores=adaptive_mdap_raw.get("track_complexity_scores", True),
+            compute_savings_metrics=adaptive_mdap_raw.get("compute_savings_metrics", True),
+        )
+
         return Config(
             generation=generation,
             evolution=evolution,
@@ -571,6 +652,7 @@ class ConfigLoader:
             openevolve=openevolve,
             server=server,
             security=security,
+            adaptive_mdap=adaptive_mdap,
             environment=environment,
             log_level=log_level,
         )
@@ -631,6 +713,13 @@ class ConfigLoader:
             logger.info(f"OpenEvolve API key: Set (ending with ...{config.openevolve.api_key[-4:]})")
         else:
             logger.warning("OpenEvolve API key: Not set - some features may not work")
+        
+        # Log Adaptive MDAP configuration
+        logger.info(f"Adaptive MDAP enabled: {config.adaptive_mdap.enabled}")
+        if config.adaptive_mdap.enabled:
+            logger.info(f"Adaptive MDAP thresholds: {config.adaptive_mdap.thresholds}")
+            logger.info(f"Adaptive MDAP learning: {config.adaptive_mdap.enable_learning}")
+            logger.info(f"Adaptive MDAP context-aware: {config.adaptive_mdap.enable_context_aware}")
 
 
 # Global config instance

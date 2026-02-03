@@ -33,7 +33,19 @@ except ImportError:
     REDIS_AVAILABLE = False
     redis = None
 
-# **ACTUAL INTEGRATION**: Adaptive strategy tracking
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive tracking
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
 try:
     from adaptive_strategy_selector import StrategyPerformanceData
     ADAPTIVE_STRATEGY_AVAILABLE = True
@@ -341,7 +353,8 @@ class C2CCacheManager:
         Cache ensemble result.
 
         **ACTUAL INTEGRATION**: Records performance data to adaptive strategy system
-        for automatic strategy optimization.
+        for automatic strategy optimization. Also triggers alerts on failure and
+        extracts knowledge to enterprise knowledge engine.
 
         Args:
             ensemble_id: Ensemble identifier
@@ -355,38 +368,71 @@ class C2CCacheManager:
         """
         start_time = time.time()
         key = self.generate_key(ensemble_id, input_data, model_config)
-        ttl = ttl or self.default_ttl
+        ttl = ttl or self.config.default_ttl
 
         # Actually cache the result
-        success = self.cache.set(key, result, ttl)
+        try:
+            success = self.cache.set(key, result, ttl)
 
-        # **ACTUAL INTEGRATION**: Record performance to adaptive strategy system
-        if ADAPTIVE_STRATEGY_AVAILABLE and StrategyPerformanceData is not None:
-            try:
-                # Import here to avoid circular dependency
-                from adaptive_strategy_selector import StrategyPerformanceTracker
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance
+            duration = time.time() - start_time
+            self._extract_cache_knowledge("cache_ensemble_result", ensemble_id, key, success)
 
-                tracker = StrategyPerformanceTracker()
+            if ADAPTIVE_STRATEGY_AVAILABLE and StrategyPerformanceData is not None:
+                try:
+                    # Import here to avoid circular dependency
+                    from adaptive_strategy_selector import StrategyPerformanceTracker
 
-                # Record the caching operation as performance data
-                performance_data = StrategyPerformanceData(
-                    strategy_name=f"c2c_ensemble_{ensemble_id}",
-                    success_count=1 if success else 0,
-                    failure_count=0 if success else 1,
-                    average_quality=1.0 if success else 0.0,
-                    last_used=datetime.now(),
-                    total_attempts=1
-                )
+                    tracker = StrategyPerformanceTracker()
 
-                # Add to tracker
-                if hasattr(tracker, 'performance_history'):
-                    tracker.performance_history.append(performance_data)
-                    logger.debug(f"Recorded cache performance to adaptive tracker: success={success}")
+                    # Record the caching operation as performance data
+                    performance_data = StrategyPerformanceData(
+                        strategy_name=f"c2c_ensemble_{ensemble_id}",
+                        success_count=1 if success else 0,
+                        failure_count=0 if success else 1,
+                        average_quality=1.0 if success else 0.0,
+                        last_used=datetime.now(),
+                        total_attempts=1,
+                        metadata={"duration_seconds": duration}
+                    )
 
-            except Exception as e:
-                logger.error(f"Failed to record performance to adaptive tracker: {e}")
+                    # Add to tracker
+                    if hasattr(tracker, 'performance_history'):
+                        tracker.performance_history.append(performance_data)
+                        logger.debug(f"Recorded cache performance to adaptive tracker: success={success}")
 
-        return success
+                except Exception as e:
+                    logger.error(f"Failed to record performance to adaptive tracker: {e}")
+
+            return success
+
+        except Exception as e:
+            logger.error(f"Error caching ensemble result: {e}", exc_info=True)
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_cache_alerts("cache_ensemble_result", False, ensemble_id, str(e))
+            self._extract_cache_knowledge("cache_ensemble_result", ensemble_id, key, False)
+
+            if ADAPTIVE_STRATEGY_AVAILABLE and StrategyPerformanceData is not None:
+                try:
+                    from adaptive_strategy_selector import StrategyPerformanceTracker
+                    tracker = StrategyPerformanceTracker()
+                    performance_data = StrategyPerformanceData(
+                        strategy_name=f"c2c_ensemble_{ensemble_id}",
+                        success_count=0,
+                        failure_count=1,
+                        average_quality=0.0,
+                        last_used=datetime.now(),
+                        total_attempts=1,
+                        metadata={"error": str(e), "duration_seconds": duration}
+                    )
+                    if hasattr(tracker, 'performance_history'):
+                        tracker.performance_history.append(performance_data)
+                except Exception as e2:
+                    logger.error(f"Failed to record failure to adaptive tracker: {e2}")
+
+            return False
 
     def invalidate_ensemble(self, ensemble_id: str) -> int:
         """
@@ -474,6 +520,83 @@ class C2CCacheManager:
                 logger.info(f"Saved {len(self.cache.cache)} cache entries to disk")
             except Exception as e:
                 logger.error(f"Failed to save persistent cache: {e}")
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting and knowledge for C2C Cache Manager
+    # =========================================================================
+
+    def _trigger_cache_alerts(
+        self,
+        operation: str,
+        success: bool,
+        ensemble_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for cache failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures
+            if not success:
+                alert_manager.create_alert(
+                    title=f"C2C Cache Alert: {operation}",
+                    description=f"C2C cache operation '{operation}' failed" +
+                                 (f" for ensemble '{ensemble_id}'" if ensemble_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.MEDIUM.value,
+                    source="c2c_cache_manager",
+                    component="ensemble_caching",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger C2C cache alert: {e}")
+
+    def _extract_cache_knowledge(
+        self,
+        operation: str,
+        ensemble_id: str,
+        cache_key: str,
+        success: bool
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract cache knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"c2c_cache_{operation}_{ensemble_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="cache_operation",
+                source_component="c2c_cache_manager",
+                title=f"C2C Cache Operation: {operation}",
+                content={
+                    "operation": operation,
+                    "ensemble_id": ensemble_id,
+                    "cache_key": cache_key,
+                    "success": success,
+                    "backend": "redis" if self.config.enable_redis else "memory",
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "persistence_enabled": self.config.enable_persistence,
+                    "cache_size": self.cache.get_stats().get('size', 0)
+                },
+                tags=["c2c_cache", operation, ensemble_id, "ensemble"]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted C2C cache knowledge for {ensemble_id}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract C2C cache knowledge: {e}")
+            return False
 
 
 # Global cache manager instance
