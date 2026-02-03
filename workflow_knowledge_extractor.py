@@ -76,6 +76,19 @@ except ImportError:
     KnowledgeEngine = Any
     logging.warning("KnowledgeEngine not available. Install knowledge_engine for enhanced extraction.")
 
+# **ACTUAL INTEGRATION**: Alerting and adaptive for Knowledge Extractor
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 
 logger = logging.getLogger(__name__)
 
@@ -342,25 +355,30 @@ reusable_patterns, adaptation_recommendations.
     def extract_from_workflow(self, workflow_state: WorkflowState) -> List[KnowledgeArtifact]:
         """
         Extract all knowledge artifacts from a workflow state.
-        
+
         This is the main entry point that extracts artifacts from all stages
         of the workflow where relevant data exists.
-        
+
         Args:
             workflow_state: The workflow state to extract from
-            
+
         Returns:
             List of extracted KnowledgeArtifact instances
         """
+        import time
+        start_time = time.time()
+        workflow_id = getattr(workflow_state, 'workflow_id', 'unknown')
+        success = False
         artifacts = []
-        
-        # Extract from Stage 0: Problem Definition
+
         try:
-            stage_0_artifacts = self._extract_from_stage_0(workflow_state)
-            artifacts.extend(stage_0_artifacts)
-            logger.debug(f"Extracted {len(stage_0_artifacts)} artifacts from Stage 0")
-        except Exception as e:
-            logger.warning(f"Failed to extract from Stage 0: {e}")
+            # Extract from Stage 0: Problem Definition
+            try:
+                stage_0_artifacts = self._extract_from_stage_0(workflow_state)
+                artifacts.extend(stage_0_artifacts)
+                logger.debug(f"Extracted {len(stage_0_artifacts)} artifacts from Stage 0")
+            except Exception as e:
+                logger.warning(f"Failed to extract from Stage 0: {e}")
         
         # Extract from Stage 1: Decomposition
         try:
@@ -397,8 +415,24 @@ reusable_patterns, adaptation_recommendations.
             logger.debug(f"Extracted {len(stage_6_artifacts)} artifacts from Stage 6")
         except Exception as e:
             logger.warning(f"Failed to extract from Stage 6: {e}")
-        
+
+        success = True
+        duration = time.time() - start_time
+
+        # **ACTUAL INTEGRATION**: Track performance for successful workflow extraction
+        self._track_knowledge_extractor_performance("extract_from_workflow", success, duration, len(artifacts))
+
         return artifacts
+
+        except Exception as e:
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_knowledge_extractor_alerts("extract_from_workflow", False, workflow_id, str(e))
+            self._track_knowledge_extractor_performance("extract_from_workflow", False, duration, 0)
+
+            logger.error(f"Failed to extract knowledge from workflow {workflow_id}: {e}")
+            raise
     
     # ========== Stage 0: Problem Definition ==========
     
@@ -1074,25 +1108,52 @@ class DSPySolutionPatternExtractor:
         Returns:
             List of SolutionPatternArtifacts
         """
-        if not DSPY_AVAILABLE:
-            # Fallback to basic extraction
-            return self._extract_with_fallback(solutions)
+        import time
+        start_time = time.time()
+        success = False
 
-        patterns = []
-        for solution in solutions:
-            if not solution:
-                continue
+        try:
+            if not DSPY_AVAILABLE:
+                # Fallback to basic extraction
+                patterns = self._extract_with_fallback(solutions)
+                duration = time.time() - start_time
 
-            # Filter for high-quality solutions (>0.8 score)
-            quality_score = getattr(solution, 'quality_score', 0.0)
-            if quality_score < 0.8:
-                continue
+                # **ACTUAL INTEGRATION**: Track performance for fallback
+                self._track_knowledge_extractor_performance("extract_solution_patterns_fallback", True, duration, len(patterns))
 
-            pattern = self._dspy_analyze_solution_pattern(solution)
-            if pattern:
-                patterns.append(pattern)
+                return patterns
 
-        return patterns
+            patterns = []
+            for solution in solutions:
+                if not solution:
+                    continue
+
+                # Filter for high-quality solutions (>0.8 score)
+                quality_score = getattr(solution, 'quality_score', 0.0)
+                if quality_score < 0.8:
+                    continue
+
+                pattern = self._dspy_analyze_solution_pattern(solution)
+                if pattern:
+                    patterns.append(pattern)
+
+            success = True
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Track performance for successful extraction
+            self._track_knowledge_extractor_performance("extract_solution_patterns", success, duration, len(patterns))
+
+            return patterns
+
+        except Exception as e:
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_knowledge_extractor_alerts("extract_solution_patterns", False, error=str(e))
+            self._track_knowledge_extractor_performance("extract_solution_patterns", False, duration, 0)
+
+            logger.error(f"Failed to extract solution patterns: {e}")
+            raise
 
     def _dspy_analyze_solution_pattern(self, solution: SolutionAttempt) -> Optional[SolutionPatternArtifact]:
         """
@@ -1456,20 +1517,47 @@ class DSPyDecompositionStrategyExtractor:
         Returns:
             List of KnowledgeArtifacts representing decomposition strategies
         """
-        if not DSPY_AVAILABLE:
-            # Fallback to basic extraction
-            return self._extract_with_fallback(execution_results)
+        import time
+        start_time = time.time()
+        success = False
 
-        strategies = []
-        for result in execution_results:
-            if not result:
-                continue
+        try:
+            if not DSPY_AVAILABLE:
+                # Fallback to basic extraction
+                strategies = self._extract_with_fallback(execution_results)
+                duration = time.time() - start_time
 
-            strategy = self._dspy_analyze_decomposition_strategy(result)
-            if strategy:
-                strategies.append(strategy)
+                # **ACTUAL INTEGRATION**: Track performance for fallback
+                self._track_knowledge_extractor_performance("extract_strategies_fallback", True, duration, len(strategies))
 
-        return strategies
+                return strategies
+
+            strategies = []
+            for result in execution_results:
+                if not result:
+                    continue
+
+                strategy = self._dspy_analyze_decomposition_strategy(result)
+                if strategy:
+                    strategies.append(strategy)
+
+            success = True
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Track performance for successful extraction
+            self._track_knowledge_extractor_performance("extract_strategies", success, duration, len(strategies))
+
+            return strategies
+
+        except Exception as e:
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_knowledge_extractor_alerts("extract_strategies", False, error=str(e))
+            self._track_knowledge_extractor_performance("extract_strategies", False, duration, 0)
+
+            logger.error(f"Failed to extract strategies: {e}")
+            raise
 
     def _dspy_analyze_decomposition_strategy(self, result: Dict[str, Any]) -> Optional[KnowledgeArtifact]:
         """
@@ -1611,24 +1699,45 @@ class DecompositionStrategyExtractor:
     def extract_strategies(self, execution_results: List[Dict[str, Any]]) -> List[KnowledgeArtifact]:
         """
         Extract decomposition strategies from execution results.
-        
+
         Args:
             execution_results: List of execution results to analyze
-            
+
         Returns:
             List of KnowledgeArtifacts containing decomposition strategies
         """
-        artifacts = []
-        
-        for result in execution_results:
-            if not result:
-                continue
-            
-            artifact = self._analyze_decomposition_strategy(result)
-            if artifact:
-                artifacts.append(artifact)
-        
-        return artifacts
+        import time
+        start_time = time.time()
+        success = False
+
+        try:
+            artifacts = []
+
+            for result in execution_results:
+                if not result:
+                    continue
+
+                artifact = self._analyze_decomposition_strategy(result)
+                if artifact:
+                    artifacts.append(artifact)
+
+            success = True
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Track performance for successful extraction
+            self._track_knowledge_extractor_performance("extract_strategies_basic", success, duration, len(artifacts))
+
+            return artifacts
+
+        except Exception as e:
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_knowledge_extractor_alerts("extract_strategies_basic", False, error=str(e))
+            self._track_knowledge_extractor_performance("extract_strategies_basic", False, duration, 0)
+
+            logger.error(f"Failed to extract strategies (basic): {e}")
+            raise
     
     def _analyze_decomposition_strategy(self, result: Dict[str, Any]) -> Optional[KnowledgeArtifact]:
         """
@@ -1691,13 +1800,85 @@ class DecompositionStrategyExtractor:
         """Analyze the dependency pattern of sub-problems."""
         if not dependencies:
             return {"type": "independent", "count": 0}
-        
+
         # Simple analysis - can be enhanced with graph analysis
         return {
             "type": "sequential" if len(dependencies) > 0 else "independent",
             "count": len(dependencies),
             "chains": len(set(str(d) for d in dependencies)),
         }
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting and adaptive for Knowledge Extractor
+    # =========================================================================
+
+    def _trigger_knowledge_extractor_alerts(
+        self,
+        operation: str,
+        success: bool,
+        workflow_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for knowledge extraction failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Knowledge Extractor Alert: {operation}",
+                    description=f"Knowledge extraction operation '{operation}' failed" +
+                                 (f" for workflow '{workflow_id}'" if workflow_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.MEDIUM.value,
+                    source="workflow_knowledge_extractor",
+                    component="knowledge_extraction",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger knowledge extractor alert: {e}")
+
+    def _track_knowledge_extractor_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        artifacts_count: int = 0
+    ):
+        """**ACTUAL INTEGRATION**: Track knowledge extraction performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"knowledge_extractor_{operation}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "artifacts_count": artifacts_count
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked knowledge extractor performance for {operation}")
+
+        except Exception as e:
+            logger.error(f"Failed to track knowledge extractor performance: {e}")
 
 
 # ========== Convenience Functions ==========

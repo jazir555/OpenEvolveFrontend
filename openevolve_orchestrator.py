@@ -38,9 +38,26 @@ except ImportError:
 
 try:
     from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
-    ADAPTIVE_AVAILABLE = True
+    ADAPTIVE_STRATEGY_AVAILABLE = True
 except ImportError:
-    ADAPTIVE_AVAILABLE = False
+    ADAPTIVE_STRATEGY_AVAILABLE = False
+
+# **ACTUAL INTEGRATION**: Adaptive MDAP for workflow optimization
+try:
+    from adaptive_mdap import (
+        TaskComplexityClassifier,
+        AdaptiveMDAPAllocator,
+        AdaptiveExecutionController,
+        get_health_checker,
+    )
+    from adaptive_mdap.integrations.workflow_engine_integration import (
+        AdaptiveWorkflowIntegration,
+        AdaptiveWorkflowConfig,
+        get_adaptive_workflow,
+    )
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
 
 
 @dataclass
@@ -381,6 +398,32 @@ class OpenEvolveOrchestrator:
                 workflow.end_time = time.time()
                 self._notify_callbacks(workflow_id, "workflow_failed", "Failed to create configuration")
                 return
+            
+            # **ADAPTIVE MDAP INTEGRATION**: Configure adaptive resource allocation
+            if ADAPTIVE_MDAP_AVAILABLE:
+                try:
+                    # Get adaptive settings from session state
+                    adaptive_profile = st.session_state.get("adaptive_profile", "balanced")
+                    adaptive_learning = st.session_state.get("adaptive_enable_learning", False)
+                    adaptive_context = st.session_state.get("adaptive_enable_context", False)
+                    
+                    # Store in workflow metadata
+                    if not workflow.metadata:
+                        workflow.metadata = {}
+                    
+                    workflow.metadata["adaptive_mdap_config"] = {
+                        "profile": adaptive_profile,
+                        "enable_learning": adaptive_learning,
+                        "enable_context_aware": adaptive_context,
+                    }
+                    workflow.enable_adaptive_mdap = st.session_state.get("enable_adaptive_mdap", True)
+                    
+                    # Log configuration
+                    if workflow.enable_adaptive_mdap:
+                        print(f"[Adaptive MDAP] Enabled with profile '{adaptive_profile}' for workflow {workflow_id}")
+                    
+                except Exception as e:
+                    print(f"[Adaptive MDAP] Configuration warning: {e}")
             
             # Execution stage
             workflow.current_stage = WorkflowStage.EXECUTION

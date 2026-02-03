@@ -116,7 +116,7 @@ class TacticExecution:
     execution_time_ms: float = 0.0
     error_message: Optional[str] = None
     subgoals_created: int = 0
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 @dataclass
@@ -408,12 +408,12 @@ class LeanAideTacticExecutor:
             Tactic execution record
         """
         execution = TacticExecution(
-            tactic_id=f"{theorem_id}_{node_id}_{tactic}_{datetime.utcnow().timestamp()}",
+            tactic_id=f"{theorem_id}_{node_id}_{tactic}_{datetime.now(timezone.utc).timestamp()}",
             tactic_name=tactic.split()[0] if tactic else "",
             tactic_args=tactic.split()[1:] if tactic and len(tactic.split()) > 1 else []
         )
         
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         
         try:
             # Get current goal state
@@ -466,7 +466,7 @@ class LeanAideTacticExecutor:
             self.stats["failed_executions"] += 1
         
         finally:
-            execution.execution_time_ms = (datetime.utcnow() - start_time).total_seconds() * 1000
+            execution.execution_time_ms = (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             self.state_manager.record_execution(theorem_id, execution)
             self.stats["total_executions"] += 1
         
@@ -631,7 +631,7 @@ class LeanAideIntegrationComplete:
             Complete proof result
         """
         theorem_id = f"thm_{hashlib.sha256(theorem_statement.encode()).hexdigest()[:16]}"
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         
         logger.info({
             "msg": "Starting complete theorem proof",
@@ -661,7 +661,7 @@ class LeanAideIntegrationComplete:
                 
                 for node_id in current_nodes:
                     # Check timeout
-                    elapsed = (datetime.utcnow() - start_time).total_seconds()
+                    elapsed = (datetime.now(timezone.utc) - start_time).total_seconds()
                     if elapsed > timeout:
                         raise asyncio.TimeoutError(f"Proof timeout after {elapsed}s")
                     
@@ -698,7 +698,7 @@ class LeanAideIntegrationComplete:
             proof_complete = self.state_manager.is_proof_complete(theorem_id)
             tactic_sequence = self.state_manager.get_tactic_sequence(theorem_id)
             
-            execution_time = (datetime.utcnow() - start_time).total_seconds()
+            execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
             
             result = {
                 "theorem_id": theorem_id,
@@ -734,7 +734,7 @@ class LeanAideIntegrationComplete:
                 "theorem_id": theorem_id,
                 "success": False,
                 "error": str(e),
-                "execution_time_ms": (datetime.utcnow() - start_time).total_seconds() * 1000
+                "execution_time_ms": (datetime.now(timezone.utc) - start_time).total_seconds() * 1000
             }
     
     async def _get_auto_tactics(self, theorem_statement: str) -> List[str]:

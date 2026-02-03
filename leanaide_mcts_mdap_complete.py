@@ -1191,7 +1191,7 @@ class MDAPMCTS(MCTS if MCTS_AVAILABLE else object):
             # Compile result
             return self._compile_result()
 
-        except Exception as e:  # TODO: Catch specific exception instead of Exception
+        except (RuntimeError, ValueError, TypeError, AttributeError) as e:
             logger.error(f"MDAP-MCTS search failed: {e}", exc_info=True)
             return MDAPMCTSResult(
                 success=False,

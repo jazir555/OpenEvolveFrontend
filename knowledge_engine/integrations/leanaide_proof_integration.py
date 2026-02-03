@@ -74,7 +74,7 @@ class ProofAttempt:
     execution_time_ms: float = 0.0
     error_message: Optional[str] = None
     strategy_used: Optional[str] = None
-    timestamp: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    timestamp: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
 
 @dataclass
@@ -137,8 +137,8 @@ class AutomatedProofSearcher:
         Returns:
             Proof attempt result
         """
-        attempt_id = attempt_id or f"search_{datetime.utcnow().strftime('%Y%m%d_%H%M%S_%f')}"
-        start_time = datetime.utcnow()
+        attempt_id = attempt_id or f"search_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S_%f')}"
+        start_time = datetime.now(timezone.utc)
         
         logger.info({
             "msg": "Starting automated proof search",
@@ -331,7 +331,7 @@ class AutomatedProofSearcher:
         start_time: datetime
     ) -> ProofAttempt:
         """Finalize proof attempt with timing."""
-        execution_time = (datetime.utcnow() - start_time).total_seconds()
+        execution_time = (datetime.now(timezone.utc) - start_time).total_seconds()
         attempt.execution_time_ms = execution_time * 1000
         
         self.search_history.append(attempt)
@@ -412,7 +412,7 @@ class LeanAideProofIntegration:
         Returns:
             Proof result with metadata
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
         
         logger.info({
             "msg": "Starting theorem proof",

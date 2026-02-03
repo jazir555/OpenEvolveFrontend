@@ -60,6 +60,14 @@ except ImportError as e:
     logger.warning(f"Workflow structures not available: {e}")
     WORKFLOW_AVAILABLE = False
 
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem as AdaptiveSubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError as e:
+    logger.warning(f"Adaptive MDAP not available: {e}")
+    ADAPTIVE_MDAP_AVAILABLE = False
+
 # =============================================================================
 # DEMO FUNCTIONS
 # =============================================================================

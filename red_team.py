@@ -56,6 +56,16 @@ except ImportError:
     DSPY_AVAILABLE = False
     logger.warning("DSPy not available - using standard prompting methods")
 
+# Import Adaptive MDAP for intelligent resource allocation
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+    logger.info("Adaptive MDAP available for intelligent resource allocation")
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    logger.info("Adaptive MDAP not available - using standard resource allocation")
+
 from prompt_engineering import PromptEngineeringSystem
 from model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTeam
 from quality_assessment import QualityAssessmentEngine, SeverityLevel
@@ -851,7 +861,8 @@ class RedTeam:
                       num_members: Optional[int] = None,
                       api_key: Optional[str] = None,
                       model_name: str = "gpt-4o",
-                      attack_modes: Optional[List[str]] = None) -> RedTeamAssessment:
+                      attack_modes: Optional[List[str]] = None,
+                      use_adaptive_allocation: bool = True) -> RedTeamAssessment:
         """
         Assess content with the red team, using OpenEvolve when available
         
@@ -860,15 +871,26 @@ class RedTeam:
             content_type: Type of content
             custom_requirements: Custom requirements to check
             strategy: Strategy to use for assessment
-            num_members: Number of team members to use (None for all)
+            num_members: Number of team members to use (None for all, adaptive if use_adaptive_allocation=True)
             api_key: API key for OpenEvolve backend (required when using OpenEvolve)
             model_name: Model to use when using OpenEvolve
             attack_modes: Specific attack modes to apply (e.g., from gauntlet definition)
+            use_adaptive_allocation: Whether to use Adaptive MDAP for resource allocation
         
         Returns:
             RedTeamAssessment with findings
         """
         start_time = time.time()
+        
+        # **ADAPTIVE MDAP INTEGRATION**: Determine optimal team size
+        if use_adaptive_allocation and num_members is None and ADAPTIVE_MDAP_AVAILABLE:
+            try:
+                adaptive_members = self._get_adaptive_team_size(content, content_type)
+                if adaptive_members:
+                    num_members = adaptive_members
+                    logger.info(f"[Adaptive MDAP] Allocated {num_members} red team members based on complexity")
+            except Exception as e:
+                logger.warning(f"[Adaptive MDAP] Failed to allocate team size: {e}")
         
         # Prioritize OpenEvolve backend when available
         if OPENEVOLVE_AVAILABLE and api_key:
@@ -882,6 +904,52 @@ class RedTeam:
         return self._assess_with_custom_implementation(
             content, content_type, custom_requirements, strategy, num_members, start_time, attack_modes
         )
+    
+    def _get_adaptive_team_size(self, content: str, content_type: str) -> Optional[int]:
+        """
+        Use Adaptive MDAP to determine optimal team size based on content complexity.
+        
+        Args:
+            content: Content to assess
+            content_type: Type of content
+            
+        Returns:
+            Optimal number of team members or None if allocation fails
+        """
+        if not ADAPTIVE_MDAP_AVAILABLE:
+            return None
+        
+        try:
+            # Create sub-problem for complexity analysis
+            sp = SubProblem(
+                id=f"redteam-{int(time.time())}",
+                description=f"Red team assessment of {content_type}: {content[:200]}...",
+                domain=content_type,
+                depth=1,
+                dependencies=[],
+                metadata={"content_length": len(content), "assessment_type": "red_team"}
+            )
+            
+            # Classify complexity
+            classifier = TaskComplexityClassifier()
+            score = classifier.compute_complexity(sp)
+            
+            # Map complexity to team size
+            complexity = score.overall_score
+            if complexity <= 0.2:
+                return 1  # Simple content needs minimal review
+            elif complexity <= 0.4:
+                return 2  # Light complexity
+            elif complexity <= 0.6:
+                return 3  # Medium complexity
+            elif complexity <= 0.8:
+                return 4  # High complexity
+            else:
+                return 5  # Very high complexity - use full team
+            
+        except Exception as e:
+            logger.warning(f"Adaptive team size calculation failed: {e}")
+            return None
     
     def _assess_with_openevolve_backend(self, content: str, content_type: str,
                                       custom_requirements: Optional[Dict[str, Any]],

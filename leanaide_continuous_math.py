@@ -17,7 +17,7 @@ import json
 import logging
 import math
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Callable, Dict, List, Optional, Tuple, Union
 import numpy as np
@@ -174,7 +174,7 @@ class ContinuousMathBridge:
             VerifiedIntegral with value, error bound, and proof
         """
         epsilon = epsilon or self.default_epsilon
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         try:
             # 1. Parse expression using SymPy
@@ -220,7 +220,7 @@ class ContinuousMathBridge:
             if lean_proof and self.leanaide:
                 verification_status = await self._verify_lean_proof(lean_proof)
 
-            computation_time = (datetime.utcnow() - start_time).total_seconds()
+            computation_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
             return VerifiedIntegral(
                 integrand=integrand,
@@ -257,7 +257,7 @@ class ContinuousMathBridge:
         Returns:
             VerifiedODE with solution points and error bounds
         """
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         try:
             # 1. Parse ODE using SymPy
@@ -320,7 +320,7 @@ class ContinuousMathBridge:
                     method, step_size, error_bound
                 )
 
-            computation_time = (datetime.utcnow() - start_time).total_seconds()
+            computation_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
             return VerifiedODE(
                 equation=ode,
@@ -357,7 +357,7 @@ class ContinuousMathBridge:
             VerifiedLimit with value and δ for ε-δ proof
         """
         epsilon = epsilon or self.default_epsilon
-        start_time = datetime.utcnow()
+        start_time = datetime.now(timezone.utc)
 
         try:
             # 1. Parse expression
@@ -385,7 +385,7 @@ class ContinuousMathBridge:
                     expression, variable, point, limit_value, epsilon, delta
                 )
 
-            computation_time = (datetime.utcnow() - start_time).total_seconds()
+            computation_time = (datetime.now(timezone.utc) - start_time).total_seconds()
 
             return VerifiedLimit(
                 expression=expression,

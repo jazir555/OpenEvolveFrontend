@@ -31,7 +31,7 @@ import hashlib
 from collections import defaultdict, Counter
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field, asdict
-from datetime import datetime
+
 from enum import Enum
 from typing import (
     Any, Callable, Dict, List, Optional, Set, Tuple, Union
@@ -1419,21 +1419,21 @@ class IntegratedPredictiveFlaggingSystem:
             success = False
             try:
                 success |= self.mdap_system.record_outcome(item_id, outcome, actual_severity)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ValueError, TypeError, AttributeError, KeyError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.error(f"Error in leanaide_predictive_flagging.py: {e}", exc_info=True)
                 raise
             try:
                 success |= self.mcts_system.record_outcome(item_id, outcome, actual_severity)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ValueError, TypeError, AttributeError, KeyError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.error(f"Error in leanaide_predictive_flagging.py: {e}", exc_info=True)
                 raise
             try:
                 success |= self.maker_system.record_outcome(item_id, outcome, actual_severity)
-            except Exception as e:  # TODO: Catch specific exception instead of Exception
+            except (ValueError, TypeError, AttributeError, KeyError) as e:
                 import logging
                 logger = logging.getLogger(__name__)
                 logger.error(f"Error in leanaide_predictive_flagging.py: {e}", exc_info=True)

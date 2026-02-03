@@ -57,7 +57,7 @@ class TacticPattern:
     success_rate: float = 0.0
     avg_proof_length: int = 0
     complexity_score: float = 0.0
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     source_theorems: List[str] = field(default_factory=list)
     
     def to_dict(self) -> Dict[str, Any]:

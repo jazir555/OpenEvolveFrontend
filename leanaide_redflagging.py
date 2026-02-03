@@ -184,7 +184,7 @@ LEAN_TACTICS = {
     ],
     "arith": [
         "linarith", "omega", "ring", "ring_nf", "norm_num",
-        "norm_cast", "push_neg", " positivity"
+        "norm_cast", "push_neg", "positivity"
     ],
     "algebra": [
         "abel", "abel1", "group", "nlinarith"

@@ -675,6 +675,184 @@ CMD ["python", "-m", "openevolve_cli", "services", "start", "--all"]
 
 
 # =============================================================================
+# ADAPTIVE MDAP COMMANDS
+# =============================================================================
+
+@cli.group()
+def adaptive():
+    """Adaptive MDAP resource allocation commands."""
+    pass
+
+
+@adaptive.command()
+@click.option('--description', '-d', required=True, help='Sub-problem description')
+@click.option('--domain', '-D', default='general', help='Problem domain (e.g., security, math)')
+@click.option('--depth', type=int, default=1, help='Decomposition depth')
+@click.option('--json-output', is_flag=True, help='Output as JSON')
+def classify(description, domain, depth, json_output):
+    """Classify sub-problem complexity."""
+    try:
+        from adaptive_mdap import TaskComplexityClassifier
+        from adaptive_mdap.core.types import SubProblem
+        
+        # Create sub-problem
+        sp = SubProblem(
+            id="cli-classify",
+            description=description,
+            domain=domain,
+            depth=depth,
+            dependencies=[],
+            metadata={}
+        )
+        
+        # Classify
+        classifier = TaskComplexityClassifier()
+        score = classifier.compute_complexity(sp)
+        
+        if json_output:
+            click.echo(json.dumps({
+                "overall_score": score.overall_score,
+                "text_length_score": score.text_length_score,
+                "domain_rarity_score": score.domain_rarity_score,
+                "depth_score": score.depth_score,
+                "historical_error_score": score.historical_error_score,
+                "dependency_score": score.dependency_score,
+                "keyword_complexity_score": score.keyword_complexity_score,
+                "constraint_density_score": score.constraint_density_score,
+            }, indent=2))
+        else:
+            console.print(Panel(
+                f"[bold]Complexity Score:[/bold] {score.overall_score:.3f}\n\n"
+                f"Text Length: {score.text_length_score:.3f}\n"
+                f"Domain Rarity: {score.domain_rarity_score:.3f}\n"
+                f"Depth: {score.depth_score:.3f}\n"
+                f"Historical Error: {score.historical_error_score:.3f}\n"
+                f"Dependency: {score.dependency_score:.3f}\n"
+                f"Keyword Complexity: {score.keyword_complexity_score:.3f}\n"
+                f"Constraint Density: {score.constraint_density_score:.3f}",
+                title="Complexity Classification"
+            ))
+            
+    except ImportError:
+        console.print("[red]Adaptive MDAP not available[/red]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]Error: {e}[/red]")
+        sys.exit(1)
+
+
+@adaptive.command()
+@click.argument('complexity', type=float)
+@click.option('--profile', '-p', type=click.Choice(['conservative', 'balanced', 'aggressive']), 
+              default='balanced', help='Allocation profile')
+@click.option('--json-output', is_flag=True, help='Output as JSON')
+def allocate(complexity, profile, json_output):
+    """Allocate resources for a complexity score."""
+    try:
+        from adaptive_mdap import AdaptiveMDAPAllocator
+        from adaptive_mdap.config.profiles import load_profile
+        
+        # Create allocator with profile
+        profile_config = load_profile(profile)
+        allocator = AdaptiveMDAPAllocator(profile=profile_config)
+        
+        # Allocate
+        config = allocator.allocate_resources(complexity)
+        
+        if json_output:
+            click.echo(json.dumps({
+                "strategy": config.strategy.value,
+                "n_agents": config.n_agents,
+                "k_ahead": config.k_ahead,
+                "timeout_ms": config.timeout_ms,
+                "profile": profile
+            }, indent=2))
+        else:
+            console.print(Panel(
+                f"[bold]Allocation for complexity {complexity:.3f}[/bold]\n\n"
+                f"Strategy: {config.strategy.value}\n"
+                f"Agents: {config.n_agents}\n"
+                f"K-Ahead: {config.k_ahead}\n"
+                f"Timeout: {config.timeout_ms}ms\n"
+                f"Profile: {profile}",
+                title="Resource Allocation"
+            ))
+            
+    except ImportError:
+        console.print("[red]Adaptive MDAP not available[/red]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]Error: {e}[/red]")
+        sys.exit(1)
+
+
+@adaptive.command()
+def status():
+    """Show Adaptive MDAP status."""
+    try:
+        from adaptive_mdap import check_health
+        from adaptive_mdap.utils.cache import get_cache_stats
+        
+        health = check_health()
+        cache_stats = get_cache_stats()
+        
+        # Status table
+        table = Table(title="Adaptive MDAP Status")
+        table.add_column("Component", style="cyan")
+        table.add_column("Status", style="green")
+        table.add_column("Details", style="dim")
+        
+        for component, info in health.items():
+            status_icon = "✓" if info.get('healthy', False) else "✗"
+            status_color = "green" if info.get('healthy', False) else "red"
+            table.add_row(
+                component,
+                f"[{status_color}]{status_icon} {info.get('status', 'unknown')}[/{status_color}]",
+                info.get('message', '')
+            )
+        
+        console.print(table)
+        
+        # Cache stats
+        console.print(f"\n[bold]Cache Statistics:[/bold]")
+        console.print(f"  Embedding cache: {cache_stats.get('embedding', {}).get('size', 0)} entries")
+        console.print(f"  Feature cache: {cache_stats.get('feature', {}).get('size', 0)} entries")
+        
+    except ImportError:
+        console.print("[red]Adaptive MDAP not available[/red]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"[red]Error: {e}[/red]")
+        sys.exit(1)
+
+
+@adaptive.command()
+def profiles():
+    """List available allocation profiles."""
+    try:
+        from adaptive_mdap.config.profiles import get_profile_config
+        
+        profiles = ['conservative', 'balanced', 'aggressive']
+        
+        table = Table(title="Allocation Profiles")
+        table.add_column("Profile", style="cyan")
+        table.add_column("Description", style="white")
+        table.add_column("Cost Focus", style="dim")
+        
+        table.add_row("conservative", "Maximum cost savings", "High")
+        table.add_row("balanced", "Optimal cost-quality tradeoff", "Medium")
+        table.add_row("aggressive", "Maximum quality", "Low")
+        
+        console.print(table)
+        
+        console.print("\n[dim]Use with: openevolve adaptive allocate --profile <name>[/dim]")
+        
+    except Exception as e:
+        console.print(f"[red]Error: {e}[/red]")
+        sys.exit(1)
+
+
+# =============================================================================
 # MAIN ENTRY POINT
 # =============================================================================
 

@@ -12,19 +12,27 @@ import json
 import numpy as np
 import logging
 
-# Try to import DSPy for enhanced prompting
+# Import DSPy through the global integration module for consistency
 try:
+    from dspy_integration import DSPY_AVAILABLE, get_global_dspy_instance, initialize_dspy
     import dspy
     from dspy.teleprompt import BootstrapFewShot
     from dspy.predict import Predict
-    DSPY_AVAILABLE = True
-    logging.getLogger(__name__).info("DSPy available for enhanced programmatic prompting")
+    logging.getLogger(__name__).info("DSPy available through global integration for enhanced programmatic prompting")
 except ImportError:
-    dspy = None
-    BootstrapFewShot = None
-    Predict = None
-    DSPY_AVAILABLE = False
-    logging.getLogger(__name__).warning("DSPy not available - using standard prompting methods")
+    # Fallback to local import if global module not available
+    try:
+        import dspy
+        from dspy.teleprompt import BootstrapFewShot
+        from dspy.predict import Predict
+        DSPY_AVAILABLE = True
+        logging.getLogger(__name__).info("DSPy available for enhanced programmatic prompting")
+    except ImportError:
+        dspy = None
+        BootstrapFewShot = None
+        Predict = None
+        DSPY_AVAILABLE = False
+        logging.getLogger(__name__).warning("DSPy not available - using standard prompting methods")
 
 from workflow_structures import (
     SolutionPatternArtifact,

@@ -1250,6 +1250,65 @@ def display_sidebar() -> None:
             )
             st.session_state.max_retries_eval = max_retries_eval
 
+        # Adaptive MDAP Settings
+        st.markdown("---")
+        st.subheader("🎯 Adaptive MDAP")
+        
+        # Enable/disable adaptive allocation
+        enable_adaptive_mdap = st.checkbox(
+            "Enable Adaptive Resource Allocation",
+            value=st.session_state.get("enable_adaptive_mdap", True),
+            help="Automatically allocate resources based on sub-problem complexity for 30-50% cost reduction"
+        )
+        st.session_state.enable_adaptive_mdap = enable_adaptive_mdap
+        
+        if enable_adaptive_mdap:
+            with st.expander("Adaptive Strategy Configuration", expanded=False):
+                # Strategy profile selection
+                st.markdown("**Strategy Profile**")
+                adaptive_profile = st.selectbox(
+                    "Allocation Profile",
+                    ["balanced", "conservative", "aggressive"],
+                    index=["balanced", "conservative", "aggressive"].index(
+                        st.session_state.get("adaptive_profile", "balanced")
+                    ),
+                    help="Select resource allocation strategy: conservative (max savings), balanced (default), aggressive (max quality)"
+                )
+                st.session_state.adaptive_profile = adaptive_profile
+                
+                # Learning mode
+                enable_learning = st.checkbox(
+                    "Enable Learning",
+                    value=st.session_state.get("adaptive_enable_learning", False),
+                    help="Learn from execution history to improve allocation decisions"
+                )
+                st.session_state.adaptive_enable_learning = enable_learning
+                
+                # Context awareness
+                enable_context = st.checkbox(
+                    "Enable Context Awareness",
+                    value=st.session_state.get("adaptive_enable_context", False),
+                    help="Use workflow context for better complexity estimation"
+                )
+                st.session_state.adaptive_enable_context = enable_context
+                
+                # Show complexity thresholds
+                st.markdown("**Complexity Thresholds**")
+                st.caption("5-Tier Strategy System:")
+                st.caption("- DIRECT (≤0.2): Single agent, fast execution")
+                st.caption("- MDAP_LIGHT (0.2-0.4): 3 agents, k=1")
+                st.caption("- MDAP_MEDIUM (0.4-0.6): 5 agents, k=1")
+                st.caption("- MAKER_FULL (0.6-0.8): 5 agents, k=2")
+                st.caption("- MAKER_ULTRA (>0.8): 7+ agents, k=3")
+                
+                # Override thresholds (advanced)
+                if st.checkbox("Override Thresholds (Advanced)", value=False):
+                    t1 = st.slider("DIRECT/MDAP_LIGHT", 0.0, 0.5, 0.2, 0.05)
+                    t2 = st.slider("MDAP_LIGHT/MEDIUM", 0.1, 0.7, 0.4, 0.05)
+                    t3 = st.slider("MDAP_MEDIUM/MAKER", 0.3, 0.9, 0.6, 0.05)
+                    t4 = st.slider("MAKER_FULL/ULTRA", 0.5, 1.0, 0.8, 0.05)
+                    st.session_state.adaptive_thresholds = [t1, t2, t3, t4]
+        
         # Configuration Export/Import
         st.markdown("---")
         st.subheader("📤 Export/Import")
@@ -1379,3 +1438,11 @@ def display_sidebar() -> None:
         st.caption(f"Adversarial Running: {st.session_state.get('adversarial_running', False)}")
         st.caption(f"OpenEvolve Available: {st.session_state.get('openevolve_available', False)}")
         st.caption(f"Advanced Modes: QD={st.session_state.get('enable_qd_evolution', False)}, MO={st.session_state.get('enable_multi_objective', False)}")
+        
+        # Adaptive MDAP Status
+        adaptive_enabled = st.session_state.get("enable_adaptive_mdap", True)
+        adaptive_profile = st.session_state.get("adaptive_profile", "balanced")
+        if adaptive_enabled:
+            st.caption(f"Adaptive MDAP: Enabled [{adaptive_profile}]")
+        else:
+            st.caption("Adaptive MDAP: Disabled")

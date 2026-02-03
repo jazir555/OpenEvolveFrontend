@@ -40,6 +40,25 @@ from evaluator_team import (
     EvaluationConfidence
 )
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Quality Gate Engine
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 # Configure logging
 logger = logging.getLogger(__name__)
 
@@ -541,6 +560,15 @@ class QualityGateEngine:
         # ICR: Store pattern for learning
         if self.enable_icr and store_pattern:
             self.store_icr_pattern(assessments, report, solution_context)
+
+        # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful evaluation
+        success = decision in [GateDecision.PASS, GateDecision.CONDITIONAL_PASS]
+        self._extract_gate_knowledge("evaluate", content_type.value, report, assessments)
+        self._track_gate_performance("evaluate", success, evaluation_time, content_type.value, report.overall_score)
+
+        # Trigger alert if gate failed
+        if not success:
+            self._trigger_gate_alerts("evaluate", content_type.value, False, f"Gate decision: {decision.value}", {"score": report.overall_score})
 
         logger.info(f"Quality gate evaluation complete: {decision.value} (score: {report.overall_score:.2f})")
         return report
@@ -1903,6 +1931,123 @@ class ConsensusBuilder:
             rationale_parts.append("Low consensus, significant disagreement among evaluators")
 
         return "\n".join(rationale_parts)
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Quality Gate Engine
+    # =========================================================================
+
+    def _trigger_gate_alerts(
+        self,
+        operation: str,
+        content_type: str,
+        success: bool,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for quality gate failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Quality Gate Alert: {operation}",
+                    description=f"Quality gate operation '{operation}' failed for content type '{content_type}'. " +
+                                 (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="quality_gate_engine",
+                    component="quality_gate",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            logger.error(f"Failed to trigger quality gate alert: {e}")
+
+    def _extract_gate_knowledge(
+        self,
+        operation: str,
+        content_type: str,
+        report: 'QualityGateReport',
+        assessments: List[EvaluatorAssessment]
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract quality gate knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"quality_gate_{operation}_{content_type}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="quality_gate_evaluation",
+                source_component="quality_gate_engine",
+                title=f"Quality Gate Evaluation: {operation} - {content_type}",
+                content={
+                    "operation": operation,
+                    "content_type": content_type,
+                    "decision": report.decision.value,
+                    "overall_score": report.overall_score,
+                    "critical_issues_count": len(report.critical_issues),
+                    "minor_issues_count": len(report.minor_issues),
+                    "num_assessments": len(assessments),
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "evaluation_time": report.metadata.get('evaluation_time', 0),
+                    "complexity_score": report.metadata.get('complexity_score', 0)
+                },
+                tags=["quality_gate", operation, content_type, report.decision.value]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            logger.debug(f"Extracted quality gate knowledge for {content_type}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to extract quality gate knowledge: {e}")
+            return False
+
+    def _track_gate_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        content_type: str,
+        overall_score: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track quality gate performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = overall_score / 100.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"quality_gate_{operation}_{content_type}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "content_type": content_type,
+                    "overall_score": overall_score
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                logger.debug(f"Tracked quality gate performance for {content_type}")
+
+        except Exception as e:
+            logger.error(f"Failed to track quality gate performance: {e}")
 
 
 # =============================================================================

@@ -38,7 +38,7 @@ import re
 from typing import Dict, Any, List, Optional, Tuple, Union, Callable
 from dataclasses import dataclass, field, asdict
 from enum import Enum
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 # **ACTUAL INTEGRATION**: Knowledge and alerting for LeanAide
@@ -1021,7 +1021,7 @@ Check if the code is syntactically correct and would pass Lean 4 elaboration.
             "problem_statement": problem_statement,
             "phases": {},
             "workflow_success": True,
-            "start_time": datetime.now().isoformat()
+            "start_time": datetime.now(timezone.utc).isoformat()
         }
 
         try:
@@ -1081,7 +1081,7 @@ Check if the code is syntactically correct and would pass Lean 4 elaboration.
             )
             results["phases"]["phase_6"] = asdict(phase6)
 
-            results["end_time"] = datetime.now().isoformat()
+            results["end_time"] = datetime.now(timezone.utc).isoformat()
             results["message"] = "Full workflow completed successfully"
 
             logger.info("=" * 60)
@@ -1093,7 +1093,7 @@ Check if the code is syntactically correct and would pass Lean 4 elaboration.
             logger.error(f"Full workflow failed: {e}")
             results["workflow_success"] = False
             results["error"] = str(e)
-            results["end_time"] = datetime.now().isoformat()
+            results["end_time"] = datetime.now(timezone.utc).isoformat()
             return results
 
 
@@ -1144,7 +1144,7 @@ def _extract_leanaide_knowledge(
         knowledge_engine = get_knowledge_engine()
 
         artifact = KnowledgeArtifact(
-            artifact_id=f"leanaide_{phase}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+            artifact_id=f"leanaide_{phase}_{datetime.now(timezone.utc).strftime('%Y%m%d_%H%M%S')}",
             artifact_type="leanaide_execution",
             source_component="leanaide_crewai_bridge",
             title=f"LeanAide {phase} Execution",
@@ -1152,7 +1152,7 @@ def _extract_leanaide_knowledge(
                 "phase": phase,
                 "problem_statement": problem_statement[:500],
                 "result": result,
-                "timestamp": datetime.now().isoformat()
+                "timestamp": datetime.now(timezone.utc).isoformat()
             },
             metadata={
                 "status": result.get("status"),

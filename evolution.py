@@ -32,6 +32,15 @@ except ImportError as e:
     TEAM_SYSTEM_AVAILABLE = False
     logger.warning(f"Team system components not available - adversarial features will be limited: {e}")
 
+# Import Adaptive MDAP components for intelligent resource allocation
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator, SolveStrategy
+    from adaptive_mdap.integrations.workflow_engine_integration import AdaptiveWorkflowIntegration, AdaptiveWorkflowConfig
+    ADAPTIVE_MDAP_AVAILABLE = True
+except ImportError as e:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    logger.info(f"Adaptive MDAP not available - using standard resource allocation: {e}")
+
 @dataclass
 class EvolutionConfiguration:
     """
@@ -344,6 +353,16 @@ class EvolutionConfiguration:
     memory_profiling: bool = False
     experimental_logging: bool = False
     
+    # Adaptive MDAP Parameters (8) - NEW
+    enable_adaptive_mdap: bool = True
+    adaptive_mdap_profile: str = "balanced"
+    adaptive_mdap_learning: bool = False
+    adaptive_mdap_context_aware: bool = False
+    adaptive_mdap_thresholds: List[float] = None
+    adaptive_mdap_min_agents: int = 1
+    adaptive_mdap_max_agents: int = 10
+    adaptive_mdap_cost_weight: float = 0.5
+    
     def __post_init__(self):
         """Initialize default values for list/dict fields"""
         if self.backup_models is None:
@@ -400,6 +419,8 @@ class EvolutionConfiguration:
             self.ethical_guidelines = []
         if self.plot_types is None:
             self.plot_types = ["fitness", "diversity"]
+        if self.adaptive_mdap_thresholds is None:
+            self.adaptive_mdap_thresholds = [0.2, 0.4, 0.6, 0.8]
     
     @classmethod
     def from_parameter_manager(cls, param_manager: ParameterManager, session_state: Dict[str, Any]) -> 'EvolutionConfiguration':

@@ -32,7 +32,7 @@ import random
 import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import (
     Any, Dict, List, Optional, Tuple, Callable, Union, TYPE_CHECKING, AsyncIterator
@@ -570,7 +570,7 @@ class LeanAideHybridStrategy(ABC):
             "success": result.success,
             "fitness": result.best_fitness,
             "time": result.total_time,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.now(timezone.utc).isoformat()
         })
 
         # Keep only recent history
@@ -1708,7 +1708,7 @@ class PerformanceMonitor:
         """Record metrics from result"""
         with self.lock:
             self.metrics.append({
-                "timestamp": datetime.utcnow().isoformat(),
+                "timestamp": datetime.now(timezone.utc).isoformat(),
                 "strategy": result.strategy,
                 "success": result.success,
                 "fitness": result.best_fitness,

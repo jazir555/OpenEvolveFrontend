@@ -15,7 +15,7 @@ Provides one-call initialization and coordinated operation.
 import logging
 import os
 from typing import Any, Dict, List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Import all integration components
 from universal_alerting_integration import (
@@ -123,7 +123,7 @@ class MasterIntegrationSystem:
             logger.warning("Master integration system already initialized")
             return {comp: True for comp in self.stats['components_initialized']}
 
-        self.startup_time = datetime.now()
+        self.startup_time = datetime.now(timezone.utc)
         logger.info("=" * 60)
         logger.info("INITIALIZING MASTER INTEGRATION SYSTEM")
         logger.info("=" * 60)
@@ -141,7 +141,7 @@ class MasterIntegrationSystem:
         results['wiring'] = self._wire_components()
 
         self.initialized = True
-        self.stats['initialization_time'] = (datetime.now() - self.startup_time).total_seconds()
+        self.stats['initialization_time'] = (datetime.now(timezone.utc) - self.startup_time).total_seconds()
         self.stats['components_initialized'] = [comp for comp, success in results.items() if success]
 
         logger.info("=" * 60)
@@ -307,7 +307,7 @@ class MasterIntegrationSystem:
 
         result = {
             'component': component,
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'constraints_violated': [],
             'suggestions': [],
             'cache_stats': {},
@@ -332,7 +332,7 @@ class MasterIntegrationSystem:
     def get_system_health(self) -> Dict[str, Any]:
         """Get health status of all systems."""
         health = {
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'overall_status': 'healthy',
             'components': {},
         }

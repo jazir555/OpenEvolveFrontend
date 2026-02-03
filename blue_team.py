@@ -58,6 +58,16 @@ except ImportError:
     DSPY_AVAILABLE = False
     logger.warning("DSPy not available - using standard prompting methods")
 
+# Import Adaptive MDAP for intelligent resource allocation
+try:
+    from adaptive_mdap import TaskComplexityClassifier, AdaptiveMDAPAllocator
+    from adaptive_mdap.core.types import SubProblem
+    ADAPTIVE_MDAP_AVAILABLE = True
+    logger.info("Adaptive MDAP available for intelligent fix resource allocation")
+except ImportError:
+    ADAPTIVE_MDAP_AVAILABLE = False
+    logger.info("Adaptive MDAP not available - using standard fix resource allocation")
+
 from prompt_engineering import PromptEngineeringSystem
 from model_orchestration import ModelOrchestrator, OrchestrationRequest, ModelTeam
 from quality_assessment import QualityAssessmentEngine, SeverityLevel

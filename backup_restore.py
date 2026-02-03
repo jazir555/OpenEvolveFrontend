@@ -23,6 +23,25 @@ from dataclasses import dataclass, asdict
 import argparse
 import hashlib
 
+# **ACTUAL INTEGRATION**: Alerting, knowledge, and adaptive for Backup/Restore operations
+try:
+    from alerting_system import get_alert_manager, AlertSeverity
+    ALERTING_AVAILABLE = True
+except ImportError:
+    ALERTING_AVAILABLE = False
+
+try:
+    from knowledge_engine.enterprise_knowledge_engine import get_knowledge_engine, KnowledgeArtifact
+    KNOWLEDGE_AVAILABLE = True
+except ImportError:
+    KNOWLEDGE_AVAILABLE = False
+
+try:
+    from adaptive_strategy_selector import StrategyPerformanceTracker, StrategyPerformanceData
+    ADAPTIVE_AVAILABLE = True
+except ImportError:
+    ADAPTIVE_AVAILABLE = False
+
 # Rich for output
 try:
     from rich.console import Console
@@ -122,65 +141,85 @@ class BackupManager:
         description: str = ""
     ) -> str:
         """Create a new backup."""
+        import time
+        start_time = time.time()
         backup_id = datetime.now().strftime("%Y%m%d_%H%M%S")
         backup_path = self.backup_dir / f"backup_{backup_id}.tar.gz"
-        
-        if console:
-            console.print(f"[blue]Creating {backup_type} backup: {backup_id}[/blue]")
-        
-        # Determine components to backup
-        if backup_type == 'full':
-            components = list(self.BACKUP_COMPONENTS.keys())
-        elif components is None:
-            components = ['knowledge', 'data', 'config']
-        
-        # Create backup
-        paths_backed_up = []
-        
-        with tarfile.open(backup_path, "w:gz") as tar:
-            for component in components:
-                if component not in self.BACKUP_COMPONENTS:
-                    continue
-                
-                source = self.BACKUP_COMPONENTS[component]
-                
-                if isinstance(source, list):
-                    # Multiple patterns
-                    for pattern in source:
-                        for filepath in Path('.').glob(pattern):
-                            if filepath.exists():
-                                tar.add(filepath, arcname=f"config/{filepath.name}")
-                                paths_backed_up.append(str(filepath))
-                else:
-                    # Single directory
-                    source_path = Path(source)
-                    if source_path.exists():
-                        tar.add(source_path, arcname=component)
-                        paths_backed_up.append(str(source_path))
-        
-        # Calculate metadata
-        size_bytes = backup_path.stat().st_size
-        checksum = self._calculate_checksum(backup_path)
-        
-        metadata = BackupMetadata(
-            backup_id=backup_id,
-            created_at=datetime.now(),
-            backup_type=backup_type,
-            size_bytes=size_bytes,
-            checksum=checksum,
-            description=description,
-            components=components,
-            paths=paths_backed_up
-        )
-        
-        self.backups[backup_id] = metadata
-        self._save_metadata()
-        
-        if console:
+
+        try:
+            if console:
+                console.print(f"[blue]Creating {backup_type} backup: {backup_id}[/blue]")
+
+            # Determine components to backup
+            if backup_type == 'full':
+                components = list(self.BACKUP_COMPONENTS.keys())
+            elif components is None:
+                components = ['knowledge', 'data', 'config']
+
+            # Create backup
+            paths_backed_up = []
+
+            with tarfile.open(backup_path, "w:gz") as tar:
+                for component in components:
+                    if component not in self.BACKUP_COMPONENTS:
+                        continue
+
+                    source = self.BACKUP_COMPONENTS[component]
+
+                    if isinstance(source, list):
+                        # Multiple patterns
+                        for pattern in source:
+                            for filepath in Path('.').glob(pattern):
+                                if filepath.exists():
+                                    tar.add(filepath, arcname=f"config/{filepath.name}")
+                                    paths_backed_up.append(str(filepath))
+                    else:
+                        # Single directory
+                        source_path = Path(source)
+                        if source_path.exists():
+                            tar.add(source_path, arcname=component)
+                            paths_backed_up.append(str(source_path))
+
+            # Calculate metadata
+            size_bytes = backup_path.stat().st_size
+            checksum = self._calculate_checksum(backup_path)
+
+            metadata = BackupMetadata(
+                backup_id=backup_id,
+                created_at=datetime.now(),
+                backup_type=backup_type,
+                size_bytes=size_bytes,
+                checksum=checksum,
+                description=description,
+                components=components,
+                paths=paths_backed_up
+            )
+
+            self.backups[backup_id] = metadata
+            self._save_metadata()
+
+            duration = time.time() - start_time
             size_mb = size_bytes / (1024 * 1024)
-            console.print(f"[green]Backup created: {backup_id} ({size_mb:.2f} MB)[/green]")
-        
-        return backup_id
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful backup
+            self._extract_backup_knowledge("create_backup", backup_id, metadata)
+            self._track_backup_performance("create_backup", True, duration, backup_type, size_mb)
+
+            if console:
+                console.print(f"[green]Backup created: {backup_id} ({size_mb:.2f} MB)[/green]")
+
+            return backup_id
+
+        except Exception as e:
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_backup_alerts("create_backup", False, backup_id, str(e))
+            self._track_backup_performance("create_backup", False, duration, backup_type, 0)
+
+            if console:
+                console.print(f"[red]Failed to create backup: {e}[/red]")
+            raise
     
     async def restore_backup(
         self,
@@ -189,44 +228,72 @@ class BackupManager:
         dry_run: bool = False
     ) -> bool:
         """Restore from a backup."""
-        if backup_id not in self.backups:
+        import time
+        start_time = time.time()
+
+        try:
+            if backup_id not in self.backups:
+                if console:
+                    console.print(f"[red]Backup not found: {backup_id}[/red]")
+                return False
+
+            metadata = self.backups[backup_id]
+            backup_path = self.backup_dir / f"backup_{backup_id}.tar.gz"
+
+            if not backup_path.exists():
+                if console:
+                    console.print(f"[red]Backup file not found: {backup_path}[/red]")
+                return False
+
+            # Verify checksum
+            current_checksum = self._calculate_checksum(backup_path)
+            if current_checksum != metadata.checksum:
+                if console:
+                    console.print(f"[red]Backup checksum mismatch! Possible corruption.[/red]")
+                return False
+
             if console:
-                console.print(f"[red]Backup not found: {backup_id}[/red]")
-            return False
-        
-        metadata = self.backups[backup_id]
-        backup_path = self.backup_dir / f"backup_{backup_id}.tar.gz"
-        
-        if not backup_path.exists():
+                console.print(f"[blue]Restoring backup: {backup_id}[/blue]")
+
+            if dry_run:
+                if console:
+                    console.print("[yellow]Dry run - no changes made[/yellow]")
+                    console.print(f"Would restore: {', '.join(metadata.components)}")
+
+                # **ACTUAL INTEGRATION**: Extract knowledge and track performance for dry run
+                duration = time.time() - start_time
+                self._extract_backup_knowledge("restore_backup", backup_id, metadata)
+                self._track_backup_performance("restore_backup", True, duration, metadata.backup_type, 0)
+
+                return True
+
+            # Extract backup
+            with tarfile.open(backup_path, "r:gz") as tar:
+                # Safety check: don't overwrite without confirmation
+                tar.extractall(".")
+
+            duration = time.time() - start_time
+            size_mb = metadata.size_bytes / (1024 * 1024)
+
+            # **ACTUAL INTEGRATION**: Extract knowledge and track performance for successful restore
+            self._extract_backup_knowledge("restore_backup", backup_id, metadata)
+            self._track_backup_performance("restore_backup", True, duration, metadata.backup_type, size_mb)
+
             if console:
-                console.print(f"[red]Backup file not found: {backup_path}[/red]")
-            return False
-        
-        # Verify checksum
-        current_checksum = self._calculate_checksum(backup_path)
-        if current_checksum != metadata.checksum:
-            if console:
-                console.print(f"[red]Backup checksum mismatch! Possible corruption.[/red]")
-            return False
-        
-        if console:
-            console.print(f"[blue]Restoring backup: {backup_id}[/blue]")
-        
-        if dry_run:
-            if console:
-                console.print("[yellow]Dry run - no changes made[/yellow]")
-                console.print(f"Would restore: {', '.join(metadata.components)}")
+                console.print(f"[green]Backup restored: {backup_id}[/green]")
+
             return True
-        
-        # Extract backup
-        with tarfile.open(backup_path, "r:gz") as tar:
-            # Safety check: don't overwrite without confirmation
-            tar.extractall(".")
-        
-        if console:
-            console.print(f"[green]Backup restored: {backup_id}[/green]")
-        
-        return True
+
+        except Exception as e:
+            duration = time.time() - start_time
+
+            # **ACTUAL INTEGRATION**: Trigger alert and track failure
+            self._trigger_backup_alerts("restore_backup", False, backup_id, str(e))
+            self._track_backup_performance("restore_backup", False, duration, "unknown", 0)
+
+            if console:
+                console.print(f"[red]Failed to restore backup: {e}[/red]")
+            return False
     
     def list_backups(self) -> List[BackupMetadata]:
         """List all backups."""
@@ -295,6 +362,127 @@ class BackupManager:
             )
         
         console.print(table)
+
+    # =========================================================================
+    # ACTUAL INTEGRATION METHODS - Alerting, knowledge, and adaptive for Backup/Restore
+    # =========================================================================
+
+    def _trigger_backup_alerts(
+        self,
+        operation: str,
+        success: bool,
+        backup_id: Optional[str] = None,
+        error: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
+    ):
+        """**ACTUAL INTEGRATION**: Trigger alerts for backup/restore failures."""
+        if not ALERTING_AVAILABLE:
+            return
+
+        try:
+            alert_manager = get_alert_manager()
+
+            # Alert on failures
+            if not success:
+                alert_manager.create_alert(
+                    title=f"Backup/Restore Alert: {operation}",
+                    description=f"Backup/restore operation '{operation}' failed" +
+                                 (f" for backup '{backup_id}'" if backup_id else "") +
+                                 ". " + (f"Error: {error}" if error else ""),
+                    severity=AlertSeverity.HIGH.value,
+                    source="backup_restore",
+                    component="backup_management",
+                    metadata=metadata or {}
+                )
+
+        except Exception as e:
+            if console:
+                console.print(f"[red]Failed to trigger backup/restore alert: {e}[/red]")
+
+    def _extract_backup_knowledge(
+        self,
+        operation: str,
+        backup_id: str,
+        backup_metadata: BackupMetadata
+    ) -> bool:
+        """**ACTUAL INTEGRATION**: Extract backup/restore knowledge to knowledge engine."""
+        if not KNOWLEDGE_AVAILABLE:
+            return False
+
+        try:
+            knowledge_engine = get_knowledge_engine()
+
+            artifact = KnowledgeArtifact(
+                artifact_id=f"backup_{operation}_{backup_id}_{datetime.now().strftime('%Y%m%d_%H%M%S')}",
+                artifact_type="backup_operation",
+                source_component="backup_restore",
+                title=f"Backup Operation: {operation} - {backup_id}",
+                content={
+                    "operation": operation,
+                    "backup_id": backup_id,
+                    "backup_type": backup_metadata.backup_type,
+                    "size_bytes": backup_metadata.size_bytes,
+                    "components": backup_metadata.components,
+                    "description": backup_metadata.description,
+                    "timestamp": datetime.now().isoformat()
+                },
+                metadata={
+                    "paths": backup_metadata.paths,
+                    "checksum": backup_metadata.checksum
+                },
+                tags=["backup", operation, backup_metadata.backup_type]
+            )
+
+            knowledge_engine.store_artifact(artifact)
+            if console:
+                console.print(f"[dim]Extracted backup knowledge for {backup_id}[/dim]")
+            return True
+
+        except Exception as e:
+            if console:
+                console.print(f"[red]Failed to extract backup knowledge: {e}[/red]")
+            return False
+
+    def _track_backup_performance(
+        self,
+        operation: str,
+        success: bool,
+        duration_seconds: float,
+        backup_type: str,
+        size_mb: float = 0.0
+    ):
+        """**ACTUAL INTEGRATION**: Track backup/restore performance in adaptive selector."""
+        if not ADAPTIVE_AVAILABLE:
+            return
+
+        try:
+            tracker = StrategyPerformanceTracker()
+
+            quality = 1.0 if success else 0.0
+
+            performance_data = StrategyPerformanceData(
+                strategy_name=f"backup_restore_{operation}_{backup_type}",
+                success_count=1 if success else 0,
+                failure_count=0 if success else 1,
+                average_quality=quality,
+                last_used=datetime.now(),
+                total_attempts=1,
+                metadata={
+                    "operation": operation,
+                    "duration_seconds": duration_seconds,
+                    "backup_type": backup_type,
+                    "size_mb": size_mb
+                }
+            )
+
+            if hasattr(tracker, 'performance_history'):
+                tracker.performance_history.append(performance_data)
+                if console:
+                    console.print(f"[dim]Tracked backup performance for {operation}[/dim]")
+
+        except Exception as e:
+            if console:
+                console.print(f"[red]Failed to track backup performance: {e}[/red]")
 
 
 # =============================================================================
